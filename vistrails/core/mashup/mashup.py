@@ -254,32 +254,23 @@ layout='%s' geometry='%s' alias_list='%s')@%X" %
         
         """
         if type(self) != type(other):
-            print "type(self) != type(other)", type(self), type(other)
             return False
         if self.name != other.name:
-            print "self.name != other.name"
             return False
         if self.vtid != other.vtid:
-            print "self.vtid != other.vtid"
             return False
         if self.version != other.version:
-            print "self.version != other.version"
             return False
         if self.type != other.type:
-            print "self.type != other.type"
             return False
         if self.layout != other.layout:
-            print "self.layout != other.layout"
             return False
         if self.geometry != other.geometry:
-            print "self.geometry != other.geometry"
             return False
         if len(self.alias_list) != len(other.alias_list):
-            print "len(self.alias_list) != len(other.alias_list)"
             return False
         for p,q in zip(self.alias_list, other.alias_list):
             if p != q:
-                print "p != q", p, q
                 return False
         return True
 

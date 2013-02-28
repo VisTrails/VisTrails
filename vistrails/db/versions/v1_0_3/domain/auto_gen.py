@@ -8463,7 +8463,6 @@ class DBMashupAction(object):
         return DBMashupAction.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        print "do_copy", new_ids, id_scope, id_remap
         cp = DBMashupAction(id=self._db_id,
                             prevId=self._db_prevId,
                             date=self._db_date,
@@ -8474,7 +8473,6 @@ class DBMashupAction(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            print "new id:", new_id, id_scope
             if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:

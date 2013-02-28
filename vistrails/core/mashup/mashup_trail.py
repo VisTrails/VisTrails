@@ -44,12 +44,15 @@ from db.domain import IdScope
 class Mashuptrail(DBMashuptrail):
     """ MashupTrail is a class that stores versions of Mashups.
     For now it keeps a linear history."""
-    def __init__(self, id, vt_version):
+    def __init__(self, id, vt_version, id_scope=None):
         DBMashuptrail.__init__(self, id, version="", vtVersion=vt_version)
         self.db_actions = []
         self.currentVersion = -1
         self.db_annotations = []
-        self.id_scope = IdScope(1L)
+        if not id_scope:
+            self.id_scope = IdScope(1L)
+        else:
+            self.id_scope = id_scope
         
     id = DBMashuptrail.db_id
     vtVersion = DBMashuptrail.db_vtVersion
@@ -93,6 +96,7 @@ class Mashuptrail(DBMashuptrail):
         cp.__class__ = Mashuptrail        
         
         cp.currentVersion = self.currentVersion        
+        cp.id_scope = IdScope(1L)
         cp.updateIdScope()
         return cp
     
@@ -174,7 +178,7 @@ class Mashuptrail(DBMashuptrail):
         return tagMap
     
     def addActionAnnotation(self, action_id, key, value, user, date):
-        id = self.id_scope.getNewId("actionAnnotation")
+        id = self.id_scope.getNewId("mashup_actionAnnotation")
         annot = ActionAnnotation(id=id, action_id=action_id, key=key,
                                  value=value, user=user, date=date)
         self.annotations.append(annot)
@@ -240,11 +244,11 @@ class Mashuptrail(DBMashuptrail):
     ##      
     def updateIdScope(self):
         for action in self.actions:
-            self.id_scope.updateBeginId('action', action.id+1)
+            self.id_scope.updateBeginId('mashup_action', action.id+1)
             for alias in action.mashup.alias_list:
-                self.id_scope.updateBeginId('alias', alias.id+1)
-                self.id_scope.updateBeginId('component', alias.component.id+1)
+                self.id_scope.updateBeginId('mashup_alias', alias.id+1)
+                self.id_scope.updateBeginId('mashup_component', alias.component.id+1)
         for annotation in self.annotations:
-            self.id_scope.updateBeginId('actionAnnotation', annotation.id+1)
+            self.id_scope.updateBeginId('mashup_actionAnnotation', annotation.id+1)
         
 
