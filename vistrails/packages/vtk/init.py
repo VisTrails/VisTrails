@@ -1409,7 +1409,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 # Define DAT plots
 try:
     from dat.packages import Plot, DataPort, \
-        Variable, FileVariableLoader, \
+        Variable, FileVariableLoader, VariableOperation, OperationArgument, \
         translate
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
@@ -1419,8 +1419,9 @@ else:
     _ = translate('packages.vtk')
 
     # Builds a DAT variable from a data file
+    dataset_type = 'edu.utah.sci.vistrails.vtk:vtkAlgorithmOutput'
     def build_variable(filename):
-        var = Variable(type='edu.utah.sci.vistrails.vtk:vtkAlgorithmOutput')
+        var = Variable(type=dataset_type)
         # We use the high-level interface to build the variable pipeline
         file_mod = var.add_module(File)
         file_mod.add_function('name', String, filename)
@@ -1438,7 +1439,7 @@ else:
         Plot(name="VTK Render",
              subworkflow='{package_dir}/dat-plots/vtk_render.xml',
              description=_("Renders a VTK dataset"),
-             ports=[DataPort(name='dataset', type='vtkAlgorithmOutput')])
+             ports=[DataPort(name='dataset', type=dataset_type)])
     ]
 
     ########################################
@@ -1469,3 +1470,25 @@ else:
     _variable_loaders = {
             DatasetLoader: _("VTK dataset"),
     }
+
+    ########################################
+    # Defines variable operations
+    #
+    def op_append_datasets(op1, op2):
+        new_var = Variable(type=dataset_type)
+        mod = new_var.add_module('vtkAppendFilter')
+        op1.connect_to(mod, 'AddInputConnection')
+        op2.connect_to(mod, 'AddInputConnection')
+        new_var.select_output_port(mod, 'GetOutputPort0')
+        return new_var
+
+    _variable_operations = [
+        VariableOperation(
+            '+',
+            callback=op_append_datasets,
+            args=[
+                OperationArgument('op1', dataset_type),
+                OperationArgument('op2', dataset_type),
+            ],
+            return_type=dataset_type),
+    ]

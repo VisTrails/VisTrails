@@ -35,7 +35,8 @@
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
-from vistrails.core.modules.basic_modules import Color, File, String, Boolean, Integer
+from vistrails.core.modules.basic_modules import Boolean, Color, File, Float, \
+    Integer, String
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from plot import MplPlot, MplPlotConfigurationWidget
 import time
@@ -233,7 +234,8 @@ _modules = [MplScatterplot, MplHistogram, NumPyArray]
 # Define DAT plots
 try:
     from dat.packages import Plot, DataPort, ConstantPort, Variable, \
-        FileVariableLoader, translate
+        FileVariableLoader, VariableOperation, OperationArgument, \
+        translate
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:
@@ -334,3 +336,18 @@ else:
     _variable_loaders = {
             NumPyArrayLoader: _("NumPy array"),
     }
+
+    ########################################
+    # Defines variable operations
+    #
+    _variable_operations = [
+        VariableOperation(
+            '*',
+            subworkflow='{package_dir}/dat-operations/scale_array.xml',
+            args=[
+                OperationArgument('array', NumPyArray),
+                OperationArgument('num', Float),
+            ],
+            return_type=NumPyArray,
+            symmetric=True),
+    ]
