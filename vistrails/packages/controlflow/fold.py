@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
-    ModuleConnector, InvalidOutput
+    ModuleConnector, InvalidOutput, ModuleSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
      File, NotCacheable, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
@@ -98,7 +98,7 @@ class Fold(Module, NotCacheable):
                 inputList.append([element])
             else:
                 inputList.append(element)
-
+        suspended = []
         ## Update everything for each value inside the list
         for i in xrange(len(inputList)): 
             element = inputList[i]
@@ -127,13 +127,21 @@ class Fold(Module, NotCacheable):
 
                     self.setInputValues(connector.obj, nameInput, element)
                 connector.obj.update()
-                
+                if hasattr(connector.obj, 'suspended') and \
+                   connector.obj.suspended:
+                    suspended.append(connector.obj._module_suspended)
+                    connector.obj.suspended = False
+                    continue
                 ## Getting the result from the output port
                 if nameOutput not in connector.obj.outputPorts:
                     raise ModuleError(connector.obj,\
                                       'Invalid output port: %s'%nameOutput)
                 self.elementResult = connector.obj.get_output(nameOutput)
             self.operation()
+        if suspended:
+            self.suspended = "%s module(s) suspended: %s" % \
+                               (len(suspended), suspended[0].msg)
+            self._module_suspended = suspended
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -210,7 +218,8 @@ class Fold(Module, NotCacheable):
             for element in self.getInputFromPort('InputList'):
                 self.element = element
                 self.operation()
-
+        if self.suspended:
+            raise ModuleSuspended(self, self.suspended, children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
     def setInitialValue(self):

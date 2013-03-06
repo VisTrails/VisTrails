@@ -72,7 +72,9 @@ class QCellWidget(QtGui.QWidget):
         self._playerTimer.setSingleShot(True)
         self._currentFrame = 0
         self._playing = False
-        self._capturingEnabled = False
+        # cell can be captured if it re-implements saveToPNG
+        self._capturingEnabled = type(self) is not QCellWidget and \
+                                 'saveToPNG' in  type(self).__dict__
         self.connect(self._playerTimer,
                      QtCore.SIGNAL('timeout()'),
                      self.playNextFrame)
@@ -89,9 +91,10 @@ class QCellWidget(QtGui.QWidget):
             self.clearHistory()
         
     def saveToPNG(self, filename):
-        """ saveToPNG(filename: str) -> None        
+        """ saveToPNG(filename: str) -> Bool       
         Abtract function for saving the current widget contents to an
         image file
+        Returns True when succesful
         
         """
         debug.critical('saveToPNG() is unimplemented by the inherited cell')
@@ -279,7 +282,7 @@ class QCellToolBar(QtGui.QToolBar):
         override.
         
         """
-        pass
+        self.addAnimationButtons()
 
     def snapTo(self, row, col):
         """ snapTo(row, col) -> None
@@ -509,6 +512,17 @@ class QCellToolBarCaptureToHistory(QtGui.QAction):
         self.toolBar.updateToolBar()
         self.toolBar.show()
         
+    def updateStatus(self, info):
+        """ updateStatus(info: tuple) -> None
+        Updates the status of the button based on the input info
+        
+        """
+        (sheet, row, col, cellWidget) = info
+        if cellWidget:
+            self.setVisible(cellWidget._capturingEnabled)
+        else:
+            self.setVisible(False)
+
 ################################################################################
         
 class QCellToolBarPlayHistory(QtGui.QAction):
@@ -552,6 +566,7 @@ class QCellToolBarPlayHistory(QtGui.QAction):
         """
         (sheet, row, col, cellWidget) = info
         if cellWidget:
+            self.setVisible(cellWidget._capturingEnabled)
             newStatus = int(cellWidget._playing)
             if newStatus!=self.status:
                 self.status = newStatus
@@ -559,6 +574,8 @@ class QCellToolBarPlayHistory(QtGui.QAction):
                 self.setToolTip(self.toolTips[self.status])
                 self.setStatusTip(self.statusTips[self.status])
             self.setEnabled(len(cellWidget._historyImages)>0)
+        else:
+            self.setVisible(False)
 
 ################################################################################
             
@@ -596,8 +613,11 @@ class QCellToolBarClearHistory(QtGui.QAction):
         """
         (sheet, row, col, cellWidget) = info
         if cellWidget:
+            self.setVisible(cellWidget._capturingEnabled)
             self.setEnabled((len(cellWidget._historyImages)>0
                              and cellWidget._playing==False))
+        else:
+            self.setVisible(False)
 
 ################################################################################
 

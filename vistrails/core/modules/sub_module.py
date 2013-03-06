@@ -43,7 +43,7 @@ from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
 from vistrails.core.modules.basic_modules import String, Boolean, Variant, NotCacheable
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError
+    ModuleError, ModuleSuspended
 from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 import vistrails.db
@@ -54,7 +54,6 @@ try:
 except ImportError:
     import sha
     sha_hash = sha.new
-
 
 ##############################################################################
 
@@ -81,6 +80,7 @@ class Group(Module):
     def __init__(self):
         Module.__init__(self)
         self.is_group = True
+        self.persistent_modules = []
 
     def compute(self):
         if not hasattr(self, 'pipeline') or self.pipeline is None:
@@ -120,6 +120,12 @@ class Group(Module):
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n '.join(me.module.__class__.__name__ + ': ' + \
                                             me.msg for me in res[2].itervalues()))
+        if len(res[4]) > 0:
+            # extract messages and previous ModuleSuspended exceptions
+            message = '\n'.join([msg for msg in res[4].itervalues()])
+            children = [tmp_id_to_module_map[module_id]._module_suspended
+                        for module_id in res[4]]
+            raise ModuleSuspended(self, message, children=children)
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
