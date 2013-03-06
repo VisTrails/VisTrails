@@ -137,16 +137,16 @@ class DefaultTheme(object):
         #### BRUSH & PEN ####
         # Background brush of the pipeline view
         # self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
         #                  '/gui/resources/images/pipeline_bg.png'))
         #     #QtGui.QColor("white"))
         # # Background brush of the version tree
         # self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
         #                  '/gui/resources/images/version_bg.png'))
         # Background brush of the query pipeline view
         # self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
         #                  '/gui/resources/images/query_bg.png'))
         self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QColor(128, 128, 128))
@@ -645,6 +645,17 @@ class DefaultTheme(object):
         self.MASHUP_ALIAS_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/alias.png')
+
+        # Job View Icons
+        self.JOB_SCHEDULED = QtGui.QIcon(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/appointment-new.png')
+        self.JOB_FINISHED = QtGui.QIcon(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/emblem-important.png')
+        self.JOB_CHECKING = QtGui.QIcon(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/view-refresh.png')
         
         # Saved Queries icons
         self.QUERY_VIEW_ICON = self.ZOOM_ICON

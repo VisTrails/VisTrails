@@ -860,20 +860,17 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-        self.connect(self, 
-                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
-                                   "QTreeWidgetItem*)"),
-                     self.item_changed)
-
         self.connect(self,
                      QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
                      self.item_selected)
+        
         self.setIconSize(QtCore.QSize(16,16))
 
         self.connect(self,
                      QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
                      self.onItemPressed)
         self.updateHideExecutions()
+        self.connect_current_changed()
 
     def setup_closed_files(self):
         self.closedFilesItem = QtGui.QTreeWidgetItem(['My Vistrails'])
@@ -891,6 +888,19 @@ class QVistrailList(QtGui.QTreeWidget):
             item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
             
+
+    def connect_current_changed(self):
+        self.connect(self, 
+                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
+                                   "QTreeWidgetItem*)"),
+                     self.item_changed)
+
+    def disconnect_current_changed(self):
+        self.disconnect(self, 
+                        QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
+                                      "QTreeWidgetItem*)"),
+                        self.item_changed)
+    
     def show_search_results(self):
         self.searchResultsItem = QtGui.QTreeWidgetItem(['Search Results'])
         self.addTopLevelItem(self.searchResultsItem)
@@ -1461,8 +1471,7 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSelected(vistrail_window)
 
     def setSelected(self, view):
-        for item in self.selectedItems():
-            item.setSelected(False)
+        self.disconnect_current_changed()
 
         def setBold(parent_item):
             for i in xrange(parent_item.childCount()):
@@ -1473,13 +1482,14 @@ class QVistrailList(QtGui.QTreeWidget):
                 item.setFont(0, font)
                 if window:
                     item.setText(0, window.get_name())
-                # item.setSelected(view == item.window 
-                #                  if window and view else False)
+                if window and view and view == window:
+                    self.setCurrentItem(item)
                 
         if not self.openFilesItem.isHidden():
             setBold(self.openFilesItem)
         elif self.searchMode:
             setBold(self.searchResultsItem)
+        self.connect_current_changed()
             
     def item_changed(self, item, prev_item):
         if not item:

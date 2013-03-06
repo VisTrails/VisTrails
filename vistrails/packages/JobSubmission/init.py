@@ -172,7 +172,7 @@ def joboperation_compute(self):
         self.annotate(self.anno_dict)
 
         if isinstance(ret, FunctionMessage) and ret.code != 0:
-            raise ModuleSuspended(self, ret.message) if ret.code > 0 \
+            raise ModuleSuspended(self, ret.message, queue) if ret.code > 0 \
                 else ModuleError(self,ret.message)
 
         self.setResult("job", job)

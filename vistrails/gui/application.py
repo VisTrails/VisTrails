@@ -343,6 +343,7 @@ parameters from other instances")
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
+        self.builderWindow.check_running_jobs()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
