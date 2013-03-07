@@ -474,13 +474,18 @@ class ColorChooserButton(QtGui.QFrame):
     def __init__(self, parent=None):
         QtGui.QFrame.__init__(self, parent)
         self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
-        self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
         self.setColor(QtGui.QColor(255,255,255))
         self.setFixedSize(30,22)
         if system.systemType == 'Darwin':
-            #the mac's nice look messes up with the colors
+            # Mac OS's style messes up with the colors
             self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
+        else:
+            # The documentation states: "on Mac OS X, setting this flag has no
+            # effect"
+            # But apparently, setting it can cause issue if that component is
+            # in the spreadsheet...
+            self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
 
     def setColor(self, qcolor, silent=True):
         self.qcolor = qcolor
