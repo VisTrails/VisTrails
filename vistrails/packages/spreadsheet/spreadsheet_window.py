@@ -63,12 +63,16 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     """
 
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(),
-                 menuBar=None, swflags=spreadsheet_flags.DEFAULTS):
+                 menuBar=None, swflags=spreadsheet_flags.DEFAULTS,
+                 close_tab_action=None):
         """ SpreadsheetWindow(parent: QWidget, f: WindowFlags,
-                menuBar: QMenuBar, flags: int))
+                menuBar: QMenuBar, swflags: int, close_tab_action: function))
             -> SpreadsheetWindow
         Layout menu, status bar and tab widget
-        
+
+        close_tab_action will be called before a tab is closed. It will receive
+        the tab, and should return True to allow the close and False to cancel
+        it.
         """
         QtGui.QMainWindow.__init__(self, parent, f)
         self.createEventMap()
@@ -77,7 +81,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
             self.stackedCentralWidget,
-            swflags=swflags)
+            swflags=swflags,
+            close_tab_action=close_tab_action)
         self.stackedCentralWidget.addWidget(self.tabController)
         self.fullScreenStackedWidget = QtGui.QStackedWidget(
             self.stackedCentralWidget)
@@ -132,7 +137,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.file_pool.cleanup()
 
     def setupMenu(self, menuBar=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ setupMenu() -> None
+        """ setupMenu(menuBar: QMenuBar, swflags: int) -> None
         Add all available actions to the menu bar
 
         """

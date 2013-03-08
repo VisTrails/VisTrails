@@ -91,7 +91,8 @@ class StandardWidgetToolBar(QtGui.QToolBar):
     
     """
     def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ StandardWidgetToolBar(parent: QWidget) -> StandardWidgetToolBar
+        """ StandardWidgetToolBar(parent: QWidget, swflags: int)
+                -> StandardWidgetToolBar
         Init the toolbar with default actions
         
         """
@@ -601,7 +602,8 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
             swflags=spreadsheet_flags.DEFAULTS):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
-                                col: int) -> StandardWidgetSheet
+                                col: int,
+                                swflags: int) -> StandardWidgetSheet
         Initialize with a toolbar and a sheet widget
                                 
         """
@@ -880,7 +882,8 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     
     """
     def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar
+        """ StandardWidgetTabBar(parent: QWidget, swflags: int)
+                -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
         
         """

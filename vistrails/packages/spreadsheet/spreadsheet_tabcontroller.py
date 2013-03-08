@@ -63,9 +63,10 @@ class StandardWidgetTabController(QtGui.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
-    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ StandardWidgetTabController(parent: QWidget)
-                                        -> StandardWidgetTabController
+    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS,
+            close_tab_action=None):
+        """ StandardWidgetTabController(parent: QWidget, swflags: int)
+                -> StandardWidgetTabController
         Initialize signals/slots and widgets for the tab bar
         
         """
@@ -116,8 +117,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
             self.closeButton.setAutoRaise(True)
             self.setCornerWidget(self.closeButton)
+            def close_veto():
+                if (close_tab_action is None or
+                        close_tab_action(self.currentWidget())):
+                    self.deleteSheetAction().trigger()
             self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
-                         self.deleteSheetAction().trigger)
+                         close_veto)
         
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean
