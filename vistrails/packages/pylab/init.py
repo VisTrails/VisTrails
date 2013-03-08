@@ -235,7 +235,7 @@ _modules = [MplScatterplot, MplHistogram, NumPyArray]
 try:
     from dat.packages import Plot, DataPort, ConstantPort, Variable, \
         FileVariableLoader, VariableOperation, OperationArgument, \
-        translate
+        translate, derive_varname
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:
@@ -259,7 +259,7 @@ else:
     # Defines a plot from a subworkflow file
     #
     _plots = [
-        Plot(name="MplHistogramPlot",
+        Plot(name="Matplotlib histogram",
              subworkflow='{package_dir}/dat-plots/histogram.xml',
              description=_("Build a histogram out of a numpy array"),
              ports=[
@@ -315,6 +315,8 @@ else:
         def __init__(self, filename):
             FileVariableLoader.__init__(self)
             self.filename = filename
+            self._varname = derive_varname(filename, remove_ext=True,
+                                          remove_path=True, prefix="nparray_")
 
             self._format_field = QtGui.QComboBox()
             for label, dtype in NumPyArrayLoader.FORMATS:
@@ -331,7 +333,7 @@ else:
                             self._format_field.currentIndex()][1])
 
         def get_default_variable_name(self):
-            return "numpy_array"
+            return self._varname
 
     _variable_loaders = {
             NumPyArrayLoader: _("NumPy array"),

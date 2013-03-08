@@ -1410,7 +1410,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 try:
     from dat.packages import Plot, DataPort, \
         Variable, FileVariableLoader, VariableOperation, OperationArgument, \
-        translate
+        translate, derive_varname
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:
@@ -1455,6 +1455,8 @@ else:
         def __init__(self, filename):
             FileVariableLoader.__init__(self)
             self.filename = filename
+            self._varname = derive_varname(filename, remove_ext=True,
+                                          remove_path=True, prefix="vtk_")
 
             layout = QtGui.QVBoxLayout()
             layout.addWidget(
@@ -1465,7 +1467,7 @@ else:
             return build_variable(self.filename)
 
         def get_default_variable_name(self):
-            return "vtk_dataset"
+            return self._varname
 
     _variable_loaders = {
             DatasetLoader: _("VTK dataset"),

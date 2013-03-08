@@ -426,10 +426,11 @@ try:
     from dat.packages import Plot, DataPort, \
         Variable, \
         CustomVariableLoader, FileVariableLoader, \
-        translate
+        translate, derive_varname
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
 else:
+    import re
     from PyQt4 import QtGui
 
     basic = vistrails.core.modules.basic_modules
@@ -490,6 +491,9 @@ else:
         This loader will appear in the 'File' tab if the selected file has a
         matching extension.
         """
+        _hostname = re.compile(
+                r'^(?:[A-Za-z]{1,20}://)?([A-Za-z0-9_.-]+)(?:/.+)?$')
+
         @classmethod
         def can_load(cls, filename):
             return filename.lower().endswith('.url')
@@ -497,6 +501,13 @@ else:
         def __init__(self, filename):
             FileVariableLoader.__init__(self)
             self.filename = filename
+            with open(filename, 'r') as fp:
+                contents = fp.read().strip()
+            varname = FileLoader._hostname.match(contents)
+            if varname is None:
+                self._varname = "file_url"
+            else:
+                self._varname = derive_varname(varname.group(1), prefix="url_")
 
             layout = QtGui.QVBoxLayout()
             layout.addWidget(
@@ -509,7 +520,7 @@ else:
             return build_variable(url)
 
         def get_default_variable_name(self):
-            return "file_url"
+            return self._varname
 
     _variable_loaders = {
             DirectInputLoader: _("URL from direct input"),
