@@ -809,8 +809,8 @@ class QVistrailList(QtGui.QTreeWidget):
         self.search = None
         self.setColumnCount(1)
         self.setHeaderHidden(True)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionBehavior(self.SelectItems)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
@@ -860,18 +860,26 @@ class QVistrailList(QtGui.QTreeWidget):
                     self.collection.delete_entity(entity)
                     continue
             self.closedFilesItem.addChild(QVistrailEntityItem(entity))
-            
 
     def connect_current_changed(self):
+        # using currentItemChanged makes sure a drag selects the dragged-from
+        # vistrail
         self.connect(self, 
                      QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
                                    "QTreeWidgetItem*)"),
+                     self.item_changed)
+        # using item_clicked makes sure even selected items can be clicked
+        self.connect(self, 
+                     QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
                      self.item_changed)
 
     def disconnect_current_changed(self):
         self.disconnect(self, 
                         QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
                                       "QTreeWidgetItem*)"),
+                        self.item_changed)
+        self.disconnect(self, 
+                        QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
                         self.item_changed)
     
     def show_search_results(self):
@@ -1401,9 +1409,11 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSelected(vistrail_window)
 
     def setSelected(self, view):
+        """ Highlights the vistrail item for the selected item"""
         self.disconnect_current_changed()
 
         def setBold(parent_item):
+            """ """
             for i in xrange(parent_item.childCount()):
                 item = parent_item.child(i)
                 font = item.font(0)
@@ -1412,8 +1422,6 @@ class QVistrailList(QtGui.QTreeWidget):
                 item.setFont(0, font)
                 if window:
                     item.setText(0, window.get_name())
-                if window and view and view == window:
-                    self.setCurrentItem(item)
                 
         if not self.openFilesItem.isHidden():
             setBold(self.openFilesItem)
