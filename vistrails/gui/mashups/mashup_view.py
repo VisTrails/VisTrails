@@ -44,9 +44,9 @@ class QMashupView(QtGui.QMainWindow, BaseView):
     #signals
     #mashupChanged = pyqtSignal()
     
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(), ui_hooks=None):
         QtGui.QMainWindow.__init__(self, parent, f)
-        BaseView.__init__(self)
+        BaseView.__init__(self, ui_hooks=ui_hooks)
         self.set_title("Mashup")
         
         self.controller = None

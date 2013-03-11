@@ -3086,13 +3086,13 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ QPipelineView(parent: QWidget) -> QPipelineView
         Initialize the graphics view and its properties
         
         """
         QInteractiveGraphicsView.__init__(self, parent)
-        BaseView.__init__(self)
+        BaseView.__init__(self, ui_hooks=ui_hooks)
         self.setScene(QPipelineScene(self))
         self.set_title('Pipeline')
         self.controller = None

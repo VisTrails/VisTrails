@@ -53,12 +53,13 @@ from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QGraphicsItemInterface,
                                QGraphicsRubberBandItem)
 from vistrails.gui.qt import qt_super
-from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.theme import CurrentTheme, OverriddenTheme
 from vistrails.gui.version_prop import QVersionPropOverlay
 from vistrails.gui.vis_diff import QVisualDiff
 from vistrails.gui.collection.workspace import QParamExplorationEntityItem
 import vistrails.gui.utils
 import math
+import warnings
 
 
 ################################################################################
@@ -389,31 +390,38 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 # QGraphicsVersionItem
 
 
-class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
+class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QAbstractGraphicsShapeItem):
     """
     QGraphicsVersionItem is the version shape holding version id and
     label
-    
+
     """
-    def __init__(self, parent=None, scene=None):
+    def __init__(self, parent=None, scene=None, ui_hooks=None):
         """ QGraphicsVersionItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsVersionItem
         Create the shape, initialize its pen and brush accordingly
-        
+
         """
-        QtGui.QGraphicsEllipseItem.__init__(self, parent, scene)
+        QtGui.QAbstractGraphicsShapeItem.__init__(self, parent, scene)
+        self.shape_rect = QtCore.QRectF(0.0, 0.0, 20.0, 20.0)
         self.setZValue(1)
         self.setAcceptDrops(True)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-        self._versionPenNormal = CurrentTheme.VERSION_PEN
-        self._versionPen = CurrentTheme.VERSION_PEN
-        self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
+        if ui_hooks is None:
+            self.ui_hooks = dict()
+        else:
+            self.ui_hooks = ui_hooks
+        # Default ; theme will be overridden using the 'version_node_theme'
+        # hook when setupVersion() is called
+        self._theme = CurrentTheme
+        self._versionPenNormal = self._theme.VERSION_PEN
+        self.versionPen = self._theme.VERSION_PEN
+        self.versionBrush = self._theme.VERSION_USER_BRUSH
         self.id = -1
         self.label = ''
         self.descriptionLabel = ''
         self.dragging = False
         self.ghosted = False
-        self.updatePainterState()
 
         # self.rank is a positive number that determines the
         # saturation of the node. Two version nodes might have the
@@ -434,29 +442,14 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
         self.dragPos = QtCore.QPoint()
 
-    def _get_versionPen(self):
-        return self._versionPen
-    def _set_versionPen(self, pen):
-        self._versionPen = pen
-        self.updatePainterState()
-    versionPen = property(_get_versionPen, _set_versionPen)
-
-    def _get_versionBrush(self):
-        return self._versionBrush
-    def _set_versionBrush(self, brush):
-        self._versionBrush = brush
-        self.updatePainterState()
-    versionBrush = property(_get_versionBrush, _set_versionBrush)
-
     def itemChange(self, change, value):
         if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
             if self.isSelected():
-                self.versionPen = CurrentTheme.VERSION_SELECTED_PEN
+                self.versionPen = self._theme.VERSION_SELECTED_PEN
                 self.text.setEditableLater()
             else:
                 self.versionPen = self._versionPenNormal
                 self.text.setEditable(False)
-            self.updatePainterState()
         return QtGui.QGraphicsItem.itemChange(self, change, value)
 
     def setGhosted(self, ghosted=True):
@@ -468,14 +461,13 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             self.ghosted = ghosted
             self.text.setGhosted(ghosted)
             if ghosted:
-                self._versionPenNormal = CurrentTheme.GHOSTED_VERSION_PEN
-                self._versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
+                self._versionPenNormal = self._theme.GHOSTED_VERSION_PEN
+                self.versionBrush = self._theme.GHOSTED_VERSION_USER_BRUSH
             else:
-                self._versionPenNormal = CurrentTheme.VERSION_PEN
-                self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
+                self._versionPenNormal = self._theme.VERSION_PEN
+                self.versionBrush = self._theme.VERSION_USER_BRUSH
             if not self.isSelected():
-                self._versionPen = self._versionPenNormal
-            self.updatePainterState()
+                self.versionPen = self._versionPenNormal
 
     def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
         """ update_color(isThisUs: bool,
@@ -495,25 +487,25 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.max_rank = new_max_rank
         if not self.ghosted:
             if isThisUs:
-                brush = CurrentTheme.VERSION_USER_BRUSH
+                brush = self._theme.VERSION_USER_BRUSH
             else:
-                brush = CurrentTheme.VERSION_OTHER_BRUSH
+                brush = self._theme.VERSION_OTHER_BRUSH
             sat = float(new_rank+1) / new_max_rank
             (h, s, v, a) = brush.color().getHsvF()
             newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
             self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
-                
+
     def setSaturation(self, isThisUser, sat):
-        """ setSaturation(isThisUser: bool, sat: float) -> None        
+        """ setSaturation(isThisUser: bool, sat: float) -> None
         Set the color of this version depending on whose is the user
         and its saturation
         
         """
         if not self.ghosted:
             if isThisUser:
-                brush = CurrentTheme.VERSION_USER_BRUSH
+                brush = self._theme.VERSION_USER_BRUSH
             else:
-                brush = CurrentTheme.VERSION_OTHER_BRUSH
+                brush = self._theme.VERSION_OTHER_BRUSH
 
             (h, s, v, a) = brush.color().getHsvF()
             newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
@@ -524,13 +516,13 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         Change the width of the ellipse based on a temporary change in the label
 
         """
-        prevWidth = self.rect().width()
+        prevWidth = self.shape_rect.width()
         width = self.text.boundingRect().width() + \
-            CurrentTheme.VERSION_LABEL_MARGIN[0] - 4
-        r = self.rect()
+            self._theme.VERSION_LABEL_MARGIN[0] - 4
+        r = self.shape_rect
         r.setX(r.x()+(prevWidth-width)/2.0)
         r.setWidth(width)
-        self.setRect(r)
+        self.shape_rect = r
         self.update()
 
     def setupVersion(self, node, action, tag, description):
@@ -579,23 +571,34 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             fname = ThumbnailCache.getInstance().get_abs_name_entry(action.thumbnail)
             self.setToolTip('<img src="%s" height="128" border="1"/>'%fname)
         else:
-            self.setToolTip('')    
+            self.setToolTip('')
         self.text.changed(node.p.x, node.p.y, textToDraw, validLabel)
-        self.setRect(rect)
+        self.shape_rect = rect
+
+        try:
+            hook = self.ui_hooks['version_node_theme']
+        except KeyError:
+            self._theme = CurrentTheme
+        else:
+            self._theme = OverriddenTheme(hook(node, action, tag, description))
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
         Add a padded space to avoid un-updated area
         """
-        return self.rect().adjusted(-2, -2, 2, 2)
+        return self.shape_rect.adjusted(-2, -2, 2, 2)
 
     def paint(self, painter, option, widget=None):
-        option.state &= ~QtGui.QStyle.State_Selected
-        QtGui.QGraphicsEllipseItem.paint(self, painter, option, widget)
-
-    def updatePainterState(self):
-        self.setPen(self._versionPen)
-        self.setBrush(self._versionBrush)
+        painter.setPen(self.versionPen)
+        painter.setBrush(self.versionBrush)
+        shape = self._theme.VERSION_SHAPE
+        if shape == 'rectangle':
+            painter.drawRect(self.shape_rect)
+        else: # shape == 'ellipse':
+            if shape != 'ellipse':
+                warnings.warn("Unknown shape requested for version node: "
+                              "%r" % shape)
+            painter.drawEllipse(self.shape_rect)
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
@@ -605,10 +608,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if event.button()==QtCore.Qt.LeftButton:
             self.dragging = True
             self.dragPos = QtCore.QPoint(event.screenPos())
-        return QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
-        
+        return super(QGraphicsVersionItem, self).mousePressEvent(event)
+
     def mouseMoveEvent(self, event):
-        """ mouseMoveEvent(event: QMouseEvent) -> None        
+        """ mouseMoveEvent(event: QMouseEvent) -> None
         Now set the timer preparing for dragging. Must use a timer in
         junction with QDrag in order to avoid problem updates stall of
         QGraphicsView, especially on Linux
@@ -622,8 +625,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 self.dragTimer.start(1)
             else:
                 self.startDrag()
-        QtGui.QGraphicsEllipseItem.mouseMoveEvent(self, event)
-        # super(QGraphicsVersionItem, self).mouseMoveEvent(event)
+        super(QGraphicsVersionItem, self).mouseMoveEvent(event)
 
     def startDrag(self):
         """ startDrag() -> None
@@ -641,10 +643,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
         Cancel the drag
-        
+
         """
         self.dragging = False
-        QtGui.QGraphicsEllipseItem.mouseReleaseEvent(self, event)
+        super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -744,7 +746,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         menu.exec_(event.screenPos())
 
     def mouseDoubleClickEvent(self, event):
-        # QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
+        # super(QGraphicsVersionItem, self).mouseDoubleClickEvent(event)
         event.accept()
         self.scene().double_click(self.id)
 
@@ -756,7 +758,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
     
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ QVersionTree(parent: QWidget) -> QVersionTree
         Initialize the graphics scene with no shapes
         
@@ -764,6 +766,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         QInteractiveGraphicsScene.__init__(self, parent)
         self.setBackgroundBrush(CurrentTheme.VERSION_TREE_BACKGROUND_BRUSH)
         self.setSceneRect(QtCore.QRectF(-5000, -5000, 10000, 10000))
+        if ui_hooks is None:
+            self.ui_hooks = dict()
+        else:
+            self.ui_hooks = ui_hooks
         self.versions = {}  # id -> version gui object
         self.edges = {}     # (sourceVersion, targetVersion) -> edge gui object
         self.controller = None
@@ -782,7 +788,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         Add a module to the scene.
         
         """
-        versionShape = QGraphicsVersionItem(None)
+        versionShape = QGraphicsVersionItem(None, ui_hooks=self.ui_hooks)
         versionShape.setupVersion(node, action, tag, description)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
@@ -1122,16 +1128,16 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ QVersionTreeView(parent: QWidget) -> QVersionTreeView
         Initialize the graphics view and its properties
         
         """
         QInteractiveGraphicsView.__init__(self, parent)
-        BaseView.__init__(self)
+        BaseView.__init__(self, ui_hooks=ui_hooks)
         self.controller = None
         self.set_title('Version Tree')
-        self.setScene(QVersionTreeScene(self))
+        self.setScene(QVersionTreeScene(self, ui_hooks=ui_hooks))
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
         self._view_fitted = False

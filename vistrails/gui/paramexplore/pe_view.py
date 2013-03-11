@@ -43,9 +43,9 @@ from vistrails.core import debug
 class QParamExploreView(QParameterExplorationWidget, BaseView):
     explorationId = 0
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QParameterExplorationWidget.__init__(self, parent)
-        BaseView.__init__(self)
+        BaseView.__init__(self, ui_hooks=ui_hooks)
 
         self.set_title("Explore")
         self.connect(self.table,

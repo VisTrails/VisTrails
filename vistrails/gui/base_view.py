@@ -41,7 +41,12 @@ class BaseView(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, ui_hooks=None):
+        if ui_hooks is None:
+            self.ui_hooks = dict()
+        else:
+            self.ui_hooks = ui_hooks
+
         self.controller = None
         self.title = None
         self.index = -1

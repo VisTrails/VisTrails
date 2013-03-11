@@ -402,9 +402,9 @@ class QQueryView(QtGui.QWidget, BaseView):
                 (QueryController.LEVEL_VISTRAIL, VERSION_RESULT_VIEW),
                 (QueryController.LEVEL_WORKFLOW, WORKFLOW_RESULT_VIEW)])
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
-        BaseView.__init__(self)
+        BaseView.__init__(self, ui_hooks=ui_hooks)
         self.build_widget()
         self.set_title("Search")
 

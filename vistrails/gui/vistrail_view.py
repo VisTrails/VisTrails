@@ -74,7 +74,8 @@ class QVistrailView(QtGui.QWidget):
     for manipulating vistrails.
     """
     def __init__(self, vistrail, locator=None, abstraction_files=None,
-                 thumbnail_files=None, mashups=None, parent=None):
+                 thumbnail_files=None, mashups=None, parent=None,
+                 ui_hooks=None):
         """ QVistrailView(parent: QWidget) -> QVistrailView
         
         """
@@ -110,7 +111,7 @@ class QVistrailView(QtGui.QWidget):
         # Create the initial views
         self.version_view = None
         pipeline_view = self.create_pipeline_view()
-        self.version_view = self.create_version_view()
+        self.version_view = self.create_version_view(ui_hooks=ui_hooks)
         self.query_view = self.create_query_view()
         self.pe_view = self.create_pe_view()
         self.log_view = self.create_log_view()
@@ -427,8 +428,8 @@ class QVistrailView(QtGui.QWidget):
                     newPipelineView.scene().fitToView(newPipelineView, True)
                     newPipelineView.setReadOnlyMode(True)
             
-    def create_view(self, klass, add_tab=True):
-        view = klass(self)
+    def create_view(self, klass, add_tab=True, ui_hooks=None):
+        view = klass(self, ui_hooks=ui_hooks)
         view.set_vistrail_view(self)
         idx = self.stack.addWidget(view)
         view.set_index(idx)
@@ -736,8 +737,8 @@ class QVistrailView(QtGui.QWidget):
         self.switch_to_tab(view.tab_idx)
         return view
 
-    def create_version_view(self):
-        view = self.create_view(QVersionTreeView, False)
+    def create_version_view(self, ui_hooks=None):
+        view = self.create_view(QVersionTreeView, False, ui_hooks=ui_hooks)
         self.connect(view.scene(), 
                      QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
                      self.version_selected)

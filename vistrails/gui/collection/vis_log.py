@@ -383,8 +383,8 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             self.execution.item.setSelected(True)
 
 class QLogView(QPipelineView):
-    def __init__(self, parent=None):
-        QPipelineView.__init__(self, parent)
+    def __init__(self, parent=None, ui_hooks=None):
+        QPipelineView.__init__(self, parent, ui_hooks=ui_hooks)
         self.setReadOnlyMode(True)
         self.set_title("Provenance")
         self.log = None
