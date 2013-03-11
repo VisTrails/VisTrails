@@ -75,9 +75,14 @@ import vistrails.db.services.vistrail
 from vistrails.db import VistrailsDBException
 
 class QBaseViewWindow(QtGui.QMainWindow):
-    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
+    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags(),
+            ui_hooks=None):
         QtGui.QMainWindow.__init__(self, parent, f)
-       
+
+        if ui_hooks is None:
+            self.ui_hooks = dict()
+        else:
+            self.ui_hooks = ui_hooks
         self.view = view
 
         if self.view is not None:
@@ -356,8 +361,9 @@ class QBaseViewWindow(QtGui.QMainWindow):
         #print 'done processing list'
         
 class QVistrailViewWindow(QBaseViewWindow):
-    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
-        QBaseViewWindow.__init__(self, view, parent, f)
+    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags(),
+            ui_hooks=None):
+        QBaseViewWindow.__init__(self, view, parent, f, ui_hooks=ui_hooks)
         
         self.setDocumentMode(True)
         self.view = view
@@ -865,11 +871,11 @@ class QVistrailViewWindow(QBaseViewWindow):
         #     view_menu.addAction(action)
 
 class QVistrailsWindow(QVistrailViewWindow):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(), ui_hooks=None):
         global _app
         _app = self
 
-        QVistrailViewWindow.__init__(self, None, parent, f)
+        QVistrailViewWindow.__init__(self, None, parent, f, ui_hooks=ui_hooks)
 
         self.stack = QtGui.QStackedWidget()
         self.vistrail_widgets = []
@@ -937,7 +943,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def create_view(self, vistrail, locator,  abstraction_files=None, 
                     thumbnail_files=None, mashups=None):
         view = QVistrailView(vistrail, locator, abstraction_files,
-                             thumbnail_files, mashups)
+                             thumbnail_files, mashups, ui_hooks=self.ui_hooks)
         self.vistrail_widgets.append(view)
         index = self.stack.addWidget(view)
         self.stack.setCurrentIndex(index)

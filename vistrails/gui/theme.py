@@ -240,6 +240,9 @@ class DefaultTheme(DefaultCoreTheme):
         self.GHOSTED_CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
 
+        # Shape of the version tree nodes
+        self.VERSION_SHAPE = 'ellipse'
+
         # Pen to draw version tree node
         self.VERSION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)    
@@ -732,6 +735,23 @@ class ThemeHolder(object):
         # This way, the lookups into the theme are much faster, since
         # there's no function calls involved
         self.__dict__.update(theme.__dict__)
+
+
+class OverriddenTheme(object):
+    """Allows to override CurrentTheme values with a specific dict.
+
+    Accessing attributes of this object will look in the given dict, and
+    default to CurrentTheme.
+    """
+    def __init__(self, overridden):
+        self._overridden = overridden
+
+    def __getattr__(self, attr):
+        try:
+            return self._overridden[attr]
+        except KeyError:
+            return getattr(CurrentTheme, attr)
+
 
 def get_current_theme():
     """get_current_theme() -> subclass of DefaultTheme

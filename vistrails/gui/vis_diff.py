@@ -469,8 +469,8 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         table.resizeRowsToContents()
 
 class QDiffView(QPipelineView):
-    def __init__(self, parent=None):
-        QPipelineView.__init__(self, parent)
+    def __init__(self, parent=None, ui_hooks=None):
+        QPipelineView.__init__(self, parent, ui_hooks=ui_hooks)
         self.set_title("Diff")
         self.diff = None
         self.diff_versions = None
