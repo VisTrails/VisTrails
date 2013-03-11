@@ -216,7 +216,7 @@ class QLegendWidget(QtGui.QWidget):
             self.gridLayout.addWidget(QtGui.QLabel(text, self), x*2, y*2+1)
 
 class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         self.execution = None
         self.parentExecution = None

@@ -506,7 +506,7 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         Collection.getInstance().commit()
 
 class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
 
 #        self.workspace_list = QtGui.QComboBox()

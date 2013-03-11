@@ -64,7 +64,7 @@ from vistrails.core.utils import all
 class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
     """This class incorporates the QShell into a dockable widget for use in the
     VisTrails environment"""
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent=parent)
         #locals() returns the original dictionary, not a copy as
         #the docs say

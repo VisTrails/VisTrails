@@ -59,7 +59,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
     own type of tree widget
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QSearchTreeWindow.__init__(self, parent)
         self.setContentsMargins(0,5,0,0)
         self.packages = {}

@@ -41,7 +41,7 @@ from vistrails.gui.ports_pane import PortsList
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None, flags=QtCore.Qt.Widget):
+    def __init__(self, parent=None, flags=QtCore.Qt.Widget, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent, flags)
         self.build_widget()
         self.controller = None

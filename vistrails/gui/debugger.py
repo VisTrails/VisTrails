@@ -48,7 +48,7 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     This class provides a dockable interface to the debugger tree.
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent=parent)
         self.app = vistrails.gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()

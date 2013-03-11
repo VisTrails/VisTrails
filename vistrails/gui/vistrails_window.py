@@ -1060,9 +1060,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                     p_klass, visible = p_klass
                     if type(p_klass) == tuple:
                         notifications = visible
-                        p_klass, visible = p_klass      
+                        p_klass, visible = p_klass
                 #print "generating instance", p_klass
-                palette = p_klass.instance()
+                palette = p_klass.instance(ui_hooks=self.ui_hooks)
                 #print 'palette:', palette
                 self.palettes.append(palette)
                 for n_tuple in notifications:

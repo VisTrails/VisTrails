@@ -276,7 +276,7 @@ class QLegendWindow(QtGui.QWidget):
         self.parent().showLegendsAction.setChecked(False)
         
 class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
 
         self.controller = None

@@ -49,7 +49,7 @@ class QVistrailVariables(QVariableDropBox, QVistrailsPaletteInterface):
     supports drag/drop actions of constant items from the module palette
     
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ QVistrailVariables(parent: QWidget) -> QVistrailVariables
         Initialize widget constraints
         

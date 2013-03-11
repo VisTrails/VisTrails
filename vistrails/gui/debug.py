@@ -65,7 +65,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         
     # getInstance = DebugViewSingleton()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         vistrails.core.debug.DebugPrint.getInstance().set_stream(debugStream(self.write)) 
         self.setWindowTitle('VisTrails Messages')

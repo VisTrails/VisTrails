@@ -49,7 +49,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     """
     #signals
     mashupChanged = pyqtSignal()
-    def __init__(self, controller=None, parent=None):
+    def __init__(self, controller=None, parent=None, ui_hooks=None):
         """ QMashupsInspector(controller: MashupController,
                             parent: QWidget) -> QMashupsInspector
         

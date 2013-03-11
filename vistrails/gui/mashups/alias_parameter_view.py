@@ -51,7 +51,7 @@ from vistrails.core.utils import InstanceObject
 ################################################################################
 class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         self.set_title("Mashup Pipeline")
         layout = QtGui.QVBoxLayout()

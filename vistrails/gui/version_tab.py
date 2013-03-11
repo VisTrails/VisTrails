@@ -47,7 +47,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
     center while having surrounding tool windows
     
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ QVersionTab(parent: QWidget) -> QVersionTab        
         Make it a main window with dockable area and a
         QVersionTreeView in the middle
@@ -60,7 +60,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.toolWindow().setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
         self.toolWindow().hide()
 
-        self.versionProp = QVersionProp(self)
+        self.versionProp = QVersionProp(self, ui_hooks=ui_hooks)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.versionProp.toolWindow())        
         

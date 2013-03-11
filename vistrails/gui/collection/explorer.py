@@ -49,7 +49,7 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 import vistrails.gui
 
 class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         
         self.layout = QtGui.QVBoxLayout()
