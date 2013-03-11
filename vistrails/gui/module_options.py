@@ -56,7 +56,7 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
     QModuleIteration is a dialog for editing module looping options.
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ 
         QModuleIteration(parent)
         -> None

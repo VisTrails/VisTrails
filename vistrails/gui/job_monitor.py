@@ -94,7 +94,7 @@ class QJobTree(QtGui.QTreeWidget):
             menu.exec_(event.globalPos())
 
 class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
 
         self.timer_id = None

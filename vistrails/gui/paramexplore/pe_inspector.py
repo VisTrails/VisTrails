@@ -44,7 +44,7 @@ from vistrails.gui.theme import CurrentTheme
 import weakref
 
 class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         self.set_title("Explore Inspector")
 

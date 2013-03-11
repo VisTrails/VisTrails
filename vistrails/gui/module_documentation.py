@@ -51,7 +51,7 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
     QModuleDocumentation is a dialog for showing module documentation. duh.
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ 
         QModuleAnnotation(parent)
         -> None

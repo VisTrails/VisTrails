@@ -58,7 +58,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
            import gui.debug
            gui.debug.watch_signal(my_signal)
      """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         ui = logging.StreamHandler(debugStream(self.write))
         ui.setFormatter(logging.Formatter(

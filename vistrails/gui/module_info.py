@@ -50,7 +50,7 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 import os
 
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None, flags=QtCore.Qt.Widget):
+    def __init__(self, parent=None, flags=QtCore.Qt.Widget, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent, flags)
         self.ports_visible = True
         self.types_visible = True

@@ -76,7 +76,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
     parameter palette
     
     """
-    def __init__(self, controller=None, parent=None):
+    def __init__(self, controller=None, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         self.set_title('Pipeline Methods')
         

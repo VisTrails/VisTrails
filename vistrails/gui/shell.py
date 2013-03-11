@@ -88,7 +88,7 @@ def get_shell_dialog():
     class IPythonDialog(RichIPythonWidget, QVistrailsPaletteInterface):
         """This class incorporates an  IPython shell into a dockable widget for use in the
         VisTrails environment"""
-        def __init__(self, parent=None):
+        def __init__(self, parent=None, ui_hooks=None):
             RichIPythonWidget.__init__(self, parent)
             self.old_streams = None
             self.running_workflow = False
