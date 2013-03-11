@@ -277,9 +277,10 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.timer = None
         self.isEditable = None
         self.setEditable(False)
-        self.setFont(CurrentTheme.VERSION_FONT)
-        self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
-        self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
+        self._theme = CurrentTheme
+        self.setFont(self._theme.VERSION_FONT)
+        self.setTextWidth(self._theme.VERSION_LABEL_MARGIN[0])
+        self.setDefaultTextColor(self._theme.VERSION_LABEL_COLOR)
         self.centerX = 0.0
         self.centerY = 0.0
         self.label = ''
@@ -310,9 +311,9 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
     def setGhosted(self, ghosted):
         if ghosted:
-            self.setDefaultTextColor(CurrentTheme.GHOSTED_VERSION_LABEL_COLOR)
+            self.setDefaultTextColor(self._theme.GHOSTED_VERSION_LABEL_COLOR)
         else:
-            self.setDefaultTextColor(CurrentTheme.VERSION_LABEL_COLOR)
+            self.setDefaultTextColor(self._theme.VERSION_LABEL_COLOR)
 
     def changed(self, x, y, label, tag=True):
         """ changed(x: float, y: float, label: str) -> None
@@ -324,10 +325,6 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
             self.centerY = y
             self.label = label
             self.isTag = tag
-            if self.isTag:
-                self.setFont(CurrentTheme.VERSION_FONT)
-            else:
-                self.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)
             self.reset()
 
     def reset(self):
@@ -340,12 +337,12 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         if (len(str(self.label)) > 0):
             self.setTextWidth(-1)
         else:
-            self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
-            
+            self.setTextWidth(self._theme.VERSION_LABEL_MARGIN[0])
+
         if self.isTag:
-            self.setFont(CurrentTheme.VERSION_FONT)
+            self.setFont(self._theme.VERSION_FONT)
         else:
-            self.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)  
+            self.setFont(self._theme.VERSION_DESCRIPTION_FONT)
         self.updatePos()
         self.parentItem().updateWidthFromLabel()
 
@@ -390,6 +387,11 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
                 self.reset()
             self.updatingTag = False
+
+    def setTheme(self, theme):
+        self._theme = theme
+        self.setDefaultTextColor(self._theme.VERSION_LABEL_COLOR)
+        self.reset()
 
 ##############################################################################
 # QGraphicsVersionItem
@@ -600,6 +602,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QAbstractGraphicsShapeI
             self._theme = CurrentTheme
         else:
             self._theme = OverriddenTheme(hook(node, action, tag, description))
+        self.text.setTheme(self._theme)
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
