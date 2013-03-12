@@ -39,9 +39,12 @@ from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 
 from db import VistrailsDBException
-from db.versions.v1_0_2 import version as my_version
-from db.versions.v1_0_2.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
-    DBRegistry
+from db.versions.v1_0_3 import version as my_version
+from db.versions.v1_0_3.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
+    DBRegistry, DBMashuptrail
+
+root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
+                DBLog.vtType, DBRegistry.vtType, DBMashuptrail.vtType])
 
 class DAOList(dict):
     def __init__(self):
@@ -104,7 +107,7 @@ class DAOList(dict):
             global_props = {}
         if id is not None:
             global_props['id'] = id
-        # print global_props
+        #  global_props
         res_objects = self['sql'][vtType].get_sql_columns(db_connection, 
                                                           global_props,
                                                           lock)
@@ -130,10 +133,7 @@ class DAOList(dict):
         
         # generate SELECT statements
         for dao_type, dao in self['sql'].iteritems():
-            if (dao_type == DBVistrail.vtType or
-                dao_type == DBWorkflow.vtType or
-                dao_type == DBLog.vtType or
-                dao_type == DBRegistry.vtType):
+            if dao_type in root_set:
                 continue
 
             daoList.append([dao_type, dao, None])
@@ -217,10 +217,7 @@ class DAOList(dict):
         
             # generate SELECT statements for children
             for dao_type, dao in self['sql'].iteritems():
-                if (dao_type == DBVistrail.vtType or
-                    dao_type == DBWorkflow.vtType or
-                    dao_type == DBLog.vtType or
-                    dao_type == DBRegistry.vtType):
+                if dao_type in root_set:
                     continue
     
                 daoList.append([id, dao_type, dao, None])
@@ -311,6 +308,10 @@ class DAOList(dict):
                 dbCommandList.append(dbCommand)
                 writtenChildren.append(child)
             self['sql'][child.vtType].to_sql_fast(child, do_copy)
+
+        # Debug version of Execute all insert/update statements
+        #results = [self['sql'][children[0][0].vtType].executeSQL(
+        #                      db_connection, c, False) for c in dbCommandList]
 
         # Execute all insert/update statements
         results = self['sql'][children[0][0].vtType].executeSQLGroup(
@@ -431,8 +432,6 @@ class DAOList(dict):
                                         new_props)
 
     def delete_from_db(self, db_connection, type, obj_id):
-        root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
-                        DBLog.vtType, DBRegistry.vtType])
         if type not in root_set:
             raise VistrailsDBException("Cannot delete entity of type '%s'" \
                                            % type)

@@ -9178,8 +9178,9 @@ class DBMashuptrail(object):
 
     vtType = 'mashuptrail'
 
-    def __init__(self, id=None, version=None, vtVersion=None, last_modified=None, actions=None, annotations=None):
+    def __init__(self, id=None, name=None, version=None, vtVersion=None, last_modified=None, actions=None, annotations=None, actionAnnotations=None):
         self._db_id = id
+        self._db_name = name
         self._db_version = version
         self._db_vtVersion = vtVersion
         self._db_last_modified = last_modified
@@ -9193,7 +9194,6 @@ class DBMashuptrail(object):
                 self.db_actions_id_index[v.db_id] = v
         self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
-        self.db_annotations_action_id_index = {}
         self.db_annotations_key_index = {}
         if annotations is None:
             self._db_annotations = []
@@ -9201,8 +9201,19 @@ class DBMashuptrail(object):
             self._db_annotations = annotations
             for v in self._db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
-                self.db_annotations_action_id_index[(v.db_action_id,v.db_key)] = v
-                self.db_annotations_key_index[(v.db_key,v.db_value)] = v
+                self.db_annotations_key_index[v.db_key] = v
+        self.db_deleted_actionAnnotations = []
+        self.db_actionAnnotations_id_index = {}
+        self.db_actionAnnotations_action_id_index = {}
+        self.db_actionAnnotations_key_index = {}
+        if actionAnnotations is None:
+            self._db_actionAnnotations = []
+        else:
+            self._db_actionAnnotations = actionAnnotations
+            for v in self._db_actionAnnotations:
+                self.db_actionAnnotations_id_index[v.db_id] = v
+                self.db_actionAnnotations_action_id_index[(v.db_action_id,v.db_key)] = v
+                self.db_actionAnnotations_key_index[(v.db_key,v.db_value)] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -9211,6 +9222,7 @@ class DBMashuptrail(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBMashuptrail(id=self._db_id,
+                           name=self._db_name,
                            version=self._db_version,
                            vtVersion=self._db_vtVersion,
                            last_modified=self._db_last_modified)
@@ -9222,6 +9234,10 @@ class DBMashuptrail(object):
             cp._db_annotations = []
         else:
             cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+        if self._db_actionAnnotations is None:
+            cp._db_actionAnnotations = []
+        else:
+            cp._db_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
         
         # set new ids
         if new_ids:
@@ -9235,8 +9251,10 @@ class DBMashuptrail(object):
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_annotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_annotations)
-        cp.db_annotations_key_index = dict(((v.db_key,v.db_value), v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
+        cp.db_actionAnnotations_id_index = dict((v.db_id, v) for v in cp._db_actionAnnotations)
+        cp.db_actionAnnotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_actionAnnotations)
+        cp.db_actionAnnotations_key_index = dict(((v.db_key,v.db_value), v) for v in cp._db_actionAnnotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -9254,6 +9272,11 @@ class DBMashuptrail(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
+            new_obj.db_name = old_obj.db_name
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
@@ -9286,11 +9309,22 @@ class DBMashuptrail(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBMashupActionAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
-                n_obj = DBMashupActionAnnotation.update_version(obj, trans_dict)
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
                 new_obj.db_deleted_annotations.append(n_obj)
+        if 'actionAnnotations' in class_dict:
+            res = class_dict['actionAnnotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_actionAnnotation(obj)
+        elif hasattr(old_obj, 'db_actionAnnotations') and old_obj.db_actionAnnotations is not None:
+            for obj in old_obj.db_actionAnnotations:
+                new_obj.db_add_actionAnnotation(DBMashupActionAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_actionAnnotations') and hasattr(new_obj, 'db_deleted_actionAnnotations'):
+            for obj in old_obj.db_deleted_actionAnnotations:
+                n_obj = DBMashupActionAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_actionAnnotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9311,15 +9345,24 @@ class DBMashuptrail(object):
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
+        to_del = []
+        for child in self.db_actionAnnotations:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_actionAnnotation(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_actions)
         children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_actionAnnotations)
         if remove:
             self.db_deleted_actions = []
             self.db_deleted_annotations = []
+            self.db_deleted_actionAnnotations = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -9328,6 +9371,9 @@ class DBMashuptrail(object):
             if child.has_changes():
                 return True
         for child in self._db_annotations:
+            if child.has_changes():
+                return True
+        for child in self._db_actionAnnotations:
             if child.has_changes():
                 return True
         return False
@@ -9343,6 +9389,19 @@ class DBMashuptrail(object):
         self._db_id = id
     def db_delete_id(self, id):
         self._db_id = None
+    
+    def __get_db_name(self):
+        return self._db_name
+    def __set_db_name(self, name):
+        self._db_name = name
+        self.is_dirty = True
+    db_name = property(__get_db_name, __set_db_name)
+    def db_add_name(self, name):
+        self._db_name = name
+    def db_change_name(self, name):
+        self._db_name = name
+    def db_delete_name(self, name):
+        self._db_name = None
     
     def __get_db_version(self):
         return self._db_version
@@ -9437,8 +9496,7 @@ class DBMashuptrail(object):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
-        self.db_annotations_action_id_index[(annotation.db_action_id,annotation.db_key)] = annotation
-        self.db_annotations_key_index[(annotation.db_key,annotation.db_value)] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -9450,8 +9508,7 @@ class DBMashuptrail(object):
         if not found:
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
-        self.db_annotations_action_id_index[(annotation.db_action_id,annotation.db_key)] = annotation
-        self.db_annotations_key_index[(annotation.db_key,annotation.db_value)] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -9461,11 +9518,7 @@ class DBMashuptrail(object):
                 del self._db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
-        del self.db_annotations_action_id_index[(annotation.db_action_id,annotation.db_key)]
-        try:
-            del self.db_annotations_key_index[(annotation.db_key,annotation.db_value)]
-        except KeyError:
-            pass
+        del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
@@ -9475,14 +9528,69 @@ class DBMashuptrail(object):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
-    def db_get_annotation_by_action_id(self, key):
-        return self.db_annotations_action_id_index[key]
-    def db_has_annotation_with_action_id(self, key):
-        return key in self.db_annotations_action_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
+    
+    def __get_db_actionAnnotations(self):
+        return self._db_actionAnnotations
+    def __set_db_actionAnnotations(self, actionAnnotations):
+        self._db_actionAnnotations = actionAnnotations
+        self.is_dirty = True
+    db_actionAnnotations = property(__get_db_actionAnnotations, __set_db_actionAnnotations)
+    def db_get_actionAnnotations(self):
+        return self._db_actionAnnotations
+    def db_add_actionAnnotation(self, actionAnnotation):
+        self.is_dirty = True
+        self._db_actionAnnotations.append(actionAnnotation)
+        self.db_actionAnnotations_id_index[actionAnnotation.db_id] = actionAnnotation
+        self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)] = actionAnnotation
+        self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)] = actionAnnotation
+    def db_change_actionAnnotation(self, actionAnnotation):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_actionAnnotations)):
+            if self._db_actionAnnotations[i].db_id == actionAnnotation.db_id:
+                self._db_actionAnnotations[i] = actionAnnotation
+                found = True
+                break
+        if not found:
+            self._db_actionAnnotations.append(actionAnnotation)
+        self.db_actionAnnotations_id_index[actionAnnotation.db_id] = actionAnnotation
+        self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)] = actionAnnotation
+        self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)] = actionAnnotation
+    def db_delete_actionAnnotation(self, actionAnnotation):
+        self.is_dirty = True
+        for i in xrange(len(self._db_actionAnnotations)):
+            if self._db_actionAnnotations[i].db_id == actionAnnotation.db_id:
+                if not self._db_actionAnnotations[i].is_new:
+                    self.db_deleted_actionAnnotations.append(self._db_actionAnnotations[i])
+                del self._db_actionAnnotations[i]
+                break
+        del self.db_actionAnnotations_id_index[actionAnnotation.db_id]
+        del self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)]
+        try:
+            del self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)]
+        except KeyError:
+            pass
+    def db_get_actionAnnotation(self, key):
+        for i in xrange(len(self._db_actionAnnotations)):
+            if self._db_actionAnnotations[i].db_id == key:
+                return self._db_actionAnnotations[i]
+        return None
+    def db_get_actionAnnotation_by_id(self, key):
+        return self.db_actionAnnotations_id_index[key]
+    def db_has_actionAnnotation_with_id(self, key):
+        return key in self.db_actionAnnotations_id_index
+    def db_get_actionAnnotation_by_action_id(self, key):
+        return self.db_actionAnnotations_action_id_index[key]
+    def db_has_actionAnnotation_with_action_id(self, key):
+        return key in self.db_actionAnnotations_action_id_index
+    def db_get_actionAnnotation_by_key(self, key):
+        return self.db_actionAnnotations_key_index[key]
+    def db_has_actionAnnotation_with_key(self, key):
+        return key in self.db_actionAnnotations_key_index
     
     def getPrimaryKey(self):
         return self._db_id

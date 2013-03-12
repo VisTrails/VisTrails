@@ -3201,7 +3201,7 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
         
         # read attributes
         data = node.get('id', None)
-        id = self.convertFromStr(data, 'str')
+        name = self.convertFromStr(data, 'str')
         data = node.get('version', None)
         version = self.convertFromStr(data, 'str')
         data = node.get('vtVersion', None)
@@ -3209,6 +3209,7 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
         
         actions = []
         annotations = []
+        actionAnnotations = []
         
         # read children
         for child in node.getchildren():
@@ -3219,19 +3220,23 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
             if child_tag == 'action':
                 _data = self.getDao('mashup_action').fromXML(child)
                 actions.append(_data)
+            elif child_tag == 'annotation':
+                _data = self.getDao('annotation').fromXML(child)
+                annotations.append(_data)
             elif child_tag == 'actionAnnotation':
                 _data = self.getDao('mashup_actionAnnotation').fromXML(child)
-                annotations.append(_data)
+                actionAnnotations.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBMashuptrail(id=id,
+        obj = DBMashuptrail(name=name,
                             version=version,
                             vtVersion=vtVersion,
                             actions=actions,
-                            annotations=annotations)
+                            annotations=annotations,
+                            actionAnnotations=actionAnnotations)
         obj.is_dirty = False
         return obj
     
@@ -3240,7 +3245,7 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
             node = ElementTree.Element('mashuptrail')
         
         # set attributes
-        node.set('id',self.convertToStr(mashuptrail.db_id, 'str'))
+        node.set('id',self.convertToStr(mashuptrail.db_name, 'str'))
         node.set('version',self.convertToStr(mashuptrail.db_version, 'str'))
         node.set('vtVersion',self.convertToStr(mashuptrail.db_vtVersion, 'long'))
         
@@ -3253,8 +3258,13 @@ class DBMashuptrailXMLDAOBase(XMLDAO):
         annotations = mashuptrail.db_annotations
         for annotation in annotations:
             if (annotations is not None) and (annotations != ""):
+                childNode = ElementTree.SubElement(node, 'annotation')
+                self.getDao('annotation').toXML(annotation, childNode)
+        actionAnnotations = mashuptrail.db_actionAnnotations
+        for actionAnnotation in actionAnnotations:
+            if (actionAnnotations is not None) and (actionAnnotations != ""):
                 childNode = ElementTree.SubElement(node, 'actionAnnotation')
-                self.getDao('mashup_actionAnnotation').toXML(annotation, childNode)
+                self.getDao('mashup_actionAnnotation').toXML(actionAnnotation, childNode)
         
         return node
 

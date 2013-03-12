@@ -232,6 +232,7 @@ def translate_to_tbl_name(obj_type):
            DBLog.vtType: 'log_tbl',
            DBRegistry.vtType: 'registry',
            DBAbstraction.vtType: 'abstraction',
+           DBMashuptrail.vtType: 'mashuptrail',
            DBAnnotation.vtType: 'annotation',
            }
     return map[obj_type]
@@ -409,17 +410,32 @@ def get_db_abstraction_ids_from_vistrail(db_connection, vt_id):
     """
     
     id_key = '__abstraction_vistrail_id__'
+    return get_db_ids_from_vistrail(db_connection, vt_id, id_key)
+
+def get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id):
+    """ get_db_mashuptrail_ids_from_vistrail(db_connection: DBConnection,
+                                          vt_id: int): List
+        Returns mashuptrails associated with a vistrail
+    """
+    id_key = '__mashuptrail_vistrail_id__'
+    return get_db_ids_from_vistrail(db_connection, vt_id, id_key)
+    
+def get_db_ids_from_vistrail(db_connection, vt_id, id_key):
+    """ get_db_ids_from_vistrail(db_connection: DBConnection,
+                                 vt_id: int, id_key: str): List
+        Returns object ids associated with a vistrail by an annotation
+    """
     command = """
     SELECT a.parent_id FROM %s a
-    WHERE a.akey = '""" + id_key + """' AND a.value = '%s'"""
+    WHERE a.akey = '%s' AND a.value = '%s'"""
 
     try:
         c = db_connection.cursor()
-        c.execute(command%(translate_to_tbl_name(DBAnnotation.vtType), vt_id))
+        c.execute(command%(translate_to_tbl_name(DBAnnotation.vtType), id_key, vt_id))
         abs_ids = c.fetchall()
         c.close()
     except get_db_lib().Error, e:
-        msg = "Couldn't get modification time from db (%d : %s)" % \
+        msg = "Couldn't get object ids from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
     return [i[0] for i in abs_ids]
@@ -764,7 +780,7 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
     vistrail = open_vistrail_from_db(db_connection, vistrail_id)
     # FIXME open log from db
     log = None
-    # FIXME open abstractions from db
+    # open abstractions from db
     abstractions = []
     try:
         for abs_id in get_db_abstraction_ids_from_vistrail(db_connection, vistrail.db_id):
@@ -778,10 +794,21 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
         import traceback
         debug.critical('Could not load abstraction from database: %s' % str(e),
                                               traceback.format_exc())
+    # open mashuptrails from db
+    mashuptrails = []
+    try:
+        for mashup_id in get_db_mashuptrail_ids_from_vistrail(db_connection, vistrail.db_id):
+            mashup = open_mashuptrail_from_db(db_connection, mashup_id)
+            mashuptrails.append(mashup)
+    except Exception, e:
+        import traceback
+        debug.critical('Could not load mashuptrail from database: %s' % str(e),
+                                              traceback.format_exc())
     thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType,
                                          vistrail_id, tmp_dir)
     return SaveBundle(DBVistrail.vtType, vistrail, log,
-                      abstractions=abstractions, thumbnails=thumbnails)
+                      abstractions=abstractions, thumbnails=thumbnails,
+                      mashups=mashuptrails)
 
 def open_vistrail_from_db(db_connection, id, lock=False, version=None):
     """open_vistrail_from_db(db_connection, id : long, lock: bool, 
@@ -990,6 +1017,7 @@ def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, versio
         log.db_vistrail_id = vistrail.db_id
         log = save_log_to_db(log, db_connection, do_copy, version)
     save_abstractions_to_db(save_bundle.abstractions, vistrail.db_id, db_connection, do_copy)
+    save_mashuptrails_to_db(save_bundle.mashups, vistrail.db_id, db_connection, do_copy)
     save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
     return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))
 
@@ -1682,12 +1710,69 @@ def save_mashuptrail_to_xml(mashuptrail, filename, version=None):
    
     #FIXME: This must be enabled at some point
     #mashuptrail = translate_mashuptrail(mashuptrail, mashuptrail.db_version, version)
-
     daoList = getVersionDAO(version)
     daoList.save_to_xml(mashuptrail, filename, tags, version)
-    #FIXME: This must be enabled at some point
-    #mashuptrail = translate_mashuptrail(mashuptrail, version)
     return mashuptrail
+
+def open_mashuptrail_from_db(db_connection, mashup_id, lock=False):
+    """open_mashuptrail_from_db(filename) -> Mashuptrail"""
+
+    version = get_db_object_version(db_connection, mashup_id, DBMashuptrail.vtType)
+    try:
+        daoList = getVersionDAO(version)
+        mashuptrail = daoList.open_from_db(db_connection, DBMashuptrail.vtType, mashup_id, lock)
+        Mashuptrail.convert(mashuptrail)
+        mashuptrail.currentVersion = mashuptrail.getLatestVersion()
+        mashuptrail.updateIdScope()
+    except VistrailsDBException, e:
+        msg = "There was a problem when reading mashups from the db file: "
+        msg += str(e)
+        raise VistrailsDBException(msg)
+    return mashuptrail
+
+def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
+    """save_mashuptrails_to_db(mashuptrails: DBMashuptrail, vt_id: int,
+                               db_connection, do_copy: bool) -> None
+    Saves a list of mashuptrails to the db, and replacing existing mashuptrails
+
+    """
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+
+    old_ids = get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id)
+    for mashuptrail in mashuptrails:
+        try: 
+            id_key = '__mashuptrail_vistrail_id__'
+            id_value = str(vt_id)
+            if mashuptrail.db_has_annotation_with_key(id_key):
+                annotation = mashuptrail.db_get_annotation_by_key(id_key)
+                annotation.db_value = id_value
+            else:
+                annotation=DBAnnotation(mashuptrail.id_scope.getNewId(DBAnnotation.vtType),
+                                        id_key, id_value)
+                mashuptrail.db_add_annotation(annotation)
+
+            if mashuptrail.db_id in old_ids:
+                delete_entity_from_db(db_connection, mashuptrail.vtType, mashuptrail.db_id)
+
+            # add vt_id to mashups
+            for action in mashuptrail.db_actions:
+                action.db_mashup.db_vtid = vt_id
+            mashuptrail.db_last_modified = get_current_time(db_connection)
+            mashuptrail.db_id = None
+            version = get_db_version(db_connection)
+            version = version if version else currentVersion
+            if not mashuptrail.db_version:
+                mashuptrail.db_version = currentVersion
+            #FIXME: This must be enabled at some point
+            #mashuptrail = translate_vistrail(mashuptrail, mashuptrail.db_version, version)
+            # Always copy for now
+            getVersionDAO(version).save_to_db(db_connection, mashuptrail, True)
+            db_connection.commit()
+
+        except Exception, e:
+            debug.critical('Could not save mashuptrail to db: %s' % str(e))
 
 ##############################################################################
 # I/O Utilities

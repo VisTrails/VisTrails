@@ -1615,7 +1615,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'parent_id', 'entity_type']
+        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_alias'
         whereMap = global_props
         orderBy = 'id'
@@ -1627,18 +1627,20 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'long', 'int')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             parent = self.convertFromDB(row[2], 'long', 'int')
-            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
+            entity_id = self.convertFromDB(row[3], 'long', 'int')
+            entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
             
             mashup_alias = DBMashupAlias(name=name,
                                          id=id)
             mashup_alias.db_parent = parent
+            mashup_alias.db_entity_id = entity_id
             mashup_alias.db_entity_type = entity_type
             mashup_alias.is_dirty = False
             res[('mashup_alias', id)] = mashup_alias
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'parent_id', 'entity_type']
+        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_alias'
         whereMap = global_props
         orderBy = 'id'
@@ -1650,11 +1652,13 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'long', 'int')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             parent = self.convertFromDB(row[2], 'long', 'int')
-            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
+            entity_id = self.convertFromDB(row[3], 'long', 'int')
+            entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
             
             mashup_alias = DBMashupAlias(name=name,
                                          id=id)
             mashup_alias.db_parent = parent
+            mashup_alias.db_entity_id = entity_id
             mashup_alias.db_entity_type = entity_type
             mashup_alias.is_dirty = False
             res[('mashup_alias', id)] = mashup_alias
@@ -1668,7 +1672,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'parent_id', 'entity_type']
+        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_alias'
         whereMap = {}
         whereMap.update(global_props)
@@ -1685,6 +1689,9 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_parent') and obj.db_parent is not None:
             columnMap['parent_id'] = \
                 self.convertToDB(obj.db_parent, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -1699,7 +1706,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'parent_id', 'entity_type']
+        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_alias'
         whereMap = {}
         whereMap.update(global_props)
@@ -1716,6 +1723,9 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_parent') and obj.db_parent is not None:
             columnMap['parent_id'] = \
                 self.convertToDB(obj.db_parent, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -1765,7 +1775,6 @@ class DBMashupSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             version = self.convertFromDB(row[2], 'long', 'int')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
@@ -1803,7 +1812,6 @@ class DBMashupSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             version = self.convertFromDB(row[2], 'long', 'int')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
@@ -1886,11 +1894,6 @@ class DBMashupSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -1945,11 +1948,6 @@ class DBMashupSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
@@ -4112,7 +4110,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
             prevId = self.convertFromDB(row[1], 'long', 'int')
             date = self.convertFromDB(row[2], 'datetime', 'datetime')
             user = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            mashuptrail = self.convertFromDB(row[4], 'str', 'char(36)')
+            mashuptrail = self.convertFromDB(row[4], 'long', 'int')
             entity_id = self.convertFromDB(row[5], 'long', 'int')
             entity_type = self.convertFromDB(row[6], 'str', 'char(16)')
             
@@ -4141,7 +4139,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
             prevId = self.convertFromDB(row[1], 'long', 'int')
             date = self.convertFromDB(row[2], 'datetime', 'datetime')
             user = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            mashuptrail = self.convertFromDB(row[4], 'str', 'char(36)')
+            mashuptrail = self.convertFromDB(row[4], 'long', 'int')
             entity_id = self.convertFromDB(row[5], 'long', 'int')
             entity_type = self.convertFromDB(row[6], 'str', 'char(16)')
             
@@ -4186,7 +4184,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
         if hasattr(obj, 'db_mashuptrail') and obj.db_mashuptrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_mashuptrail, 'str', 'char(36)')
+                self.convertToDB(obj.db_mashuptrail, 'long', 'int')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'long', 'int')
@@ -4226,7 +4224,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
         if hasattr(obj, 'db_mashuptrail') and obj.db_mashuptrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_mashuptrail, 'str', 'char(36)')
+                self.convertToDB(obj.db_mashuptrail, 'long', 'int')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'long', 'int')
@@ -4269,7 +4267,7 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'version', 'vt_version', 'last_modified', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = global_props
         orderBy = 'id'
@@ -4278,25 +4276,26 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
-            id = self.convertFromDB(row[0], 'str', 'char(36)')
-            version = self.convertFromDB(row[1], 'str', 'char(16)')
-            vtVersion = self.convertFromDB(row[2], 'long', 'int')
-            last_modified = self.convertFromDB(row[3], 'datetime', 'datetime')
-            entity_id = self.convertFromDB(row[4], 'long', 'int')
+            id = self.convertFromDB(row[0], 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            name = self.convertFromDB(row[1], 'str', 'char(36)')
+            version = self.convertFromDB(row[2], 'str', 'char(16)')
+            vtVersion = self.convertFromDB(row[3], 'long', 'int')
+            last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             
-            mashuptrail = DBMashuptrail(version=version,
+            mashuptrail = DBMashuptrail(name=name,
+                                        version=version,
                                         vtVersion=vtVersion,
                                         last_modified=last_modified,
                                         id=id)
-            mashuptrail.db_entity_id = entity_id
             mashuptrail.db_entity_type = entity_type
             mashuptrail.is_dirty = False
             res[('mashuptrail', id)] = mashuptrail
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'version', 'vt_version', 'last_modified', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = global_props
         orderBy = 'id'
@@ -4305,18 +4304,19 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
     def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
-            id = self.convertFromDB(row[0], 'str', 'char(36)')
-            version = self.convertFromDB(row[1], 'str', 'char(16)')
-            vtVersion = self.convertFromDB(row[2], 'long', 'int')
-            last_modified = self.convertFromDB(row[3], 'datetime', 'datetime')
-            entity_id = self.convertFromDB(row[4], 'long', 'int')
+            id = self.convertFromDB(row[0], 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            name = self.convertFromDB(row[1], 'str', 'char(36)')
+            version = self.convertFromDB(row[2], 'str', 'char(16)')
+            vtVersion = self.convertFromDB(row[3], 'long', 'int')
+            last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             
-            mashuptrail = DBMashuptrail(version=version,
+            mashuptrail = DBMashuptrail(name=name,
+                                        version=version,
                                         vtVersion=vtVersion,
                                         last_modified=last_modified,
                                         id=id)
-            mashuptrail.db_entity_id = entity_id
             mashuptrail.db_entity_type = entity_type
             mashuptrail.is_dirty = False
             res[('mashuptrail', id)] = mashuptrail
@@ -4328,17 +4328,20 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'version', 'vt_version', 'last_modified', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
-                self.convertToDB(obj.db_id, 'str', 'char(36)')
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'char(36)')
         if hasattr(obj, 'db_version') and obj.db_version is not None:
             columnMap['version'] = \
                 self.convertToDB(obj.db_version, 'str', 'char(16)')
@@ -4348,9 +4351,6 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_last_modified') and obj.db_last_modified is not None:
             columnMap['last_modified'] = \
                 self.convertToDB(obj.db_last_modified, 'datetime', 'datetime')
-        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
-            columnMap['entity_id'] = \
-                self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -4361,21 +4361,29 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'version', 'vt_version', 'last_modified', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
-                self.convertToDB(obj.db_id, 'str', 'char(36)')
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_name') and obj.db_name is not None:
+            columnMap['name'] = \
+                self.convertToDB(obj.db_name, 'str', 'char(36)')
         if hasattr(obj, 'db_version') and obj.db_version is not None:
             columnMap['version'] = \
                 self.convertToDB(obj.db_version, 'str', 'char(16)')
@@ -4385,9 +4393,6 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_last_modified') and obj.db_last_modified is not None:
             columnMap['last_modified'] = \
                 self.convertToDB(obj.db_last_modified, 'datetime', 'datetime')
-        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
-            columnMap['entity_id'] = \
-                self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -4400,12 +4405,20 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_actions:
             child.db_mashuptrail = obj.db_id
         for child in obj.db_annotations:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        for child in obj.db_actionAnnotations:
             child.db_mashuptrail = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
@@ -4413,7 +4426,7 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
@@ -4603,7 +4616,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id']
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = global_props
         orderBy = 'id'
@@ -4630,6 +4643,8 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
             seq = self.convertFromDB(row[15], 'int', 'int')
             parent = self.convertFromDB(row[16], 'str', 'varchar(255)')
             mashup_alias = self.convertFromDB(row[17], 'long', 'int')
+            entity_id = self.convertFromDB(row[18], 'long', 'int')
+            entity_type = self.convertFromDB(row[19], 'str', 'char(16)')
             
             mashup_component = DBMashupComponent(vtid=vtid,
                                                  vttype=vttype,
@@ -4649,12 +4664,14 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                                                  parent=parent,
                                                  id=id)
             mashup_component.db_mashup_alias = mashup_alias
+            mashup_component.db_entity_id = entity_id
+            mashup_component.db_entity_type = entity_type
             mashup_component.is_dirty = False
             res[('mashup_component', id)] = mashup_component
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id']
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = global_props
         orderBy = 'id'
@@ -4681,6 +4698,8 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
             seq = self.convertFromDB(row[15], 'int', 'int')
             parent = self.convertFromDB(row[16], 'str', 'varchar(255)')
             mashup_alias = self.convertFromDB(row[17], 'long', 'int')
+            entity_id = self.convertFromDB(row[18], 'long', 'int')
+            entity_type = self.convertFromDB(row[19], 'str', 'char(16)')
             
             mashup_component = DBMashupComponent(vtid=vtid,
                                                  vttype=vttype,
@@ -4700,6 +4719,8 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                                                  parent=parent,
                                                  id=id)
             mashup_component.db_mashup_alias = mashup_alias
+            mashup_component.db_entity_id = entity_id
+            mashup_component.db_entity_type = entity_type
             mashup_component.is_dirty = False
             res[('mashup_component', id)] = mashup_component
         return res
@@ -4712,7 +4733,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id']
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = {}
         whereMap.update(global_props)
@@ -4774,6 +4795,12 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_mashup_alias') and obj.db_mashup_alias is not None:
             columnMap['alias_id'] = \
                 self.convertToDB(obj.db_mashup_alias, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -4785,7 +4812,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id']
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = {}
         whereMap.update(global_props)
@@ -4847,6 +4874,12 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_mashup_alias') and obj.db_mashup_alias is not None:
             columnMap['alias_id'] = \
                 self.convertToDB(obj.db_mashup_alias, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -4968,6 +5001,9 @@ class DBAnnotationSQLDAOBase(SQLDAO):
             p.db_add_annotation(obj)
         elif obj.db_parentType == 'abstraction':
             p = all_objects[('abstraction', obj.db_parent)]
+            p.db_add_annotation(obj)
+        elif obj.db_parentType == 'mashuptrail':
+            p = all_objects[('mashuptrail', obj.db_parent)]
             p.db_add_annotation(obj)
         elif obj.db_parentType == 'group':
             p = all_objects[('group', obj.db_parent)]
@@ -6401,7 +6437,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
             action_id = self.convertFromDB(row[3], 'long', 'int')
             date = self.convertFromDB(row[4], 'datetime', 'datetime')
             user = self.convertFromDB(row[5], 'str', 'varchar(255)')
-            mashuptrail = self.convertFromDB(row[6], 'str', 'char(36)')
+            mashuptrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             
@@ -6434,7 +6470,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
             action_id = self.convertFromDB(row[3], 'long', 'int')
             date = self.convertFromDB(row[4], 'datetime', 'datetime')
             user = self.convertFromDB(row[5], 'str', 'varchar(255)')
-            mashuptrail = self.convertFromDB(row[6], 'str', 'char(36)')
+            mashuptrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             
@@ -6454,7 +6490,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
     def from_sql_fast(self, obj, all_objects):
         if ('mashuptrail', obj.db_mashuptrail) in all_objects:
             p = all_objects[('mashuptrail', obj.db_mashuptrail)]
-            p.db_add_annotation(obj)
+            p.db_add_actionAnnotation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -6487,7 +6523,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
         if hasattr(obj, 'db_mashuptrail') and obj.db_mashuptrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_mashuptrail, 'str', 'char(36)')
+                self.convertToDB(obj.db_mashuptrail, 'long', 'int')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'long', 'int')
@@ -6533,7 +6569,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
         if hasattr(obj, 'db_mashuptrail') and obj.db_mashuptrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_mashuptrail, 'str', 'char(36)')
+                self.convertToDB(obj.db_mashuptrail, 'long', 'int')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'long', 'int')

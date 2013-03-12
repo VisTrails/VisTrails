@@ -404,6 +404,10 @@
 	<sql column="parent_id" type="int"/>
       </property>
 
+      <property ref="true" object="mashuptrail">
+	<sql column="parent_id" type="int"/>
+      </property>
+
       <property ref="true" object="group">
 	<sql column="parent_id" type="int"/>
       </property>
@@ -2977,9 +2981,9 @@
       <xml nodeType="xs:element"/>
     </property>
 
-	<property ref="true" type="str" object="mashuptrail" inverse="true" 
+	<property ref="true" type="long" object="mashuptrail" inverse="true" 
 	      mapping="many-to-one">
-      <sql column="parent_id" type="char(36)"/>
+      <sql column="parent_id" type="int"/>
     </property>
     
 	<property name="entity_id" type="long" inverse="true">
@@ -3010,7 +3014,7 @@
     <property name="key" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql column="akey" type="varchar(255)"/>
-    </property>
+     </property>
 
     <property name="value" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
@@ -3032,9 +3036,9 @@
       <sql type="varchar(255)"/>
     </property>    
 
-    <property ref="true" type="str" object="mashuptrail" inverse="true" 
+    <property ref="true" type="long" object="mashuptrail" inverse="true" 
 	      mapping="many-to-one">
-      <sql column="parent_id" type="char(36)"/>
+      <sql column="parent_id" type="int"/>
     </property>
     
     <property name="entity_id" type="long" inverse="true">
@@ -3170,9 +3174,13 @@
       <xml name="mashuptrail" nodeType="xs:element"/>
       <sql table="mashuptrail"/>
     </layout>
-    
-    <property name="id" type="str" primaryKey="true">
-      <xml nodeType="xs:attribute" type="xs:string"/>
+
+    <property name="id" type="long" primaryKey="true">
+      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
       <sql type="char(36)"/>
     </property>
     
@@ -3194,13 +3202,14 @@
       <xml nodeType="xs:element"/>
     </property>
 
-    <property name="annotation" ref="true" object="mashup_actionAnnotation" type="list" 
-	      mapping="one-to-many" index="action_id:key !key:value">
+    <property ref="true" object="annotation" type="list" mapping="one-to-many"
+	      index="key">
       <xml nodeType="xs:element"/>
     </property>
 
-	<property name="entity_id" type="long" inverse="true">
-      <sql type="int"/>
+    <property name="actionAnnotation" ref="true" object="mashup_actionAnnotation" type="list" 
+	      mapping="one-to-many" index="action_id:key !key:value">
+      <xml nodeType="xs:element"/>
     </property>
 
     <property name="entity_type" type="str" inverse="true">
@@ -3237,6 +3246,10 @@
 	<sql column="parent_id" type="int"/>
       </property>
     
+	<property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
     <property name="entity_type" type="str" inverse="true">
       <sql type="char(16)"/>
     </property>
@@ -3419,6 +3432,14 @@
 	      inverse="true">
       <sql column="alias_id" type="int"/>
     </property>
+
+	<property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
   </object>
 
   <!--++++++++++++++++++++++++++-->
@@ -3567,7 +3588,7 @@
 
     <property name="id" type="long" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:int"/>
-      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="int"/>
     </property>
 
     <property name="name" type="str">
@@ -3591,7 +3612,7 @@
     </property>
 
     <property name="vtid" type="long" foreignKey="true" object="vistrail">
-      <xml nodeType="xs:attribute" type="xs:int"/>
+      <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="int"/>
     </property>
     

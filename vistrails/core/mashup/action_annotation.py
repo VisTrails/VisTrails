@@ -113,16 +113,16 @@ class ActionAnnotation(DBMashupActionAnnotation):
     
     def __str__(self):
         """__str__() -> str - Returns a string representation of an
-        ActionAnnotation object.
+        mashup_actionAnnotation object.
 
         """
-        rep = ("<actionAnnotation id=%s action_id=%s key=%s value=%s "
+        rep = ("<mashup_actionAnnotation id=%s action_id=%s key=%s value=%s "
                "date=%s user=%s</annotation>")
         return  rep % (str(self.id), str(self.action_id), str(self.key), 
                        str(self.value), str(self.date), str(self.user))
 
     def __eq__(self, other):
-        """ __eq__(other: ActionAnnotation) -> boolean
+        """ __eq__(other: mashup_actionAnnotation) -> boolean
         Returns True if self and other have the same attributes. Used by == 
         operator. 
         

@@ -144,11 +144,12 @@ CREATE TABLE mashup_alias(
     id int,
     name varchar(255),
     parent_id int,
+    entity_id int,
     entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE mashup(
-    id int not null auto_increment primary key,
+    id int,
     name varchar(255),
     version int,
     type varchar(255),
@@ -294,17 +295,17 @@ CREATE TABLE mashup_action(
     prev_id int,
     date datetime,
     user varchar(255),
-    parent_id char(36),
+    parent_id int,
     entity_id int,
     entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE mashuptrail(
-    id char(36),
+    id int not null auto_increment primary key,
+    name char(36),
     version char(16),
     vt_version int,
     last_modified datetime,
-    entity_id int,
     entity_type char(16)
 ) engine=InnoDB;
 
@@ -335,7 +336,9 @@ CREATE TABLE mashup_component(
     widget varchar(255),
     seq int,
     parent varchar(255),
-    alias_id int
+    alias_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE annotation(
@@ -441,7 +444,7 @@ CREATE TABLE mashup_action_annotation(
     action_id int,
     date datetime,
     user varchar(255),
-    parent_id char(36),
+    parent_id int,
     entity_id int,
     entity_type char(16)
 ) engine=InnoDB;
