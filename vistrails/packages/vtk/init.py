@@ -1450,7 +1450,28 @@ else:
         """
         @classmethod
         def can_load(cls, filename):
-            return filename.lower().endswith('.vtk')
+            # See http://www.vtk.org/VTK/img/file-formats.pdf
+            with open(filename, 'r') as f:
+                def next_line():
+                    while True:
+                        l = f.readline()
+                        if l == '':
+                            return ''
+                        else:
+                            l = l.rstrip()
+                        if l != '':
+                            return l
+                magic = next_line() # version info
+                if not magic.startswith('# vtk DataFile Version '):
+                    return False
+                next_line() # header, discarded
+                f_format = next_line().upper() # file format
+                if f_format not in ('ASCII', 'BINARY'):
+                    return False
+                struct = next_line().upper().split()
+                if len(struct) < 1 or struct[0] != 'DATASET':
+                    return False
+                return True
 
         def __init__(self, filename):
             FileVariableLoader.__init__(self)
@@ -1476,11 +1497,18 @@ else:
     ########################################
     # Defines variable operations
     #
-    def op_append_datasets(op1, op2):
+    def op_append_datasets(dataset1, dataset2):
         new_var = Variable(type=dataset_type)
         mod = new_var.add_module('vtkAppendFilter')
-        op1.connect_to(mod, 'AddInputConnection')
-        op2.connect_to(mod, 'AddInputConnection')
+        dataset1.connect_to(mod, 'AddInputConnection')
+        dataset2.connect_to(mod, 'AddInputConnection')
+        new_var.select_output_port(mod, 'GetOutputPort0')
+        return new_var
+
+    def op_outline(dataset):
+        new_var = Variable(type=dataset_type)
+        mod = new_var.add_module('vtkOutlineFilter')
+        dataset.connect_to(mod, 'SetInputConnection0')
         new_var.select_output_port(mod, 'GetOutputPort0')
         return new_var
 
@@ -1489,8 +1517,15 @@ else:
             '+',
             callback=op_append_datasets,
             args=[
-                OperationArgument('op1', dataset_type),
-                OperationArgument('op2', dataset_type),
+                OperationArgument('dataset1', dataset_type),
+                OperationArgument('dataset2', dataset_type),
+            ],
+            return_type=dataset_type),
+        VariableOperation(
+            'outline',
+            callback=op_outline,
+            args=[
+                OperationArgument('dataset', dataset_type),
             ],
             return_type=dataset_type),
     ]
