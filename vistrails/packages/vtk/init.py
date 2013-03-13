@@ -1528,4 +1528,15 @@ else:
                 OperationArgument('dataset', dataset_type),
             ],
             return_type=dataset_type),
+        VariableOperation(
+            'plane_cut',
+            subworkflow='{package_dir}/dat-operations/plane_cut.xml',
+            args=[
+                OperationArgument('dataset', dataset_type),
+                OperationArgument('plane_origin',
+                                  'edu.utah.sci.vistrails.basic:String'),
+                OperationArgument('plane_normal',
+                                  'edu.utah.sci.vistrails.basic:String'),
+            ],
+            return_type=dataset_type),
     ]
