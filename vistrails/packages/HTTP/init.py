@@ -426,6 +426,7 @@ try:
     from dat.packages import Plot, DataPort, \
         Variable, \
         CustomVariableLoader, FileVariableLoader, \
+        VariableOperation, OperationArgument, \
         translate, derive_varname
 except ImportError:
     pass # We are not running DAT; skip plot/variable/operation definition
@@ -526,6 +527,19 @@ else:
             DirectInputLoader: _("URL from direct input"),
             FileLoader: _("URL from text file"),
     }
+
+    ########################################
+    # Defines variable operations
+    #
+    _variable_operations = [
+        VariableOperation(
+            'nb_to_string',
+            subworkflow='{package_dir}/dat-operations/nb_to_string.xml',
+            args=[
+                OperationArgument('nb', basic.Float),
+            ],
+            return_type=basic.String),
+    ]
 
 
 ##############################################################################
