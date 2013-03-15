@@ -1004,12 +1004,11 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
                 if info:
                     info = info[0]
                     viewManager = builderWindow.viewManager
-                    view = viewManager.ensureVistrail(info['locator'])
+                    view = viewManager.ensureController(info['controller'])
                     if view:
                         controller = view.controller
                         controller.change_selected_version(info['version'])
                         self.setCamera(controller)
-                        
                 
 class QVTKViewWidgetToolBar(QCellToolBar):
     """
