@@ -285,7 +285,7 @@ class VisTrailsAPI(object):
 
     def execute(self, custom_aliases=None, custom_params=None,
                  extra_info=None, reason='API Pipeline Execution'):
-        self._controller.execute_current_workflow(custom_aliases, custom_params,
+        return self._controller.execute_current_workflow(custom_aliases, custom_params,
                                                   extra_info, reason)
 
     def get_packages(self):
@@ -296,7 +296,7 @@ class VisTrailsAPI(object):
                 pkg = Package(package.identifier, package.version)
                 self._packages[package.identifier] = pkg
         return self._packages
-        
+
     def list_packages(self):
         for package in self.get_packages():
             print package
