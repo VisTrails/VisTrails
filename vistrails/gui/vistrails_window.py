@@ -1451,6 +1451,31 @@ class QVistrailsWindow(QVistrailViewWindow):
             # we don't want to ever close it again.
             self._first_view = None
 
+    def ensureController(self, controller):
+        """ ensureController(locator: VistrailController) -> QVistrailView        
+        This will first find among the opened vistrails to see if
+        controller is open. If not, it will try to open it if a locator exist.
+
+        This should be used when you have a controller and want to open the
+        associated vistrail 
+        """
+        if controller is None:
+            return None
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if view.controller is controller:
+                self.change_view(view)
+                return view
+        for (view, window) in self.windows.iteritems():
+            if view.controller == controller:
+                window.activateWindow()
+                window.raise_()
+                return view
+        # try to open it
+        if controller.locator:
+            return self.open_vistrail(controller.locator)
+        return None
+
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if
