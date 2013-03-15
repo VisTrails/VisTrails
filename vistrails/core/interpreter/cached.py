@@ -415,6 +415,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['version'] = current_version
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
+            obj.moduleInfo['controller'] = controller
             if extra_info is not None:
                 obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:

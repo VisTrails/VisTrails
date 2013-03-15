@@ -479,6 +479,7 @@ class StandardWidgetSheetTabInterface(object):
                                         actions=info['actions'],
                                         reason=info['reason'],
                                         locator=info['locator'],
+                                        controller=info['controller'],
                                         sinks=[mId])
 
     def executePipelineToCell(self, pInfo, row, col, reason=''):
@@ -492,6 +493,7 @@ class StandardWidgetSheetTabInterface(object):
         pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
         executePipelineWithProgress(pipeline, 'Execute Cell',
                                     locator=pInfo[0],
+                                    controller=pInfo[4],
                                     current_version=pInfo[1],
                                     actions=pInfo[2],
                                     reason=reason)
@@ -511,7 +513,7 @@ class StandardWidgetSheetTabInterface(object):
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple
-        Return (locator, versionNumber, actions, pipeline) for a cell
+        Return (locator, versionNumber, actions, pipeline, controller) for a cell
         
         """
         info = self.getCellPipelineInfo(row, col)
@@ -519,7 +521,8 @@ class StandardWidgetSheetTabInterface(object):
             return (info[0]['locator'],
                     info[0]['version'],
                     info[0]['actions'],
-                    info[0]['pipeline'])
+                    info[0]['pipeline'],
+                    info[0]['controller'])
         return None
 
     def exportSheetToImage(self, fileName):
@@ -807,6 +810,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                 if (row!=-1 and col!=-1):
                     pipeline = self.setPipelineToLocateAt(row, col, pipeline)
             executePipelineWithProgress(pipeline, 'Execute Cell',
+                                        controller=controller,
                                         locator=controller.locator,
                                         current_version=versionId,
                                         reason='Drop Version')
