@@ -7,11 +7,23 @@ import matplotlib.cbook
 ${specs.custom_code}
 % endif
 
-<%def name="do_translate(t_spec, t_ps)">\
-% if type(t_ps.translations) == dict:
-self.props['${t_ps.arg}'] = translate_${t_spec.name}_${t_ps.name}(self.props['${t_ps.arg}'])\
+<%def name="get_props(t_ps)">\
+% if t_ps.constructor_arg:
+self.constructor_props['${t_ps.arg}']\
 % else:
-self.props['${t_ps.arg}'] = ${t_ps.translations}(self.props['${t_ps.arg}'])\
+self.props['${t_ps.arg}']\
+% endif
+</%def>
+
+<%def name="do_translate(t_spec, t_ps, t_core_ps=None)">\
+<%
+if t_core_ps is None:
+    t_core_ps = t_ps
+%>\
+% if type(t_ps.translations) == dict:
+${get_props(t_core_ps)} = translate_${t_spec.name}_${t_ps.name}(${get_props(t_core_ps)})\
+% else:
+${get_props(t_core_ps)} = ${t_ps.translations}(${get_props(t_core_ps)})\
 % endif
 </%def>
 
@@ -44,7 +56,7 @@ class ${spec.name}(${spec.superklass}):
         % endif
         % endfor
         % for ps in spec.output_port_specs:
-        % if ps.is_property_output():
+        % if ps.is_property():
               ("${ps.name}", "${ps.get_property_type()}",
                 ${ps.get_port_attrs()}),
         % endif
@@ -57,6 +69,7 @@ class ${spec.name}(${spec.superklass}):
     def __init__(self):
         ${spec.superklass}.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
         % if spec.get_init():
         ${spec.get_init()}
@@ -72,22 +85,22 @@ class ${spec.name}(${spec.superklass}):
         % if ps.required:
         % if ps.has_alternate_versions():
         if self.hasInputFromPort('${ps.name}'):
-            self.props['${ps.arg}'] = self.getInputFromPort('${ps.name}')
+            ${get_props(ps)} = self.getInputFromPort('${ps.name}')
             % if ps.translations:
             ${do_translate(spec, ps)}
             % endif
         % for alt_ps in ps.alternate_specs:
         elif self.hasInputFromPort('${alt_ps.name}'):
-            self.props['${ps.arg}'] = self.getInputFromPort('${alt_ps.name}')
+            ${get_props(ps)} = self.getInputFromPort('${alt_ps.name}')
             % if alt_ps.translations:
-            ${do_translate(spec, alt_ps)}
+            ${do_translate(spec, alt_ps, ps)}
             % endif
         % endfor
         else:
             raise ModuleError(self, 'Must set one of "${ps.name}", ' \
                                   '${', '.join('"%s"' % alt_ps.name for alt_ps in ps.alternate_specs)}')
         % else:
-        self.props['${ps.arg}'] = self.getInputFromPort('${ps.name}')
+        ${get_props(ps)} = self.getInputFromPort('${ps.name}')
         % if ps.translations:
         ${do_translate(spec, ps)}
         % endif
@@ -98,15 +111,15 @@ class ${spec.name}(${spec.superklass}):
         ## % endif
         % else:
         if self.hasInputFromPort('${ps.name}'):
-            self.props['${ps.arg}'] = self.getInputFromPort('${ps.name}')
+            ${get_props(ps)} = self.getInputFromPort('${ps.name}')
             % if ps.translations:
             ${do_translate(spec, ps)}
             % endif
         % for alt_ps in ps.alternate_specs:
         elif self.hasInputFromPort('${alt_ps.name}'):
-            self.props['${ps.arg}'] = self.getInputFromPort('${alt_ps.name}')
+            ${get_props(ps)} = self.getInputFromPort('${alt_ps.name}')
             % if alt_ps.translations:
-            ${do_translate(spec, alt_ps)}
+            ${do_translate(spec, alt_ps, ps)}
             % endif
         % endfor
         ## if self.hasInputFromPort('${ps.name}'):
@@ -118,7 +131,7 @@ class ${spec.name}(${spec.superklass}):
         % endif
         % endfor
         % for ps in spec.output_port_specs:
-        % if ps.is_property_output():
+        % if ps.is_property():
         if self.hasInputFromPort('${ps.name}'):
             self.sub_props['${ps.arg}'] = self.getInputFromPort('${ps.name}')
         % endif
@@ -130,19 +143,23 @@ class ${spec.name}(${spec.superklass}):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
-        % if any(ps.is_property_output() for ps in spec.output_port_specs):
+        % if any(ps.is_property() for ps in spec.output_port_specs):
         if not matplotlib.cbook.iterable(objs):
             objs = [objs]
         else:
             objs = matplotlib.cbook.flatten(objs)
         for obj in objs:
             % for ps in spec.output_port_specs:
-            % if ps.is_property_output():
+            % if ps.is_property():
             if '${ps.arg}' in self.sub_props:
                 self.sub_props['${ps.arg}'].update_props(obj.${ps.compute_parent})
             % endif
             % endfor
         % endif
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 % endfor
 

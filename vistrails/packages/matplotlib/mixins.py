@@ -1,3 +1,16 @@
+class MplCorrBaseMixin(object):
+    def compute_after():
+        if 'usevlines' in kwargs and kwargs['usevlines']:
+            output = output + (output[2],)
+        else:
+            output = output + (None, None)
+
+class MplAcorrMixin(MplCorrBaseMixin):
+    pass
+
+class MplXcorrMixin(MplCorrBaseMixin):
+    pass
+
 class MplBoxplotMixin(object):
     def compute_after():
         if 'patch_artist' in kwargs and kwargs['patch_artist']:
@@ -6,15 +19,20 @@ class MplBoxplotMixin(object):
         else:
             output['boxPatches'] = []
 
-class MplLinePlotMixin(object):
+class MplContourBaseMixin(object):
     def compute_before():
-        x = kwargs["x"]
-        y = kwargs["y"]
-        del kwargs["x"]
-        del kwargs["y"]
+        if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
+            del args[-1]
 
+class MplContourMixin(MplContourBaseMixin):
     def compute_inner():
-        lines = matplotlib.pyplot.plot(x, y, **kwargs)
+        contour_set = matplotlib.pyplot.contour(*args, **kwargs)
+        output = (contour_set, contour_set.collections)
+
+class MplContourfMixin(MplContourBaseMixin):
+    def compute_inner():
+        contour_set = matplotlib.pyplot.contourf(*args, **kwargs)
+        output = (contour_set, contour_set.collections)
 
 class MplPieMixin(object):
     def compute_after():
@@ -29,3 +47,11 @@ class MplAnnotateMixin(object):
         elif self.hasInputFromPort("arrowProperties"):
             kwargs['arrowprops'] = \
                 self.getInputFromPort("arrowProperties").props
+
+class MplSpyMixin(object):
+    def compute_after():
+        if "marker" not in kwargs and "markersize" not in kwargs and \
+                not hasattr(kwargs["Z"], 'tocoo'):
+            output = (output, None)
+        else:
+            output = (None, output)

@@ -14,7 +14,6 @@ def new_call(self, func):
     return func
 # print id(matplotlib.docstring.interpd.__call__)
 
-# DON'T DO THIS FOR ARTISTS
 matplotlib.docstring.Substitution.__call__ = new_call
 
 # def test_func():
@@ -32,7 +31,7 @@ import matplotlib.cbook
 ArtistInspector._get_valid_values_regex = re.compile(
     r"\n\s*ACCEPTS:\s*((?:.|\n)*?)(?:$|(?:\n\n))", re.IGNORECASE)
 
-from specs import SpecList, ModuleSpec, PortSpec, OutputPortSpec, \
+from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
 sys.path.append('/vistrails/src/git/vistrails')
@@ -86,7 +85,8 @@ def parse_docutils_term(elt):
     for child in elt.children:
         if child.__class__ == docutils.nodes.emphasis:
             term = parse_docutils_elt(child)[0]
-            terms.append(term.strip())
+            if term.strip() != "None":
+                terms.append(term.strip())
         elif child.__class__ == docutils.nodes.Text:
             accepts += str(child)
         else:
@@ -191,6 +191,19 @@ def parse_docutils_str(docstring, should_print=False):
 def capfirst(s):
     return s[0].upper() + s[1:]
 
+def pretty_name(s):
+    cap = True
+    new_s = ""
+    for i, c in enumerate(s):
+        if cap:
+            c = c.upper()
+            cap = False
+        if c != '_' or i == 0:
+            new_s += c
+        else:
+            cap = True
+    return new_s
+
 def get_value_and_type(s):
     try:
         val = eval(s)
@@ -215,9 +228,7 @@ def get_type_from_val(val):
     return None        
 
 def resolve_port_type(port_types, port_spec):
-    if port_spec.name == 'uplims':
-        print "RESOLVING uplims:", port_types
-    port_types_set = set(port_types)
+    port_types_set = set(p for p in port_types if p is not None)
     was_set = False
     if port_spec.port_type is not None:
         port_types_set.add(port_spec.port_type)
@@ -243,6 +254,10 @@ def resolve_port_type(port_types, port_spec):
         if "color" in port_spec.name:
             port_spec.port_type = "basic:Color"
             port_spec.translations = "translate_color"
+        elif port_spec.name == "x":
+            port_spec.port_type = "basic:List"
+        elif port_spec.name == "y":
+            port_spec.port_type = "basic:List"
         else:
             port_spec.port_type = None
 
@@ -385,7 +400,7 @@ def do_translation_override(port_specs, names, rows, opts):
     for name in names:
         print "TRANSLATING", name
         if name not in port_specs:
-            port_specs[name] = PortSpec(name, name) 
+            port_specs[name] = InputPortSpec(name) 
         port_specs[name].entry_types = ['enum']
         port_specs[name].values = [values]
         if not values_only:
@@ -402,10 +417,12 @@ def get_names(obj, default_module_base, default_super_base,
             raise Exception("Need to specify 2- or 3-tuple")
         (obj, module_name) = obj[:2]
     if module_name is None:
-        module_name = "%s%s%s" % (prefix, capfirst(default_module_base(obj)), 
+        module_name = "%s%s%s" % (prefix, 
+                                  pretty_name(default_module_base(obj)), 
                                   suffix)
     if super_name is None:
-        super_name = "%s%s%s" % (prefix, capfirst(default_super_base(obj)), 
+        super_name = "%s%s%s" % (prefix, 
+                                 pretty_name(default_super_base(obj)), 
                                  suffix)
 
     return (obj, module_name, super_name)
@@ -450,8 +467,13 @@ def parse_argspec(obj_or_str):
     else:
         start_defaults = len(argspec_args) - len(argspec_defaults)
     port_specs_list = []
+    has_self = False
     for i, arg in enumerate(argspec_args):
-        port_spec = PortSpec(arg, arg)
+        if i == 0 and arg == "self":
+            has_self = True
+            continue
+        port_spec = InputPortSpec(arg)
+        port_spec.arg_pos = (i-1) if has_self else i
         if i >= start_defaults:
             port_spec.required = False
             default_val = argspec_defaults[i-start_defaults]
@@ -467,6 +489,129 @@ def parse_argspec(obj_or_str):
             # port_specs[arg].translations = [None,]
         port_specs_list.append(port_spec)
     return port_specs_list
+
+def process_docstring(docstring, port_specs, parent, table_overrides):
+    (cleaned_docstring, args, tables, call_sigs) = \
+        parse_docutils_str(docstring)
+
+    if len(call_sigs) > 0:
+        for call_sig in call_sigs:
+            port_specs_list = parse_argspec(call_sig)
+            for port_spec in port_specs_list:
+                if port_spec.arg in port_specs:
+                    # have to reconcile the two
+                    old_port_spec = port_specs[port_spec.arg]
+                    resolve_port_type([port_spec.port_type], old_port_spec)
+                    if old_port_spec.defaults is None:
+                        old_port_spec.defaults = port_spec.defaults
+                    elif old_port_spec.defaults != port_spec.defaults:
+                        # keep it as the old spec is
+                        print "*** Different defaults!" + \
+                            str(old_port_spec.defaults) + \
+                            " : " + str(port_spec.defaults)
+                        # raise Exception("Different defaults!" + \
+                        #                     str(old_port_spec.defaults) + \
+                        #                     " : " + str(port_spec.defaults))
+                else:
+                    port_specs[port_spec.arg] = port_spec
+
+    output_port_specs = []
+    for (deflist_intro, deflist) in args:
+        print "PROCESSING DEFLIST", deflist_intro
+        if re.search("return value", deflist_intro, re.IGNORECASE):
+            print "  -> RETURN VALUE"
+            for (name, accepts, port_doc) in deflist:
+                (port_types, option_strs, default_val, allows_none) = \
+                    parse_description(accepts)
+                (pt2, _, dv2, _) = parse_description(port_doc)
+                port_types.extend(pt2)
+                if default_val is None:
+                    default_val = dv2
+                oport = OutputPortSpec(name, docstring=port_doc)
+                resolve_port_type(port_types, oport)
+                output_port_specs.append(oport)
+        elif (re.search("argument", deflist_intro, re.IGNORECASE) or
+              re.search("kwarg", deflist_intro, re.IGNORECASE)):
+            print "  -> ARGUMENTS"
+            for (name, accepts, port_doc) in deflist:
+                if name not in port_specs:
+                    port_specs[name] = InputPortSpec(name, docstring=port_doc)
+                else:
+                    port_specs[name].docstring = port_doc
+                (port_types, option_strs, default_val, allows_none) = \
+                    parse_description(accepts)
+                (pt2, _, dv2, _) = parse_description(port_doc)
+                port_types.extend(pt2)
+                if default_val is None:
+                    default_val = dv2
+                resolve_port_type(port_types, port_specs[name])
+                if len(option_strs) > 0:
+                    port_specs[name].entry_types = ['enum']
+                    port_specs[name].values = [option_strs]
+                if default_val is not None:
+                    port_specs[name].defaults = [str(default_val)]
+
+    for (table_intro, header, rows) in tables:
+        print "GOT TABLE", table_intro, rows[0]
+        table_key = parent + (table_intro,)
+        if table_key in table_overrides:
+            (override_type, opts) = table_overrides[table_key]
+            if override_type == "translation":
+                do_translation_override(port_specs, None, rows, opts)
+                continue
+            elif override_type == "ports":
+                table_intro = "kwarg"
+            elif override_type == "skip":
+                continue
+
+        if re.search("return value", table_intro, re.IGNORECASE):
+            print "  -> RETURN"
+            if len(rows[0]) != 2:
+                raise Exception("row that has more/less than 2 columns!")
+            for (name, port_doc) in rows:
+                (port_types, option_strs, default_val, allows_none) = \
+                    parse_description(port_doc)
+                # (port_types, option_strs) = parse_desc(port_doc)
+                # port_type_set = set(port_types)
+                # # print port_name, "PORT_TYPES:", port_type_set
+                # port_type = "UNKNOWN"
+                # if len(port_type_set) == 1:
+                #     port_type = port_types[0]
+                oport = OutputPortSpec(name, docstring=port_doc)
+                resolve_port_type(oport, port_types)
+                output_port_specs.append(oport)
+        elif (re.search("argument", table_intro, re.IGNORECASE) or
+              re.search("kwarg", table_intro, re.IGNORECASE)):
+            print "  -> ARGUMENT"
+            if len(rows[0]) != 2:
+                raise Exception("row that has more/less than 2 columns!")
+            for (name, port_doc) in rows:
+                if name not in port_specs:
+                    port_specs[name] = InputPortSpec(name, docstring=port_doc)
+                else:
+                    port_specs[name].docstring = port_doc
+                (port_types, option_strs, default_val, allows_none) = \
+                    parse_description(port_doc)
+                # (port_types, option_strs) = parse_desc(port_doc)
+                # port_type_set = set(port_types)
+                # # print port_name, "PORT_TYPES:", port_type_set
+                # port_type = "UNKNOWN"
+                # if len(port_type_set) == 1:
+                #     port_specs[name].port_type = port_types[0]
+                resolve_port_type(port_types, port_specs[name])
+                if len(option_strs) > 0:
+                    port_specs[name].entry_types = ['enum']
+                    port_specs[name].values = [option_strs]
+                if default_val is not None:
+                    port_specs[name].defaults = [str(default_val)]
+        else:
+            raise Exception("Unknown table: %s\n  %s %s" % \
+                                (parent, table_intro, str(header)))
+            # print "HIT SPEC:", name
+            # if name not in port_specs:
+            #     port_specs[name] = PortSpec(name, name, "UNKNOWN", "")
+            # port_specs[name].translations = dict(reversed(r) for r in rows)
+    return cleaned_docstring, output_port_specs
 
 def parse_plots(plot_types, table_overrides):
     def get_module_base(n):
@@ -489,6 +634,7 @@ def parse_plots(plot_types, table_overrides):
         except AttributeError:
             print '*** CANNOT ADD PLOT "%s";' \
                 'IT DOES NOT EXIST IN THIS MPL VERSION ***' % plot
+            continue
         # argspec = inspect.getargspec(plot_obj)
         # print argspec
         # if argspec.defaults is None:
@@ -524,128 +670,12 @@ def parse_plots(plot_types, table_overrides):
                               "*extent*: [ None | (x0,x1,y0,y1) ]\n")
         if plot == 'annotate':
             docstring = docstring % dict((k,v) for k, v in matplotlib.docstring.interpd.params.iteritems() if k == 'Annotation')
-        (cleaned_docstring, args, tables, call_sigs) = \
-            parse_docutils_str(docstring)
+        elif plot == 'barbs':
+            docstring = docstring % dict((k,v) for k,v in matplotlib.docstring.interpd.params.iteritems() if k == 'barbs_doc')
 
-        if len(call_sigs) > 0:
-            for call_sig in call_sigs:
-                port_specs_list = parse_argspec(call_sig)
-                for port_spec in port_specs_list:
-                    if port_spec.arg in port_specs:
-                        # have to reconcile the two
-                        old_port_spec = port_specs[port_spec.arg]
-                        resolve_port_type([port_spec.port_type], old_port_spec)
-                        if old_port_spec.defaults is None:
-                            old_port_spec.defaults = port_spec.defaults
-                        elif old_port_spec.defaults != port_spec.defaults:
-                            # keep it as the old spec is
-                            print "*** Different defaults!" + \
-                                str(old_port_spec.defaults) + \
-                                " : " + str(port_spec.defaults)
-                            # raise Exception("Different defaults!" + \
-                            #                     str(old_port_spec.defaults) + \
-                            #                     " : " + str(port_spec.defaults))
-                    else:
-                        port_specs[port_spec.arg] = port_spec
-
-        output_port_specs = []
-        for (deflist_intro, deflist) in args:
-            print "PROCESSING DEFLIST", deflist_intro
-            if re.search("return value", deflist_intro, re.IGNORECASE):
-                print "  -> RETURN VALUE"
-                for (name, accepts, port_doc) in deflist:
-                    (port_types, option_strs, default_val, allows_none) = \
-                        parse_description(accepts)
-                    (pt2, _, dv2, _) = parse_description(port_doc)
-                    port_types.extend(pt2)
-                    if default_val is None:
-                        default_val = dv2
-                    oport = OutputPortSpec(name, name, name, None, port_doc)
-                    resolve_port_type(port_types, oport)
-                    output_port_specs.append(oport)
-            elif (re.search("argument", deflist_intro, re.IGNORECASE) or
-                  re.search("kwarg", deflist_intro, re.IGNORECASE)):
-                print "  -> ARGUMENTS"
-                for (name, accepts, port_doc) in deflist:
-                    if name not in port_specs:
-                        port_specs[name] = PortSpec(name, name, None, 
-                                                    port_doc)
-                    else:
-                        port_specs[name].docstring = port_doc
-                    (port_types, option_strs, default_val, allows_none) = \
-                        parse_description(accepts)
-                    (pt2, _, dv2, _) = parse_description(port_doc)
-                    port_types.extend(pt2)
-                    if default_val is None:
-                        default_val = dv2
-                    resolve_port_type(port_types, port_specs[name])
-                    if len(option_strs) > 0:
-                        port_specs[name].entry_types = ['enum']
-                        port_specs[name].values = [option_strs]
-                    if default_val is not None:
-                        port_specs[name].defaults = [str(default_val)]
-
-        for (table_intro, header, rows) in tables:
-            print "GOT TABLE", table_intro, rows[0]
-            if (plot, table_intro) in table_overrides:
-                (override_type, opts) = table_overrides[(plot, table_intro)]
-                if override_type == "translation":
-                    do_translation_override(port_specs, None, rows, opts)
-                    continue
-                elif override_type == "ports":
-                    table_intro = "kwarg"
-                elif override_type == "skip":
-                    continue
-                    
-            if re.search("return value", table_intro, re.IGNORECASE):
-                print "  -> RETURN"
-                if len(rows[0]) != 2:
-                    raise Exception("row that has more/less than 2 columns!")
-                for (name, port_doc) in rows:
-                    (port_types, option_strs, default_val, allows_none) = \
-                        parse_description(port_doc)
-                    # (port_types, option_strs) = parse_desc(port_doc)
-                    # port_type_set = set(port_types)
-                    # # print port_name, "PORT_TYPES:", port_type_set
-                    # port_type = "UNKNOWN"
-                    # if len(port_type_set) == 1:
-                    #     port_type = port_types[0]
-                    oport = OutputPortSpec(name, name, name, 
-                                           None, port_doc)
-                    resolve_port_type(oport, port_types)
-                    output_port_specs.append(oport)
-            elif (re.search("argument", table_intro, re.IGNORECASE) or
-                  re.search("kwarg", table_intro, re.IGNORECASE)):
-                print "  -> ARGUMENT"
-                if len(rows[0]) != 2:
-                    raise Exception("row that has more/less than 2 columns!")
-                for (name, port_doc) in rows:
-                    if name not in port_specs:
-                        port_specs[name] = PortSpec(name, name, None, 
-                                                    port_doc)
-                    else:
-                        port_specs[name].docstring = port_doc
-                    (port_types, option_strs, default_val, allows_none) = \
-                        parse_description(port_doc)
-                    # (port_types, option_strs) = parse_desc(port_doc)
-                    # port_type_set = set(port_types)
-                    # # print port_name, "PORT_TYPES:", port_type_set
-                    # port_type = "UNKNOWN"
-                    # if len(port_type_set) == 1:
-                    #     port_specs[name].port_type = port_types[0]
-                    resolve_port_type(port_types, port_specs[name])
-                    if len(option_strs) > 0:
-                        port_specs[name].entry_types = ['enum']
-                        port_specs[name].values = [option_strs]
-                    if default_val is not None:
-                        port_specs[name].defaults = [str(default_val)]
-            else:
-                raise Exception("Unknown table: %s\n  %s %s" % \
-                                    (plot, table_intro, str(header)))
-                print "HIT SPEC:", name
-                # if name not in port_specs:
-                #     port_specs[name] = PortSpec(name, name, "UNKNOWN", "")
-                # port_specs[name].translations = dict(reversed(r) for r in rows)
+        cleaned_docstring, output_port_specs = \
+            process_docstring(docstring, port_specs, ('pyplot', plot),
+                              table_overrides)
 
         module_specs.append(ModuleSpec(module_name, super_name,
                                        "matplotlib.pyplot.%s" % plot, 
@@ -689,7 +719,7 @@ def parse_artists(artist_types, table_overrides={}):
 
             if s in port_specs:
                 raise Exception('duplicate port "%s"' % s)
-            port_spec = PortSpec(s, s)
+            port_spec = InputPortSpec(s)
             port_specs[s] = port_spec
 
             accepts_raw = insp.get_valid_values(s)
@@ -730,8 +760,9 @@ def parse_artists(artist_types, table_overrides={}):
             translations = None
             for (table_intro, header, rows) in tables:
                 print "TABLE:", table_intro
-                if (s, table_intro) in table_overrides:
-                    (override_type, opts) = table_overrides[(s, table_intro)]
+                if (klass.__name__, s, table_intro) in table_overrides:
+                    (override_type, opts) = \
+                        table_overrides[(klass.__name__, s, table_intro)]
                     if override_type == "translation":
                         do_translation_override(port_specs, s, rows, opts)
                         continue
@@ -748,7 +779,24 @@ def parse_artists(artist_types, table_overrides={}):
                 port_spec.values = [values]
                 port_types.extend(pt2)  
             resolve_port_type(port_types, port_spec)
-            
+
+        constructor_port_specs = {}
+        port_specs_list = parse_argspec(klass.__init__)
+        for port_spec in port_specs_list:
+            constructor_port_specs[port_spec.arg] = port_spec
+        constructor_docstring = klass.__init__.__doc__
+        if constructor_docstring is not None:
+            _, output_port_specs = process_docstring(constructor_docstring, 
+                                                     constructor_port_specs,
+                                                     (klass.__name__, 
+                                                      '__init__'),
+                                                     table_overrides)
+        for arg, ps in constructor_port_specs.iteritems():
+            if arg not in port_specs:
+                ps.constructor_arg = True
+                ps.required = False
+                port_specs[arg] = ps            
+
         module_spec = ModuleSpec(module_name, super_name, klass_qualname,
                                  klass.__doc__, port_specs.values())
         module_specs.append(module_spec)
@@ -804,16 +852,31 @@ def run_artists():
     #                 Line2D, Patch, Rectangle, Axes, Figure, PathPatch, Wedge, 
     #                 Collection, PathCollection, LineCollection, Text, 
     #                 Annotation, FancyArrowPatch, YAArrow]
-    
-    artist_overrides = {('aspect', 'aspect'):
+
+    # FIXME want this to be indexed by artist name, too...
+    artist_overrides = {('Axes', 'aspect', 'aspect'):
                             ('translation', {'reverse': False,
                                              'values_only': True}),
                         # FIXME may want documentation from adjustable?
-                        ('aspect', 'adjustable'):
+                        ('Axes', 'aspect', 'adjustable'):
                             ('skip', {}),
                         # FIXME may want documentation from anchor?
-                        ('aspect', 'anchor'):
+                        ('Axes', 'aspect', 'anchor'):
                             ('skip', {}),
+                        ('ConnectionPatch', '__init__', "Valid keys are"):
+                            ('ports', {}),
+                        ('ConnectionPatch', '__init__', "coordsA and coordsB are strings that indicate the coordinates of xyA and xyB."):
+                            ('translation', {'name': ['coordsA', 'coordsB'],
+                                             'reverse': False,
+                                             'values_only': True}),
+                        ('Annotation', '__init__', "If the dictionary has a key arrowstyle, a FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a YAArow patch instance is created and drawn. Valid keys for YAArow are"):
+                            ('skip', {}),
+                        ('Annotation', '__init__', "Valid keys for FancyArrowPatch are"):
+                            ('skip', {}),
+                        ('Annotation', '__init__', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext."):
+                            ('translation', {'name': ['xycoords', 'textcoords'],
+                                             'reverse': False,
+                                             'values_only': True}),
                         }
 
     # test_xml()
@@ -891,20 +954,20 @@ def run_plots():
     #               'scatter', 'pie', 'legend', 'annotate', 'hlines', 
     #               'axvline', 'axhline', 'errorbar']
 
-    table_overrides = {('plot', 'The following format string characters are accepted to control the line style or marker:'):
+    table_overrides = {('pyplot', 'plot', 'The following format string characters are accepted to control the line style or marker:'):
                            ('translation', {'name': 'marker'}),
-                       ('plot', 'The following color abbreviations are supported:'):
+                       ('pyplot', 'plot', 'The following color abbreviations are supported:'):
                            ('skip', {}),
-                       ('legend', 'The location codes are'):
+                       ('pyplot', 'legend', 'The location codes are'):
                            ('translation', {'name': 'loc',
                                             'reverse': False}),
-                       ('legend', 'Padding and spacing between various elements use following keywords parameters. These values are measure in font-size units. E.g., a fontsize of 10 points and a handlelength=5 implies a handlelength of 50 points.  Values from rcParams will be used if None.'):
+                       ('pyplot', 'legend', 'Padding and spacing between various elements use following keywords parameters. These values are measure in font-size units. E.g., a fontsize of 10 points and a handlelength=5 implies a handlelength of 50 points.  Values from rcParams will be used if None.'):
                            ('ports', {}),
-                       ('annotate', "If the dictionary has a key arrowstyle, a FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a YAArow patch instance is created and drawn. Valid keys for YAArow are"):
+                       ('pyplot', 'annotate', "If the dictionary has a key arrowstyle, a FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a YAArow patch instance is created and drawn. Valid keys for YAArow are"):
                            ('skip', {}),
-                       ('annotate', "Valid keys for FancyArrowPatch are"):
+                       ('pyplot', 'annotate', "Valid keys for FancyArrowPatch are"):
                            ('skip', {}),
-                       ('annotate', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext."):
+                       ('pyplot', 'annotate', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext."):
                            ('translation', {'name': ['xycoords', 'textcoords'],
                                             'reverse': False,
                                             'values_only': True}),

@@ -295,10 +295,18 @@ class MplFigure(Module):
 
 
         self.setResult("self", self)
+
+class MplContourSet(Module):
+    pass
+
+class MplQuadContourSet(MplContourSet):
+    pass
         
 _modules = [(MplProperties, {'abstract': True}),
             (MplPlot, {'abstract': True}), 
             (MplSource, {'configureWidgetType': \
                              ('packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
-            MplFigure]
+            MplFigure,
+            MplContourSet,
+            MplQuadContourSet]

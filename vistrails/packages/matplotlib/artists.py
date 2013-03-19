@@ -6,6 +6,8 @@ import matplotlib.cbook
 
 
 
+
+
 def translate_color(c):
     return c.tuple
 
@@ -72,6 +74,7 @@ class MplArtistProperties(MplProperties):
     def __init__(self):
         MplProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -119,6 +122,10 @@ class MplArtistProperties(MplProperties):
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplCollectionProperties(MplArtistProperties):
     """
     Base class for Collections.  Must be subclassed to be usable.
@@ -156,16 +163,28 @@ class MplCollectionProperties(MplArtistProperties):
     
     """
     _input_ports = [
+              ("transOffset", "basic:String",
+                {'optional': True}),
               ("edgecolor", "basic:List",
                 {'optional': True, 'docstring': "Set the edgecolor(s) of the collection. c can be a matplotlib color arg (all patches have same color), or a sequence of rgba tuples; if it is a sequence the patches will cycle through the sequence.\n\nIf c is 'face', the edge color will always be the same as the face color.  If it is 'none', the patch boundary will not be drawn."}),
+              ("antialiaseds", "basic:String",
+                {'optional': True}),
+              ("edgecolors", "basic:String",
+                {'optional': True}),
               ("facecolor", "basic:List",
                 {'optional': True, 'docstring': "Set the facecolor(s) of the collection.  c can be a matplotlib color arg (all patches have same color), or a sequence of rgba tuples; if it is a sequence the patches will cycle through the sequence.\n\nIf c is 'none', the patch will not be filled."}),
+              ("linestyles", "basic:String",
+                {'optional': True, 'defaults': "['solid']"}),
               ("offsetsSequence", "basic:List",
                 {'optional': True, 'docstring': 'Set the offsets for the collection.  offsets can be a scalar or a sequence.'}),
               ("offsetsScalar", "basic:Float",
                {'docstring': 'Set the offsets for the collection.  offsets can be a scalar or a sequence.', 'optional': True}),
               ("color", "basic:List",
                 {'optional': True, 'docstring': 'Set both the edgecolor and the facecolor. .. seealso:\n\n:meth:`set_facecolor`, :meth:`set_edgecolor`    For setting the edge or face color individually.'}),
+              ("linewidths", "basic:String",
+                {'optional': True}),
+              ("cmap", "basic:String",
+                {'optional': True}),
               ("antialiasedSequence", "basic:List",
                 {'optional': True, 'docstring': 'Set the antialiasing state for rendering.'}),
               ("antialiasedScalar", "basic:Boolean",
@@ -184,6 +203,10 @@ class MplCollectionProperties(MplArtistProperties):
                {'docstring': 'Set the linewidth(s) for the collection.  lw can be a scalar or a sequence; if it is a sequence the patches will cycle through the sequence', 'optional': True}),
               ("linestyle", "basic:String",
                 {'entry_types': "['enum']", 'docstring': 'Set the linestyle(s) for the collection.', 'values': "[['solid', ('dashed', 'dashdot', 'dotted'), '(offset, on-off-dash-seq)']]", 'optional': True}),
+              ("facecolors", "basic:String",
+                {'optional': True}),
+              ("norm", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -192,20 +215,33 @@ class MplCollectionProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
+        if self.hasInputFromPort('transOffset'):
+            self.constructor_props['transOffset'] = self.getInputFromPort('transOffset')
         if self.hasInputFromPort('edgecolor'):
             self.props['edgecolor'] = self.getInputFromPort('edgecolor')
+        if self.hasInputFromPort('antialiaseds'):
+            self.constructor_props['antialiaseds'] = self.getInputFromPort('antialiaseds')
+        if self.hasInputFromPort('edgecolors'):
+            self.constructor_props['edgecolors'] = self.getInputFromPort('edgecolors')
         if self.hasInputFromPort('facecolor'):
             self.props['facecolor'] = self.getInputFromPort('facecolor')
+        if self.hasInputFromPort('linestyles'):
+            self.constructor_props['linestyles'] = self.getInputFromPort('linestyles')
         if self.hasInputFromPort('offsetsSequence'):
             self.props['offsets'] = self.getInputFromPort('offsetsSequence')
         elif self.hasInputFromPort('offsetsScalar'):
             self.props['offsets'] = self.getInputFromPort('offsetsScalar')
         if self.hasInputFromPort('color'):
             self.props['color'] = self.getInputFromPort('color')
+        if self.hasInputFromPort('linewidths'):
+            self.constructor_props['linewidths'] = self.getInputFromPort('linewidths')
+        if self.hasInputFromPort('cmap'):
+            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
         if self.hasInputFromPort('antialiasedSequence'):
             self.props['antialiased'] = self.getInputFromPort('antialiasedSequence')
         elif self.hasInputFromPort('antialiasedScalar'):
@@ -224,10 +260,18 @@ class MplCollectionProperties(MplArtistProperties):
             self.props['linewidth'] = self.getInputFromPort('linewidthScalar')
         if self.hasInputFromPort('linestyle'):
             self.props['linestyle'] = self.getInputFromPort('linestyle')
+        if self.hasInputFromPort('facecolors'):
+            self.constructor_props['facecolors'] = self.getInputFromPort('facecolors')
+        if self.hasInputFromPort('norm'):
+            self.constructor_props['norm'] = self.getInputFromPort('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplPathCollectionProperties(MplCollectionProperties):
     """
@@ -237,6 +281,8 @@ class MplPathCollectionProperties(MplCollectionProperties):
     _input_ports = [
               ("paths", "basic:String",
                 {'optional': True}),
+              ("sizes", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -245,16 +291,23 @@ class MplPathCollectionProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
         if self.hasInputFromPort('paths'):
             self.props['paths'] = self.getInputFromPort('paths')
+        if self.hasInputFromPort('sizes'):
+            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplPolyCollectionProperties(MplCollectionProperties):
     """None
@@ -264,6 +317,10 @@ class MplPolyCollectionProperties(MplCollectionProperties):
                 {'optional': True, 'docstring': 'This allows one to delay initialization of the vertices.'}),
               ("verts", "basic:String",
                 {'optional': True, 'docstring': 'This allows one to delay initialization of the vertices.'}),
+              ("closed", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("sizes", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -272,6 +329,7 @@ class MplPolyCollectionProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -280,10 +338,18 @@ class MplPolyCollectionProperties(MplCollectionProperties):
             self.props['paths'] = self.getInputFromPort('paths')
         if self.hasInputFromPort('verts'):
             self.props['verts'] = self.getInputFromPort('verts')
+        if self.hasInputFromPort('closed'):
+            self.constructor_props['closed'] = self.getInputFromPort('closed')
+        if self.hasInputFromPort('sizes'):
+            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
     """
@@ -292,6 +358,10 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
     
     """
     _input_ports = [
+              ("xranges", "basic:String",
+                {'optional': True}),
+              ("yrange", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -300,19 +370,34 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
     def __init__(self):
         MplPolyCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPolyCollectionProperties.compute(self)
+        if self.hasInputFromPort('xranges'):
+            self.constructor_props['xranges'] = self.getInputFromPort('xranges')
+        if self.hasInputFromPort('yrange'):
+            self.constructor_props['yrange'] = self.getInputFromPort('yrange')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplRegularPolyCollectionProperties(MplCollectionProperties):
     """Draw a collection of regular polygons with *numsides*.
     """
     _input_ports = [
+              ("numsides", "basic:String",
+                {'optional': True}),
+              ("rotation", "basic:Integer",
+                {'optional': True, 'defaults': "['0']"}),
+              ("sizes", "basic:String",
+                {'optional': True, 'defaults': "['(1,)']"}),
         ]
 
     # no output ports except self
@@ -321,20 +406,37 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
+        if self.hasInputFromPort('numsides'):
+            self.constructor_props['numsides'] = self.getInputFromPort('numsides')
+        if self.hasInputFromPort('rotation'):
+            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
+        if self.hasInputFromPort('sizes'):
+            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
     """
     Draw a collection of regular stars with *numsides* points.
     """
     _input_ports = [
+              ("numsides", "basic:String",
+                {'optional': True}),
+              ("rotation", "basic:Integer",
+                {'optional': True, 'defaults': "['0']"}),
+              ("sizes", "basic:String",
+                {'optional': True, 'defaults': "['(1,)']"}),
         ]
 
     # no output ports except self
@@ -343,20 +445,37 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
     def __init__(self):
         MplRegularPolyCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplRegularPolyCollectionProperties.compute(self)
+        if self.hasInputFromPort('numsides'):
+            self.constructor_props['numsides'] = self.getInputFromPort('numsides')
+        if self.hasInputFromPort('rotation'):
+            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
+        if self.hasInputFromPort('sizes'):
+            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties):
     """
     Draw a collection of regular asterisks with *numsides* points.
     """
     _input_ports = [
+              ("numsides", "basic:String",
+                {'optional': True}),
+              ("rotation", "basic:Integer",
+                {'optional': True, 'defaults': "['0']"}),
+              ("sizes", "basic:String",
+                {'optional': True, 'defaults': "['(1,)']"}),
         ]
 
     # no output ports except self
@@ -365,14 +484,25 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
     def __init__(self):
         MplRegularPolyCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplRegularPolyCollectionProperties.compute(self)
+        if self.hasInputFromPort('numsides'):
+            self.constructor_props['numsides'] = self.getInputFromPort('numsides')
+        if self.hasInputFromPort('rotation'):
+            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
+        if self.hasInputFromPort('sizes'):
+            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplLineCollectionProperties(MplCollectionProperties):
     """
@@ -387,13 +517,31 @@ class MplLineCollectionProperties(MplCollectionProperties):
     
     """
     _input_ports = [
-              ("color", "basic:List",
-                {'optional': True, 'docstring': 'Set the color(s) of the line collection.  c can be a matplotlib color arg (all patches have same color), or a sequence or rgba tuples; if it is a sequence the patches will cycle through the sequence.'}),
               ("paths", "basic:String",
                 {'optional': True}),
+              ("antialiaseds", "basic:String",
+                {'optional': True}),
+              ("linestyles", "basic:String",
+                {'optional': True, 'defaults': "['solid']"}),
+              ("offsets", "basic:String",
+                {'optional': True}),
+              ("color", "basic:List",
+                {'optional': True, 'docstring': 'Set the color(s) of the line collection.  c can be a matplotlib color arg (all patches have same color), or a sequence or rgba tuples; if it is a sequence the patches will cycle through the sequence.'}),
               ("segments", "basic:String",
                 {'optional': True}),
+              ("linewidths", "basic:String",
+                {'optional': True}),
+              ("colors", "basic:String",
+                {'optional': True}),
+              ("cmap", "basic:String",
+                {'optional': True}),
+              ("transOffset", "basic:String",
+                {'optional': True}),
               ("verts", "basic:String",
+                {'optional': True}),
+              ("pickradius", "basic:Integer",
+                {'optional': True, 'defaults': "['5']"}),
+              ("norm", "basic:String",
                 {'optional': True}),
         ]
 
@@ -403,22 +551,45 @@ class MplLineCollectionProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('color'):
-            self.props['color'] = self.getInputFromPort('color')
         if self.hasInputFromPort('paths'):
             self.props['paths'] = self.getInputFromPort('paths')
+        if self.hasInputFromPort('antialiaseds'):
+            self.constructor_props['antialiaseds'] = self.getInputFromPort('antialiaseds')
+        if self.hasInputFromPort('linestyles'):
+            self.constructor_props['linestyles'] = self.getInputFromPort('linestyles')
+        if self.hasInputFromPort('offsets'):
+            self.constructor_props['offsets'] = self.getInputFromPort('offsets')
+        if self.hasInputFromPort('color'):
+            self.props['color'] = self.getInputFromPort('color')
         if self.hasInputFromPort('segments'):
             self.props['segments'] = self.getInputFromPort('segments')
+        if self.hasInputFromPort('linewidths'):
+            self.constructor_props['linewidths'] = self.getInputFromPort('linewidths')
+        if self.hasInputFromPort('colors'):
+            self.constructor_props['colors'] = self.getInputFromPort('colors')
+        if self.hasInputFromPort('cmap'):
+            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
+        if self.hasInputFromPort('transOffset'):
+            self.constructor_props['transOffset'] = self.getInputFromPort('transOffset')
         if self.hasInputFromPort('verts'):
             self.props['verts'] = self.getInputFromPort('verts')
+        if self.hasInputFromPort('pickradius'):
+            self.constructor_props['pickradius'] = self.getInputFromPort('pickradius')
+        if self.hasInputFromPort('norm'):
+            self.constructor_props['norm'] = self.getInputFromPort('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplCircleCollectionProperties(MplCollectionProperties):
     """
@@ -426,6 +597,8 @@ class MplCircleCollectionProperties(MplCollectionProperties):
     
     """
     _input_ports = [
+              ("sizes", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -434,14 +607,21 @@ class MplCircleCollectionProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
+        if self.hasInputFromPort('sizes'):
+            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplEllipseCollectionProperties(MplCollectionProperties):
     """
@@ -449,6 +629,14 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
     
     """
     _input_ports = [
+              ("units", "basic:String",
+                {'optional': True, 'defaults': "['points']"}),
+              ("widths", "basic:String",
+                {'optional': True}),
+              ("angles", "basic:String",
+                {'optional': True}),
+              ("heights", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -457,14 +645,27 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
+        if self.hasInputFromPort('units'):
+            self.constructor_props['units'] = self.getInputFromPort('units')
+        if self.hasInputFromPort('widths'):
+            self.constructor_props['widths'] = self.getInputFromPort('widths')
+        if self.hasInputFromPort('angles'):
+            self.constructor_props['angles'] = self.getInputFromPort('angles')
+        if self.hasInputFromPort('heights'):
+            self.constructor_props['heights'] = self.getInputFromPort('heights')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplPatchCollectionProperties(MplCollectionProperties):
     """
@@ -480,6 +681,10 @@ class MplPatchCollectionProperties(MplCollectionProperties):
     _input_ports = [
               ("paths", "basic:String",
                 {'optional': True}),
+              ("patches", "basic:String",
+                {'optional': True}),
+              ("match_original", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
         ]
 
     # no output ports except self
@@ -488,16 +693,25 @@ class MplPatchCollectionProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
         if self.hasInputFromPort('paths'):
             self.props['paths'] = self.getInputFromPort('paths')
+        if self.hasInputFromPort('patches'):
+            self.constructor_props['patches'] = self.getInputFromPort('patches')
+        if self.hasInputFromPort('match_original'):
+            self.constructor_props['match_original'] = self.getInputFromPort('match_original')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplQuadMeshProperties(MplCollectionProperties):
     """
@@ -534,6 +748,18 @@ class MplQuadMeshProperties(MplCollectionProperties):
     _input_ports = [
               ("paths", "basic:String",
                 {'optional': True}),
+              ("meshHeight", "basic:String",
+                {'optional': True}),
+              ("showedges", "basic:String",
+                {'optional': True}),
+              ("coordinates", "basic:String",
+                {'optional': True}),
+              ("antialiased", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("shading", "basic:String",
+                {'optional': True, 'defaults': "['flat']"}),
+              ("meshWidth", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -542,25 +768,50 @@ class MplQuadMeshProperties(MplCollectionProperties):
     def __init__(self):
         MplCollectionProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
         if self.hasInputFromPort('paths'):
             self.props['paths'] = self.getInputFromPort('paths')
+        if self.hasInputFromPort('meshHeight'):
+            self.constructor_props['meshHeight'] = self.getInputFromPort('meshHeight')
+        if self.hasInputFromPort('showedges'):
+            self.constructor_props['showedges'] = self.getInputFromPort('showedges')
+        if self.hasInputFromPort('coordinates'):
+            self.constructor_props['coordinates'] = self.getInputFromPort('coordinates')
+        if self.hasInputFromPort('antialiased'):
+            self.constructor_props['antialiased'] = self.getInputFromPort('antialiased')
+        if self.hasInputFromPort('shading'):
+            self.constructor_props['shading'] = self.getInputFromPort('shading')
+        if self.hasInputFromPort('meshWidth'):
+            self.constructor_props['meshWidth'] = self.getInputFromPort('meshWidth')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class Mpl_AxesImageBaseProperties(MplArtistProperties):
     """None
     """
     _input_ports = [
+              ("origin", "basic:String",
+                {'optional': True}),
               ("resample", "basic:Boolean",
                 {'optional': True, 'docstring': 'set whether or not image resampling is used'}),
+              ("norm", "basic:String",
+                {'optional': True}),
+              ("cmap", "basic:String",
+                {'optional': True}),
               ("filternorm", "basic:String",
                 {'optional': True, 'docstring': 'Set whether the resize filter norms the weights -- see help for imshow'}),
+              ("ax", "basic:String",
+                {'optional': True}),
               ("alpha", "basic:Float",
                 {'optional': True, 'docstring': 'Set the alpha value used for blending - not supported on all backends'}),
               ("array", "basic:String",
@@ -579,14 +830,23 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
+        if self.hasInputFromPort('origin'):
+            self.constructor_props['origin'] = self.getInputFromPort('origin')
         if self.hasInputFromPort('resample'):
             self.props['resample'] = self.getInputFromPort('resample')
+        if self.hasInputFromPort('norm'):
+            self.constructor_props['norm'] = self.getInputFromPort('norm')
+        if self.hasInputFromPort('cmap'):
+            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
         if self.hasInputFromPort('filternorm'):
             self.props['filternorm'] = self.getInputFromPort('filternorm')
+        if self.hasInputFromPort('ax'):
+            self.constructor_props['ax'] = self.getInputFromPort('ax')
         if self.hasInputFromPort('alpha'):
             self.props['alpha'] = self.getInputFromPort('alpha')
         if self.hasInputFromPort('array'):
@@ -602,12 +862,32 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
     """None
     """
     _input_ports = [
+              ("origin", "basic:String",
+                {'optional': True}),
+              ("resample", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
+              ("norm", "basic:String",
+                {'optional': True}),
+              ("cmap", "basic:String",
+                {'optional': True}),
+              ("filterrad", "basic:Float",
+                {'optional': True, 'defaults': "['4.0']"}),
               ("extent", "basic:String",
                 {'optional': True, 'docstring': 'extent is data axes (left, right, bottom, top) for making image plots\n\nThis updates ax.dataLim, and, if autoscaling, sets viewLim to tightly fit the image, regardless of dataLim.  Autoscaling state is not changed, so following this with ax.autoscale_view will redo the autoscaling in accord with dataLim.'}),
+              ("ax", "basic:String",
+                {'optional': True}),
+              ("filternorm", "basic:Integer",
+                {'optional': True, 'defaults': "['1']"}),
+              ("interpolation", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -616,16 +896,37 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
     def __init__(self):
         Mpl_AxesImageBaseProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         Mpl_AxesImageBaseProperties.compute(self)
+        if self.hasInputFromPort('origin'):
+            self.constructor_props['origin'] = self.getInputFromPort('origin')
+        if self.hasInputFromPort('resample'):
+            self.constructor_props['resample'] = self.getInputFromPort('resample')
+        if self.hasInputFromPort('norm'):
+            self.constructor_props['norm'] = self.getInputFromPort('norm')
+        if self.hasInputFromPort('cmap'):
+            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
+        if self.hasInputFromPort('filterrad'):
+            self.constructor_props['filterrad'] = self.getInputFromPort('filterrad')
         if self.hasInputFromPort('extent'):
             self.props['extent'] = self.getInputFromPort('extent')
+        if self.hasInputFromPort('ax'):
+            self.constructor_props['ax'] = self.getInputFromPort('ax')
+        if self.hasInputFromPort('filternorm'):
+            self.constructor_props['filternorm'] = self.getInputFromPort('filternorm')
+        if self.hasInputFromPort('interpolation'):
+            self.constructor_props['interpolation'] = self.getInputFromPort('interpolation')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplNonUniformImageProperties(MplAxesImageProperties):
     """None
@@ -636,6 +937,8 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
               ("cmap", "basic:String",
                 {'optional': True}),
               ("filternorm", "basic:String",
+                {'optional': True}),
+              ("ax", "basic:String",
                 {'optional': True}),
               ("array", "basic:String",
                 {'optional': True}),
@@ -653,6 +956,7 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
     def __init__(self):
         MplAxesImageProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -663,6 +967,8 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
             self.props['cmap'] = self.getInputFromPort('cmap')
         if self.hasInputFromPort('filternorm'):
             self.props['filternorm'] = self.getInputFromPort('filternorm')
+        if self.hasInputFromPort('ax'):
+            self.constructor_props['ax'] = self.getInputFromPort('ax')
         if self.hasInputFromPort('array'):
             self.props['array'] = self.getInputFromPort('array')
         if self.hasInputFromPort('data'):
@@ -676,12 +982,32 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
     """
     The Image class whose size is determined by the given bbox.
     
     """
     _input_ports = [
+              ("origin", "basic:String",
+                {'optional': True}),
+              ("resample", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
+              ("cmap", "basic:String",
+                {'optional': True}),
+              ("filternorm", "basic:Integer",
+                {'optional': True, 'defaults': "['1']"}),
+              ("norm", "basic:String",
+                {'optional': True}),
+              ("interpolation", "basic:String",
+                {'optional': True}),
+              ("filterrad", "basic:Float",
+                {'optional': True, 'defaults': "['4.0']"}),
+              ("bbox", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -690,14 +1016,35 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
     def __init__(self):
         Mpl_AxesImageBaseProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         Mpl_AxesImageBaseProperties.compute(self)
+        if self.hasInputFromPort('origin'):
+            self.constructor_props['origin'] = self.getInputFromPort('origin')
+        if self.hasInputFromPort('resample'):
+            self.constructor_props['resample'] = self.getInputFromPort('resample')
+        if self.hasInputFromPort('cmap'):
+            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
+        if self.hasInputFromPort('filternorm'):
+            self.constructor_props['filternorm'] = self.getInputFromPort('filternorm')
+        if self.hasInputFromPort('norm'):
+            self.constructor_props['norm'] = self.getInputFromPort('norm')
+        if self.hasInputFromPort('interpolation'):
+            self.constructor_props['interpolation'] = self.getInputFromPort('interpolation')
+        if self.hasInputFromPort('filterrad'):
+            self.constructor_props['filterrad'] = self.getInputFromPort('filterrad')
+        if self.hasInputFromPort('bbox'):
+            self.constructor_props['bbox'] = self.getInputFromPort('bbox')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplPcolorImageProperties(MplArtistProperties):
     """
@@ -708,11 +1055,23 @@ class MplPcolorImageProperties(MplArtistProperties):
     
     """
     _input_ports = [
+              ("A", "basic:String",
+                {'optional': True}),
+              ("ax", "basic:String",
+                {'optional': True}),
+              ("cmap", "basic:String",
+                {'optional': True}),
+              ("x", "basic:String",
+                {'optional': True}),
+              ("y", "basic:String",
+                {'optional': True}),
               ("alpha", "basic:Float",
                 {'optional': True, 'docstring': 'Set the alpha value used for blending - not supported on all backends'}),
               ("array", "basic:String",
                 {'optional': True}),
               ("data", "basic:String",
+                {'optional': True}),
+              ("norm", "basic:String",
                 {'optional': True}),
         ]
 
@@ -722,29 +1081,58 @@ class MplPcolorImageProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
+        if self.hasInputFromPort('A'):
+            self.constructor_props['A'] = self.getInputFromPort('A')
+        if self.hasInputFromPort('ax'):
+            self.constructor_props['ax'] = self.getInputFromPort('ax')
+        if self.hasInputFromPort('cmap'):
+            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
+        if self.hasInputFromPort('x'):
+            self.constructor_props['x'] = self.getInputFromPort('x')
+        if self.hasInputFromPort('y'):
+            self.constructor_props['y'] = self.getInputFromPort('y')
         if self.hasInputFromPort('alpha'):
             self.props['alpha'] = self.getInputFromPort('alpha')
         if self.hasInputFromPort('array'):
             self.props['array'] = self.getInputFromPort('array')
         if self.hasInputFromPort('data'):
             self.props['data'] = self.getInputFromPort('data')
+        if self.hasInputFromPort('norm'):
+            self.constructor_props['norm'] = self.getInputFromPort('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplFigureImageProperties(MplArtistProperties):
     """None
     """
     _input_ports = [
+              ("origin", "basic:String",
+                {'optional': True}),
+              ("offsetx", "basic:Integer",
+                {'optional': True, 'defaults': "['0']"}),
+              ("offsety", "basic:Integer",
+                {'optional': True, 'defaults': "['0']"}),
+              ("cmap", "basic:String",
+                {'optional': True}),
+              ("fig", "basic:String",
+                {'optional': True}),
               ("array", "basic:String",
                 {'optional': True, 'docstring': 'Deprecated; use set_data for consistency with other image types.'}),
               ("data", "basic:String",
                 {'optional': True, 'docstring': 'Set the image array'}),
+              ("norm", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -753,576 +1141,35 @@ class MplFigureImageProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
+        if self.hasInputFromPort('origin'):
+            self.constructor_props['origin'] = self.getInputFromPort('origin')
+        if self.hasInputFromPort('offsetx'):
+            self.constructor_props['offsetx'] = self.getInputFromPort('offsetx')
+        if self.hasInputFromPort('offsety'):
+            self.constructor_props['offsety'] = self.getInputFromPort('offsety')
+        if self.hasInputFromPort('cmap'):
+            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
+        if self.hasInputFromPort('fig'):
+            self.constructor_props['fig'] = self.getInputFromPort('fig')
         if self.hasInputFromPort('array'):
             self.props['array'] = self.getInputFromPort('array')
         if self.hasInputFromPort('data'):
             self.props['data'] = self.getInputFromPort('data')
+        if self.hasInputFromPort('norm'):
+            self.constructor_props['norm'] = self.getInputFromPort('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
-class MplPatchProperties(MplArtistProperties):
-    """
-    A patch is a 2D thingy with a face color and an edge color.
-
-    If any of *edgecolor*, *facecolor*, *linewidth*, or *antialiased*
-    are *None*, they default to their rc params setting.
-    
-    """
-    _input_ports = [
-              ("edgecolor", "basic:Color",
-                {'optional': True, 'docstring': 'Set the patch edge color'}),
-              ("facecolor", "basic:Color",
-                {'optional': True, 'docstring': 'Set the patch face color'}),
-              ("path_effects", "basic:String",
-                {'optional': True, 'docstring': 'set path_effects, which should be a list of instances of matplotlib.patheffect._Base class or its derivatives.'}),
-              ("color", "basic:Color",
-                {'optional': True, 'docstring': 'Set both the edgecolor and the facecolor. .. seealso:\n\n:meth:`set_facecolor`, :meth:`set_edgecolor`    For setting the edge or face color individually.'}),
-              ("antialiased", "basic:Boolean",
-                {'optional': True, 'docstring': 'Set whether to use antialiased rendering'}),
-              ("hatch", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'Set the hatching pattern\n\nhatch can be one of:\n\n/   - diagonal hatching \\   - back diagonal |   - vertical -   - horizontal +   - crossed x   - crossed diagonal o   - small circle O   - large circle .   - dots *   - stars\n\nLetters can be combined, in which case all the specified hatchings are done.  If same letter repeats, it increases the density of hatching of that pattern.\n\nHatching is supported in the PostScript, PDF, SVG and Agg backends only.', 'values': '[[\'/\', "\'\\\\\'", "\'", "\'", \'-\', \'+\', \'x\', \'o\', \'O\', \'.\', \'*\']]', 'optional': True}),
-              ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'Set the alpha tranparency of the patch.'}),
-              ("linewidth", "basic:Float",
-                {'optional': True, 'docstring': 'Set the patch linewidth in points'}),
-              ("linestyle", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'Set the patch linestyle', 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
-              ("fill", "basic:Boolean",
-                {'optional': True, 'docstring': 'Set whether to fill the patch'}),
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplPatchProperties)")]
-
-    def __init__(self):
-        MplArtistProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplArtistProperties.compute(self)
-        if self.hasInputFromPort('edgecolor'):
-            self.props['edgecolor'] = self.getInputFromPort('edgecolor')
-            self.props['edgecolor'] = translate_color(self.props['edgecolor'])
-        if self.hasInputFromPort('facecolor'):
-            self.props['facecolor'] = self.getInputFromPort('facecolor')
-            self.props['facecolor'] = translate_color(self.props['facecolor'])
-        if self.hasInputFromPort('path_effects'):
-            self.props['path_effects'] = self.getInputFromPort('path_effects')
-        if self.hasInputFromPort('color'):
-            self.props['color'] = self.getInputFromPort('color')
-            self.props['color'] = translate_color(self.props['color'])
-        if self.hasInputFromPort('antialiased'):
-            self.props['antialiased'] = self.getInputFromPort('antialiased')
-        if self.hasInputFromPort('hatch'):
-            self.props['hatch'] = self.getInputFromPort('hatch')
-        if self.hasInputFromPort('alpha'):
-            self.props['alpha'] = self.getInputFromPort('alpha')
-        if self.hasInputFromPort('linewidth'):
-            self.props['linewidth'] = self.getInputFromPort('linewidth')
-        if self.hasInputFromPort('linestyle'):
-            self.props['linestyle'] = self.getInputFromPort('linestyle')
-        if self.hasInputFromPort('fill'):
-            self.props['fill'] = self.getInputFromPort('fill')
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplEllipseProperties(MplPatchProperties):
-    """
-    A scale-free ellipse.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplEllipseProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplArcProperties(MplEllipseProperties):
-    """
-    An elliptical arc.  Because it performs various optimizations, it
-    can not be filled.
-
-    The arc must be used in an :class:`~matplotlib.axes.Axes`
-    instance---it can not be added directly to a
-    :class:`~matplotlib.figure.Figure`---because it is optimized to
-    only render the segments that are inside the axes bounding box
-    with high resolution.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplArcProperties)")]
-
-    def __init__(self):
-        MplEllipseProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplEllipseProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplCircleProperties(MplEllipseProperties):
-    """
-    A circle patch.
-    
-    """
-    _input_ports = [
-              ("radius", "basic:Float",
-                {'optional': True, 'docstring': 'Set the radius of the circle'}),
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplCircleProperties)")]
-
-    def __init__(self):
-        MplEllipseProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplEllipseProperties.compute(self)
-        if self.hasInputFromPort('radius'):
-            self.props['radius'] = self.getInputFromPort('radius')
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplRectangleProperties(MplPatchProperties):
-    """
-    Draw a rectangle with lower left at *xy* = (*x*, *y*) with
-    specified *width* and *height*.
-    
-    """
-    _input_ports = [
-              ("bounds", "basic:String",
-                {'optional': True, 'docstring': 'Set the bounds of the rectangle: l,b,w,h'}),
-              ("height", "basic:Float",
-                {'optional': True, 'docstring': 'Set the width rectangle'}),
-              ("width", "basic:Float",
-                {'optional': True, 'docstring': 'Set the width rectangle'}),
-              ("xy", "basic:List",
-                {'optional': True, 'docstring': 'Set the left and bottom coords of the rectangle'}),
-              ("y", "basic:Float",
-                {'optional': True, 'docstring': 'Set the bottom coord of the rectangle'}),
-              ("x", "basic:Float",
-                {'optional': True, 'docstring': 'Set the left coord of the rectangle'}),
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplRectangleProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-        if self.hasInputFromPort('bounds'):
-            self.props['bounds'] = self.getInputFromPort('bounds')
-        if self.hasInputFromPort('height'):
-            self.props['height'] = self.getInputFromPort('height')
-        if self.hasInputFromPort('width'):
-            self.props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('xy'):
-            self.props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('y'):
-            self.props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('x'):
-            self.props['x'] = self.getInputFromPort('x')
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplPathPatchProperties(MplPatchProperties):
-    """
-    A general polycurve path patch.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplPathPatchProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplYAArrowProperties(MplPatchProperties):
-    """
-    Yet another arrow class.
-
-    This is an arrow that is defined in display space and has a tip at
-    *x1*, *y1* and a base at *x2*, *y2*.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplYAArrowProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplArrowProperties(MplPatchProperties):
-    """
-    An arrow patch.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplArrowProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplRegularPolygonProperties(MplPatchProperties):
-    """
-    A regular polygon patch.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplRegularPolygonProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplCirclePolygonProperties(MplRegularPolygonProperties):
-    """
-    A polygon-approximation of a circle patch.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplCirclePolygonProperties)")]
-
-    def __init__(self):
-        MplRegularPolygonProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplRegularPolygonProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplPolygonProperties(MplPatchProperties):
-    """
-    A general polygon patch.
-    
-    """
-    _input_ports = [
-              ("xy", "basic:String",
-                {'optional': True}),
-              ("closed", "basic:String",
-                {'optional': True}),
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplPolygonProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-        if self.hasInputFromPort('xy'):
-            self.props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('closed'):
-            self.props['closed'] = self.getInputFromPort('closed')
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplFancyArrowProperties(MplPolygonProperties):
-    """
-    Like Arrow, but lets you set head width and head height independently.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplFancyArrowProperties)")]
-
-    def __init__(self):
-        MplPolygonProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPolygonProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplWedgeProperties(MplPatchProperties):
-    """
-    Wedge shaped patch.
-    
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplWedgeProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplFancyBboxPatchProperties(MplPatchProperties):
-    """
-    Draw a fancy box around a rectangle with lower left at *xy*=(*x*,
-    *y*) with specified width and height.
-
-    :class:`FancyBboxPatch` class is similar to :class:`Rectangle`
-    class, but it draws a fancy box around the rectangle. The
-    transformation of the rectangle box to the fancy box is delegated
-    to the :class:`BoxTransmuterBase` and its derived classes.
-
-    
-    """
-    _input_ports = [
-              ("mutation_scale", "basic:Float",
-                {'optional': True, 'docstring': 'Set the mutation scale.'}),
-              ("bounds", "basic:String",
-                {'optional': True, 'docstring': 'Set the bounds of the rectangle: l,b,w,h'}),
-              ("height", "basic:Float",
-                {'optional': True, 'docstring': 'Set the width rectangle'}),
-              ("width", "basic:Float",
-                {'optional': True, 'docstring': 'Set the width rectangle'}),
-              ("boxstyle", "basic:String",
-                {'optional': True, 'docstring': 'Set the box style.\n\nboxstyle can be a string with boxstyle name with optional comma-separated attributes. Alternatively, the attrs can be provided as keywords:\n\nset_boxstyle("round,pad=0.2") set_boxstyle("round", pad=0.2)\n\nOld attrs simply are forgotten.\n\nWithout argument (or with boxstyle = None), it returns available box styles.'}),
-              ("mutation_aspect", "basic:Float",
-                {'optional': True, 'docstring': 'Set the aspect ratio of the bbox mutation.'}),
-              ("y", "basic:Float",
-                {'optional': True, 'docstring': 'Set the bottom coord of the rectangle'}),
-              ("x", "basic:Float",
-                {'optional': True, 'docstring': 'Set the left coord of the rectangle'}),
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplFancyBboxPatchProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-        if self.hasInputFromPort('mutation_scale'):
-            self.props['mutation_scale'] = self.getInputFromPort('mutation_scale')
-        if self.hasInputFromPort('bounds'):
-            self.props['bounds'] = self.getInputFromPort('bounds')
-        if self.hasInputFromPort('height'):
-            self.props['height'] = self.getInputFromPort('height')
-        if self.hasInputFromPort('width'):
-            self.props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('boxstyle'):
-            self.props['boxstyle'] = self.getInputFromPort('boxstyle')
-        if self.hasInputFromPort('mutation_aspect'):
-            self.props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
-        if self.hasInputFromPort('y'):
-            self.props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('x'):
-            self.props['x'] = self.getInputFromPort('x')
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplShadowProperties(MplPatchProperties):
-    """None
-    """
-    _input_ports = [
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplShadowProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplFancyArrowPatchProperties(MplPatchProperties):
-    """
-    A fancy arrow patch. It draws an arrow using the :class:ArrowStyle.
-    
-    """
-    _input_ports = [
-              ("connectionstyle", "basic:String",
-                {'optional': True, 'docstring': 'Set the connection style.\n\nOld attrs simply are forgotten.\n\nWithout argument (or with connectionstyle=None), return available styles as a list of strings.'}),
-              ("mutation_scale", "basic:Float",
-                {'optional': True, 'docstring': 'Set the mutation scale.'}),
-              ("arrowstyle", "basic:String",
-                {'optional': True, 'docstring': 'Set the arrow style.\n\nOld attrs simply are forgotten.\n\nWithout argument (or with arrowstyle=None), return available box styles as a list of strings.'}),
-              ("positions", "basic:String",
-                {'optional': True}),
-              ("dpi_cor", "basic:String",
-                {'optional': True, 'docstring': 'dpi_cor is currently used for linewidth-related things and shink factor. Mutation scale is not affected by this.'}),
-              ("mutation_aspect", "basic:Float",
-                {'optional': True, 'docstring': 'Set the aspect ratio of the bbox mutation.'}),
-              ("patchA", "basic:String",
-                {'optional': True, 'docstring': 'set the begin patch.'}),
-              ("patchB", "basic:String",
-                {'optional': True, 'docstring': 'set the begin patch'}),
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplFancyArrowPatchProperties)")]
-
-    def __init__(self):
-        MplPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplPatchProperties.compute(self)
-        if self.hasInputFromPort('connectionstyle'):
-            self.props['connectionstyle'] = self.getInputFromPort('connectionstyle')
-        if self.hasInputFromPort('mutation_scale'):
-            self.props['mutation_scale'] = self.getInputFromPort('mutation_scale')
-        if self.hasInputFromPort('arrowstyle'):
-            self.props['arrowstyle'] = self.getInputFromPort('arrowstyle')
-        if self.hasInputFromPort('positions'):
-            self.props['positions'] = self.getInputFromPort('positions')
-        if self.hasInputFromPort('dpi_cor'):
-            self.props['dpi_cor'] = self.getInputFromPort('dpi_cor')
-        if self.hasInputFromPort('mutation_aspect'):
-            self.props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
-        if self.hasInputFromPort('patchA'):
-            self.props['patchA'] = self.getInputFromPort('patchA')
-        if self.hasInputFromPort('patchB'):
-            self.props['patchB'] = self.getInputFromPort('patchB')
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-
-class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
-    """
-    A :class:`~matplotlib.patches.ConnectionPatch` class is to make
-    connecting lines between two points (possibly in different axes).
-    
-    """
-    _input_ports = [
-              ("annotation_clip", "basic:String",
-                {'optional': True, 'docstring': 'set annotation_clip attribute.\n\nTrue : the annotation will only be drawn when self.xy is inside the axes.\n\nFalse : the annotation will always be drawn regardless of its position.\n\nNone : the self.xy will be checked only if xycoords is "data"'}),
-        ]
-
-    # no output ports except self
-    _output_ports = [("self", "(MplConnectionPatchProperties)")]
-
-    def __init__(self):
-        MplFancyArrowPatchProperties.__init__(self)
-        self.props = {}
-        self.sub_props = {}
-
-    def compute(self):
-        MplFancyArrowPatchProperties.compute(self)
-        if self.hasInputFromPort('annotation_clip'):
-            self.props['annotation_clip'] = self.getInputFromPort('annotation_clip')
-
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplLine2DProperties(MplArtistProperties):
     """
@@ -1393,6 +1240,7 @@ class MplLine2DProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1458,6 +1306,969 @@ class MplLine2DProperties(MplArtistProperties):
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplPatchProperties(MplArtistProperties):
+    """
+    A patch is a 2D thingy with a face color and an edge color.
+
+    If any of *edgecolor*, *facecolor*, *linewidth*, or *antialiased*
+    are *None*, they default to their rc params setting.
+    
+    """
+    _input_ports = [
+              ("edgecolor", "basic:Color",
+                {'optional': True, 'docstring': 'Set the patch edge color'}),
+              ("facecolor", "basic:Color",
+                {'optional': True, 'docstring': 'Set the patch face color'}),
+              ("path_effects", "basic:String",
+                {'optional': True, 'docstring': 'set path_effects, which should be a list of instances of matplotlib.patheffect._Base class or its derivatives.'}),
+              ("color", "basic:Color",
+                {'optional': True, 'docstring': 'Set both the edgecolor and the facecolor. .. seealso:\n\n:meth:`set_facecolor`, :meth:`set_edgecolor`    For setting the edge or face color individually.'}),
+              ("antialiased", "basic:Boolean",
+                {'optional': True, 'docstring': 'Set whether to use antialiased rendering'}),
+              ("hatch", "basic:String",
+                {'entry_types': "['enum']", 'docstring': 'Set the hatching pattern\n\nhatch can be one of:\n\n/   - diagonal hatching \\   - back diagonal |   - vertical -   - horizontal +   - crossed x   - crossed diagonal o   - small circle O   - large circle .   - dots *   - stars\n\nLetters can be combined, in which case all the specified hatchings are done.  If same letter repeats, it increases the density of hatching of that pattern.\n\nHatching is supported in the PostScript, PDF, SVG and Agg backends only.', 'values': '[[\'/\', "\'\\\\\'", "\'", "\'", \'-\', \'+\', \'x\', \'o\', \'O\', \'.\', \'*\']]', 'optional': True}),
+              ("alpha", "basic:Float",
+                {'optional': True, 'docstring': 'Set the alpha tranparency of the patch.'}),
+              ("linewidth", "basic:Float",
+                {'optional': True, 'docstring': 'Set the patch linewidth in points'}),
+              ("linestyle", "basic:String",
+                {'entry_types': "['enum']", 'docstring': 'Set the patch linestyle', 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
+              ("fill", "basic:Boolean",
+                {'optional': True, 'docstring': 'Set whether to fill the patch'}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplPatchProperties)")]
+
+    def __init__(self):
+        MplArtistProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplArtistProperties.compute(self)
+        if self.hasInputFromPort('edgecolor'):
+            self.props['edgecolor'] = self.getInputFromPort('edgecolor')
+            self.props['edgecolor'] = translate_color(self.props['edgecolor'])
+        if self.hasInputFromPort('facecolor'):
+            self.props['facecolor'] = self.getInputFromPort('facecolor')
+            self.props['facecolor'] = translate_color(self.props['facecolor'])
+        if self.hasInputFromPort('path_effects'):
+            self.props['path_effects'] = self.getInputFromPort('path_effects')
+        if self.hasInputFromPort('color'):
+            self.props['color'] = self.getInputFromPort('color')
+            self.props['color'] = translate_color(self.props['color'])
+        if self.hasInputFromPort('antialiased'):
+            self.props['antialiased'] = self.getInputFromPort('antialiased')
+        if self.hasInputFromPort('hatch'):
+            self.props['hatch'] = self.getInputFromPort('hatch')
+        if self.hasInputFromPort('alpha'):
+            self.props['alpha'] = self.getInputFromPort('alpha')
+        if self.hasInputFromPort('linewidth'):
+            self.props['linewidth'] = self.getInputFromPort('linewidth')
+        if self.hasInputFromPort('linestyle'):
+            self.props['linestyle'] = self.getInputFromPort('linestyle')
+        if self.hasInputFromPort('fill'):
+            self.props['fill'] = self.getInputFromPort('fill')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplYAArrowProperties(MplPatchProperties):
+    """
+    Yet another arrow class.
+
+    This is an arrow that is defined in display space and has a tip at
+    *x1*, *y1* and a base at *x2*, *y2*.
+    
+    """
+    _input_ports = [
+              ("xytip", "basic:String",
+                {'optional': True, 'docstring': '(x, y) location of arrow tip'}),
+              ("headwidth", "basic:Integer",
+                {'optional': True, 'docstring': 'The width of the base of the arrow head in points', 'defaults': "['12']"}),
+              ("frac", "basic:Float",
+                {'optional': True, 'docstring': 'The fraction of the arrow length occupied by the head', 'defaults': "['0.1']"}),
+              ("figure", "basic:String",
+                {'optional': True, 'docstring': 'The :class:`~matplotlib.figure.Figure` instance (fig.dpi)'}),
+              ("xybase", "basic:String",
+                {'optional': True, 'docstring': '(x, y) location the arrow base mid point'}),
+              ("width", "basic:Integer",
+                {'optional': True, 'docstring': 'The width of the arrow in points', 'defaults': "['4']"}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplYAArrowProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('xytip'):
+            self.constructor_props['xytip'] = self.getInputFromPort('xytip')
+        if self.hasInputFromPort('headwidth'):
+            self.constructor_props['headwidth'] = self.getInputFromPort('headwidth')
+        if self.hasInputFromPort('frac'):
+            self.constructor_props['frac'] = self.getInputFromPort('frac')
+        if self.hasInputFromPort('figure'):
+            self.constructor_props['figure'] = self.getInputFromPort('figure')
+        if self.hasInputFromPort('xybase'):
+            self.constructor_props['xybase'] = self.getInputFromPort('xybase')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplFancyBboxPatchProperties(MplPatchProperties):
+    """
+    Draw a fancy box around a rectangle with lower left at *xy*=(*x*,
+    *y*) with specified width and height.
+
+    :class:`FancyBboxPatch` class is similar to :class:`Rectangle`
+    class, but it draws a fancy box around the rectangle. The
+    transformation of the rectangle box to the fancy box is delegated
+    to the :class:`BoxTransmuterBase` and its derived classes.
+
+    
+    """
+    _input_ports = [
+              ("mutation_scale", "basic:Float",
+                {'optional': True, 'docstring': 'Set the mutation scale.'}),
+              ("bbox_transmuter", "basic:String",
+                {'optional': True}),
+              ("bounds", "basic:String",
+                {'optional': True, 'docstring': 'Set the bounds of the rectangle: l,b,w,h'}),
+              ("height", "basic:Float",
+                {'optional': True, 'docstring': 'Set the width rectangle'}),
+              ("width", "basic:Float",
+                {'optional': True, 'docstring': 'Set the width rectangle'}),
+              ("xy", "basic:String",
+                {'optional': True}),
+              ("boxstyle", "basic:String",
+                {'optional': True, 'docstring': 'Set the box style.\n\nboxstyle can be a string with boxstyle name with optional comma-separated attributes. Alternatively, the attrs can be provided as keywords:\n\nset_boxstyle("round,pad=0.2") set_boxstyle("round", pad=0.2)\n\nOld attrs simply are forgotten.\n\nWithout argument (or with boxstyle = None), it returns available box styles.'}),
+              ("mutation_aspect", "basic:Float",
+                {'optional': True, 'docstring': 'Set the aspect ratio of the bbox mutation.'}),
+              ("y", "basic:Float",
+                {'optional': True, 'docstring': 'Set the bottom coord of the rectangle'}),
+              ("x", "basic:Float",
+                {'optional': True, 'docstring': 'Set the left coord of the rectangle'}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplFancyBboxPatchProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('mutation_scale'):
+            self.props['mutation_scale'] = self.getInputFromPort('mutation_scale')
+        if self.hasInputFromPort('bbox_transmuter'):
+            self.constructor_props['bbox_transmuter'] = self.getInputFromPort('bbox_transmuter')
+        if self.hasInputFromPort('bounds'):
+            self.props['bounds'] = self.getInputFromPort('bounds')
+        if self.hasInputFromPort('height'):
+            self.props['height'] = self.getInputFromPort('height')
+        if self.hasInputFromPort('width'):
+            self.props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('xy'):
+            self.constructor_props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('boxstyle'):
+            self.props['boxstyle'] = self.getInputFromPort('boxstyle')
+        if self.hasInputFromPort('mutation_aspect'):
+            self.props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
+        if self.hasInputFromPort('y'):
+            self.props['y'] = self.getInputFromPort('y')
+        if self.hasInputFromPort('x'):
+            self.props['x'] = self.getInputFromPort('x')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplEllipseProperties(MplPatchProperties):
+    """
+    A scale-free ellipse.
+    
+    """
+    _input_ports = [
+              ("width", "basic:String",
+                {'optional': True}),
+              ("xy", "basic:String",
+                {'optional': True}),
+              ("angle", "basic:Float",
+                {'optional': True, 'defaults': "['0.0']"}),
+              ("height", "basic:String",
+                {'optional': True}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplEllipseProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('xy'):
+            self.constructor_props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('angle'):
+            self.constructor_props['angle'] = self.getInputFromPort('angle')
+        if self.hasInputFromPort('height'):
+            self.constructor_props['height'] = self.getInputFromPort('height')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplArcProperties(MplEllipseProperties):
+    """
+    An elliptical arc.  Because it performs various optimizations, it
+    can not be filled.
+
+    The arc must be used in an :class:`~matplotlib.axes.Axes`
+    instance---it can not be added directly to a
+    :class:`~matplotlib.figure.Figure`---because it is optimized to
+    only render the segments that are inside the axes bounding box
+    with high resolution.
+    
+    """
+    _input_ports = [
+              ("theta2", "basic:Float",
+                {'optional': True, 'defaults': "['360.0']"}),
+              ("theta1", "basic:Float",
+                {'optional': True, 'defaults': "['0.0']"}),
+              ("angle", "basic:Float",
+                {'optional': True, 'defaults': "['0.0']"}),
+              ("height", "basic:String",
+                {'optional': True}),
+              ("width", "basic:String",
+                {'optional': True}),
+              ("xy", "basic:String",
+                {'optional': True}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplArcProperties)")]
+
+    def __init__(self):
+        MplEllipseProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplEllipseProperties.compute(self)
+        if self.hasInputFromPort('theta2'):
+            self.constructor_props['theta2'] = self.getInputFromPort('theta2')
+        if self.hasInputFromPort('theta1'):
+            self.constructor_props['theta1'] = self.getInputFromPort('theta1')
+        if self.hasInputFromPort('angle'):
+            self.constructor_props['angle'] = self.getInputFromPort('angle')
+        if self.hasInputFromPort('height'):
+            self.constructor_props['height'] = self.getInputFromPort('height')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('xy'):
+            self.constructor_props['xy'] = self.getInputFromPort('xy')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplCircleProperties(MplEllipseProperties):
+    """
+    A circle patch.
+    
+    """
+    _input_ports = [
+              ("xy", "basic:String",
+                {'optional': True}),
+              ("radius", "basic:Float",
+                {'optional': True, 'docstring': 'Set the radius of the circle'}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplCircleProperties)")]
+
+    def __init__(self):
+        MplEllipseProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplEllipseProperties.compute(self)
+        if self.hasInputFromPort('xy'):
+            self.constructor_props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('radius'):
+            self.props['radius'] = self.getInputFromPort('radius')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplRegularPolygonProperties(MplPatchProperties):
+    """
+    A regular polygon patch.
+    
+    """
+    _input_ports = [
+              ("xy", "basic:String",
+                {'optional': True, 'docstring': 'A length 2 tuple (x, y) of the center.'}),
+              ("radius", "basic:Integer",
+                {'optional': True, 'docstring': 'The distance from the center to each of the vertices.', 'defaults': "['5']"}),
+              ("orientation", "basic:Integer",
+                {'optional': True, 'docstring': 'rotates the polygon (in radians).', 'defaults': "['0']"}),
+              ("numVertices", "basic:String",
+                {'optional': True, 'docstring': 'the number of vertices.'}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplRegularPolygonProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('xy'):
+            self.constructor_props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('radius'):
+            self.constructor_props['radius'] = self.getInputFromPort('radius')
+        if self.hasInputFromPort('orientation'):
+            self.constructor_props['orientation'] = self.getInputFromPort('orientation')
+        if self.hasInputFromPort('numVertices'):
+            self.constructor_props['numVertices'] = self.getInputFromPort('numVertices')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplCirclePolygonProperties(MplRegularPolygonProperties):
+    """
+    A polygon-approximation of a circle patch.
+    
+    """
+    _input_ports = [
+              ("radius", "basic:Integer",
+                {'optional': True, 'defaults': "['5']"}),
+              ("xy", "basic:String",
+                {'optional': True}),
+              ("resolution", "basic:Integer",
+                {'optional': True, 'defaults': "['20']"}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplCirclePolygonProperties)")]
+
+    def __init__(self):
+        MplRegularPolygonProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplRegularPolygonProperties.compute(self)
+        if self.hasInputFromPort('radius'):
+            self.constructor_props['radius'] = self.getInputFromPort('radius')
+        if self.hasInputFromPort('xy'):
+            self.constructor_props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('resolution'):
+            self.constructor_props['resolution'] = self.getInputFromPort('resolution')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplPathPatchProperties(MplPatchProperties):
+    """
+    A general polycurve path patch.
+    
+    """
+    _input_ports = [
+              ("path", "basic:String",
+                {'optional': True}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplPathPatchProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('path'):
+            self.constructor_props['path'] = self.getInputFromPort('path')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplFancyArrowPatchProperties(MplPatchProperties):
+    """
+    A fancy arrow patch. It draws an arrow using the :class:ArrowStyle.
+    
+    """
+    _input_ports = [
+              ("connectionstyle", "basic:String",
+                {'optional': True, 'docstring': 'Set the connection style.\n\nOld attrs simply are forgotten.\n\nWithout argument (or with connectionstyle=None), return available styles as a list of strings.'}),
+              ("mutation_scale", "basic:Float",
+                {'optional': True, 'docstring': 'Set the mutation scale.'}),
+              ("arrowstyle", "basic:String",
+                {'optional': True, 'docstring': 'Set the arrow style.\n\nOld attrs simply are forgotten.\n\nWithout argument (or with arrowstyle=None), return available box styles as a list of strings.'}),
+              ("arrow_transmuter", "basic:String",
+                {'optional': True}),
+              ("positions", "basic:String",
+                {'optional': True}),
+              ("shrinkA", "basic:Float",
+                {'optional': True, 'defaults': "['2.0']"}),
+              ("posB", "basic:String",
+                {'optional': True}),
+              ("dpi_cor", "basic:String",
+                {'optional': True, 'docstring': 'dpi_cor is currently used for linewidth-related things and shink factor. Mutation scale is not affected by this.'}),
+              ("connector", "basic:String",
+                {'optional': True}),
+              ("path", "basic:String",
+                {'optional': True}),
+              ("shrinkB", "basic:Float",
+                {'optional': True, 'defaults': "['2.0']"}),
+              ("mutation_aspect", "basic:Float",
+                {'optional': True, 'docstring': 'Set the aspect ratio of the bbox mutation.'}),
+              ("patchA", "basic:String",
+                {'optional': True, 'docstring': 'set the begin patch.'}),
+              ("patchB", "basic:String",
+                {'optional': True, 'docstring': 'set the begin patch'}),
+              ("posA", "basic:String",
+                {'optional': True}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplFancyArrowPatchProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('connectionstyle'):
+            self.props['connectionstyle'] = self.getInputFromPort('connectionstyle')
+        if self.hasInputFromPort('mutation_scale'):
+            self.props['mutation_scale'] = self.getInputFromPort('mutation_scale')
+        if self.hasInputFromPort('arrowstyle'):
+            self.props['arrowstyle'] = self.getInputFromPort('arrowstyle')
+        if self.hasInputFromPort('arrow_transmuter'):
+            self.constructor_props['arrow_transmuter'] = self.getInputFromPort('arrow_transmuter')
+        if self.hasInputFromPort('positions'):
+            self.props['positions'] = self.getInputFromPort('positions')
+        if self.hasInputFromPort('shrinkA'):
+            self.constructor_props['shrinkA'] = self.getInputFromPort('shrinkA')
+        if self.hasInputFromPort('posB'):
+            self.constructor_props['posB'] = self.getInputFromPort('posB')
+        if self.hasInputFromPort('dpi_cor'):
+            self.props['dpi_cor'] = self.getInputFromPort('dpi_cor')
+        if self.hasInputFromPort('connector'):
+            self.constructor_props['connector'] = self.getInputFromPort('connector')
+        if self.hasInputFromPort('path'):
+            self.constructor_props['path'] = self.getInputFromPort('path')
+        if self.hasInputFromPort('shrinkB'):
+            self.constructor_props['shrinkB'] = self.getInputFromPort('shrinkB')
+        if self.hasInputFromPort('mutation_aspect'):
+            self.props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
+        if self.hasInputFromPort('patchA'):
+            self.props['patchA'] = self.getInputFromPort('patchA')
+        if self.hasInputFromPort('patchB'):
+            self.props['patchB'] = self.getInputFromPort('patchB')
+        if self.hasInputFromPort('posA'):
+            self.constructor_props['posA'] = self.getInputFromPort('posA')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
+    """
+    A :class:`~matplotlib.patches.ConnectionPatch` class is to make
+    connecting lines between two points (possibly in different axes).
+    
+    """
+    _input_ports = [
+              ("connectionstyle", "basic:String",
+                {'optional': True, 'docstring': 'the connection style', 'defaults': "['arc3']"}),
+              ("coordsA", "basic:String",
+                {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True}),
+              ("arrowstyle", "basic:String",
+                {'optional': True, 'docstring': 'the arrow style', 'defaults': "['-']"}),
+              ("clip_on", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
+              ("arrow_transmuter", "basic:String",
+                {'optional': True}),
+              ("axesA", "basic:String",
+                {'optional': True}),
+              ("axesB", "basic:String",
+                {'optional': True}),
+              ("annotation_clip", "basic:String",
+                {'optional': True, 'docstring': 'set annotation_clip attribute.\n\nTrue : the annotation will only be drawn when self.xy is inside the axes.\n\nFalse : the annotation will always be drawn regardless of its position.\n\nNone : the self.xy will be checked only if xycoords is "data"'}),
+              ("dpi_cor", "basic:Float",
+                {'optional': True, 'defaults': "['1.0']"}),
+              ("connector", "basic:String",
+                {'optional': True}),
+              ("xyA", "basic:String",
+                {'optional': True}),
+              ("xyB", "basic:String",
+                {'optional': True}),
+              ("relpos", "basic:String",
+                {'optional': True, 'docstring': 'default is (0.5, 0.5)', 'defaults': "['(0.5']"}),
+              ("shrinkB", "basic:Float",
+                {'optional': True, 'docstring': 'default is 2 points', 'defaults': "['2']"}),
+              ("shrinkA", "basic:Float",
+                {'optional': True, 'docstring': 'default is 2 points', 'defaults': "['2']"}),
+              ("mutation_aspect", "basic:Integer",
+                {'optional': True, 'docstring': 'default is 1.', 'defaults': "['1']"}),
+              ("mutation_scale", "basic:String",
+                {'optional': True, 'docstring': 'default is text size (in points)', 'defaults': "['text']"}),
+              ("patchA", "basic:String",
+                {'optional': True, 'docstring': 'default is bounding box of the text', 'defaults': "['bounding']"}),
+              ("patchB", "basic:String",
+                {'optional': True, 'docstring': 'default is None'}),
+              ("coordsB", "basic:String",
+                {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True}),
+              ("?", "basic:String",
+                {'optional': True, 'docstring': 'any key for :class:`matplotlib.patches.PathPatch`'}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplConnectionPatchProperties)")]
+
+    def __init__(self):
+        MplFancyArrowPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplFancyArrowPatchProperties.compute(self)
+        if self.hasInputFromPort('connectionstyle'):
+            self.constructor_props['connectionstyle'] = self.getInputFromPort('connectionstyle')
+        if self.hasInputFromPort('coordsA'):
+            self.constructor_props['coordsA'] = self.getInputFromPort('coordsA')
+        if self.hasInputFromPort('arrowstyle'):
+            self.constructor_props['arrowstyle'] = self.getInputFromPort('arrowstyle')
+        if self.hasInputFromPort('clip_on'):
+            self.constructor_props['clip_on'] = self.getInputFromPort('clip_on')
+        if self.hasInputFromPort('arrow_transmuter'):
+            self.constructor_props['arrow_transmuter'] = self.getInputFromPort('arrow_transmuter')
+        if self.hasInputFromPort('axesA'):
+            self.constructor_props['axesA'] = self.getInputFromPort('axesA')
+        if self.hasInputFromPort('axesB'):
+            self.constructor_props['axesB'] = self.getInputFromPort('axesB')
+        if self.hasInputFromPort('annotation_clip'):
+            self.props['annotation_clip'] = self.getInputFromPort('annotation_clip')
+        if self.hasInputFromPort('dpi_cor'):
+            self.constructor_props['dpi_cor'] = self.getInputFromPort('dpi_cor')
+        if self.hasInputFromPort('connector'):
+            self.constructor_props['connector'] = self.getInputFromPort('connector')
+        if self.hasInputFromPort('xyA'):
+            self.constructor_props['xyA'] = self.getInputFromPort('xyA')
+        if self.hasInputFromPort('xyB'):
+            self.constructor_props['xyB'] = self.getInputFromPort('xyB')
+        if self.hasInputFromPort('relpos'):
+            self.constructor_props['relpos'] = self.getInputFromPort('relpos')
+        if self.hasInputFromPort('shrinkB'):
+            self.constructor_props['shrinkB'] = self.getInputFromPort('shrinkB')
+        if self.hasInputFromPort('shrinkA'):
+            self.constructor_props['shrinkA'] = self.getInputFromPort('shrinkA')
+        if self.hasInputFromPort('mutation_aspect'):
+            self.constructor_props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
+        if self.hasInputFromPort('mutation_scale'):
+            self.constructor_props['mutation_scale'] = self.getInputFromPort('mutation_scale')
+        if self.hasInputFromPort('patchA'):
+            self.constructor_props['patchA'] = self.getInputFromPort('patchA')
+        if self.hasInputFromPort('patchB'):
+            self.constructor_props['patchB'] = self.getInputFromPort('patchB')
+        if self.hasInputFromPort('coordsB'):
+            self.constructor_props['coordsB'] = self.getInputFromPort('coordsB')
+        if self.hasInputFromPort('?'):
+            self.constructor_props['?'] = self.getInputFromPort('?')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplRectangleProperties(MplPatchProperties):
+    """
+    Draw a rectangle with lower left at *xy* = (*x*, *y*) with
+    specified *width* and *height*.
+    
+    """
+    _input_ports = [
+              ("bounds", "basic:String",
+                {'optional': True, 'docstring': 'Set the bounds of the rectangle: l,b,w,h'}),
+              ("height", "basic:Float",
+                {'optional': True, 'docstring': 'Set the width rectangle'}),
+              ("width", "basic:Float",
+                {'optional': True, 'docstring': 'Set the width rectangle'}),
+              ("xy", "basic:List",
+                {'optional': True, 'docstring': 'Set the left and bottom coords of the rectangle'}),
+              ("y", "basic:Float",
+                {'optional': True, 'docstring': 'Set the bottom coord of the rectangle'}),
+              ("x", "basic:Float",
+                {'optional': True, 'docstring': 'Set the left coord of the rectangle'}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplRectangleProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('bounds'):
+            self.props['bounds'] = self.getInputFromPort('bounds')
+        if self.hasInputFromPort('height'):
+            self.props['height'] = self.getInputFromPort('height')
+        if self.hasInputFromPort('width'):
+            self.props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('xy'):
+            self.props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('y'):
+            self.props['y'] = self.getInputFromPort('y')
+        if self.hasInputFromPort('x'):
+            self.props['x'] = self.getInputFromPort('x')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplPolygonProperties(MplPatchProperties):
+    """
+    A general polygon patch.
+    
+    """
+    _input_ports = [
+              ("xy", "basic:String",
+                {'optional': True}),
+              ("closed", "basic:String",
+                {'optional': True}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplPolygonProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('xy'):
+            self.props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('closed'):
+            self.props['closed'] = self.getInputFromPort('closed')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplFancyArrowProperties(MplPolygonProperties):
+    """
+    Like Arrow, but lets you set head width and head height independently.
+    
+    """
+    _input_ports = [
+              ("length_includes_head", "basic:Boolean",
+                {'optional': True, 'docstring': 'True if head is counted in calculating the length.', 'defaults': "['False']"}),
+              ("head_length", "basic:String",
+                {'optional': True}),
+              ("head_width", "basic:String",
+                {'optional': True}),
+              ("width", "basic:Float",
+                {'optional': True, 'defaults': "['0.001']"}),
+              ("shape", "basic:String",
+                {'optional': True, 'defaults': "['full']"}),
+              ("dx", "basic:String",
+                {'optional': True}),
+              ("dy", "basic:String",
+                {'optional': True}),
+              ("y", "basic:String",
+                {'optional': True}),
+              ("x", "basic:String",
+                {'optional': True}),
+              ("head_starts_at_zero", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
+              ("overhang", "basic:Integer",
+                {'optional': True, 'defaults': "['0']"}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplFancyArrowProperties)")]
+
+    def __init__(self):
+        MplPolygonProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPolygonProperties.compute(self)
+        if self.hasInputFromPort('length_includes_head'):
+            self.constructor_props['length_includes_head'] = self.getInputFromPort('length_includes_head')
+        if self.hasInputFromPort('head_length'):
+            self.constructor_props['head_length'] = self.getInputFromPort('head_length')
+        if self.hasInputFromPort('head_width'):
+            self.constructor_props['head_width'] = self.getInputFromPort('head_width')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('shape'):
+            self.constructor_props['shape'] = self.getInputFromPort('shape')
+        if self.hasInputFromPort('dx'):
+            self.constructor_props['dx'] = self.getInputFromPort('dx')
+        if self.hasInputFromPort('dy'):
+            self.constructor_props['dy'] = self.getInputFromPort('dy')
+        if self.hasInputFromPort('y'):
+            self.constructor_props['y'] = self.getInputFromPort('y')
+        if self.hasInputFromPort('x'):
+            self.constructor_props['x'] = self.getInputFromPort('x')
+        if self.hasInputFromPort('head_starts_at_zero'):
+            self.constructor_props['head_starts_at_zero'] = self.getInputFromPort('head_starts_at_zero')
+        if self.hasInputFromPort('overhang'):
+            self.constructor_props['overhang'] = self.getInputFromPort('overhang')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplWedgeProperties(MplPatchProperties):
+    """
+    Wedge shaped patch.
+    
+    """
+    _input_ports = [
+              ("theta2", "basic:String",
+                {'optional': True}),
+              ("width", "basic:String",
+                {'optional': True}),
+              ("r", "basic:String",
+                {'optional': True}),
+              ("theta1", "basic:String",
+                {'optional': True}),
+              ("center", "basic:String",
+                {'optional': True}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplWedgeProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('theta2'):
+            self.constructor_props['theta2'] = self.getInputFromPort('theta2')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('r'):
+            self.constructor_props['r'] = self.getInputFromPort('r')
+        if self.hasInputFromPort('theta1'):
+            self.constructor_props['theta1'] = self.getInputFromPort('theta1')
+        if self.hasInputFromPort('center'):
+            self.constructor_props['center'] = self.getInputFromPort('center')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplArrowProperties(MplPatchProperties):
+    """
+    An arrow patch.
+    
+    """
+    _input_ports = [
+              ("y", "basic:String",
+                {'optional': True}),
+              ("x", "basic:String",
+                {'optional': True}),
+              ("dy", "basic:String",
+                {'optional': True}),
+              ("dx", "basic:String",
+                {'optional': True}),
+              ("width", "basic:Float",
+                {'optional': True, 'defaults': "['1.0']"}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplArrowProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('y'):
+            self.constructor_props['y'] = self.getInputFromPort('y')
+        if self.hasInputFromPort('x'):
+            self.constructor_props['x'] = self.getInputFromPort('x')
+        if self.hasInputFromPort('dy'):
+            self.constructor_props['dy'] = self.getInputFromPort('dy')
+        if self.hasInputFromPort('dx'):
+            self.constructor_props['dx'] = self.getInputFromPort('dx')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
+class MplShadowProperties(MplPatchProperties):
+    """None
+    """
+    _input_ports = [
+              ("patch", "basic:String",
+                {'optional': True}),
+              ("props", "basic:String",
+                {'optional': True}),
+              ("oy", "basic:String",
+                {'optional': True}),
+              ("ox", "basic:String",
+                {'optional': True}),
+        ]
+
+    # no output ports except self
+    _output_ports = [("self", "(MplShadowProperties)")]
+
+    def __init__(self):
+        MplPatchProperties.__init__(self)
+        self.props = {}
+        self.constructor_props = {}
+        self.sub_props = {}
+
+    def compute(self):
+        MplPatchProperties.compute(self)
+        if self.hasInputFromPort('patch'):
+            self.constructor_props['patch'] = self.getInputFromPort('patch')
+        if self.hasInputFromPort('props'):
+            self.constructor_props['props'] = self.getInputFromPort('props')
+        if self.hasInputFromPort('oy'):
+            self.constructor_props['oy'] = self.getInputFromPort('oy')
+        if self.hasInputFromPort('ox'):
+            self.constructor_props['ox'] = self.getInputFromPort('ox')
+
+        
+    def update_props(self, objs):
+        matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplTextProperties(MplArtistProperties):
     """
     Handle storing and drawing of text in window or data coordinates.
@@ -1514,6 +2325,7 @@ class MplTextProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1566,6 +2378,10 @@ class MplTextProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplTextWithDashProperties(MplTextProperties):
     """
@@ -1624,14 +2440,26 @@ class MplTextWithDashProperties(MplTextProperties):
                 {'optional': True, 'docstring': 'Set the "push" of the TextWithDash, which is the extra spacing between the beginning of the dash and the specified position.'}),
               ("dashdirection", "basic:String",
                 {'optional': True, 'docstring': "Set the direction of the dash following the text. 1 is before the text and 0 is after. The default is 0, which is what you'd want for the typical case of ticks below and on the left of the figure."}),
+              ("linespacing", "basic:String",
+                {'optional': True}),
               ("figure", "basic:String",
                 {'optional': True, 'docstring': 'Set the figure instance the artist belong to.'}),
+              ("color", "basic:String",
+                {'optional': True}),
+              ("text", "basic:String",
+                {'optional': True, 'defaults': "['']"}),
+              ("verticalalignment", "basic:String",
+                {'optional': True, 'defaults': "['center']"}),
               ("dashpad", "basic:Float",
                 {'optional': True, 'docstring': 'Set the "pad" of the TextWithDash, which is the extra spacing between the dash and the text, in canvas units.'}),
               ("dashrotation", "basic:Float",
                 {'optional': True, 'docstring': 'Set the rotation of the dash, in degrees'}),
               ("transform", "basic:String",
                 {'optional': True, 'docstring': 'Set the :class:`matplotlib.transforms.Transform` instance used by this artist.'}),
+              ("fontproperties", "basic:String",
+                {'optional': True}),
+              ("multialignment", "basic:String",
+                {'optional': True}),
               ("x", "basic:Float",
                 {'optional': True, 'docstring': 'Set the x position of the :class:`TextWithDash`.'}),
               ("y", "basic:Float",
@@ -1640,6 +2468,10 @@ class MplTextWithDashProperties(MplTextProperties):
                 {'optional': True, 'docstring': 'Set the (x, y) position of the :class:`TextWithDash`.'}),
               ("dashlength", "basic:Float",
                 {'optional': True, 'docstring': 'Set the length of the dash.'}),
+              ("rotation", "basic:String",
+                {'optional': True}),
+              ("horizontalalignment", "basic:String",
+                {'optional': True, 'defaults': "['center']"}),
         ]
 
     # no output ports except self
@@ -1648,6 +2480,7 @@ class MplTextWithDashProperties(MplTextProperties):
     def __init__(self):
         MplTextProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1656,14 +2489,26 @@ class MplTextWithDashProperties(MplTextProperties):
             self.props['dashpush'] = self.getInputFromPort('dashpush')
         if self.hasInputFromPort('dashdirection'):
             self.props['dashdirection'] = self.getInputFromPort('dashdirection')
+        if self.hasInputFromPort('linespacing'):
+            self.constructor_props['linespacing'] = self.getInputFromPort('linespacing')
         if self.hasInputFromPort('figure'):
             self.props['figure'] = self.getInputFromPort('figure')
+        if self.hasInputFromPort('color'):
+            self.constructor_props['color'] = self.getInputFromPort('color')
+        if self.hasInputFromPort('text'):
+            self.constructor_props['text'] = self.getInputFromPort('text')
+        if self.hasInputFromPort('verticalalignment'):
+            self.constructor_props['verticalalignment'] = self.getInputFromPort('verticalalignment')
         if self.hasInputFromPort('dashpad'):
             self.props['dashpad'] = self.getInputFromPort('dashpad')
         if self.hasInputFromPort('dashrotation'):
             self.props['dashrotation'] = self.getInputFromPort('dashrotation')
         if self.hasInputFromPort('transform'):
             self.props['transform'] = self.getInputFromPort('transform')
+        if self.hasInputFromPort('fontproperties'):
+            self.constructor_props['fontproperties'] = self.getInputFromPort('fontproperties')
+        if self.hasInputFromPort('multialignment'):
+            self.constructor_props['multialignment'] = self.getInputFromPort('multialignment')
         if self.hasInputFromPort('x'):
             self.props['x'] = self.getInputFromPort('x')
         if self.hasInputFromPort('y'):
@@ -1672,10 +2517,18 @@ class MplTextWithDashProperties(MplTextProperties):
             self.props['position'] = self.getInputFromPort('position')
         if self.hasInputFromPort('dashlength'):
             self.props['dashlength'] = self.getInputFromPort('dashlength')
+        if self.hasInputFromPort('rotation'):
+            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
+        if self.hasInputFromPort('horizontalalignment'):
+            self.constructor_props['horizontalalignment'] = self.getInputFromPort('horizontalalignment')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplTickProperties(MplArtistProperties):
     """
@@ -1719,16 +2572,46 @@ class MplTickProperties(MplArtistProperties):
     
     """
     _input_ports = [
+              ("label1On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("loc", "basic:String",
+                {'optional': True}),
+              ("major", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("label2On", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
+              ("color", "basic:String",
+                {'optional': True}),
               ("label1", "basic:String",
                 {'optional': True, 'docstring': 'Set the text of ticklabel'}),
               ("label2", "basic:String",
                 {'optional': True, 'docstring': 'Set the text of ticklabel2'}),
-              ("pad", "basic:Float",
-                {'optional': True, 'docstring': 'Set the tick label pad in points'}),
+              ("axes", "basic:String",
+                {'optional': True}),
               ("clip_path", "basic:String",
                 {'entry_types': "['enum']", 'docstring': "Set the artist's clip path, which may be:\n\na :class:`~matplotlib.patches.Patch` (or subclass) instance\n\n\n\nNone, to remove the clipping path\n\nFor efficiency, if the path happens to be an axis-aligned rectangle, this method will set the clipping box to the corresponding rectangle and set the clipping path to None.", 'values': "[['(:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`)', ':class:`~matplotlib.patches.Patch`']]", 'optional': True}),
               ("label", "basic:String",
                 {'optional': True, 'docstring': 'Set the text of ticklabel'}),
+              ("labelcolor", "basic:String",
+                {'optional': True}),
+              ("tickdir", "basic:String",
+                {'optional': True}),
+              ("pad", "basic:Float",
+                {'optional': True, 'docstring': 'Set the tick label pad in points'}),
+              ("gridOn", "basic:String",
+                {'optional': True}),
+              ("zorder", "basic:String",
+                {'optional': True}),
+              ("tick2On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("labelsize", "basic:String",
+                {'optional': True}),
+              ("width", "basic:String",
+                {'optional': True}),
+              ("tick1On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("size", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -1737,24 +2620,59 @@ class MplTickProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
+        if self.hasInputFromPort('label1On'):
+            self.constructor_props['label1On'] = self.getInputFromPort('label1On')
+        if self.hasInputFromPort('loc'):
+            self.constructor_props['loc'] = self.getInputFromPort('loc')
+        if self.hasInputFromPort('major'):
+            self.constructor_props['major'] = self.getInputFromPort('major')
+        if self.hasInputFromPort('label2On'):
+            self.constructor_props['label2On'] = self.getInputFromPort('label2On')
+        if self.hasInputFromPort('color'):
+            self.constructor_props['color'] = self.getInputFromPort('color')
         if self.hasInputFromPort('label1'):
             self.props['label1'] = self.getInputFromPort('label1')
         if self.hasInputFromPort('label2'):
             self.props['label2'] = self.getInputFromPort('label2')
-        if self.hasInputFromPort('pad'):
-            self.props['pad'] = self.getInputFromPort('pad')
+        if self.hasInputFromPort('axes'):
+            self.constructor_props['axes'] = self.getInputFromPort('axes')
         if self.hasInputFromPort('clip_path'):
             self.props['clip_path'] = self.getInputFromPort('clip_path')
         if self.hasInputFromPort('label'):
             self.props['label'] = self.getInputFromPort('label')
+        if self.hasInputFromPort('labelcolor'):
+            self.constructor_props['labelcolor'] = self.getInputFromPort('labelcolor')
+        if self.hasInputFromPort('tickdir'):
+            self.constructor_props['tickdir'] = self.getInputFromPort('tickdir')
+        if self.hasInputFromPort('pad'):
+            self.props['pad'] = self.getInputFromPort('pad')
+        if self.hasInputFromPort('gridOn'):
+            self.constructor_props['gridOn'] = self.getInputFromPort('gridOn')
+        if self.hasInputFromPort('zorder'):
+            self.constructor_props['zorder'] = self.getInputFromPort('zorder')
+        if self.hasInputFromPort('tick2On'):
+            self.constructor_props['tick2On'] = self.getInputFromPort('tick2On')
+        if self.hasInputFromPort('labelsize'):
+            self.constructor_props['labelsize'] = self.getInputFromPort('labelsize')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('tick1On'):
+            self.constructor_props['tick1On'] = self.getInputFromPort('tick1On')
+        if self.hasInputFromPort('size'):
+            self.constructor_props['size'] = self.getInputFromPort('size')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplXTickProperties(MplTickProperties):
     """
@@ -1763,6 +2681,40 @@ class MplXTickProperties(MplTickProperties):
     
     """
     _input_ports = [
+              ("label1On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("loc", "basic:String",
+                {'optional': True}),
+              ("major", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("label2On", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
+              ("color", "basic:String",
+                {'optional': True}),
+              ("axes", "basic:String",
+                {'optional': True}),
+              ("label", "basic:String",
+                {'optional': True}),
+              ("labelcolor", "basic:String",
+                {'optional': True}),
+              ("tickdir", "basic:String",
+                {'optional': True}),
+              ("pad", "basic:String",
+                {'optional': True}),
+              ("gridOn", "basic:String",
+                {'optional': True}),
+              ("zorder", "basic:String",
+                {'optional': True}),
+              ("tick2On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("labelsize", "basic:String",
+                {'optional': True}),
+              ("width", "basic:String",
+                {'optional': True}),
+              ("tick1On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("size", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -1771,14 +2723,53 @@ class MplXTickProperties(MplTickProperties):
     def __init__(self):
         MplTickProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplTickProperties.compute(self)
+        if self.hasInputFromPort('label1On'):
+            self.constructor_props['label1On'] = self.getInputFromPort('label1On')
+        if self.hasInputFromPort('loc'):
+            self.constructor_props['loc'] = self.getInputFromPort('loc')
+        if self.hasInputFromPort('major'):
+            self.constructor_props['major'] = self.getInputFromPort('major')
+        if self.hasInputFromPort('label2On'):
+            self.constructor_props['label2On'] = self.getInputFromPort('label2On')
+        if self.hasInputFromPort('color'):
+            self.constructor_props['color'] = self.getInputFromPort('color')
+        if self.hasInputFromPort('axes'):
+            self.constructor_props['axes'] = self.getInputFromPort('axes')
+        if self.hasInputFromPort('label'):
+            self.constructor_props['label'] = self.getInputFromPort('label')
+        if self.hasInputFromPort('labelcolor'):
+            self.constructor_props['labelcolor'] = self.getInputFromPort('labelcolor')
+        if self.hasInputFromPort('tickdir'):
+            self.constructor_props['tickdir'] = self.getInputFromPort('tickdir')
+        if self.hasInputFromPort('pad'):
+            self.constructor_props['pad'] = self.getInputFromPort('pad')
+        if self.hasInputFromPort('gridOn'):
+            self.constructor_props['gridOn'] = self.getInputFromPort('gridOn')
+        if self.hasInputFromPort('zorder'):
+            self.constructor_props['zorder'] = self.getInputFromPort('zorder')
+        if self.hasInputFromPort('tick2On'):
+            self.constructor_props['tick2On'] = self.getInputFromPort('tick2On')
+        if self.hasInputFromPort('labelsize'):
+            self.constructor_props['labelsize'] = self.getInputFromPort('labelsize')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('tick1On'):
+            self.constructor_props['tick1On'] = self.getInputFromPort('tick1On')
+        if self.hasInputFromPort('size'):
+            self.constructor_props['size'] = self.getInputFromPort('size')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplYTickProperties(MplTickProperties):
     """
@@ -1787,6 +2778,40 @@ class MplYTickProperties(MplTickProperties):
     
     """
     _input_ports = [
+              ("label1On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("loc", "basic:String",
+                {'optional': True}),
+              ("major", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("label2On", "basic:Boolean",
+                {'optional': True, 'defaults': "['False']"}),
+              ("color", "basic:String",
+                {'optional': True}),
+              ("axes", "basic:String",
+                {'optional': True}),
+              ("label", "basic:String",
+                {'optional': True}),
+              ("labelcolor", "basic:String",
+                {'optional': True}),
+              ("tickdir", "basic:String",
+                {'optional': True}),
+              ("pad", "basic:String",
+                {'optional': True}),
+              ("gridOn", "basic:String",
+                {'optional': True}),
+              ("zorder", "basic:String",
+                {'optional': True}),
+              ("tick2On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("labelsize", "basic:String",
+                {'optional': True}),
+              ("width", "basic:String",
+                {'optional': True}),
+              ("tick1On", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
+              ("size", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -1795,14 +2820,53 @@ class MplYTickProperties(MplTickProperties):
     def __init__(self):
         MplTickProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplTickProperties.compute(self)
+        if self.hasInputFromPort('label1On'):
+            self.constructor_props['label1On'] = self.getInputFromPort('label1On')
+        if self.hasInputFromPort('loc'):
+            self.constructor_props['loc'] = self.getInputFromPort('loc')
+        if self.hasInputFromPort('major'):
+            self.constructor_props['major'] = self.getInputFromPort('major')
+        if self.hasInputFromPort('label2On'):
+            self.constructor_props['label2On'] = self.getInputFromPort('label2On')
+        if self.hasInputFromPort('color'):
+            self.constructor_props['color'] = self.getInputFromPort('color')
+        if self.hasInputFromPort('axes'):
+            self.constructor_props['axes'] = self.getInputFromPort('axes')
+        if self.hasInputFromPort('label'):
+            self.constructor_props['label'] = self.getInputFromPort('label')
+        if self.hasInputFromPort('labelcolor'):
+            self.constructor_props['labelcolor'] = self.getInputFromPort('labelcolor')
+        if self.hasInputFromPort('tickdir'):
+            self.constructor_props['tickdir'] = self.getInputFromPort('tickdir')
+        if self.hasInputFromPort('pad'):
+            self.constructor_props['pad'] = self.getInputFromPort('pad')
+        if self.hasInputFromPort('gridOn'):
+            self.constructor_props['gridOn'] = self.getInputFromPort('gridOn')
+        if self.hasInputFromPort('zorder'):
+            self.constructor_props['zorder'] = self.getInputFromPort('zorder')
+        if self.hasInputFromPort('tick2On'):
+            self.constructor_props['tick2On'] = self.getInputFromPort('tick2On')
+        if self.hasInputFromPort('labelsize'):
+            self.constructor_props['labelsize'] = self.getInputFromPort('labelsize')
+        if self.hasInputFromPort('width'):
+            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.hasInputFromPort('tick1On'):
+            self.constructor_props['tick1On'] = self.getInputFromPort('tick1On')
+        if self.hasInputFromPort('size'):
+            self.constructor_props['size'] = self.getInputFromPort('size')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplAxisProperties(MplArtistProperties):
     """
@@ -1824,6 +2888,8 @@ class MplAxisProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Set the locations of the tick marks from sequence ticks'}),
               ("ticksScalar", "basic:Float",
                {'docstring': 'Set the locations of the tick marks from sequence ticks', 'optional': True}),
+              ("axes", "basic:String",
+                {'optional': True}),
               ("view_interval", "basic:String",
                 {'optional': True}),
               ("major_locator", "basic:String",
@@ -1860,6 +2926,7 @@ class MplAxisProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1874,6 +2941,8 @@ class MplAxisProperties(MplArtistProperties):
             self.props['ticks'] = self.getInputFromPort('ticksSequence')
         elif self.hasInputFromPort('ticksScalar'):
             self.props['ticks'] = self.getInputFromPort('ticksScalar')
+        if self.hasInputFromPort('axes'):
+            self.constructor_props['axes'] = self.getInputFromPort('axes')
         if self.hasInputFromPort('view_interval'):
             self.props['view_interval'] = self.getInputFromPort('view_interval')
         if self.hasInputFromPort('major_locator'):
@@ -1907,20 +2976,28 @@ class MplAxisProperties(MplArtistProperties):
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplXAxisProperties(MplAxisProperties):
     """None
     """
     _input_ports = [
               ("view_interval", "basic:String",
                 {'optional': True, 'docstring': 'If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_xlim`.'}),
-              ("default_intervals", "basic:String",
-                {'optional': True, 'docstring': 'set the default limits for the axis interval if they are not mutated'}),
               ("ticks_position", "basic:String",
                 {'entry_types': "['enum']", 'docstring': "Set the ticks position (top, bottom, both, default or none) both sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at bottom.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.", 'values': "[['top', 'bottom', 'both', 'default', 'none']]", 'optional': True}),
-              ("data_interval", "basic:String",
-                {'optional': True, 'docstring': 'set the axis data limits'}),
+              ("axes", "basic:String",
+                {'optional': True}),
               ("label_position", "basic:String",
                 {'entry_types': "['enum']", 'docstring': 'Set the label position (top or bottom)', 'values': "[['top', 'bottom']]", 'optional': True}),
+              ("default_intervals", "basic:String",
+                {'optional': True, 'docstring': 'set the default limits for the axis interval if they are not mutated'}),
+              ("data_interval", "basic:String",
+                {'optional': True, 'docstring': 'set the axis data limits'}),
+              ("pickradius", "basic:Integer",
+                {'optional': True, 'defaults': "['15']"}),
         ]
 
     # no output ports except self
@@ -1929,24 +3006,33 @@ class MplXAxisProperties(MplAxisProperties):
     def __init__(self):
         MplAxisProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplAxisProperties.compute(self)
         if self.hasInputFromPort('view_interval'):
             self.props['view_interval'] = self.getInputFromPort('view_interval')
-        if self.hasInputFromPort('default_intervals'):
-            self.props['default_intervals'] = self.getInputFromPort('default_intervals')
         if self.hasInputFromPort('ticks_position'):
             self.props['ticks_position'] = self.getInputFromPort('ticks_position')
-        if self.hasInputFromPort('data_interval'):
-            self.props['data_interval'] = self.getInputFromPort('data_interval')
+        if self.hasInputFromPort('axes'):
+            self.constructor_props['axes'] = self.getInputFromPort('axes')
         if self.hasInputFromPort('label_position'):
             self.props['label_position'] = self.getInputFromPort('label_position')
+        if self.hasInputFromPort('default_intervals'):
+            self.props['default_intervals'] = self.getInputFromPort('default_intervals')
+        if self.hasInputFromPort('data_interval'):
+            self.props['data_interval'] = self.getInputFromPort('data_interval')
+        if self.hasInputFromPort('pickradius'):
+            self.constructor_props['pickradius'] = self.getInputFromPort('pickradius')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplYAxisProperties(MplAxisProperties):
     """None
@@ -1958,12 +3044,16 @@ class MplYAxisProperties(MplAxisProperties):
                 {'optional': True, 'docstring': 'If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_ylim`.'}),
               ("ticks_position", "basic:String",
                 {'entry_types': "['enum']", 'docstring': "Set the ticks position (left, right, both, default or none) 'both' sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at left.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.", 'values': "[['left', 'right', 'both', 'default', 'none']]", 'optional': True}),
+              ("axes", "basic:String",
+                {'optional': True}),
               ("label_position", "basic:String",
                 {'entry_types': "['enum']", 'docstring': 'Set the label position (left or right)', 'values': "[['left', 'right']]", 'optional': True}),
               ("default_intervals", "basic:String",
                 {'optional': True, 'docstring': 'set the default limits for the axis interval if they are not mutated'}),
               ("data_interval", "basic:String",
                 {'optional': True, 'docstring': 'set the axis data limits'}),
+              ("pickradius", "basic:Integer",
+                {'optional': True, 'defaults': "['15']"}),
         ]
 
     # no output ports except self
@@ -1972,6 +3062,7 @@ class MplYAxisProperties(MplAxisProperties):
     def __init__(self):
         MplAxisProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1982,16 +3073,24 @@ class MplYAxisProperties(MplAxisProperties):
             self.props['view_interval'] = self.getInputFromPort('view_interval')
         if self.hasInputFromPort('ticks_position'):
             self.props['ticks_position'] = self.getInputFromPort('ticks_position')
+        if self.hasInputFromPort('axes'):
+            self.constructor_props['axes'] = self.getInputFromPort('axes')
         if self.hasInputFromPort('label_position'):
             self.props['label_position'] = self.getInputFromPort('label_position')
         if self.hasInputFromPort('default_intervals'):
             self.props['default_intervals'] = self.getInputFromPort('default_intervals')
         if self.hasInputFromPort('data_interval'):
             self.props['data_interval'] = self.getInputFromPort('data_interval')
+        if self.hasInputFromPort('pickradius'):
+            self.constructor_props['pickradius'] = self.getInputFromPort('pickradius')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplLegendProperties(MplArtistProperties):
     """
@@ -2019,14 +3118,70 @@ class MplLegendProperties(MplArtistProperties):
     
     """
     _input_ports = [
-              ("default_handler_map", "basic:String",
-                {'optional': True, 'docstring': 'A class method to set the default handler map.'}),
+              ("fancybox", "basic:String",
+                {'optional': True, 'docstring': 'if True, draw a frame with a round fancybox.  If None, use rc'}),
+              ("handlelength", "basic:String",
+                {'optional': True, 'docstring': 'the length of the legend handles'}),
+              ("labels", "basic:String",
+                {'optional': True}),
+              ("labelspacing", "basic:String",
+                {'optional': True, 'docstring': 'the vertical space between the legend entries'}),
+              ("columnspacing", "basic:String",
+                {'optional': True, 'docstring': 'the spacing between columns'}),
+              ("handletextpad", "basic:String",
+                {'optional': True, 'docstring': 'the pad between the legend handle and text'}),
+              ("ncol", "basic:Integer",
+                {'optional': True, 'docstring': 'number of columns', 'defaults': "['1']"}),
+              ("borderaxespad", "basic:String",
+                {'optional': True, 'docstring': 'the pad between the axes and legend border'}),
+              ("loc", "basic:String",
+                {'optional': True, 'docstring': 'a location code'}),
               ("bbox_to_anchor", "basic:String",
                 {'optional': True, 'docstring': 'set the bbox that the legend will be anchored.\n\nbbox can be a BboxBase instance, a tuple of [left, bottom, width, height] in the given transform (normalized axes coordinate if None), or a tuple of [left, bottom] where the width and height will be assumed to be zero.'}),
-              ("frame_on", "basic:Boolean",
-                {'optional': True, 'docstring': 'Set whether the legend box patch is drawn'}),
               ("title", "basic:String",
                 {'optional': True, 'docstring': 'set the legend title'}),
+              ("handletextsep", "basic:String",
+                {'optional': True}),
+              ("numpoints", "basic:String",
+                {'optional': True, 'docstring': 'the number of points in the legend for line'}),
+              ("prop", "basic:String",
+                {'optional': True, 'docstring': 'the font property'}),
+              ("handles", "basic:String",
+                {'optional': True}),
+              ("pad", "basic:String",
+                {'optional': True}),
+              ("borderpad", "basic:String",
+                {'optional': True, 'docstring': 'the fractional whitespace inside the legend border'}),
+              ("parent", "basic:String",
+                {'optional': True}),
+              ("axespad", "basic:String",
+                {'optional': True}),
+              ("labelsep", "basic:String",
+                {'optional': True}),
+              ("frame_on", "basic:Boolean",
+                {'optional': True, 'docstring': 'Set whether the legend box patch is drawn'}),
+              ("scatterpoints", "basic:Integer",
+                {'optional': True, 'docstring': 'the number of points in the legend for scatter plot', 'defaults': "['3']"}),
+              ("shadow", "basic:String",
+                {'optional': True, 'docstring': 'if True, draw a shadow behind legend'}),
+              ("handler_map", "basic:String",
+                {'optional': True}),
+              ("handleheight", "basic:String",
+                {'optional': True, 'docstring': 'the length of the legend handles'}),
+              ("scatteryoffsets", "basic:List",
+                {'optional': True, 'docstring': 'a list of yoffsets for scatter symbols in legend'}),
+              ("markerscale", "basic:String",
+                {'optional': True, 'docstring': 'the relative size of legend markers vs. original'}),
+              ("frameon", "basic:String",
+                {'optional': True, 'docstring': 'if True, draw a frame around the legend. If None, use rc'}),
+              ("mode", "basic:String",
+                {'optional': True}),
+              ("handlelen", "basic:String",
+                {'optional': True}),
+              ("default_handler_map", "basic:String",
+                {'optional': True, 'docstring': 'A class method to set the default handler map.'}),
+              ("bbox_transform", "basic:String",
+                {'optional': True, 'docstring': 'the transform for the bbox. transAxes if None.'}),
         ]
 
     # no output ports except self
@@ -2035,22 +3190,83 @@ class MplLegendProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('default_handler_map'):
-            self.props['default_handler_map'] = self.getInputFromPort('default_handler_map')
+        if self.hasInputFromPort('fancybox'):
+            self.constructor_props['fancybox'] = self.getInputFromPort('fancybox')
+        if self.hasInputFromPort('handlelength'):
+            self.constructor_props['handlelength'] = self.getInputFromPort('handlelength')
+        if self.hasInputFromPort('labels'):
+            self.constructor_props['labels'] = self.getInputFromPort('labels')
+        if self.hasInputFromPort('labelspacing'):
+            self.constructor_props['labelspacing'] = self.getInputFromPort('labelspacing')
+        if self.hasInputFromPort('columnspacing'):
+            self.constructor_props['columnspacing'] = self.getInputFromPort('columnspacing')
+        if self.hasInputFromPort('handletextpad'):
+            self.constructor_props['handletextpad'] = self.getInputFromPort('handletextpad')
+        if self.hasInputFromPort('ncol'):
+            self.constructor_props['ncol'] = self.getInputFromPort('ncol')
+        if self.hasInputFromPort('borderaxespad'):
+            self.constructor_props['borderaxespad'] = self.getInputFromPort('borderaxespad')
+        if self.hasInputFromPort('loc'):
+            self.constructor_props['loc'] = self.getInputFromPort('loc')
         if self.hasInputFromPort('bbox_to_anchor'):
             self.props['bbox_to_anchor'] = self.getInputFromPort('bbox_to_anchor')
-        if self.hasInputFromPort('frame_on'):
-            self.props['frame_on'] = self.getInputFromPort('frame_on')
         if self.hasInputFromPort('title'):
             self.props['title'] = self.getInputFromPort('title')
+        if self.hasInputFromPort('handletextsep'):
+            self.constructor_props['handletextsep'] = self.getInputFromPort('handletextsep')
+        if self.hasInputFromPort('numpoints'):
+            self.constructor_props['numpoints'] = self.getInputFromPort('numpoints')
+        if self.hasInputFromPort('prop'):
+            self.constructor_props['prop'] = self.getInputFromPort('prop')
+        if self.hasInputFromPort('handles'):
+            self.constructor_props['handles'] = self.getInputFromPort('handles')
+        if self.hasInputFromPort('pad'):
+            self.constructor_props['pad'] = self.getInputFromPort('pad')
+        if self.hasInputFromPort('borderpad'):
+            self.constructor_props['borderpad'] = self.getInputFromPort('borderpad')
+        if self.hasInputFromPort('parent'):
+            self.constructor_props['parent'] = self.getInputFromPort('parent')
+        if self.hasInputFromPort('axespad'):
+            self.constructor_props['axespad'] = self.getInputFromPort('axespad')
+        if self.hasInputFromPort('labelsep'):
+            self.constructor_props['labelsep'] = self.getInputFromPort('labelsep')
+        if self.hasInputFromPort('frame_on'):
+            self.props['frame_on'] = self.getInputFromPort('frame_on')
+        if self.hasInputFromPort('scatterpoints'):
+            self.constructor_props['scatterpoints'] = self.getInputFromPort('scatterpoints')
+        if self.hasInputFromPort('shadow'):
+            self.constructor_props['shadow'] = self.getInputFromPort('shadow')
+        if self.hasInputFromPort('handler_map'):
+            self.constructor_props['handler_map'] = self.getInputFromPort('handler_map')
+        if self.hasInputFromPort('handleheight'):
+            self.constructor_props['handleheight'] = self.getInputFromPort('handleheight')
+        if self.hasInputFromPort('scatteryoffsets'):
+            self.constructor_props['scatteryoffsets'] = self.getInputFromPort('scatteryoffsets')
+        if self.hasInputFromPort('markerscale'):
+            self.constructor_props['markerscale'] = self.getInputFromPort('markerscale')
+        if self.hasInputFromPort('frameon'):
+            self.constructor_props['frameon'] = self.getInputFromPort('frameon')
+        if self.hasInputFromPort('mode'):
+            self.constructor_props['mode'] = self.getInputFromPort('mode')
+        if self.hasInputFromPort('handlelen'):
+            self.constructor_props['handlelen'] = self.getInputFromPort('handlelen')
+        if self.hasInputFromPort('default_handler_map'):
+            self.props['default_handler_map'] = self.getInputFromPort('default_handler_map')
+        if self.hasInputFromPort('bbox_transform'):
+            self.constructor_props['bbox_transform'] = self.getInputFromPort('bbox_transform')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplAxesProperties(MplArtistProperties):
     """
@@ -2086,6 +3302,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'call signature:\n\nset_ylim(self, *args, **kwargs):\n\nSet the data limits for the yaxis\n\nExamples:\n\nset_ylim((bottom, top)) set_ylim(bottom, top) set_ylim(bottom=1) # top unchanged set_ylim(top=1) # bottom unchanged\n\nKeyword arguments:\n\n\n\nNote: the bottom (formerly ymin) value may be greater than the top (formerly ymax). For example, suppose y is depth in the ocean. Then one might use:\n\nset_ylim(5000, 0)\n\nso 5000 m depth is at the bottom of the plot and the surface, 0 m, is at the top.\n\nReturns the current ylimits as a length 2 tuple'}),
               ("ylimScalar", "basic:Float",
                {'docstring': 'call signature:\n\nset_ylim(self, *args, **kwargs):\n\nSet the data limits for the yaxis\n\nExamples:\n\nset_ylim((bottom, top)) set_ylim(bottom, top) set_ylim(bottom=1) # top unchanged set_ylim(top=1) # bottom unchanged\n\nKeyword arguments:\n\n\n\nNote: the bottom (formerly ymin) value may be greater than the top (formerly ymax). For example, suppose y is depth in the ocean. Then one might use:\n\nset_ylim(5000, 0)\n\nso 5000 m depth is at the bottom of the plot and the surface, 0 m, is at the top.\n\nReturns the current ylimits as a length 2 tuple', 'optional': True}),
+              ("sharey", "basic:String",
+                {'optional': True}),
               ("xlimSequence", "basic:List",
                 {'optional': True, 'docstring': 'call signature:\n\nset_xlim(self, *args, **kwargs):\n\nSet the data limits for the xaxis\n\nExamples:\n\nset_xlim((left, right)) set_xlim(left, right) set_xlim(left=1) # right unchanged set_xlim(right=1) # left unchanged\n\nKeyword arguments:\n\n\n\nNote: the left (formerly xmin) value may be greater than the right (formerly xmax). For example, suppose x is years before present. Then one might use:\n\nset_ylim(5000, 0)\n\nso 5000 years ago is on the left of the plot and the present is on the right.\n\nReturns the current xlimits as a length 2 tuple'}),
               ("xlimScalar", "basic:Float",
@@ -2094,10 +3312,16 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'turn on the axis'}),
               ("title", "basic:String",
                 {'optional': True, 'docstring': 'call signature:\n\nset_title(label, fontdict=None, **kwargs):\n\nSet the title for the axes.'}),
+              ("axisbg", "basic:String",
+                {'optional': True}),
+              ("label", "basic:String",
+                {'optional': True, 'defaults': "['']"}),
               ("xticksSequence", "basic:List",
                 {'optional': True, 'docstring': 'Set the x ticks with list of ticks'}),
               ("xticksScalar", "basic:Float",
                {'docstring': 'Set the x ticks with list of ticks', 'optional': True}),
+              ("fig", "basic:String",
+                {'optional': True}),
               ("ylabel", "basic:String",
                 {'optional': True, 'docstring': 'call signature:\n\nset_ylabel(ylabel, fontdict=None, labelpad=None, **kwargs)\n\nSet the label for the yaxis\n\nlabelpad is the spacing in points between the label and the y-axis'}),
               ("autoscalex_on", "basic:Boolean",
@@ -2120,6 +3344,10 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Set whether autoscaling is applied on plot commands'}),
               ("ybound", "basic:String",
                 {'optional': True}),
+              ("rect", "basic:String",
+                {'optional': True}),
+              ("sharex", "basic:String",
+                {'optional': True}),
               ("yticklabelsSequence", "basic:List",
                 {'optional': True, 'docstring': "call signature:\n\nset_yticklabels(labels, fontdict=None, minor=False, **kwargs)\n\nSet the ytick labels with list of strings labels.  Return a list of :class:`~matplotlib.text.Text` instances.\n\nkwargs set :class:`~matplotlib.text.Text` properties for the labels. Valid properties are\n\nagg_filter: unknown alpha: float (0.0 transparent through 1.0 opaque) animated: [True | False] axes: an :class:`~matplotlib.axes.Axes` instance backgroundcolor: any matplotlib color bbox: rectangle prop dict clip_box: a :class:`matplotlib.transforms.Bbox` instance clip_on: [True | False] clip_path: [ (:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`) |         :class:`~matplotlib.patches.Patch` | None ] color: any matplotlib color contains: a callable function family or fontfamily or fontname or name: [ FONTNAME | 'serif' | 'sans-serif' | 'cursive' | 'fantasy' | 'monospace' ] figure: a :class:`matplotlib.figure.Figure` instance fontproperties or font_properties: a :class:`matplotlib.font_manager.FontProperties` instance gid: an id string horizontalalignment or ha: [ 'center' | 'right' | 'left' ] label: any string linespacing: float (multiple of font size) lod: [True | False] multialignment: ['left' | 'right' | 'center' ] path_effects: unknown picker: [None|float|boolean|callable] position: (x,y) rasterized: [True | False | None] rotation: [ angle in degrees | 'vertical' | 'horizontal' ] rotation_mode: unknown size or fontsize: [ size in points | 'xx-small' | 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'xx-large' ] snap: unknown stretch or fontstretch: [ a numeric value in range 0-1000 | 'ultra-condensed' | 'extra-condensed' | 'condensed' | 'semi-condensed' | 'normal' | 'semi-expanded' | 'expanded' | 'extra-expanded' | 'ultra-expanded' ] style or fontstyle: [ 'normal' | 'italic' | 'oblique'] text: string or anything printable with '%s' conversion. transform: :class:`~matplotlib.transforms.Transform` instance url: a url string variant or fontvariant: [ 'normal' | 'small-caps' ] verticalalignment or va or ma: [ 'center' | 'top' | 'bottom' | 'baseline' ] visible: [True | False] weight or fontweight: [ a numeric value in range 0-1000 | 'ultralight' | 'light' | 'normal' | 'regular' | 'book' | 'medium' | 'roman' | 'semibold' | 'demibold' | 'demi' | 'bold' | 'heavy' | 'extra bold' | 'black' ] x: float y: float zorder: any number"}),
               ("yticklabelsScalar", "basic:String",
@@ -2130,6 +3358,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Set padding of X data limits prior to autoscaling.\n\nm times the data interval will be added to each end of that interval before it is used in autoscaling.'}),
               ("color_cycle", "basic:Color",
                 {'optional': True, 'docstring': 'Set the color cycle for any future plot commands on this Axes.\n\nclist is a list of mpl color specifiers.'}),
+              ("frameon", "basic:Boolean",
+                {'optional': True, 'defaults': "['True']"}),
               ("xlabel", "basic:String",
                 {'optional': True, 'docstring': 'call signature:\n\nset_xlabel(xlabel, fontdict=None, labelpad=None, **kwargs)\n\nSet the label for the xaxis.\n\nlabelpad is the spacing in points between the label and the x-axis'}),
               ("xbound", "basic:String",
@@ -2158,6 +3388,7 @@ class MplAxesProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2181,6 +3412,8 @@ class MplAxesProperties(MplArtistProperties):
             self.props['ylim'] = self.getInputFromPort('ylimSequence')
         elif self.hasInputFromPort('ylimScalar'):
             self.props['ylim'] = self.getInputFromPort('ylimScalar')
+        if self.hasInputFromPort('sharey'):
+            self.constructor_props['sharey'] = self.getInputFromPort('sharey')
         if self.hasInputFromPort('xlimSequence'):
             self.props['xlim'] = self.getInputFromPort('xlimSequence')
         elif self.hasInputFromPort('xlimScalar'):
@@ -2189,10 +3422,16 @@ class MplAxesProperties(MplArtistProperties):
             self.props['axis_on'] = self.getInputFromPort('axis_on')
         if self.hasInputFromPort('title'):
             self.props['title'] = self.getInputFromPort('title')
+        if self.hasInputFromPort('axisbg'):
+            self.constructor_props['axisbg'] = self.getInputFromPort('axisbg')
+        if self.hasInputFromPort('label'):
+            self.constructor_props['label'] = self.getInputFromPort('label')
         if self.hasInputFromPort('xticksSequence'):
             self.props['xticks'] = self.getInputFromPort('xticksSequence')
         elif self.hasInputFromPort('xticksScalar'):
             self.props['xticks'] = self.getInputFromPort('xticksScalar')
+        if self.hasInputFromPort('fig'):
+            self.constructor_props['fig'] = self.getInputFromPort('fig')
         if self.hasInputFromPort('ylabel'):
             self.props['ylabel'] = self.getInputFromPort('ylabel')
         if self.hasInputFromPort('autoscalex_on'):
@@ -2215,6 +3454,10 @@ class MplAxesProperties(MplArtistProperties):
             self.props['autoscale_on'] = self.getInputFromPort('autoscale_on')
         if self.hasInputFromPort('ybound'):
             self.props['ybound'] = self.getInputFromPort('ybound')
+        if self.hasInputFromPort('rect'):
+            self.constructor_props['rect'] = self.getInputFromPort('rect')
+        if self.hasInputFromPort('sharex'):
+            self.constructor_props['sharex'] = self.getInputFromPort('sharex')
         if self.hasInputFromPort('yticklabelsSequence'):
             self.props['yticklabels'] = self.getInputFromPort('yticklabelsSequence')
         elif self.hasInputFromPort('yticklabelsScalar'):
@@ -2226,6 +3469,8 @@ class MplAxesProperties(MplArtistProperties):
         if self.hasInputFromPort('color_cycle'):
             self.props['color_cycle'] = self.getInputFromPort('color_cycle')
             self.props['color_cycle'] = translate_color(self.props['color_cycle'])
+        if self.hasInputFromPort('frameon'):
+            self.constructor_props['frameon'] = self.getInputFromPort('frameon')
         if self.hasInputFromPort('xlabel'):
             self.props['xlabel'] = self.getInputFromPort('xlabel')
         if self.hasInputFromPort('xbound'):
@@ -2259,10 +3504,16 @@ class MplAxesProperties(MplArtistProperties):
             if 'title' in self.sub_props:
                 self.sub_props['title'].update_props(obj.title)
 
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
+
 class MplAxesSubplotProperties(MplAxesProperties):
     """None
     """
     _input_ports = [
+              ("fig", "basic:String",
+                {'optional': True}),
         ]
 
     # no output ports except self
@@ -2271,14 +3522,21 @@ class MplAxesSubplotProperties(MplAxesProperties):
     def __init__(self):
         MplAxesProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplAxesProperties.compute(self)
+        if self.hasInputFromPort('fig'):
+            self.constructor_props['fig'] = self.getInputFromPort('fig')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplFigureProperties(MplArtistProperties):
     """
@@ -2312,8 +3570,14 @@ class MplFigureProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Set the width of the figure in inches'}),
               ("frameon", "basic:Boolean",
                 {'optional': True, 'docstring': 'Set whether the figure frame (background) is displayed or invisible'}),
+              ("subplotpars", "basic:String",
+                {'optional': True}),
               ("figheight", "basic:Float",
                 {'optional': True, 'docstring': 'Set the height of the figure in inches'}),
+              ("figsize", "basic:String",
+                {'optional': True}),
+              ("linewidth", "basic:Float",
+                {'optional': True, 'defaults': "['0.0']"}),
               ("dpi", "basic:Float",
                 {'optional': True, 'docstring': 'Set the dots-per-inch of the figure'}),
         ]
@@ -2324,6 +3588,7 @@ class MplFigureProperties(MplArtistProperties):
     def __init__(self):
         MplArtistProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2342,14 +3607,24 @@ class MplFigureProperties(MplArtistProperties):
             self.props['figwidth'] = self.getInputFromPort('figwidth')
         if self.hasInputFromPort('frameon'):
             self.props['frameon'] = self.getInputFromPort('frameon')
+        if self.hasInputFromPort('subplotpars'):
+            self.constructor_props['subplotpars'] = self.getInputFromPort('subplotpars')
         if self.hasInputFromPort('figheight'):
             self.props['figheight'] = self.getInputFromPort('figheight')
+        if self.hasInputFromPort('figsize'):
+            self.constructor_props['figsize'] = self.getInputFromPort('figsize')
+        if self.hasInputFromPort('linewidth'):
+            self.constructor_props['linewidth'] = self.getInputFromPort('linewidth')
         if self.hasInputFromPort('dpi'):
             self.props['dpi'] = self.getInputFromPort('dpi')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 class MplAnnotationProperties(MplTextProperties):
     """
@@ -2360,7 +3635,21 @@ class MplAnnotationProperties(MplTextProperties):
     
     """
     _input_ports = [
+              ("xycoords", "basic:String",
+                {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True, 'defaults': "['data']"}),
               ("figure", "basic:String",
+                {'optional': True}),
+              ("annotation_clip", "basic:String",
+                {'optional': True}),
+              ("xytext", "basic:String",
+                {'optional': True}),
+              ("s", "basic:String",
+                {'optional': True}),
+              ("xy", "basic:String",
+                {'optional': True}),
+              ("textcoords", "basic:String",
+                {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True}),
+              ("arrowprops", "basic:String",
                 {'optional': True}),
         ]
 
@@ -2370,16 +3659,35 @@ class MplAnnotationProperties(MplTextProperties):
     def __init__(self):
         MplTextProperties.__init__(self)
         self.props = {}
+        self.constructor_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplTextProperties.compute(self)
+        if self.hasInputFromPort('xycoords'):
+            self.constructor_props['xycoords'] = self.getInputFromPort('xycoords')
         if self.hasInputFromPort('figure'):
             self.props['figure'] = self.getInputFromPort('figure')
+        if self.hasInputFromPort('annotation_clip'):
+            self.constructor_props['annotation_clip'] = self.getInputFromPort('annotation_clip')
+        if self.hasInputFromPort('xytext'):
+            self.constructor_props['xytext'] = self.getInputFromPort('xytext')
+        if self.hasInputFromPort('s'):
+            self.constructor_props['s'] = self.getInputFromPort('s')
+        if self.hasInputFromPort('xy'):
+            self.constructor_props['xy'] = self.getInputFromPort('xy')
+        if self.hasInputFromPort('textcoords'):
+            self.constructor_props['textcoords'] = self.getInputFromPort('textcoords')
+        if self.hasInputFromPort('arrowprops'):
+            self.constructor_props['arrowprops'] = self.getInputFromPort('arrowprops')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+
+    def update_kwargs(self, kwargs):
+        kwargs.update(self.constructor_props)
+        kwargs.update(self.props)
 
 
 _modules = [
@@ -2402,24 +3710,24 @@ _modules = [
             MplBboxImageProperties,
             MplPcolorImageProperties,
             MplFigureImageProperties,
+            MplLine2DProperties,
             MplPatchProperties,
+            MplYAArrowProperties,
+            MplFancyBboxPatchProperties,
             MplEllipseProperties,
             MplArcProperties,
             MplCircleProperties,
-            MplRectangleProperties,
-            MplPathPatchProperties,
-            MplYAArrowProperties,
-            MplArrowProperties,
             MplRegularPolygonProperties,
             MplCirclePolygonProperties,
+            MplPathPatchProperties,
+            MplFancyArrowPatchProperties,
+            MplConnectionPatchProperties,
+            MplRectangleProperties,
             MplPolygonProperties,
             MplFancyArrowProperties,
             MplWedgeProperties,
-            MplFancyBboxPatchProperties,
+            MplArrowProperties,
             MplShadowProperties,
-            MplFancyArrowPatchProperties,
-            MplConnectionPatchProperties,
-            MplLine2DProperties,
             MplTextProperties,
             MplTextWithDashProperties,
             MplTickProperties,

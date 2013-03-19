@@ -13,9 +13,7 @@
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.axes.Axes" port="title" type="output">
     <value>
-      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" output_type="__property__" plural="False" property_key="__none__" property_type="matplotlib.text.Text">
-        <docstring />
-      </outputPortSpec>
+      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
     </value>
   </addPortSpec>
 </diff>

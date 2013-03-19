@@ -4,6 +4,8 @@ from bases import MplPlot
 
 
 
+
+
 def translate_color(c):
     return c.tuple
 
@@ -53,17 +55,23 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("normed", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+               {'optional': True, 'defaults': "['True']"}),
               ("usevlines", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+               {'optional': True, 'defaults': "['True']"}),
               ("detrend", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("maxlags", "basic:Integer",
-                {'optional': True, 'defaults': "['10']"}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['10']"}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
+              ("lineCollectionProperties", "MplLineCollectionProperties",
+               {}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
+              ("xaxisProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -74,20 +82,47 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('normed'):
-            kwargs['normed'] = self.getInputFromPort('normed')
+            val = self.getInputFromPort('normed')
+            kwargs['normed'] = val
         if self.hasInputFromPort('usevlines'):
-            kwargs['usevlines'] = self.getInputFromPort('usevlines')
+            val = self.getInputFromPort('usevlines')
+            kwargs['usevlines'] = val
         if self.hasInputFromPort('detrend'):
-            kwargs['detrend'] = self.getInputFromPort('detrend')
+            val = self.getInputFromPort('detrend')
+            kwargs['detrend'] = val
         if self.hasInputFromPort('maxlags'):
-            kwargs['maxlags'] = self.getInputFromPort('maxlags')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('maxlags')
+            kwargs['maxlags'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        # self.get_fig()
-        matplotlib.pyplot.acorr(**kwargs)        
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+
+        output = matplotlib.pyplot.acorr(*args, **kwargs)        
+        if 'usevlines' in kwargs and kwargs['usevlines']:
+            output = output + (output[2],)
+        else:
+            output = output + (None, None)
+        lines = output[2]
+        xaxis = output[3]
+        lineCollection = output[4]
+        if self.hasInputFromPort('lineCollectionProperties'):
+            properties = self.getInputFromPort('lineCollectionProperties')
+            if lineCollection is not None:
+                properties.update_props(lineCollection)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
+        if self.hasInputFromPort('xaxisProperties'):
+            properties = self.getInputFromPort('xaxisProperties')
+            if xaxis is not None:
+                properties.update_props(xaxis)
 
 class MplArrow(MplPlot):
     """call signature:
@@ -105,16 +140,18 @@ Example:
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+              ("y", "basic:Float",
+               {}),
+              ("x", "basic:Float",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("dx", "basic:String",
-                {}),
-              ("dy", "basic:String",
-                {}),
+               {'optional': True}),
+              ("dx", "basic:Float",
+               {}),
+              ("dy", "basic:Float",
+               {}),
+              ("arrowProperties", "MplFancyArrowProperties",
+               {'optional': True}),
         ]
 
     _output_ports = [
@@ -125,15 +162,25 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+        args = []
+
+        kwargs = {}
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        kwargs['dx'] = self.getInputFromPort('dx')
-        kwargs['dy'] = self.getInputFromPort('dy')
-        # self.get_fig()
-        matplotlib.pyplot.arrow(**kwargs)        
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+        val = self.getInputFromPort('dx')
+        kwargs['dx'] = val
+        val = self.getInputFromPort('dy')
+        kwargs['dy'] = val
+        if self.hasInputFromPort('arrowProperties'):
+            properties = self.getInputFromPort('arrowProperties')
+            properties.update_kwargs(kwargs)
+
+        matplotlib.pyplot.arrow(*args, **kwargs)        
 
 class MplAxhline(MplPlot):
     """call signature:
@@ -165,16 +212,16 @@ Valid kwargs are :class:`~matplotlib.lines.Line2D` properties, with the exceptio
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("y", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
-              ("xmin", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+              ("y", "basic:Float",
+               {'optional': True, 'defaults': "['0']"}),
+              ("xmin", "basic:Float",
+               {'optional': True, 'defaults': "['0']"}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("xmax", "basic:Integer",
-                {'optional': True, 'defaults': "['1']"}),
+               {'optional': True}),
+              ("xmax", "basic:Float",
+               {'optional': True, 'defaults': "['1']"}),
               ("lineProperties", "MplLine2DProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -185,20 +232,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('y'):
-            kwargs['y'] = self.getInputFromPort('y')
+            val = self.getInputFromPort('y')
+            kwargs['y'] = val
         if self.hasInputFromPort('xmin'):
-            kwargs['xmin'] = self.getInputFromPort('xmin')
+            val = self.getInputFromPort('xmin')
+            kwargs['xmin'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('xmax'):
-            kwargs['xmax'] = self.getInputFromPort('xmax')
-        # self.get_fig()
-        line = matplotlib.pyplot.axhline(**kwargs)
+            val = self.getInputFromPort('xmax')
+            kwargs['xmax'] = val
+
+        line = matplotlib.pyplot.axhline(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
             properties = self.getInputFromPort('lineProperties')
-            properties.update_props(line)
+            if line is not None:
+                properties.update_props(line)
 
 class MplAxhspan(MplPlot):
     """call signature:
@@ -228,16 +282,18 @@ Example:
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("xmin", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+              ("xmin", "basic:Float",
+               {'optional': True, 'defaults': "['0']"}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("ymin", "basic:String",
-                {}),
-              ("ymax", "basic:String",
-                {}),
-              ("xmax", "basic:Integer",
-                {'optional': True, 'defaults': "['1']"}),
+               {'optional': True}),
+              ("ymin", "basic:Float",
+               {}),
+              ("ymax", "basic:Float",
+               {}),
+              ("xmax", "basic:Float",
+               {'optional': True, 'defaults': "['1']"}),
+              ("patchProperties", "MplPolygonProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -248,17 +304,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('xmin'):
-            kwargs['xmin'] = self.getInputFromPort('xmin')
+            val = self.getInputFromPort('xmin')
+            kwargs['xmin'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        kwargs['ymin'] = self.getInputFromPort('ymin')
-        kwargs['ymax'] = self.getInputFromPort('ymax')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+        val = self.getInputFromPort('ymin')
+        kwargs['ymin'] = val
+        val = self.getInputFromPort('ymax')
+        kwargs['ymax'] = val
         if self.hasInputFromPort('xmax'):
-            kwargs['xmax'] = self.getInputFromPort('xmax')
-        # self.get_fig()
-        matplotlib.pyplot.axhspan(**kwargs)        
+            val = self.getInputFromPort('xmax')
+            kwargs['xmax'] = val
+
+        patch = matplotlib.pyplot.axhspan(*args, **kwargs)
+        if self.hasInputFromPort('patchProperties'):
+            properties = self.getInputFromPort('patchProperties')
+            if patch is not None:
+                properties.update_props(patch)
 
 class MplAxvline(MplPlot):
     """call signature:
@@ -290,16 +357,16 @@ Valid kwargs are :class:`~matplotlib.lines.Line2D` properties, with the exceptio
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("x", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+              ("x", "basic:Float",
+               {'optional': True, 'defaults': "['0']"}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("ymin", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
-              ("ymax", "basic:Integer",
-                {'optional': True, 'defaults': "['1']"}),
+               {'optional': True}),
+              ("ymin", "basic:Float",
+               {'optional': True, 'defaults': "['0']"}),
+              ("ymax", "basic:Float",
+               {'optional': True, 'defaults': "['1']"}),
               ("lineProperties", "MplLine2DProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -310,20 +377,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('x'):
-            kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('x')
+            kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('ymin'):
-            kwargs['ymin'] = self.getInputFromPort('ymin')
+            val = self.getInputFromPort('ymin')
+            kwargs['ymin'] = val
         if self.hasInputFromPort('ymax'):
-            kwargs['ymax'] = self.getInputFromPort('ymax')
-        # self.get_fig()
-        line = matplotlib.pyplot.axvline(**kwargs)
+            val = self.getInputFromPort('ymax')
+            kwargs['ymax'] = val
+
+        line = matplotlib.pyplot.axvline(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
             properties = self.getInputFromPort('lineProperties')
-            properties.update_props(line)
+            if line is not None:
+                properties.update_props(line)
 
 class MplAxvspan(MplPlot):
     """call signature:
@@ -351,16 +425,18 @@ Valid kwargs are :class:`~matplotlib.patches.Polygon` properties:
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("xmin", "basic:String",
-                {}),
+              ("xmin", "basic:Float",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("ymin", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
-              ("ymax", "basic:Integer",
-                {'optional': True, 'defaults': "['1']"}),
-              ("xmax", "basic:String",
-                {}),
+               {'optional': True}),
+              ("ymin", "basic:Float",
+               {'optional': True, 'defaults': "['0']"}),
+              ("ymax", "basic:Float",
+               {'optional': True, 'defaults': "['1']"}),
+              ("xmax", "basic:Float",
+               {}),
+              ("patchProperties", "MplPolygonProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -371,17 +447,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        kwargs['xmin'] = self.getInputFromPort('xmin')
+        args = []
+
+        kwargs = {}
+        val = self.getInputFromPort('xmin')
+        kwargs['xmin'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('ymin'):
-            kwargs['ymin'] = self.getInputFromPort('ymin')
+            val = self.getInputFromPort('ymin')
+            kwargs['ymin'] = val
         if self.hasInputFromPort('ymax'):
-            kwargs['ymax'] = self.getInputFromPort('ymax')
-        kwargs['xmax'] = self.getInputFromPort('xmax')
-        # self.get_fig()
-        matplotlib.pyplot.axvspan(**kwargs)        
+            val = self.getInputFromPort('ymax')
+            kwargs['ymax'] = val
+        val = self.getInputFromPort('xmax')
+        kwargs['xmax'] = val
+
+        patch = matplotlib.pyplot.axvspan(*args, **kwargs)
+        if self.hasInputFromPort('patchProperties'):
+            properties = self.getInputFromPort('patchProperties')
+            if patch is not None:
+                properties.update_props(patch)
 
 class MplBar(MplPlot):
     """call signature:
@@ -418,39 +505,47 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("edgecolor", "basic:Color",
-                {'optional': True, 'docstring': 'the colors of the bar edges'}),
+               {'optional': True, 'docstring': 'the colors of the bar edges'}),
               ("linewidth", "basic:String",
-                {'optional': True, 'docstring': "width of bar edges; None means use default linewidth; 0 means don't draw edges."}),
+               {'optional': True, 'docstring': "width of bar edges; None means use default linewidth; 0 means don't draw edges."}),
               ("capsize", "basic:Integer",
-                {'optional': True, 'docstring': '(default 3) determines the length in points of the error bar caps', 'defaults': "['3']"}),
+               {'optional': True, 'docstring': '(default 3) determines the length in points of the error bar caps', 'defaults': "['3']"}),
               ("orientation", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "'vertical' | 'horizontal'", 'values': "[['vertical', 'horizontal']]", 'optional': True}),
-              ("bottom", "None",
-                {'optional': True, 'docstring': 'the y coordinates of the bottom edges of the bars'}),
+               {'entry_types': "['enum']", 'docstring': "'vertical' | 'horizontal'", 'values': "[['vertical', 'horizontal']]", 'optional': True}),
+              ("bottom", "basic:Float",
+               {'optional': True, 'docstring': 'the y coordinates of the bottom edges of the bars', 'defaults': "['0']"}),
+              ("bottomSequence", "basic:List",
+               {'docstring': 'the y coordinates of the bottom edges of the bars', 'optional': True}),
               ("color", "basic:Color",
-                {'optional': True, 'docstring': 'the colors of the bars'}),
+               {'optional': True, 'docstring': 'the colors of the bars'}),
               ("xerr", "basic:String",
-                {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
+               {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
               ("align", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "'edge' (default) | 'center'", 'values': "[['edge', 'center']]", 'optional': True, 'defaults': "['edge']"}),
+               {'entry_types': "['enum']", 'docstring': "'edge' (default) | 'center'", 'values': "[['edge', 'center']]", 'optional': True, 'defaults': "['edge']"}),
               ("ecolor", "basic:Color",
-                {'optional': True, 'docstring': 'specifies the color of any errorbar'}),
-              ("height", "basic:String",
-                {'docstring': 'the heights of the bars'}),
+               {'optional': True, 'docstring': 'specifies the color of any errorbar'}),
+              ("height", "basic:List",
+               {'docstring': 'the heights of the bars'}),
+              ("heightScalar", "basic:Float",
+               {'docstring': 'the heights of the bars', 'optional': True}),
               ("width", "basic:Float",
-                {'optional': True, 'docstring': 'the widths of the bars', 'defaults': "['0.8']"}),
+               {'optional': True, 'docstring': 'the widths of the bars', 'defaults': "['0.8']"}),
+              ("widthSequence", "basic:List",
+               {'docstring': 'the widths of the bars', 'optional': True}),
               ("error_kw", "basic:String",
-                {'optional': True, 'docstring': 'dictionary of kwargs to be passed to errorbar method. ecolor and capsize may be specified here rather than as independent kwargs.'}),
+               {'optional': True, 'docstring': 'dictionary of kwargs to be passed to errorbar method. ecolor and capsize may be specified here rather than as independent kwargs.'}),
               ("log", "basic:Boolean",
-                {'optional': True, 'docstring': '[False|True] False (default) leaves the orientation axis as-is; True sets it to log scale', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': '[False|True] False (default) leaves the orientation axis as-is; True sets it to log scale', 'defaults': "['False']"}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("yerr", "basic:String",
-                {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
-              ("left", "basic:String",
-                {'docstring': 'the x coordinates of the left sides of the bars'}),
+               {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
+              ("left", "basic:List",
+               {'docstring': 'the x coordinates of the left sides of the bars'}),
+              ("leftScalar", "basic:Float",
+               {'optional': True, 'docstring': 'the x coordinate of the left side of the bar'}),
               ("rectangleProperties", "MplRectangleProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -461,45 +556,82 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('edgecolor'):
-            kwargs['edgecolor'] = self.getInputFromPort('edgecolor')
-            kwargs['edgecolor'] = translate_color(kwargs['edgecolor'])
+            val = self.getInputFromPort('edgecolor')
+            val = translate_color(val)
+            kwargs['edgecolor'] = val
         if self.hasInputFromPort('linewidth'):
-            kwargs['linewidth'] = self.getInputFromPort('linewidth')
+            val = self.getInputFromPort('linewidth')
+            kwargs['linewidth'] = val
         if self.hasInputFromPort('capsize'):
-            kwargs['capsize'] = self.getInputFromPort('capsize')
+            val = self.getInputFromPort('capsize')
+            kwargs['capsize'] = val
         if self.hasInputFromPort('orientation'):
-            kwargs['orientation'] = self.getInputFromPort('orientation')
+            val = self.getInputFromPort('orientation')
+            kwargs['orientation'] = val
         if self.hasInputFromPort('bottom'):
-            kwargs['bottom'] = self.getInputFromPort('bottom')
+            val = self.getInputFromPort('bottom')
+            kwargs['bottom'] = val
+        elif self.hasInputFromPort('bottomSequence'):
+            val = self.getInputFromPort('bottomSequence')
+            kwargs['bottom'] = val
         if self.hasInputFromPort('color'):
-            kwargs['color'] = self.getInputFromPort('color')
-            kwargs['color'] = translate_color(kwargs['color'])
+            val = self.getInputFromPort('color')
+            val = translate_color(val)
+            kwargs['color'] = val
         if self.hasInputFromPort('xerr'):
-            kwargs['xerr'] = self.getInputFromPort('xerr')
+            val = self.getInputFromPort('xerr')
+            kwargs['xerr'] = val
         if self.hasInputFromPort('align'):
-            kwargs['align'] = self.getInputFromPort('align')
+            val = self.getInputFromPort('align')
+            kwargs['align'] = val
         if self.hasInputFromPort('ecolor'):
-            kwargs['ecolor'] = self.getInputFromPort('ecolor')
-            kwargs['ecolor'] = translate_color(kwargs['ecolor'])
-        kwargs['height'] = self.getInputFromPort('height')
+            val = self.getInputFromPort('ecolor')
+            val = translate_color(val)
+            kwargs['ecolor'] = val
+        if self.hasInputFromPort('height'):
+            val = self.getInputFromPort('height')
+            kwargs['height'] = val
+        elif self.hasInputFromPort('heightScalar'):
+            val = self.getInputFromPort('heightScalar')
+            kwargs['height'] = val
+        else:
+            raise ModuleError(self, 'Must set one of "height", '                                   '"heightScalar"')
         if self.hasInputFromPort('width'):
-            kwargs['width'] = self.getInputFromPort('width')
+            val = self.getInputFromPort('width')
+            kwargs['width'] = val
+        elif self.hasInputFromPort('widthSequence'):
+            val = self.getInputFromPort('widthSequence')
+            kwargs['width'] = val
         if self.hasInputFromPort('error_kw'):
-            kwargs['error_kw'] = self.getInputFromPort('error_kw')
+            val = self.getInputFromPort('error_kw')
+            kwargs['error_kw'] = val
         if self.hasInputFromPort('log'):
-            kwargs['log'] = self.getInputFromPort('log')
+            val = self.getInputFromPort('log')
+            kwargs['log'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('yerr'):
-            kwargs['yerr'] = self.getInputFromPort('yerr')
-        kwargs['left'] = self.getInputFromPort('left')
-        # self.get_fig()
-        rectangles = matplotlib.pyplot.bar(**kwargs)
+            val = self.getInputFromPort('yerr')
+            kwargs['yerr'] = val
+        if self.hasInputFromPort('left'):
+            val = self.getInputFromPort('left')
+            kwargs['left'] = val
+        elif self.hasInputFromPort('leftScalar'):
+            val = self.getInputFromPort('leftScalar')
+            kwargs['left'] = val
+        else:
+            raise ModuleError(self, 'Must set one of "left", '                                   '"leftScalar"')
+
+        rectangles = matplotlib.pyplot.bar(*args, **kwargs)
         if self.hasInputFromPort('rectangleProperties'):
             properties = self.getInputFromPort('rectangleProperties')
-            properties.update_props(rectangles)
+            if rectangles is not None:
+                properties.update_props(rectangles)
 
 class MplBarh(MplPlot):
     """call signature:
@@ -534,33 +666,43 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("edgecolor", "basic:Color",
-                {'optional': True, 'docstring': 'the colors of the bar edges'}),
+               {'optional': True, 'docstring': 'the colors of the bar edges'}),
               ("linewidth", "basic:String",
-                {'optional': True, 'docstring': "width of bar edges; None means use default linewidth; 0 means don't draw edges."}),
+               {'optional': True, 'docstring': "width of bar edges; None means use default linewidth; 0 means don't draw edges."}),
               ("capsize", "basic:Integer",
-                {'optional': True, 'docstring': '(default 3) determines the length in points of the error bar caps', 'defaults': "['3']"}),
+               {'optional': True, 'docstring': '(default 3) determines the length in points of the error bar caps', 'defaults': "['3']"}),
               ("log", "basic:Boolean",
-                {'optional': True, 'docstring': '[False|True] False (default) leaves the horizontal axis as-is; True sets it to log scale', 'defaults': "['False']"}),
-              ("bottom", "basic:String",
-                {'docstring': 'the vertical positions of the bottom edges of the bars'}),
+               {'optional': True, 'docstring': '[False|True] False (default) leaves the horizontal axis as-is; True sets it to log scale', 'defaults': "['False']"}),
+              ("bottom", "basic:List",
+               {'docstring': 'the vertical positions of the bottom edges of the bars'}),
+              ("bottomScalar", "basic:Float",
+               {'docstring': 'the vertical positions of the bottom edges of the bars', 'optional': True}),
               ("color", "basic:Color",
-                {'optional': True, 'docstring': 'the colors of the bars'}),
+               {'optional': True, 'docstring': 'the colors of the bars'}),
               ("xerr", "basic:String",
-                {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
+               {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
               ("align", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "'edge' (default) | 'center'", 'values': "[['edge', 'center']]", 'optional': True, 'defaults': "['edge']"}),
+               {'entry_types': "['enum']", 'docstring': "'edge' (default) | 'center'", 'values': "[['edge', 'center']]", 'optional': True, 'defaults': "['edge']"}),
               ("ecolor", "basic:Color",
-                {'optional': True, 'docstring': 'specifies the color of any errorbar'}),
+               {'optional': True, 'docstring': 'specifies the color of any errorbar'}),
               ("height", "basic:Float",
-                {'optional': True, 'docstring': 'the heights (thicknesses) of the bars', 'defaults': "['0.8']"}),
-              ("width", "basic:String",
-                {'docstring': 'the lengths of the bars'}),
+               {'optional': True, 'docstring': 'the heights (thicknesses) of the bars', 'defaults': "['0.8']"}),
+              ("heightSequence", "basic:List",
+               {'docstring': 'the heights (thicknesses) of the bars', 'optional': True}),
+              ("width", "basic:List",
+               {'docstring': 'the lengths of the bars'}),
+              ("widthScalar", "basic:Float",
+               {'docstring': 'the lengths of the bars', 'optional': True}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("yerr", "basic:String",
-                {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
-              ("left", "None",
-                {'optional': True, 'docstring': 'the x coordinates of the left edges of the bars'}),
+               {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
+              ("left", "basic:Float",
+               {'optional': True, 'docstring': 'the x coordinates of the left edges of the bars', 'defaults': "['0']"}),
+              ("leftSequence", "basic:List",
+               {'docstring': 'the x coordinates of the left edges of the bars', 'optional': True}),
+              ("rectangleProperties", "MplRectangleProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -571,40 +713,78 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        if self.hasInputFromPort('edgecolor'):
-            kwargs['edgecolor'] = self.getInputFromPort('edgecolor')
-            kwargs['edgecolor'] = translate_color(kwargs['edgecolor'])
-        if self.hasInputFromPort('linewidth'):
-            kwargs['linewidth'] = self.getInputFromPort('linewidth')
-        if self.hasInputFromPort('capsize'):
-            kwargs['capsize'] = self.getInputFromPort('capsize')
-        if self.hasInputFromPort('log'):
-            kwargs['log'] = self.getInputFromPort('log')
-        kwargs['bottom'] = self.getInputFromPort('bottom')
-        if self.hasInputFromPort('color'):
-            kwargs['color'] = self.getInputFromPort('color')
-            kwargs['color'] = translate_color(kwargs['color'])
-        if self.hasInputFromPort('xerr'):
-            kwargs['xerr'] = self.getInputFromPort('xerr')
-        if self.hasInputFromPort('align'):
-            kwargs['align'] = self.getInputFromPort('align')
-        if self.hasInputFromPort('ecolor'):
-            kwargs['ecolor'] = self.getInputFromPort('ecolor')
-            kwargs['ecolor'] = translate_color(kwargs['ecolor'])
-        if self.hasInputFromPort('height'):
-            kwargs['height'] = self.getInputFromPort('height')
-        kwargs['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        if self.hasInputFromPort('yerr'):
-            kwargs['yerr'] = self.getInputFromPort('yerr')
-        if self.hasInputFromPort('left'):
-            kwargs['left'] = self.getInputFromPort('left')
-        # self.get_fig()
-        matplotlib.pyplot.barh(**kwargs)        
+        args = []
 
-class MplBroken_barh(MplPlot):
+        kwargs = {}
+        if self.hasInputFromPort('edgecolor'):
+            val = self.getInputFromPort('edgecolor')
+            val = translate_color(val)
+            kwargs['edgecolor'] = val
+        if self.hasInputFromPort('linewidth'):
+            val = self.getInputFromPort('linewidth')
+            kwargs['linewidth'] = val
+        if self.hasInputFromPort('capsize'):
+            val = self.getInputFromPort('capsize')
+            kwargs['capsize'] = val
+        if self.hasInputFromPort('log'):
+            val = self.getInputFromPort('log')
+            kwargs['log'] = val
+        if self.hasInputFromPort('bottom'):
+            val = self.getInputFromPort('bottom')
+            kwargs['bottom'] = val
+        elif self.hasInputFromPort('bottomScalar'):
+            val = self.getInputFromPort('bottomScalar')
+            kwargs['bottom'] = val
+        else:
+            raise ModuleError(self, 'Must set one of "bottom", '                                   '"bottomScalar"')
+        if self.hasInputFromPort('color'):
+            val = self.getInputFromPort('color')
+            val = translate_color(val)
+            kwargs['color'] = val
+        if self.hasInputFromPort('xerr'):
+            val = self.getInputFromPort('xerr')
+            kwargs['xerr'] = val
+        if self.hasInputFromPort('align'):
+            val = self.getInputFromPort('align')
+            kwargs['align'] = val
+        if self.hasInputFromPort('ecolor'):
+            val = self.getInputFromPort('ecolor')
+            val = translate_color(val)
+            kwargs['ecolor'] = val
+        if self.hasInputFromPort('height'):
+            val = self.getInputFromPort('height')
+            kwargs['height'] = val
+        elif self.hasInputFromPort('heightSequence'):
+            val = self.getInputFromPort('heightSequence')
+            kwargs['height'] = val
+        if self.hasInputFromPort('width'):
+            val = self.getInputFromPort('width')
+            kwargs['width'] = val
+        elif self.hasInputFromPort('widthScalar'):
+            val = self.getInputFromPort('widthScalar')
+            kwargs['width'] = val
+        else:
+            raise ModuleError(self, 'Must set one of "width", '                                   '"widthScalar"')
+        if self.hasInputFromPort('hold'):
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+        if self.hasInputFromPort('yerr'):
+            val = self.getInputFromPort('yerr')
+            kwargs['yerr'] = val
+        if self.hasInputFromPort('left'):
+            val = self.getInputFromPort('left')
+            kwargs['left'] = val
+        elif self.hasInputFromPort('leftSequence'):
+            val = self.getInputFromPort('leftSequence')
+            kwargs['left'] = val
+
+        rectangles = matplotlib.pyplot.barh(*args, **kwargs)
+        if self.hasInputFromPort('rectangleProperties'):
+            properties = self.getInputFromPort('rectangleProperties')
+            if rectangles is not None:
+                properties.update_props(rectangles)
+
+class MplBrokenBarh(MplPlot):
     """call signature:
 
 broken_barh(self, xranges, yrange, **kwargs)
@@ -633,28 +813,39 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("xranges", "basic:List",
-                {'docstring': 'sequence of (xmin, xwidth)'}),
+               {'docstring': 'sequence of (xmin, xwidth)'}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("yrange", "basic:List",
-                {'docstring': 'sequence of (ymin, ywidth)'}),
+               {'optional': True}),
+              ("yrange", "basic:Float,basic:Float",
+               {'docstring': '(ymin, ywidth)'}),
+              ("brokenBarHCollectionProperties", "MplBrokenBarHCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
-        ("self", "(MplBroken_barh)"),
+        ("self", "(MplBrokenBarh)"),
         ]
     
 
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        kwargs['xranges'] = self.getInputFromPort('xranges')
+        args = []
+
+        kwargs = {}
+        val = self.getInputFromPort('xranges')
+        kwargs['xranges'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        kwargs['yrange'] = self.getInputFromPort('yrange')
-        # self.get_fig()
-        matplotlib.pyplot.broken_barh(**kwargs)        
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+        val = self.getInputFromPort('yrange')
+        kwargs['yrange'] = val
+
+        matplotlib.pyplot.broken_barh(*args, **kwargs)        
+        if self.hasInputFromPort('brokenBarHCollectionProperties'):
+            properties = self.getInputFromPort('brokenBarHCollectionProperties')
+            if brokenBarHCollection is not None:
+                properties.update_props(brokenBarHCollection)
 
 class MplBoxplot(MplPlot):
     """call signature:
@@ -695,37 +886,37 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("vert", "basic:Integer",
-                {'optional': True, 'defaults': "['1']"}),
+               {'optional': True, 'defaults': "['1']"}),
               ("positions", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("bootstrap", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("sym", "basic:String",
-                {'optional': True, 'defaults': "['b+']"}),
+               {'optional': True, 'defaults': "['b+']"}),
               ("widths", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("patch_artist", "basic:Boolean",
-                {'optional': True, 'defaults': "['False']"}),
+               {'optional': True, 'defaults': "['False']"}),
               ("x", "basic:List",
-                {}),
+               {}),
               ("notch", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
               ("whis", "basic:Float",
-                {'optional': True, 'defaults': "['1.5']"}),
+               {'optional': True, 'defaults': "['1.5']"}),
               ("boxProperties", "MplLine2DProperties",
-                {}),
+               {}),
               ("flierProperties", "MplLine2DProperties",
-                {}),
+               {}),
               ("capProperties", "MplLine2DProperties",
-                {}),
+               {}),
               ("medianProperties", "MplLine2DProperties",
-                {}),
+               {}),
               ("boxPatchProperties", "MplPathPatchProperties",
-                {}),
+               {}),
               ("whiskerProperties", "MplLine2DProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -736,28 +927,40 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('vert'):
-            kwargs['vert'] = self.getInputFromPort('vert')
+            val = self.getInputFromPort('vert')
+            kwargs['vert'] = val
         if self.hasInputFromPort('positions'):
-            kwargs['positions'] = self.getInputFromPort('positions')
+            val = self.getInputFromPort('positions')
+            kwargs['positions'] = val
         if self.hasInputFromPort('bootstrap'):
-            kwargs['bootstrap'] = self.getInputFromPort('bootstrap')
+            val = self.getInputFromPort('bootstrap')
+            kwargs['bootstrap'] = val
         if self.hasInputFromPort('sym'):
-            kwargs['sym'] = self.getInputFromPort('sym')
+            val = self.getInputFromPort('sym')
+            kwargs['sym'] = val
         if self.hasInputFromPort('widths'):
-            kwargs['widths'] = self.getInputFromPort('widths')
+            val = self.getInputFromPort('widths')
+            kwargs['widths'] = val
         if self.hasInputFromPort('patch_artist'):
-            kwargs['patch_artist'] = self.getInputFromPort('patch_artist')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('patch_artist')
+            kwargs['patch_artist'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('notch'):
-            kwargs['notch'] = self.getInputFromPort('notch')
+            val = self.getInputFromPort('notch')
+            kwargs['notch'] = val
         if self.hasInputFromPort('whis'):
-            kwargs['whis'] = self.getInputFromPort('whis')
-        # self.get_fig()
-        output = matplotlib.pyplot.boxplot(**kwargs)        
+            val = self.getInputFromPort('whis')
+            kwargs['whis'] = val
+
+        output = matplotlib.pyplot.boxplot(*args, **kwargs)        
         if 'patch_artist' in kwargs and kwargs['patch_artist']:
             output['boxPatches'] = output['boxes']
             output['boxes'] = []
@@ -771,22 +974,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
         whiskers = output['whiskers']
         if self.hasInputFromPort('boxProperties'):
             properties = self.getInputFromPort('boxProperties')
-            properties.update_props(boxes)
+            if boxes is not None:
+                properties.update_props(boxes)
         if self.hasInputFromPort('flierProperties'):
             properties = self.getInputFromPort('flierProperties')
-            properties.update_props(fliers)
+            if fliers is not None:
+                properties.update_props(fliers)
         if self.hasInputFromPort('capProperties'):
             properties = self.getInputFromPort('capProperties')
-            properties.update_props(caps)
+            if caps is not None:
+                properties.update_props(caps)
         if self.hasInputFromPort('medianProperties'):
             properties = self.getInputFromPort('medianProperties')
-            properties.update_props(medians)
+            if medians is not None:
+                properties.update_props(medians)
         if self.hasInputFromPort('boxPatchProperties'):
             properties = self.getInputFromPort('boxPatchProperties')
-            properties.update_props(boxPatches)
+            if boxPatches is not None:
+                properties.update_props(boxPatches)
         if self.hasInputFromPort('whiskerProperties'):
             properties = self.getInputFromPort('whiskerProperties')
-            properties.update_props(whiskers)
+            if whiskers is not None:
+                properties.update_props(whiskers)
 
 class MplCohere(MplPlot):
     """call signature:
@@ -817,29 +1026,31 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("Fs", "basic:Integer",
-                {'optional': True, 'defaults': "['2']"}),
+               {'optional': True, 'defaults': "['2']"}),
               ("pad_to", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("scale_by_freq", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("detrend", "basic:String",
-                {'optional': True, 'defaults': "['<function detrend_none at 0x101f3b0c8>']"}),
+               {'optional': True, 'defaults': "['<function detrend_none at 0x1023b8140>']"}),
               ("window", "basic:String",
-                {'optional': True, 'defaults': "['<function window_hanning at 0x101f367d0>']"}),
+               {'optional': True, 'defaults': "['<function window_hanning at 0x1023b5938>']"}),
               ("Fc", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
               ("NFFT", "basic:Integer",
-                {'optional': True, 'defaults': "['256']"}),
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['256']"}),
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("sides", "basic:String",
-                {'optional': True, 'defaults': "['default']"}),
+               {'optional': True, 'defaults': "['default']"}),
               ("noverlap", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
+              ("lineProperties", "MplLine2DProperties",
+               {'optional': True}),
         ]
 
     _output_ports = [
@@ -850,31 +1061,48 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('Fs'):
-            kwargs['Fs'] = self.getInputFromPort('Fs')
+            val = self.getInputFromPort('Fs')
+            kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            kwargs['pad_to'] = self.getInputFromPort('pad_to')
+            val = self.getInputFromPort('pad_to')
+            kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            kwargs['scale_by_freq'] = self.getInputFromPort('scale_by_freq')
+            val = self.getInputFromPort('scale_by_freq')
+            kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('detrend'):
-            kwargs['detrend'] = self.getInputFromPort('detrend')
+            val = self.getInputFromPort('detrend')
+            kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            kwargs['window'] = self.getInputFromPort('window')
+            val = self.getInputFromPort('window')
+            kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            kwargs['Fc'] = self.getInputFromPort('Fc')
+            val = self.getInputFromPort('Fc')
+            kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            kwargs['NFFT'] = self.getInputFromPort('NFFT')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('NFFT')
+            kwargs['NFFT'] = val
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            kwargs['sides'] = self.getInputFromPort('sides')
+            val = self.getInputFromPort('sides')
+            kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            kwargs['noverlap'] = self.getInputFromPort('noverlap')
-        # self.get_fig()
-        matplotlib.pyplot.cohere(**kwargs)        
+            val = self.getInputFromPort('noverlap')
+            kwargs['noverlap'] = val
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            properties.update_kwargs(kwargs)
+
+        matplotlib.pyplot.cohere(*args, **kwargs)        
 
 class MplClabel(MplPlot):
     """call signature:
@@ -895,25 +1123,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("inline_spacing", "basic:String",
-                {'optional': True, 'docstring': 'space in pixels to leave on each side of label when placing inline.  Defaults to 5.  This spacing will be exact for labels at locations where the contour is straight, less so for labels on curved contours.'}),
+               {'optional': True, 'docstring': 'space in pixels to leave on each side of label when placing inline.  Defaults to 5.  This spacing will be exact for labels at locations where the contour is straight, less so for labels on curved contours.'}),
               ("use_clabeltext", "basic:String",
-                {'optional': True, 'docstring': 'if True (default is False), ClabelText class (instead of matplotlib.Text) is used to create labels. ClabelText recalculates rotation angles of texts during the drawing time, therefore this can be used if aspect of the axes changes.', 'defaults': "['False)']"}),
+               {'optional': True, 'docstring': 'if True (default is False), ClabelText class (instead of matplotlib.Text) is used to create labels. ClabelText recalculates rotation angles of texts during the drawing time, therefore this can be used if aspect of the axes changes.', 'defaults': "['False)']"}),
               ("fmt", "basic:String",
-                {'optional': True, 'docstring': "a format string for the label. Default is '%1.3f' Alternatively, this can be a dictionary matching contour levels with arbitrary strings to use for each contour level (i.e., fmt[level]=string), or it can be any callable, such as a :class:`~matplotlib.ticker.Formatter` instance, that returns a string when called with a numeric contour level.", 'defaults': "['%1.3f']"}),
+               {'optional': True, 'docstring': "a format string for the label. Default is '%1.3f' Alternatively, this can be a dictionary matching contour levels with arbitrary strings to use for each contour level (i.e., fmt[level]=string), or it can be any callable, such as a :class:`~matplotlib.ticker.Formatter` instance, that returns a string when called with a numeric contour level.", 'defaults': "['%1.3f']"}),
               ("manual", "basic:String",
-                {'optional': True, 'docstring': 'if True, contour labels will be placed manually using mouse clicks.  Click the first button near a contour to add a label, click the second button (or potentially both mouse buttons at once) to finish adding labels.  The third button can be used to remove the last label added, but only if labels are not inline.  Alternatively, the keyboard can be used to select label locations (enter to end label placement, delete or backspace act like the third mouse button, and any other key will select a label location).'}),
-              ("cs", "basic:String",
-                {}),
+               {'optional': True, 'docstring': 'if True, contour labels will be placed manually using mouse clicks.  Click the first button near a contour to add a label, click the second button (or potentially both mouse buttons at once) to finish adding labels.  The third button can be used to remove the last label added, but only if labels are not inline.  Alternatively, the keyboard can be used to select label locations (enter to end label placement, delete or backspace act like the third mouse button, and any other key will select a label location).'}),
+              ("cs", "MplContourSet",
+               {}),
               ("colors", "basic:Color",
-                {'optional': True, 'docstring': "if None, the color of each label matches the color of the corresponding contour\n\nif one string color, e.g. colors = 'r' or colors = 'red', all labels will be plotted in this color\n\nif a tuple of matplotlib color args (string, float, rgb, etc), different labels will be plotted in different colors in the order specified"}),
+               {'optional': True, 'docstring': "if None, the color of each label matches the color of the corresponding contour\n\nif one string color, e.g. colors = 'r' or colors = 'red', all labels will be plotted in this color\n\nif a tuple of matplotlib color args (string, float, rgb, etc), different labels will be plotted in different colors in the order specified"}),
               ("fontsize", "basic:String",
-                {'optional': True, 'docstring': 'See http://matplotlib.sf.net/fonts.html'}),
+               {'optional': True, 'docstring': 'See http://matplotlib.sf.net/fonts.html'}),
               ("rightside_up", "basic:Boolean",
-                {'optional': True, 'docstring': 'if True (default), label rotations will always be plus or minus 90 degrees from level.', 'defaults': "['True']"}),
-              ("CS", "basic:String",
-                {}),
+               {'optional': True, 'docstring': 'if True (default), label rotations will always be plus or minus 90 degrees from level.', 'defaults': "['True']"}),
               ("inline", "basic:Boolean",
-                {'optional': True, 'docstring': 'controls whether the underlying contour is removed or not. Default is True.', 'defaults': "['True']"}),
+               {'optional': True, 'docstring': 'controls whether the underlying contour is removed or not. Default is True.', 'defaults': "['True']"}),
+              ("v", "basic:List",
+               {'optional': True}),
+              ("textProperties", "MplTextProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -924,28 +1154,45 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        val = self.getInputFromPort('cs')
+        args.append(val)
+        if self.hasInputFromPort('v'):
+            val = self.getInputFromPort('v')
+            args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('inline_spacing'):
-            kwargs['inline_spacing'] = self.getInputFromPort('inline_spacing')
+            val = self.getInputFromPort('inline_spacing')
+            kwargs['inline_spacing'] = val
         if self.hasInputFromPort('use_clabeltext'):
-            kwargs['use_clabeltext'] = self.getInputFromPort('use_clabeltext')
+            val = self.getInputFromPort('use_clabeltext')
+            kwargs['use_clabeltext'] = val
         if self.hasInputFromPort('fmt'):
-            kwargs['fmt'] = self.getInputFromPort('fmt')
+            val = self.getInputFromPort('fmt')
+            kwargs['fmt'] = val
         if self.hasInputFromPort('manual'):
-            kwargs['manual'] = self.getInputFromPort('manual')
-        kwargs['cs'] = self.getInputFromPort('cs')
+            val = self.getInputFromPort('manual')
+            kwargs['manual'] = val
         if self.hasInputFromPort('colors'):
-            kwargs['colors'] = self.getInputFromPort('colors')
-            kwargs['colors'] = translate_color(kwargs['colors'])
+            val = self.getInputFromPort('colors')
+            val = translate_color(val)
+            kwargs['colors'] = val
         if self.hasInputFromPort('fontsize'):
-            kwargs['fontsize'] = self.getInputFromPort('fontsize')
+            val = self.getInputFromPort('fontsize')
+            kwargs['fontsize'] = val
         if self.hasInputFromPort('rightside_up'):
-            kwargs['rightside_up'] = self.getInputFromPort('rightside_up')
-        kwargs['CS'] = self.getInputFromPort('CS')
+            val = self.getInputFromPort('rightside_up')
+            kwargs['rightside_up'] = val
         if self.hasInputFromPort('inline'):
-            kwargs['inline'] = self.getInputFromPort('inline')
-        # self.get_fig()
-        matplotlib.pyplot.clabel(**kwargs)        
+            val = self.getInputFromPort('inline')
+            kwargs['inline'] = val
+
+        texts = matplotlib.pyplot.clabel(*args, **kwargs)
+        if self.hasInputFromPort('textProperties'):
+            properties = self.getInputFromPort('textProperties')
+            if texts is not None:
+                properties.update_props(texts)
 
 class MplContour(MplPlot):
     """:func:`~matplotlib.pyplot.contour` and :func:`~matplotlib.pyplot.contourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
@@ -1006,83 +1253,139 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("origin", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
               ("xunits", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.', 'values': "[['registered units']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.', 'values': "[['registered units']]", 'optional': True}),
               ("linestyles", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
               ("extend", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "Unless this is 'neither', contour levels are automatically added to one or both ends of the range so that all data are included. These added ranges are then mapped to the special colormap values which default to the ends of the colormap range, but can be set via :meth:`matplotlib.colors.Colormap.set_under` and :meth:`matplotlib.colors.Colormap.set_over` methods.", 'values': "[['neither', 'both', 'min', 'max']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "Unless this is 'neither', contour levels are automatically added to one or both ends of the range so that all data are included. These added ranges are then mapped to the special colormap values which default to the ends of the colormap range, but can be set via :meth:`matplotlib.colors.Colormap.set_under` and :meth:`matplotlib.colors.Colormap.set_over` methods.", 'values': "[['neither', 'both', 'min', 'max']]", 'optional': True}),
               ("levelsSequence", "basic:List",
-                {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
+               {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
               ("levelsScalar", "basic:Float",
                {'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]', 'optional': True}),
               ("linewidths", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
               ("locator", "basic:String",
-                {'optional': True, 'docstring': 'If locator is None, the default :class:`~matplotlib.ticker.MaxNLocator` is used. The locator is used to determine the contour levels if they are not given explicitly via the V argument.'}),
+               {'optional': True, 'docstring': 'If locator is None, the default :class:`~matplotlib.ticker.MaxNLocator` is used. The locator is used to determine the contour levels if they are not given explicitly via the V argument.'}),
               ("colors", "basic:Color",
-                {'optional': True, 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified."}),
+               {'optional': True, 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified."}),
               ("cmap", "basic:String",
-                {'optional': True, 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.'}),
+               {'optional': True, 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.'}),
               ("yunits", "basic:String",
-                {'optional': True, 'docstring': 'Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.'}),
+               {'optional': True, 'docstring': 'Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.'}),
               ("extent", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'If origin is not None, then extent is interpreted as in :func:`matplotlib.pyplot.imshow`: it gives the outer pixel boundaries. In this case, the position of Z[0,0] is the center of the pixel, not a corner. If origin is None, then (x0, y0) is the position of Z[0,0], and (x1, y1) is the position of Z[-1,-1].\n\nThis keyword is not active if X and Y are specified in the call to contour.', 'values': "[['(x0,x1,y0,y1)']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If origin is not None, then extent is interpreted as in :func:`matplotlib.pyplot.imshow`: it gives the outer pixel boundaries. In this case, the position of Z[0,0] is the center of the pixel, not a corner. If origin is None, then (x0, y0) is the position of Z[0,0], and (x1, y1) is the position of Z[-1,-1].\n\nThis keyword is not active if X and Y are specified in the call to contour.', 'values': "[['(x0,x1,y0,y1)']]", 'optional': True}),
               ("nchunk", "basic:Integer",
-                {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'The alpha blending value'}),
+               {'optional': True, 'docstring': 'The alpha blending value'}),
               ("antialiased", "basic:Boolean",
-                {'optional': True, 'docstring': "enable antialiasing, overriding the defaults.  For filled contours, the default is True.  For line contours, it is taken from rcParams['lines.antialiased'].", 'defaults': "['True']"}),
+               {'optional': True, 'docstring': "enable antialiasing, overriding the defaults.  For filled contours, the default is True.  For line contours, it is taken from rcParams['lines.antialiased'].", 'defaults': "['True']"}),
               ("norm", "basic:String",
-                {'optional': True, 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.'}),
+               {'optional': True, 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.'}),
+              ("Y", "basic:List",
+               {'optional': True}),
+              ("Z", "basic:List",
+               {}),
+              ("V", "basic:List",
+               {'optional': True}),
+              ("X", "basic:List",
+               {'optional': True}),
+              ("N", "basic:Integer",
+               {'optional': True}),
+              ("lineCollectionProperties", "MplLineCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
         ("self", "(MplContour)"),
+              ("contourSet", "MplQuadContourSet",
+                {}),
         ]
     
 
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        if self.hasInputFromPort('X'):
+            val = self.getInputFromPort('X')
+            args.append(val)
+        if self.hasInputFromPort('Y'):
+            val = self.getInputFromPort('Y')
+            args.append(val)
+        val = self.getInputFromPort('Z')
+        args.append(val)
+        if self.hasInputFromPort('V'):
+            val = self.getInputFromPort('V')
+            args.append(val)
+        if self.hasInputFromPort('N'):
+            val = self.getInputFromPort('N')
+            args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('origin'):
-            kwargs['origin'] = self.getInputFromPort('origin')
+            val = self.getInputFromPort('origin')
+            kwargs['origin'] = val
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            val = self.getInputFromPort('xunits')
+            kwargs['xunits'] = val
         if self.hasInputFromPort('linestyles'):
-            kwargs['linestyles'] = self.getInputFromPort('linestyles')
+            val = self.getInputFromPort('linestyles')
+            kwargs['linestyles'] = val
         if self.hasInputFromPort('extend'):
-            kwargs['extend'] = self.getInputFromPort('extend')
+            val = self.getInputFromPort('extend')
+            kwargs['extend'] = val
         if self.hasInputFromPort('levelsSequence'):
-            kwargs['levels'] = self.getInputFromPort('levelsSequence')
+            val = self.getInputFromPort('levelsSequence')
+            kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            kwargs['levels'] = self.getInputFromPort('levelsScalar')
+            val = self.getInputFromPort('levelsScalar')
+            kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidths')
+            val = self.getInputFromPort('linewidths')
+            kwargs['linewidths'] = val
         if self.hasInputFromPort('locator'):
-            kwargs['locator'] = self.getInputFromPort('locator')
+            val = self.getInputFromPort('locator')
+            kwargs['locator'] = val
         if self.hasInputFromPort('colors'):
-            kwargs['colors'] = self.getInputFromPort('colors')
-            kwargs['colors'] = translate_color(kwargs['colors'])
+            val = self.getInputFromPort('colors')
+            val = translate_color(val)
+            kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            val = self.getInputFromPort('yunits')
+            kwargs['yunits'] = val
         if self.hasInputFromPort('extent'):
-            kwargs['extent'] = self.getInputFromPort('extent')
+            val = self.getInputFromPort('extent')
+            kwargs['extent'] = val
         if self.hasInputFromPort('nchunk'):
-            kwargs['nchunk'] = self.getInputFromPort('nchunk')
+            val = self.getInputFromPort('nchunk')
+            kwargs['nchunk'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
         if self.hasInputFromPort('antialiased'):
-            kwargs['antialiased'] = self.getInputFromPort('antialiased')
+            val = self.getInputFromPort('antialiased')
+            kwargs['antialiased'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
-        # self.get_fig()
-        matplotlib.pyplot.contour(**kwargs)        
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
+
+        if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
+            del args[-1]
+        contour_set = matplotlib.pyplot.contour(*args, **kwargs)
+        output = (contour_set, contour_set.collections)
+        contourSet = output[0]
+        lineCollections = output[1]
+        self.setResult('contourSet', contourSet)
+        if self.hasInputFromPort('lineCollectionProperties'):
+            properties = self.getInputFromPort('lineCollectionProperties')
+            if lineCollections is not None:
+                properties.update_props(lineCollections)
 
 class MplContourf(MplPlot):
     """:func:`~matplotlib.pyplot.contour` and :func:`~matplotlib.pyplot.contourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
@@ -1147,59 +1450,109 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("origin", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
               ("linestyles", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
               ("levelsSequence", "basic:List",
-                {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
+               {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
               ("levelsScalar", "basic:Float",
                {'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]', 'optional': True}),
               ("linewidths", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
               ("colors", "basic:Color",
-                {'entry_types': "['enum']", 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.", 'values': "[['(mpl_colors)']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.", 'values': "[['(mpl_colors)']]", 'optional': True}),
               ("cmap", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.', 'values': "[['Colormap']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.', 'values': "[['Colormap']]", 'optional': True}),
               ("nchunk", "basic:Integer",
-                {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'The alpha blending value'}),
+               {'optional': True, 'docstring': 'The alpha blending value'}),
               ("norm", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.', 'values': "[['Normalize']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.', 'values': "[['Normalize']]", 'optional': True}),
+              ("Y", "basic:List",
+               {'optional': True}),
+              ("Z", "basic:List",
+               {}),
+              ("V", "basic:List",
+               {'optional': True}),
+              ("X", "basic:List",
+               {'optional': True}),
+              ("N", "basic:Integer",
+               {'optional': True}),
+              ("polyCollectionProperties", "MplPolyCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
         ("self", "(MplContourf)"),
+              ("contourSet", "MplQuadContourSet",
+                {}),
         ]
     
 
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        if self.hasInputFromPort('X'):
+            val = self.getInputFromPort('X')
+            args.append(val)
+        if self.hasInputFromPort('Y'):
+            val = self.getInputFromPort('Y')
+            args.append(val)
+        val = self.getInputFromPort('Z')
+        args.append(val)
+        if self.hasInputFromPort('V'):
+            val = self.getInputFromPort('V')
+            args.append(val)
+        if self.hasInputFromPort('N'):
+            val = self.getInputFromPort('N')
+            args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('origin'):
-            kwargs['origin'] = self.getInputFromPort('origin')
+            val = self.getInputFromPort('origin')
+            kwargs['origin'] = val
         if self.hasInputFromPort('linestyles'):
-            kwargs['linestyles'] = self.getInputFromPort('linestyles')
+            val = self.getInputFromPort('linestyles')
+            kwargs['linestyles'] = val
         if self.hasInputFromPort('levelsSequence'):
-            kwargs['levels'] = self.getInputFromPort('levelsSequence')
+            val = self.getInputFromPort('levelsSequence')
+            kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            kwargs['levels'] = self.getInputFromPort('levelsScalar')
+            val = self.getInputFromPort('levelsScalar')
+            kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidths')
+            val = self.getInputFromPort('linewidths')
+            kwargs['linewidths'] = val
         if self.hasInputFromPort('colors'):
-            kwargs['colors'] = self.getInputFromPort('colors')
-            kwargs['colors'] = translate_color(kwargs['colors'])
+            val = self.getInputFromPort('colors')
+            val = translate_color(val)
+            kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('nchunk'):
-            kwargs['nchunk'] = self.getInputFromPort('nchunk')
+            val = self.getInputFromPort('nchunk')
+            kwargs['nchunk'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
-        # self.get_fig()
-        matplotlib.pyplot.contourf(**kwargs)        
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
+
+        if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
+            del args[-1]
+        contour_set = matplotlib.pyplot.contourf(*args, **kwargs)
+        output = (contour_set, contour_set.collections)
+        contourSet = output[0]
+        polyCollections = output[1]
+        self.setResult('contourSet', contourSet)
+        if self.hasInputFromPort('polyCollectionProperties'):
+            properties = self.getInputFromPort('polyCollectionProperties')
+            if polyCollections is not None:
+                properties.update_props(polyCollections)
 
 class MplCsd(MplPlot):
     """call signature:
@@ -1226,29 +1579,31 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("Fs", "basic:Integer",
-                {'optional': True, 'defaults': "['2']"}),
+               {'optional': True, 'defaults': "['2']"}),
               ("pad_to", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("scale_by_freq", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("detrend", "basic:String",
-                {'optional': True, 'defaults': "['<function detrend_none at 0x101f3b0c8>']"}),
+               {'optional': True, 'defaults': "['<function detrend_none at 0x1023b8140>']"}),
               ("window", "basic:String",
-                {'optional': True, 'defaults': "['<function window_hanning at 0x101f367d0>']"}),
+               {'optional': True, 'defaults': "['<function window_hanning at 0x1023b5938>']"}),
               ("Fc", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
               ("NFFT", "basic:Integer",
-                {'optional': True, 'defaults': "['256']"}),
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['256']"}),
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("sides", "basic:String",
-                {'optional': True, 'defaults': "['default']"}),
+               {'optional': True, 'defaults': "['default']"}),
               ("noverlap", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
+              ("lineProperties", "MplLine2DProperties",
+               {'optional': True}),
         ]
 
     _output_ports = [
@@ -1259,31 +1614,48 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('Fs'):
-            kwargs['Fs'] = self.getInputFromPort('Fs')
+            val = self.getInputFromPort('Fs')
+            kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            kwargs['pad_to'] = self.getInputFromPort('pad_to')
+            val = self.getInputFromPort('pad_to')
+            kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            kwargs['scale_by_freq'] = self.getInputFromPort('scale_by_freq')
+            val = self.getInputFromPort('scale_by_freq')
+            kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('detrend'):
-            kwargs['detrend'] = self.getInputFromPort('detrend')
+            val = self.getInputFromPort('detrend')
+            kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            kwargs['window'] = self.getInputFromPort('window')
+            val = self.getInputFromPort('window')
+            kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            kwargs['Fc'] = self.getInputFromPort('Fc')
+            val = self.getInputFromPort('Fc')
+            kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            kwargs['NFFT'] = self.getInputFromPort('NFFT')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('NFFT')
+            kwargs['NFFT'] = val
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            kwargs['sides'] = self.getInputFromPort('sides')
+            val = self.getInputFromPort('sides')
+            kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            kwargs['noverlap'] = self.getInputFromPort('noverlap')
-        # self.get_fig()
-        matplotlib.pyplot.csd(**kwargs)        
+            val = self.getInputFromPort('noverlap')
+            kwargs['noverlap'] = val
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            properties.update_kwargs(kwargs)
+
+        matplotlib.pyplot.csd(*args, **kwargs)        
 
 class MplErrorbar(MplPlot):
     """call signature:
@@ -1318,43 +1690,43 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("lolims", "basic:Boolean",
-                {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
               ("capsize", "basic:Float",
-                {'optional': True, 'docstring': 'the size of the error bar caps in points', 'defaults': "['3']"}),
+               {'optional': True, 'docstring': 'the size of the error bar caps in points', 'defaults': "['3']"}),
               ("uplims", "basic:Boolean",
-                {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
               ("xlolims", "basic:Boolean",
-                {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
               ("barsabove", "basic:String",
-                {'optional': True, 'docstring': 'if True, will plot the errorbars above the plot symbols. Default is below.', 'defaults': "['below']"}),
+               {'optional': True, 'docstring': 'if True, will plot the errorbars above the plot symbols. Default is below.', 'defaults': "['below']"}),
               ("xerr", "basic:List",
-                {'optional': True, 'docstring': 'If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.\n\nIf a sequence of shape 2xN, errorbars are drawn at -row1 and +row2'}),
+               {'optional': True, 'docstring': 'If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.\n\nIf a sequence of shape 2xN, errorbars are drawn at -row1 and +row2'}),
               ("xerrScalar", "basic:Float",
                {'docstring': 'If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.\n\nIf a sequence of shape 2xN, errorbars are drawn at -row1 and +row2', 'optional': True}),
               ("fmt", "basic:String",
-                {'optional': True, 'docstring': 'The plot format symbol. If fmt is None, only the errorbars are plotted.  This is used for adding errorbars to a bar plot, for example.', 'defaults': "['-']"}),
-              ("ecolor", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'a matplotlib color arg which gives the color the errorbar lines; if None, use the marker color.', 'values': "[['mpl color']]", 'optional': True}),
+               {'optional': True, 'docstring': 'The plot format symbol. If fmt is None, only the errorbars are plotted.  This is used for adding errorbars to a bar plot, for example.', 'defaults': "['-']"}),
+              ("ecolor", "basic:Color",
+               {'entry_types': "['enum']", 'docstring': 'a matplotlib color arg which gives the color the errorbar lines; if None, use the marker color.', 'values': "[['mpl color']]", 'optional': True}),
               ("xuplims", "basic:Boolean",
-                {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.', 'defaults': "['False']"}),
               ("elinewidth", "basic:Float",
-                {'optional': True, 'docstring': 'the linewidth of the errorbar lines. If None, use the linewidth.'}),
+               {'optional': True, 'docstring': 'the linewidth of the errorbar lines. If None, use the linewidth.'}),
               ("y", "basic:List",
-                {}),
+               {}),
               ("x", "basic:List",
-                {}),
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("yerr", "basic:List",
-                {'optional': True, 'docstring': 'If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.\n\nIf a sequence of shape 2xN, errorbars are drawn at -row1 and +row2'}),
+               {'optional': True, 'docstring': 'If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.\n\nIf a sequence of shape 2xN, errorbars are drawn at -row1 and +row2'}),
               ("yerrScalar", "basic:Float",
                {'docstring': 'If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.\n\nIf a sequence of shape 2xN, errorbars are drawn at -row1 and +row2', 'optional': True}),
               ("caplineProperties", "MplLine2DProperties",
-                {}),
+               {}),
               ("barlineProperties", "MplLineCollectionProperties",
-                {}),
+               {}),
               ("plotlineProperties", "MplLine2DProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -1365,51 +1737,73 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('lolims'):
-            kwargs['lolims'] = self.getInputFromPort('lolims')
+            val = self.getInputFromPort('lolims')
+            kwargs['lolims'] = val
         if self.hasInputFromPort('capsize'):
-            kwargs['capsize'] = self.getInputFromPort('capsize')
+            val = self.getInputFromPort('capsize')
+            kwargs['capsize'] = val
         if self.hasInputFromPort('uplims'):
-            kwargs['uplims'] = self.getInputFromPort('uplims')
+            val = self.getInputFromPort('uplims')
+            kwargs['uplims'] = val
         if self.hasInputFromPort('xlolims'):
-            kwargs['xlolims'] = self.getInputFromPort('xlolims')
+            val = self.getInputFromPort('xlolims')
+            kwargs['xlolims'] = val
         if self.hasInputFromPort('barsabove'):
-            kwargs['barsabove'] = self.getInputFromPort('barsabove')
+            val = self.getInputFromPort('barsabove')
+            kwargs['barsabove'] = val
         if self.hasInputFromPort('xerr'):
-            kwargs['xerr'] = self.getInputFromPort('xerr')
+            val = self.getInputFromPort('xerr')
+            kwargs['xerr'] = val
         elif self.hasInputFromPort('xerrScalar'):
-            kwargs['xerr'] = self.getInputFromPort('xerrScalar')
+            val = self.getInputFromPort('xerrScalar')
+            kwargs['xerr'] = val
         if self.hasInputFromPort('fmt'):
-            kwargs['fmt'] = self.getInputFromPort('fmt')
+            val = self.getInputFromPort('fmt')
+            kwargs['fmt'] = val
         if self.hasInputFromPort('ecolor'):
-            kwargs['ecolor'] = self.getInputFromPort('ecolor')
+            val = self.getInputFromPort('ecolor')
+            val = translate_color(val)
+            kwargs['ecolor'] = val
         if self.hasInputFromPort('xuplims'):
-            kwargs['xuplims'] = self.getInputFromPort('xuplims')
+            val = self.getInputFromPort('xuplims')
+            kwargs['xuplims'] = val
         if self.hasInputFromPort('elinewidth'):
-            kwargs['elinewidth'] = self.getInputFromPort('elinewidth')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('elinewidth')
+            kwargs['elinewidth'] = val
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('yerr'):
-            kwargs['yerr'] = self.getInputFromPort('yerr')
+            val = self.getInputFromPort('yerr')
+            kwargs['yerr'] = val
         elif self.hasInputFromPort('yerrScalar'):
-            kwargs['yerr'] = self.getInputFromPort('yerrScalar')
-        # self.get_fig()
-        output = matplotlib.pyplot.errorbar(**kwargs)        
+            val = self.getInputFromPort('yerrScalar')
+            kwargs['yerr'] = val
+
+        output = matplotlib.pyplot.errorbar(*args, **kwargs)        
         plotline = output[0]
         caplines = output[1]
         barlines = output[2]
         if self.hasInputFromPort('caplineProperties'):
             properties = self.getInputFromPort('caplineProperties')
-            properties.update_props(caplines)
+            if caplines is not None:
+                properties.update_props(caplines)
         if self.hasInputFromPort('barlineProperties'):
             properties = self.getInputFromPort('barlineProperties')
-            properties.update_props(barlines)
+            if barlines is not None:
+                properties.update_props(barlines)
         if self.hasInputFromPort('plotlineProperties'):
             properties = self.getInputFromPort('plotlineProperties')
-            properties.update_props(plotline)
+            if plotline is not None:
+                properties.update_props(plotline)
 
 class MplFill(MplPlot):
     """call signature:
@@ -1441,6 +1835,12 @@ Example:
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
+              ("polygonProperties", "MplPolygonProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -1451,11 +1851,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        # self.get_fig()
-        matplotlib.pyplot.fill(**kwargs)        
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        val = self.getInputFromPort('y')
+        args.append(val)
 
-class MplFill_between(MplPlot):
+        kwargs = {}
+
+        polygons = matplotlib.pyplot.fill(*args, **kwargs)
+        if self.hasInputFromPort('polygonProperties'):
+            properties = self.getInputFromPort('polygonProperties')
+            if polygons is not None:
+                properties.update_props(polygons)
+
+class MplFillBetween(MplPlot):
     """call signature:
 
 fill_between(x, y1, y2=0, where=None, **kwargs)
@@ -1469,43 +1879,70 @@ kwargs control the Polygon properties:
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("y2", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+              ("y2", "basic:Float",
+               {'optional': True, 'docstring': 'A scalar y-value', 'defaults': "['0.0']"}),
+              ("y2Sequence", "basic:List",
+               {'optional': True, 'docstring': 'An N-length array of the y data'}),
               ("interpolate", "basic:Boolean",
-                {'optional': True, 'defaults': "['False']"}),
-              ("y1", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['False']"}),
+              ("y1", "basic:List",
+               {'docstring': 'An N-length array of the y data'}),
+              ("y1Scalar", "basic:Float",
+               {'optional': True, 'docstring': 'A scalar y-value'}),
+              ("x", "basic:List",
+               {'docstring': 'An N-length array of the x data'}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("where", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
+              ("where", "basic:List",
+               {'optional': True, 'docstring': 'An N-length boolean array that specifies where the fill is effective'}),
+              ("polyCollectionProperties", "MplPolyCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
-        ("self", "(MplFill_between)"),
+        ("self", "(MplFillBetween)"),
         ]
     
 
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        if self.hasInputFromPort('y2'):
-            kwargs['y2'] = self.getInputFromPort('y2')
-        if self.hasInputFromPort('interpolate'):
-            kwargs['interpolate'] = self.getInputFromPort('interpolate')
-        kwargs['y1'] = self.getInputFromPort('y1')
-        kwargs['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        if self.hasInputFromPort('where'):
-            kwargs['where'] = self.getInputFromPort('where')
-        # self.get_fig()
-        matplotlib.pyplot.fill_between(**kwargs)        
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        if self.hasInputFromPort('y1'):
+            val = self.getInputFromPort('y1')
+            args.append(val)
+        elif self.hasInputFromPort('y1Scalar'):
+            val = self.getInputFromPort('y1Scalar')
+            args.append(val)
+        else:
+            raise ModuleError(self, 'Must set one of "y1", '                                   '"y1Scalar"')
 
-class MplFill_betweenx(MplPlot):
+        kwargs = {}
+        if self.hasInputFromPort('y2'):
+            val = self.getInputFromPort('y2')
+            kwargs['y2'] = val
+        elif self.hasInputFromPort('y2Sequence'):
+            val = self.getInputFromPort('y2Sequence')
+            kwargs['y2'] = val
+        if self.hasInputFromPort('interpolate'):
+            val = self.getInputFromPort('interpolate')
+            kwargs['interpolate'] = val
+        if self.hasInputFromPort('hold'):
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+        if self.hasInputFromPort('where'):
+            val = self.getInputFromPort('where')
+            kwargs['where'] = val
+
+        polyCollection = matplotlib.pyplot.fill_between(*args, **kwargs)
+        if self.hasInputFromPort('polyCollectionProperties'):
+            properties = self.getInputFromPort('polyCollectionProperties')
+            if polyCollection is not None:
+                properties.update_props(polyCollection)
+
+class MplFillBetweenx(MplPlot):
     """call signature:
 
 fill_between(y, x1, x2=0, where=None, **kwargs)
@@ -1519,37 +1956,63 @@ kwargs control the Polygon properties:
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("y", "basic:String",
-                {}),
-              ("x2", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+              ("y", "basic:List",
+               {'docstring': 'An N-length array of the y data'}),
+              ("x2", "basic:Float",
+               {'optional': True, 'docstring': 'A scalar x-value', 'defaults': "['0']"}),
+              ("x2Sequence", "basic:List",
+               {'optional': True, 'docstring': 'An N-length array of the x data'}),
               ("hold", "basic:String",
-                {'optional': True}),
-              ("x1", "basic:String",
-                {}),
-              ("where", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
+              ("x1", "basic:List",
+               {'docstring': 'An N-length array of the x data'}),
+              ("x1Scalar", "basic:Float",
+               {'optional': True, 'docstring': 'A scalar x-value'}),
+              ("where", "basic:List",
+               {'optional': True, 'docstring': 'An N-length boolean array that specifies where the fill is effective'}),
+              ("polyCollectionProperties", "MplPolyCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
-        ("self", "(MplFill_betweenx)"),
+        ("self", "(MplFillBetweenx)"),
         ]
     
 
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        kwargs['y'] = self.getInputFromPort('y')
+        args = []
+        val = self.getInputFromPort('y')
+        args.append(val)
+        if self.hasInputFromPort('x1'):
+            val = self.getInputFromPort('x1')
+            args.append(val)
+        elif self.hasInputFromPort('x1Scalar'):
+            val = self.getInputFromPort('x1Scalar')
+            args.append(val)
+        else:
+            raise ModuleError(self, 'Must set one of "x1", '                                   '"x1Scalar"')
+
+        kwargs = {}
         if self.hasInputFromPort('x2'):
-            kwargs['x2'] = self.getInputFromPort('x2')
+            val = self.getInputFromPort('x2')
+            kwargs['x2'] = val
+        elif self.hasInputFromPort('x2Sequence'):
+            val = self.getInputFromPort('x2Sequence')
+            kwargs['x2'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        kwargs['x1'] = self.getInputFromPort('x1')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('where'):
-            kwargs['where'] = self.getInputFromPort('where')
-        # self.get_fig()
-        matplotlib.pyplot.fill_betweenx(**kwargs)        
+            val = self.getInputFromPort('where')
+            kwargs['where'] = val
+
+        polyCollection = matplotlib.pyplot.fill_betweenx(*args, **kwargs)
+        if self.hasInputFromPort('polyCollectionProperties'):
+            properties = self.getInputFromPort('polyCollectionProperties')
+            if polyCollection is not None:
+                properties.update_props(polyCollection)
 
 class MplHexbin(MplPlot):
     """call signature:
@@ -1580,49 +2043,51 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("vmax", "basic:Float",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
               ("edgecolorsSequence", "basic:List",
-                {'entry_types': "['enum']", 'docstring': "If 'none', draws the edges in the same color as the fill color. This is the default, as it avoids unsightly unpainted pixels between the hexagons.\n\nIf None, draws the outlines in the default color.\n\nIf a matplotlib color arg or sequence of rgba tuples, draws the outlines in the specified color.", 'values': "[['mpl color']]", 'optional': True, 'defaults': "['none']"}),
+               {'entry_types': "['enum']", 'docstring': "If 'none', draws the edges in the same color as the fill color. This is the default, as it avoids unsightly unpainted pixels between the hexagons.\n\nIf None, draws the outlines in the default color.\n\nIf a matplotlib color arg or sequence of rgba tuples, draws the outlines in the specified color.", 'values': "[['mpl color']]", 'optional': True, 'defaults': "['none']"}),
               ("edgecolorsScalar", "basic:String",
-               {'values': "[['mpl color']]", 'entry_types': "['enum']", 'docstring': "If 'none', draws the edges in the same color as the fill color. This is the default, as it avoids unsightly unpainted pixels between the hexagons.\n\nIf None, draws the outlines in the default color.\n\nIf a matplotlib color arg or sequence of rgba tuples, draws the outlines in the specified color.", 'optional': True, 'defaults': "['none']"}),
-              ("C", "basic:String",
-                {'optional': True}),
+               {'docstring': "If 'none', draws the edges in the same color as the fill color. This is the default, as it avoids unsightly unpainted pixels between the hexagons.\n\nIf None, draws the outlines in the default color.\n\nIf a matplotlib color arg or sequence of rgba tuples, draws the outlines in the specified color.", 'optional': True}),
+              ("C", "basic:List",
+               {'optional': True}),
               ("gridsize", "basic:Integer",
-                {'entry_types': "['enum']", 'docstring': 'The number of hexagons in the x-direction, default is 100. The corresponding number of hexagons in the y-direction is chosen such that the hexagons are approximately regular. Alternatively, gridsize can be a tuple with two elements specifying the number of hexagons in the x-direction and the y-direction.', 'values': '[[100]]', 'optional': True, 'defaults': "['100']"}),
+               {'optional': True, 'docstring': 'The number of hexagons in the x-direction, default is 100. The corresponding number of hexagons in the y-direction is chosen such that the hexagons are approximately regular. Alternatively, gridsize can be a tuple with two elements specifying the number of hexagons in the x-direction and the y-direction.', 'defaults': "['100']"}),
               ("vmin", "basic:Float",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
               ("yscale", "basic:String",
-                {'optional': True, 'defaults': "['linear']"}),
+               {'optional': True, 'defaults': "['linear']"}),
               ("reduce_C_function", "basic:String",
-                {'optional': True, 'defaults': "['<function mean at 0x10166f2a8>']"}),
+               {'optional': True, 'defaults': "['<function mean at 0x10166f410>']"}),
               ("linewidthsSequence", "basic:List",
-                {'optional': True, 'docstring': 'If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.'}),
+               {'optional': True, 'docstring': 'If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.'}),
               ("linewidthsScalar", "basic:Float",
                {'docstring': 'If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.', 'optional': True}),
               ("xscale", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'Use a linear or log10 scale on the horizontal axis.', 'values': "[['linear', 'log']]", 'optional': True, 'defaults': "['linear']"}),
+               {'entry_types': "['enum']", 'docstring': 'Use a linear or log10 scale on the horizontal axis.', 'values': "[['linear', 'log']]", 'optional': True, 'defaults': "['linear']"}),
               ("cmap", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'a :class:`matplotlib.cm.Colormap` instance. If None, defaults to rc image.cmap.', 'values': "[['Colormap']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'a :class:`matplotlib.cm.Colormap` instance. If None, defaults to rc image.cmap.', 'values': "[['Colormap']]", 'optional': True}),
               ("norm", "basic:String",
-                {'entry_types': "['enum']", 'docstring': ':class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1.', 'values': "[['Normalize']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': ':class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1.', 'values': "[['Normalize']]", 'optional': True}),
               ("extent", "basic:Float",
-                {'optional': True, 'docstring': 'The limits of the bins. The default assigns the limits based on gridsize, x, y, xscale and yscale.'}),
+               {'optional': True, 'docstring': 'The limits of the bins. The default assigns the limits based on gridsize, x, y, xscale and yscale.'}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'the alpha value for the patches'}),
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'docstring': 'the alpha value for the patches'}),
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("mincnt", "basic:Integer",
-                {'optional': True, 'docstring': 'If not None, only display cells with more than mincnt number of points in the cell'}),
+               {'optional': True, 'docstring': 'If not None, only display cells with more than mincnt number of points in the cell'}),
               ("marginals", "basic:Boolean",
-                {'optional': True, 'docstring': 'if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis', 'defaults': "['False']"}),
-              ("bins", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If None, no binning is applied; the color of each hexagon directly corresponds to its count value.\n\nIf 'log', use a logarithmic scale for the color map. Internally, :math:`log_{10}(i+1)` is used to determine the hexagon color.\n\nIf an integer, divide the counts in the specified number of bins, and color the hexagons accordingly.\n\nIf a sequence of values, the values of the lower bound of the bins to be used.", 'values': "[['log']]", 'optional': True}),
+               {'optional': True, 'docstring': 'if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis', 'defaults': "['False']"}),
+              ("bins", "basic:Integer",
+               {'optional': True, 'docstring': "If None, no binning is applied; the color of each hexagon directly corresponds to its count value.\n\nIf 'log', use a logarithmic scale for the color map. Internally, :math:`log_{10}(i+1)` is used to determine the hexagon color.\n\nIf an integer, divide the counts in the specified number of bins, and color the hexagons accordingly.\n\nIf a sequence of values, the values of the lower bound of the bins to be used."}),
               ("scale", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'Use a linear or log10 scale on the vertical axis.', 'values': "[['linear', 'log']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'Use a linear or log10 scale on the vertical axis.', 'values': "[['linear', 'log']]", 'optional': True}),
+              ("polyCollectionProperties", "MplPolyCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -1633,51 +2098,79 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('vmax'):
-            kwargs['vmax'] = self.getInputFromPort('vmax')
+            val = self.getInputFromPort('vmax')
+            kwargs['vmax'] = val
         if self.hasInputFromPort('edgecolorsSequence'):
-            kwargs['edgecolors'] = self.getInputFromPort('edgecolorsSequence')
+            val = self.getInputFromPort('edgecolorsSequence')
+            kwargs['edgecolors'] = val
         elif self.hasInputFromPort('edgecolorsScalar'):
-            kwargs['edgecolors'] = self.getInputFromPort('edgecolorsScalar')
+            val = self.getInputFromPort('edgecolorsScalar')
+            kwargs['edgecolors'] = val
         if self.hasInputFromPort('C'):
-            kwargs['C'] = self.getInputFromPort('C')
+            val = self.getInputFromPort('C')
+            kwargs['C'] = val
         if self.hasInputFromPort('gridsize'):
-            kwargs['gridsize'] = self.getInputFromPort('gridsize')
+            val = self.getInputFromPort('gridsize')
+            kwargs['gridsize'] = val
         if self.hasInputFromPort('vmin'):
-            kwargs['vmin'] = self.getInputFromPort('vmin')
+            val = self.getInputFromPort('vmin')
+            kwargs['vmin'] = val
         if self.hasInputFromPort('yscale'):
-            kwargs['yscale'] = self.getInputFromPort('yscale')
+            val = self.getInputFromPort('yscale')
+            kwargs['yscale'] = val
         if self.hasInputFromPort('reduce_C_function'):
-            kwargs['reduce_C_function'] = self.getInputFromPort('reduce_C_function')
+            val = self.getInputFromPort('reduce_C_function')
+            kwargs['reduce_C_function'] = val
         if self.hasInputFromPort('linewidthsSequence'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidthsSequence')
+            val = self.getInputFromPort('linewidthsSequence')
+            kwargs['linewidths'] = val
         elif self.hasInputFromPort('linewidthsScalar'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidthsScalar')
+            val = self.getInputFromPort('linewidthsScalar')
+            kwargs['linewidths'] = val
         if self.hasInputFromPort('xscale'):
-            kwargs['xscale'] = self.getInputFromPort('xscale')
+            val = self.getInputFromPort('xscale')
+            kwargs['xscale'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
         if self.hasInputFromPort('extent'):
-            kwargs['extent'] = self.getInputFromPort('extent')
+            val = self.getInputFromPort('extent')
+            kwargs['extent'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('mincnt'):
-            kwargs['mincnt'] = self.getInputFromPort('mincnt')
+            val = self.getInputFromPort('mincnt')
+            kwargs['mincnt'] = val
         if self.hasInputFromPort('marginals'):
-            kwargs['marginals'] = self.getInputFromPort('marginals')
+            val = self.getInputFromPort('marginals')
+            kwargs['marginals'] = val
         if self.hasInputFromPort('bins'):
-            kwargs['bins'] = self.getInputFromPort('bins')
+            val = self.getInputFromPort('bins')
+            kwargs['bins'] = val
         if self.hasInputFromPort('scale'):
-            kwargs['scale'] = self.getInputFromPort('scale')
-        # self.get_fig()
-        matplotlib.pyplot.hexbin(**kwargs)        
+            val = self.getInputFromPort('scale')
+            kwargs['scale'] = val
+
+        polyCollection = matplotlib.pyplot.hexbin(*args, **kwargs)
+        if self.hasInputFromPort('polyCollectionProperties'):
+            properties = self.getInputFromPort('polyCollectionProperties')
+            if polyCollection is not None:
+                properties.update_props(polyCollection)
 
 class MplHist(MplPlot):
     """call signature:
@@ -1704,43 +2197,43 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("rwidth", "basic:String",
-                {'optional': True, 'docstring': "The relative width of the bars as a fraction of the bin width.  If None, automatically compute the width. Ignored if histtype = 'step' or 'stepfilled'."}),
+               {'optional': True, 'docstring': "The relative width of the bars as a fraction of the bin width.  If None, automatically compute the width. Ignored if histtype = 'step' or 'stepfilled'."}),
               ("normed", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, the first element of the return tuple will be the counts normalized to form a probability density, i.e., n/(len(x)*dbin).  In a probability density, the integral of the histogram should be 1; you can verify that with a trapezoidal integration of the probability density function:\n\npdf, bins, patches = ax.hist(...) print np.sum(pdf * np.diff(bins))\n\nUntil numpy release 1.5, the underlying numpy histogram function was incorrect with normed*=*True if bin sizes were unequal.  MPL inherited that error.  It is now corrected within MPL when using earlier numpy versions', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'If True, the first element of the return tuple will be the counts normalized to form a probability density, i.e., n/(len(x)*dbin).  In a probability density, the integral of the histogram should be 1; you can verify that with a trapezoidal integration of the probability density function:\n\npdf, bins, patches = ax.hist(...) print np.sum(pdf * np.diff(bins))\n\nUntil numpy release 1.5, the underlying numpy histogram function was incorrect with normed*=*True if bin sizes were unequal.  MPL inherited that error.  It is now corrected within MPL when using earlier numpy versions', 'defaults': "['False']"}),
               ("orientation", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If 'horizontal', :func:`~matplotlib.pyplot.barh` will be used for bar-type histograms and the bottom kwarg will be the left edges.", 'values': "[['horizontal', 'vertical']]", 'optional': True, 'defaults': "['vertical']"}),
+               {'entry_types': "['enum']", 'docstring': "If 'horizontal', :func:`~matplotlib.pyplot.barh` will be used for bar-type histograms and the bottom kwarg will be the left edges.", 'values': "[['horizontal', 'vertical']]", 'optional': True, 'defaults': "['vertical']"}),
               ("bottom", "basic:String",
-                {'optional': True}),
-              ("color", "basic:List",
-                {'optional': True, 'docstring': 'Color spec or sequence of color specs, one per dataset.  Default (None) uses the standard line color sequence.'}),
+               {'optional': True}),
+              ("colorSequence", "basic:List",
+               {'optional': True, 'docstring': 'Color spec or sequence of color specs, one per dataset.  Default (None) uses the standard line color sequence.'}),
               ("colorScalar", "basic:Color",
                {'docstring': 'Color spec or sequence of color specs, one per dataset.  Default (None) uses the standard line color sequence.', 'optional': True}),
               ("histtype", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "The type of histogram to draw.\n\n'bar' is a traditional bar-type histogram.  If multiple data are given the bars are aranged side by side.\n\n'barstacked' is a bar-type histogram where multiple data are stacked on top of each other.\n\n'step' generates a lineplot that is by default unfilled.\n\n'stepfilled' generates a lineplot that is by default filled.", 'values': "[['bar', 'barstacked', 'step', 'stepfilled']]", 'optional': True, 'defaults': "['bar']"}),
+               {'entry_types': "['enum']", 'docstring': "The type of histogram to draw.\n\n'bar' is a traditional bar-type histogram.  If multiple data are given the bars are aranged side by side.\n\n'barstacked' is a bar-type histogram where multiple data are stacked on top of each other.\n\n'step' generates a lineplot that is by default unfilled.\n\n'stepfilled' generates a lineplot that is by default filled.", 'values': "[['bar', 'barstacked', 'step', 'stepfilled']]", 'optional': True, 'defaults': "['bar']"}),
               ("align", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "Controls how the histogram is plotted.\n\n'left': bars are centered on the left bin edges.\n\n'mid': bars are centered between the bin edges.\n\n'right': bars are centered on the right bin edges.", 'values': "[['left', 'mid', 'right']]", 'optional': True, 'defaults': "['mid']"}),
+               {'entry_types': "['enum']", 'docstring': "Controls how the histogram is plotted.\n\n'left': bars are centered on the left bin edges.\n\n'mid': bars are centered between the bin edges.\n\n'right': bars are centered on the right bin edges.", 'values': "[['left', 'mid', 'right']]", 'optional': True, 'defaults': "['mid']"}),
               ("cumulative", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, then a histogram is computed where each bin gives the counts in that bin plus all bins for smaller values. The last bin gives the total number of datapoints.  If normed is also True then the histogram is normalized such that the last bin equals 1. If cumulative evaluates to less than 0 (e.g. -1), the direction of accumulation is reversed.  In this case, if normed is also True, then the histogram is normalized such that the first bin equals 1.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'If True, then a histogram is computed where each bin gives the counts in that bin plus all bins for smaller values. The last bin gives the total number of datapoints.  If normed is also True then the histogram is normalized such that the last bin equals 1. If cumulative evaluates to less than 0 (e.g. -1), the direction of accumulation is reversed.  In this case, if normed is also True, then the histogram is normalized such that the first bin equals 1.', 'defaults': "['False']"}),
               ("labelSequence", "basic:List",
-                {'optional': True, 'docstring': "String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:\n\nax.hist(10+2*np.random.randn(1000), label='men') ax.hist(12+3*np.random.randn(1000), label='women', alpha=0.5) ax.legend()"}),
+               {'optional': True, 'docstring': "String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:\n\nax.hist(10+2*np.random.randn(1000), label='men') ax.hist(12+3*np.random.randn(1000), label='women', alpha=0.5) ax.legend()"}),
               ("labelScalar", "basic:String",
                {'docstring': "String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:\n\nax.hist(10+2*np.random.randn(1000), label='men') ax.hist(12+3*np.random.randn(1000), label='women', alpha=0.5) ax.legend()", 'optional': True}),
               ("range", "basic:List",
-                {'optional': True, 'docstring': 'The lower and upper range of the bins. Lower and upper outliers are ignored. If not provided, range is (x.min(), x.max()). Range has no effect if bins is a sequence.\n\nIf bins is a sequence or range is specified, autoscaling is based on the specified bin range instead of the range of x.'}),
+               {'optional': True, 'docstring': 'The lower and upper range of the bins. Lower and upper outliers are ignored. If not provided, range is (x.min(), x.max()). Range has no effect if bins is a sequence.\n\nIf bins is a sequence or range is specified, autoscaling is based on the specified bin range instead of the range of x.'}),
               ("weights", "basic:String",
-                {'optional': True, 'docstring': 'An array of weights, of the same shape as x.  Each value in x only contributes its associated weight towards the bin count (instead of 1).  If normed is True, the weights are normalized, so that the integral of the density over the range remains 1.'}),
+               {'optional': True, 'docstring': 'An array of weights, of the same shape as x.  Each value in x only contributes its associated weight towards the bin count (instead of 1).  If normed is True, the weights are normalized, so that the integral of the density over the range remains 1.'}),
               ("x", "basic:List",
-                {}),
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("binsSequence", "basic:List",
-                {'optional': True, 'docstring': 'Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version >= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.', 'defaults': "['10']"}),
+               {'optional': True, 'docstring': 'Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version >= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.', 'defaults': "['10']"}),
               ("binsScalar", "basic:Integer",
-               {'docstring': 'Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version >= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.', 'optional': True, 'defaults': "['10']"}),
+               {'docstring': 'Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version >= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.', 'optional': True}),
               ("log", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, the histogram axis will be set to a log scale. If log is True and x is a 1D array, empty bins will be filtered out and only the non-empty (n, bins, patches) will be returned.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'If True, the histogram axis will be set to a log scale. If log is True and x is a 1D array, empty bins will be filtered out and only the non-empty (n, bins, patches) will be returned.', 'defaults': "['False']"}),
               ("rectangleProperties", "MplRectangleProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -1751,154 +2244,70 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('rwidth'):
-            kwargs['rwidth'] = self.getInputFromPort('rwidth')
+            val = self.getInputFromPort('rwidth')
+            kwargs['rwidth'] = val
         if self.hasInputFromPort('normed'):
-            kwargs['normed'] = self.getInputFromPort('normed')
+            val = self.getInputFromPort('normed')
+            kwargs['normed'] = val
         if self.hasInputFromPort('orientation'):
-            kwargs['orientation'] = self.getInputFromPort('orientation')
+            val = self.getInputFromPort('orientation')
+            kwargs['orientation'] = val
         if self.hasInputFromPort('bottom'):
-            kwargs['bottom'] = self.getInputFromPort('bottom')
-        if self.hasInputFromPort('color'):
-            kwargs['color'] = self.getInputFromPort('color')
+            val = self.getInputFromPort('bottom')
+            kwargs['bottom'] = val
+        if self.hasInputFromPort('colorSequence'):
+            val = self.getInputFromPort('colorSequence')
+            val = translate_color(val)
+            kwargs['color'] = val
         elif self.hasInputFromPort('colorScalar'):
-            kwargs['color'] = self.getInputFromPort('colorScalar')
-            kwargs['color'] = translate_color(kwargs['color'])
+            val = self.getInputFromPort('colorScalar')
+            kwargs['color'] = val
         if self.hasInputFromPort('histtype'):
-            kwargs['histtype'] = self.getInputFromPort('histtype')
+            val = self.getInputFromPort('histtype')
+            kwargs['histtype'] = val
         if self.hasInputFromPort('align'):
-            kwargs['align'] = self.getInputFromPort('align')
+            val = self.getInputFromPort('align')
+            kwargs['align'] = val
         if self.hasInputFromPort('cumulative'):
-            kwargs['cumulative'] = self.getInputFromPort('cumulative')
+            val = self.getInputFromPort('cumulative')
+            kwargs['cumulative'] = val
         if self.hasInputFromPort('labelSequence'):
-            kwargs['label'] = self.getInputFromPort('labelSequence')
+            val = self.getInputFromPort('labelSequence')
+            kwargs['label'] = val
         elif self.hasInputFromPort('labelScalar'):
-            kwargs['label'] = self.getInputFromPort('labelScalar')
+            val = self.getInputFromPort('labelScalar')
+            kwargs['label'] = val
         if self.hasInputFromPort('range'):
-            kwargs['range'] = self.getInputFromPort('range')
+            val = self.getInputFromPort('range')
+            kwargs['range'] = val
         if self.hasInputFromPort('weights'):
-            kwargs['weights'] = self.getInputFromPort('weights')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('weights')
+            kwargs['weights'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('binsSequence'):
-            kwargs['bins'] = self.getInputFromPort('binsSequence')
+            val = self.getInputFromPort('binsSequence')
+            kwargs['bins'] = val
         elif self.hasInputFromPort('binsScalar'):
-            kwargs['bins'] = self.getInputFromPort('binsScalar')
+            val = self.getInputFromPort('binsScalar')
+            kwargs['bins'] = val
         if self.hasInputFromPort('log'):
-            kwargs['log'] = self.getInputFromPort('log')
-        # self.get_fig()
-        output = matplotlib.pyplot.hist(**kwargs)        
+            val = self.getInputFromPort('log')
+            kwargs['log'] = val
+
+        output = matplotlib.pyplot.hist(*args, **kwargs)        
         rectangles = output[2]
         if self.hasInputFromPort('rectangleProperties'):
             properties = self.getInputFromPort('rectangleProperties')
-            properties.update_props(rectangles)
-
-class MplHist2d(MplPlot):
-    """call signature:
-
-def hist(x, bins=10, range=None, normed=False, weights=None,        cumulative=False, bottom=None, histtype='bar', align='mid',        orientation='vertical', rwidth=None, log=False,        color=None, label=None,        **kwargs):
-
-Compute and draw the histogram of x. The return value is a tuple (n, bins, patches) or ([n0, n1, ...], bins, [patches0, patches1,...]) if the input contains multiple data.
-
-Multiple data can be provided via x as a list of datasets of potentially different length ([x0, x1, ...]), or as a 2-D ndarray in which each column is a dataset.  Note that the ndarray form is transposed relative to the list form.
-
-Masked arrays are not supported at present.
-
-Keyword arguments:
-
-
-
-kwargs are used to update the properties of the :class:`~matplotlib.patches.Patch` instances returned by hist:
-
-%(Patch)s
-
-Example:
-
-Additional kwargs: hold = [True|False] overrides default hold state
-    """
-    _input_ports = [
-              ("rwidth", "basic:String",
-                {'optional': True, 'docstring': "The relative width of the bars as a fraction of the bin width.  If None, automatically compute the width. Ignored if histtype = 'step' or 'stepfilled'."}),
-              ("normed", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, the first element of the return tuple will be the counts normalized to form a probability density, i.e., n/(len(x)*dbin).  In a probability density, the integral of the histogram should be 1; you can verify that with a trapezoidal integration of the probability density function:\n\npdf, bins, patches = ax.hist(...) print np.sum(pdf * np.diff(bins))\n\nUntil numpy release 1.5, the underlying numpy histogram function was incorrect with normed*=*True if bin sizes were unequal.  MPL inherited that error.  It is now corrected within MPL when using earlier numpy versions', 'defaults': "['False']"}),
-              ("orientation", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If 'horizontal', :func:`~matplotlib.pyplot.barh` will be used for bar-type histograms and the bottom kwarg will be the left edges.", 'values': "[['horizontal', 'vertical']]", 'optional': True, 'defaults': "['vertical']"}),
-              ("bottom", "basic:String",
-                {'optional': True}),
-              ("color", "basic:List",
-                {'optional': True, 'docstring': 'Color spec or sequence of color specs, one per dataset.  Default (None) uses the standard line color sequence.'}),
-              ("histtype", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "The type of histogram to draw.\n\n'bar' is a traditional bar-type histogram.  If multiple data are given the bars are aranged side by side.\n\n'barstacked' is a bar-type histogram where multiple data are stacked on top of each other.\n\n'step' generates a lineplot that is by default unfilled.\n\n'stepfilled' generates a lineplot that is by default filled.", 'values': "[['bar', 'barstacked', 'step', 'stepfilled']]", 'optional': True, 'defaults': "['bar']"}),
-              ("align", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "Controls how the histogram is plotted.\n\n'left': bars are centered on the left bin edges.\n\n'mid': bars are centered between the bin edges.\n\n'right': bars are centered on the right bin edges.", 'values': "[['left', 'mid', 'right']]", 'optional': True, 'defaults': "['mid']"}),
-              ("cumulative", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, then a histogram is computed where each bin gives the counts in that bin plus all bins for smaller values. The last bin gives the total number of datapoints.  If normed is also True then the histogram is normalized such that the last bin equals 1. If cumulative evaluates to less than 0 (e.g. -1), the direction of accumulation is reversed.  In this case, if normed is also True, then the histogram is normalized such that the first bin equals 1.', 'defaults': "['False']"}),
-              ("labelSequence", "basic:List",
-                {'optional': True, 'docstring': "String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:\n\nax.hist(10+2*np.random.randn(1000), label='men') ax.hist(12+3*np.random.randn(1000), label='women', alpha=0.5) ax.legend()"}),
-              ("labelScalar", "basic:String",
-               {'docstring': "String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:\n\nax.hist(10+2*np.random.randn(1000), label='men') ax.hist(12+3*np.random.randn(1000), label='women', alpha=0.5) ax.legend()", 'optional': True}),
-              ("range", "basic:List",
-                {'optional': True, 'docstring': 'The lower and upper range of the bins. Lower and upper outliers are ignored. If not provided, range is (x.min(), x.max()). Range has no effect if bins is a sequence.\n\nIf bins is a sequence or range is specified, autoscaling is based on the specified bin range instead of the range of x.'}),
-              ("weights", "basic:String",
-                {'optional': True, 'docstring': 'An array of weights, of the same shape as x.  Each value in x only contributes its associated weight towards the bin count (instead of 1).  If normed is True, the weights are normalized, so that the integral of the density over the range remains 1.'}),
-              ("x", "basic:String",
-                {}),
-              ("hold", "basic:String",
-                {'optional': True}),
-              ("binsSequence", "basic:List",
-                {'optional': True, 'docstring': 'Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version >= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.', 'defaults': "['10']"}),
-              ("binsScalar", "basic:Integer",
-               {'docstring': 'Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version >= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.', 'optional': True, 'defaults': "['10']"}),
-              ("log", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, the histogram axis will be set to a log scale. If log is True and x is a 1D array, empty bins will be filtered out and only the non-empty (n, bins, patches) will be returned.', 'defaults': "['False']"}),
-        ]
-
-    _output_ports = [
-        ("self", "(MplHist2d)"),
-        ]
-    
-
-    def compute(self):
-        # get args into args, kwargs
-        # write out translations
-        kwargs = {}            
-        if self.hasInputFromPort('rwidth'):
-            kwargs['rwidth'] = self.getInputFromPort('rwidth')
-        if self.hasInputFromPort('normed'):
-            kwargs['normed'] = self.getInputFromPort('normed')
-        if self.hasInputFromPort('orientation'):
-            kwargs['orientation'] = self.getInputFromPort('orientation')
-        if self.hasInputFromPort('bottom'):
-            kwargs['bottom'] = self.getInputFromPort('bottom')
-        if self.hasInputFromPort('color'):
-            kwargs['color'] = self.getInputFromPort('color')
-        if self.hasInputFromPort('histtype'):
-            kwargs['histtype'] = self.getInputFromPort('histtype')
-        if self.hasInputFromPort('align'):
-            kwargs['align'] = self.getInputFromPort('align')
-        if self.hasInputFromPort('cumulative'):
-            kwargs['cumulative'] = self.getInputFromPort('cumulative')
-        if self.hasInputFromPort('labelSequence'):
-            kwargs['label'] = self.getInputFromPort('labelSequence')
-        elif self.hasInputFromPort('labelScalar'):
-            kwargs['label'] = self.getInputFromPort('labelScalar')
-        if self.hasInputFromPort('range'):
-            kwargs['range'] = self.getInputFromPort('range')
-        if self.hasInputFromPort('weights'):
-            kwargs['weights'] = self.getInputFromPort('weights')
-        kwargs['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        if self.hasInputFromPort('binsSequence'):
-            kwargs['bins'] = self.getInputFromPort('binsSequence')
-        elif self.hasInputFromPort('binsScalar'):
-            kwargs['bins'] = self.getInputFromPort('binsScalar')
-        if self.hasInputFromPort('log'):
-            kwargs['log'] = self.getInputFromPort('log')
-        # self.get_fig()
-        matplotlib.pyplot.hist2d(**kwargs)        
+            if rectangles is not None:
+                properties.update_props(rectangles)
 
 class MplHlines(MplPlot):
     """call signature:
@@ -1923,27 +2332,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("linestyles", "basic:String",
-                {'optional': True, 'docstring': "[ 'solid' | 'dashed' | 'dashdot' | 'dotted' ]", 'defaults': "['solid']"}),
+               {'optional': True, 'docstring': "[ 'solid' | 'dashed' | 'dashdot' | 'dotted' ]", 'defaults': "['solid']"}),
               ("label", "basic:String",
-                {'optional': True, 'defaults': "['']"}),
+               {'optional': True, 'defaults': "['']"}),
               ("xminScalar", "basic:Float",
-                {'docstring': 'can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.'}),
+               {'docstring': 'can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.'}),
               ("xminSequence", "basic:List",
                {'docstring': 'can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.', 'optional': True}),
               ("colorsSequence", "basic:List",
-                {'optional': True, 'docstring': 'a line collections color argument, either a single color or a len(y) list of colors', 'defaults': "['k']"}),
+               {'optional': True, 'docstring': 'a line collections color argument, either a single color or a len(y) list of colors', 'defaults': "['k']"}),
               ("colorsScalar", "basic:String",
-               {'docstring': 'a line collections color argument, either a single color or a len(y) list of colors', 'optional': True, 'defaults': "['k']"}),
+               {'docstring': 'a line collections color argument, either a single color or a len(y) list of colors', 'optional': True}),
               ("xmaxScalar", "basic:Float",
-                {'docstring': 'can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.'}),
+               {'docstring': 'can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.'}),
               ("xmaxSequence", "basic:List",
                {'docstring': 'can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.', 'optional': True}),
               ("y", "basic:List",
-                {'docstring': 'a 1-D numpy array or iterable.'}),
+               {'docstring': 'a 1-D numpy array or iterable.'}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("lineProperties", "MplLineCollectionProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -1954,35 +2363,48 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('linestyles'):
-            kwargs['linestyles'] = self.getInputFromPort('linestyles')
+            val = self.getInputFromPort('linestyles')
+            kwargs['linestyles'] = val
         if self.hasInputFromPort('label'):
-            kwargs['label'] = self.getInputFromPort('label')
+            val = self.getInputFromPort('label')
+            kwargs['label'] = val
         if self.hasInputFromPort('xminScalar'):
-            kwargs['xmin'] = self.getInputFromPort('xminScalar')
+            val = self.getInputFromPort('xminScalar')
+            kwargs['xmin'] = val
         elif self.hasInputFromPort('xminSequence'):
-            kwargs['xmin'] = self.getInputFromPort('xminSequence')
+            val = self.getInputFromPort('xminSequence')
+            kwargs['xmin'] = val
         else:
             raise ModuleError(self, 'Must set one of "xminScalar", '                                   '"xminSequence"')
         if self.hasInputFromPort('colorsSequence'):
-            kwargs['colors'] = self.getInputFromPort('colorsSequence')
+            val = self.getInputFromPort('colorsSequence')
+            kwargs['colors'] = val
         elif self.hasInputFromPort('colorsScalar'):
-            kwargs['colors'] = self.getInputFromPort('colorsScalar')
+            val = self.getInputFromPort('colorsScalar')
+            kwargs['colors'] = val
         if self.hasInputFromPort('xmaxScalar'):
-            kwargs['xmax'] = self.getInputFromPort('xmaxScalar')
+            val = self.getInputFromPort('xmaxScalar')
+            kwargs['xmax'] = val
         elif self.hasInputFromPort('xmaxSequence'):
-            kwargs['xmax'] = self.getInputFromPort('xmaxSequence')
+            val = self.getInputFromPort('xmaxSequence')
+            kwargs['xmax'] = val
         else:
             raise ModuleError(self, 'Must set one of "xmaxScalar", '                                   '"xmaxSequence"')
-        kwargs['y'] = self.getInputFromPort('y')
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        # self.get_fig()
-        lines = matplotlib.pyplot.hlines(**kwargs)
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+
+        lines = matplotlib.pyplot.hlines(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
             properties = self.getInputFromPort('lineProperties')
-            properties.update_props(lines)
+            if lines is not None:
+                properties.update_props(lines)
 
 class MplImshow(MplPlot):
     """call signature:
@@ -2021,39 +2443,39 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("origin", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("imlim", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("extent", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("vmin", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("url", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("resample", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("shape", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("cmap", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.cm.Colormap` instance, eg. cm.jet. If None, default to rc image.cmap value.\n\ncmap is ignored when X has RGB(A) information', 'values': "[['Colormap']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.cm.Colormap` instance, eg. cm.jet. If None, default to rc image.cmap value.\n\ncmap is ignored when X has RGB(A) information', 'values': "[['Colormap']]", 'optional': True}),
               ("filterrad", "basic:Float",
-                {'optional': True, 'defaults': "['4.0']"}),
+               {'optional': True, 'defaults': "['4.0']"}),
               ("filternorm", "basic:Integer",
-                {'optional': True, 'defaults': "['1']"}),
+               {'optional': True, 'defaults': "['1']"}),
               ("aspect", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If 'auto', changes the image aspect ratio to match that of the axes\n\nIf 'equal', and extent is None, changes the axes aspect ratio to match that of the image. If extent is not None, the axes aspect ratio is changed to match that of the extent.\n\nIf None, default to rc image.aspect value.", 'values': "[['auto', 'equal']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If 'auto', changes the image aspect ratio to match that of the axes\n\nIf 'equal', and extent is None, changes the axes aspect ratio to match that of the image. If extent is not None, the axes aspect ratio is changed to match that of the extent.\n\nIf None, default to rc image.aspect value.", 'values': "[['auto', 'equal']]", 'optional': True}),
               ("alpha", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("vmax", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("X", "basic:String",
-                {}),
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("norm", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("interpolation", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
         ]
 
     _output_ports = [
@@ -2064,42 +2486,61 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('origin'):
-            kwargs['origin'] = self.getInputFromPort('origin')
+            val = self.getInputFromPort('origin')
+            kwargs['origin'] = val
         if self.hasInputFromPort('imlim'):
-            kwargs['imlim'] = self.getInputFromPort('imlim')
+            val = self.getInputFromPort('imlim')
+            kwargs['imlim'] = val
         if self.hasInputFromPort('extent'):
-            kwargs['extent'] = self.getInputFromPort('extent')
+            val = self.getInputFromPort('extent')
+            kwargs['extent'] = val
         if self.hasInputFromPort('vmin'):
-            kwargs['vmin'] = self.getInputFromPort('vmin')
+            val = self.getInputFromPort('vmin')
+            kwargs['vmin'] = val
         if self.hasInputFromPort('url'):
-            kwargs['url'] = self.getInputFromPort('url')
+            val = self.getInputFromPort('url')
+            kwargs['url'] = val
         if self.hasInputFromPort('resample'):
-            kwargs['resample'] = self.getInputFromPort('resample')
+            val = self.getInputFromPort('resample')
+            kwargs['resample'] = val
         if self.hasInputFromPort('shape'):
-            kwargs['shape'] = self.getInputFromPort('shape')
+            val = self.getInputFromPort('shape')
+            kwargs['shape'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('filterrad'):
-            kwargs['filterrad'] = self.getInputFromPort('filterrad')
+            val = self.getInputFromPort('filterrad')
+            kwargs['filterrad'] = val
         if self.hasInputFromPort('filternorm'):
-            kwargs['filternorm'] = self.getInputFromPort('filternorm')
+            val = self.getInputFromPort('filternorm')
+            kwargs['filternorm'] = val
         if self.hasInputFromPort('aspect'):
-            kwargs['aspect'] = self.getInputFromPort('aspect')
+            val = self.getInputFromPort('aspect')
+            kwargs['aspect'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
         if self.hasInputFromPort('vmax'):
-            kwargs['vmax'] = self.getInputFromPort('vmax')
-        kwargs['X'] = self.getInputFromPort('X')
+            val = self.getInputFromPort('vmax')
+            kwargs['vmax'] = val
+        val = self.getInputFromPort('X')
+        kwargs['X'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
         if self.hasInputFromPort('interpolation'):
-            kwargs['interpolation'] = self.getInputFromPort('interpolation')
-        # self.get_fig()
-        matplotlib.pyplot.imshow(**kwargs)        
+            val = self.getInputFromPort('interpolation')
+            kwargs['interpolation'] = val
+
+        matplotlib.pyplot.imshow(*args, **kwargs)        
 
 class MplLoglog(MplPlot):
     """call signature:
@@ -2124,17 +2565,23 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("nonposx", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'non-positive values in x or y can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'non-positive values in x or y can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
               ("nonposy", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'non-positive values in x or y can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'non-positive values in x or y can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
               ("basex", "basic:Float",
-                {'optional': True, 'docstring': 'base of the x/y logarithm'}),
+               {'optional': True, 'docstring': 'base of the x/y logarithm'}),
               ("basey", "basic:Float",
-                {'optional': True, 'docstring': 'base of the x/y logarithm'}),
+               {'optional': True, 'docstring': 'base of the x/y logarithm'}),
               ("subsx", "basic:List",
-                {'optional': True, 'docstring': 'the location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details'}),
+               {'optional': True, 'docstring': 'the location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details'}),
               ("subsy", "basic:List",
-                {'optional': True, 'docstring': 'the location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details'}),
+               {'optional': True, 'docstring': 'the location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details'}),
+              ("x", "basic:List",
+               {}),
+              ("y", "basic:List",
+               {}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -2145,21 +2592,37 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        val = self.getInputFromPort('y')
+        args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('nonposx'):
-            kwargs['nonposx'] = self.getInputFromPort('nonposx')
+            val = self.getInputFromPort('nonposx')
+            kwargs['nonposx'] = val
         if self.hasInputFromPort('nonposy'):
-            kwargs['nonposy'] = self.getInputFromPort('nonposy')
+            val = self.getInputFromPort('nonposy')
+            kwargs['nonposy'] = val
         if self.hasInputFromPort('basex'):
-            kwargs['basex'] = self.getInputFromPort('basex')
+            val = self.getInputFromPort('basex')
+            kwargs['basex'] = val
         if self.hasInputFromPort('basey'):
-            kwargs['basey'] = self.getInputFromPort('basey')
+            val = self.getInputFromPort('basey')
+            kwargs['basey'] = val
         if self.hasInputFromPort('subsx'):
-            kwargs['subsx'] = self.getInputFromPort('subsx')
+            val = self.getInputFromPort('subsx')
+            kwargs['subsx'] = val
         if self.hasInputFromPort('subsy'):
-            kwargs['subsy'] = self.getInputFromPort('subsy')
-        # self.get_fig()
-        matplotlib.pyplot.loglog(**kwargs)        
+            val = self.getInputFromPort('subsy')
+            kwargs['subsy'] = val
+
+        lines = matplotlib.pyplot.loglog(*args, **kwargs)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
 
 class MplPcolor(MplPlot):
     """call signatures:
@@ -2222,21 +2685,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("edgecolorsSequence", "basic:List",
-                {'entry_types': "['enum']", 'docstring': "If None, the rc setting is used by default.\n\nIf 'none', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'values': "[['none', 'color']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the rc setting is used by default.\n\nIf 'none', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'values': "[['none', 'color']]", 'optional': True}),
               ("edgecolorsScalar", "basic:String",
-               {'values': "[['none', 'color']]", 'entry_types': "['enum']", 'docstring': "If None, the rc setting is used by default.\n\nIf 'none', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'optional': True}),
-              ("None", "basic:Float",
-                {'optional': True, 'docstring': 'the alpha blending value'}),
+               {'docstring': "If None, the rc setting is used by default.\n\nIf 'none', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'optional': True}),
               ("vmin", "basic:Float",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
               ("cmap", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.cm.Colormap` instance. If None, use rc settings.', 'values': "[['Colormap']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.cm.Colormap` instance. If None, use rc settings.', 'values': "[['Colormap']]", 'optional': True}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'the alpha blending value'}),
+               {'optional': True, 'docstring': 'the alpha blending value'}),
               ("vmax", "basic:Float",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
               ("shading", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If 'faceted', a black grid is drawn around each rectangle; if 'flat', edges are not drawn. Default is 'flat', contrary to MATLAB.", 'values': "[['flat', 'faceted']]", 'optional': True, 'defaults': "['flat']"}),
+               {'entry_types': "['enum']", 'docstring': "If 'faceted', a black grid is drawn around each rectangle; if 'flat', edges are not drawn. Default is 'flat', contrary to MATLAB.", 'values': "[['flat', 'faceted']]", 'optional': True, 'defaults': "['flat']"}),
+              ("X", "basic:List",
+               {'optional': True}),
+              ("Y", "basic:List",
+               {'optional': True}),
+              ("Z", "basic:List",
+               {}),
+              ("polyCollectionProperties", "MplPolyCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -2247,25 +2716,44 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        if self.hasInputFromPort('X'):
+            val = self.getInputFromPort('X')
+            args.append(val)
+        if self.hasInputFromPort('Y'):
+            val = self.getInputFromPort('Y')
+            args.append(val)
+        val = self.getInputFromPort('Z')
+        args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('edgecolorsSequence'):
-            kwargs['edgecolors'] = self.getInputFromPort('edgecolorsSequence')
+            val = self.getInputFromPort('edgecolorsSequence')
+            kwargs['edgecolors'] = val
         elif self.hasInputFromPort('edgecolorsScalar'):
-            kwargs['edgecolors'] = self.getInputFromPort('edgecolorsScalar')
-        if self.hasInputFromPort('None'):
-            kwargs['None'] = self.getInputFromPort('None')
+            val = self.getInputFromPort('edgecolorsScalar')
+            kwargs['edgecolors'] = val
         if self.hasInputFromPort('vmin'):
-            kwargs['vmin'] = self.getInputFromPort('vmin')
+            val = self.getInputFromPort('vmin')
+            kwargs['vmin'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
         if self.hasInputFromPort('vmax'):
-            kwargs['vmax'] = self.getInputFromPort('vmax')
+            val = self.getInputFromPort('vmax')
+            kwargs['vmax'] = val
         if self.hasInputFromPort('shading'):
-            kwargs['shading'] = self.getInputFromPort('shading')
-        # self.get_fig()
-        matplotlib.pyplot.pcolor(**kwargs)        
+            val = self.getInputFromPort('shading')
+            kwargs['shading'] = val
+
+        polyCollection = matplotlib.pyplot.pcolor(*args, **kwargs)
+        if self.hasInputFromPort('polyCollectionProperties'):
+            properties = self.getInputFromPort('polyCollectionProperties')
+            if polyCollection is not None:
+                properties.update_props(polyCollection)
 
 class MplPcolormesh(MplPlot):
     """call signatures:
@@ -2288,23 +2776,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("edgecolorsSequence", "basic:List",
-                {'entry_types': "['enum']", 'docstring': "If None, the rc setting is used by default.\n\nIf 'None', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'values': "[['None', 'color']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the rc setting is used by default.\n\nIf 'None', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'values': "[['None', 'color']]", 'optional': True}),
               ("edgecolorsScalar", "basic:String",
-               {'values': "[['None', 'color']]", 'entry_types': "['enum']", 'docstring': "If None, the rc setting is used by default.\n\nIf 'None', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'optional': True}),
-              ("None", "basic:Float",
-                {'optional': True, 'docstring': 'the alpha blending value'}),
+               {'docstring': "If None, the rc setting is used by default.\n\nIf 'None', edges will not be visible.\n\nAn mpl color or sequence of colors will set the edge color", 'optional': True}),
               ("vmin", "basic:Float",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
               ("cmap", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.cm.Colormap` instance. If None, use rc settings.', 'values': "[['Colormap']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.cm.Colormap` instance. If None, use rc settings.', 'values': "[['Colormap']]", 'optional': True}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'the alpha blending value'}),
+               {'optional': True, 'docstring': 'the alpha blending value'}),
               ("vmax", "basic:Float",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  If you pass a norm instance, vmin and vmax will be ignored.'}),
               ("shading", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If 'faceted', a black grid is drawn around each rectangle; if 'flat', edges are not drawn. Default is 'flat', contrary to MATLAB.", 'values': "[['flat', 'faceted', 'gouraud']]", 'optional': True, 'defaults': "['flat']"}),
+               {'entry_types': "['enum']", 'docstring': "If 'faceted', a black grid is drawn around each rectangle; if 'flat', edges are not drawn. Default is 'flat', contrary to MATLAB.", 'values': "[['flat', 'faceted', 'gouraud']]", 'optional': True, 'defaults': "['flat']"}),
               ("norm", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1. If None, defaults to :func:`normalize`.', 'values': "[['Normalize']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1. If None, defaults to :func:`normalize`.', 'values': "[['Normalize']]", 'optional': True}),
         ]
 
     _output_ports = [
@@ -2315,27 +2801,35 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('edgecolorsSequence'):
-            kwargs['edgecolors'] = self.getInputFromPort('edgecolorsSequence')
+            val = self.getInputFromPort('edgecolorsSequence')
+            kwargs['edgecolors'] = val
         elif self.hasInputFromPort('edgecolorsScalar'):
-            kwargs['edgecolors'] = self.getInputFromPort('edgecolorsScalar')
-        if self.hasInputFromPort('None'):
-            kwargs['None'] = self.getInputFromPort('None')
+            val = self.getInputFromPort('edgecolorsScalar')
+            kwargs['edgecolors'] = val
         if self.hasInputFromPort('vmin'):
-            kwargs['vmin'] = self.getInputFromPort('vmin')
+            val = self.getInputFromPort('vmin')
+            kwargs['vmin'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
         if self.hasInputFromPort('vmax'):
-            kwargs['vmax'] = self.getInputFromPort('vmax')
+            val = self.getInputFromPort('vmax')
+            kwargs['vmax'] = val
         if self.hasInputFromPort('shading'):
-            kwargs['shading'] = self.getInputFromPort('shading')
+            val = self.getInputFromPort('shading')
+            kwargs['shading'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
-        # self.get_fig()
-        matplotlib.pyplot.pcolormesh(**kwargs)        
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
+
+        matplotlib.pyplot.pcolormesh(*args, **kwargs)        
 
 class MplPie(MplPlot):
     """call signature:
@@ -2356,31 +2850,33 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("autopct", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'If not None, is a string or function used to label the wedges with their numeric value.  The label will be placed inside the wedge.  If it is a format string, the label will be fmt%pct. If it is a function, it will be called.', 'values': "[['format function']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If not None, is a string or function used to label the wedges with their numeric value.  The label will be placed inside the wedge.  If it is a format string, the label will be fmt%pct. If it is a function, it will be called.', 'values': "[['format function']]", 'optional': True}),
               ("pctdistance", "basic:Float",
-                {'optional': True, 'docstring': 'The ratio between the center of each pie slice and the start of the text generated by autopct.  Ignored if autopct is None; default is 0.6.', 'defaults': "['0.6']"}),
+               {'optional': True, 'docstring': 'The ratio between the center of each pie slice and the start of the text generated by autopct.  Ignored if autopct is None; default is 0.6.', 'defaults': "['0.6']"}),
               ("labelsSequence", "basic:List",
-                {'optional': True, 'docstring': 'A sequence of strings providing the labels for each wedge'}),
+               {'optional': True, 'docstring': 'A sequence of strings providing the labels for each wedge'}),
               ("labelsScalar", "basic:String",
                {'docstring': 'A sequence of strings providing the labels for each wedge', 'optional': True}),
               ("explode", "basic:List",
-                {'optional': True, 'docstring': 'If not None, is a len(x) array which specifies the fraction of the radius with which to offset each wedge.'}),
-              ("colors", "basic:List",
-                {'optional': True, 'docstring': 'A sequence of matplotlib color args through which the pie chart will cycle.'}),
+               {'optional': True, 'docstring': 'If not None, is a len(x) array which specifies the fraction of the radius with which to offset each wedge.'}),
+              ("colorsSequence", "basic:List",
+               {'optional': True, 'docstring': 'A sequence of matplotlib color args through which the pie chart will cycle.'}),
+              ("colorsScalar", "basic:Color",
+               {'docstring': 'A sequence of matplotlib color args through which the pie chart will cycle.', 'optional': True}),
               ("x", "basic:List",
-                {}),
+               {}),
               ("shadow", "basic:Boolean",
-                {'optional': True, 'docstring': 'Draw a shadow beneath the pie.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'Draw a shadow beneath the pie.', 'defaults': "['False']"}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("labeldistance", "basic:Float",
-                {'optional': True, 'docstring': 'The radial distance at which the pie labels are drawn', 'defaults': "['1.1']"}),
+               {'optional': True, 'docstring': 'The radial distance at which the pie labels are drawn', 'defaults': "['1.1']"}),
               ("autotextProperties", "MplTextProperties",
-                {}),
+               {}),
               ("wedgeProperties", "MplWedgeProperties",
-                {}),
+               {}),
               ("textProperties", "MplTextProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -2391,28 +2887,44 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('autopct'):
-            kwargs['autopct'] = self.getInputFromPort('autopct')
+            val = self.getInputFromPort('autopct')
+            kwargs['autopct'] = val
         if self.hasInputFromPort('pctdistance'):
-            kwargs['pctdistance'] = self.getInputFromPort('pctdistance')
+            val = self.getInputFromPort('pctdistance')
+            kwargs['pctdistance'] = val
         if self.hasInputFromPort('labelsSequence'):
-            kwargs['labels'] = self.getInputFromPort('labelsSequence')
+            val = self.getInputFromPort('labelsSequence')
+            kwargs['labels'] = val
         elif self.hasInputFromPort('labelsScalar'):
-            kwargs['labels'] = self.getInputFromPort('labelsScalar')
+            val = self.getInputFromPort('labelsScalar')
+            kwargs['labels'] = val
         if self.hasInputFromPort('explode'):
-            kwargs['explode'] = self.getInputFromPort('explode')
-        if self.hasInputFromPort('colors'):
-            kwargs['colors'] = self.getInputFromPort('colors')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('explode')
+            kwargs['explode'] = val
+        if self.hasInputFromPort('colorsSequence'):
+            val = self.getInputFromPort('colorsSequence')
+            val = translate_color(val)
+            kwargs['colors'] = val
+        elif self.hasInputFromPort('colorsScalar'):
+            val = self.getInputFromPort('colorsScalar')
+            kwargs['colors'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('shadow'):
-            kwargs['shadow'] = self.getInputFromPort('shadow')
+            val = self.getInputFromPort('shadow')
+            kwargs['shadow'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('labeldistance'):
-            kwargs['labeldistance'] = self.getInputFromPort('labeldistance')
-        # self.get_fig()
-        output = matplotlib.pyplot.pie(**kwargs)        
+            val = self.getInputFromPort('labeldistance')
+            kwargs['labeldistance'] = val
+
+        output = matplotlib.pyplot.pie(*args, **kwargs)        
         if len(output) < 3:
             output = output + ([],)
         wedges = output[0]
@@ -2420,15 +2932,18 @@ Additional kwargs: hold = [True|False] overrides default hold state
         autotexts = output[2]
         if self.hasInputFromPort('autotextProperties'):
             properties = self.getInputFromPort('autotextProperties')
-            properties.update_props(autotexts)
+            if autotexts is not None:
+                properties.update_props(autotexts)
         if self.hasInputFromPort('wedgeProperties'):
             properties = self.getInputFromPort('wedgeProperties')
-            properties.update_props(wedges)
+            if wedges is not None:
+                properties.update_props(wedges)
         if self.hasInputFromPort('textProperties'):
             properties = self.getInputFromPort('textProperties')
-            properties.update_props(texts)
+            if texts is not None:
+                properties.update_props(texts)
 
-class MplPlot_date(MplPlot):
+class MplPlotDate(MplPlot):
     """call signature:
 
 plot_date(x, y, fmt='bo', tz=None, xdate=True, ydate=False, **kwargs)
@@ -2449,44 +2964,59 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("tz", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'The time zone to use in labeling dates. If None, defaults to rc value.', 'values': "[[':class:`tzinfo` instance']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'The time zone to use in labeling dates. If None, defaults to rc value.', 'values': "[[':class:`tzinfo` instance']]", 'optional': True}),
               ("fmt", "basic:String",
-                {'optional': True, 'docstring': 'The plot format string.', 'defaults': "['bo']"}),
+               {'optional': True, 'docstring': 'The plot format string.', 'defaults': "['bo']"}),
               ("ydate", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, the y-axis will be labeled with dates.', 'defaults': "['False']"}),
+               {'optional': True, 'docstring': 'If True, the y-axis will be labeled with dates.', 'defaults': "['False']"}),
               ("xdate", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, the x-axis will be labeled with dates.', 'defaults': "['True']"}),
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'docstring': 'If True, the x-axis will be labeled with dates.', 'defaults': "['True']"}),
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
-        ("self", "(MplPlot_date)"),
+        ("self", "(MplPlotDate)"),
         ]
     
 
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        val = self.getInputFromPort('y')
+        args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('tz'):
-            kwargs['tz'] = self.getInputFromPort('tz')
+            val = self.getInputFromPort('tz')
+            kwargs['tz'] = val
         if self.hasInputFromPort('fmt'):
-            kwargs['fmt'] = self.getInputFromPort('fmt')
+            val = self.getInputFromPort('fmt')
+            kwargs['fmt'] = val
         if self.hasInputFromPort('ydate'):
-            kwargs['ydate'] = self.getInputFromPort('ydate')
+            val = self.getInputFromPort('ydate')
+            kwargs['ydate'] = val
         if self.hasInputFromPort('xdate'):
-            kwargs['xdate'] = self.getInputFromPort('xdate')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('xdate')
+            kwargs['xdate'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        # self.get_fig()
-        matplotlib.pyplot.plot_date(**kwargs)        
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+
+        lines = matplotlib.pyplot.plot_date(*args, **kwargs)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
 
 class MplPsd(MplPlot):
     """call signature:
@@ -2513,27 +3043,29 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("Fs", "basic:Integer",
-                {'optional': True, 'defaults': "['2']"}),
+               {'optional': True, 'defaults': "['2']"}),
               ("pad_to", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("scale_by_freq", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("detrend", "basic:String",
-                {'optional': True, 'defaults': "['<function detrend_none at 0x101f3b0c8>']"}),
+               {'optional': True, 'defaults': "['<function detrend_none at 0x1023b8140>']"}),
               ("window", "basic:String",
-                {'optional': True, 'defaults': "['<function window_hanning at 0x101f367d0>']"}),
+               {'optional': True, 'defaults': "['<function window_hanning at 0x1023b5938>']"}),
               ("Fc", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
               ("NFFT", "basic:Integer",
-                {'optional': True, 'defaults': "['256']"}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['256']"}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("sides", "basic:String",
-                {'optional': True, 'defaults': "['default']"}),
+               {'optional': True, 'defaults': "['default']"}),
               ("noverlap", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
+              ("lineProperties", "MplLine2DProperties",
+               {'optional': True}),
         ]
 
     _output_ports = [
@@ -2544,30 +3076,46 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('Fs'):
-            kwargs['Fs'] = self.getInputFromPort('Fs')
+            val = self.getInputFromPort('Fs')
+            kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            kwargs['pad_to'] = self.getInputFromPort('pad_to')
+            val = self.getInputFromPort('pad_to')
+            kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            kwargs['scale_by_freq'] = self.getInputFromPort('scale_by_freq')
+            val = self.getInputFromPort('scale_by_freq')
+            kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('detrend'):
-            kwargs['detrend'] = self.getInputFromPort('detrend')
+            val = self.getInputFromPort('detrend')
+            kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            kwargs['window'] = self.getInputFromPort('window')
+            val = self.getInputFromPort('window')
+            kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            kwargs['Fc'] = self.getInputFromPort('Fc')
+            val = self.getInputFromPort('Fc')
+            kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            kwargs['NFFT'] = self.getInputFromPort('NFFT')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('NFFT')
+            kwargs['NFFT'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            kwargs['sides'] = self.getInputFromPort('sides')
+            val = self.getInputFromPort('sides')
+            kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            kwargs['noverlap'] = self.getInputFromPort('noverlap')
-        # self.get_fig()
-        matplotlib.pyplot.psd(**kwargs)        
+            val = self.getInputFromPort('noverlap')
+            kwargs['noverlap'] = val
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            properties.update_kwargs(kwargs)
+
+        matplotlib.pyplot.psd(*args, **kwargs)        
 
 class MplQuiver(MplPlot):
     """Plot a 2-D field of arrows.
@@ -2604,29 +3152,41 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("scaleSequence", "basic:List",
-                {'optional': True, 'docstring': 'data units per arrow length unit, e.g. m/s per plot width; a smaller scale parameter makes the arrow longer.  If None, a simple autoscaling algorithm is used, based on the average vector length and the number of vectors.  The arrow length unit is given by the scale_units parameter'}),
+               {'optional': True, 'docstring': 'data units per arrow length unit, e.g. m/s per plot width; a smaller scale parameter makes the arrow longer.  If None, a simple autoscaling algorithm is used, based on the average vector length and the number of vectors.  The arrow length unit is given by the scale_units parameter'}),
               ("scaleScalar", "basic:Float",
                {'docstring': 'data units per arrow length unit, e.g. m/s per plot width; a smaller scale parameter makes the arrow longer.  If None, a simple autoscaling algorithm is used, based on the average vector length and the number of vectors.  The arrow length unit is given by the scale_units parameter', 'optional': True}),
               ("headaxislength", "basic:Float",
-                {'optional': True, 'docstring': 'head length at shaft intersection, default is 4.5', 'defaults': "['4.5']"}),
+               {'optional': True, 'docstring': 'head length at shaft intersection, default is 4.5', 'defaults': "['4.5']"}),
               ("headlength", "basic:Float",
-                {'optional': True, 'docstring': 'head length as multiple of shaft width, default is 5', 'defaults': "['5']"}),
+               {'optional': True, 'docstring': 'head length as multiple of shaft width, default is 5', 'defaults': "['5']"}),
               ("minlength", "basic:Float",
-                {'optional': True, 'docstring': 'minimum length as a multiple of shaft width; if an arrow length is less than this, plot a dot (hexagon) of this diameter instead. Default is 1.', 'defaults': "['1']"}),
+               {'optional': True, 'docstring': 'minimum length as a multiple of shaft width; if an arrow length is less than this, plot a dot (hexagon) of this diameter instead. Default is 1.', 'defaults': "['1']"}),
               ("minshaft", "basic:Float",
-                {'optional': True, 'docstring': 'length below which arrow scales, in units of head length. Do not set this to less than 1, or small arrows will look terrible! Default is 1', 'defaults': "['1']"}),
+               {'optional': True, 'docstring': 'length below which arrow scales, in units of head length. Do not set this to less than 1, or small arrows will look terrible! Default is 1', 'defaults': "['1']"}),
               ("width", "basic:List",
-                {'optional': True, 'docstring': 'shaft width in arrow units; default depends on choice of units, above, and number of vectors; a typical starting value is about 0.005 times the width of the plot.'}),
+               {'optional': True, 'docstring': 'shaft width in arrow units; default depends on choice of units, above, and number of vectors; a typical starting value is about 0.005 times the width of the plot.'}),
               ("headwidth", "basic:Float",
-                {'optional': True, 'docstring': 'head width as multiple of shaft width, default is 3', 'defaults': "['3']"}),
+               {'optional': True, 'docstring': 'head width as multiple of shaft width, default is 3', 'defaults': "['3']"}),
               ("units", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "arrow units; the arrow dimensions except for length are in multiples of this unit.\n\n'width' or 'height': the width or height of the axes\n\n'dots' or 'inches': pixels or inches, based on the figure dpi\n\n'x', 'y', or 'xy': X, Y, or sqrt(X^2+Y^2) data units\n\nThe arrows scale differently depending on the units.  For 'x' or 'y', the arrows get larger as one zooms in; for other units, the arrow size is independent of the zoom state.  For 'width or 'height', the arrow size increases with the width and height of the axes, respectively, when the the window is resized; for 'dots' or 'inches', resizing does not change the arrows.", 'values': "[['width', 'height', 'dots', 'inches', 'x', 'y', 'xy']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "arrow units; the arrow dimensions except for length are in multiples of this unit.\n\n'width' or 'height': the width or height of the axes\n\n'dots' or 'inches': pixels or inches, based on the figure dpi\n\n'x', 'y', or 'xy': X, Y, or sqrt(X^2+Y^2) data units\n\nThe arrows scale differently depending on the units.  For 'x' or 'y', the arrows get larger as one zooms in; for other units, the arrow size is independent of the zoom state.  For 'width or 'height', the arrow size increases with the width and height of the axes, respectively, when the the window is resized; for 'dots' or 'inches', resizing does not change the arrows.", 'values': "[['width', 'height', 'dots', 'inches', 'x', 'y', 'xy']]", 'optional': True}),
               ("pivot", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'The part of the arrow that is at the grid point; the arrow rotates about this point, hence the name pivot.', 'values': "[['tail', 'middle', 'tip']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'The part of the arrow that is at the grid point; the arrow rotates about this point, hence the name pivot.', 'values': "[['tail', 'middle', 'tip']]", 'optional': True}),
               ("colorSequence", "basic:List",
-                {'entry_types': "['enum']", 'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'values': "[['color']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'values': "[['color']]", 'optional': True}),
               ("colorScalar", "basic:String",
-               {'values': "[['color']]", 'entry_types': "['enum']", 'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'optional': True}),
+               {'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'optional': True}),
+              ("U", "basic:List",
+               {}),
+              ("V", "basic:List",
+               {}),
+              ("Y", "basic:List",
+               {'optional': True}),
+              ("X", "basic:List",
+               {'optional': True}),
+              ("C", "basic:List",
+               {'optional': True}),
+              ("polyCollectionProperties", "MplPolyCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -2637,33 +3197,64 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        if self.hasInputFromPort('X'):
+            val = self.getInputFromPort('X')
+            args.append(val)
+        if self.hasInputFromPort('Y'):
+            val = self.getInputFromPort('Y')
+            args.append(val)
+        val = self.getInputFromPort('U')
+        args.append(val)
+        val = self.getInputFromPort('V')
+        args.append(val)
+        if self.hasInputFromPort('C'):
+            val = self.getInputFromPort('C')
+            args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('scaleSequence'):
-            kwargs['scale'] = self.getInputFromPort('scaleSequence')
+            val = self.getInputFromPort('scaleSequence')
+            kwargs['scale'] = val
         elif self.hasInputFromPort('scaleScalar'):
-            kwargs['scale'] = self.getInputFromPort('scaleScalar')
+            val = self.getInputFromPort('scaleScalar')
+            kwargs['scale'] = val
         if self.hasInputFromPort('headaxislength'):
-            kwargs['headaxislength'] = self.getInputFromPort('headaxislength')
+            val = self.getInputFromPort('headaxislength')
+            kwargs['headaxislength'] = val
         if self.hasInputFromPort('headlength'):
-            kwargs['headlength'] = self.getInputFromPort('headlength')
+            val = self.getInputFromPort('headlength')
+            kwargs['headlength'] = val
         if self.hasInputFromPort('minlength'):
-            kwargs['minlength'] = self.getInputFromPort('minlength')
+            val = self.getInputFromPort('minlength')
+            kwargs['minlength'] = val
         if self.hasInputFromPort('minshaft'):
-            kwargs['minshaft'] = self.getInputFromPort('minshaft')
+            val = self.getInputFromPort('minshaft')
+            kwargs['minshaft'] = val
         if self.hasInputFromPort('width'):
-            kwargs['width'] = self.getInputFromPort('width')
+            val = self.getInputFromPort('width')
+            kwargs['width'] = val
         if self.hasInputFromPort('headwidth'):
-            kwargs['headwidth'] = self.getInputFromPort('headwidth')
+            val = self.getInputFromPort('headwidth')
+            kwargs['headwidth'] = val
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            val = self.getInputFromPort('units')
+            kwargs['units'] = val
         if self.hasInputFromPort('pivot'):
-            kwargs['pivot'] = self.getInputFromPort('pivot')
+            val = self.getInputFromPort('pivot')
+            kwargs['pivot'] = val
         if self.hasInputFromPort('colorSequence'):
-            kwargs['color'] = self.getInputFromPort('colorSequence')
+            val = self.getInputFromPort('colorSequence')
+            kwargs['color'] = val
         elif self.hasInputFromPort('colorScalar'):
-            kwargs['color'] = self.getInputFromPort('colorScalar')
-        # self.get_fig()
-        matplotlib.pyplot.quiver(**kwargs)        
+            val = self.getInputFromPort('colorScalar')
+            kwargs['color'] = val
+
+        polyCollection = matplotlib.pyplot.quiver(*args, **kwargs)
+        if self.hasInputFromPort('polyCollectionProperties'):
+            properties = self.getInputFromPort('polyCollectionProperties')
+            if polyCollection is not None:
+                properties.update_props(polyCollection)
 
 class MplQuiverkey(MplPlot):
     """Add a key to a quiver plot.
@@ -2688,29 +3279,29 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("color", "basic:Color",
-                {'optional': True, 'docstring': 'overrides face and edge colors from Q.'}),
+               {'optional': True, 'docstring': 'overrides face and edge colors from Q.'}),
               ("coordinatesSequence", "basic:List",
-                {'entry_types': "['enum']", 'docstring': "Coordinate system and units for X, Y: 'axes' and 'figure' are normalized coordinate systems with 0,0 in the lower left and 1,1 in the upper right; 'data' are the axes data coordinates (used for the locations of the vectors in the quiver plot itself); 'inches' is position in the figure in inches, with 0,0 at the lower left corner.", 'values': "[['axes', 'figure', 'data', 'inches']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "Coordinate system and units for X, Y: 'axes' and 'figure' are normalized coordinate systems with 0,0 in the lower left and 1,1 in the upper right; 'data' are the axes data coordinates (used for the locations of the vectors in the quiver plot itself); 'inches' is position in the figure in inches, with 0,0 at the lower left corner.", 'values': "[['axes', 'figure', 'data', 'inches']]", 'optional': True}),
               ("coordinatesScalar", "basic:String",
-               {'values': "[['axes', 'figure', 'data', 'inches']]", 'entry_types': "['enum']", 'docstring': "Coordinate system and units for X, Y: 'axes' and 'figure' are normalized coordinate systems with 0,0 in the lower left and 1,1 in the upper right; 'data' are the axes data coordinates (used for the locations of the vectors in the quiver plot itself); 'inches' is position in the figure in inches, with 0,0 at the lower left corner.", 'optional': True}),
+               {'docstring': "Coordinate system and units for X, Y: 'axes' and 'figure' are normalized coordinate systems with 0,0 in the lower left and 1,1 in the upper right; 'data' are the axes data coordinates (used for the locations of the vectors in the quiver plot itself); 'inches' is position in the figure in inches, with 0,0 at the lower left corner.", 'optional': True}),
               ("label", "basic:String",
-                {'optional': True, 'docstring': 'a string with the length and units of the key'}),
+               {'optional': True, 'docstring': 'a string with the length and units of the key'}),
               ("Q", "basic:String",
-                {'optional': True, 'docstring': 'The Quiver instance returned by a call to quiver.'}),
+               {'optional': True, 'docstring': 'The Quiver instance returned by a call to quiver.'}),
               ("labelcolor", "basic:Color",
-                {'optional': True, 'docstring': 'defaults to default :class:`~matplotlib.text.Text` color.'}),
+               {'optional': True, 'docstring': 'defaults to default :class:`~matplotlib.text.Text` color.'}),
               ("fontproperties", "basic:String",
-                {'optional': True, 'docstring': 'A dictionary with keyword arguments accepted by the :class:`~matplotlib.font_manager.FontProperties` initializer: family, style, variant, size, weight'}),
+               {'optional': True, 'docstring': 'A dictionary with keyword arguments accepted by the :class:`~matplotlib.font_manager.FontProperties` initializer: family, style, variant, size, weight'}),
               ("U", "basic:String",
-                {'optional': True, 'docstring': 'The length of the key'}),
+               {'optional': True, 'docstring': 'The length of the key'}),
               ("labelpos", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'Position the label above, below, to the right, to the left of the arrow, respectively.', 'values': "[['N', 'S', 'E', 'W']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'Position the label above, below, to the right, to the left of the arrow, respectively.', 'values': "[['N', 'S', 'E', 'W']]", 'optional': True}),
               ("Y", "basic:String",
-                {'optional': True, 'docstring': 'The location of the key; additional explanation follows.'}),
+               {'optional': True, 'docstring': 'The location of the key; additional explanation follows.'}),
               ("X", "basic:String",
-                {'optional': True, 'docstring': 'The location of the key; additional explanation follows.'}),
+               {'optional': True, 'docstring': 'The location of the key; additional explanation follows.'}),
               ("labelsep", "basic:Float",
-                {'optional': True, 'docstring': 'Distance in inches between the arrow and the label.  Default is 0.1', 'defaults': "['0.1']"}),
+               {'optional': True, 'docstring': 'Distance in inches between the arrow and the label.  Default is 0.1', 'defaults': "['0.1']"}),
         ]
 
     _output_ports = [
@@ -2721,35 +3312,49 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('color'):
-            kwargs['color'] = self.getInputFromPort('color')
-            kwargs['color'] = translate_color(kwargs['color'])
+            val = self.getInputFromPort('color')
+            val = translate_color(val)
+            kwargs['color'] = val
         if self.hasInputFromPort('coordinatesSequence'):
-            kwargs['coordinates'] = self.getInputFromPort('coordinatesSequence')
+            val = self.getInputFromPort('coordinatesSequence')
+            kwargs['coordinates'] = val
         elif self.hasInputFromPort('coordinatesScalar'):
-            kwargs['coordinates'] = self.getInputFromPort('coordinatesScalar')
+            val = self.getInputFromPort('coordinatesScalar')
+            kwargs['coordinates'] = val
         if self.hasInputFromPort('label'):
-            kwargs['label'] = self.getInputFromPort('label')
+            val = self.getInputFromPort('label')
+            kwargs['label'] = val
         if self.hasInputFromPort('Q'):
-            kwargs['Q'] = self.getInputFromPort('Q')
+            val = self.getInputFromPort('Q')
+            kwargs['Q'] = val
         if self.hasInputFromPort('labelcolor'):
-            kwargs['labelcolor'] = self.getInputFromPort('labelcolor')
-            kwargs['labelcolor'] = translate_color(kwargs['labelcolor'])
+            val = self.getInputFromPort('labelcolor')
+            val = translate_color(val)
+            kwargs['labelcolor'] = val
         if self.hasInputFromPort('fontproperties'):
-            kwargs['fontproperties'] = self.getInputFromPort('fontproperties')
+            val = self.getInputFromPort('fontproperties')
+            kwargs['fontproperties'] = val
         if self.hasInputFromPort('U'):
-            kwargs['U'] = self.getInputFromPort('U')
+            val = self.getInputFromPort('U')
+            kwargs['U'] = val
         if self.hasInputFromPort('labelpos'):
-            kwargs['labelpos'] = self.getInputFromPort('labelpos')
+            val = self.getInputFromPort('labelpos')
+            kwargs['labelpos'] = val
         if self.hasInputFromPort('Y'):
-            kwargs['Y'] = self.getInputFromPort('Y')
+            val = self.getInputFromPort('Y')
+            kwargs['Y'] = val
         if self.hasInputFromPort('X'):
-            kwargs['X'] = self.getInputFromPort('X')
+            val = self.getInputFromPort('X')
+            kwargs['X'] = val
         if self.hasInputFromPort('labelsep'):
-            kwargs['labelsep'] = self.getInputFromPort('labelsep')
-        # self.get_fig()
-        matplotlib.pyplot.quiverkey(**kwargs)        
+            val = self.getInputFromPort('labelsep')
+            kwargs['labelsep'] = val
+
+        matplotlib.pyplot.quiverkey(*args, **kwargs)        
 
 class MplScatter(MplPlot):
     """call signatures:
@@ -2782,41 +3387,43 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("vmax", "basic:String",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
               ("edgecolors", "basic:String",
-                {'optional': True, 'docstring': "The string 'none' to plot faces with no outlines"}),
+               {'optional': True, 'docstring': "The string 'none' to plot faces with no outlines"}),
               ("cSequence", "basic:List",
-                {'optional': True, 'docstring': 'a color. c can be a single color format string, or a sequence of color specifications of length N, or a sequence of N numbers to be mapped to colors using the cmap and norm specified via kwargs (see below). Note that c should not be a single numeric RGB or RGBA sequence because that is indistinguishable from an array of values to be colormapped.  c can be a 2-D array in which the rows are RGB or RGBA, however.', 'defaults': "['b']"}),
+               {'optional': True, 'docstring': 'a color. c can be a single color format string, or a sequence of color specifications of length N, or a sequence of N numbers to be mapped to colors using the cmap and norm specified via kwargs (see below). Note that c should not be a single numeric RGB or RGBA sequence because that is indistinguishable from an array of values to be colormapped.  c can be a 2-D array in which the rows are RGB or RGBA, however.', 'defaults': "['b']"}),
               ("cScalar", "basic:String",
-               {'docstring': 'a color. c can be a single color format string, or a sequence of color specifications of length N, or a sequence of N numbers to be mapped to colors using the cmap and norm specified via kwargs (see below). Note that c should not be a single numeric RGB or RGBA sequence because that is indistinguishable from an array of values to be colormapped.  c can be a 2-D array in which the rows are RGB or RGBA, however.', 'optional': True, 'defaults': "['b']"}),
+               {'docstring': 'a color. c can be a single color format string, or a sequence of color specifications of length N, or a sequence of N numbers to be mapped to colors using the cmap and norm specified via kwargs (see below). Note that c should not be a single numeric RGB or RGBA sequence because that is indistinguishable from an array of values to be colormapped.  c can be a 2-D array in which the rows are RGB or RGBA, however.', 'optional': True}),
               ("vmin", "basic:String",
-                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
+               {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
               ("faceted", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+               {'optional': True, 'defaults': "['True']"}),
               ("linewidthsSequence", "basic:List",
-                {'optional': True, 'docstring': 'If None, defaults to (lines.linewidth,).  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.'}),
+               {'optional': True, 'docstring': 'If None, defaults to (lines.linewidth,).  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.'}),
               ("linewidthsScalar", "basic:Float",
                {'docstring': 'If None, defaults to (lines.linewidth,).  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.', 'optional': True}),
               ("marker", "basic:String",
-                {'optional': True, 'docstring': 'can be one of:\n\n%(MarkerTable)s', 'defaults': "['o']"}),
+               {'optional': True, 'docstring': 'can be one of:\n\n%(MarkerTable)s', 'defaults': "['o']"}),
               ("s", "basic:Float",
-                {'optional': True, 'docstring': 'size in points^2.  It is a scalar or an array of the same length as x and y.', 'defaults': "['20']"}),
+               {'optional': True, 'docstring': 'size in points^2.  It is a scalar or an array of the same length as x and y.', 'defaults': "['20']"}),
               ("cmap", "basic:String",
-                {'optional': True, 'docstring': 'A :class:`matplotlib.colors.Colormap` instance or registered name. If None, defaults to rc image.cmap. cmap is only used if c is an array of floats.'}),
+               {'optional': True, 'docstring': 'A :class:`matplotlib.colors.Colormap` instance or registered name. If None, defaults to rc image.cmap. cmap is only used if c is an array of floats.'}),
               ("verts", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'The alpha value for the patches'}),
+               {'optional': True, 'docstring': 'The alpha value for the patches'}),
               ("y", "basic:List",
-                {}),
+               {}),
               ("x", "basic:List",
-                {}),
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("facecolors", "basic:String",
-                {'optional': True, 'docstring': "The string 'none' to plot unfilled outlines"}),
+               {'optional': True, 'docstring': "The string 'none' to plot unfilled outlines"}),
               ("norm", "basic:String",
-                {'optional': True, 'docstring': 'A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0, 1. If None, use the default :func:`normalize`. norm is only used if c is an array of floats.'}),
+               {'optional': True, 'docstring': 'A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0, 1. If None, use the default :func:`normalize`. norm is only used if c is an array of floats.'}),
+              ("pathCollectionProperties", "MplPathCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -2827,43 +3434,67 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('vmax'):
-            kwargs['vmax'] = self.getInputFromPort('vmax')
+            val = self.getInputFromPort('vmax')
+            kwargs['vmax'] = val
         if self.hasInputFromPort('edgecolors'):
-            kwargs['edgecolors'] = self.getInputFromPort('edgecolors')
+            val = self.getInputFromPort('edgecolors')
+            kwargs['edgecolors'] = val
         if self.hasInputFromPort('cSequence'):
-            kwargs['c'] = self.getInputFromPort('cSequence')
+            val = self.getInputFromPort('cSequence')
+            kwargs['c'] = val
         elif self.hasInputFromPort('cScalar'):
-            kwargs['c'] = self.getInputFromPort('cScalar')
+            val = self.getInputFromPort('cScalar')
+            kwargs['c'] = val
         if self.hasInputFromPort('vmin'):
-            kwargs['vmin'] = self.getInputFromPort('vmin')
+            val = self.getInputFromPort('vmin')
+            kwargs['vmin'] = val
         if self.hasInputFromPort('faceted'):
-            kwargs['faceted'] = self.getInputFromPort('faceted')
+            val = self.getInputFromPort('faceted')
+            kwargs['faceted'] = val
         if self.hasInputFromPort('linewidthsSequence'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidthsSequence')
+            val = self.getInputFromPort('linewidthsSequence')
+            kwargs['linewidths'] = val
         elif self.hasInputFromPort('linewidthsScalar'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidthsScalar')
+            val = self.getInputFromPort('linewidthsScalar')
+            kwargs['linewidths'] = val
         if self.hasInputFromPort('marker'):
-            kwargs['marker'] = self.getInputFromPort('marker')
+            val = self.getInputFromPort('marker')
+            kwargs['marker'] = val
         if self.hasInputFromPort('s'):
-            kwargs['s'] = self.getInputFromPort('s')
+            val = self.getInputFromPort('s')
+            kwargs['s'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('verts'):
-            kwargs['verts'] = self.getInputFromPort('verts')
+            val = self.getInputFromPort('verts')
+            kwargs['verts'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('facecolors'):
-            kwargs['facecolors'] = self.getInputFromPort('facecolors')
+            val = self.getInputFromPort('facecolors')
+            kwargs['facecolors'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
-        # self.get_fig()
-        matplotlib.pyplot.scatter(**kwargs)        
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
+
+        pathCollection = matplotlib.pyplot.scatter(*args, **kwargs)
+        if self.hasInputFromPort('pathCollectionProperties'):
+            properties = self.getInputFromPort('pathCollectionProperties')
+            if pathCollection is not None:
+                properties.update_props(pathCollection)
 
 class MplSemilogx(MplPlot):
     """call signature:
@@ -2886,11 +3517,17 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("basex", "basic:Float",
-                {'optional': True, 'docstring': 'base of the x logarithm'}),
+               {'optional': True, 'docstring': 'base of the x logarithm'}),
               ("nonposx", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'non-positive values in x can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'non-positive values in x can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
               ("subsx", "basic:List",
-                {'optional': True, 'docstring': 'The location of the minor xticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_xscale` for details.'}),
+               {'optional': True, 'docstring': 'The location of the minor xticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_xscale` for details.'}),
+              ("x", "basic:List",
+               {}),
+              ("y", "basic:List",
+               {}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -2901,15 +3538,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        val = self.getInputFromPort('y')
+        args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('basex'):
-            kwargs['basex'] = self.getInputFromPort('basex')
+            val = self.getInputFromPort('basex')
+            kwargs['basex'] = val
         if self.hasInputFromPort('nonposx'):
-            kwargs['nonposx'] = self.getInputFromPort('nonposx')
+            val = self.getInputFromPort('nonposx')
+            kwargs['nonposx'] = val
         if self.hasInputFromPort('subsx'):
-            kwargs['subsx'] = self.getInputFromPort('subsx')
-        # self.get_fig()
-        matplotlib.pyplot.semilogx(**kwargs)        
+            val = self.getInputFromPort('subsx')
+            kwargs['subsx'] = val
+
+        lines = matplotlib.pyplot.semilogx(*args, **kwargs)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
 
 class MplSemilogy(MplPlot):
     """call signature:
@@ -2932,11 +3582,17 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("basey", "basic:Float",
-                {'optional': True, 'docstring': 'Base of the y logarithm'}),
+               {'optional': True, 'docstring': 'Base of the y logarithm'}),
               ("nonposy", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'non-positive values in y can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'non-positive values in y can be masked as invalid, or clipped to a very small positive number', 'values': "[['mask', 'clip']]", 'optional': True}),
               ("subsy", "basic:List",
-                {'optional': True, 'docstring': 'The location of the minor yticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_yscale` for details.'}),
+               {'optional': True, 'docstring': 'The location of the minor yticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_yscale` for details.'}),
+              ("x", "basic:List",
+               {}),
+              ("y", "basic:List",
+               {}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -2947,15 +3603,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        val = self.getInputFromPort('y')
+        args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('basey'):
-            kwargs['basey'] = self.getInputFromPort('basey')
+            val = self.getInputFromPort('basey')
+            kwargs['basey'] = val
         if self.hasInputFromPort('nonposy'):
-            kwargs['nonposy'] = self.getInputFromPort('nonposy')
+            val = self.getInputFromPort('nonposy')
+            kwargs['nonposy'] = val
         if self.hasInputFromPort('subsy'):
-            kwargs['subsy'] = self.getInputFromPort('subsy')
-        # self.get_fig()
-        matplotlib.pyplot.semilogy(**kwargs)        
+            val = self.getInputFromPort('subsy')
+            kwargs['subsy'] = val
+
+        lines = matplotlib.pyplot.semilogy(*args, **kwargs)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
 
 class MplSpecgram(MplPlot):
     """call signature:
@@ -2988,31 +3657,31 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("Fs", "basic:Integer",
-                {'optional': True, 'defaults': "['2']"}),
+               {'optional': True, 'defaults': "['2']"}),
               ("pad_to", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("scale_by_freq", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("xextent", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("detrend", "basic:String",
-                {'optional': True, 'defaults': "['<function detrend_none at 0x101f3b0c8>']"}),
+               {'optional': True, 'defaults': "['<function detrend_none at 0x1023b8140>']"}),
               ("window", "basic:String",
-                {'optional': True, 'defaults': "['<function window_hanning at 0x101f367d0>']"}),
+               {'optional': True, 'defaults': "['<function window_hanning at 0x1023b5938>']"}),
               ("Fc", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
               ("NFFT", "basic:Integer",
-                {'optional': True, 'defaults': "['256']"}),
+               {'optional': True, 'defaults': "['256']"}),
               ("cmap", "basic:String",
-                {'optional': True}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("sides", "basic:String",
-                {'optional': True, 'defaults': "['default']"}),
+               {'optional': True, 'defaults': "['default']"}),
               ("noverlap", "basic:Integer",
-                {'optional': True, 'defaults': "['128']"}),
+               {'optional': True, 'defaults': "['128']"}),
         ]
 
     _output_ports = [
@@ -3023,129 +3692,49 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('Fs'):
-            kwargs['Fs'] = self.getInputFromPort('Fs')
+            val = self.getInputFromPort('Fs')
+            kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            kwargs['pad_to'] = self.getInputFromPort('pad_to')
+            val = self.getInputFromPort('pad_to')
+            kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            kwargs['scale_by_freq'] = self.getInputFromPort('scale_by_freq')
+            val = self.getInputFromPort('scale_by_freq')
+            kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('xextent'):
-            kwargs['xextent'] = self.getInputFromPort('xextent')
+            val = self.getInputFromPort('xextent')
+            kwargs['xextent'] = val
         if self.hasInputFromPort('detrend'):
-            kwargs['detrend'] = self.getInputFromPort('detrend')
+            val = self.getInputFromPort('detrend')
+            kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            kwargs['window'] = self.getInputFromPort('window')
+            val = self.getInputFromPort('window')
+            kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            kwargs['Fc'] = self.getInputFromPort('Fc')
+            val = self.getInputFromPort('Fc')
+            kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            kwargs['NFFT'] = self.getInputFromPort('NFFT')
+            val = self.getInputFromPort('NFFT')
+            kwargs['NFFT'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            kwargs['sides'] = self.getInputFromPort('sides')
+            val = self.getInputFromPort('sides')
+            kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            kwargs['noverlap'] = self.getInputFromPort('noverlap')
-        # self.get_fig()
-        matplotlib.pyplot.specgram(**kwargs)        
+            val = self.getInputFromPort('noverlap')
+            kwargs['noverlap'] = val
 
-class MplStackplot(MplPlot):
-    """call signature:
-
-specgram(x, NFFT=256, Fs=2, Fc=0, detrend=mlab.detrend_none,          window=mlab.window_hanning, noverlap=128,          cmap=None, xextent=None, pad_to=None, sides='default',          scale_by_freq=None, **kwargs)
-
-Compute a spectrogram of data in x.  Data are split into NFFT length segments and the PSD of each section is computed.  The windowing function window is applied to each segment, and the amount of overlap of each segment is specified with noverlap.
-
-%(PSD)s
-
-kwargs:
-
-Additional kwargs are passed on to imshow which makes the specgram image
-
-Return value is (Pxx, freqs, bins, im):
-
-bins are the time points the spectrogram is calculated over
-
-freqs is an array of frequencies
-
-Pxx is a len(times) x len(freqs) array of power
-
-im is a :class:`matplotlib.image.AxesImage` instance
-
-Note: If x is real (i.e. non-complex), only the positive spectrum is shown.  If x is complex, both positive and negative parts of the spectrum are shown.  This can be overridden using the sides keyword argument.
-
-Example:
-
-Additional kwargs: hold = [True|False] overrides default hold state
-    """
-    _input_ports = [
-              ("Fs", "basic:Integer",
-                {'optional': True, 'defaults': "['2']"}),
-              ("pad_to", "basic:String",
-                {'optional': True}),
-              ("scale_by_freq", "basic:String",
-                {'optional': True}),
-              ("xextent", "basic:String",
-                {'optional': True}),
-              ("detrend", "basic:String",
-                {'optional': True, 'defaults': "['<function detrend_none at 0x101f3b0c8>']"}),
-              ("window", "basic:String",
-                {'optional': True, 'defaults': "['<function window_hanning at 0x101f367d0>']"}),
-              ("Fc", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
-              ("NFFT", "basic:Integer",
-                {'optional': True, 'defaults': "['256']"}),
-              ("cmap", "basic:String",
-                {'optional': True}),
-              ("x", "basic:String",
-                {}),
-              ("hold", "basic:String",
-                {'optional': True}),
-              ("sides", "basic:String",
-                {'optional': True, 'defaults': "['default']"}),
-              ("noverlap", "basic:Integer",
-                {'optional': True, 'defaults': "['128']"}),
-        ]
-
-    _output_ports = [
-        ("self", "(MplStackplot)"),
-        ]
-    
-
-    def compute(self):
-        # get args into args, kwargs
-        # write out translations
-        kwargs = {}            
-        if self.hasInputFromPort('Fs'):
-            kwargs['Fs'] = self.getInputFromPort('Fs')
-        if self.hasInputFromPort('pad_to'):
-            kwargs['pad_to'] = self.getInputFromPort('pad_to')
-        if self.hasInputFromPort('scale_by_freq'):
-            kwargs['scale_by_freq'] = self.getInputFromPort('scale_by_freq')
-        if self.hasInputFromPort('xextent'):
-            kwargs['xextent'] = self.getInputFromPort('xextent')
-        if self.hasInputFromPort('detrend'):
-            kwargs['detrend'] = self.getInputFromPort('detrend')
-        if self.hasInputFromPort('window'):
-            kwargs['window'] = self.getInputFromPort('window')
-        if self.hasInputFromPort('Fc'):
-            kwargs['Fc'] = self.getInputFromPort('Fc')
-        if self.hasInputFromPort('NFFT'):
-            kwargs['NFFT'] = self.getInputFromPort('NFFT')
-        if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
-        kwargs['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        if self.hasInputFromPort('sides'):
-            kwargs['sides'] = self.getInputFromPort('sides')
-        if self.hasInputFromPort('noverlap'):
-            kwargs['noverlap'] = self.getInputFromPort('noverlap')
-        # self.get_fig()
-        matplotlib.pyplot.stackplot(**kwargs)        
+        matplotlib.pyplot.specgram(*args, **kwargs)        
 
 class MplStem(MplPlot):
     """call signature:
@@ -3162,17 +3751,23 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("linefmt", "basic:String",
-                {'optional': True, 'defaults': "['b-']"}),
+               {'optional': True, 'defaults': "['b-']"}),
               ("markerfmt", "basic:String",
-                {'optional': True, 'defaults': "['bo']"}),
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['bo']"}),
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("basefmt", "basic:String",
-                {'optional': True, 'defaults': "['r-']"}),
+               {'optional': True, 'defaults': "['r-']"}),
+              ("markerlineProperties", "MplLine2DProperties",
+               {}),
+              ("stemlineProperties", "MplLine2DProperties",
+               {}),
+              ("baselineProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -3183,19 +3778,42 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('linefmt'):
-            kwargs['linefmt'] = self.getInputFromPort('linefmt')
+            val = self.getInputFromPort('linefmt')
+            kwargs['linefmt'] = val
         if self.hasInputFromPort('markerfmt'):
-            kwargs['markerfmt'] = self.getInputFromPort('markerfmt')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('markerfmt')
+            kwargs['markerfmt'] = val
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('basefmt'):
-            kwargs['basefmt'] = self.getInputFromPort('basefmt')
-        # self.get_fig()
-        matplotlib.pyplot.stem(**kwargs)        
+            val = self.getInputFromPort('basefmt')
+            kwargs['basefmt'] = val
+
+        output = matplotlib.pyplot.stem(*args, **kwargs)        
+        markerline = output[0]
+        stemlines = output[1]
+        baseline = output[2]
+        if self.hasInputFromPort('markerlineProperties'):
+            properties = self.getInputFromPort('markerlineProperties')
+            if markerline is not None:
+                properties.update_props(markerline)
+        if self.hasInputFromPort('stemlineProperties'):
+            properties = self.getInputFromPort('stemlineProperties')
+            if stemlines is not None:
+                properties.update_props(stemlines)
+        if self.hasInputFromPort('baselineProperties'):
+            properties = self.getInputFromPort('baselineProperties')
+            if baseline is not None:
+                properties.update_props(baseline)
 
 class MplStep(MplPlot):
     """call signature:
@@ -3211,12 +3829,14 @@ Keyword arguments:
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
               ("where", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If 'pre', the interval from x[i] to x[i+1] has level y[i+1]\n\nIf 'post', that interval has level y[i]\n\nIf 'mid', the jumps in y occur half-way between the x-values.", 'values': "[['pre', 'post', 'mid']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If 'pre', the interval from x[i] to x[i+1] has level y[i+1]\n\nIf 'post', that interval has level y[i]\n\nIf 'mid', the jumps in y occur half-way between the x-values.", 'values': "[['pre', 'post', 'mid']]", 'optional': True}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -3227,51 +3847,22 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        val = self.getInputFromPort('y')
+        args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('where'):
-            kwargs['where'] = self.getInputFromPort('where')
-        # self.get_fig()
-        matplotlib.pyplot.step(**kwargs)        
+            val = self.getInputFromPort('where')
+            kwargs['where'] = val
 
-class MplStreamplot(MplPlot):
-    """call signature:
-
-step(x, y, *args, **kwargs)
-
-Make a step plot. Additional keyword args to :func:`step` are the same as those for :func:`~matplotlib.pyplot.plot`.
-
-x and y must be 1-D sequences, and it is assumed, but not checked, that x is uniformly increasing.
-
-Keyword arguments:
-
-Additional kwargs: hold = [True|False] overrides default hold state
-    """
-    _input_ports = [
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
-              ("where", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If 'pre', the interval from x[i] to x[i+1] has level y[i+1]\n\nIf 'post', that interval has level y[i]\n\nIf 'mid', the jumps in y occur half-way between the x-values.", 'values': "[['pre', 'post', 'mid']]", 'optional': True}),
-        ]
-
-    _output_ports = [
-        ("self", "(MplStreamplot)"),
-        ]
-    
-
-    def compute(self):
-        # get args into args, kwargs
-        # write out translations
-        kwargs = {}            
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('where'):
-            kwargs['where'] = self.getInputFromPort('where')
-        # self.get_fig()
-        matplotlib.pyplot.streamplot(**kwargs)        
+        lines = matplotlib.pyplot.step(*args, **kwargs)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
 
 class MplTricontour(MplPlot):
     """:func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively, on an unstructured triangular grid.  Except as noted, function signatures and return values are the same for both versions.
@@ -3338,27 +3929,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("origin", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
               ("linestyles", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
               ("levelsSequence", "basic:List",
-                {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
+               {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
               ("levelsScalar", "basic:Float",
                {'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]', 'optional': True}),
               ("linewidths", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
               ("colors", "basic:Color",
-                {'entry_types': "['enum']", 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.", 'values': "[['(mpl_colors)']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.", 'values': "[['(mpl_colors)']]", 'optional': True}),
               ("cmap", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.', 'values': "[['Colormap']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.', 'values': "[['Colormap']]", 'optional': True}),
               ("antialiased", "basic:Boolean",
-                {'optional': True, 'docstring': 'enable antialiasing'}),
+               {'optional': True, 'docstring': 'enable antialiasing'}),
               ("nchunk", "basic:Integer",
-                {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'The alpha blending value'}),
+               {'optional': True, 'docstring': 'The alpha blending value'}),
               ("norm", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.', 'values': "[['Normalize']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.', 'values': "[['Normalize']]", 'optional': True}),
         ]
 
     _output_ports = [
@@ -3369,32 +3960,45 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('origin'):
-            kwargs['origin'] = self.getInputFromPort('origin')
+            val = self.getInputFromPort('origin')
+            kwargs['origin'] = val
         if self.hasInputFromPort('linestyles'):
-            kwargs['linestyles'] = self.getInputFromPort('linestyles')
+            val = self.getInputFromPort('linestyles')
+            kwargs['linestyles'] = val
         if self.hasInputFromPort('levelsSequence'):
-            kwargs['levels'] = self.getInputFromPort('levelsSequence')
+            val = self.getInputFromPort('levelsSequence')
+            kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            kwargs['levels'] = self.getInputFromPort('levelsScalar')
+            val = self.getInputFromPort('levelsScalar')
+            kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidths')
+            val = self.getInputFromPort('linewidths')
+            kwargs['linewidths'] = val
         if self.hasInputFromPort('colors'):
-            kwargs['colors'] = self.getInputFromPort('colors')
-            kwargs['colors'] = translate_color(kwargs['colors'])
+            val = self.getInputFromPort('colors')
+            val = translate_color(val)
+            kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('antialiased'):
-            kwargs['antialiased'] = self.getInputFromPort('antialiased')
+            val = self.getInputFromPort('antialiased')
+            kwargs['antialiased'] = val
         if self.hasInputFromPort('nchunk'):
-            kwargs['nchunk'] = self.getInputFromPort('nchunk')
+            val = self.getInputFromPort('nchunk')
+            kwargs['nchunk'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
-        # self.get_fig()
-        matplotlib.pyplot.tricontour(**kwargs)        
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
+
+        matplotlib.pyplot.tricontour(*args, **kwargs)        
 
 class MplTricontourf(MplPlot):
     """:func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively, on an unstructured triangular grid.  Except as noted, function signatures and return values are the same for both versions.
@@ -3461,27 +4065,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("origin", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the first value of Z will correspond to the lower left corner, location (0,0). If 'image', the rc value for image.origin will be used.\n\nThis keyword is not active if X and Y are specified in the call to contour.", 'values': "[['upper', 'lower', 'image']]", 'optional': True}),
               ("linestyles", "basic:String",
-                {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If linestyles is None, the 'solid' is used.\n\nlinestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.\n\nIf contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.", 'values': "[['solid', 'dashed', 'dashdot', 'dotted']]", 'optional': True}),
               ("levelsSequence", "basic:List",
-                {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
+               {'optional': True, 'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]'}),
               ("levelsScalar", "basic:Float",
                {'docstring': 'A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]', 'optional': True}),
               ("linewidths", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If linewidths is None, the default width in lines.linewidth in matplotlibrc is used.\n\nIf a number, all levels will be plotted with this linewidth.\n\nIf a tuple, different levels will be plotted with different linewidths in the order specified', 'values': "[['number', 'tuple of numbers']]", 'optional': True}),
               ("colors", "basic:Color",
-                {'entry_types': "['enum']", 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.", 'values': "[['(mpl_colors)']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': "If None, the colormap specified by cmap will be used.\n\nIf a string, like 'r' or 'red', all levels will be plotted in this color.\n\nIf a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.", 'values': "[['(mpl_colors)']]", 'optional': True}),
               ("cmap", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.', 'values': "[['Colormap']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A cm :class:`~matplotlib.cm.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.', 'values': "[['Colormap']]", 'optional': True}),
               ("antialiased", "basic:Boolean",
-                {'optional': True, 'docstring': 'enable antialiasing'}),
+               {'optional': True, 'docstring': 'enable antialiasing'}),
               ("nchunk", "basic:Integer",
-                {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
               ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'The alpha blending value'}),
+               {'optional': True, 'docstring': 'The alpha blending value'}),
               ("norm", "basic:String",
-                {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.', 'values': "[['Normalize']]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.', 'values': "[['Normalize']]", 'optional': True}),
         ]
 
     _output_ports = [
@@ -3492,32 +4096,45 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('origin'):
-            kwargs['origin'] = self.getInputFromPort('origin')
+            val = self.getInputFromPort('origin')
+            kwargs['origin'] = val
         if self.hasInputFromPort('linestyles'):
-            kwargs['linestyles'] = self.getInputFromPort('linestyles')
+            val = self.getInputFromPort('linestyles')
+            kwargs['linestyles'] = val
         if self.hasInputFromPort('levelsSequence'):
-            kwargs['levels'] = self.getInputFromPort('levelsSequence')
+            val = self.getInputFromPort('levelsSequence')
+            kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            kwargs['levels'] = self.getInputFromPort('levelsScalar')
+            val = self.getInputFromPort('levelsScalar')
+            kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            kwargs['linewidths'] = self.getInputFromPort('linewidths')
+            val = self.getInputFromPort('linewidths')
+            kwargs['linewidths'] = val
         if self.hasInputFromPort('colors'):
-            kwargs['colors'] = self.getInputFromPort('colors')
-            kwargs['colors'] = translate_color(kwargs['colors'])
+            val = self.getInputFromPort('colors')
+            val = translate_color(val)
+            kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            kwargs['cmap'] = self.getInputFromPort('cmap')
+            val = self.getInputFromPort('cmap')
+            kwargs['cmap'] = val
         if self.hasInputFromPort('antialiased'):
-            kwargs['antialiased'] = self.getInputFromPort('antialiased')
+            val = self.getInputFromPort('antialiased')
+            kwargs['antialiased'] = val
         if self.hasInputFromPort('nchunk'):
-            kwargs['nchunk'] = self.getInputFromPort('nchunk')
+            val = self.getInputFromPort('nchunk')
+            kwargs['nchunk'] = val
         if self.hasInputFromPort('alpha'):
-            kwargs['alpha'] = self.getInputFromPort('alpha')
+            val = self.getInputFromPort('alpha')
+            kwargs['alpha'] = val
         if self.hasInputFromPort('norm'):
-            kwargs['norm'] = self.getInputFromPort('norm')
-        # self.get_fig()
-        matplotlib.pyplot.tricontourf(**kwargs)        
+            val = self.getInputFromPort('norm')
+            kwargs['norm'] = val
+
+        matplotlib.pyplot.tricontourf(*args, **kwargs)        
 
 class MplTripcolor(MplPlot):
     """Create a pseudocolor plot of an unstructured triangular grid to the :class:`~matplotlib.axes.Axes`.
@@ -3553,9 +4170,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        # self.get_fig()
-        matplotlib.pyplot.tripcolor(**kwargs)        
+        args = []
+
+        kwargs = {}
+
+        matplotlib.pyplot.tripcolor(*args, **kwargs)        
 
 class MplTriplot(MplPlot):
     """Draw a unstructured triangular grid as lines and/or markers to the :class:`~matplotlib.axes.Axes`.
@@ -3589,9 +4208,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        # self.get_fig()
-        matplotlib.pyplot.triplot(**kwargs)        
+        args = []
+
+        kwargs = {}
+
+        matplotlib.pyplot.triplot(*args, **kwargs)        
 
 class MplVlines(MplPlot):
     """call signature:
@@ -3614,21 +4235,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("ymax", "basic:String",
-                {}),
+               {}),
               ("linestyles", "basic:String",
-                {'optional': True, 'defaults': "['solid']"}),
+               {'optional': True, 'defaults': "['solid']"}),
               ("color", "basic:String",
-                {'optional': True, 'defaults': "['k']"}),
+               {'optional': True, 'defaults': "['k']"}),
               ("label", "basic:String",
-                {'optional': True, 'defaults': "['']"}),
+               {'optional': True, 'defaults': "['']"}),
               ("colors", "basic:String",
-                {'optional': True, 'defaults': "['k']"}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['k']"}),
+              ("x", "basic:List",
+               {}),
               ("ymin", "basic:String",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -3639,22 +4260,32 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        kwargs['ymax'] = self.getInputFromPort('ymax')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+        val = self.getInputFromPort('ymax')
+        kwargs['ymax'] = val
         if self.hasInputFromPort('linestyles'):
-            kwargs['linestyles'] = self.getInputFromPort('linestyles')
+            val = self.getInputFromPort('linestyles')
+            kwargs['linestyles'] = val
         if self.hasInputFromPort('color'):
-            kwargs['color'] = self.getInputFromPort('color')
+            val = self.getInputFromPort('color')
+            kwargs['color'] = val
         if self.hasInputFromPort('label'):
-            kwargs['label'] = self.getInputFromPort('label')
+            val = self.getInputFromPort('label')
+            kwargs['label'] = val
         if self.hasInputFromPort('colors'):
-            kwargs['colors'] = self.getInputFromPort('colors')
-        kwargs['x'] = self.getInputFromPort('x')
-        kwargs['ymin'] = self.getInputFromPort('ymin')
-        # self.get_fig()
-        matplotlib.pyplot.vlines(**kwargs)        
+            val = self.getInputFromPort('colors')
+            kwargs['colors'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
+        val = self.getInputFromPort('ymin')
+        kwargs['ymin'] = val
+
+        matplotlib.pyplot.vlines(*args, **kwargs)        
 
 class MplXcorr(MplPlot):
     """call signature:
@@ -3691,19 +4322,25 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("normed", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+               {'optional': True, 'defaults': "['True']"}),
               ("usevlines", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+               {'optional': True, 'defaults': "['True']"}),
               ("detrend", "basic:String",
-                {'optional': True, 'defaults': "['<function detrend_none at 0x101f3b0c8>']"}),
+               {'optional': True, 'defaults': "['<function detrend_none at 0x1023b8140>']"}),
               ("maxlags", "basic:Integer",
-                {'optional': True, 'defaults': "['10']"}),
-              ("y", "basic:String",
-                {}),
-              ("x", "basic:String",
-                {}),
+               {'optional': True, 'defaults': "['10']"}),
+              ("y", "basic:List",
+               {}),
+              ("x", "basic:List",
+               {}),
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
+              ("lineCollectionProperties", "MplLineCollectionProperties",
+               {}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
+              ("xaxisProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -3714,28 +4351,124 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('normed'):
-            kwargs['normed'] = self.getInputFromPort('normed')
+            val = self.getInputFromPort('normed')
+            kwargs['normed'] = val
         if self.hasInputFromPort('usevlines'):
-            kwargs['usevlines'] = self.getInputFromPort('usevlines')
+            val = self.getInputFromPort('usevlines')
+            kwargs['usevlines'] = val
         if self.hasInputFromPort('detrend'):
-            kwargs['detrend'] = self.getInputFromPort('detrend')
+            val = self.getInputFromPort('detrend')
+            kwargs['detrend'] = val
         if self.hasInputFromPort('maxlags'):
-            kwargs['maxlags'] = self.getInputFromPort('maxlags')
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
+            val = self.getInputFromPort('maxlags')
+            kwargs['maxlags'] = val
+        val = self.getInputFromPort('y')
+        kwargs['y'] = val
+        val = self.getInputFromPort('x')
+        kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
-        # self.get_fig()
-        matplotlib.pyplot.xcorr(**kwargs)        
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
+
+        output = matplotlib.pyplot.xcorr(*args, **kwargs)        
+        if 'usevlines' in kwargs and kwargs['usevlines']:
+            output = output + (output[2],)
+        else:
+            output = output + (None, None)
+        lines = output[2]
+        xaxis = output[3]
+        lineCollection = output[4]
+        if self.hasInputFromPort('lineCollectionProperties'):
+            properties = self.getInputFromPort('lineCollectionProperties')
+            if lineCollection is not None:
+                properties.update_props(lineCollection)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
+        if self.hasInputFromPort('xaxisProperties'):
+            properties = self.getInputFromPort('xaxisProperties')
+            if xaxis is not None:
+                properties.update_props(xaxis)
 
 class MplBarbs(MplPlot):
-    """%(barbs_doc)s Example:
+    """Plot a 2-D field of barbs.
+
+call signatures:
+
+barb(U, V, **kw) barb(U, V, C, **kw) barb(X, Y, U, V, **kw) barb(X, Y, U, V, C, **kw)
+
+Arguments:
+
+
+
+All arguments may be 1-D or 2-D arrays or sequences. If X and Y are absent, they will be generated as a uniform grid.  If U and V are 2-D arrays but X and Y are 1-D, and if len(X) and len(Y) match the column and row dimensions of U, then X and Y will be expanded with :func:`numpy.meshgrid`.
+
+U, V, C may be masked arrays, but masked X, Y are not supported at present.
+
+Keyword arguments:
+
+
+
+Barbs are traditionally used in meteorology as a way to plot the speed and direction of wind observations, but can technically be used to plot any two dimensional vector quantity.  As opposed to arrows, which give vector magnitude by the length of the arrow, the barbs give more quantitative information about the vector magnitude by putting slanted lines or a triangle for various increments in magnitude, as show schematically below:
+
+:     /\    \ :    /  \    \ :   /    \    \    \ :  /      \    \    \ : ------------------------------
+
+note the double \ at the end of each line to make the figure
+
+render correctly
+
+The largest increment is given by a triangle (or "flag"). After those come full lines (barbs). The smallest increment is a half line.  There is only, of course, ever at most 1 half line.  If the magnitude is small and only needs a single half-line and no full lines or triangles, the half-line is offset from the end of the barb so that it can be easily distinguished from barbs with a single full line.  The magnitude for the barb shown above would nominally be 65, using the standard increments of 50, 10, and 5.
+
+linewidths and edgecolors can be used to customize the barb. Additional :class:`~matplotlib.collections.PolyCollection` keyword arguments:
+
+agg_filter: unknown alpha: float or None animated: [True | False] antialiased or antialiaseds: Boolean or sequence of booleans array: unknown axes: an :class:`~matplotlib.axes.Axes` instance clim: a length 2 sequence of floats clip_box: a :class:`matplotlib.transforms.Bbox` instance clip_on: [True | False] clip_path: [ (:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`) |         :class:`~matplotlib.patches.Patch` | None ] cmap: a colormap or registered colormap name color: matplotlib color arg or sequence of rgba tuples colorbar: unknown contains: a callable function edgecolor or edgecolors: matplotlib color arg or sequence of rgba tuples facecolor or facecolors: matplotlib color arg or sequence of rgba tuples figure: a :class:`matplotlib.figure.Figure` instance gid: an id string label: any string linestyle or linestyles or dashes: ['solid' | 'dashed', 'dashdot', 'dotted' |         (offset, on-off-dash-seq) ] linewidth or lw or linewidths: float or sequence of floats lod: [True | False] norm: unknown offsets: float or sequence of floats paths: unknown picker: [None|float|boolean|callable] pickradius: unknown rasterized: [True | False | None] snap: unknown transform: :class:`~matplotlib.transforms.Transform` instance url: a url string urls: unknown visible: [True | False] zorder: any number
+
+Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
+              ("barbcolor", "basic:Color",
+               {'optional': True, 'docstring': 'Specifies the color all parts of the barb except any flags.  This parameter is analagous to the edgecolor parameter for polygons, which can be used instead. However this parameter will override facecolor.'}),
+              ("barbcolorSequence", "basic:List",
+               {'docstring': 'Specifies the color all parts of the barb except any flags.  This parameter is analagous to the edgecolor parameter for polygons, which can be used instead. However this parameter will override facecolor.', 'optional': True}),
+              ("C", "basic:List",
+               {'optional': True, 'docstring': 'an optional array used to map colors to the barbs'}),
+              ("sizes", "basic:Dictionary",
+               {'optional': True, 'docstring': "A dictionary of coefficients specifying the ratio of a given feature to the length of the barb. Only those values one wishes to override need to be included.  These features include:\n\n'spacing' - space between features (flags, full/half barbs)\n\n'height' - height (distance from shaft to top) of a flag or full barb\n\n'width' - width of a flag, twice the width of a full barb\n\n'emptybarb' - radius of the circle used for low magnitudes"}),
+              ("rounding", "basic:Boolean",
+               {'optional': True, 'docstring': 'A flag to indicate whether the vector magnitude should be rounded when allocating barb components.  If True, the magnitude is rounded to the nearest multiple of the half-barb increment.  If False, the magnitude is simply truncated to the next lowest multiple.  Default is True', 'defaults': "['True']"}),
+              ("pivot", "basic:String",
+               {'entry_types': "['enum']", 'docstring': "The part of the arrow that is at the grid point; the arrow rotates about this point, hence the name pivot.  Default is 'tip'", 'values': "[['tip', 'middle']]", 'optional': True, 'defaults': "['tip']"}),
+              ("flip_barb", "basic:Boolean",
+               {'optional': True, 'docstring': 'Either a single boolean flag or an array of booleans.  Single boolean indicates whether the lines and flags should point opposite to normal for all barbs.  An array (which should be the same size as the other data arrays) indicates whether to flip for each individual barb.  Normal behavior is for the barbs and lines to point right (comes from wind barbs having these features point towards low pressure in the Northern Hemisphere.)  Default is False', 'defaults': "['False']"}),
+              ("flip_barbSequence", "basic:List",
+               {'docstring': 'Either a single boolean flag or an array of booleans.  Single boolean indicates whether the lines and flags should point opposite to normal for all barbs.  An array (which should be the same size as the other data arrays) indicates whether to flip for each individual barb.  Normal behavior is for the barbs and lines to point right (comes from wind barbs having these features point towards low pressure in the Northern Hemisphere.)  Default is False', 'optional': True}),
+              ("length", "basic:Integer",
+               {'optional': True, 'docstring': 'Length of the barb in points; the other parts of the barb are scaled against this. Default is 9', 'defaults': "['9']"}),
+              ("barb_increments", "basic:Dictionary",
+               {'optional': True, 'docstring': "A dictionary of increments specifying values to associate with different parts of the barb. Only those values one wishes to override need to be included.\n\n'half' - half barbs (Default is 5)\n\n'full' - full barbs (Default is 10)\n\n'flag' - flags (default is 50)"}),
+              ("U", "basic:List",
+               {'docstring': 'give the x and y components of the barb shaft'}),
+              ("V", "basic:List",
+               {'docstring': 'give the x and y components of the barb shaft'}),
+              ("Y", "basic:List",
+               {'optional': True, 'docstring': 'The x and y coordinates of the barb locations (default is head of barb; see pivot kwarg)'}),
+              ("X", "basic:List",
+               {'optional': True, 'docstring': 'The x and y coordinates of the barb locations (default is head of barb; see pivot kwarg)'}),
+              ("flagcolor", "basic:Color",
+               {'optional': True, 'docstring': 'Specifies the color of any flags on the barb.  This parameter is analagous to the facecolor parameter for polygons, which can be used instead. However this parameter will override facecolor.  If this is not set (and C has not either) then flagcolor will be set to match barbcolor so that the barb has a uniform color. If C has been set, flagcolor has no effect.'}),
+              ("flagcolorSequence", "basic:List",
+               {'docstring': 'Specifies the color of any flags on the barb.  This parameter is analagous to the facecolor parameter for polygons, which can be used instead. However this parameter will override facecolor.  If this is not set (and C has not either) then flagcolor will be set to match barbcolor so that the barb has a uniform color. If C has been set, flagcolor has no effect.', 'optional': True}),
+              ("fill_empty", "basic:Boolean",
+               {'optional': True, 'docstring': 'A flag on whether the empty barbs (circles) that are drawn should be filled with the flag color.  If they are not filled, they will be drawn such that no color is applied to the center.  Default is False', 'defaults': "['False']"}),
+              ("polyCollectionProperties", "MplPolyCollectionProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -3746,9 +4479,66 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        # self.get_fig()
-        matplotlib.pyplot.barbs(**kwargs)        
+        args = []
+        if self.hasInputFromPort('X'):
+            val = self.getInputFromPort('X')
+            args.append(val)
+        if self.hasInputFromPort('Y'):
+            val = self.getInputFromPort('Y')
+            args.append(val)
+        val = self.getInputFromPort('U')
+        args.append(val)
+        val = self.getInputFromPort('V')
+        args.append(val)
+        if self.hasInputFromPort('C'):
+            val = self.getInputFromPort('C')
+            args.append(val)
+
+        kwargs = {}
+        if self.hasInputFromPort('barbcolor'):
+            val = self.getInputFromPort('barbcolor')
+            val = translate_color(val)
+            kwargs['barbcolor'] = val
+        elif self.hasInputFromPort('barbcolorSequence'):
+            val = self.getInputFromPort('barbcolorSequence')
+            kwargs['barbcolor'] = val
+        if self.hasInputFromPort('sizes'):
+            val = self.getInputFromPort('sizes')
+            kwargs['sizes'] = val
+        if self.hasInputFromPort('rounding'):
+            val = self.getInputFromPort('rounding')
+            kwargs['rounding'] = val
+        if self.hasInputFromPort('pivot'):
+            val = self.getInputFromPort('pivot')
+            kwargs['pivot'] = val
+        if self.hasInputFromPort('flip_barb'):
+            val = self.getInputFromPort('flip_barb')
+            kwargs['flip_barb'] = val
+        elif self.hasInputFromPort('flip_barbSequence'):
+            val = self.getInputFromPort('flip_barbSequence')
+            kwargs['flip_barb'] = val
+        if self.hasInputFromPort('length'):
+            val = self.getInputFromPort('length')
+            kwargs['length'] = val
+        if self.hasInputFromPort('barb_increments'):
+            val = self.getInputFromPort('barb_increments')
+            kwargs['barb_increments'] = val
+        if self.hasInputFromPort('flagcolor'):
+            val = self.getInputFromPort('flagcolor')
+            val = translate_color(val)
+            kwargs['flagcolor'] = val
+        elif self.hasInputFromPort('flagcolorSequence'):
+            val = self.getInputFromPort('flagcolorSequence')
+            kwargs['flagcolor'] = val
+        if self.hasInputFromPort('fill_empty'):
+            val = self.getInputFromPort('fill_empty')
+            kwargs['fill_empty'] = val
+
+        polyCollection = matplotlib.pyplot.barbs(*args, **kwargs)
+        if self.hasInputFromPort('polyCollectionProperties'):
+            properties = self.getInputFromPort('polyCollectionProperties')
+            if polyCollection is not None:
+                properties.update_props(polyCollection)
 
 class MplSpy(MplPlot):
     """call signature:
@@ -3801,17 +4591,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("hold", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("markersize", "basic:String",
-                {'optional': True}),
+               {'optional': True}),
               ("precision", "basic:Integer",
-                {'optional': True, 'defaults': "['0']"}),
+               {'optional': True, 'defaults': "['0']"}),
               ("aspect", "basic:String",
-                {'optional': True, 'defaults': "['equal']"}),
+               {'optional': True, 'defaults': "['equal']"}),
               ("marker", "basic:String",
-                {'optional': True}),
-              ("Z", "basic:String",
-                {}),
+               {'optional': True}),
+              ("Z", "basic:List",
+               {}),
+              ("imageProperties", "MplAxesImageProperties",
+               {}),
+              ("marksProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -3822,20 +4616,43 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('hold'):
-            kwargs['hold'] = self.getInputFromPort('hold')
+            val = self.getInputFromPort('hold')
+            kwargs['hold'] = val
         if self.hasInputFromPort('markersize'):
-            kwargs['markersize'] = self.getInputFromPort('markersize')
+            val = self.getInputFromPort('markersize')
+            kwargs['markersize'] = val
         if self.hasInputFromPort('precision'):
-            kwargs['precision'] = self.getInputFromPort('precision')
+            val = self.getInputFromPort('precision')
+            kwargs['precision'] = val
         if self.hasInputFromPort('aspect'):
-            kwargs['aspect'] = self.getInputFromPort('aspect')
+            val = self.getInputFromPort('aspect')
+            kwargs['aspect'] = val
         if self.hasInputFromPort('marker'):
-            kwargs['marker'] = self.getInputFromPort('marker')
-        kwargs['Z'] = self.getInputFromPort('Z')
-        # self.get_fig()
-        matplotlib.pyplot.spy(**kwargs)        
+            val = self.getInputFromPort('marker')
+            kwargs['marker'] = val
+        val = self.getInputFromPort('Z')
+        kwargs['Z'] = val
+
+        output = matplotlib.pyplot.spy(*args, **kwargs)        
+        if "marker" not in kwargs and "markersize" not in kwargs and \
+                not hasattr(kwargs["Z"], 'tocoo'):
+            output = (output, None)
+        else:
+            output = (None, output)
+        image = output[0]
+        marks = output[1]
+        if self.hasInputFromPort('imageProperties'):
+            properties = self.getInputFromPort('imageProperties')
+            if image is not None:
+                properties.update_props(image)
+        if self.hasInputFromPort('marksProperties'):
+            properties = self.getInputFromPort('marksProperties')
+            if marks is not None:
+                properties.update_props(marks)
 
 class MplPolar(MplPlot):
     """call signature:
@@ -3847,10 +4664,12 @@ Make a polar plot.  Multiple theta, r arguments are supported, with format strin
 An optional kwarg resolution sets the number of vertices to interpolate between each pair of points.  The default is 1, which disables interpolation.
     """
     _input_ports = [
-              ("theta", "basic:String",
-                {}),
-              ("r", "basic:String",
-                {}),
+              ("theta", "basic:List",
+               {}),
+              ("r", "basic:List",
+               {}),
+              ("lineProperties", "MplLine2DProperties",
+               {}),
         ]
 
     _output_ports = [
@@ -3861,11 +4680,19 @@ An optional kwarg resolution sets the number of vertices to interpolate between 
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
-        kwargs['theta'] = self.getInputFromPort('theta')
-        kwargs['r'] = self.getInputFromPort('r')
-        # self.get_fig()
-        matplotlib.pyplot.polar(**kwargs)        
+        args = []
+        val = self.getInputFromPort('theta')
+        args.append(val)
+        val = self.getInputFromPort('r')
+        args.append(val)
+
+        kwargs = {}
+
+        lines = matplotlib.pyplot.polar(*args, **kwargs)
+        if self.hasInputFromPort('lineProperties'):
+            properties = self.getInputFromPort('lineProperties')
+            if lines is not None:
+                properties.update_props(lines)
 
 class MplLegend(MplPlot):
     """call signature:
@@ -3932,47 +4759,47 @@ Also see :ref:`plotting-guide-legend`.
     """
     _input_ports = [
               ("loc", "basic:String",
-                {'entry_types': "['enum']", 'values': "[['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']]", 'optional': True}),
+               {'entry_types': "['enum']", 'values': "[['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']]", 'optional': True}),
               ("fancybox", "basic:Boolean",
-                {'optional': True, 'docstring': 'if True, draw a frame with a round fancybox.  If None, use rc'}),
+               {'optional': True, 'docstring': 'if True, draw a frame with a round fancybox.  If None, use rc'}),
               ("bbox_to_anchor", "basic:String",
-                {'optional': True, 'docstring': 'the bbox that the legend will be anchored.'}),
+               {'optional': True, 'docstring': 'the bbox that the legend will be anchored.'}),
               ("title", "basic:String",
-                {'optional': True, 'docstring': 'the legend title'}),
+               {'optional': True, 'docstring': 'the legend title'}),
               ("handlelength", "basic:String",
-                {'optional': True, 'docstring': 'the length of the legend handles'}),
+               {'optional': True, 'docstring': 'the length of the legend handles'}),
               ("markerscale", "basic:Float",
-                {'optional': True, 'docstring': 'The relative size of legend markers vs. original. If None, use rc settings.'}),
+               {'optional': True, 'docstring': 'The relative size of legend markers vs. original. If None, use rc settings.'}),
               ("numpoints", "basic:Integer",
-                {'optional': True, 'docstring': 'The number of points in the legend for line'}),
+               {'optional': True, 'docstring': 'The number of points in the legend for line'}),
               ("labelspacing", "basic:String",
-                {'optional': True, 'docstring': 'the vertical space between the legend entries'}),
+               {'optional': True, 'docstring': 'the vertical space between the legend entries'}),
               ("scatterpoints", "basic:Integer",
-                {'optional': True, 'docstring': 'The number of points in the legend for scatter plot'}),
+               {'optional': True, 'docstring': 'The number of points in the legend for scatter plot'}),
               ("frameon", "basic:Boolean",
-                {'optional': True, 'docstring': "if True, draw a frame around the legend. The default is set by the rcParam 'legend.frameon'"}),
+               {'optional': True, 'docstring': "if True, draw a frame around the legend. The default is set by the rcParam 'legend.frameon'"}),
               ("columnspacing", "basic:String",
-                {'optional': True, 'docstring': 'the spacing between columns'}),
+               {'optional': True, 'docstring': 'the spacing between columns'}),
               ("handletextpad", "basic:String",
-                {'optional': True, 'docstring': 'the pad between the legend handle and text'}),
+               {'optional': True, 'docstring': 'the pad between the legend handle and text'}),
               ("scatteroffsetsSequence", "basic:List",
-                {'optional': True, 'docstring': 'a list of yoffsets for scatter symbols in legend'}),
+               {'optional': True, 'docstring': 'a list of yoffsets for scatter symbols in legend'}),
               ("scatteroffsetsScalar", "basic:Float",
                {'docstring': 'a list of yoffsets for scatter symbols in legend', 'optional': True}),
               ("mode", "basic:String",
-                {'optional': True, 'docstring': 'if mode is "expand", the legend will be horizontally expanded to fill the axes area (or bbox_to_anchor)'}),
+               {'optional': True, 'docstring': 'if mode is "expand", the legend will be horizontally expanded to fill the axes area (or bbox_to_anchor)'}),
               ("ncol", "basic:Integer",
-                {'optional': True, 'docstring': 'number of columns. default is 1', 'defaults': "['1']"}),
+               {'optional': True, 'docstring': 'number of columns. default is 1', 'defaults': "['1']"}),
               ("shadow", "basic:Boolean",
-                {'optional': True, 'docstring': 'If True, draw a shadow behind legend. If None, use rc settings.'}),
+               {'optional': True, 'docstring': 'If True, draw a shadow behind legend. If None, use rc settings.'}),
               ("prop", "basic:String",
-                {'optional': True, 'docstring': 'A :class:`matplotlib.font_manager.FontProperties` instance. If prop is a dictionary, a new instance will be created with prop. If None, use rc settings.'}),
+               {'optional': True, 'docstring': 'A :class:`matplotlib.font_manager.FontProperties` instance. If prop is a dictionary, a new instance will be created with prop. If None, use rc settings.'}),
               ("borderpad", "basic:String",
-                {'optional': True, 'docstring': 'the fractional whitespace inside the legend border'}),
+               {'optional': True, 'docstring': 'the fractional whitespace inside the legend border'}),
               ("bbox_transform", "basic:String",
-                {'optional': True, 'docstring': 'the transform for the bbox. transAxes if None.'}),
+               {'optional': True, 'docstring': 'the transform for the bbox. transAxes if None.'}),
               ("borderaxespad", "basic:String",
-                {'optional': True, 'docstring': 'the pad between the axes and legend border'}),
+               {'optional': True, 'docstring': 'the pad between the axes and legend border'}),
         ]
 
     _output_ports = [
@@ -3983,52 +4810,75 @@ Also see :ref:`plotting-guide-legend`.
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('loc'):
-            kwargs['loc'] = self.getInputFromPort('loc')
-            kwargs['loc'] = translate_MplLegend_loc(kwargs['loc'])
+            val = self.getInputFromPort('loc')
+            val = translate_MplLegend_loc(val)
+            kwargs['loc'] = val
         if self.hasInputFromPort('fancybox'):
-            kwargs['fancybox'] = self.getInputFromPort('fancybox')
+            val = self.getInputFromPort('fancybox')
+            kwargs['fancybox'] = val
         if self.hasInputFromPort('bbox_to_anchor'):
-            kwargs['bbox_to_anchor'] = self.getInputFromPort('bbox_to_anchor')
+            val = self.getInputFromPort('bbox_to_anchor')
+            kwargs['bbox_to_anchor'] = val
         if self.hasInputFromPort('title'):
-            kwargs['title'] = self.getInputFromPort('title')
+            val = self.getInputFromPort('title')
+            kwargs['title'] = val
         if self.hasInputFromPort('handlelength'):
-            kwargs['handlelength'] = self.getInputFromPort('handlelength')
+            val = self.getInputFromPort('handlelength')
+            kwargs['handlelength'] = val
         if self.hasInputFromPort('markerscale'):
-            kwargs['markerscale'] = self.getInputFromPort('markerscale')
+            val = self.getInputFromPort('markerscale')
+            kwargs['markerscale'] = val
         if self.hasInputFromPort('numpoints'):
-            kwargs['numpoints'] = self.getInputFromPort('numpoints')
+            val = self.getInputFromPort('numpoints')
+            kwargs['numpoints'] = val
         if self.hasInputFromPort('labelspacing'):
-            kwargs['labelspacing'] = self.getInputFromPort('labelspacing')
+            val = self.getInputFromPort('labelspacing')
+            kwargs['labelspacing'] = val
         if self.hasInputFromPort('scatterpoints'):
-            kwargs['scatterpoints'] = self.getInputFromPort('scatterpoints')
+            val = self.getInputFromPort('scatterpoints')
+            kwargs['scatterpoints'] = val
         if self.hasInputFromPort('frameon'):
-            kwargs['frameon'] = self.getInputFromPort('frameon')
+            val = self.getInputFromPort('frameon')
+            kwargs['frameon'] = val
         if self.hasInputFromPort('columnspacing'):
-            kwargs['columnspacing'] = self.getInputFromPort('columnspacing')
+            val = self.getInputFromPort('columnspacing')
+            kwargs['columnspacing'] = val
         if self.hasInputFromPort('handletextpad'):
-            kwargs['handletextpad'] = self.getInputFromPort('handletextpad')
+            val = self.getInputFromPort('handletextpad')
+            kwargs['handletextpad'] = val
         if self.hasInputFromPort('scatteroffsetsSequence'):
-            kwargs['scatteroffsets'] = self.getInputFromPort('scatteroffsetsSequence')
+            val = self.getInputFromPort('scatteroffsetsSequence')
+            kwargs['scatteroffsets'] = val
         elif self.hasInputFromPort('scatteroffsetsScalar'):
-            kwargs['scatteroffsets'] = self.getInputFromPort('scatteroffsetsScalar')
+            val = self.getInputFromPort('scatteroffsetsScalar')
+            kwargs['scatteroffsets'] = val
         if self.hasInputFromPort('mode'):
-            kwargs['mode'] = self.getInputFromPort('mode')
+            val = self.getInputFromPort('mode')
+            kwargs['mode'] = val
         if self.hasInputFromPort('ncol'):
-            kwargs['ncol'] = self.getInputFromPort('ncol')
+            val = self.getInputFromPort('ncol')
+            kwargs['ncol'] = val
         if self.hasInputFromPort('shadow'):
-            kwargs['shadow'] = self.getInputFromPort('shadow')
+            val = self.getInputFromPort('shadow')
+            kwargs['shadow'] = val
         if self.hasInputFromPort('prop'):
-            kwargs['prop'] = self.getInputFromPort('prop')
+            val = self.getInputFromPort('prop')
+            kwargs['prop'] = val
         if self.hasInputFromPort('borderpad'):
-            kwargs['borderpad'] = self.getInputFromPort('borderpad')
+            val = self.getInputFromPort('borderpad')
+            kwargs['borderpad'] = val
         if self.hasInputFromPort('bbox_transform'):
-            kwargs['bbox_transform'] = self.getInputFromPort('bbox_transform')
+            val = self.getInputFromPort('bbox_transform')
+            kwargs['bbox_transform'] = val
         if self.hasInputFromPort('borderaxespad'):
-            kwargs['borderaxespad'] = self.getInputFromPort('borderaxespad')
-        # self.get_fig()
-        matplotlib.pyplot.legend(**kwargs)        
+            val = self.getInputFromPort('borderaxespad')
+            kwargs['borderaxespad'] = val
+
+        matplotlib.pyplot.legend(*args, **kwargs)        
 
 class MplAnnotate(MplPlot):
     """call signature:
@@ -4061,21 +4911,21 @@ Additional kwargs are Text properties:
     """
     _input_ports = [
               ("xycoords", "basic:String",
-                {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True}),
+               {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True}),
               ("xytext", "basic:Float, basic:Float",
-                {'optional': True}),
+               {'optional': True}),
               ("s", "basic:String",
-                {}),
+               {}),
               ("xy", "basic:Float, basic:Float",
-                {}),
+               {}),
               ("textcoords", "basic:String",
-                {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True}),
+               {'entry_types': "['enum']", 'values': "[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]", 'optional': True}),
               ("fancyArrowProperties", "MplFancyArrowPatchProperties",
-                {'optional': True}),
+               {'optional': True}),
               ("arrowProperties", "MplYAArrowProperties",
-                {'optional': True}),
+               {'optional': True}),
               ("annotationProperties", "MplAnnotationProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -4086,26 +4936,34 @@ Additional kwargs are Text properties:
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+
+        kwargs = {}
         if self.hasInputFromPort('xycoords'):
-            kwargs['xycoords'] = self.getInputFromPort('xycoords')
+            val = self.getInputFromPort('xycoords')
+            kwargs['xycoords'] = val
         if self.hasInputFromPort('xytext'):
-            kwargs['xytext'] = self.getInputFromPort('xytext')
-        kwargs['s'] = self.getInputFromPort('s')
-        kwargs['xy'] = self.getInputFromPort('xy')
+            val = self.getInputFromPort('xytext')
+            kwargs['xytext'] = val
+        val = self.getInputFromPort('s')
+        kwargs['s'] = val
+        val = self.getInputFromPort('xy')
+        kwargs['xy'] = val
         if self.hasInputFromPort('textcoords'):
-            kwargs['textcoords'] = self.getInputFromPort('textcoords')
-        # self.get_fig()
+            val = self.getInputFromPort('textcoords')
+            kwargs['textcoords'] = val
+
         if self.hasInputFromPort("fancyArrowProperties"):
             kwargs['arrowprops'] = \
                 self.getInputFromPort("fancyArrowProperties").props
         elif self.hasInputFromPort("arrowProperties"):
             kwargs['arrowprops'] = \
                 self.getInputFromPort("arrowProperties").props
-        annotation = matplotlib.pyplot.annotate(**kwargs)
+        annotation = matplotlib.pyplot.annotate(*args, **kwargs)
         if self.hasInputFromPort('annotationProperties'):
             properties = self.getInputFromPort('annotationProperties')
-            properties.update_props(annotation)
+            if annotation is not None:
+                properties.update_props(annotation)
 
 class MplLinePlot(MplPlot):
     """Plot lines and/or markers to the :class:`~matplotlib.axes.Axes`.  args is a variable length argument, allowing for multiple x, y pairs with an optional format string.  For example, each of the following is legal:
@@ -4152,13 +5010,13 @@ Additional kwargs: hold = [True|False] overrides default hold state
     """
     _input_ports = [
               ("marker", "basic:String",
-                {'entry_types': "['enum']", 'values': "[['solid line style', 'dashed line style', 'dash-dot line style', 'dotted line style', 'point marker', 'pixel marker', 'circle marker', 'triangle_down marker', 'triangle_up marker', 'triangle_left marker', 'triangle_right marker', 'tri_down marker', 'tri_up marker', 'tri_left marker', 'tri_right marker', 'square marker', 'pentagon marker', 'star marker', 'hexagon1 marker', 'hexagon2 marker', 'plus marker', 'x marker', 'diamond marker', 'thin_diamond marker', 'vline marker', 'hline marker']]", 'optional': True}),
+               {'entry_types': "['enum']", 'values': "[['solid line style', 'dashed line style', 'dash-dot line style', 'dotted line style', 'point marker', 'pixel marker', 'circle marker', 'triangle_down marker', 'triangle_up marker', 'triangle_left marker', 'triangle_right marker', 'tri_down marker', 'tri_up marker', 'tri_left marker', 'tri_right marker', 'square marker', 'pentagon marker', 'star marker', 'hexagon1 marker', 'hexagon2 marker', 'plus marker', 'x marker', 'diamond marker', 'thin_diamond marker', 'vline marker', 'hline marker']]", 'optional': True}),
               ("y", "basic:List",
-                {}),
+               {}),
               ("x", "basic:List",
-                {}),
+               {}),
               ("lineProperties", "MplLine2DProperties",
-                {}),
+               {}),
         ]
 
     _output_ports = [
@@ -4169,21 +5027,23 @@ Additional kwargs: hold = [True|False] overrides default hold state
     def compute(self):
         # get args into args, kwargs
         # write out translations
-        kwargs = {}            
+        args = []
+        val = self.getInputFromPort('x')
+        args.append(val)
+        val = self.getInputFromPort('y')
+        args.append(val)
+
+        kwargs = {}
         if self.hasInputFromPort('marker'):
-            kwargs['marker'] = self.getInputFromPort('marker')
-            kwargs['marker'] = translate_MplLinePlot_marker(kwargs['marker'])
-        kwargs['y'] = self.getInputFromPort('y')
-        kwargs['x'] = self.getInputFromPort('x')
-        # self.get_fig()
-        x = kwargs["x"]
-        y = kwargs["y"]
-        del kwargs["x"]
-        del kwargs["y"]
-        lines = matplotlib.pyplot.plot(x, y, **kwargs)
+            val = self.getInputFromPort('marker')
+            val = translate_MplLinePlot_marker(val)
+            kwargs['marker'] = val
+
+        lines = matplotlib.pyplot.plot(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
             properties = self.getInputFromPort('lineProperties')
-            properties.update_props(lines)
+            if lines is not None:
+                properties.update_props(lines)
 
           
 _modules = [
@@ -4195,7 +5055,7 @@ _modules = [
             MplAxvspan,
             MplBar,
             MplBarh,
-            MplBroken_barh,
+            MplBrokenBarh,
             MplBoxplot,
             MplCohere,
             MplClabel,
@@ -4204,18 +5064,17 @@ _modules = [
             MplCsd,
             MplErrorbar,
             MplFill,
-            MplFill_between,
-            MplFill_betweenx,
+            MplFillBetween,
+            MplFillBetweenx,
             MplHexbin,
             MplHist,
-            MplHist2d,
             MplHlines,
             MplImshow,
             MplLoglog,
             MplPcolor,
             MplPcolormesh,
             MplPie,
-            MplPlot_date,
+            MplPlotDate,
             MplPsd,
             MplQuiver,
             MplQuiverkey,
@@ -4223,10 +5082,8 @@ _modules = [
             MplSemilogx,
             MplSemilogy,
             MplSpecgram,
-            MplStackplot,
             MplStem,
             MplStep,
-            MplStreamplot,
             MplTricontour,
             MplTricontourf,
             MplTripcolor,

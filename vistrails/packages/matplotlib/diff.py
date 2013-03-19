@@ -1,6 +1,6 @@
 import re
 from xml.etree import ElementTree as ET
-from specs import SpecList, ModuleSpec, PortSpec, OutputPortSpec, \
+from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
 def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier, 
@@ -59,7 +59,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
         if qualifier == "output":
             attr_list = OutputPortSpec.attrs
         elif qualifier == "input":
-            attr_list = PortSpec.attrs
+            attr_list = InputPortSpec.attrs
         elif qualifier == "alternate":
             attr_list = AlternatePortSpec.attrs
         else:
@@ -262,7 +262,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
                         value = subchild
             if port:
                 if port_type == "input":
-                    m_spec.port_specs.append(PortSpec.from_xml(value))
+                    m_spec.port_specs.append(InputPortSpec.from_xml(value))
                 elif port_type == "output":
                     # print "VALUE:", ET.tostring(value)
                     m_spec.output_port_specs.append(
@@ -281,6 +281,9 @@ def apply_diff(in_fname, diff_fname, out_fname):
                 if child.tag == 'value':
                     value = child.text
             if port:
+                # KLUDGE to fix change from output_type to port_type
+                if attr == "output_type":
+                    attr = "port_type"
                 if port_type == "input":
                     port_spec = in_ips_refs[(code_ref, port)][1]
                     setattr(port_spec, attr, value)
