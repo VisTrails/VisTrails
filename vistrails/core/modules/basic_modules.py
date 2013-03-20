@@ -761,6 +761,10 @@ class ConcatenateString(Module):
 class List(Constant):
     default_value = []
 
+    def __init__(self):
+        Constant.__init__(self)
+        self.input_ports_order = []
+
     @staticmethod
     def validate(x):
         return isinstance(x, list)
@@ -770,22 +774,28 @@ class List(Constant):
         return eval(v)
 
     def compute(self):
-        if (not self.hasInputFromPort("value") and
-            not self.hasInputFromPort("tail") and
-            not self.hasInputFromPort("head")):
-            # fail at getting the value port
-            self.getInputFromPort("value")
+        head, middle, items, tail = [], [], [], []
+        got_value = False
 
-        head, middle, tail = [], [], []
-        if self.hasInputFromPort("value"):
+        if self.hasInputFromPort('value'):
             # run the regular compute here
             Constant.compute(self)
             middle = self.outputPorts['value']
-        if self.hasInputFromPort("head"):
-            head = self.getInputListFromPort("head")
-        if self.hasInputFromPort("tail"):
-            tail = self.getInputFromPort("tail")
-        self.setResult("value", head + middle + tail)
+            got_value = True
+        if self.hasInputFromPort('head'):
+            head = self.getInputListFromPort('head')
+            got_value = True
+        if self.input_ports_order:
+            items = [self.getInputFromPort(p)
+                     for p in self.input_ports_order]
+            got_value = True
+        if self.hasInputFromPort('tail'):
+            tail = self.getInputFromPort('tail')
+            got_value = True
+
+        if not got_value:
+            self.getInputFromPort('value')
+        self.setResult('value', head + middle + items + tail)
 
 List._input_ports = [('value', List)]
 List._output_ports = [('value', List)]
@@ -1046,7 +1056,9 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
 
-    reg.add_module(List)
+    reg.add_module(List,
+                   configureWidgetType=("gui.modules.list_configuration",
+                                        "ListConfigurationWidget"))
     reg.add_input_port(List, "head", Module)
     reg.add_input_port(List, "tail", List)
 
