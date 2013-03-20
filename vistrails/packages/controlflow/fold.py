@@ -129,7 +129,7 @@ class Fold(Module, NotCacheable):
                 if nameOutput not in module.outputPorts:
                     raise ModuleError(module,
                                       'Invalid output port: %s' % nameOutput)
-                self.elementResult = module.get_output(nameOutput)
+                self.elementResult = copy.copy(module.get_output(nameOutput))
             self.operation()
         if suspended:
             self.suspended = "%d module(s) suspended: %s" % (
