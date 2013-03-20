@@ -758,31 +758,37 @@ class ConcatenateString(Module):
 ##############################################################################
 # List
 
-def list_conv(v):
-    v_list = eval(v)
-    return v_list
+class List(Constant):
+    default_value = []
 
-def list_compute(self):
-    if (not self.hasInputFromPort("value") and 
-        not self.hasInputFromPort("tail") and
-        not self.hasInputFromPort("head")):
-        # fail at getting the value port
-        self.getInputFromPort("value")
-            
-    head, middle, tail = [], [], []
-    if self.hasInputFromPort("value"):
-        # run the regular compute here
-        Constant.compute(self)
-        middle = self.outputPorts['value']
-    if self.hasInputFromPort("head"):
-        head = self.getInputListFromPort("head")
-    if self.hasInputFromPort("tail"):
-        tail = self.getInputFromPort("tail")
-    self.setResult("value", head + middle + tail)
+    @staticmethod
+    def validate(x):
+        return isinstance(x, list)
 
-List = new_constant('List' , staticmethod(list_conv),
-                    [], staticmethod(lambda x: type(x) == list),
-                    compute=list_compute)
+    @staticmethod
+    def translate_to_python(v):
+        return eval(v)
+
+    def compute(self):
+        if (not self.hasInputFromPort("value") and
+            not self.hasInputFromPort("tail") and
+            not self.hasInputFromPort("head")):
+            # fail at getting the value port
+            self.getInputFromPort("value")
+
+        head, middle, tail = [], [], []
+        if self.hasInputFromPort("value"):
+            # run the regular compute here
+            Constant.compute(self)
+            middle = self.outputPorts['value']
+        if self.hasInputFromPort("head"):
+            head = self.getInputListFromPort("head")
+        if self.hasInputFromPort("tail"):
+            tail = self.getInputFromPort("tail")
+        self.setResult("value", head + middle + tail)
+
+List._input_ports = [('value', List)]
+List._output_ports = [('value', List)]
 
 ##############################################################################
 # Dictionary
