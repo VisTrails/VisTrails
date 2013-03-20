@@ -775,7 +775,7 @@ def list_compute(self):
         Constant.compute(self)
         middle = self.outputPorts['value']
     if self.hasInputFromPort("head"):
-        head = [self.getInputFromPort("head")]
+        head = self.getInputListFromPort("head")
     if self.hasInputFromPort("tail"):
         tail = self.getInputFromPort("tail")
     self.setResult("value", head + middle + tail)
