@@ -869,7 +869,7 @@ class PythonSource(NotCacheable, Module):
         exec code_str in locals_, locals_
         if use_output:
             for k in outputDict.iterkeys():
-                if locals_[k] != None:
+                if locals_.get(k) != None:
                     self.setResult(k, locals_[k])
 
     def compute(self):
@@ -927,7 +927,7 @@ class SmartSource(NotCacheable, Module):
         if use_output:
             oports = self.registry.get_descriptor(SmartSource).output_ports
             for k in outputDict.iterkeys():
-                if locals_[k] != None:
+                if locals_.get(k) != None:
                     v = locals_[k]
                     spec = oports.get(k, None)
                     
