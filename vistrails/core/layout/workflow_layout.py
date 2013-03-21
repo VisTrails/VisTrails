@@ -106,8 +106,8 @@ class Pipeline(object):
         self.modules     = []
         self.connections = []
 
-    def createModule(self, shortname, name, num_input_ports, num_output_ports):
-        mod = Module(self, len(self.modules), shortname, name, num_input_ports, num_output_ports)
+    def createModule(self, shortname, name, num_input_ports, num_output_ports, prev_x=None):
+        mod = Module(self, len(self.modules), shortname, name, num_input_ports, num_output_ports, prev_x)
         self.modules.append(mod)
         return mod
 
@@ -131,7 +131,7 @@ class Pipeline(object):
 
 class Module(object):
 
-    def __init__(self, workflow, key, shortname, name, num_input_ports, num_output_ports):
+    def __init__(self, workflow, key, shortname, name, num_input_ports, num_output_ports, prev_x=None):
 
         self.workflow     = workflow
         self.key          = key
@@ -161,6 +161,8 @@ class Module(object):
 
         self.layout_pos          = Vec2(0,0)
         self.layout_dim          = Vec2(1,1)
+        
+        self.prev_x = prev_x
 
     def clearFlags(self):
         self.flags = 0
@@ -505,7 +507,7 @@ class WorkflowLayout(object):
             # print "layer of %s = %d" % (module.shortname, module.layout_layer_number)
 
 
-    def assign_module_permutation_to_each_layer(self):
+    def assign_module_permutation_to_each_layer(self, preserve_order=False):
         wf = self.wf
 
         # create layers
@@ -624,8 +626,26 @@ class WorkflowLayout(object):
 
             # break
             break
-
-
+        
+        if preserve_order:
+            for layer in layers.layers:
+                #separate modules that have no previous x value
+                temp = []
+                for i in reversed(range(len(layer.modules))):
+                    if module.prev_x is None:
+                        temp.append((i,layer.modules.pop(i)))
+                
+                #sort on previous x
+                layer.modules.sort(key=lambda x: x.prev_x)
+                
+                #put modules back in their original slot
+                for item in reversed(temp):
+                    layer.modules.insert(item[0],item[1])
+                    
+                #reassign index
+                for i, module in enumerate(layer.modules):
+                    module.layout_layer_index = i
+            
 
     #
     # this method is "friend" of the classes above in the C++ sense:
@@ -714,6 +734,10 @@ class WorkflowLayout(object):
 
         page = Page(page_x0, page_y0, page_width, page_height)
 
-        # print page
-
         return page
+
+    def run_all(self, layer_x_separation=50, layer_y_separation=50, preserve_order=False):
+        self.compute_module_sizes()
+        self.assign_modules_to_layers()
+        self.assign_module_permutation_to_each_layer(preserve_order)
+        self.compute_layout(layer_x_separation, layer_y_separation)

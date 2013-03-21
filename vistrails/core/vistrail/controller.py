@@ -47,6 +47,8 @@ import core.db.locator
 from core import debug
 from core.data_structures.graph import Graph
 from core.interpreter.default import get_default_interpreter
+from core.layout.workflow_layout import WorkflowLayout, \
+    Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from core.log.controller import LogControllerFactory, DummyLogController
 from core.log.log import Log
 from core.modules.abstraction import identifier as abstraction_pkg, \
@@ -80,6 +82,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import Vistrail
+from core.theme import DefaultCoreTheme
 from db import VistrailsDBException
 from db.domain import IdScope, DBWorkflowExec
 from db.services.io import create_temp_folder, remove_temp_folder
@@ -168,6 +171,9 @@ class VistrailController(object):
 
         # this is a reference to the current parameter exploration
         self.current_parameter_exploration = None
+        
+        # theme used to estimate module size for layout
+        self.layoutTheme = DefaultCoreTheme()
         
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
@@ -964,16 +970,15 @@ class VistrailController(object):
         action = self.create_module_list_deletion_action(self.current_pipeline,
                                                          module_ids)
         return action
-
-    def move_module_list(self, move_list):
-        """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
-        Move all modules to a new location. No flushMoveActions is
-        allowed to to emit to avoid recursive actions
+    
+    def move_module_obj_ops(self, move_obj_list):
+        """ move_module_list(move_list: [(module,x,y)]) -> [operations]        
+        Returns the operations that will move each module to its 
+        specified location. Takes module objects instead of ids.
         
         """
-        action_list = []
-        for (id, x, y) in move_list:
-            module = self.current_pipeline.get_module_by_id(id)
+        operations = []
+        for (module, x, y) in move_obj_list:
             loc_id = self.vistrail.idScope.getNewId(Location.vtType)
             location = Location(id=loc_id,
                                 x=x, 
@@ -981,11 +986,30 @@ class VistrailController(object):
                                 )
             if module.location and module.location.id != -1:
                 old_location = module.location
-                action_list.append(('change', old_location, location,
+                operations.append(('change', old_location, location,
                                     module.vtType, module.id))
             else:
-                # probably should be an error
-                action_list.append(('add', location, module.vtType, module.id))
+                print 'we"re adding to module id: %d' % module.id
+                operations.append(('add', location, module.vtType, module.id))
+        return operations
+    
+    def move_modules_ops(self, move_list):
+        """ move_module_list(move_list: [(id,x,y)]) -> [operations]        
+        Returns the operations that will move each module to its 
+        specified location
+        
+        """
+        get_module = self.current_pipeline.get_module_by_id
+        move_obj_list = [(get_module(id),x,y) for (id,x,y) in move_list]
+        return self.move_module_obj_ops(move_obj_list)
+
+    def move_module_list(self, move_list):
+        """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
+        Move all modules to a new location. No flushMoveActions is
+        allowed to to emit to avoid recursive actions
+        
+        """
+        action_list = self.move_modules_ops(move_list)
         action = core.db.action.create_action(action_list)
         self.add_new_action(action)
         return self.perform_action(action)
@@ -3531,3 +3555,132 @@ class VistrailController(object):
 
     def can_undo(self):
         return self.current_version > 0
+
+    def layout_modules(self, old_modules=[], preserve_order=False, 
+               new_modules=[], new_connections=[], module_size_func=None):
+        """Lays out modules and returns the new version.
+        
+        If old_modules are not specified, all modules in current pipeline are used.
+        If preserve_order is True, modules in each row will be ordered based on
+            their current x value
+        new_modules ignore preserve_order, and don't need exist yet in the pipeline
+        new_connections associated with new_modules
+        module_size_func is used to determine size of a module. It takes a
+        core.layout.workflow_layout.Module object and returns a (width, height)
+        tuple.
+        """
+        
+        action_list = self.layout_modules_ops(old_modules, preserve_order, 
+                                      new_modules, new_connections, module_size_func)
+        action = core.db.action.create_action(action_list)
+        self.add_new_action(action)
+        version = self.perform_action(action)
+        self.change_selected_version(version)
+        return version
+
+    def layout_modules_ops(self, old_modules=[], preserve_order=False, 
+               new_modules=[], new_connections=[], module_size_func=None):
+        """Returns operations needed to layout the modules.
+        
+        If old_modules are not specified, all modules in current pipeline are used.
+        If preserve_order is True, modules in each row will be ordered based on
+            their current x value
+        new_modules ignore preserve_order, and don't need exist yet in the pipeline
+        new_connections associated with new_modules
+        module_size_func is used to determine size of a module. It takes a
+        core.layout.workflow_layout.Module object and returns a (width, height)
+        tuple.
+        """
+        
+        def get_visible_port_names(port_list, visible_ports):
+            output_list = []
+            visible_list = []
+            for i,p in enumerate(port_list):
+                if not p.optional:
+                    output_list.append(p.name)
+                elif p.name in visible_ports:
+                    visible_list.append(p.name)
+            output_list.extend(visible_list)
+            return output_list
+        
+        if not old_modules or len(old_modules) == 0:
+            old_modules = self.current_pipeline.modules.values()
+        
+        if len(old_modules) <= 0:
+            return []
+        
+        #create layout objects
+        layoutPipeline = LayoutPipeline()
+
+        module_info = {} # {id: (module, layoutModule, in_port_names=[], out_port_names=[])}
+        
+        #add modules to layout, and find their visible ports
+        def _add_layout_module(module, prev_x):
+            in_ports = get_visible_port_names(module.destinationPorts(), 
+                                         module.visible_input_ports)
+            out_ports = get_visible_port_names(module.sourcePorts(),
+                                          module.visible_output_ports)
+            
+            layoutModule = layoutPipeline.createModule(module.id, 
+                                        module.name,
+                                        len(in_ports),
+                                        len(out_ports),
+                                        prev_x)
+            
+            module_info[module.id] = (module, layoutModule, in_ports, out_ports)
+        
+        for module in old_modules:
+            _add_layout_module(module, module.location.x)
+            
+        for module in new_modules:
+            _add_layout_module(module, None)
+        
+        #add connections to layout
+        old_ids = [module.id for module in old_modules]
+        old_conns = self.get_connections_to(self.current_pipeline, old_ids)
+        for conn in old_conns + new_connections:
+            if conn.source.moduleId in module_info:
+                layoutPipeline.createConnection(
+                        module_info[conn.source.moduleId][1],
+                        module_info[conn.source.moduleId][3].index(conn.source.name),
+                        module_info[conn.destination.moduleId][1],
+                        module_info[conn.destination.moduleId][2].index(conn.destination.name))
+            
+        #set default module size function if needed
+        paddedPortWidth = self.layoutTheme.PORT_WIDTH + self.layoutTheme.MODULE_PORT_SPACE
+        def estimate_module_size(module):
+            width = max(len(module.name)*4 + self.layoutTheme.MODULE_LABEL_MARGIN[0] + self.layoutTheme.MODULE_LABEL_MARGIN[1],
+                        len(module_info[module.shortname][2]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE,
+                        len(module_info[module.shortname][3]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE)
+            height = LayoutDefaults.u * 5 #todo, fix these sizes
+            return (width, height)
+        if module_size_func is None:
+            module_size_func = estimate_module_size
+            
+        workflowLayout = WorkflowLayout(layoutPipeline,
+                                        module_size_func,
+                                        self.layoutTheme.MODULE_PORT_MARGIN, 
+                                        (self.layoutTheme.PORT_WIDTH, self.layoutTheme.PORT_HEIGHT), 
+                                        self.layoutTheme.MODULE_PORT_SPACE)
+    
+        #do layout with layer x and y separation of 50
+        workflowLayout.run_all(50,50,preserve_order)
+                
+        #maintain center
+        center_x, center_y = self.get_avg_location([item[0] for item in module_info.values()])
+        new_center_x = sum([m.layout_pos.x for m in layoutPipeline.modules]) / len(layoutPipeline.modules)
+        new_center_y = -sum([m.layout_pos.y for m in layoutPipeline.modules]) / len(layoutPipeline.modules)
+        offset_x = center_x - new_center_x
+        offset_y = center_y - new_center_y
+        
+        #generate module move list
+        moves = []
+        for (module, layoutModule, _, _) in module_info.values():
+            moves.append((module, 
+                          layoutModule.layout_pos.x+offset_x, 
+                          -layoutModule.layout_pos.y+offset_y))
+            
+        #return module move operations
+        return self.move_module_obj_ops(moves)
+        
+            
