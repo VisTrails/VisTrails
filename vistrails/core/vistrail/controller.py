@@ -971,37 +971,28 @@ class VistrailController(object):
                                                          module_ids)
         return action
     
-    def move_module_obj_ops(self, move_obj_list):
-        """ move_module_list(move_list: [(module,x,y)]) -> [operations]        
-        Returns the operations that will move each module to its 
-        specified location. Takes module objects instead of ids.
-        
-        """
-        operations = []
-        for (module, x, y) in move_obj_list:
-            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-            location = Location(id=loc_id,
-                                x=x, 
-                                y=y,
-                                )
-            if module.location and module.location.id != -1:
-                old_location = module.location
-                operations.append(('change', old_location, location,
-                                    module.vtType, module.id))
-            else:
-                print 'we"re adding to module id: %d' % module.id
-                operations.append(('add', location, module.vtType, module.id))
-        return operations
-    
     def move_modules_ops(self, move_list):
         """ move_module_list(move_list: [(id,x,y)]) -> [operations]        
         Returns the operations that will move each module to its 
         specified location
         
         """
-        get_module = self.current_pipeline.get_module_by_id
-        move_obj_list = [(get_module(id),x,y) for (id,x,y) in move_list]
-        return self.move_module_obj_ops(move_obj_list)
+        operations = []
+        for (id, x, y) in move_list:
+            module = self.current_pipeline.get_module_by_id(id)
+            if module.location:
+                if module.location.x == x and module.location.y == y:
+                    continue
+            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+            location = Location(id=loc_id, x=x, y=y)
+            if module.location and module.location.id != -1:
+                old_location = module.location
+                operations.append(('change', old_location, location,
+                                    module.vtType, module.id))
+            else:
+                #should probably be an error
+                operations.append(('add', location, module.vtType, module.id))
+        return operations
 
     def move_module_list(self, move_list):
         """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
@@ -3572,11 +3563,13 @@ class VistrailController(object):
         
         action_list = self.layout_modules_ops(old_modules, preserve_order, 
                                       new_modules, new_connections, module_size_func)
-        action = core.db.action.create_action(action_list)
-        self.add_new_action(action)
-        version = self.perform_action(action)
-        self.change_selected_version(version)
-        return version
+        if(len(action_list) > 0):
+            action = core.db.action.create_action(action_list)
+            self.add_new_action(action)
+            version = self.perform_action(action)
+            self.change_selected_version(version)
+            return version
+        return self.current_version
 
     def layout_modules_ops(self, old_modules=[], preserve_order=False, 
                new_modules=[], new_connections=[], module_size_func=None):
@@ -3605,7 +3598,7 @@ class VistrailController(object):
         
         if not old_modules or len(old_modules) == 0:
             old_modules = self.current_pipeline.modules.values()
-        
+
         if len(old_modules) <= 0:
             return []
         
@@ -3676,11 +3669,16 @@ class VistrailController(object):
         #generate module move list
         moves = []
         for (module, layoutModule, _, _) in module_info.values():
-            moves.append((module, 
-                          layoutModule.layout_pos.x+offset_x, 
-                          -layoutModule.layout_pos.y+offset_y))
-            
+            new_x = layoutModule.layout_pos.x+offset_x
+            new_y = -layoutModule.layout_pos.y+offset_y
+            if module.id in self.current_pipeline.modules:
+                moves.append((module.id, new_x, new_y))
+            else:
+                #module doesn't exist in pipeline yet, just change x,y
+                module.location.x = new_x
+                module.location.y = new_y
+                
         #return module move operations
-        return self.move_module_obj_ops(moves)
+        return self.move_modules_ops(moves)
         
             

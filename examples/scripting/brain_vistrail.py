@@ -98,5 +98,5 @@ setPortValue(lookup, 'SetHueRange', (0.0,0.8))
 setPortValue(lookup, 'SetSaturationRange', (0.3,0.7))
 
 #write to file
-locator = core.db.locator.FileLocator('brain_script.vt')
+locator = core.db.locator.FileLocator('brain_script2.vt')
 controller.write_vistrail(locator)
