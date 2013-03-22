@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from core.modules.vistrails_module import ModuleError
 from fold import Fold
 
 #################################################################################
