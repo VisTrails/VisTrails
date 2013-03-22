@@ -241,7 +241,7 @@ except ImportError:
 else:
     from PyQt4 import QtGui
 
-    _ = translate('packages.HTTP')
+    _ = translate('packages.pylab')
 
     # Builds a DAT variable from a data file
     def build_variable(filename, dtype):

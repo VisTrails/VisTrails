@@ -32,6 +32,8 @@
 ##
 ###############################################################################
 
+from __future__ import absolute_import # 'import .numpy' is not ambiguous
+
 import copy
 import time
 import urllib
@@ -39,7 +41,8 @@ import urllib
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
-from vistrails.core.modules.basic_modules import File, String, Boolean
+from vistrails.core.modules.basic_modules import Boolean, Color, File, List, \
+    String, Integer, Float
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 
 from vistrails.core.bundles import py_import
@@ -53,18 +56,188 @@ try:
 except Exception, e:
     debug.critical("Exception: %s" % e)
 
-from bases import _modules as _base_modules
-from plots import _modules as _plot_modules
-from artists import _modules as _artist_modules
+from .bases import _modules as _base_modules
+from .plots import _modules as _plot_modules
+from .artists import _modules as _artist_modules
+from .numpy import _modules as _numpy_modules
 
 ################################################################################
 
 #list of modules to be displaced on matplotlib.new package
-_modules = _base_modules + _plot_modules + _artist_modules
+_modules = _base_modules + _plot_modules + _artist_modules + _numpy_modules
 
 def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if reg.has_module('edu.utah.sci.vistrails.spreadsheet',
                       'SpreadsheetCell'):
-        from figure_cell import MplFigureCell
+        from .figure_cell import MplFigureCell
         _modules.append(MplFigureCell)
+
+###############################################################################
+
+# Define DAT plots
+try:
+    from dat.packages import Plot, DataPort, ConstantPort, Variable, \
+        FileVariableLoader, VariableOperation, OperationArgument, \
+        translate, derive_varname
+except ImportError:
+    pass # We are not running DAT; skip plot/variable/operation definition
+else:
+    from PyQt4 import QtGui
+
+    from .numpy import NumPyArray
+
+    _ = translate('packages.matplotlib')
+
+    # Builds a DAT variable from a data file
+    def build_variable(filename, dtype):
+        var = Variable(type=List)
+        # We use the high-level interface to build the variable pipeline
+        mod = var.add_module(NumPyArray)
+        mod.add_function('file', File, filename)
+        mod.add_function('datatype', String, dtype)
+        # We select the 'value' output port of the NumPyArray module as the
+        # port that will be connected to plots when this variable is used
+        var.select_output_port(mod, 'value')
+        return var
+
+    ########################################
+    # Defines plots from subworkflow files
+    #
+    _plots = [
+        Plot(name="Matplotlib bar diagram",
+             subworkflow='{package_dir}/dat-plots/bar.xml',
+             description=_("Build a bar diagram out of two lists"),
+             ports=[
+                 DataPort(name='height', type=List),
+                 DataPort(name='left', type=List),
+                 ConstantPort(name='alpha', type=Float, optional=True),
+                 ConstantPort(name='facecolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib box plot",
+             subworkflow='{package_dir}/dat-plots/boxplot.xml',
+             description=_("Build a box diagram out of a list of values"),
+             ports=[
+                 DataPort(name='values', type=List)]),
+        Plot(name="Matplotlib histogram",
+             subworkflow='{package_dir}/dat-plots/hist.xml',
+             description=_("Build a histogram out of a list"),
+             ports=[
+                 DataPort(name='x', type=List),
+                 ConstantPort(name='bins', type=Integer, optional=True),
+                 ConstantPort(name='alpha', type=Float, optional=True),
+                 ConstantPort(name='facecolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib line plot",
+             subworkflow='{package_dir}/dat-plots/line.xml',
+             description=_("Build a plot out of two lists"),
+             ports=[
+                 DataPort(name='x', type=List),
+                 DataPort(name='y', type=List)]),
+        Plot(name="Matplotlib line + markers plot",
+             subworkflow='{package_dir}/dat-plots/line_markers.xml',
+             description=_("Build a plot out of two lists"),
+             ports=[
+                 DataPort(name='x', type=List),
+                 DataPort(name='y', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='markercolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib pie diagram",
+             subworkflow='{package_dir}/dat-plots/pie.xml',
+             description=_("Build a pie diagram out of a list of values"),
+             ports=[
+                 DataPort(name='x', type=List)]),
+        Plot(name="Matplotlib polar plot",
+             subworkflow='{package_dir}/dat-plots/polar.xml',
+             description=_("Build a plot out of two lists"),
+             ports=[
+                 DataPort(name='r', type=List),
+                 DataPort(name='theta', type=List),
+                 ConstantPort(name='linecolor', type=Color, optional=True)]),
+    ]
+
+    ########################################
+    # Defines a variable loader
+    #
+    class NumPyArrayLoader(FileVariableLoader):
+        """Loads a NumPy array using numpy:fromfile().
+        """
+        FORMATS = [
+                ("%s (%s)" % (_("byte"), 'numpy.int8'),
+                 'int8'),
+                ("%s (%s)" % (_("unsigned byte"), 'numpy.uint8'),
+                 'uint8'),
+                ("%s (%s)" % (_("short"), 'numpy.int16'),
+                 'int16'),
+                ("%s (%s)" % (_("unsigned short"), 'numpy.uint16'),
+                 'uint16'),
+                ("%s (%s)" % (_("32-bit integer"), 'numpy.int32'),
+                 'int32'),
+                ("%s (%s)" % (_("32-bit unsigned integer"), 'numpy.uint32'),
+                 'uint32'),
+                ("%s (%s)" % (_("64-bit integer"), 'numpy.int64'),
+                 'int64'),
+                ("%s (%s)" % (_("64-bit unsigned integer"), 'numpy.uint64'),
+                 'uint64'),
+
+                ("%s (%s)" % (_("32-bit floating number"), 'numpy.float32'),
+                 'float32'),
+                ("%s (%s)" % (_("64-bit floating number"), 'numpy.float64'),
+                 'float64'),
+                ("%s (%s)" % (_("128-bit floating number"), 'numpy.float128'),
+                 'float128'),
+
+                ("%s (%s)" % (_("64-bit complex number"), 'numpy.complex64'),
+                 'complex64'),
+                ("%s (%s)" % (_("128-bit complex number"), 'numpy.complex128'),
+                 'complex128'),
+                ("%s (%s)" % (_("256-bit complex number"), 'numpy.complex256'),
+                 'complex128'),
+        ]
+
+        @classmethod
+        def can_load(cls, filename):
+            return filename.lower().endswith('.dat')
+
+        def __init__(self, filename):
+            FileVariableLoader.__init__(self)
+            self.filename = filename
+            self._varname = derive_varname(filename, remove_ext=True,
+                                          remove_path=True, prefix="nparray_")
+
+            self._format_field = QtGui.QComboBox()
+            for label, dtype in NumPyArrayLoader.FORMATS:
+                self._format_field.addItem(label)
+
+            layout = QtGui.QFormLayout()
+            layout.addRow(_("Data &format:"), self._format_field)
+            self.setLayout(layout)
+
+        def load(self):
+            return build_variable(
+                    self.filename,
+                    NumPyArrayLoader.FORMATS[
+                            self._format_field.currentIndex()][1])
+
+        def get_default_variable_name(self):
+            return self._varname
+
+    _variable_loaders = {
+            NumPyArrayLoader: _("NumPy array"),
+    }
+
+    ########################################
+    # Defines variable operations
+    #
+    _variable_operations = [
+        VariableOperation(
+            '*',
+            subworkflow='{package_dir}/dat-operations/scale_array.xml',
+            args=[
+                OperationArgument('array', NumPyArray),
+                OperationArgument('num', Float),
+            ],
+            return_type=NumPyArray,
+            symmetric=True),
+    ]
