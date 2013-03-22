@@ -50,7 +50,7 @@ def package_dependencies():
         #return deps + ['edu.utah.sci.vistrails.spreadsheet']
         return ['edu.utah.sci.vistrails.spreadsheet']
     else:
-        return deps
+        return []
 
 def package_requirements():
     import core.requirements
