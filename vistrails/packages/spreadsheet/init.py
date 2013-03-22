@@ -36,20 +36,21 @@
 # Spreadsheet Package for VisTrails
 ################################################################################
 from PyQt4 import QtCore, QtGui
-from core import debug
-from core.modules import basic_modules
-from core.modules.module_registry import get_module_registry
-from core.modules.vistrails_module import Module
-from core.system import vistrails_root_directory
+from vistrails.core import debug
+from vistrails.core.modules import basic_modules
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.system import vistrails_root_directory
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_window import SpreadsheetWindow
 import os
 import string
 import sys
+from spreadsheet_config import configuration
+import vistrails.core
 
 # This must be here because of VisTrails protocol
-from spreadsheet_config import configuration
 
 ################################################################################
 
@@ -93,38 +94,32 @@ def importWidgetModules(basicWidgets):
     Find all widget package under ./widgets/* to add to the spreadsheet registry
     
     """
-    packageName = __name__.lower().endswith('.init') and __name__[:-5] or __name__
-    widgetDir = (vistrails_root_directory()+
-                 '/'+string.replace(packageName, '.', '/')+'/widgets/')
+    packageName = __name__.lower().endswith('.init') and \
+        __name__[:-5] or __name__
+    widgetDir = os.path.join(
+        os.path.join(os.path.dirname(vistrails_root_directory()), 
+                     *packageName.split('.')),
+        'widgets')
     candidates = os.listdir(widgetDir)
     for folder in candidates:
-        if os.path.isdir(widgetDir+folder) and folder!='.svn':
-            addWidget(packageName+'.widgets.'+folder)
+        if os.path.isdir(os.path.join(widgetDir, folder)) and folder != '.svn':
+            addWidget('.'.join([packageName, 'widgets', folder]))
 
 def initialize(*args, **keywords):
     """ initialize() -> None
     Package-entry to initialize the package
     
     """
-    import core.application
-    if not core.application.is_running_gui():
+    import vistrails.core.application
+    if not vistrails.core.application.is_running_gui():
         raise Exception, "GUI is not running. The Spreadsheet package requires the GUI"
     
     # initialize widgets
     debug.log('Loading Spreadsheet widgets...')
     global basicWidgets
     if basicWidgets==None:
-        basicWidgets = addWidget('packages.spreadsheet.basic_widgets')
+        basicWidgets = addWidget('vistrails.packages.spreadsheet.basic_widgets')
     importWidgetModules(basicWidgets)
-
-    # Create application if there is no one available
-    global app
-    app = QtCore.QCoreApplication.instance()
-    if app==None:
-        app = QtGui.QApplication(sys.argv)
-    if hasattr(app, 'builderWindow'):
-        global spreadsheetWindow        
-        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
 
 def menu_items():
     """menu_items() -> tuple of (str,function)
@@ -133,6 +128,7 @@ def menu_items():
     
     """
     def show_spreadsheet():
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         spreadsheetWindow.show()
         spreadsheetWindow.activateWindow()
         spreadsheetWindow.raise_()

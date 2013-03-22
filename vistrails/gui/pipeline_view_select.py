@@ -36,11 +36,10 @@
 
 QReadOnlyPortSelectPipelineView
 """
-
 from PyQt4 import QtCore, QtGui
-from gui.pipeline_view import QGraphicsConfigureItem, QGraphicsModuleItem, \
-    QGraphicsPortItem, QPipelineScene, QPipelineView
-from gui.theme import CurrentTheme
+from vistrails.gui.pipeline_view import QGraphicsConfigureItem, QGraphicsModuleItem, \
+    QAbstractGraphicsPortItem, QPipelineScene, QPipelineView
+from vistrails.gui.theme import CurrentTheme
 
 class QReadOnlyPortSelectPipelineView(QPipelineView):
     def __init__(self, parent, scene, single_output=False, include_module_ids=[]):
@@ -89,11 +88,11 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
         if buttons == QtCore.Qt.LeftButton:
             scenePos = self.mapToScene(event.pos())
             item = self.scene().itemAt(scenePos)
-            if type(item) == QGraphicsPortItem:
+            if isinstance(item, QAbstractGraphicsPortItem):
                 is_input = item.port.type == 'input'
                 if self.single_output and not is_input and len(self._selected_output_ports) > 0 and item != self._selected_output_ports[0]:
                     # Deselect current output port if another port selected in single output mode
-                    self._selected_output_ports[0].setPen(CurrentTheme.PORT_PEN)
+                    self._selected_output_ports[0].setSelected(False)
                     del self._selected_output_ports[:]
                 if is_input:
                     port_set = self._selected_input_ports
@@ -118,10 +117,8 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
         if event.button() == QtCore.Qt.LeftButton:
             port = self._clicked_port
             if port is not None:
-                if port in self._selected_input_ports or port in self._selected_output_ports:
-                    port.setPen(CurrentTheme.PORT_SELECTED_PEN)
-                else:
-                    port.setPen(CurrentTheme.PORT_PEN)
+                port.setSelected(port in self._selected_input_ports or
+                                 port in self._selected_output_ports)
             event.accept()
         else:
             QPipelineView.mouseReleaseEvent(self, event)

@@ -40,13 +40,13 @@ is also a QWidget.
 
 """
 from PyQt4 import QtCore, QtGui
-from core import debug
-from core.utils import VistrailsInternalError
-from core.modules.module_registry import get_module_registry, \
+from vistrails.core import debug
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-from core.utils import PortAlreadyExists
-from gui.modules.module_configure import StandardModuleConfigurationWidget
-from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
+from vistrails.core.utils import PortAlreadyExists
+from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
 ############################################################################
 

@@ -32,9 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.core.data_structures.point import Point
+from vistrails.db.domain import DBLocation
 
-from core.data_structures.point import Point
-from db.domain import DBLocation
+import unittest
+import copy
+import random
+from vistrails.db.domain import IdScope
+import vistrails.core
 
 class Location(DBLocation, Point):
 
@@ -137,10 +142,6 @@ class Location(DBLocation, Point):
 ################################################################################
 # Testing
 
-import unittest
-import copy
-import random
-from db.domain import IdScope
 
 class TestLocation(unittest.TestCase):
 
@@ -166,10 +167,10 @@ class TestLocation(unittest.TestCase):
         self.assertNotEquals(loc1.id, loc3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         loc1 = self.create_location()
-        xml_str = core.db.io.serialize(loc1)
-        loc2 = core.db.io.unserialize(xml_str, Location)
+        xml_str = vistrails.core.db.io.serialize(loc1)
+        loc2 = vistrails.core.db.io.unserialize(xml_str, Location)
         self.assertEquals(loc1, loc2)
         self.assertEquals(loc1.id, loc2.id)
 

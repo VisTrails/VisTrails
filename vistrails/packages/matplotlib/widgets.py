@@ -32,8 +32,8 @@
 ##
 ###############################################################################
 
-from gui.modules.python_source_configure import PythonEditor
-from gui.modules.source_configure import SourceConfigurationWidget
+from vistrails.gui.modules.python_source_configure import PythonEditor
+from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 
 class MplSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):

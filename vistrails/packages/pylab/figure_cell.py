@@ -37,8 +37,8 @@ Matplotlib viewer into our spreadsheet
 
 """
 from PyQt4 import QtGui
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_cell import QCellWidget
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import pylab
 
 ################################################################################
@@ -113,6 +113,10 @@ class MplFigureCellWidget(QCellWidget):
             # Save back the manager
             self.figManager = newFigManager
             self.update()
+            
+        # Capture window into history for playback
+        # Call this at the end to capture the image after rendering
+        QCellWidget.updateContents(self, inputPorts)
 
     def deleteLater(self):
         """ deleteLater() -> None        
@@ -153,3 +157,7 @@ class MplFigureCellWidget(QCellWidget):
         self.figManager.canvas.figure.set_size_inches(8.0,6.0)
         self.figManager.canvas.print_figure(filename)
         self.figManager.canvas.figure.set_size_inches(*previous_size, forward=True)
+
+    def saveToPNG(self, filename):
+        self.figManager.canvas.print_figure(filename)
+        return True

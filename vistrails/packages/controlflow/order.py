@@ -32,9 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.modules.vistrails_module import Module, InvalidOutput
-from core.modules.basic_modules import NotCacheable
-from core.utils import VistrailsInternalError
+from vistrails.core.modules.vistrails_module import Module, InvalidOutput
+from vistrails.core.modules.basic_modules import NotCacheable
+from vistrails.core.utils import VistrailsInternalError
 import copy
 
 ##############################################################################

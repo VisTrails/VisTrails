@@ -32,27 +32,26 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 
-from core.collection import Collection
-from core.collection.vistrail import VistrailEntity
-from core.data_structures.bijectivedict import Bidict
-from core.query.combined import CombinedSearch
-from core.query.multiple import MultipleSearch
-from core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from core.query.visual import VisualQuery
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.vistrail import Vistrail
+from vistrails.core.collection import Collection
+from vistrails.core.collection.vistrail import VistrailEntity
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.query.combined import CombinedSearch
+from vistrails.core.query.multiple import MultipleSearch
+from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
+from vistrails.core.query.visual import VisualQuery
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.vistrail import Vistrail
 
-from gui.base_view import BaseView
-from gui.common_widgets import QSearchBox
-from gui.modules import get_query_widget_class
-from gui.pipeline_view import QPipelineView
-from gui.ports_pane import ParameterEntry
-from gui.theme import CurrentTheme
-from gui.version_view import QVersionTreeView
-from gui.vistrail_controller import VistrailController
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.common_widgets import QSearchBox
+from vistrails.gui.modules import get_query_widget_class
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.ports_pane import ParameterEntry
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.version_view import QVersionTreeView
+from vistrails.gui.vistrail_controller import VistrailController
 
 class QueryController(object):
     LEVEL_ALL = 0
@@ -151,7 +150,7 @@ class QueryController(object):
                 result_entities = do_search()
                 self.show_global_matches()
 
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.notify("search_changed", self.search, result_entities)
         else:
             self.query_view.set_to_result_mode()
@@ -173,7 +172,7 @@ class QueryController(object):
         self.query_view.query_box.searchBox.clearSearch()
         self.query_view.vistrailChanged()
 
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify("search_changed", None, None)
 
     def back_to_search(self):
@@ -182,10 +181,10 @@ class QueryController(object):
     def goto_edit(self):
         # get the version info and send it to open_vistrail call
         if self.level == QueryController.LEVEL_VISTRAIL:
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.qactions['history'].trigger()
         elif self.level == QueryController.LEVEL_WORKFLOW:
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             version = self.query_view.vt_controller.current_version
             self.query_view.controller.change_selected_version(version, True)
             _app.qactions['pipeline'].trigger()
@@ -403,9 +402,9 @@ class QQueryView(QtGui.QWidget, BaseView):
                 (QueryController.LEVEL_VISTRAIL, VERSION_RESULT_VIEW),
                 (QueryController.LEVEL_WORKFLOW, WORKFLOW_RESULT_VIEW)])
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
-        BaseView.__init__(self)
+        BaseView.__init__(self, ui_hooks=ui_hooks)
         self.build_widget()
         self.set_title("Search")
 
@@ -482,8 +481,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.current_result_view = QQueryView.VERSION_RESULT_VIEW
 
     def set_default_layout(self):
-        from gui.module_palette import QModulePalette
-        from gui.module_info import QModuleInfo
+        from vistrails.gui.module_palette import QModulePalette
+        from vistrails.gui.module_info import QModuleInfo
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
              QtCore.Qt.RightDockWidgetArea: QModuleInfo,
@@ -494,7 +493,7 @@ class QQueryView(QtGui.QWidget, BaseView):
             { 'execute': ('query_pipeline_changed', self.set_execute_action) }
 
         # also add other notification here...
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.register_notification('query_pipeline_changed', 
                                    self.set_reset_button)
 
@@ -514,7 +513,7 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.query_box.editButton.setEnabled(False)
         self.set_reset_button(self.p_controller.current_pipeline)
 
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify('query_pipeline_changed', 
                     self.p_controller.current_pipeline)
 
@@ -525,7 +524,7 @@ class QQueryView(QtGui.QWidget, BaseView):
             self.query_box.editButton.setEnabled(True)
         self.query_box.setManualResetEnabled(True)
 
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify('query_pipeline_changed', 
                     self.p_controller.current_pipeline)
 
@@ -559,7 +558,7 @@ class QQueryView(QtGui.QWidget, BaseView):
         return pipeline is not None and len(pipeline.modules) > 0
     
     def vistrailChanged(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         self.p_controller.current_pipeline.ensure_connection_specs()
         _app.notify('query_pipeline_changed', self.p_controller.current_pipeline)
 

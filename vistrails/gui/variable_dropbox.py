@@ -42,21 +42,20 @@ QVariableInputForm
 QDragVariableLabel
 QHoverVariableLabel
 """
-
 from PyQt4 import QtCore, QtGui
-from core import debug
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.modules import module_registry
-from core.modules.basic_modules import Constant
-from core.vistrail.vistrailvariable import VistrailVariable
-from gui.common_widgets import QPromptWidget
-from gui.modules import get_widget_class
-from gui.modules.constant_configuration import StandardConstantWidget, \
+from vistrails.core import debug
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.modules import module_registry
+from vistrails.core.modules.basic_modules import Constant
+from vistrails.core.vistrail.vistrailvariable import VistrailVariable
+from vistrails.gui.common_widgets import QPromptWidget
+from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.constant_configuration import StandardConstantWidget, \
     FileChooserToolButton
-from gui.module_palette import QModuleTreeWidget
-from gui.theme import CurrentTheme
-from gui.utils import show_question, YES_BUTTON, NO_BUTTON
+from vistrails.gui.module_palette import QModuleTreeWidget
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON
 import uuid
 
 ################################################################################

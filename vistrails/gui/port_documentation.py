@@ -37,10 +37,9 @@ dialog, which displays the available documentation for a given VisTrails module.
 
 QMethodDocumentation
 """
-
 from PyQt4 import QtCore, QtGui
-from core.vistrail.port import PortEndPoint
-from core.utils import VistrailsInternalError
+from vistrails.core.vistrail.port import PortEndPoint
+from vistrails.core.utils import VistrailsInternalError
 
 class QPortDocumentation(QtGui.QDialog):
     """

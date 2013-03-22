@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBMachine
+from vistrails.db.domain import DBMachine
 
 class Machine(DBMachine):
     """ Class that stores info for logging a module execution. """

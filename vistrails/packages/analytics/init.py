@@ -32,12 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.modules.basic_modules import new_constant
-from core.modules.vistrails_module import Module, ModuleError, ModuleConnector
-import core.vistrail.vistrail
-import core.log.log 
-import db.services.io
+from vistrails.core.modules.basic_modules import new_constant
+from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleConnector
+import vistrails.core.vistrail.vistrail
+import vistrails.core.log.log 
+import vistrails.db.services.io
 
 
 class Vistrail(Module):
@@ -53,29 +52,29 @@ class ReadVistrail(Module):
 
     def read_vistrail(self, fname):
         # open the .vt bundle specified by the filename "fname"
-        bundle = db.services.io.open_vistrail_bundle_from_zip_xml(fname)[0]
+        bundle = vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(fname)[0]
 
         # access the vistrail from the bundle
         vistrail = bundle.vistrail
 
         # convert the vistrail from a db object
-        core.vistrail.vistrail.Vistrail.convert(vistrail)
+        vistrails.core.vistrail.vistrail.Vistrail.convert(vistrail)
 
         return vistrail
 
     def read_log(self, fname):
         # open the .vt bundle specified by the filename "fname"
-        bundle = db.services.io.open_vistrail_bundle_from_zip_xml(fname)[0]
+        bundle = vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(fname)[0]
        
         # get the log filename
         log_fname = bundle.vistrail.db_log_filename
   
         if log_fname is not None:
             # open the log
-            log = db.services.io.open_log_from_xml(log_fname, True)
+            log = vistrails.db.services.io.open_log_from_xml(log_fname, True)
 
             # convert the log from a db object
-            core.log.log.Log.convert(log)
+            vistrails.core.log.log.Log.convert(log)
             return log
         if log_fname is None:
             # throw error message

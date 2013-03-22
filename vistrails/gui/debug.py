@@ -33,15 +33,15 @@
 ##
 ###############################################################################
 from PyQt4 import QtCore, QtGui
-from gui.theme import CurrentTheme
-import core.debug
+from vistrails.gui.theme import CurrentTheme
+import vistrails.core.debug
 import StringIO
-import api
+import vistrails.api
 import cgi
-from core.configuration import get_vistrails_configuration
-from gui.application import get_vistrails_application
-from gui.common_widgets import QDockPushButton
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.gui.application import get_vistrails_application
+from vistrails.gui.common_widgets import QDockPushButton
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
@@ -65,9 +65,9 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         
     # getInstance = DebugViewSingleton()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
-        core.debug.DebugPrint.getInstance().set_stream(debugStream(self.write)) 
+        vistrails.core.debug.DebugPrint.getInstance().set_stream(debugStream(self.write)) 
         self.setWindowTitle('VisTrails Messages')
         layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
@@ -362,7 +362,7 @@ def watch_signal(obj, sig):
     DebugView.getInstance().watch_signal(obj, sig)
 
 
-critical     = core.debug.critical
-warning      = core.debug.warning
-log          = core.debug.log
-debug        = core.debug.debug
+critical     = vistrails.core.debug.critical
+warning      = vistrails.core.debug.warning
+log          = vistrails.core.debug.log
+debug        = vistrails.core.debug.debug

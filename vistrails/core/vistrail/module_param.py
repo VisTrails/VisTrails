@@ -36,10 +36,15 @@
     * ModuleParam
 
  """
-from db.domain import DBParameter
-from core.modules.utils import parse_port_spec_item_string, \
+from vistrails.db.domain import DBParameter
+from vistrails.core.modules.utils import parse_port_spec_item_string, \
     create_port_spec_item_string
-from core.utils import enum
+from vistrails.core.utils import enum
+
+import unittest
+import copy
+from vistrails.db.domain import IdScope
+import vistrails.core
 
 ################################################################################
 
@@ -214,7 +219,7 @@ class ModuleParam(DBParameter):
         Returns its strValue as a python type.
 
         """
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         module = get_module_registry().get_module_by_name(self.identifier, 
                                                           self.type, 
                                                           self.namespace)
@@ -310,9 +315,6 @@ class ModuleParam(DBParameter):
 ###############################################################################
 # Testing
 
-import unittest
-import copy
-from db.domain import IdScope
 
 class TestModuleParam(unittest.TestCase):
 
@@ -334,10 +336,10 @@ class TestModuleParam(unittest.TestCase):
         self.assertNotEquals(p1.real_id, p3.real_id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         p1 = self.create_param()
-        xml_str = core.db.io.serialize(p1)
-        p2 = core.db.io.unserialize(xml_str, ModuleParam)
+        xml_str = vistrails.core.db.io.serialize(p1)
+        p2 = vistrails.core.db.io.unserialize(xml_str, ModuleParam)
         self.assertEquals(p1, p2)
         self.assertEquals(p1.real_id, p2.real_id)
     

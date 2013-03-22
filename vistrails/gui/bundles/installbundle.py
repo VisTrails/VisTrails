@@ -34,12 +34,11 @@
 ###############################################################################
 
 """Module with utilities to try and install a bundle if possible."""
-
-from core import get_vistrails_application
-from core import debug
-import core.system
-from gui.bundles.utils import guess_system, guess_graphical_sudo
-import gui.bundles.installbundle # this is on purpose
+from vistrails.core import get_vistrails_application
+from vistrails.core import debug
+import vistrails.core.system
+from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
+import vistrails.gui.bundles.installbundle # this is on purpose
 import os
 
 ##############################################################################
@@ -68,7 +67,7 @@ def linux_ubuntu_install(package_name):
     hide_splash_if_necessary()
         
     if qt:
-        cmd = core.system.vistrails_root_directory()
+        cmd = vistrails.core.system.vistrails_root_directory()
         cmd += '/gui/bundles/linux_ubuntu_install.py'
     else:
         cmd = 'apt-get install -y'
@@ -96,7 +95,7 @@ def linux_fedora_install(package_name):
     qt = has_qt()
     hide_splash_if_necessary()
     if qt:
-        cmd = core.system.vistrails_root_directory()
+        cmd = vistrails.core.system.vistrails_root_directory()
         cmd += '/gui/bundles/linux_fedora_install.py'
     else:
         cmd = 'yum -y install'
@@ -124,10 +123,10 @@ def linux_fedora_install(package_name):
 def show_question(which_files):
     qt = has_qt()
     if qt:
-        import gui.utils
+        import vistrails.gui.utils
         if type(which_files) == str:
             which_files = [which_files]
-        v = gui.utils.show_question("Required packages missing",
+        v = vistrails.gui.utils.show_question("Required packages missing",
                                     "One or more required packages are missing: " +
                                     " ".join(which_files) +
                                     ". VisTrails can " +
@@ -135,10 +134,10 @@ def show_question(which_files):
                                     "If you click OK, VisTrails will need "+
                                     "administrator privileges, and you " +
                                     "might be asked for the administrator password.",
-                                    buttons=[gui.utils.OK_BUTTON,
-                                             gui.utils.CANCEL_BUTTON],
-                                    default=gui.utils.OK_BUTTON)
-        return v == gui.utils.OK_BUTTON
+                                    buttons=[vistrails.gui.utils.OK_BUTTON,
+                                             vistrails.gui.utils.CANCEL_BUTTON],
+                                    default=vistrails.gui.utils.OK_BUTTON)
+        return v == vistrails.gui.utils.OK_BUTTON
     else:
         print "Required package missing"
         print ("A required package is missing, but VisTrails can " +
@@ -163,7 +162,7 @@ about which system it runs on."""
     else:
         files = dependency_dictionary[distro]
         if show_question(files):
-            callable_ = getattr(gui.bundles.installbundle,
+            callable_ = getattr(vistrails.gui.bundles.installbundle,
                                 distro.replace('-', '_') + '_install')
             return callable_(files)
         else:

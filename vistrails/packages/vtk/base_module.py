@@ -36,8 +36,8 @@
 # This describes basic modules used by other VTK module
 ################################################################################
 import vtk
-from core.modules.module_registry import registry
-from core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.module_registry import registry
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from itertools import izip
 
 ################################################################################

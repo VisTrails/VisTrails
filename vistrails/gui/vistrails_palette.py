@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import QToolWindowInterface
+from vistrails.gui.common_widgets import QToolWindowInterface
 
 class QVistrailsPaletteInterface(QToolWindowInterface):
     def __init__(self):
@@ -43,11 +42,11 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
         self.title = None
         self.p_id = None
         self.main_window = None
- 
+
     @classmethod
-    def instance(klass):
+    def instance(klass, ui_hooks=None):
         if not hasattr(klass, '_instance'):
-            klass._instance = klass()
+            klass._instance = klass(ui_hooks=ui_hooks)
         return klass._instance
 
     def toolWindow(self):

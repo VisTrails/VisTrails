@@ -46,13 +46,13 @@ QVersionMashups
 """
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from core.thumbnails import ThumbnailCache
-from gui.theme import CurrentTheme
-from gui.common_widgets import QSearchBox
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from core.utils import all
-from core import debug
+from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.common_widgets import QSearchBox
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.utils import all
+from vistrails.core import debug
 
 ################################################################################
 
@@ -60,15 +60,20 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     QVersionProp is a widget holding property of a version including
     tagname and notes
-    
-    """    
-    def __init__(self, parent=None):
+
+    """
+    def __init__(self, parent=None, ui_hooks=None):
         """ QVersionProp(parent: QWidget) -> QVersionProp
         Initialize the main layout
-        
+
         """
         QtGui.QWidget.__init__(self, parent)
         self.setWindowTitle('Properties')
+
+        if ui_hooks is None:
+            self.ui_hooks = dict()
+        else:
+            self.ui_hooks = ui_hooks
 
         vLayout = QtGui.QVBoxLayout()
         vLayout.setMargin(2)
@@ -139,6 +144,8 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
                      self.tagCleared)
 
+        self._custom_panels = set()
+
         self.controller = None
         self.versionNumber = -1
 
@@ -156,8 +163,25 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
         Update the property page of the version
-        
+
         """
+        # Remove previous custom panels
+        for panel in self._custom_panels:
+            self.layout().removeWidget(panel)
+            panel.deleteLater()
+        self._custom_panels = set()
+
+        # Add custom panels
+        try:
+            hook = self.ui_hooks['version_prop_panels']
+        except KeyError:
+            pass
+        else:
+            panels = hook(self.controller, versionNumber)
+            for pos, panel in panels:
+                self.layout().insertWidget(pos, panel)
+                self._custom_panels.add(panel)
+
         self.versionNumber = versionNumber
         self.versionNotes.updateVersion(versionNumber)
         self.versionThumbs.updateVersion(versionNumber)
@@ -178,7 +202,6 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.tagEdit.setText('')
         self.userEdit.setText('')
         self.dateEdit.setText('')
-        
 
     def tagFinished(self):
         """ tagFinished() -> None
@@ -749,8 +772,8 @@ class QVersionMashups(QtGui.QWidget):
         """
         #self.mashupsList.clear()
         
-        from gui.mashups.mashups_manager import MashupsManager
-        from gui.mashups.mashups_inspector import QMashupListPanelItem
+        from vistrails.gui.mashups.mashups_manager import MashupsManager
+        from vistrails.gui.mashups.mashups_inspector import QMashupListPanelItem
         getMshptrail = MashupsManager.getMashuptrailforVersionInVistrailController
         if self.controller:
             vistrail = self.controller.vistrail
@@ -787,7 +810,7 @@ class QVersionMashups(QtGui.QWidget):
         self.openMashup(version)
 
     def openMashup(self, version):
-        from gui.mashups.mashups_manager import MashupsManager
+        from vistrails.gui.mashups.mashups_manager import MashupsManager
         item_key = (self.mtrail.id, version)
         if self.apps.has_key(item_key):
             app = self.apps[item_key]

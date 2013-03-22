@@ -36,14 +36,14 @@ import copy
 import time
 import urllib
 
-import core.modules
-from core.modules.basic_modules import PythonSource
-import core.modules.module_registry
-from core import debug
-from core.modules.basic_modules import File, String, Boolean
-from core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
+import vistrails.core.modules
+from vistrails.core.modules.basic_modules import PythonSource
+import vistrails.core.modules.module_registry
+from vistrails.core import debug
+from vistrails.core.modules.basic_modules import File, String, Boolean
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 
-from core.bundles import py_import
+from vistrails.core.bundles import py_import
 try:
     mpl_dict = {'linux-ubuntu': 'python-matplotlib',
                 'linux-fedora': 'python-matplotlib'}
@@ -305,7 +305,7 @@ class MplQuadContourSet(MplContourSet):
 _modules = [(MplProperties, {'abstract': True}),
             (MplPlot, {'abstract': True}), 
             (MplSource, {'configureWidgetType': \
-                             ('packages.matplotlib.widgets',
+                             ('vistrails.packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
             MplFigure,
             MplContourSet,

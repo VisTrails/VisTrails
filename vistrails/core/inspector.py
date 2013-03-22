@@ -34,9 +34,8 @@
 ###############################################################################
 
 """Helper classes for inspecting vistrails/pipelines at runtime"""
-
-from core.vistrail.pipeline import Pipeline
-from core.modules.module_registry import get_module_registry
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.modules.module_registry import get_module_registry
 
 ################################################################################
 

@@ -49,22 +49,22 @@ import sys
 import time
 import os.path
 
-import api
-from core.configuration import get_vistrails_configuration
-from core.interpreter.default import get_default_interpreter
-import core.modules.module_registry
-from core.modules.utils import create_port_spec_string
-import core.system
-from core.vistrail.port_spec import PortSpec
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from core.utils import all
+import vistrails.api
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.interpreter.default import get_default_interpreter
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.utils import create_port_spec_string
+import vistrails.core.system
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.utils import all
 
 ################################################################################
 
 class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
     """This class incorporates the QShell into a dockable widget for use in the
     VisTrails environment"""
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent=parent)
         #locals() returns the original dictionary, not a copy as
         #the docs say
@@ -143,7 +143,7 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
 
         """
         default = 'visTrails' + '-' + time.strftime("%Y%m%d-%H%M.log")
-        default = os.path.join(core.system.vistrails_file_directory(),default)
+        default = os.path.join(vistrails.core.system.vistrails_file_directory(),default)
         fileName = QtGui.QFileDialog.getSaveFileName(self,
                                                      "Save Session As..",
                                                      default,
@@ -181,7 +181,7 @@ class vistrails_module(object):
     def __init__(self, *args, **kwargs):
         if not hasattr(self, '_module'):
             self._module = \
-                api.add_module_from_descriptor(self._module_desc)
+                vistrails.api.add_module_from_descriptor(self._module_desc)
             # FIXME if constant, we can use args
             module_desc = self._module_desc
             for attr_name, value in kwargs.iteritems():
@@ -258,7 +258,7 @@ class vistrails_module(object):
                 # print 'update literal', type(value), value
                 num_params += 1
         if num_ports > 1 or (num_ports == 1 and num_params > 0):
-            reg = core.modules.module_registry.get_module_registry()
+            reg = vistrails.core.modules.module_registry.get_module_registry()
             tuple_desc = \
                 reg.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
                                            'Tuple', '')
@@ -271,7 +271,7 @@ class vistrails_module(object):
                                         name='value',
                                         type='output',
                                         sigstring=port_spec.sigstring)
-            api.add_port_spec(tuple._module.id, output_port_spec)
+            vistrails.api.add_port_spec(tuple._module.id, output_port_spec)
             self._update_func(port_spec, *[tuple.value()])
             assert len(port_spec.descriptors()) == len(args)
             for i, descriptor in enumerate(port_spec.descriptors()):
@@ -281,7 +281,7 @@ class vistrails_module(object):
                                            name=arg_name,
                                            type='input',
                                            sigstring=sigstring)
-                api.add_port_spec(tuple._module.id, tuple_port_spec)
+                vistrails.api.add_port_spec(tuple._module.id, tuple_port_spec)
                 tuple._process_attr_value(arg_name, args[i])
                 
                 
@@ -303,19 +303,19 @@ class vistrails_module(object):
                 else:
                     other_port_spec = other._port_spec
 
-                api.add_connection(other._vistrails_module._module.id,
+                vistrails.api.add_connection(other._vistrails_module._module.id,
                                    other_port_spec,
                                    self._module.id, 
                                    port_spec)
             elif isinstance(other, vistrails_module):
                 other_port_spec = \
                     other._module.get_port_spec('self', 'output')
-                api.add_connection(other._module.id, 
+                vistrails.api.add_connection(other._module.id, 
                                    other_port_spec,
                                    self._module.id,
                                    port_spec)
         else:
-            api.change_parameter(self._module.id,
+            vistrails.api.change_parameter(self._module.id,
                                  port_spec.name,
                                  [str(x) for x in args])
 
@@ -377,7 +377,7 @@ class QShell(QtGui.QTextEdit):
         self.reset(locals)
 
     def load_package(self, pkg_name):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         package = reg.get_package_by_name(pkg_name)
         
         def create_dict(modules, ns, m, mdesc):
@@ -409,7 +409,7 @@ class QShell(QtGui.QTextEdit):
         def get_module_init(module_desc):
             def init(self, *args, **kwargs):
                 self.__dict__['module'] = \
-                    api.add_module_from_descriptor(module_desc)
+                    vistrails.api.add_module_from_descriptor(module_desc)
             return init
         
         def get_module(package):
@@ -442,7 +442,7 @@ class QShell(QtGui.QTextEdit):
 
     def selected_modules(self):
         shell_modules = []
-        modules = api.get_selected_modules()
+        modules = vistrails.api.get_selected_modules()
         for module in modules:
             d = {'_module': module}
             shell_modules.append(type('module', (vistrails_module,), d)())

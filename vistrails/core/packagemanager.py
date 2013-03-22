@@ -36,19 +36,19 @@
 """The package manager takes care of everything that has got to do
 with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
-
 import copy
 import os
 import sys
 
-from core import debug, get_vistrails_application
-from core.configuration import ConfigurationObject
-import core.data_structures.graph
-import core.db.io
-from core.modules.module_registry import ModuleRegistry, MissingPackage
-from core.modules.package import Package
-from core.utils import VistrailsInternalError, InstanceObject, \
+from vistrails.core import debug, get_vistrails_application
+from vistrails.core.configuration import ConfigurationObject
+import vistrails.core.data_structures.graph
+import vistrails.core.db.io
+from vistrails.core.modules.module_registry import ModuleRegistry, MissingPackage
+from vistrails.core.modules.package import Package
+from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
     versions_increasing
+import vistrails.packages
 ##############################################################################
 
 
@@ -104,14 +104,14 @@ class PackageManager(object):
         if conf.check('packageDirectory'):
             sys.path.insert(0, conf.packageDirectory)
         try:
-            import packages
+            import vistrails.packages
         except ImportError:
             debug.critical('ImportError: "packages" sys.path: %s' % sys.path)
             raise
         finally:
             sys.path = old_sys_path
-        self._packages = packages
-        return packages
+        self._packages = vistrails.packages
+        return vistrails.packages
 
     def import_user_packages_module(self):
         """Imports the packages module using path trickery to find it
@@ -149,7 +149,7 @@ class PackageManager(object):
         self._configuration = configuration
         self._package_list = {}
         self._package_versions = {}
-        self._dependency_graph = core.data_structures.graph.Graph()
+        self._dependency_graph = vistrails.core.data_structures.graph.Graph()
         self._registry = None
         self._userpackages = None
         self._packages = None
@@ -157,7 +157,7 @@ class PackageManager(object):
 
     def init_registry(self, registry_filename=None):
         if registry_filename is not None:
-            self._registry = core.db.io.open_registry(registry_filename)
+            self._registry = vistrails.core.db.io.open_registry(registry_filename)
             self._registry.set_global()
         else:
             self._registry = ModuleRegistry()
@@ -167,7 +167,7 @@ class PackageManager(object):
                 # setup basic package
                 basic_package = self.add_package('basic_modules')
                 self._registry._default_package = basic_package
-                prefix_dictionary = {'basic_modules': 'core.modules.'}
+                prefix_dictionary = {'basic_modules': 'vistrails.core.modules.'}
                 self.initialize_packages(prefix_dictionary)
             setup_basic_package()
 
@@ -334,7 +334,7 @@ Returns true if given package identifier is present."""
         """
         deps = package.dependencies()
         # FIXME don't hardcode this
-        from core.modules.basic_modules import identifier as basic_pkg
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         if package.identifier != basic_pkg:
             deps.append(basic_pkg)
 
@@ -401,6 +401,16 @@ Returns true if given package identifier is present."""
         after VisTrails initialization. All reverse dependencies need to be
         already disabled.
         """
+        # if parallel flow, stop controller, if still running
+        if 'parallelflow' in package_codepath:
+            try:
+                from vistrails.packages.parallelflow.init import ipythonSet
+                if ipythonSet:
+                    ipythonSet.stop_engines()
+                    ipythonSet.stop_controller()
+            except:
+                pass
+        
         pkg = self.get_package_by_codepath(package_codepath)
         self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
@@ -455,17 +465,22 @@ Returns true if given package identifier is present."""
                 package.load(prefix_dictionary.get(package.codepath, None),
                              existing_paths)
             except Package.LoadFailed, e:
-                debug.critical("Package %s failed to load and will be "
-                               "disabled" % package.name, str(e))
+                debug.critical(
+                        "Package %s failed to load and will be disabled" % (
+                                package.name or
+                                ("<codepath %s>" % package.codepath)),
+                        str(e))
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
                 package.remove_own_dom_element()
                 failed.append(package)
             except Package.InitializationFailed, e:
-                debug.critical("Initialization of package <codepath %s> "
-                               "failed and will be disabled" % \
-                                   package.codepath, str(e))
+                debug.critical(
+                        "Initialization of package %s failed, disabling" % (
+                                package.name or
+                                ("<codepath %s>" % package.codepath)),
+                        str(e))
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
@@ -481,7 +496,7 @@ Returns true if given package identifier is present."""
                                                  "'%s' (version %s) in %s" % \
                                                      (package.identifier, 
                                                       package.version, 
-                                                      package_codepath))
+                                                      package.codepath))
                 else:
                     debug.warning('Duplicate package identifier: %s' % \
                                       package.identifier)
@@ -513,7 +528,7 @@ Returns true if given package identifier is present."""
         try:
             g = self._dependency_graph.inverse_immutable()
             sorted_packages = g.vertices_topological_sort()
-        except core.data_structures.graph.Graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.Graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
 
@@ -668,7 +683,7 @@ Returns true if given package identifier is present."""
 
     # use this call if we're not necessarily loading
     def build_dependency_graph(self, pkg_identifiers):
-        dep_graph = core.data_structures.graph.Graph()
+        dep_graph = vistrails.core.data_structures.graph.Graph()
 
         def process_dependencies(identifier):
             dep_graph.add_vertex(identifier)
@@ -694,7 +709,7 @@ Returns true if given package identifier is present."""
     def get_ordered_dependencies(self, dep_graph, identifiers=None):
         try:
             sorted_packages = dep_graph.vertices_topological_sort(identifiers)
-        except core.data_structures.graph.Graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.Graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
         return sorted_packages

@@ -36,16 +36,16 @@ from PyQt4 import QtCore, QtGui
 from itertools import izip
 import os
 
-from core import debug
-from core.modules.basic_modules import identifier as basic_identifier
-from core.modules.module_registry import get_module_registry
-from core.modules.utils import create_port_spec_string
-from core.vistrail.port_spec import PortSpec
-from core.system import vistrails_root_directory
-from gui.modules import get_widget_class
-from gui.common_widgets import QToolWindowInterface
-from gui.port_documentation import QPortDocumentation
-from gui.theme import CurrentTheme
+from vistrails.core import debug
+from vistrails.core.modules.basic_modules import identifier as basic_identifier
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.utils import create_port_spec_string
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.system import vistrails_root_directory
+from vistrails.gui.modules import get_widget_class
+from vistrails.gui.common_widgets import QToolWindowInterface
+from vistrails.gui.port_documentation import QPortDocumentation
+from vistrails.gui.theme import CurrentTheme
 
 class AliasLabel(QtGui.QLabel):
     """
@@ -347,6 +347,17 @@ class PortsList(QtGui.QTreeWidget):
     def set_entry_klass(self, entry_klass):
         self.entry_klass = entry_klass
         self.update_module(self.module)
+        
+    def include_port(self, port_spec):
+        """Determines whether or not a port should show up in this list.
+        """
+        return True
+    
+    def create_port_item(self, port_spec, is_connected, is_optional, 
+                 is_visible, parent=None):
+        """Creates the port item
+        """
+        return PortItem(port_spec, is_connected, is_optional, is_visible, parent)
 
     def update_module(self, module):
         """ update_module(module: Module) -> None        
@@ -378,12 +389,13 @@ class PortsList(QtGui.QTreeWidget):
                 raise Exception("Unknown port type: '%s'" % self.port_type)
             
             for port_spec in sorted(port_specs, key=lambda x: x.name):
+                if not self.include_port(port_spec): continue
                 connected = port_spec.name in connected_ports and \
                     connected_ports[port_spec.name] > 0
-                item = PortItem(port_spec, 
-                                connected,
-                                port_spec.optional,
-                                port_spec.name in visible_ports)
+                item = self.create_port_item(port_spec, 
+                                             connected,
+                                             port_spec.optional,
+                                             port_spec.name in visible_ports)
                 self.addTopLevelItem(item)
                 self.port_spec_items[port_spec.name] = (port_spec, item)
 
@@ -392,6 +404,7 @@ class PortsList(QtGui.QTreeWidget):
                     if not function.is_valid:
                         debug.critical("function '%s' not valid", function.name)
                         continue
+                    if function.name not in self.port_spec_items: continue
                     port_spec, item = self.port_spec_items[function.name]
                     subitem = self.entry_klass(port_spec, function)
                     self.function_map[function.real_id] = subitem
@@ -466,7 +479,7 @@ class PortsList(QtGui.QTreeWidget):
                          for i in xrange(len(function.parameters))])
                     port_spec = PortSpec(name=function.name, type='input',
                                          sigstring=sigstring)
-                    item = PortItem(port_spec,  False, False, False)
+                    item = self.create_port_item(port_spec,  False, False, False)
                 self.addTopLevelItem(item)
                 self.port_spec_items[port_spec.name] = (port_spec, item)
                 subitem = self.entry_klass(port_spec, function)
@@ -480,30 +493,36 @@ class PortsList(QtGui.QTreeWidget):
         if item.parent() is not None:
             return
 
+        if col == 0:
+            self.visible_clicked(item)
+        elif col == 2:
+            self.label_clicked(item)
+                
+    def visible_clicked(self, item):
         if self.port_type == 'input':
             visible_ports = self.module.visible_input_ports
         elif self.port_type == 'output':
             visible_ports = self.module.visible_output_ports
         else:
             raise Exception("Unknown port type: '%s'" % self.port_type)
-
-        if col == 0:
-            if item.is_optional:
-                item.set_visible(not item.is_visible)
-                if item.is_visible:
-                    visible_ports.add(item.port_spec.name)
-                else:
-                    visible_ports.discard(item.port_spec.name)
-                self.controller.flush_delayed_actions()
-                self.controller.current_pipeline_view.recreate_module(
-                    self.controller.current_pipeline, self.module.id)
-        if col == 2:
-            if item.isExpanded():
-                item.setExpanded(False)
-            elif item.childCount() > 0:
-                item.setExpanded(True)
-            elif item.childCount() == 0 and item.is_constant():
-                self.do_add_method(item.port_spec, item)
+        
+        if item.is_optional:
+            item.set_visible(not item.is_visible)
+            if item.is_visible:
+                visible_ports.add(item.port_spec.name)
+            else:
+                visible_ports.discard(item.port_spec.name)
+            self.controller.flush_delayed_actions()
+            self.controller.current_pipeline_view.recreate_module(
+                self.controller.current_pipeline, self.module.id)
+            
+    def label_clicked(self, item):
+        if item.isExpanded():
+            item.setExpanded(False)
+        elif item.childCount() > 0:
+            item.setExpanded(True)
+        elif item.childCount() == 0 and item.is_constant():
+            self.do_add_method(item.port_spec, item)
         
     def set_controller(self, controller):
         self.controller = controller

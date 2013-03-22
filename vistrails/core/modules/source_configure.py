@@ -34,11 +34,11 @@
 ###############################################################################
 
 # *** MOVED *** to gui.modules.source_configure
-
 import traceback
-from core import debug
+from vistrails.core import debug
+
+from vistrails.gui.modules.source_configure import *
 debug.warning("The use of core.modules.source_configure is deprecated.  "
               "Please use gui.modules.source_configure.",
               ''.join(traceback.format_stack()))
 
-from gui.modules.source_configure import *

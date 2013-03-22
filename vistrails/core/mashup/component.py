@@ -34,8 +34,13 @@
 ###############################################################################
 import urllib
 
-from core.mashup import XMLObject
-from core.system import get_elementtree_library
+from vistrails.core.mashup import XMLObject
+from vistrails.core.system import get_elementtree_library
+
+import unittest
+from vistrails.db.domain import IdScope
+import copy
+
 ElementTree = get_elementtree_library()
 
 ################################################################################
@@ -275,9 +280,6 @@ maxVal='%s' stepSize='%s' strvaluelist='%s' parent='%s' seq='%s' widget='%s')@%X
     
 ################################################################################
 
-import unittest
-from db.domain import IdScope
-import copy
 
 class TestComponent(unittest.TestCase):
     def create_component(self, id_scope=IdScope()):

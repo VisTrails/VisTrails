@@ -34,11 +34,10 @@
 ###############################################################################
 """ The file describes the pipeline tab widget to manage a single
 vistrail version tree"""
-
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import QDockContainer, QToolWindowInterface
-from gui.version_prop import QVersionProp
-from gui.version_view import QVersionTreeView
+from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
+from vistrails.gui.version_prop import QVersionProp
+from vistrails.gui.version_view import QVersionTreeView
 
 ################################################################################
         
@@ -48,7 +47,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
     center while having surrounding tool windows
     
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ QVersionTab(parent: QWidget) -> QVersionTab        
         Make it a main window with dockable area and a
         QVersionTreeView in the middle
@@ -61,7 +60,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.toolWindow().setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
         self.toolWindow().hide()
 
-        self.versionProp = QVersionProp(self)
+        self.versionProp = QVersionProp(self, ui_hooks=ui_hooks)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.versionProp.toolWindow())        
         

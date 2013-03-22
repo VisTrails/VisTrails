@@ -43,8 +43,8 @@ import pylab
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 
 FigureCanvasQTAgg.DEBUG = True
 

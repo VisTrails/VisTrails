@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
 def initialize():
     # can we copy over old configuration info to the new persistence package?

@@ -37,8 +37,8 @@ methods from method palette into it
 
 """
 from PyQt4 import QtCore, QtGui
-from gui.method_dropbox import QMethodDropBox
-from gui.common_widgets import QToolWindowInterface
+from vistrails.gui.method_dropbox import QMethodDropBox
+from vistrails.gui.common_widgets import QToolWindowInterface
 
 ################################################################################
 

@@ -32,22 +32,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import __builtin__
 import copy
 import os
+import re
 import sys
 import traceback
 import xml.dom
 
-from core import debug
-from core import get_vistrails_application
-from core.configuration import ConfigurationObject, get_vistrails_configuration
-from core.modules.module_descriptor import ModuleDescriptor
-from core.utils import versions_increasing
-from core.utils.uxml import (named_elements, enter_named_element)
+from vistrails.core import debug
+from vistrails.core import get_vistrails_application
+from vistrails.core.configuration import ConfigurationObject, get_vistrails_configuration
+from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.utils import versions_increasing
+from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 
-from db.domain import DBPackage
+from vistrails.db.domain import DBPackage
 
 ##############################################################################
 
@@ -241,47 +241,93 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
     
-    def _override_import(self, existing_paths=None):
+    def _override_import(self, existing_paths=None, 
+                         force_no_unload_pkg_list=[], 
+                         force_unload_pkg_list=[], 
+                         force_sys_unload=False):
         self._real_import = __builtin__.__import__
         self._imported_paths = set()
         if existing_paths is not None:
             self._existing_paths = existing_paths
         else:
             self._existing_paths = set(sys.modules.iterkeys())
+        self._warn_vistrails_prefix = False
+        self._force_no_unload = force_no_unload_pkg_list
+        self._force_unload = force_unload_pkg_list
+        self._force_sys_unload = force_sys_unload
         __builtin__.__import__ = self._import
         
     def _reset_import(self):
         __builtin__.__import__ = self._real_import
+        if self._warn_vistrails_prefix:
+            debug.warning('In package "%s", Please use the "vistrails." prefix when importing vistrails packages.' % self.identifier)
         return self._imported_paths
 
     def _import(self, name, globals=None, locals=None, fromlist=None, level=-1):
         # if name != 'core.modules.module_registry':
         #     print 'running import', name, fromlist
-        res = apply(self._real_import, 
-                    (name, globals, locals, fromlist, level))
-        if len(name) > len(res.__name__):
-            res_name = name
-        else:
-            res_name = res.__name__
-        qual_name = ''
-        for m in res_name.split('.'):
-            qual_name += m
-            if qual_name not in self._existing_paths and \
-                    not qual_name.endswith('_rc'):
-                # print '  adding', name, qual_name
-                self._imported_paths.add(qual_name)
-            # else:
-            #     if name != 'core.modules.module_registry':
-            #         print '  already exists', name, res.__name__
-	    qual_name += '.'
-        if fromlist is not None:
-            for from_module in fromlist:
-                qual_name = res_name + '.' + from_module
-                if qual_name not in self._existing_paths and \
-                        not qual_name.endswith('_rc'):
-                    # print '  adding222', name, qual_name
-                    self._imported_paths.add(qual_name)
 
+        def in_package_list(pkg_name, pkg_list):
+            for pkg in pkg_list:
+                if pkg_name == pkg or pkg_name.startswith(pkg + '.'):
+                    return True
+            return False
+            
+        def is_sys_pkg(pkg):
+            try:
+                pkg_fname = pkg.__file__
+            except AttributeError:
+                return True
+            if "site-packages" in pkg_fname:
+                return True
+            if os.sep != '/':
+                pkg_fname = pkg_fname.replace(os.sep, '/')
+            return (re.search(r'python[0-9.]+[a-z]?/lib/', 
+                              pkg_fname, re.IGNORECASE) or
+                    re.search(r'lib/python[0-9.]+[a-z]?/', 
+                              pkg_fname, re.IGNORECASE))
+
+        def checked_add_package(qual_name, pkg):
+            if qual_name not in self._existing_paths and \
+                not in_package_list(qual_name, self._force_no_unload) and \
+                (not self._force_sys_unload or not is_sys_pkg(pkg)
+                 or in_package_list(qual_name, self._force_unload)) and \
+                 not qual_name.endswith('_rc'):
+                self._imported_paths.add(qual_name)
+
+        try:
+            res = self._real_import(name, globals, locals, fromlist, level)
+        except ImportError:
+            # backward compatibility for packages that import without
+            # "vistrails." prefix
+            fixed = False
+            fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
+            for pkg in fix_pkgs:
+                if name == pkg or name.startswith(pkg + '.'):
+                    self._warn_vistrails_prefix = True
+                    fixed = True
+                    name = "vistrails." + name
+                    break
+            if fixed:
+                res = self._real_import(name, globals, locals, fromlist, level)
+            else:
+                raise
+        mod = res
+        if not fromlist or len(fromlist) < 1:
+            checked_add_package(mod.__name__, mod)
+            for comp in name.split('.')[1:]:
+                try:
+                    mod = getattr(mod, comp)
+                    checked_add_package(mod.__name__, mod)
+                except AttributeError:
+                    break
+        else:
+            res_name = mod.__name__
+            checked_add_package(mod.__name__, mod)
+            for from_name in fromlist:
+                qual_name = res_name + '.' + from_name
+                checked_add_package(qual_name, mod)
+                    
         return res
 
     def get_py_deps(self):
@@ -329,7 +375,7 @@ class Package(DBPackage):
             elif prefix is not None:
                 r = not import_from(prefix)
             else:
-                r = (not import_from('packages.') and
+                r = (not import_from('vistrails.packages.') and
                      not import_from('userpackages.'))
         except Exception, e:
             raise self.LoadFailed(self, e, traceback.format_exc())
@@ -354,7 +400,20 @@ class Package(DBPackage):
         self.set_properties()
 
     def initialize(self, existing_paths=None):
-        self._override_import(existing_paths)
+        if hasattr(self._module, "_force_no_unload_pkg_list"):
+            force_no_unload = self._module._force_no_unload_pkg_list
+        else:
+            force_no_unload = []
+        if hasattr(self._module, "_force_unload_pkg_list"):
+            force_unload = self._module._force_unload_pkg_list
+        else:
+            force_unload = []
+        if hasattr(self._module, "_force_sys_unload"):
+            force_sys_unload = self._module._force_sys_unload
+        else:
+            force_sys_unload = False
+        self._override_import(existing_paths, force_no_unload, force_unload, 
+                              force_sys_unload)
         try:
             name = self.prefix + self.codepath + '.init'
             try:
@@ -397,7 +456,7 @@ class Package(DBPackage):
     def unload(self):
         for path in self.py_dependencies:
             if path not in sys.modules:
-                # print "skipping %s"%path
+                # print "skipping %s" % path
                 pass
             else:
                 # print 'deleting path:', path, path in sys.modules

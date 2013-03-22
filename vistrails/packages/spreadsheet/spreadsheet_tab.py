@@ -46,11 +46,14 @@ from PyQt4 import QtCore, QtGui
 import os.path
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
+from spreadsheet_cell import CellInformation, CellContainerInterface, \
+    QCellPresenter, QCellToolBar
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
+import spreadsheet_controller
 from spreadsheet_config import configuration
-from core.inspector import PipelineInspector
+import spreadsheet_flags
+from vistrails.core.inspector import PipelineInspector
 import spreadsheet_rc
 
 ################################################################################
@@ -87,14 +90,16 @@ class StandardWidgetToolBar(QtGui.QToolBar):
     included
     
     """
-    def __init__(self, parent=None):
-        """ StandardWidgetToolBar(parent: QWidget) -> StandardWidgetToolBar
+    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
+        """ StandardWidgetToolBar(parent: QWidget, swflags: int)
+                -> StandardWidgetToolBar
         Init the toolbar with default actions
         
         """
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
-        self.addAction(self.sheetTab.tabWidget.newSheetAction())
+        if swflags & spreadsheet_flags.TAB_CREATE_SHEET:
+            self.addAction(self.sheetTab.tabWidget.newSheetAction())
         self.addAction(self.sheetTab.tabWidget.openAction())
         self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
@@ -187,12 +192,12 @@ class StandardWidgetSheetTabInterface(object):
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget        
         Get cell at a specific row and column. In reality, this cell
-        widget is inside a QCellContainer and the cell container is
-        the actual widget under the cell
+        widget is inside a cell container, which is the actual widget
+        under the cell
         
         """
         cellWidget = self.getCellWidget(row, col)
-        if type(cellWidget)==QCellContainer:
+        if isinstance(cellWidget, CellContainerInterface):
             return cellWidget.widget()
         return cellWidget
 
@@ -222,10 +227,21 @@ class StandardWidgetSheetTabInterface(object):
         Put the cellWidget inside a container and place it on the sheet
 
         """
-        if type(cellWidget)!=QCellContainer:
-            container = QCellContainer(cellWidget)
-        else:
+        # If we were given a container, this is what we'll display
+        if cellWidget is None or isinstance(cellWidget, CellContainerInterface):
             container = cellWidget
+        # Else, build a new container for this cell
+        else:
+            ContainerClass = (spreadsheet_controller.spreadsheetController
+                    .getCellContainerClass())
+            container = ContainerClass(
+                    CellInformation(self, row, col),
+                    cellWidget)
+
+        prev_container = self.getCellWidget(row, col)
+        if prev_container is not None:
+            prev_container.setCellInfo(None)
+
         self.setCellWidget(row, col, container)
         self.lastCellLocation = (row, col)
 
@@ -241,7 +257,7 @@ class StandardWidgetSheetTabInterface(object):
             else:
                 toolBarType = QCellToolBar
             container = self.getCellWidget(row, col)
-            if type(container)==QCellContainer:
+            if isinstance(container, CellContainerInterface):
                 if container.toolBar==None:
                     container.toolBar = toolBarType(self)
                 return container.toolBar
@@ -275,7 +291,8 @@ class StandardWidgetSheetTabInterface(object):
         for r in xrange(rowCount):
             for c in xrange(colCount):
                 w = self.getCell(r, c)
-                if w==None or (type(w)==QCellPresenter and w.cellWidget==None):
+                if w is None or (isinstance(w, QCellPresenter) and
+                                 w.cellWidget is None):
                     return (r,c)
         (r, c) = self.lastCellLocation
         (rs, cs) = self.getSpan(r, c)
@@ -303,8 +320,9 @@ class StandardWidgetSheetTabInterface(object):
                 self.setCellByWidget(row, col, None)
             if hasattr(oldCell, 'deleteLater'):
                 oldCell.deleteLater()
-        else:
+        elif oldCell:
             oldCell.updateContents(inputPorts)
+            self.getCellWidget(row, col).contentsUpdated()
         self.lastCellLocation = (row, col)
 
     def showHelpers(self, show, globalPos):
@@ -321,8 +339,6 @@ class StandardWidgetSheetTabInterface(object):
         information, info, for the cell (row, col)
         
         """
-        if not (row,col) in self.pipelineInfo:
-            self.pipelineInfo[(row,col)] = {}
         self.pipelineInfo[(row,col)] = info
 
     def getCellPipelineInfo(self, row, col):
@@ -330,10 +346,8 @@ class StandardWidgetSheetTabInterface(object):
         Provide a way for the spreadsheet to extract vistrail
         information, info, for the cell (row, col)
         
-        """        
-        if not (row,col) in self.pipelineInfo:
-            return None
-        return self.pipelineInfo[(row,col)]
+        """
+        return self.pipelineInfo.get((row, col), None)
 
     def getSelectedLocations(self):
         """ getSelectedLocations() -> list
@@ -354,7 +368,10 @@ class StandardWidgetSheetTabInterface(object):
         Delete a cell in the sheet
         
         """
-        self.setCellByType(row, col, None, None)
+        ContainerClass = (spreadsheet_controller.spreadsheetController
+                .getCellContainerClass())
+        container = ContainerClass(CellInformation(self, row, col))
+        self.setCellByWidget(row, col, container)
         self.setCellPipelineInfo(row, col, None)
         
     def deleteAllCells(self):
@@ -376,9 +393,13 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cell = self.getCellWidget(row, col)
-        if type(cell)==QCellContainer:
+        if isinstance(cell, CellContainerInterface):
             widget = cell.takeWidget()
             self.setCellWidget(row, col, None)
+            ContainerClass = (spreadsheet_controller.spreadsheetController
+                    .getCellContainerClass())
+            container = ContainerClass(CellInformation(self, row, col))
+            self.setCellByWidget(row, col, container)
             return widget
         else:
             return cell
@@ -390,17 +411,17 @@ class StandardWidgetSheetTabInterface(object):
         """
         if editing:
             cellWidget = self.getCell(r, c)
-            if type(cellWidget)==QCellPresenter:
+            if isinstance(cellWidget, QCellPresenter):
                 return
             presenter = QCellPresenter()
-            presenter.assignCell(self, r, c)
+            presenter.assignCell(CellInformation(self, r, c))
             cellWidget = self.takeCell(r, c)
             self.setCellByWidget(r, c, presenter)
             if cellWidget:
                 cellWidget.hide()
         else:
             presenter = self.getCell(r, c)
-            if type(presenter)!=QCellPresenter:
+            if not isinstance(presenter, QCellPresenter):
                 return
             presenter = self.takeCell(r, c)
             if presenter:
@@ -429,14 +450,17 @@ class StandardWidgetSheetTabInterface(object):
         Swap the (row, col) of this sheet to (newRow, newCol) of newSheet
         
         """
+        # TODO-dat : We should really swap the containers here, not the content
+        # Any idea why we can't?
         myWidget = self.takeCell(row, col)
         theirWidget = newSheet.takeCell(newRow, newCol)
         self.setCellByWidget(row, col, theirWidget)
         newSheet.setCellByWidget(newRow, newCol, myWidget)
-        info = self.getCellPipelineInfo(row, col)
+
+        pipelineInfo = self.getCellPipelineInfo(row, col)
         self.setCellPipelineInfo(row, col,
                                  newSheet.getCellPipelineInfo(newRow, newCol))
-        newSheet.setCellPipelineInfo(newRow, newCol, info)
+        newSheet.setCellPipelineInfo(newRow, newCol, pipelineInfo)
 
     def copyCell(self, row, col, newSheet, newRow, newCol):
         """ copyCell(row, col: int, newSheet: Sheet,
@@ -455,6 +479,7 @@ class StandardWidgetSheetTabInterface(object):
                                         actions=info['actions'],
                                         reason=info['reason'],
                                         locator=info['locator'],
+                                        controller=info['controller'],
                                         sinks=[mId])
 
     def executePipelineToCell(self, pInfo, row, col, reason=''):
@@ -468,6 +493,7 @@ class StandardWidgetSheetTabInterface(object):
         pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
         executePipelineWithProgress(pipeline, 'Execute Cell',
                                     locator=pInfo[0],
+                                    controller=pInfo[4],
                                     current_version=pInfo[1],
                                     actions=pInfo[2],
                                     reason=reason)
@@ -487,7 +513,7 @@ class StandardWidgetSheetTabInterface(object):
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple
-        Return (locator, versionNumber, actions, pipeline) for a cell
+        Return (locator, versionNumber, actions, pipeline, controller) for a cell
         
         """
         info = self.getCellPipelineInfo(row, col)
@@ -495,7 +521,8 @@ class StandardWidgetSheetTabInterface(object):
             return (info[0]['locator'],
                     info[0]['version'],
                     info[0]['actions'],
-                    info[0]['pipeline'])
+                    info[0]['pipeline'],
+                    info[0]['controller'])
         return None
 
     def exportSheetToImage(self, fileName):
@@ -574,15 +601,18 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     displaying the spreadsheet.
     
     """
-    def __init__(self, tabWidget,row=None , col=None):
+    def __init__(self, tabWidget, row=None , col=None,
+            swflags=spreadsheet_flags.DEFAULTS):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
-                                col: int) -> StandardWidgetSheet
+                                col: int,
+                                swflags: int) -> StandardWidgetSheet
         Initialize with a toolbar and a sheet widget
                                 
         """
         QtGui.QWidget.__init__(self, None)
         StandardWidgetSheetTabInterface.__init__(self)
+        self.allow_delete_cell = swflags & spreadsheet_flags.TAB_DELETE_CELL
         if not row:
             row = configuration.rowCount
         if not col:
@@ -591,7 +621,9 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)
         self.sheet.setFitToWindow(True)
-        self.toolBar = StandardWidgetToolBar(self)
+        self.toolBar = StandardWidgetToolBar(
+                self,
+                swflags=swflags)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
         self.vLayout.setMargin(0)
@@ -600,6 +632,36 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.setLayout(self.vLayout)
         self.pipelineInfo = {}
         self.setAcceptDrops(True)
+        self.createContainers()
+
+    def createContainers(self):
+        row_count, col_count = self.getDimension()
+        ContainerClass = (spreadsheet_controller.spreadsheetController
+                .getCellContainerClass())
+        for r in xrange(row_count):
+            for c in xrange(col_count):
+                w = self.getCellWidget(r, c)
+                if w is None:
+                    cellWidget = ContainerClass(CellInformation(self, r, c))
+                    self.setCellByWidget(r, c, cellWidget)
+
+    def removeContainers(self, new_rows=None, new_cols=None):
+        if new_rows is not None and new_cols is not None:
+            self.removeContainers(new_rows=new_rows)
+            self.removeContainers(new_cols=new_cols)
+            return
+        elif new_rows is not None:
+            rows = xrange(new_rows, self.sheet.rowCount())
+            cols = xrange(self.sheet.columnCount())
+        elif new_cols is not None:
+            rows = xrange(self.sheet.rowCount())
+            cols = xrange(new_cols, self.sheet.columnCount())
+        else:
+            rows = xrange(self.sheet.rowCount())
+            cols = xrange(self.sheet.columnCount())
+        for row in rows:
+            for col in cols:
+                self.setCellByWidget(row, col, None)
 
     def rowSpinBoxChanged(self):
         """ rowSpinBoxChanged() -> None
@@ -607,8 +669,10 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         if self.toolBar.rowSpinBox.value()!=self.sheet.rowCount():
+            self.removeContainers(new_rows=self.toolBar.rowSpinBox.value())
             self.sheet.setRowCount(self.toolBar.rowSpinBox.value())
             self.sheet.stretchCells()
+            self.createContainers()
             self.setEditingMode(self.tabWidget.editingMode)
         
     def colSpinBoxChanged(self):
@@ -617,8 +681,10 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         if self.toolBar.colSpinBox.value()!=self.sheet.columnCount():
+            self.removeContainers(new_cols=self.toolBar.colSpinBox.value())
             self.sheet.setColumnCount(self.toolBar.colSpinBox.value())
             self.sheet.stretchCells()
+            self.createContainers()
             self.setEditingMode(self.tabWidget.editingMode)
 
     ### Belows are API Wrappers to connect to self.sheet
@@ -636,7 +702,9 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         self.toolBar.rowCountSpinBox().setValue(rc)
+        self.rowSpinBoxChanged()
         self.toolBar.colCountSpinBox().setValue(cc)
+        self.colSpinBoxChanged()
             
     def getCellWidget(self, row, col):
         """ getCellWidget(row: int, col: int) -> QWidget
@@ -742,6 +810,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                 if (row!=-1 and col!=-1):
                     pipeline = self.setPipelineToLocateAt(row, col, pipeline)
             executePipelineWithProgress(pipeline, 'Execute Cell',
+                                        controller=controller,
                                         locator=controller.locator,
                                         current_version=versionId,
                                         reason='Drop Version')
@@ -816,8 +885,9 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     to change tab name
     
     """
-    def __init__(self, parent=None):
-        """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar
+    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
+        """ StandardWidgetTabBar(parent: QWidget, swflags: int)
+                -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
         
         """
@@ -838,14 +908,18 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                                                  self)
         self.outerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
                                                  None)
+        self._allow_renaming = swflags & spreadsheet_flags.TAB_RENAME_SHEET
 
     def mouseDoubleClickEvent(self, e):
         """ mouseDoubleClickEvent(e: QMouseEvent) -> None
         Handle Double-Click event to start the editor
         
         """
-        if e.buttons()!=QtCore.Qt.LeftButton or self.editor: return
-        
+        if (not self._allow_renaming or 
+                e.buttons() != QtCore.Qt.LeftButton or
+                self.editor):
+            return
+
         # Update the current editing tab widget
         self.editingIndex = self.currentIndex()
         

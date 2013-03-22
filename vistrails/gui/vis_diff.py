@@ -35,16 +35,16 @@
 """ This modules builds a widget to interact with vistrail diff
 operation """
 from PyQt4 import QtCore, QtGui
-from core.utils.color import ColorByName
-from core.vistrail.abstraction import Abstraction
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.port_spec import PortSpec
-from gui.pipeline_view import QPipelineView
-from gui.theme import CurrentTheme
-from gui.vistrail_controller import VistrailController
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from core import system, debug
-import core.db.io
+from vistrails.core.utils.color import ColorByName
+from vistrails.core.vistrail.abstraction import Abstraction
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.vistrail_controller import VistrailController
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core import system, debug
+import vistrails.core.db.io
 
 import copy
 from itertools import chain
@@ -276,7 +276,7 @@ class QLegendWindow(QtGui.QWidget):
         self.parent().showLegendsAction.setChecked(False)
         
 class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
 
         self.controller = None
@@ -438,8 +438,8 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         # self.inspector.annotationsTab.resizeRowsToContents()
 
 class QDiffView(QPipelineView):
-    def __init__(self, parent=None):
-        QPipelineView.__init__(self, parent)
+    def __init__(self, parent=None, ui_hooks=None):
+        QPipelineView.__init__(self, parent, ui_hooks=ui_hooks)
         self.set_title("Diff")
         self.diff = None
         self.diff_versions = None
@@ -479,7 +479,7 @@ class QDiffView(QPipelineView):
                      self.version_changed)
 
     def set_default_layout(self):
-        from gui.module_palette import QModulePalette
+        from vistrails.gui.module_palette import QModulePalette
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
              QtCore.Qt.RightDockWidgetArea: QDiffProperties,
@@ -532,7 +532,7 @@ class QDiffView(QPipelineView):
         self.diff_versions = ((vistrail_a, version_a), 
                               (vistrail_b, version_b))
         self.set_diff_version_names()
-        self.diff = core.db.io.get_workflow_diff(*self.diff_versions)
+        self.diff = vistrails.core.db.io.get_workflow_diff(*self.diff_versions)
             # self.controller.vistrail.get_pipeline_diff(version_a, version_b)
         (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
             self.diff
@@ -1072,7 +1072,7 @@ class QVisualDiff(QtGui.QMainWindow):
                 for connection_id in connection_ids:
                     connection = self.current_pipeline.connections[connection_id]
                     pipeline.add_connection(connection)
-                return core.db.io.serialize(pipeline)
+                return vistrails.core.db.io.serialize(pipeline)
                 
         controller = DummyController(p_both)
         scene.controller = controller

@@ -35,21 +35,21 @@
 import os
 import shutil
 import sys
+import vistrails.db.services.io
 
 vistrails_src = None
 if not vistrails_src:
     vistrails_src = os.path.dirname(os.path.dirname(sys.path[0]))
 if vistrails_src not in sys.path:
     sys.path.append(vistrails_src)
-import db.services.io
     
 def find_files(filename, version=None):
     save_bundle, save_dir = \
-        db.services.io.open_vistrail_bundle_from_zip_xml(filename)
+        vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(filename)
     vistrail = save_bundle.vistrail
     # FIXME hack for now, should change in the future
     log_fname = vistrail.db_log_filename
-    log = db.services.io.open_log_from_xml(log_fname, True)
+    log = vistrails.db.services.io.open_log_from_xml(log_fname, True)
 
     if version:
         if type(version) == type(""):

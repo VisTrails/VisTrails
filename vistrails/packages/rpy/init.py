@@ -36,22 +36,24 @@ import os
 import sys
 import tempfile
 import urllib
+import rpy2.robjects as robjects
+
+from vistrails.core.modules.basic_modules import File, Constant, \
+    new_constant, list_compute
+
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+    ModuleConnector, NotCacheable
+from vistrails.core.modules.basic_modules import new_constant
+import vistrails.core.modules.module_registry
+from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 # FIXME when rpy2 is installed on the path, we won't need this
 old_sys_path = sys.path
 sys.path.append(os.path.dirname(__file__))
-import rpy2.robjects as robjects
 sys.path = old_sys_path
 
-from core.modules.basic_modules import File, Constant, \
-    new_constant, list_compute
     # new_constant as _new_constant
 
-from core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, NotCacheable
-from core.modules.basic_modules import new_constant
-import core.modules.module_registry
-from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 r_temp_files = []
 
@@ -116,15 +118,15 @@ def vector_conv(v, desired_type=None):
     return create_vector(v_list, desired_type)
 
 RVector = new_constant('RVector', staticmethod(vector_conv),
-                       robjects.RVector([]),
-                       staticmethod(lambda x: isinstance(x, robjects.RVector)))
+                       robjects.Vector([]),
+                       staticmethod(lambda x: isinstance(x, robjects.Vector)))
 
 def bool_vector_conv(v):
     return vector_conv(v, bool)
 
 RBoolVector = new_constant('RBoolVector' , staticmethod(bool_vector_conv), 
                             robjects.BoolVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
                        
 def int_vector_conv(v):
@@ -132,7 +134,7 @@ def int_vector_conv(v):
 
 RIntVector = new_constant('RIntVector' , staticmethod(int_vector_conv), 
                             robjects.IntVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
 
 def float_vector_conv(v):
@@ -140,7 +142,7 @@ def float_vector_conv(v):
 
 RFloatVector = new_constant('RFloatVector' , staticmethod(float_vector_conv), 
                             robjects.FloatVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
                        
 def str_vector_conv(v):
@@ -148,7 +150,7 @@ def str_vector_conv(v):
 
 RStrVector = new_constant('RStrVector' , staticmethod(str_vector_conv), 
                             robjects.StrVector([]),
-                            staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                            staticmethod(lambda x: isinstance(x, robjects.Vector)),
                             base_class=RVector)
 
 def array_conv(v):
@@ -213,7 +215,7 @@ def list_conv(v):
 
 RList = new_constant('RList', staticmethod(list_conv),
                      robjects.r.list(),
-                     staticmethod(lambda x: isinstance(x, robjects.RVector)),
+                     staticmethod(lambda x: isinstance(x, robjects.Vector)),
                      base_class=RVector,
                      compute=list_compute)
 
@@ -380,7 +382,7 @@ class RSource(Module):
         use_input and use_output control whether to use the inputport
         and output port dictionary as local variables inside the
         execution."""
-        import core.packagemanager
+        import vistrails.core.packagemanager
         def fail(msg):
             raise ModuleError(self, msg)
         def cache_this():

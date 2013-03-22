@@ -35,7 +35,7 @@ from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
 sys.path.append('/vistrails/src/git/vistrails')
-from core.modules.utils import expand_port_spec_string
+from vistrails.core.modules.utils import expand_port_spec_string
 
 ##############################################################################
 # docutils parsing code

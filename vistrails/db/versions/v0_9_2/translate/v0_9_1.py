@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db import VistrailsDBException
-from db.versions.v0_9_1.domain import DBAdd, DBAnnotation, DBChange, DBDelete
+from vistrails.db import VistrailsDBException
+from vistrails.db.versions.v0_9_1.domain import DBAdd, DBAnnotation, DBChange, DBDelete
 
 def translateVistrail(vistrail):
     id_remap = {}

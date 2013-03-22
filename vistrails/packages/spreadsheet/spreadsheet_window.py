@@ -42,10 +42,12 @@ from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
      RepaintCurrentSheetEventType
 from spreadsheet_tabcontroller import StandardWidgetTabController
 from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellContainer
+from spreadsheet_cell import CellContainerInterface
 from spreadsheet_config import configuration
-from core.modules import module_utils
-from core.utils import trace_method
+import spreadsheet_flags
+from vistrails.core.application import get_vistrails_application
+from vistrails.core.modules import module_utils
+from vistrails.core.utils import trace_method
 import ctypes
 import os.path
 import sys
@@ -59,11 +61,18 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     mode
     
     """
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        """ SpreadsheetWindow(parent: QWidget, f: WindowFlags)
-                              -> SpreadsheetWindow
+
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(),
+                 menuBar=None, swflags=spreadsheet_flags.DEFAULTS,
+                 close_tab_action=None):
+        """ SpreadsheetWindow(parent: QWidget, f: WindowFlags,
+                menuBar: QMenuBar, swflags: int, close_tab_action: function))
+            -> SpreadsheetWindow
         Layout menu, status bar and tab widget
-        
+
+        close_tab_action will be called before a tab is closed. It will receive
+        the tab, and should return True to allow the close and False to cancel
+        it.
         """
         QtGui.QMainWindow.__init__(self, parent, f)
         self.createEventMap()
@@ -71,7 +80,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.shownConfig = False #flag to control the window setup code is done only once
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
-            self.stackedCentralWidget)
+            self.stackedCentralWidget,
+            swflags=swflags,
+            close_tab_action=close_tab_action)
         self.stackedCentralWidget.addWidget(self.tabController)
         self.fullScreenStackedWidget = QtGui.QStackedWidget(
             self.stackedCentralWidget)
@@ -83,7 +94,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.visApp = QtCore.QCoreApplication.instance()
         self.visApp.installEventFilter(self)
         
-        self.setupMenu()
+        self.setupMenu(menuBar, swflags)
         
         self.connect(self.tabController,
                      QtCore.SIGNAL('needChangeTitle'),
@@ -92,7 +103,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.echoMode = False
         self.echoCellEvents = []
 
-        if hasattr(self.visApp, 'builderWindow'):
+        if (swflags & spreadsheet_flags.WINDOW_QUIT_ACTION and
+                hasattr(self.visApp, 'builderWindow')):
             self.quitAction = QtGui.QAction('&Quit VisTrails', self)
             self.addAction(self.quitAction)
             self.quitAction.setShortcut('Ctrl+Q')
@@ -104,6 +116,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         # this will cause the spreadsheet to have each cell
         # 550 x 450 size in the server
         #self.resize(1156, 599)
+
+        app = get_vistrails_application()
+        app.create_notification('spreadsheet_sheet_changed')
 
     def quitActionTriggered(self):
         if self.visApp and hasattr(self.visApp, 'builderWindow') and \
@@ -121,30 +136,35 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.tabController.cleanup()
         self.file_pool.cleanup()
 
-    def setupMenu(self):
-        """ setupMenu() -> None
+    def setupMenu(self, menuBar=None, swflags=spreadsheet_flags.DEFAULTS):
+        """ setupMenu(menuBar: QMenuBar, swflags: int) -> None
         Add all available actions to the menu bar
 
         """
-        self.setMenuBar(QtGui.QMenuBar(self))
-        self.mainMenu = QtGui.QMenu('&Main', self.menuBar())
-        self.menuBar().addAction(self.mainMenu.menuAction())
-        self.mainMenu.addAction(self.tabController.saveAction())
-        self.mainMenu.addAction(self.tabController.saveAsAction())
-        self.mainMenu.addAction(self.tabController.openAction())
-        self.mainMenu.addSeparator()
-        self.mainMenu.addAction(self.tabController.newSheetAction())
-        self.mainMenu.addAction(self.tabController.deleteSheetAction())
-        self.viewMenu = QtGui.QMenu('&View', self.menuBar())
-        self.menuBar().addAction(self.viewMenu.menuAction())
-        self.viewMenu.addAction(self.interactiveModeAction())
-        self.viewMenu.addAction(self.editingModeAction())
-        self.viewMenu.addSeparator()
-        self.viewMenu.addAction(self.fitToWindowAction())
-        self.viewMenu.addAction(self.fullScreenAction())
-        self.windowMenu = QtGui.QMenu('&Window', self.menuBar())
-        self.menuBar().addAction(self.windowMenu.menuAction())
-        self.windowMenu.addAction(self.showBuilderWindowAction())
+        if menuBar is None:
+            menuBar = self.menuBar()
+        if swflags & spreadsheet_flags.WINDOW_MENU_MAIN:
+            mainMenu = QtGui.QMenu('&Main', self.menuBar())
+            menuBar.addAction(mainMenu.menuAction())
+            mainMenu.addAction(self.tabController.saveAction())
+            mainMenu.addAction(self.tabController.saveAsAction())
+            mainMenu.addAction(self.tabController.openAction())
+            mainMenu.addSeparator()
+            if swflags & spreadsheet_flags.TAB_CREATE_SHEET:
+                mainMenu.addAction(self.tabController.newSheetAction())
+            mainMenu.addAction(self.tabController.deleteSheetAction())
+        if swflags & spreadsheet_flags.WINDOW_MENU_VIEW:
+            viewMenu = QtGui.QMenu('&View', self.menuBar())
+            menuBar.addAction(viewMenu.menuAction())
+            viewMenu.addAction(self.interactiveModeAction())
+            viewMenu.addAction(self.editingModeAction())
+            viewMenu.addSeparator()
+            viewMenu.addAction(self.fitToWindowAction())
+            viewMenu.addAction(self.fullScreenAction())
+        if swflags & spreadsheet_flags.WINDOW_MENU_WINDOW:
+            windowMenu = QtGui.QMenu('&Window', self.menuBar())
+            menuBar.addAction(windowMenu.menuAction())
+            windowMenu.addAction(self.showBuilderWindowAction())
 
         self.connect(self.modeActionGroup,
                      QtCore.SIGNAL('triggered(QAction*)'),
@@ -405,8 +425,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         # Perform single-click event on the spread sheet
         if (not self.tabController.editingMode and
             eType==QtCore.QEvent.MouseButtonPress):
-            if type(q)==QCellContainer:
-                return q.containedWidget!=None
+            if isinstance(q, CellContainerInterface):
+                return q.widget() != None
             p = q
             while (p and (not p.isModal()) and type(p)!=StandardWidgetSheet):
                 p = p.parent()

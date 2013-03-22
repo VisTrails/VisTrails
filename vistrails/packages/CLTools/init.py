@@ -39,10 +39,10 @@ import subprocess
 import errno
 import shutil
 
-import core.system
-import core.modules.module_registry
-from core import debug
-from core.modules.vistrails_module import Module, ModuleError, new_module
+import vistrails.core.system
+import vistrails.core.modules.module_registry
+from vistrails.core import debug
+from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 
 cl_tools = {}
 
@@ -56,7 +56,7 @@ class CLTools(Module):
         Module.__init__(self)
 
     def compute(self):
-        raise core.modules.vistrails_module.IncompleteImplementation
+        raise vistrails.core.modules.vistrails_module.IncompleteImplementation
 
 SUFFIX = '.clt'
 DEFAULTFILESUFFIX = '.cld'
@@ -234,7 +234,7 @@ def add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
         # On windows, builtin commands like cd/dir must use shell=True
-        if core.system.systemType in ['Windows', 'Microsoft'] and \
+        if vistrails.core.system.systemType in ['Windows', 'Microsoft'] and \
                           args[0] in ['dir', 'cd']:
             kwargs['shell'] = True
             
@@ -345,7 +345,7 @@ def add_tool(path):
                                            "conf": conf,
                                            "tool_name": tool_name,
                                            "__doc__": d})
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     reg.add_module(M, package=identifier, package_version=version)
 
     def to_vt_type(s):
@@ -384,7 +384,7 @@ def add_tool(path):
 def initialize(*args, **keywords):
     if "CLTools" == name:
         # this is the original package 
-        location = os.path.join(core.system.default_dot_vistrails(),
+        location = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                      "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
@@ -400,7 +400,7 @@ def initialize(*args, **keywords):
         location = os.path.dirname(__file__)
     
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     reg.add_module(CLTools, abstract=True)
     for path in os.listdir(location):
         if path.endswith(SUFFIX):
@@ -415,13 +415,13 @@ def initialize(*args, **keywords):
 def reload_scripts():
     global cl_tools
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     for tool_name in cl_tools.keys():
         del cl_tools[tool_name]
         reg.delete_module(identifier, tool_name)
     if "CLTools" == name:
         # this is the original package 
-        location = os.path.join(core.system.default_dot_vistrails(),
+        location = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                      "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
@@ -446,7 +446,7 @@ def reload_scripts():
                    "from '%s': %s" % (os.path.join(location, path), str(exc)),
                    traceback.format_exc())
 
-    from gui.vistrails_window import _app
+    from vistrails.gui.vistrails_window import _app
     _app.invalidate_pipelines()
 
 wizards_list = []

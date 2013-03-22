@@ -32,15 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 import os
 
-from core.db.locator import FileLocator, DBLocator
-from core.publishing.parse_latex import parse_latex_file, parse_vt_command, \
+from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.publishing.parse_latex import parse_latex_file, parse_vt_command, \
     build_vt_command
-from gui.common_widgets import QDockPushButton
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.common_widgets import QDockPushButton
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QLatexFigureItem(QtGui.QListWidgetItem):
     def __init__(self, opt_dict, parent=None):
@@ -55,7 +54,7 @@ class QLatexFigureItem(QtGui.QListWidgetItem):
 
 
 class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(), ui_hooks=None):
         QtGui.QWidget.__init__(self, parent, f)
         
         self.set_title("Export To LaTeX")
@@ -444,7 +443,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         pass
 
 class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(), ui_hooks=None):
         QtGui.QWidget.__init__(self, parent, 
                                f | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowTitle('Publish Workflow')
@@ -592,7 +591,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     def focusInEvent(self, event):
         if self.controller:
             if self.controller.locator:
-                from gui.vistrails_window import _app
+                from vistrails.gui.vistrails_window import _app
                 _app.ensureVistrail(self.controller.locator)
                     
                     

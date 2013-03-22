@@ -1,4 +1,4 @@
-from core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module
 
 class MplObject(Module):
     _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",

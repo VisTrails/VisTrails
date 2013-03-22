@@ -45,12 +45,12 @@ from thumbnail import ThumbnailEntity
 from mashup import MashupEntity
 from parameter_exploration import ParameterExplorationEntity
 
-from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
-from core.db.io import load_vistrail
-import core.system
-import db.services.io
-from core.configuration import get_vistrails_configuration
-from core import debug
+from vistrails.core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
+from vistrails.core.db.io import load_vistrail
+import vistrails.core.system
+import vistrails.db.services.io
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
 
 schema = ["create table entity(id integer primary key, type integer, "
           "name text, user integer, mod_time text, create_time text, "
@@ -102,7 +102,7 @@ class Collection(object):
                 if config:
                     self.dotVistrails = config.dotVistrails
                 else:
-                    self.dotVistrails = core.system.default_dot_vistrails()
+                    self.dotVistrails = vistrails.core.system.default_dot_vistrails()
 
                 config = get_vistrails_configuration()
                 path = os.path.join(self.dotVistrails, "index.db")
@@ -292,7 +292,7 @@ class Collection(object):
                   ('db', db_locator._db),
                   ('user', db_locator._user),
                   ('passwd', db_locator._passwd))
-        rows = db.services.io.get_db_object_list(dict(config), 'vistrail')
+        rows = vistrails.db.services.io.get_db_object_list(dict(config), 'vistrail')
         for row in rows:
             if row[0] in [1,]:
                 continue
@@ -358,7 +358,7 @@ class Collection(object):
 #            debug.critical("Locator is not valid!")
 
 def main():
-    from db.services.locator import BaseLocator
+    from vistrails.db.services.locator import BaseLocator
     import sys
     sys.path.append('/home/tommy/git/vistrails/vistrails')
 

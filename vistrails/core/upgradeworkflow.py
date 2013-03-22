@@ -35,19 +35,18 @@
 
 """This file contains code to handle InvalidPipeline exceptions that contain
 upgrade requests."""
-
-from core import debug
-import core.db.action
-from core.modules.module_registry import get_module_registry, \
+from vistrails.core import debug
+import vistrails.core.db.action
+from vistrails.core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort
-from core.modules.utils import parse_descriptor_string, \
+from vistrails.core.modules.utils import parse_descriptor_string, \
     create_descriptor_string, expand_port_spec_string
-from core.packagemanager import get_package_manager
-from core.vistrail.annotation import Annotation
-from core.vistrail.connection import Connection
-from core.vistrail.port import Port
-from core.vistrail.port_spec import PortSpec
-from core.utils import versions_increasing
+from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.port import Port
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.utils import versions_increasing
 import copy
 
 ##############################################################################
@@ -91,7 +90,7 @@ class UpgradeWorkflowHandler(object):
     @staticmethod
     def check_port_spec(module, port_name, port_type, descriptor=None, 
                         sigstring=None):
-        from core.modules.basic_modules import identifier as basic_pkg
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
 
         reg = get_module_registry()
         found = False
@@ -118,7 +117,7 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def find_descriptor(controller, pipeline, module_id, desired_version=''):
-        from core.modules.abstraction \
+        from vistrails.core.modules.abstraction \
             import identifier as local_abstraction_pkg
         reg = get_module_registry()
 
@@ -328,6 +327,7 @@ class UpgradeWorkflowHandler(object):
                 new_spec.name = spec_name
                 new_module.add_port_spec(new_spec)
 
+        function_ops = []
         for function in old_module.functions:
             if function.name not in function_remap:
                 function_name = function.name
@@ -337,7 +337,7 @@ class UpgradeWorkflowHandler(object):
                     # don't add the function back in
                     continue                    
                 elif type(remap) != type(""):
-                    ops.extend(remap(function, new_module))
+                    function_ops.extend(remap(function, new_module))
                     continue
                 else:
                     function_name = remap
@@ -356,6 +356,7 @@ class UpgradeWorkflowHandler(object):
 
         # add the new module
         ops.append(('add', new_module))
+        ops.extend(function_ops)
 
         create_new_connection = UpgradeWorkflowHandler.create_new_connection
 
@@ -406,7 +407,7 @@ class UpgradeWorkflowHandler(object):
                                              destination_name)
             ops.append(('add', new_conn))
         
-        return [core.db.action.create_action(ops)]
+        return [vistrails.core.db.action.create_action(ops)]
 
     @staticmethod
     def replace_group(controller, pipeline, module_id, new_subpipeline):

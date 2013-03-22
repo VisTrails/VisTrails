@@ -32,30 +32,29 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 import os.path
 import sys
 import weakref
 
-from core import command_line
-from core import debug
-from core import keychain
-from core import system
-import core.configuration
-from core.db.locator import FileLocator, DBLocator
-import core.interpreter.cached
-import core.interpreter.default
-import core.startup
-from core.utils import InstanceObject
-from core.utils.uxml import enter_named_element
-from core.vistrail.vistrail import Vistrail
-from core.vistrail.controller import VistrailController
+from vistrails.core import command_line
+from vistrails.core import debug
+from vistrails.core import keychain
+from vistrails.core import system
+import vistrails.core.configuration
+from vistrails.core.db.locator import FileLocator, DBLocator
+import vistrails.core.interpreter.cached
+import vistrails.core.interpreter.default
+import vistrails.core.startup
+from vistrails.core.utils import InstanceObject
+from vistrails.core.utils.uxml import enter_named_element
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.vistrail.controller import VistrailController
 
 VistrailsApplication = None
 
 def finalize_vistrails(app):
-    core.interpreter.cached.CachedInterpreter.cleanup()
+    vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
 
 def get_vistrails_application():
     global VistrailsApplication
@@ -71,10 +70,10 @@ def is_running_gui():
     app = get_vistrails_application()
     return app.is_running_gui()
 
-def init(options_dict={}):
+def init(options_dict={}, args=None):
     app = VistrailsCoreApplication()
     set_vistrails_application(app)
-    app.init(options_dict)
+    app.init(optionsDict=options_dict, args=args)
     return app
 
 class VistrailsApplicationInterface(object):
@@ -82,7 +81,7 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setupOptions(self):
+    def setupOptions(self, args=None):
         """ setupOptions() -> None
         Check and store all command-line arguments
         
@@ -148,6 +147,9 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-w", "--executeworkflows", action="store_true",
             default = None,
             help="The workflows will be executed")
+        add("-F", "--fixedcells", action="store_true",
+            default = None,
+            help="Use a fixed spreadsheet cell size of 200*180")
         add("-I", "--workflowinfo", action="store",
             default = None,
             help=("Save workflow graph and spec in specified directory "
@@ -172,7 +174,10 @@ The builder window can be accessed by a spreadsheet menu option.")
         add ("-g", "--noSingleInstance", action="store_true",
              help=("Run VisTrails without the single instance restriction."))
         
-        command_line.CommandLineParser.parse_options()
+        if args != None:
+            command_line.CommandLineParser.parse_options(args=args)
+        else:
+            command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
         """ printVersion() -> None
@@ -219,6 +224,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.useCache = bool(get('cache'))
         if get('verbose')!=None:
             self.temp_configuration.verbosenessLevel = get('verbose')
+        if get('fixedcells') != None:
+            self.temp_configuration.fixedSpreadsheetCells = str(get('fixedcells'))
         if get('noninteractive')!=None:
             self.temp_configuration.interactiveMode = \
                                                   not bool(get('noninteractive'))
@@ -264,7 +271,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         if get('noSingleInstance')!=None:
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         self.input = command_line.CommandLineParser().positional_arguments()
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -275,10 +282,10 @@ The builder window can be accessed by a spreadsheet menu option.")
         
         # This is the persistent configuration
         # Setup configuration to default
-        self.configuration = core.configuration.default()
+        self.configuration = vistrails.core.configuration.default()
         
         self.keyChain = keychain.KeyChain()
-        self.setupOptions()
+        self.setupOptions(args)
         
         # self.temp_configuration is the configuration that will be updated 
         # with the command line and custom options dictionary. 
@@ -286,7 +293,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # persistent. This is the actual VisTrails current configuration
         self.temp_configuration = copy.copy(self.configuration)
         
-        core.interpreter.default.connect_to_configuration(self.temp_configuration)
+        vistrails.core.interpreter.default.connect_to_configuration(self.temp_configuration)
         
         # now we want to open vistrails and point to a specific version
         # we will store the version in temp options as it doesn't
@@ -318,7 +325,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # During this initialization, VistrailsStartup will load the
         # configuration from disk and update both configurations
         self.vistrailsStartup = \
-            core.startup.VistrailsStartup(self.configuration,
+            vistrails.core.startup.VistrailsStartup(self.configuration,
                                           self.temp_configuration)
 
         # Starting in version 1.2.1 logging is enabled by default.
@@ -461,7 +468,7 @@ after self.init()"""
 
                 
     def finishSession(self):
-        core.interpreter.cached.CachedInterpreter.cleanup()
+        vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
         
     def save_configuration(self):
         """ save_configuration() -> None
@@ -522,8 +529,8 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._controller = None
         self._vistrail = None
 
-    def init(self, optionsDict=None):
-        VistrailsApplicationInterface.init(self, optionsDict)
+    def init(self, optionsDict=None, args=None):
+        VistrailsApplicationInterface.init(self, optionsDict=optionsDict, args=args)
         self.vistrailsStartup.init()
 
     def is_running_gui(self):

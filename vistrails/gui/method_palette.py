@@ -39,15 +39,14 @@ QMethodPalette
 QMethodTreeWidget
 QMethodTreeWidgetItem
 """
-
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import (QSearchTreeWindow,
+from vistrails.gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget,
                                 QToolWindowInterface)
-from core.modules.module_registry import get_module_registry, \
+from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-from core.vistrail.port import PortEndPoint
-from gui.port_documentation import QPortDocumentation
+from vistrails.core.vistrail.port import PortEndPoint
+from vistrails.gui.port_documentation import QPortDocumentation
 ################################################################################
 
 class QMethodPalette(QSearchTreeWindow, QToolWindowInterface):

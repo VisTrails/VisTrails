@@ -34,9 +34,11 @@
 ###############################################################################
 # MACOSX binary install stuff
 import os
+
+from vistrails.db.services import io
+
 os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'
 
-from db.services import io
 
 def convert_xml_to_sql(filename):
     config = {'host': 'localhost', 

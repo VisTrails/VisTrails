@@ -32,24 +32,24 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 
-from core import debug
-from core.thumbnails import ThumbnailCache
-from core.collection.search import SearchCompiler, SearchParseError
-from core.db.locator import FileLocator, DBLocator
-from core.system import default_connections_file
-from core.external_connection import ExtConnectionList
-from db import VistrailsDBException
-from db.services.io import test_db_connection
-from db.services.query import runLogQuery, runWorkflowQuery
-from gui.theme import CurrentTheme
-from gui.open_db_window import QDBConnectionList, QConnectionDBSetupWindow
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core import debug
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.collection.search import SearchCompiler, SearchParseError
+from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.system import default_connections_file
+from vistrails.core.external_connection import ExtConnectionList
+from vistrails.db import VistrailsDBException
+from vistrails.db.services.io import test_db_connection
+from vistrails.db.services.query import runLogQuery, runWorkflowQuery
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.open_db_window import QDBConnectionList, QConnectionDBSetupWindow
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+import vistrails.gui
 
 class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         
         self.layout = QtGui.QVBoxLayout()
@@ -449,8 +449,8 @@ class ExecutionSearchWidget(QtGui.QSplitter):
                      workflow_exec=ts_start,
                      connection_id=config.get('id', None))
         #print "url:", locator.to_url()
-        import gui.application
-        app = gui.application.get_vistrails_application()
+        import vistrails.gui.application
+        app = vistrails.gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
@@ -725,8 +725,8 @@ class WorkflowSearchWidget(QtGui.QSplitter):
                      obj_type='vistrail',
                      connection_id=config.get('id', None))
         #print "url:", locator.to_url()
-        import gui.application
-        app = gui.application.get_vistrails_application()
+        import vistrails.gui.application
+        app = vistrails.gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
         args['version'] = version_name if version_name else v_version

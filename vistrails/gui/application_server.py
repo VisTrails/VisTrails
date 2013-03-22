@@ -33,7 +33,6 @@
 ##
 ###############################################################################
 """ This is the application for vistrails when running as a server. """
-
 import Queue
 import base64
 import hashlib
@@ -57,33 +56,36 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 from datetime import date, datetime
 from time import strptime
 
-from core.configuration import get_vistrails_configuration
-from gui.application import VistrailsApplicationInterface
-import gui.theme
-import core.application
-from gui import qt
-from core.db.locator import DBLocator, ZIPFileLocator, FileLocator
-from core.db import io
-from core import debug
-import core.db.action
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.gui.application import VistrailsApplicationInterface
+import vistrails.gui.theme
+import vistrails.core.application
+from vistrails.gui import qt
+from vistrails.core.db.locator import DBLocator, ZIPFileLocator, FileLocator
+from vistrails.core.db import io
+from vistrails.core import debug
+import vistrails.core.db.action
 
-from core.utils import InstanceObject
-from core.vistrail.vistrail import Vistrail
-from core import command_line
-from core import system
-from core.modules.module_registry import get_module_registry as module_registry
-from core import interpreter
-from core.packagemanager import get_package_manager
-from gui.vistrail_controller import VistrailController
-import core
-import db.services.io
+from vistrails.core.utils import InstanceObject
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core import command_line
+from vistrails.core import system
+from vistrails.core.modules.module_registry import get_module_registry as module_registry
+from vistrails.core import interpreter
+from vistrails.core.packagemanager import get_package_manager
+from vistrails.gui.vistrail_controller import VistrailController
+import vistrails.core
+import vistrails.db.services.io
 import gc
-ElementTree = core.system.get_elementtree_library()
 
-import core.requirements
-import core.console_mode
+import vistrails.core.requirements
+import vistrails.core.console_mode
 
-from db.versions import currentVersion
+from vistrails.db.versions import currentVersion
+
+ElementTree = vistrails.core.system.get_elementtree_library()
+
+
 
 ################################################################################
 class StoppableXMLRPCServer(SimpleXMLRPCServer):
@@ -461,7 +463,7 @@ class RequestHandler(object):
             old_db_locator = DBLocator(host=host, port=int(port), database=db_name,
                                        obj_id=int(old_db_vt_id), user=db_write_user, passwd=db_write_pass)
             old_db_bundle = old_db_locator.load()
-            db.services.vistrail.merge(old_db_bundle, new_bundle, 'vistrails')
+            vistrails.db.services.vistrail.merge(old_db_bundle, new_bundle, 'vistrails')
             old_db_locator.save(old_db_bundle)
             new_locator.save(old_db_bundle)
             return (1, 1)
@@ -491,14 +493,14 @@ class RequestHandler(object):
         config['user'] = db_write_user
         config['passwd'] = db_write_pass
         try:
-            conn = db.services.io.open_db_connection(config)
-            db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
-            db.services.io.close_db_connection(conn)
+            conn = vistrails.db.services.io.open_db_connection(config)
+            vistrails.db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
+            vistrails.db.services.io.close_db_connection(conn)
             return (1, 1)
         except Exception, e:
             self.server_logger.error(str(e))
             if conn:
-                db.services.io.close_db_connection(conn)
+                vistrails.db.services.io.close_db_connection(conn)
             return (str(e), 0)
 
     def get_runnable_workflows(self, host, port, db_name, vt_id):
@@ -658,7 +660,7 @@ class RequestHandler(object):
                                 try:
                                     gc.collect()
                                     results = \
-                                      core.console_mode.run_and_get_results( \
+                                      vistrails.core.console_mode.run_and_get_results( \
                                                     [(locator,int(workflow))],
                                                     s_alias,
                                                     extra_info=extra_info)
@@ -706,7 +708,7 @@ class RequestHandler(object):
                             self.server_logger.info("Not sequence aliases: %s"% s_alias)
                         try:
                             results = \
-                               core.console_mode.run_and_get_results( \
+                               vistrails.core.console_mode.run_and_get_results( \
                                                 [(locator,int(workflow))],
                                                     s_alias,
                                                     extra_info=extra_info)
@@ -846,7 +848,7 @@ class RequestHandler(object):
                 results = []
                 try:
                     results = \
-                    core.console_mode.run_and_get_results([(locator,
+                    vistrails.core.console_mode.run_and_get_results([(locator,
                                                           int(version))],
                                                           parameters,
                                                           update_vistrail=True,
@@ -1105,13 +1107,12 @@ class RequestHandler(object):
 
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                controller.change_selected_version(version)
-
-                from gui.pipeline_view import QPipelineView
+                from vistrails.gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 controller.current_pipeline_view = pipeline_view.scene()
                 controller.set_vistrail(v, locator, abstractions, 
                                         thumbnails, mashups)
+                controller.change_selected_version(version)
                 p = controller.current_pipeline
                 pipeline_view.scene().setupScene(p)
                 pipeline_view.scene().saveToPDF(filename)
@@ -1194,7 +1195,7 @@ class RequestHandler(object):
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                from gui.pipeline_view import QPipelineView
+                from vistrails.gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 controller.current_pipeline_view = pipeline_view.scene()
                 controller.set_vistrail(v, locator, abstractions, thumbnails,
@@ -1304,9 +1305,9 @@ class RequestHandler(object):
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                from gui.version_view import QVersionTreeView
+                from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from gui.pipeline_view import QPipelineView
+                from vistrails.gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 controller.current_pipeline_view = pipeline_view.scene()
                 controller.set_vistrail(v, locator, abstractions, thumbnails,
@@ -1397,9 +1398,9 @@ class RequestHandler(object):
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
-                from gui.version_view import QVersionTreeView
+                from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from gui.pipeline_view import QPipelineView
+                from vistrails.gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 controller.current_pipeline_view = pipeline_view.scene()
                 controller.set_vistrail(v, locator, abstractions, thumbnails,
@@ -1502,7 +1503,7 @@ class RequestHandler(object):
                     action_list.append(('add', module))
                 for connection in p.connection_list:
                     action_list.append(('add', connection))
-                action = core.db.action.create_action(action_list)
+                action = vistrails.core.db.action.create_action(action_list)
                 vistrail.add_action(action, 0L)
                 vistrail.addTag("Imported workflow", action.id)
                 if not vistrail.db_version:
@@ -1916,7 +1917,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
         if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
-            raise core.requirements.MissingRequirement("Qt version >= 4.2")
+            raise vistrails.core.requirements.MissingRequirement("Qt version >= 4.2")
 
         self.rpcserver = None
         self.pingserver = None
@@ -2168,7 +2169,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver.stop = True
         return result
 
-    def setupOptions(self):
+    def setupOptions(self, args=None):
         """ setupOptions() -> None
         Check and store all command-line arguments
 
@@ -2193,7 +2194,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             default=os.path.join(system.vistrails_root_directory(),
                                  'server.cfg'),
             help="config file for server connection options")
-        VistrailsApplicationInterface.setupOptions(self)
+        VistrailsApplicationInterface.setupOptions(self, args)
 
     def readOptions(self):
         """ readOptions() -> None
@@ -2221,11 +2222,11 @@ def start_server(optionsDict=None):
         print "Server already started."
         return
     VistrailsServer = VistrailsServerSingleton()
-    gui.theme.initializeCurrentTheme()
-    core.application.set_vistrails_application(VistrailsServer)
+    vistrails.gui.theme.initializeCurrentTheme()
+    vistrails.core.application.set_vistrails_application(VistrailsServer)
     try:
-        core.requirements.check_all_vistrails_requirements()
-    except core.requirements.MissingRequirement, e:
+        vistrails.core.requirements.check_all_vistrails_requirements()
+    except vistrails.core.requirements.MissingRequirement, e:
         msg = ("VisTrails requires %s to properly run.\n" %
                e.requirement)
         print msg

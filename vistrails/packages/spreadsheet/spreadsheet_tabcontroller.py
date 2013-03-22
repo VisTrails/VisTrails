@@ -38,19 +38,21 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.db.locator import FileLocator, _DBLocator as DBLocator
-from core.interpreter.default import get_default_interpreter
-from db.services.io import SaveBundle
+from vistrails.core.application import get_vistrails_application
+from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.db.services.io import SaveBundle
+import spreadsheet_flags
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
 from spreadsheet_registry import spreadsheetRegistry
-from core.utils import DummyView
-from core.utils.uxml import XMLWrapper, named_elements
+from vistrails.core.utils import DummyView
+from vistrails.core.utils.uxml import XMLWrapper, named_elements
 import copy
 import gc
-from gui.theme import CurrentTheme
-from gui.utils import show_warning
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import show_warning
 
 ################################################################################
 
@@ -61,21 +63,29 @@ class StandardWidgetTabController(QtGui.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
-    def __init__(self, parent=None):
-        """ StandardWidgetTabController(parent: QWidget)
-                                        -> StandardWidgetTabController
+    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS,
+            close_tab_action=None):
+        """ StandardWidgetTabController(parent: QWidget, swflags: int)
+                -> StandardWidgetTabController
         Initialize signals/slots and widgets for the tab bar
         
         """
         
         QtGui.QTabWidget.__init__(self, parent)
         self.operatingWidget = self
-        self.setTabBar(StandardWidgetTabBar(self))
+        self.setTabBar(
+                StandardWidgetTabBar(self, swflags=swflags))
         self.setTabShape(QtGui.QTabWidget.Triangular)
         self.setTabPosition(QtGui.QTabWidget.South)
         self.tabWidgets = []
         self.floatingTabWidgets = []
-        self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
+        self._flags = swflags
+        if swflags & spreadsheet_flags.WINDOW_CREATE_FIRST_SHEET:
+            self.addTabWidget(
+                    StandardWidgetSheetTab(
+                            self,
+                            swflags=swflags),
+                    'Sheet 1')
         self.connect(self.tabBar(),
                      QtCore.SIGNAL('tabMoveRequest(int,int)'),
                      self.moveTab)
@@ -85,6 +95,16 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.connect(self.tabBar(),
                      QtCore.SIGNAL('tabTextChanged(int,QString)'),
                      self.changeTabText)
+        app = get_vistrails_application()
+        def sheet_changed(idx):
+            if idx >= 0:
+                tab = self.widget(idx)
+            else:
+                tab = None
+            app.send_notification('spreadsheet_sheet_changed', tab)
+        self.connect(self.tabBar(),
+                     QtCore.SIGNAL('currentChanged(int)'),
+                     sheet_changed)
         self.addAction(self.showNextTabAction())
         self.addAction(self.showPrevTabAction())
         self.executedPipelines = [[],{},{}]
@@ -92,12 +112,17 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.spreadsheetFileName = None
         self.loadingMode = False
         self.editingMode = False
-        self.closeButton = QtGui.QToolButton(self)
-        self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
-        self.closeButton.setAutoRaise(True)
-        self.setCornerWidget(self.closeButton)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
-                     self.deleteSheetAction().trigger)
+        if swflags & spreadsheet_flags.TAB_CLOSE_SHEET:
+            self.closeButton = QtGui.QToolButton(self)
+            self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
+            self.closeButton.setAutoRaise(True)
+            self.setCornerWidget(self.closeButton)
+            def close_veto():
+                if (close_tab_action is None or
+                        close_tab_action(self.currentWidget())):
+                    self.deleteSheetAction().trigger()
+            self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
+                         close_veto)
         
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean
@@ -112,10 +137,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         """
         key = ((spec[0]['locator'], spec[0]['version']), spec[1], spec[2])
-        if key in self.monitoredPipelines:
-            return self.monitoredPipelines[key]
-        else:
-            return []
+        return self.monitoredPipelines.get(key, [])
 
     def appendMonitoredLocations(self, spec, value):
         """ getMonitoredLocations(spec: tuple, value: location) -> None
@@ -290,8 +312,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Actual code to create a new sheet
         
         """
-        self.setCurrentIndex(self.addTabWidget(StandardWidgetSheetTab(self),
-                                               'Sheet %d' % (self.count()+1)))
+        self.setCurrentIndex(
+                self.addTabWidget(
+                        StandardWidgetSheetTab(
+                                self,
+                                swflags=self._flags),
+                        'Sheet %d' % (self.count()+1)))
         self.currentWidget().sheet.stretchCells()
         
     def tabInserted(self, index):
@@ -325,14 +351,18 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if self.count()>0:
             widget = self.currentWidget()
-            self.tabWidgets.remove(widget)
-            self.removeTab(self.currentIndex())
-            self.removeSheetReference(widget)
-            widget.deleteAllCells()
-            widget.deleteLater()
-            QtCore.QCoreApplication.processEvents()
-            gc.collect()
-            
+            self.deleteSheet(widget)
+
+    def deleteSheet(self, widget):
+        self.tabWidgets.remove(widget)
+        self.removeTab(self.currentIndex())
+        self.removeSheetReference(widget)
+        widget.deleteAllCells()
+        widget.removeContainers()
+        widget.deleteLater()
+        QtCore.QCoreApplication.processEvents()
+        gc.collect()
+
     def clearTabs(self):
         """ clearTabs() -> None
         Clear and reset the controller
@@ -561,12 +591,15 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.emit(QtCore.SIGNAL('needChangeTitle'),
                   'VisTrails - Spreadsheet - %s' % displayName)
 
+    def pipelineId(self, pipelineInfo):
+        return (pipelineInfo['controller'], pipelineInfo['version'])
+
     def addPipeline(self, pipelineInfo):
         """ addPipeline(pipelineInfo: dict) -> None
         Add vistrail pipeline executions to history
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -579,7 +612,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Get the current pipeline id
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         return self.executedPipelines[1][vistrail]
 
     def increasePipelineCellId(self, pipelineInfo):
@@ -587,7 +620,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Increase the current cell pipeline id
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         cid = self.executedPipelines[2][vistrail]
         self.executedPipelines[2][vistrail] += 1
         return cid
@@ -597,7 +630,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Get current pipeline cell id
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         return self.executedPipelines[2][vistrail]
         
     def addPipelineCell(self, pipelineInfo):
@@ -605,7 +638,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Add vistrail pipeline executions to history
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -628,7 +661,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             return dom.toxml()
         
         def need_save():
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             need_save_vt = False
             for t in self.tabWidgets:
                 dim = t.getDimension()
@@ -636,8 +669,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                     for c in xrange(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
-                            locator = info[0]['locator']
-                            view = _app.ensureVistrail(locator)
+                            controller = info[0]['controller']
+                            view = _app.ensureController(controller)
                             if view:
                                 controller = view.get_controller()
                                 if controller.changed:
@@ -667,7 +700,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                             newinfo0['pipeline'] = None
                             newinfo0['actions'] = []
                             newinfo0['locator'] = \
-                                          serialize_locator(newinfo0['locator'])
+                                          serialize_locator(newinfo0['controller'].locator)
+                            newinfo0['controller'] = None
                             indexFile.write('%s\n'
                                             %str((r, c,
                                                   newinfo0,
@@ -675,7 +709,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 indexFile.write('---\n')
             indexFile.write(str(len(self.executedPipelines[0]))+'\n')
             for vistrail in self.executedPipelines[0]:
-                indexFile.write('%s\n'%str((serialize_locator(vistrail[0]),
+                indexFile.write('%s\n'%str((serialize_locator(vistrail[0].locator),
                                             vistrail[1])))
             self.changeSpreadsheetFileName(fileName)
             indexFile.close()

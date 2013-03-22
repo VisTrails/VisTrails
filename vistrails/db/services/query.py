@@ -32,8 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from db import VistrailsDBException
-from db.services.io import open_db_connection, close_db_connection, get_db_lib
+from vistrails.db import VistrailsDBException
+from vistrails.db.services.io import open_db_connection, close_db_connection, get_db_lib
 
 def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
         toTime=None, user=None, offset=0, limit=100, modules=[], thumbs=None):

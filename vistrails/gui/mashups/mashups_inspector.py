@@ -34,11 +34,11 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
-import core.system
-from gui.common_widgets import QDockPushButton
-from gui.mashups.mashups_manager import MashupsManager
-from gui.utils import show_warning
-from gui.vistrails_palette import QVistrailsPaletteInterface
+import vistrails.core.system
+from vistrails.gui.common_widgets import QDockPushButton
+from vistrails.gui.mashups.mashups_manager import MashupsManager
+from vistrails.gui.utils import show_warning
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     """
@@ -49,7 +49,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     """
     #signals
     mashupChanged = pyqtSignal()
-    def __init__(self, controller=None, parent=None):
+    def __init__(self, controller=None, parent=None, ui_hooks=None):
         """ QMashupsInspector(controller: MashupController,
                             parent: QWidget) -> QMashupsInspector
         
@@ -272,7 +272,7 @@ class QMashupProp(QtGui.QWidget):
                 result = dialog.btnPressed
                 fileName = QtGui.QFileDialog.getSaveFileName(self,
                            "Export Mashup...",
-                           core.system.vistrails_file_directory(),
+                           vistrails.core.system.vistrails_file_directory(),
                            "VisTrail link files (*.vtl)",
                            None)
                 if not fileName.isEmpty():

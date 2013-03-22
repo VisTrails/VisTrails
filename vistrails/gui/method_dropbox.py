@@ -40,18 +40,17 @@ QVerticalWidget
 QMethodInputForm
 QHoverAliasLabel
 """
-
 from PyQt4 import QtCore, QtGui
-from core import debug
-from core.utils import expression
-from core.vistrail.module_function import ModuleFunction
-from core.modules import module_registry
-from gui.modules import get_widget_class
-from gui.modules.constant_configuration import StandardConstantWidget, \
+from vistrails.core import debug
+from vistrails.core.utils import expression
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.modules import module_registry
+from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.constant_configuration import StandardConstantWidget, \
     FileChooserToolButton
-from gui.common_widgets import QPromptWidget
-from gui.method_palette import QMethodTreeWidget
-from gui.theme import CurrentTheme
+from vistrails.gui.common_widgets import QPromptWidget
+from vistrails.gui.method_palette import QMethodTreeWidget
+from vistrails.gui.theme import CurrentTheme
 
 ################################################################################
 

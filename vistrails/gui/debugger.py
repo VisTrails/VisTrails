@@ -32,16 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtGui, QtCore
-import core.system
+import vistrails.core.system
 import copy
 import sys
 import time
 import os.path
-import gui.application
-from core.interpreter.default import get_default_interpreter
-from gui.vistrails_palette import QVistrailsPaletteInterface
+import vistrails.gui.application
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ############################################################################
 
@@ -49,9 +48,9 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     This class provides a dockable interface to the debugger tree.
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent=parent)
-        self.app = gui.application.get_vistrails_application()
+        self.app = vistrails.gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)

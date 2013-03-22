@@ -39,17 +39,16 @@ QModulePalette
 QModuleTreeWidget
 QModuleTreeWidgetItem
 """
-
 from PyQt4 import QtCore, QtGui
-from core import get_vistrails_application
-from core.modules.module_registry import get_module_registry
-from core.system import systemType
-from core.utils import VistrailsInternalError
-from gui.common_widgets import (QSearchTreeWindow,
+from vistrails.core import get_vistrails_application
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.system import systemType
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget)
-from gui.module_documentation import QModuleDocumentation
-from gui.theme import CurrentTheme
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.module_documentation import QModuleDocumentation
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 import weakref
 
 ################################################################################
@@ -60,7 +59,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
     own type of tree widget
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QSearchTreeWindow.__init__(self, parent)
         self.setContentsMargins(0,5,0,0)
         self.packages = {}

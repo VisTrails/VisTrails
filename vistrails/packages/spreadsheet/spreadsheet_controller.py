@@ -38,9 +38,12 @@
 #   SpreadsheetController
 ################################################################################
 from PyQt4 import QtCore, QtGui
-from spreadsheet_window import SpreadsheetWindow
+
+import warnings
 
 ################################################################################
+
+spreadsheetWindow = None
 
 class SpreadsheetController(object):
     """
@@ -54,23 +57,38 @@ class SpreadsheetController(object):
         This class is more like an interface where there is no data inside
         
         """
-        pass
+        self._cellContainerClass = None
+                # This could be in SpreadsheetWindow but findSpreadsheetWindow
+                # is unnecessarily slow
 
-    def findSpreadsheetWindow(self, show=True):
-        """ findSpreadsheetWindow() -> QWidget
-        Looking for the spreadsheet window
-        
+    def findSpreadsheetWindow(self, show=True, create=True, **kwargs):
+        """ findSpreadsheetWindow(...) -> QWidget
+        Returns (and optionally creates) the spreadsheet window.
+
+        You can pass keyword parameters to the constructor. A warning will be
+        issued if they were ignored because the window already existed.
+
         """
-        wList = QtGui.QApplication.topLevelWidgets()
-        for w in wList:
-            if type(w)==SpreadsheetWindow:
-                return w
         global spreadsheetWindow
-        spreadsheetWindow = SpreadsheetWindow()
-        if show:
-            spreadsheetWindow.configShow()
+        created = False
+        if spreadsheetWindow is None and create:
+            from spreadsheet_window import SpreadsheetWindow
+            wList = QtGui.QApplication.topLevelWidgets()
+            for w in wList:
+                if isinstance(w, SpreadsheetWindow):
+                    spreadsheetWindow = w
+                    break
+            if spreadsheetWindow is None:
+                spreadsheetWindow = SpreadsheetWindow(**kwargs)
+                created = True
+                if show:
+                    spreadsheetWindow.configShow()
+        if kwargs and not created:
+            warnings.warn("spreadsheetController.findSpreadsheetWindow() was "
+                          "called with kwargs for the\nconstructor, but the "
+                          "window already existed. Ignored.")
         return spreadsheetWindow
-        
+
     def postEventToSpreadsheet(self, event):
         """ postEventToSpreadsheet(event: QEvent) -> None
         Post an event to the spreadsheet to make thread-safe connection
@@ -124,6 +142,26 @@ class SpreadsheetController(object):
             spreadsheetWindow.clearEchoCellEvents()
             return events
         return None
+
+    def getCellContainerClass(self):
+        if self._cellContainerClass is None:
+            from vistrails.packages.spreadsheet import spreadsheet_cell
+            self._cellContainerClass = spreadsheet_cell.QCellContainer
+        return self._cellContainerClass
+
+    def setCellContainerClass(self, containerclass):
+        if (self._cellContainerClass is not None and
+                containerclass != self._cellContainerClass):
+            warnings.warn(
+                    "spreadsheetController: the container class was changed!\n"
+                    "This shouldn't happen and could have unknown effects on "
+                    "the application\n"
+                    "It either means that two different module try to set a "
+                    "different container\nclass, or that "
+                    "setCellContainerClass() was called after the first "
+                    "access to\ngetCellContainerClass()",
+                    stacklevel=2)
+        self._cellContainerClass = containerclass
 
 spreadsheetController = SpreadsheetController()
 registeredWidgets = {}

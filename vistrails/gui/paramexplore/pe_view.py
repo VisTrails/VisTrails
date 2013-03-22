@@ -32,21 +32,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 
-from core.modules.module_registry import get_module_registry
-from gui.base_view import BaseView
-from gui.paramexplore.pe_table import QParameterExplorationWidget
-from gui.theme import CurrentTheme
-from core import debug
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget
+from vistrails.gui.theme import CurrentTheme
+from vistrails.core import debug
 
 class QParamExploreView(QParameterExplorationWidget, BaseView):
     explorationId = 0
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QParameterExplorationWidget.__init__(self, parent)
-        BaseView.__init__(self)
+        BaseView.__init__(self, ui_hooks=ui_hooks)
 
         self.set_title("Explore")
         self.connect(self.table,
@@ -67,8 +66,8 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         self.setParameterExploration(pe)
 
     def set_default_layout(self):
-        from gui.paramexplore.pe_inspector import QParamExploreInspector
-        from gui.paramexplore.param_view import QParameterView
+        from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
+        from vistrails.gui.paramexplore.param_view import QParameterView
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QParamExploreInspector,
              QtCore.Qt.RightDockWidgetArea: QParameterView,
@@ -99,7 +98,7 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         return on
     
     def exploreChange(self, on):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify('explore_changed', on)
         
     def execute(self):
@@ -130,5 +129,5 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
             errors = '\n'.join(['Position %s: %s' % (error[0], error[1]) for error in errors])
             debug.critical("Parameter Exploration Execution had errors", errors)
         if changed:
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.notify('exploration_changed')

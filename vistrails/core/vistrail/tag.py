@@ -32,8 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.db.domain import DBTag
 
-from db.domain import DBTag
+import unittest
+import copy
+from vistrails.db.domain import IdScope
+import vistrails.core
 
 class Tag(DBTag):
 
@@ -89,9 +93,6 @@ class Tag(DBTag):
 ################################################################################
 # Testing
 
-import unittest
-import copy
-from db.domain import IdScope
 
 class TestTag(unittest.TestCase):
 
@@ -112,9 +113,9 @@ class TestTag(unittest.TestCase):
         self.assertNotEquals(t1.id, t3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         t1 = self.create_tag()
-        xml_str = core.db.io.serialize(t1)
-        t2 = core.db.io.unserialize(xml_str, Tag)
+        xml_str = vistrails.core.db.io.serialize(t1)
+        t2 = vistrails.core.db.io.unserialize(xml_str, Tag)
         self.assertEquals(t1, t2)
         self.assertEquals(t1.id, t2.id)

@@ -32,10 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core import debug
+from vistrails.core import debug
 import os
-import core.configuration
+import vistrails.core.configuration
 import shutil
 import urllib2
 import tempfile
@@ -51,7 +50,7 @@ import os.path
 class PackageRepository(object):
 
     def __init__(self):
-        conf = core.configuration.get_vistrails_configuration()
+        conf = vistrails.core.configuration.get_vistrails_configuration()
         if conf.check('userPackageDirectory'):
             self._upd = conf.userPackageDirectory
         else:
@@ -173,8 +172,8 @@ def get_repository():
     global _repository
     if _repository:
         return _repository
-    import core.configuration
-    conf = core.configuration.get_vistrails_configuration()
+    import vistrails.core.configuration
+    conf = vistrails.core.configuration.get_vistrails_configuration()
     if conf.check('repositoryHTTPURL'):
         _repository = HTTPPackageRepository(conf.repositoryHTTPURL)
         debug.log("Using HTTP Package Repository @ %s" % conf.repositoryHTTPURL)

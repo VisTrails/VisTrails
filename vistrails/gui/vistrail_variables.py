@@ -37,9 +37,9 @@ drop constants from the module palette
 
 """
 from PyQt4 import QtCore, QtGui
-from gui.variable_dropbox import QVariableDropBox
-from gui.common_widgets import QToolWindowInterface
-from gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.variable_dropbox import QVariableDropBox
+from vistrails.gui.common_widgets import QToolWindowInterface
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
@@ -49,7 +49,7 @@ class QVistrailVariables(QVariableDropBox, QVistrailsPaletteInterface):
     supports drag/drop actions of constant items from the module palette
     
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         """ QVistrailVariables(parent: QWidget) -> QVistrailVariables
         Initialize widget constraints
         

@@ -38,22 +38,22 @@ This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
 """
-
+import vistrails.core
 identifier = 'edu.utah.sci.vistrails.matplotlib'
 name = 'matplotlib'
 version = '0.9.0'
 
 def package_dependencies():
-    import core.packagemanager
-    manager = core.packagemanager.get_package_manager()
+    import vistrails.core.packagemanager
+    manager = vistrails.core.packagemanager.get_package_manager()
     if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
         return ['edu.utah.sci.vistrails.spreadsheet']
     else:
         return []
 
 def package_requirements():
-    import core.requirements
-    if not core.requirements.python_module_exists('matplotlib'):
-        raise core.requirements.MissingRequirement('matplotlib')
-    if not core.requirements.python_module_exists('pylab'):
-        raise core.requirements.MissingRequirement('pylab')
+    import vistrails.core.requirements
+    if not vistrails.core.requirements.python_module_exists('matplotlib'):
+        raise vistrails.core.requirements.MissingRequirement('matplotlib')
+    if not vistrails.core.requirements.python_module_exists('pylab'):
+        raise vistrails.core.requirements.MissingRequirement('pylab')

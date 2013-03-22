@@ -36,15 +36,17 @@ import os
 import shutil
 import sys
 
+import vistrails.db.services.io
+
+from compute_hash import compute_hash
+
 vistrails_src = None
 if not vistrails_src:
     vistrails_src = os.path.dirname(os.path.dirname(sys.path[0]))
 if vistrails_src not in sys.path:
     sys.path.append(vistrails_src)
     
-import db.services.io
     
-from compute_hash import compute_hash
 
 def find_workflows(path_name, vistrail_dir):
     file_hash = compute_hash(path_name)
@@ -62,10 +64,10 @@ def find_workflows(path_name, vistrail_dir):
     vt_finds = {}
     for filename in vt_files:
         save_bundle, save_dir = \
-            db.services.io.open_vistrail_bundle_from_zip_xml(filename)
+            vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(filename)
         vistrail = save_bundle.vistrail
         log_fname = vistrail.db_log_filename
-        log = db.services.io.open_log_from_xml(log_fname, True)
+        log = vistrails.db.services.io.open_log_from_xml(log_fname, True)
         
         persistent_module_ids = set()
         for action in vistrail.db_actions:

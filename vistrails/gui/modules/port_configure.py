@@ -33,8 +33,8 @@
 ##
 ###############################################################################
 from PyQt4 import QtCore, QtGui
-from core.utils import any
-import gui.modules.resources.colorconfig_rc
+from vistrails.core.utils import any
+import vistrails.gui.modules.resources.colorconfig_rc
 
 class StandardPortConfigureContainer(QtGui.QDialog):
 

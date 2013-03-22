@@ -35,19 +35,15 @@
 ################################################################################
 # VTK Package for VisTrails
 ################################################################################
+from vistrails.core.bundles import py_import
 
-from core.bundles import py_import
-
-vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
-                        'linux-fedora': 'vtk-python'})
-
-from core.utils import all, any, VistrailsInternalError, InstanceObject
-from core.debug import debug
-from core.modules.basic_modules import Integer, Float, String, File, \
+from vistrails.core.utils import all, any, VistrailsInternalError, InstanceObject
+from vistrails.core.debug import debug
+from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
      Variant, Color, Boolean, identifier as basic_pkg
-from core.modules.module_registry import get_module_registry
-from core.modules.vistrails_module import new_module, ModuleError
-from core.vistrail.connection import Connection
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import new_module, ModuleError
+from vistrails.core.vistrail.connection import Connection
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
@@ -62,7 +58,12 @@ from hasher import vtk_hasher
 import operator
 import re
 import sys
-from core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+
+import warnings
+vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
+                        'linux-fedora': 'vtk-python'})
+
 
 #TODO: Change the Core > Module > Registry > Add Input : To support vector as type.
 
@@ -71,7 +72,6 @@ from core.upgradeworkflow import UpgradeWorkflowHandler
 # filter some deprecation warnings coming from the fact that vtk calls
 # range() with float parameters
 
-import warnings
 warnings.filterwarnings("ignore",
                         message="integer argument expected, got float")
 
@@ -1403,3 +1403,140 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         build_remap(module_name)
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               _remap)
+
+###############################################################################
+
+# Define DAT plots
+try:
+    from dat.packages import Plot, DataPort, \
+        Variable, FileVariableLoader, VariableOperation, OperationArgument, \
+        translate, derive_varname
+except ImportError:
+    pass # We are not running DAT; skip plot/variable/operation definition
+else:
+    from PyQt4 import QtGui
+
+    _ = translate('packages.vtk')
+
+    # Builds a DAT variable from a data file
+    dataset_type = 'edu.utah.sci.vistrails.vtk:vtkAlgorithmOutput'
+    def build_variable(filename):
+        var = Variable(type=dataset_type)
+        # We use the high-level interface to build the variable pipeline
+        file_mod = var.add_module(File)
+        file_mod.add_function('name', String, filename)
+        datasetreader_mod = var.add_module('vtkDataSetReader')
+        file_mod.connect_outputport_to('value', datasetreader_mod, 'SetFile')
+        # We select the 'value' output port of the NumPyArray module as the
+        # port that will be connected to plots when this variable is used
+        var.select_output_port(datasetreader_mod, 'GetOutputPort0')
+        return var
+
+    ########################################
+    # Defines a plot from a subworkflow file
+    #
+    _plots = [
+        Plot(name="VTK Render",
+             subworkflow='{package_dir}/dat-plots/vtk_render.xml',
+             description=_("Renders a VTK dataset"),
+             ports=[DataPort(name='dataset', type=dataset_type)])
+    ]
+
+    ########################################
+    # Defines a variable loader
+    #
+    class DatasetLoader(FileVariableLoader):
+        """Loads a VTK dataset.
+        """
+        @classmethod
+        def can_load(cls, filename):
+            # See http://www.vtk.org/VTK/img/file-formats.pdf
+            with open(filename, 'r') as f:
+                def next_line():
+                    while True:
+                        l = f.readline()
+                        if l == '':
+                            return ''
+                        else:
+                            l = l.rstrip()
+                        if l != '':
+                            return l
+                magic = next_line() # version info
+                if not magic.startswith('# vtk DataFile Version '):
+                    return False
+                next_line() # header, discarded
+                f_format = next_line().upper() # file format
+                if f_format not in ('ASCII', 'BINARY'):
+                    return False
+                struct = next_line().upper().split()
+                if len(struct) < 1 or struct[0] != 'DATASET':
+                    return False
+                return True
+
+        def __init__(self, filename):
+            FileVariableLoader.__init__(self)
+            self.filename = filename
+            self._varname = derive_varname(filename, remove_ext=True,
+                                          remove_path=True, prefix="vtk_")
+
+            layout = QtGui.QVBoxLayout()
+            layout.addWidget(
+                    QtGui.QLabel(_("This loader has no parameters.")))
+            self.setLayout(layout)
+
+        def load(self):
+            return build_variable(self.filename)
+
+        def get_default_variable_name(self):
+            return self._varname
+
+    _variable_loaders = {
+            DatasetLoader: _("VTK dataset"),
+    }
+
+    ########################################
+    # Defines variable operations
+    #
+    def op_append_datasets(dataset1, dataset2):
+        new_var = Variable(type=dataset_type)
+        mod = new_var.add_module('vtkAppendFilter')
+        dataset1.connect_to(mod, 'AddInputConnection')
+        dataset2.connect_to(mod, 'AddInputConnection')
+        new_var.select_output_port(mod, 'GetOutputPort0')
+        return new_var
+
+    def op_outline(dataset):
+        new_var = Variable(type=dataset_type)
+        mod = new_var.add_module('vtkOutlineFilter')
+        dataset.connect_to(mod, 'SetInputConnection0')
+        new_var.select_output_port(mod, 'GetOutputPort0')
+        return new_var
+
+    _variable_operations = [
+        VariableOperation(
+            '+',
+            callback=op_append_datasets,
+            args=[
+                OperationArgument('dataset1', dataset_type),
+                OperationArgument('dataset2', dataset_type),
+            ],
+            return_type=dataset_type),
+        VariableOperation(
+            'outline',
+            callback=op_outline,
+            args=[
+                OperationArgument('dataset', dataset_type),
+            ],
+            return_type=dataset_type),
+        VariableOperation(
+            'plane_cut',
+            subworkflow='{package_dir}/dat-operations/plane_cut.xml',
+            args=[
+                OperationArgument('dataset', dataset_type),
+                OperationArgument('plane_origin',
+                                  'edu.utah.sci.vistrails.basic:String'),
+                OperationArgument('plane_normal',
+                                  'edu.utah.sci.vistrails.basic:String'),
+            ],
+            return_type=dataset_type),
+    ]

@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBWorkflow
-from db.services.action_chain import getActionChain, getCurrentOperationDict, \
+from vistrails.db.domain import DBWorkflow
+from vistrails.db.services.action_chain import getActionChain, getCurrentOperationDict, \
     getCurrentOperations
 
 def getNewObjId(operation):

@@ -32,16 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
-from core import system, debug
-from core.utils import PortAlreadyExists
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from gui.modules.module_configure import StandardModuleConfigurationWidget
-from gui.modules.tuple_configuration import PortTableConfigurationWidget, \
+from vistrails.core import system, debug
+from vistrails.core.utils import PortAlreadyExists
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.gui.modules.tuple_configuration import PortTableConfigurationWidget, \
     PortTable
-from gui.theme import CurrentTheme
+from vistrails.gui.theme import CurrentTheme
 import urllib
 
 class SourceEditor(QtGui.QTextEdit):
@@ -312,7 +311,7 @@ class SourceConfigurationWidget(SourceWidget):
                      self.resetTriggered)        
         
     def detachReadOnlyWindow(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         widget = SourceViewerWidget(self.module, self.controller,
                                            type(self.codeEditor), 
                                            self.has_inputs, self.has_outputs,

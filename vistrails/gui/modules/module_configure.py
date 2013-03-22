@@ -33,10 +33,10 @@
 ##
 ###############################################################################
 from PyQt4 import QtCore, QtGui
-from core.utils import VistrailsInternalError
-from core.vistrail.port import PortEndPoint
-from gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
-from gui.common_widgets import QPromptWidget
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.vistrail.port import PortEndPoint
+from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
+from vistrails.gui.common_widgets import QPromptWidget
 
 class StandardModuleConfigurationWidget(QtGui.QWidget):
 

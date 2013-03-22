@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBPackage, DBModuleDescriptor, DBPortSpec
+from vistrails.db.domain import DBPackage, DBModuleDescriptor, DBPortSpec
 
 def update_id_scope(registry):
     if hasattr(registry, 'update_id_scope'):

@@ -2943,5 +2943,411 @@
       <xml nodeType="xs:element"/>
     </property>
   </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_DOCUMENT +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_document">
+    <layout>
+      <xml name="prov:document" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_entity" ref="true" object="prov_entity" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_activity" ref="true" object="prov_activity" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_agent" ref="true" object="prov_agent" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </property>
+    
+    <property name="vt_connection" ref="true" object="vt_connection" type="list" 
+          mapping="one-to-many">
+      <xml name="vt:connection" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_usage" ref="true" object="prov_usage" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:used" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_generation" ref="true" object="prov_generation" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:wasGeneratedBy" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_association" ref="true" object="prov_association" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:wasAssociatedWith" nodeType="xs:element"/>
+    </property>
+    
+    <!--<property name="vt_part" ref="true" object="vt_part" type="list" 
+          mapping="one-to-many">
+      <xml name="vt:isPartOf" nodeType="xs:element"/>
+    </property>-->
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ENTITY +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_entity">
+    <layout>
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+    <property name="prov_type" type="str">
+      <xml name="prov:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_label" type="str">
+      <xml name="prov:label" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_value" type="str">
+      <xml name="prov:value" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_id" type="str">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_type" type="str">
+      <xml name="vt:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_desc" type="str">
+      <xml name="vt:desc" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_package" type="str">
+      <xml name="vt:package" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_version" type="str">
+      <xml name="vt:version" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_cache" type="str">
+      <xml name="vt:cache" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_location_x" type="str">
+      <xml name="vt:location_x" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_location_y" type="str">
+      <xml name="vt:location_y" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_ENTITY +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_entity">
+    <layout>
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_entity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_PLAN +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_plan">
+    <layout>
+      <xml name="prov:plan" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_entity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ACTIVITY +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_activity">
+    <layout>
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+    <property name="startTime" type="str">
+      <xml name="prov:startTime" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="endTime" type="str">
+      <xml name="prov:endTime" nodeType="xs:element" type="xs:string"/>
+    </property>
+
+    <property name="vt_id" type="str" primaryKey="true">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_type" type="str">
+      <xml name="vt:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_cached" type="str">
+      <xml name="vt:cached" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_completed" type="str">
+      <xml name="vt:completed" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_id" type="str">
+      <xml name="vt:machine_id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_error" type="str">
+      <xml name="vt:error" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_ACTIVITY +++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_activity">
+    <layout>
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_activity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_AGENT ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_agent">
+    <layout>
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property name="vt_id" type="str">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_type" type="str">
+      <xml name="prov:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_label" type="str">
+      <xml name="prov:label" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_os" type="str">
+      <xml name="vt:machine_os" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_architecture" type="str">
+      <xml name="vt:machine_architecture" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_processor" type="str">
+      <xml name="vt:machine_processor" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_ram" type="str">
+      <xml name="vt:machine_ram" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_AGENT ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_agent">
+    <layout>
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_agent">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- VT_CONNECTION +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="vt_connection">
+    <layout>
+      <xml name="vt:connection" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property name="vt_source" type="str">
+      <xml name="vt:source" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest" type="str">
+      <xml name="vt:dest" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_source_port" type="str">
+      <xml name="vt:source_port" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest_port" type="str">
+      <xml name="vt:dest_port" nodeType="xs:element" type="xs:string"/>
+    </property>
+      
+    <property name="vt_source_signature" type="str">
+      <xml name="vt:source_signature" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest_signature" type="str">
+      <xml name="vt:dest_signature" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_USAGE ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_usage">
+    <layout>
+      <xml name="prov:used" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_entity" ref="true" object="ref_prov_entity" type="str">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_GENERATION +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_generation">
+    <layout>
+      <xml name="prov:wasGeneratedBy" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_entity" ref="true" object="ref_prov_entity" type="str">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ASSOCIATION ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_association">
+    <layout>
+      <xml name="prov:wasAssociatedWith" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_agent" ref="true" object="ref_prov_agent" type="str">
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_plan" ref="true" object="ref_prov_plan" type="str">
+      <xml name="prov:plan" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- IS_PART_OF ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="is_part_of">
+    <layout>
+      <xml name="dcterms:isPartOf" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+  </object>
 
 </objects>

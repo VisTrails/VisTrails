@@ -32,17 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 
-from core.modules.module_registry import get_module_registry
-import core.modules.sub_module 
-from core.utils import VistrailsInternalError
-from core.vistrail.annotation import Annotation
-from core.vistrail.location import Location
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from db.domain import DBAbstraction
+from vistrails.core.modules.module_registry import get_module_registry
+import vistrails.core.modules.sub_module 
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.db.domain import DBAbstraction
+
+import unittest
 
 class Abstraction(DBAbstraction, Module):
 
@@ -162,7 +163,7 @@ class Abstraction(DBAbstraction, Module):
     ##########################################################################
 
     def get_port_spec_info(self, module):
-        return core.modules.sub_module.get_port_spec_info(self.pipeline, 
+        return vistrails.core.modules.sub_module.get_port_spec_info(self.pipeline, 
                                                           module)
 
     ##########################################################################
@@ -199,7 +200,6 @@ class Abstraction(DBAbstraction, Module):
 ################################################################################
 # Testing
 
-import unittest
 
 class TestAbstraction(unittest.TestCase):
     pass

@@ -34,17 +34,17 @@
 ###############################################################################
 """ This modules builds a widget to visualize workflow execution logs """
 from PyQt4 import QtCore, QtGui
-from core.vistrail.pipeline import Pipeline
-from core.log.module_exec import ModuleExec
-from core.log.group_exec import GroupExec
-from core.log.loop_exec import LoopExec
-from core.log.workflow_exec import WorkflowExec
-from gui.pipeline_view import QPipelineView
-from gui.theme import CurrentTheme
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from gui.collection.workspace import QWorkspaceWindow
-from core import system, debug
-import core.db.io
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.log.group_exec import GroupExec
+from vistrails.core.log.loop_exec import LoopExec
+from vistrails.core.log.workflow_exec import WorkflowExec
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.collection.workspace import QWorkspaceWindow
+from vistrails.core import system, debug
+import vistrails.core.db.io
 
 
 ##############################################################################
@@ -216,7 +216,7 @@ class QLegendWidget(QtGui.QWidget):
             self.gridLayout.addWidget(QtGui.QLabel(text, self), x*2, y*2+1)
 
 class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui_hooks=None):
         QtGui.QWidget.__init__(self, parent)
         self.execution = None
         self.parentExecution = None
@@ -264,7 +264,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         if not hasattr(self.parentExecution, 'item'):
             return
         version = self.parentExecution.item.wf_execution.parent_version
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.get_current_view().version_selected(version, True)
         self.controller.recompute_terse_graph()
         _app.get_current_view().version_view.select_current_version()
@@ -300,7 +300,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         if self.isUpdating:
             return
         self.isUpdating = True
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify("execution_changed", wf_execution, execution)
         self.isUpdating = False
 
@@ -383,8 +383,8 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             self.execution.item.setSelected(True)
 
 class QLogView(QPipelineView):
-    def __init__(self, parent=None):
-        QPipelineView.__init__(self, parent)
+    def __init__(self, parent=None, ui_hooks=None):
+        QPipelineView.__init__(self, parent, ui_hooks=ui_hooks)
         self.setReadOnlyMode(True)
         self.set_title("Provenance")
         self.log = None
@@ -415,7 +415,7 @@ class QLogView(QPipelineView):
         if self.isUpdating:
             return
         self.isUpdating = True
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify("execution_changed", wf_execution, execution)
         self.isUpdating = False
 
