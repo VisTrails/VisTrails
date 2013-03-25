@@ -238,9 +238,9 @@ else:
             '*',
             subworkflow='{package_dir}/dat-operations/scale_array.xml',
             args=[
-                OperationArgument('array', NumPyArray),
+                OperationArgument('array', List),
                 OperationArgument('num', Float),
             ],
-            return_type=NumPyArray,
+            return_type=List,
             symmetric=True),
     ]
