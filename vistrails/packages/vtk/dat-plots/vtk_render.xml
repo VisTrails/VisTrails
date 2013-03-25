@@ -1,0 +1,479 @@
+<vistrail id="" name="" version="1.0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2013-04-30 13:40:13" id="1" prevId="0" session="2" user="Remi">
+    <annotation id="3" key="__description__" value="Paste" />
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="group">
+      <group cache="1" id="0" name="Group" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+        <workflow id="" name="untitled" version="" vistrail_id="">
+          <connection id="7">
+            <port id="13" moduleId="5" moduleName="vtkDataSetMapper" name="self" signature="(org.vistrails.vistrails.vtk:vtkDataSetMapper)" type="source" />
+            <port id="14" moduleId="6" moduleName="vtkActor" name="SetMapper" signature="(org.vistrails.vistrails.vtk:vtkMapper)" type="destination" />
+          </connection>
+          <connection id="8">
+            <port id="15" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+            <port id="16" moduleId="5" moduleName="vtkDataSetMapper" name="SetInputConnection0" signature="(org.vistrails.vistrails.vtk:vtkAlgorithmOutput)" type="destination" />
+          </connection>
+          <connection id="9">
+            <port id="17" moduleId="6" moduleName="vtkActor" name="self" signature="(org.vistrails.vistrails.vtk:vtkActor)" type="source" />
+            <port id="18" moduleId="8" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+          </connection>
+          <module cache="1" id="5" name="vtkDataSetMapper" namespace="" package="org.vistrails.vistrails.vtk" version="0.9.4">
+            <location id="5" x="-19.9940777855" y="58.9955824326" />
+          </module>
+          <module cache="1" id="6" name="vtkActor" namespace="" package="org.vistrails.vistrails.vtk" version="0.9.4">
+            <location id="6" x="19.9940777855" y="-58.9955824326" />
+          </module>
+          <module cache="1" id="7" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+            <location id="7" x="-84.5047183375" y="301.914768085" />
+            <function id="3" name="name" pos="0">
+              <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="SetInputConnection0" />
+            </function>
+          </module>
+          <module cache="1" id="8" name="OutputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+            <location id="8" x="188.074270536" y="-94.5870600356" />
+            <function id="4" name="name" pos="0">
+              <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="vtkActor" />
+            </function>
+          </module>
+        </workflow>
+      </group>
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="group" what="annotation">
+      <annotation id="0" key="__desc__" value="actor" />
+    </add>
+    <add id="2" objectId="0" parentObjId="0" parentObjType="group" what="location">
+      <location id="0" x="-182.870791948" y="33.1025889952" />
+    </add>
+    <add id="3" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="vtkRenderer" namespace="" package="org.vistrails.vistrails.vtk" version="0.9.4" />
+    </add>
+    <add id="4" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="179.657926979" y="-85.8789512375" />
+    </add>
+    <add id="5" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="VTKCell" namespace="" package="org.vistrails.vistrails.vtk" version="0.9.4" />
+    </add>
+    <add id="6" objectId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="2" x="-9.15853957371" y="-233.494731683" />
+    </add>
+    <add id="7" objectId="3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3" name="Map" namespace="" package="org.vistrails.vistrails.control_flow" version="0.2.1" />
+    </add>
+    <add id="8" objectId="1" parentObjId="3" parentObjType="module" what="function">
+      <function id="1" name="OutputPort" pos="1" />
+    </add>
+    <add id="9" objectId="1" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="vtkActor" />
+    </add>
+    <add id="10" objectId="0" parentObjId="3" parentObjType="module" what="function">
+      <function id="0" name="InputPort" pos="0" />
+    </add>
+    <add id="11" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['SetInputConnection0']" />
+    </add>
+    <add id="12" objectId="3" parentObjId="3" parentObjType="module" what="location">
+      <location id="3" x="-16.6090228399" y="-75.1172844328" />
+    </add>
+    <add id="13" objectId="4" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="4" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="14" objectId="2" parentObjId="4" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="2" maxConns="-1" minConns="0" name="actors" optional="0" sortKey="0" type="input">
+        <portSpecItem default="" entryType="" id="-1" label="" module="List" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="15" objectId="1" parentObjId="4" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="1" maxConns="-1" minConns="0" name="in_renderer" optional="0" sortKey="1" type="input">
+        <portSpecItem default="" entryType="" id="-1" label="" module="vtkRenderer" namespace="" package="edu.utah.sci.vistrails.vtk" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="16" objectId="0" parentObjId="4" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="0" maxConns="-1" minConns="0" name="out_renderer" optional="0" sortKey="0" type="output">
+        <portSpecItem default="" entryType="" id="-1" label="" module="vtkRenderer" namespace="" package="edu.utah.sci.vistrails.vtk" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="17" objectId="1" parentObjId="4" parentObjType="module" what="annotation">
+      <annotation id="1" key="__desc__" value="AddActors" />
+    </add>
+    <add id="18" objectId="2" parentObjId="4" parentObjType="module" what="function">
+      <function id="2" name="source" pos="0" />
+    </add>
+    <add id="19" objectId="2" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="from%20vistrails.core.modules.vistrails_module%20import%20Module%0Aimport%20vtk%0A%0A%0Arenderer%20%3D%20in_renderer.vtkInstance%0A%0Afor%20actor%20in%20actors%3A%0A%20%20%20%20%20%20%20%20renderer.AddActor%28actor.vtkInstance%29%0A%0Aout_renderer%20%3D%20in_renderer%0A" />
+    </add>
+    <add id="20" objectId="4" parentObjId="4" parentObjType="module" what="location">
+      <location id="4" x="153.185155288" y="-176.802449638" />
+    </add>
+    <add id="21" objectId="5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="22" objectId="4" parentObjId="5" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="4" maxConns="-1" minConns="0" name="input_port" optional="0" sortKey="0" type="input">
+        <portSpecItem default="" entryType="" id="-1" label="" module="Module" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="23" objectId="3" parentObjId="5" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="3" maxConns="-1" minConns="0" name="output_list" optional="0" sortKey="0" type="output">
+        <portSpecItem default="" entryType="" id="-1" label="" module="List" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="24" objectId="2" parentObjId="5" parentObjType="module" what="annotation">
+      <annotation id="2" key="__desc__" value="port2list" />
+    </add>
+    <add id="25" objectId="3" parentObjId="5" parentObjType="module" what="function">
+      <function id="3" name="source" pos="0" />
+    </add>
+    <add id="26" objectId="3" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="output_list%20%3D%20self.getInputListFromPort%28%27input_port%27%29%0A" />
+    </add>
+    <add id="27" objectId="5" parentObjId="5" parentObjType="module" what="location">
+      <location id="5" x="-36.8849533397" y="162.779899304" />
+    </add>
+    <add id="28" objectId="6" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="6" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="29" objectId="6" parentObjId="6" parentObjType="module" what="function">
+      <function id="6" name="optional" pos="2" />
+    </add>
+    <add id="30" objectId="6" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
+    </add>
+    <add id="31" objectId="5" parentObjId="6" parentObjType="module" what="function">
+      <function id="5" name="name" pos="1" />
+    </add>
+    <add id="32" objectId="5" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="dataset" />
+    </add>
+    <add id="33" objectId="4" parentObjId="6" parentObjType="module" what="function">
+      <function id="4" name="spec" pos="0" />
+    </add>
+    <add id="34" objectId="4" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="edu.utah.sci.vistrails.vtk:vtkAlgorithmOutput" />
+    </add>
+    <add id="35" objectId="6" parentObjId="6" parentObjType="module" what="location">
+      <location id="6" x="-13.5496201912" y="301.64077432" />
+    </add>
+    <add id="36" objectId="0" parentObjId="" parentObjType="" what="connection">
+      <connection id="0" />
+    </add>
+    <add id="37" objectId="1" parentObjId="0" parentObjType="connection" what="port">
+      <port id="1" moduleId="3" moduleName="Map" name="FunctionPort" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="38" objectId="0" parentObjId="0" parentObjType="connection" what="port">
+      <port id="0" moduleId="0" moduleName="Group" name="self" signature="(org.vistrails.vistrails.basic:Group)" type="source" />
+    </add>
+    <add id="39" objectId="1" parentObjId="" parentObjType="" what="connection">
+      <connection id="1" />
+    </add>
+    <add id="40" objectId="3" parentObjId="1" parentObjType="connection" what="port">
+      <port id="3" moduleId="2" moduleName="VTKCell" name="AddRenderer" signature="(org.vistrails.vistrails.vtk:vtkRenderer)" type="destination" />
+    </add>
+    <add id="41" objectId="2" parentObjId="1" parentObjType="connection" what="port">
+      <port id="2" moduleId="4" moduleName="PythonSource" name="out_renderer" signature="(edu.utah.sci.vistrails.vtk:vtkRenderer)" type="source" />
+    </add>
+    <add id="42" objectId="2" parentObjId="" parentObjType="" what="connection">
+      <connection id="2" />
+    </add>
+    <add id="43" objectId="5" parentObjId="2" parentObjType="connection" what="port">
+      <port id="5" moduleId="4" moduleName="PythonSource" name="in_renderer" signature="(edu.utah.sci.vistrails.vtk:vtkRenderer)" type="destination" />
+    </add>
+    <add id="44" objectId="4" parentObjId="2" parentObjType="connection" what="port">
+      <port id="4" moduleId="1" moduleName="vtkRenderer" name="self" signature="(org.vistrails.vistrails.vtk:vtkRenderer)" type="source" />
+    </add>
+    <add id="45" objectId="3" parentObjId="" parentObjType="" what="connection">
+      <connection id="3" />
+    </add>
+    <add id="46" objectId="7" parentObjId="3" parentObjType="connection" what="port">
+      <port id="7" moduleId="4" moduleName="PythonSource" name="actors" signature="(edu.utah.sci.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="47" objectId="6" parentObjId="3" parentObjType="connection" what="port">
+      <port id="6" moduleId="3" moduleName="Map" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="48" objectId="4" parentObjId="" parentObjType="" what="connection">
+      <connection id="4" />
+    </add>
+    <add id="49" objectId="9" parentObjId="4" parentObjType="connection" what="port">
+      <port id="9" moduleId="3" moduleName="Map" name="InputList" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="50" objectId="8" parentObjId="4" parentObjType="connection" what="port">
+      <port id="8" moduleId="5" moduleName="PythonSource" name="output_list" signature="(edu.utah.sci.vistrails.basic:List)" type="source" />
+    </add>
+    <add id="51" objectId="5" parentObjId="" parentObjType="" what="connection">
+      <connection id="5" />
+    </add>
+    <add id="52" objectId="11" parentObjId="5" parentObjType="connection" what="port">
+      <port id="11" moduleId="5" moduleName="PythonSource" name="input_port" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="53" objectId="10" parentObjId="5" parentObjType="connection" what="port">
+      <port id="10" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:41:58" id="2" prevId="1" session="5" user="Remi">
+    <change id="54" newObjId="7" oldObjId="4" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.vtk:vtkAlgorithmOutput" />
+    </change>
+  </action>
+  <action date="2015-05-22 16:28:16" id="3" prevId="2" session="6" user="remram">
+    <annotation id="7" key="__description__" value="Upgrade" />
+    <delete id="55" objectId="1" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="56" objectId="0" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="57" objectId="0" parentObjId="" parentObjType="" what="connection" />
+    <delete id="58" objectId="0" parentObjId="0" parentObjType="group" what="location" />
+    <delete id="59" objectId="0" parentObjId="0" parentObjType="group" what="annotation" />
+    <delete id="60" objectId="0" parentObjId="" parentObjType="" what="group" />
+    <delete id="61" objectId="9" parentObjId="4" parentObjType="connection" what="port" />
+    <delete id="62" objectId="8" parentObjId="4" parentObjType="connection" what="port" />
+    <delete id="63" objectId="4" parentObjId="" parentObjType="" what="connection" />
+    <delete id="64" objectId="11" parentObjId="5" parentObjType="connection" what="port" />
+    <delete id="65" objectId="10" parentObjId="5" parentObjType="connection" what="port" />
+    <delete id="66" objectId="5" parentObjId="" parentObjType="" what="connection" />
+    <delete id="67" objectId="5" parentObjId="5" parentObjType="module" what="location" />
+    <delete id="68" objectId="3" parentObjId="3" parentObjType="function" what="parameter" />
+    <delete id="69" objectId="3" parentObjId="5" parentObjType="module" what="function" />
+    <delete id="70" objectId="2" parentObjId="5" parentObjType="module" what="annotation" />
+    <delete id="71" objectId="4" parentObjId="5" parentObjType="module" what="portSpec" />
+    <delete id="72" objectId="3" parentObjId="5" parentObjType="module" what="portSpec" />
+    <delete id="73" objectId="5" parentObjId="" parentObjType="" what="module" />
+    <delete id="74" objectId="3" parentObjId="1" parentObjType="connection" what="port" />
+    <delete id="75" objectId="2" parentObjId="1" parentObjType="connection" what="port" />
+    <delete id="76" objectId="1" parentObjId="" parentObjType="" what="connection" />
+    <delete id="77" objectId="5" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="78" objectId="4" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="79" objectId="2" parentObjId="" parentObjType="" what="connection" />
+    <delete id="80" objectId="7" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="81" objectId="6" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="82" objectId="3" parentObjId="" parentObjType="" what="connection" />
+    <delete id="83" objectId="4" parentObjId="4" parentObjType="module" what="location" />
+    <delete id="84" objectId="2" parentObjId="2" parentObjType="function" what="parameter" />
+    <delete id="85" objectId="2" parentObjId="4" parentObjType="module" what="function" />
+    <delete id="86" objectId="1" parentObjId="4" parentObjType="module" what="annotation" />
+    <delete id="87" objectId="2" parentObjId="4" parentObjType="module" what="portSpec" />
+    <delete id="88" objectId="1" parentObjId="4" parentObjType="module" what="portSpec" />
+    <delete id="89" objectId="0" parentObjId="4" parentObjType="module" what="portSpec" />
+    <delete id="90" objectId="4" parentObjId="" parentObjType="" what="module" />
+    <delete id="91" objectId="6" parentObjId="6" parentObjType="module" what="location" />
+    <delete id="92" objectId="7" parentObjId="4" parentObjType="function" what="parameter" />
+    <delete id="93" objectId="4" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="94" objectId="5" parentObjId="5" parentObjType="function" what="parameter" />
+    <delete id="95" objectId="5" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="96" objectId="6" parentObjId="6" parentObjType="function" what="parameter" />
+    <delete id="97" objectId="6" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="98" objectId="6" parentObjId="" parentObjType="" what="module" />
+    <delete id="99" objectId="2" parentObjId="2" parentObjType="module" what="location" />
+    <delete id="100" objectId="2" parentObjId="" parentObjType="" what="module" />
+    <delete id="101" objectId="1" parentObjId="1" parentObjType="module" what="location" />
+    <delete id="102" objectId="1" parentObjId="" parentObjType="" what="module" />
+    <delete id="103" objectId="3" parentObjId="3" parentObjType="module" what="location" />
+    <delete id="104" objectId="0" parentObjId="0" parentObjType="function" what="parameter" />
+    <delete id="105" objectId="0" parentObjId="3" parentObjType="module" what="function" />
+    <delete id="106" objectId="1" parentObjId="1" parentObjType="function" what="parameter" />
+    <delete id="107" objectId="1" parentObjId="3" parentObjType="module" what="function" />
+    <delete id="108" objectId="3" parentObjId="" parentObjType="" what="module" />
+    <add id="109" objectId="7" parentObjId="" parentObjType="" what="group">
+      <group cache="1" id="7" name="Group" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+        <workflow id="" name="untitled" version="" vistrail_id="">
+          <connection id="10">
+            <port id="19" moduleId="9" moduleName="vtkActor" name="Instance" signature="(org.vistrails.vistrails.vtk:vtkActor)" type="source" />
+            <port id="20" moduleId="5" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+          </connection>
+          <connection id="16">
+            <port id="31" moduleId="12" moduleName="vtkDataSetMapper" name="Instance" signature="(org.vistrails.vistrails.vtk:vtkDataSetMapper)" type="source" />
+            <port id="32" moduleId="9" moduleName="vtkActor" name="Mapper" signature="(org.vistrails.vistrails.vtk:vtkMapper)" type="destination" />
+          </connection>
+          <connection id="17">
+            <port id="33" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+            <port id="34" moduleId="12" moduleName="vtkDataSetMapper" name="SetInputConnection0" signature="(org.vistrails.vistrails.vtk:vtkAlgorithmOutput)" type="destination" />
+          </connection>
+          <module cache="1" id="5" name="OutputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+            <location id="5" x="188.074270536" y="-94.5870600356" />
+            <function id="3" name="name" pos="0">
+              <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="vtkActor" />
+            </function>
+          </module>
+          <module cache="1" id="6" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+            <location id="6" x="-84.5047183375" y="301.914768085" />
+            <function id="4" name="name" pos="0">
+              <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="SetInputConnection0" />
+            </function>
+          </module>
+          <module cache="1" id="9" name="vtkActor" namespace="" package="org.vistrails.vistrails.vtk" version="1.0.1">
+            <location id="9" x="19.9940777855" y="-58.9955824326" />
+          </module>
+          <module cache="1" id="12" name="vtkDataSetMapper" namespace="" package="org.vistrails.vistrails.vtk" version="1.0.1">
+            <location id="12" x="-19.9940777855" y="58.9955824326" />
+          </module>
+        </workflow>
+      </group>
+    </add>
+    <add id="110" objectId="4" parentObjId="7" parentObjType="group" what="annotation">
+      <annotation id="4" key="__desc__" value="actor" />
+    </add>
+    <add id="111" objectId="7" parentObjId="7" parentObjType="group" what="location">
+      <location id="7" x="-182.870791948" y="33.1025889952" />
+    </add>
+    <add id="112" objectId="8" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="8" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="113" objectId="6" parentObjId="8" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="6" maxConns="-1" minConns="0" name="output_list" optional="0" sortKey="0" type="output">
+        <portSpecItem default="" entryType="" id="1" label="" module="List" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="114" objectId="5" parentObjId="8" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="5" maxConns="-1" minConns="0" name="input_port" optional="0" sortKey="0" type="input">
+        <portSpecItem default="" entryType="" id="0" label="" module="Module" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="115" objectId="5" parentObjId="8" parentObjType="module" what="annotation">
+      <annotation id="5" key="__desc__" value="port2list" />
+    </add>
+    <add id="116" objectId="7" parentObjId="8" parentObjType="module" what="function">
+      <function id="7" name="source" pos="0" />
+    </add>
+    <add id="117" objectId="8" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="output_list%20%3D%20self.getInputListFromPort%28%27input_port%27%29%0A" />
+    </add>
+    <add id="118" objectId="8" parentObjId="8" parentObjType="module" what="location">
+      <location id="8" x="-36.8849533397" y="162.779899304" />
+    </add>
+    <add id="119" objectId="9" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="9" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="120" objectId="9" parentObjId="9" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="9" maxConns="-1" minConns="0" name="out_renderer" optional="0" sortKey="0" type="output">
+        <portSpecItem default="" entryType="" id="4" label="" module="vtkRenderer" namespace="" package="edu.utah.sci.vistrails.vtk" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="121" objectId="8" parentObjId="9" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="8" maxConns="-1" minConns="0" name="in_renderer" optional="0" sortKey="1" type="input">
+        <portSpecItem default="" entryType="" id="3" label="" module="vtkRenderer" namespace="" package="edu.utah.sci.vistrails.vtk" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="122" objectId="7" parentObjId="9" parentObjType="module" what="portSpec">
+      <portSpec depth="" id="7" maxConns="-1" minConns="0" name="actors" optional="0" sortKey="0" type="input">
+        <portSpecItem default="" entryType="" id="2" label="" module="List" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="123" objectId="6" parentObjId="9" parentObjType="module" what="annotation">
+      <annotation id="6" key="__desc__" value="AddActors" />
+    </add>
+    <add id="124" objectId="8" parentObjId="9" parentObjType="module" what="function">
+      <function id="8" name="source" pos="0" />
+    </add>
+    <add id="125" objectId="9" parentObjId="8" parentObjType="function" what="parameter">
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="from%20vistrails.core.modules.vistrails_module%20import%20Module%0Aimport%20vtk%0A%0A%0Arenderer%20%3D%20in_renderer.vtkInstance%0A%0Afor%20actor%20in%20actors%3A%0A%20%20%20%20%20%20%20%20renderer.AddActor%28actor.vtkInstance%29%0A%0Aout_renderer%20%3D%20in_renderer%0A" />
+    </add>
+    <add id="126" objectId="9" parentObjId="9" parentObjType="module" what="location">
+      <location id="9" x="153.185155288" y="-176.802449638" />
+    </add>
+    <add id="127" objectId="10" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="10" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="128" objectId="11" parentObjId="10" parentObjType="module" what="function">
+      <function id="11" name="optional" pos="2" />
+    </add>
+    <add id="129" objectId="12" parentObjId="11" parentObjType="function" what="parameter">
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
+    </add>
+    <add id="130" objectId="10" parentObjId="10" parentObjType="module" what="function">
+      <function id="10" name="name" pos="1" />
+    </add>
+    <add id="131" objectId="11" parentObjId="10" parentObjType="function" what="parameter">
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="dataset" />
+    </add>
+    <add id="132" objectId="9" parentObjId="10" parentObjType="module" what="function">
+      <function id="9" name="spec" pos="0" />
+    </add>
+    <add id="133" objectId="10" parentObjId="9" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.vtk:vtkAlgorithmOutput" />
+    </add>
+    <add id="134" objectId="10" parentObjId="10" parentObjType="module" what="location">
+      <location id="10" x="-13.5496201912" y="301.64077432" />
+    </add>
+    <add id="135" objectId="12" parentObjId="" parentObjType="" what="connection">
+      <connection id="12" />
+    </add>
+    <add id="136" objectId="24" parentObjId="12" parentObjType="connection" what="port">
+      <port id="24" moduleId="10" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="137" objectId="25" parentObjId="12" parentObjType="connection" what="port">
+      <port id="25" moduleId="8" moduleName="PythonSource" name="input_port" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="138" objectId="12" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="12" name="VTKCell" namespace="" package="org.vistrails.vistrails.vtk" version="1.0.1" />
+    </add>
+    <add id="139" objectId="12" parentObjId="12" parentObjType="module" what="location">
+      <location id="12" x="-9.15853957371" y="-233.494731683" />
+    </add>
+    <add id="140" objectId="14" parentObjId="" parentObjType="" what="connection">
+      <connection id="14" />
+    </add>
+    <add id="141" objectId="28" parentObjId="14" parentObjType="connection" what="port">
+      <port id="28" moduleId="9" moduleName="PythonSource" name="out_renderer" signature="(edu.utah.sci.vistrails.vtk:vtkRenderer)" type="source" />
+    </add>
+    <add id="142" objectId="29" parentObjId="14" parentObjType="connection" what="port">
+      <port id="29" moduleId="12" moduleName="VTKCell" name="AddRenderer" signature="(org.vistrails.vistrails.vtk:vtkRenderer)" type="destination" />
+    </add>
+    <add id="143" objectId="15" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="15" name="vtkRenderer" namespace="" package="org.vistrails.vistrails.vtk" version="1.0.1" />
+    </add>
+    <add id="144" objectId="15" parentObjId="15" parentObjType="module" what="location">
+      <location id="15" x="179.657926979" y="-85.8789512375" />
+    </add>
+    <add id="145" objectId="17" parentObjId="" parentObjType="" what="connection">
+      <connection id="17" />
+    </add>
+    <add id="146" objectId="34" parentObjId="17" parentObjType="connection" what="port">
+      <port id="34" moduleId="15" moduleName="vtkRenderer" name="Instance" signature="(org.vistrails.vistrails.vtk:vtkRenderer)" type="source" />
+    </add>
+    <add id="147" objectId="35" parentObjId="17" parentObjType="connection" what="port">
+      <port id="35" moduleId="9" moduleName="PythonSource" name="in_renderer" signature="(edu.utah.sci.vistrails.vtk:vtkRenderer)" type="destination" />
+    </add>
+    <add id="148" objectId="16" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="16" name="Map" namespace="" package="org.vistrails.vistrails.control_flow" version="0.2.4" />
+    </add>
+    <add id="149" objectId="13" parentObjId="16" parentObjType="module" what="function">
+      <function id="13" name="OutputPort" pos="1" />
+    </add>
+    <add id="150" objectId="14" parentObjId="13" parentObjType="function" what="parameter">
+      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="vtkActor" />
+    </add>
+    <add id="151" objectId="12" parentObjId="16" parentObjType="module" what="function">
+      <function id="12" name="InputPort" pos="0" />
+    </add>
+    <add id="152" objectId="13" parentObjId="12" parentObjType="function" what="parameter">
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['SetInputConnection0']" />
+    </add>
+    <add id="153" objectId="16" parentObjId="16" parentObjType="module" what="location">
+      <location id="16" x="-16.6090228399" y="-75.1172844328" />
+    </add>
+    <add id="154" objectId="18" parentObjId="" parentObjType="" what="connection">
+      <connection id="18" />
+    </add>
+    <add id="155" objectId="36" parentObjId="18" parentObjType="connection" what="port">
+      <port id="36" moduleId="16" moduleName="Map" name="Result" signature="(org.vistrails.vistrails.basic:List)" type="source" />
+    </add>
+    <add id="156" objectId="37" parentObjId="18" parentObjType="connection" what="port">
+      <port id="37" moduleId="9" moduleName="PythonSource" name="actors" signature="(edu.utah.sci.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="157" objectId="19" parentObjId="" parentObjType="" what="connection">
+      <connection id="19" />
+    </add>
+    <add id="158" objectId="38" parentObjId="19" parentObjType="connection" what="port">
+      <port id="38" moduleId="7" moduleName="Group" name="self" signature="(org.vistrails.vistrails.basic:Group)" type="source" />
+    </add>
+    <add id="159" objectId="39" parentObjId="19" parentObjType="connection" what="port">
+      <port id="39" moduleId="16" moduleName="Map" name="FunctionPort" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="160" objectId="20" parentObjId="" parentObjType="" what="connection">
+      <connection id="20" />
+    </add>
+    <add id="161" objectId="40" parentObjId="20" parentObjType="connection" what="port">
+      <port id="40" moduleId="8" moduleName="PythonSource" name="output_list" signature="(edu.utah.sci.vistrails.basic:List)" type="source" />
+    </add>
+    <add id="162" objectId="41" parentObjId="20" parentObjType="connection" what="port">
+      <port id="41" moduleId="16" moduleName="Map" name="InputList" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+  </action>
+  <vistrailVariable module="String" name="dat-sheet-1" namespace="" package="org.vistrails.vistrails.basic" uuid="28ef4180-b1bd-11e2-a36a-8c89a505652a" value="vtk_render.xml / Sheet 1" />
+  <actionAnnotation actionId="2" date="2015-05-22 16:28:16" id="8" key="__upgrade__" user="remram" value="3" />
+</vistrail>
