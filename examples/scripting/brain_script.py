@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/Users/benbu/src/vistrails/vistrails/vistrails')
+sys.path.append('/Users/benbu/src/vistrails/vistrails/vistrails/')
 
 import core.application
 import core.db.action
@@ -33,11 +33,13 @@ def addToPipeline(items, ops=[]):
     version = controller.perform_action(action)
     controller.change_selected_version(version)
 
-def layoutAndAdd(module, connection):
+def layoutAndAdd(module, connections):
+    if not isinstance(connections, list):
+        connections = [connections]
     ops = controller.layout_modules_ops(preserve_order=True,
                                         new_modules=[module],
-                                        new_connections=[connection])
-    addToPipeline([module, connection], ops)
+                                        new_connections=connections)
+    addToPipeline([module] + connections, ops)
 
 #========================== package prefixes ===================================
 httppkg = 'edu.utah.sci.vistrails.http'
@@ -96,7 +98,65 @@ layoutAndAdd(colors, colors_probe)
 lookup = newModule(vtkpkg, 'vtkLookupTable')
 setPortValue(lookup, 'SetHueRange', (0.0,0.8))
 setPortValue(lookup, 'SetSaturationRange', (0.3,0.7))
+setPortValue(lookup, 'SetValueRange', (1.0,1.0))
+lookup_colors = newConnection(lookup, 'self',
+                              colors, 'SetLookupTable')
+layoutAndAdd(lookup, lookup_colors)
+
+dataL123 = newModule(vtkpkg, 'vtkDataSetReader')
+dataL123_colors = newConnection(dataL123, 'GetOutputPort0',
+                                colors, 'SetInputConnection0')
+layoutAndAdd(dataL123, dataL123_colors)
+
+httpL123 = newModule(httppkg, 'HTTPFile')
+url = 'http://www.vistrails.org/download/download.php?type=DATA&id=gktbhL123.vtk'
+setPortValue(httpL123, 'url', url)
+httpL123_dataL123 = newConnection(httpL123, 'file',
+                                  dataL123, 'SetFile')
+layoutAndAdd(httpL123, httpL123_dataL123)
+
+#finish bottom section
+mapper = newModule(vtkpkg, 'vtkPolyDataMapper')
+setPortValue(mapper, 'ScalarVisibilityOn', True)
+probe_mapper = newConnection(probe, 'GetOutputPort0',
+                             mapper, 'SetInputConnection0')
+layoutAndAdd(mapper, probe_mapper)
+
+actor = newModule(vtkpkg, 'vtkActor')
+mapper_actor = newConnection(mapper, 'self',
+                             actor, 'SetMapper')
+layoutAndAdd(actor, mapper_actor)
+
+prop = newModule(vtkpkg, 'vtkProperty')
+setPortValue(prop, 'SetDiffuseColor', (1.0,0.49,0.25))
+setPortValue(prop, 'SetOpacity', 0.7)
+setPortValue(prop, 'SetSpecular', 0.3)
+setPortValue(prop, 'SetSpecularPower', 2.0)
+prop_actor = newConnection(prop, 'self',
+                           actor, 'SetProperty')
+layoutAndAdd(prop, prop_actor)
+
+renderer = newModule(vtkpkg, 'vtkRenderer')
+setPortValue(renderer, 'SetBackgroundWidget', 'white')
+actor_renderer = newConnection(actor, 'self',
+                               renderer, 'AddActor')
+layoutAndAdd(renderer, actor_renderer)
+
+camera = newModule(vtkpkg, 'vtkCamera')
+setPortValue(camera, 'SetFocalPoint', (15.666,40.421,39.991))
+setPortValue(camera, 'SetPosition', (207.961,34.197,129.680))
+setPortValue(camera, 'SetViewUp', (0.029, 1.0, 0.008))
+camera_renderer = newConnection(camera, 'self',
+                                renderer, 'SetActiveCamera')
+layoutAndAdd(camera, camera_renderer)
+
+#this is missing when running from script??
+# cell = newModule(vtkpkg, 'VTKCell')
+# cell = newModule(vtkpkg, 'vtkCell')
+# renderer_cell = newConnection(renderer, 'self',
+#                               cell, 'AddRenderer')
+# layoutAndAdd(cell, renderer_cell)
 
 #write to file
-locator = core.db.locator.FileLocator('brain_script2.vt')
+locator = core.db.locator.FileLocator('incremental_layout_brain.vt')
 controller.write_vistrail(locator)

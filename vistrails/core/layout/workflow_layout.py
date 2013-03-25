@@ -97,7 +97,7 @@ class Vec2(object):
 
 ####################################################
 
-UNDEFINED_LAYER = -1
+UNDEFINED_LAYER = None
 INPUT_PORT, OUTPUT_PORT = 1,2
 
 class Pipeline(object):
@@ -506,6 +506,31 @@ class WorkflowLayout(object):
             #     a = min([succ.layout_layer_number for succ in module.cached_succ]) - 1
             # print "layer of %s = %d" % (module.shortname, module.layout_layer_number)
 
+    def assign_module_to_layers_no_gaps(self):
+        if len(self.wf.modules) == 0:
+            return
+        
+        visited = set()
+        min_layer = [0]
+        def set_module_layer_number(module, layer_number):
+            module.layout_layer_number = layer_number
+            visited.add(module)
+            min_layer[0] = min(min_layer[0], layer_number)
+            for port in module.input_ports:
+                for conn in port.connections:
+                    if conn.source_port.module not in visited:
+                        set_module_layer_number(conn.source_port.module, layer_number-1)
+            for port in module.output_ports:
+                for conn in port.connections:
+                    if conn.target_port.module not in visited:
+                        set_module_layer_number(conn.target_port.module, layer_number+1)
+               
+        set_module_layer_number(self.wf.modules[0], 0)
+                        
+        #adjust all layers numbers so that the min is 0
+        if min_layer[0] < 0:
+            for module in self.wf.modules:
+                module.layout_layer_number -= min_layer[0]
 
     def assign_module_permutation_to_each_layer(self, preserve_order=False):
         wf = self.wf
@@ -628,25 +653,31 @@ class WorkflowLayout(object):
             break
         
         if preserve_order:
-            for layer in layers.layers:
+            for layer in layers.layers:                
+
+                # sort using the last layout_layer_index
+                layer.modules.sort(key=lambda x: x.layout_layer_index)
+            
                 #separate modules that have no previous x value
                 temp = []
+                print [(m.shortname, m.prev_x) for m in layer.modules]
                 for i in reversed(range(len(layer.modules))):
-                    if module.prev_x is None:
+                    if layer.modules[i].prev_x is None:
                         temp.append((i,layer.modules.pop(i)))
                 
                 #sort on previous x
                 layer.modules.sort(key=lambda x: x.prev_x)
                 
-                #put modules back in their original slot
+                #put separated modules back in their original slot
                 for item in reversed(temp):
                     layer.modules.insert(item[0],item[1])
                     
+                print [(m.shortname, m.prev_x) for m in layer.modules]
+                    
                 #reassign index
-                for i, module in enumerate(layer.modules):
-                    module.layout_layer_index = i
+                for i in range(len(layer.modules)):
+                    layer.modules[i].layout_layer_index = i
             
-
     #
     # this method is "friend" of the classes above in the C++ sense:
     # it can access and modify
@@ -736,8 +767,11 @@ class WorkflowLayout(object):
 
         return page
 
-    def run_all(self, layer_x_separation=50, layer_y_separation=50, preserve_order=False):
+    def run_all(self, layer_x_separation=50, layer_y_separation=50, preserve_order=False, no_gaps=False):
         self.compute_module_sizes()
-        self.assign_modules_to_layers()
+        if no_gaps:
+            self.assign_module_to_layers_no_gaps()
+        else:
+            self.assign_modules_to_layers()
         self.assign_module_permutation_to_each_layer(preserve_order)
         self.compute_layout(layer_x_separation, layer_y_separation)

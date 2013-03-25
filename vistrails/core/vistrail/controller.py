@@ -3548,7 +3548,7 @@ class VistrailController(object):
         return self.current_version > 0
 
     def layout_modules(self, old_modules=[], preserve_order=False, 
-               new_modules=[], new_connections=[], module_size_func=None):
+               new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):
         """Lays out modules and returns the new version.
         
         If old_modules are not specified, all modules in current pipeline are used.
@@ -3557,12 +3557,17 @@ class VistrailController(object):
         new_modules ignore preserve_order, and don't need exist yet in the pipeline
         new_connections associated with new_modules
         module_size_func is used to determine size of a module. It takes a
-        core.layout.workflow_layout.Module object and returns a (width, height)
-        tuple.
+            core.layout.workflow_layout.Module object and returns a (width, height)
+            tuple.
+        If no_gaps is True, all connected modules will be at most 1 layer above or
+            below their child or parent respectively
         """
         
+        #fixes issue when opening old vistrails that needs upgrade
+        self.flush_delayed_actions()
+        
         action_list = self.layout_modules_ops(old_modules, preserve_order, 
-                                      new_modules, new_connections, module_size_func)
+                                      new_modules, new_connections, module_size_func, no_gaps)
         if(len(action_list) > 0):
             action = core.db.action.create_action(action_list)
             self.add_new_action(action)
@@ -3572,7 +3577,7 @@ class VistrailController(object):
         return self.current_version
 
     def layout_modules_ops(self, old_modules=[], preserve_order=False, 
-               new_modules=[], new_connections=[], module_size_func=None):
+               new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):
         """Returns operations needed to layout the modules.
         
         If old_modules are not specified, all modules in current pipeline are used.
@@ -3581,8 +3586,10 @@ class VistrailController(object):
         new_modules ignore preserve_order, and don't need exist yet in the pipeline
         new_connections associated with new_modules
         module_size_func is used to determine size of a module. It takes a
-        core.layout.workflow_layout.Module object and returns a (width, height)
-        tuple.
+            core.layout.workflow_layout.Module object and returns a (width, height)
+            tuple.
+        If no_gaps is True, all connected modules will be at most 1 layer above or
+            below their child or parent respectively
         """
         
         def get_visible_port_names(port_list, visible_ports):
@@ -3642,7 +3649,7 @@ class VistrailController(object):
         #set default module size function if needed
         paddedPortWidth = self.layoutTheme.PORT_WIDTH + self.layoutTheme.MODULE_PORT_SPACE
         def estimate_module_size(module):
-            width = max(len(module.name)*4 + self.layoutTheme.MODULE_LABEL_MARGIN[0] + self.layoutTheme.MODULE_LABEL_MARGIN[1],
+            width = max(len(module.name)*6 + self.layoutTheme.MODULE_LABEL_MARGIN[0] + self.layoutTheme.MODULE_LABEL_MARGIN[1],
                         len(module_info[module.shortname][2]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE,
                         len(module_info[module.shortname][3]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE)
             height = LayoutDefaults.u * 5 #todo, fix these sizes
@@ -3657,7 +3664,7 @@ class VistrailController(object):
                                         self.layoutTheme.MODULE_PORT_SPACE)
     
         #do layout with layer x and y separation of 50
-        workflowLayout.run_all(50,50,preserve_order)
+        workflowLayout.run_all(50,50,preserve_order,no_gaps)
                 
         #maintain center
         center_x, center_y = self.get_avg_location([item[0] for item in module_info.values()])
