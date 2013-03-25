@@ -142,4 +142,170 @@
       <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="False" />
     </change>
   </action>
+  <action date="2013-03-25 12:17:39" id="14" prevId="13" session="5" user="Remi">
+    <change id="40" newObjId="7" oldObjId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="7" x="104.147717011" y="-157.167500315" />
+    </change>
+    <change id="41" newObjId="8" oldObjId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="8" x="39.3604966977" y="68.9792276627" />
+    </change>
+    <change id="42" newObjId="9" oldObjId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="9" x="77.5282664763" y="-52.6867528516" />
+    </change>
+    <change id="43" newObjId="10" oldObjId="4" parentObjId="3" parentObjType="module" what="location">
+      <location id="10" x="235.985840287" y="206.204594454" />
+    </change>
+    <change id="44" newObjId="11" oldObjId="6" parentObjId="4" parentObjType="module" what="location">
+      <location id="11" x="-73.9368264541" y="206.702765811" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:17:59" id="15" prevId="14" session="5" user="Remi">
+    <annotation id="1" key="__description__" value="Paste" />
+    <add id="45" objectId="5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="46" objectId="7" parentObjId="5" parentObjType="module" what="function">
+      <function id="7" name="spec" pos="2" />
+    </add>
+    <add id="47" objectId="11" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Color" />
+    </add>
+    <add id="48" objectId="6" parentObjId="5" parentObjType="module" what="function">
+      <function id="6" name="optional" pos="1" />
+    </add>
+    <add id="49" objectId="10" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="50" objectId="5" parentObjId="5" parentObjType="module" what="function">
+      <function id="5" name="name" pos="0" />
+    </add>
+    <add id="51" objectId="9" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edgecolor" />
+    </add>
+    <add id="52" objectId="12" parentObjId="5" parentObjType="module" what="location">
+      <location id="12" x="-71.4009082397" y="24.4266265031" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:18:03" id="16" prevId="15" session="5" user="Remi">
+    <change id="53" newObjId="13" oldObjId="12" parentObjId="5" parentObjType="module" what="location">
+      <location id="13" x="79.8562789523" y="326.001515252" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:18:03" id="17" prevId="16" session="5" user="Remi">
+    <add id="54" objectId="4" parentObjId="" parentObjType="" what="connection">
+      <connection id="4" />
+    </add>
+    <add id="55" objectId="8" parentObjId="4" parentObjType="connection" what="port">
+      <port id="8" moduleId="5" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="56" objectId="9" parentObjId="4" parentObjType="connection" what="port">
+      <port id="9" moduleId="3" moduleName="MplLine2DProperties" name="color" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:18:07" id="18" prevId="17" session="5" user="Remi">
+    <change id="57" newObjId="12" oldObjId="9" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="color" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:30:41" id="19" prevId="18" session="5" user="Remi">
+    <change id="58" newObjId="14" oldObjId="7" parentObjId="0" parentObjType="module" what="location">
+      <location id="14" x="329.624269347" y="-170.320299201" />
+    </change>
+    <change id="59" newObjId="15" oldObjId="9" parentObjId="2" parentObjType="module" what="location">
+      <location id="15" x="303.004818812" y="-65.8395517379" />
+    </change>
+    <change id="60" newObjId="16" oldObjId="10" parentObjId="3" parentObjType="module" what="location">
+      <location id="16" x="65.9389404" y="204.325623184" />
+    </change>
+    <change id="61" newObjId="17" oldObjId="11" parentObjId="4" parentObjType="module" what="location">
+      <location id="17" x="-243.983726341" y="204.823794542" />
+    </change>
+    <change id="62" newObjId="18" oldObjId="13" parentObjId="5" parentObjType="module" what="location">
+      <location id="18" x="-90.1906209343" y="324.122543983" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:30:41" id="20" prevId="19" session="5" user="Remi">
+    <annotation id="2" key="__description__" value="Paste" />
+    <add id="63" objectId="6" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="6" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="64" objectId="10" parentObjId="6" parentObjType="module" what="function">
+      <function id="10" name="name" pos="2" />
+    </add>
+    <add id="65" objectId="15" parentObjId="10" parentObjType="function" what="parameter">
+      <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="title" />
+    </add>
+    <add id="66" objectId="9" parentObjId="6" parentObjType="module" what="function">
+      <function id="9" name="spec" pos="1" />
+    </add>
+    <add id="67" objectId="14" parentObjId="9" parentObjType="function" what="parameter">
+      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:String" />
+    </add>
+    <add id="68" objectId="8" parentObjId="6" parentObjType="module" what="function">
+      <function id="8" name="optional" pos="0" />
+    </add>
+    <add id="69" objectId="13" parentObjId="8" parentObjType="function" what="parameter">
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="70" objectId="19" parentObjId="6" parentObjType="module" what="location">
+      <location id="19" x="-80.5492512364" y="132.766623198" />
+    </add>
+    <add id="71" objectId="7" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="7" name="MplAxesProperties" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+    </add>
+    <add id="72" objectId="20" parentObjId="7" parentObjType="module" what="location">
+      <location id="20" x="-66.8267367414" y="-81.9651013339" />
+    </add>
+    <add id="73" objectId="8" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="8" name="MplTextProperties" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+    </add>
+    <add id="74" objectId="21" parentObjId="8" parentObjType="module" what="location">
+      <location id="21" x="-66.8267367414" y="22.4783576458" />
+    </add>
+    <add id="75" objectId="5" parentObjId="" parentObjType="" what="connection">
+      <connection id="5" />
+    </add>
+    <add id="76" objectId="11" parentObjId="5" parentObjType="connection" what="port">
+      <port id="11" moduleId="7" moduleName="MplAxesProperties" name="titleProperties" signature="(org.vistrails.matplotlib.new:MplTextProperties)" type="destination" />
+    </add>
+    <add id="77" objectId="10" parentObjId="5" parentObjType="connection" what="port">
+      <port id="10" moduleId="8" moduleName="MplTextProperties" name="self" signature="(org.vistrails.matplotlib.new:MplTextProperties)" type="source" />
+    </add>
+    <add id="78" objectId="6" parentObjId="" parentObjType="" what="connection">
+      <connection id="6" />
+    </add>
+    <add id="79" objectId="13" parentObjId="6" parentObjType="connection" what="port">
+      <port id="13" moduleId="8" moduleName="MplTextProperties" name="text" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+    </add>
+    <add id="80" objectId="12" parentObjId="6" parentObjType="connection" what="port">
+      <port id="12" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:30:44" id="21" prevId="20" session="5" user="Remi">
+    <change id="81" newObjId="22" oldObjId="19" parentObjId="6" parentObjType="module" what="location">
+      <location id="22" x="347.856198202" y="284.963296025" />
+    </change>
+    <change id="82" newObjId="23" oldObjId="20" parentObjId="7" parentObjType="module" what="location">
+      <location id="23" x="361.578712697" y="70.2315714928" />
+    </change>
+    <change id="83" newObjId="24" oldObjId="21" parentObjId="8" parentObjType="module" what="location">
+      <location id="24" x="361.578712697" y="174.675030472" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:30:44" id="22" prevId="21" session="5" user="Remi">
+    <add id="84" objectId="7" parentObjId="" parentObjType="" what="connection">
+      <connection id="7" />
+    </add>
+    <add id="85" objectId="14" parentObjId="7" parentObjType="connection" what="port">
+      <port id="14" moduleId="7" moduleName="MplAxesProperties" name="self" signature="(org.vistrails.matplotlib.new:MplAxesProperties)" type="source" />
+    </add>
+    <add id="86" objectId="15" parentObjId="7" parentObjType="connection" what="port">
+      <port id="15" moduleId="2" moduleName="MplFigure" name="axesProperties" signature="(org.vistrails.matplotlib.new:MplAxesProperties)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:35:02" id="23" prevId="22" session="8" user="Remi">
+    <change id="87" newObjId="16" oldObjId="12" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edgecolor" />
+    </change>
+  </action>
 </vistrail>

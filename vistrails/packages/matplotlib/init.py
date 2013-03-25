@@ -109,8 +109,9 @@ else:
              subworkflow='{package_dir}/dat-plots/bar.xml',
              description=_("Build a bar diagram out of two lists"),
              ports=[
-                 DataPort(name='height', type=List),
                  DataPort(name='left', type=List),
+                 DataPort(name='height', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
                  ConstantPort(name='alpha', type=Float, optional=True),
                  ConstantPort(name='facecolor', type=Color, optional=True),
                  ConstantPort(name='edgecolor', type=Color, optional=True)]),
@@ -118,12 +119,15 @@ else:
              subworkflow='{package_dir}/dat-plots/boxplot.xml',
              description=_("Build a box diagram out of a list of values"),
              ports=[
-                 DataPort(name='values', type=List)]),
+                 DataPort(name='values', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
         Plot(name="Matplotlib histogram",
              subworkflow='{package_dir}/dat-plots/hist.xml',
              description=_("Build a histogram out of a list"),
              ports=[
                  DataPort(name='x', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
                  ConstantPort(name='bins', type=Integer, optional=True),
                  ConstantPort(name='alpha', type=Float, optional=True),
                  ConstantPort(name='facecolor', type=Color, optional=True),
@@ -133,28 +137,27 @@ else:
              description=_("Build a plot out of two lists"),
              ports=[
                  DataPort(name='x', type=List),
-                 DataPort(name='y', type=List)]),
-        Plot(name="Matplotlib line + markers plot",
-             subworkflow='{package_dir}/dat-plots/line_markers.xml',
-             description=_("Build a plot out of two lists"),
-             ports=[
-                 DataPort(name='x', type=List),
                  DataPort(name='y', type=List),
                  ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='markers', type=Boolean, optional=False),
                  ConstantPort(name='markercolor', type=Color, optional=True),
                  ConstantPort(name='edgecolor', type=Color, optional=True)]),
         Plot(name="Matplotlib pie diagram",
              subworkflow='{package_dir}/dat-plots/pie.xml',
              description=_("Build a pie diagram out of a list of values"),
              ports=[
-                 DataPort(name='x', type=List)]),
+                 DataPort(name='x', type=List),
+                 ConstantPort(name='title', type=String, optional=True)]),
         Plot(name="Matplotlib polar plot",
              subworkflow='{package_dir}/dat-plots/polar.xml',
              description=_("Build a plot out of two lists"),
              ports=[
                  DataPort(name='r', type=List),
                  DataPort(name='theta', type=List),
-                 ConstantPort(name='linecolor', type=Color, optional=True)]),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='markers', type=Boolean, optional=False),
+                 ConstantPort(name='markercolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
     ]
 
     ########################################
