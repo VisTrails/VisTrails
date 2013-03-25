@@ -1439,7 +1439,8 @@ else:
         Plot(name="VTK Render",
              subworkflow='{package_dir}/dat-plots/vtk_render.xml',
              description=_("Renders a VTK dataset"),
-             ports=[DataPort(name='dataset', type=dataset_type)])
+             ports=[DataPort(name='dataset', type=dataset_type,
+                             multiple_values=True)])
     ]
 
     ########################################
