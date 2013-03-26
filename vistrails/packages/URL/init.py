@@ -668,6 +668,81 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
 ###############################################################################
 
+
+# Define DAT plots
+try:
+    from dat.packages import Plot, DataPort, \
+        Variable, \
+        CustomVariableLoader, FileVariableLoader, \
+        VariableOperation, OperationArgument, \
+        translate
+except ImportError:
+    pass  # We are not running DAT; skip plot/variable/operation definition
+else:
+    basic = vistrails.core.modules.basic_modules
+
+    _ = translate('packages.URL')
+
+    # Build a DAT variable from a URL string
+    def build_variable(url):
+        var = Variable(type=basic.String)
+        # We use the high-level interface to build the variable pipeline
+        mod = var.add_module(basic.String)
+        mod.add_function('value', basic.String, url)
+        # We select the 'value' output port of the String module as the port
+        # that will be connected to plots when this variable is used
+        var.select_output_port(mod, 'value')
+        return var
+
+    ########################################
+    # Defines a plot from a subworkflow file
+    #
+    _plots = [
+        Plot(name="ImageFromWeb",
+             subworkflow='{package_dir}/dat-plots/ImageFromWeb.xml',
+             description=_("A very simple plot, retrieving an image from its "
+                           "URL"),
+             ports=[
+                 DataPort(name='url', type=basic.String, optional=False)]),
+    ]
+
+    ########################################
+    # Defines two variable loaders using the concise interface
+    #
+    DirectInputLoader = CustomVariableLoader.simple(
+        parameters=[('url', (str, '', _("&URL:")))],
+        default_varname='typed_url',
+        load=lambda self: build_variable(self.get_parameter('url')))
+
+    def load_from_file(self, filename):
+        with open(filename) as f:
+            return build_variable(f.read())
+    FileLoader = FileVariableLoader.simple(
+        extension='.url',
+        default_varname='file_url',
+        load=load_from_file)
+
+    _variable_loaders = {
+        DirectInputLoader: _("URL from direct input"),
+        FileLoader: _("URL from text file"),
+    }
+
+    ########################################
+    # Defines variable operations
+    #
+    _variable_operations = [
+        VariableOperation(
+            'nb_to_string',
+            subworkflow='{package_dir}/dat-operations/nb_to_string.xml',
+            args=[
+                OperationArgument('nb', basic.Float),
+            ],
+            return_type=basic.String),
+    ]
+
+
+###############################################################################
+
 import unittest
 
 
@@ -685,18 +760,18 @@ class TestDownloadFile(unittest.TestCase):
     def testIncorrectURL(self):
         from vistrails.tests.utils import execute
         self.assertTrue(execute([
-                ('DownloadFile', identifier, [
-                    ('url', [('String', 'http://idbetthisdoesnotexistohrly')]),
-                ]),
-            ]))
+            ('DownloadFile', identifier, [
+                ('url', [('String', 'http://idbetthisdoesnotexistohrly')]),
+            ]),
+        ]))
 
     def testIncorrectURL_2(self):
         from vistrails.tests.utils import execute
         self.assertTrue(execute([
-                ('DownloadFile', identifier, [
-                    ('url', [('String', 'http://neitherodesthisohrly')]),
-                ]),
-            ]))
+            ('DownloadFile', identifier, [
+                ('url', [('String', 'http://neitherodesthisohrly')]),
+            ]),
+        ]))
 
 
 class TestHTTPDirectory(unittest.TestCase):
@@ -709,6 +784,7 @@ class TestHTTPDirectory(unittest.TestCase):
         try:
             download_directory(url, testdir)
             files = {}
+
             def addfiles(dirpath):
                 td = os.path.join(testdir, dirpath)
                 for name in os.listdir(td):
@@ -723,10 +799,10 @@ class TestHTTPDirectory(unittest.TestCase):
             self.assertEqual(len(files), 4)
             del files['f.html']
             self.assertEqual(files, {
-                    'a': 'aa\n',
-                    'bb': 'bb\n',
-                    'cc/d': 'dd\n',
-                })
+                'a': 'aa\n',
+                'bb': 'bb\n',
+                'cc/d': 'dd\n',
+            })
         finally:
             shutil.rmtree(testdir)
 
