@@ -462,66 +462,20 @@ else:
     ]
 
     ########################################
-    # Defines two variable loaders
+    # Defines two variable loaders using the concise interface
     #
-    class DirectInputLoader(CustomVariableLoader):
-        """Loads a URL from direct input.
+    DirectInputLoader = CustomVariableLoader.simple(
+            parameters=[('url', (str, '', _("&URL:")))],
+            default_varname='typed_url',
+            load=lambda self: build_variable(self.get_parameter('url')))
 
-        This loader will show up in a tab of its own.
-        """
-        def __init__(self):
-            CustomVariableLoader.__init__(self)
-
-            self._url_field = QtGui.QLineEdit()
-            layout = QtGui.QFormLayout()
-            layout.addRow(_("&URL:"), self._url_field)
-            self.setLayout(layout)
-
-        def reset(self):
-            self._url_field.setText('')
-
-        def load(self):
-            return build_variable(self._url_field.text())
-
-        def get_default_variable_name(self):
-            return "url"
-
-    class FileLoader(FileVariableLoader):
-        """Loads a URL from a plain text file.
-
-        This loader will appear in the 'File' tab if the selected file has a
-        matching extension.
-        """
-        _hostname = re.compile(
-                r'^(?:[A-Za-z]{1,20}://)?([A-Za-z0-9_.-]+)(?:/.+)?$')
-
-        @classmethod
-        def can_load(cls, filename):
-            return filename.lower().endswith('.url')
-
-        def __init__(self, filename):
-            FileVariableLoader.__init__(self)
-            self.filename = filename
-            with open(filename, 'r') as fp:
-                contents = fp.read().strip()
-            varname = FileLoader._hostname.match(contents)
-            if varname is None:
-                self._varname = "file_url"
-            else:
-                self._varname = derive_varname(varname.group(1), prefix="url_")
-
-            layout = QtGui.QVBoxLayout()
-            layout.addWidget(
-                    QtGui.QLabel(_("This loader has no parameters.")))
-            self.setLayout(layout)
-
-        def load(self):
-            with open(self.filename) as f:
-                url = f.read()
-            return build_variable(url)
-
-        def get_default_variable_name(self):
-            return self._varname
+    def load_from_file(self, filename):
+        with open(filename) as f:
+            return build_variable(f.read())
+    FileLoader = FileVariableLoader.simple(
+            extension='.url',
+            default_varname='file_url',
+            load=load_from_file)
 
     _variable_loaders = {
             DirectInputLoader: _("URL from direct input"),
