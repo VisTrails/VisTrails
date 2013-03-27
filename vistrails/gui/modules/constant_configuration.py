@@ -520,8 +520,11 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
         """__init__(param: core.vistrail.module_param.ModuleParam,
                     parent: QWidget)
         """
-        contents = param.strValue
-        contentsType = param.type
+        psi = param.port_spec_item
+        if not param.strValue and psi.default:
+            contents = psi.default
+        else:
+            contents = psi.strValue
         QtGui.QWidget.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         layout = QtGui.QHBoxLayout()
