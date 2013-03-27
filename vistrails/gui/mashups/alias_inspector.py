@@ -355,7 +355,7 @@ Please type a unique name. """ % new_alias)
                                 self.widgetContentsChanged)
                 self.dv_widget.deleteLater()
             
-            self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, None)
+            self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, self)
             self.dv_layout.addWidget(self.dv_widget)
             self.connect(self.dv_widget,
                          QtCore.SIGNAL("contentsChanged"),

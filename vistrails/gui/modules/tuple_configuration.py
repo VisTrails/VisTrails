@@ -143,13 +143,43 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
         registry = get_module_registry()
         if index.column()==1: #Port type
             combo = QtGui.QComboBox(parent)
-            combo.setEditable(False)
+            combo.setEditable(True)
+            combo.setInsertPolicy(QtGui.QComboBox.NoInsert)
+            def validateInput():
+                invalid = (combo.currentIndex() == -1 or
+                           combo.itemData(combo.currentIndex()) == QtCore.QVariant(''))
+                if invalid and validateInput.lastGoodIndex != -1:
+                    combo.setCurrentIndex(validateInput.lastGoodIndex)
+                elif invalid:
+                    combo.setEditText('')
+                else:
+                    validateInput.lastGoodIndex = combo.currentIndex()
+                    combo.setEditText(combo.itemText(combo.currentIndex()))
+            validateInput.lastGoodIndex = -1
+            self.connect(combo.lineEdit(), QtCore.SIGNAL('editingFinished()'),
+                         validateInput)
             # FIXME just use descriptors here!!
+            variant_desc = registry.get_descriptor_by_name(
+                    'edu.utah.sci.vistrails.basic',
+                    'Variant')
             for _, pkg in sorted(registry.packages.iteritems()):
+                pkg_item = QtGui.QStandardItem("----- %s -----" % pkg.name)
+                pkg_item.setData(QtCore.QVariant(''), QtCore.Qt.UserRole)
+                pkg_item.setFlags(pkg_item.flags() & ~(
+                        QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable))
+                font = pkg_item.font()
+                font.setBold(True)
+                pkg_item.setFont(font)
+                combo.model().appendRow(pkg_item)
                 for _, descriptor in sorted(pkg.descriptors.iteritems()):
-                    combo.addItem("%s (%s)" % (descriptor.name, 
+                    if descriptor is variant_desc:
+                        variant_index = combo.count()
+                    combo.addItem("%s (%s)" % (descriptor.name,
                                                descriptor.identifier),
                                   QtCore.QVariant(descriptor.sigstring))
+
+            combo.setCurrentIndex(variant_index)
+            validateInput.lastGoodIndex = variant_index
             return combo
         else:
             return QtGui.QItemDelegate.createEditor(self, parent, option, index)
