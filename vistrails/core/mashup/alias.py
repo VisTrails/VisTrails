@@ -35,6 +35,10 @@
 from vistrails.db.domain import DBMashupAlias
 from vistrails.core.mashup.component import Component
 
+import unittest
+from vistrails.db.domain import IdScope
+import copy
+
 ################################################################################
 class Alias(DBMashupAlias):
     def __init__(self, id, name, component=None):
