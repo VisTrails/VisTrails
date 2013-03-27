@@ -42,15 +42,23 @@ identifier = 'org.vistrails.matplotlib.new'
 name = 'matplotlib.new'
 version = '1.0.0'
 
+def _is_dat_available():
+    try:
+        import dat.packages
+        return True
+    except ImportError:
+        return False
+
 def package_dependencies():
     import vistrails.core.packagemanager
     manager = vistrails.core.packagemanager.get_package_manager()
     #deps = ['org.vistrails.dakoop.numpy']
+    deps = []
     if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-        #return deps + ['edu.utah.sci.vistrails.spreadsheet']
-        return ['edu.utah.sci.vistrails.spreadsheet']
-    else:
-        return []
+        deps += ['edu.utah.sci.vistrails.spreadsheet']
+    if _is_dat_available():
+        deps += ['edu.utah.sci.vistrails.control_flow']
+    return deps
 
 def package_requirements():
     import vistrails.core.requirements
