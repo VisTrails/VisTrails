@@ -36,7 +36,7 @@ def addToPipeline(items, ops=[]):
 def layoutAndAdd(module, connections):
     if not isinstance(connections, list):
         connections = [connections]
-    ops = controller.layout_modules_ops(preserve_order=True,
+    ops = controller.layout_modules_ops(preserve_order=True, no_gaps=True,
                                         new_modules=[module],
                                         new_connections=connections)
     addToPipeline([module] + connections, ops)
@@ -158,5 +158,5 @@ layoutAndAdd(camera, camera_renderer)
 # layoutAndAdd(cell, renderer_cell)
 
 #write to file
-locator = core.db.locator.FileLocator('incremental_layout_brain.vt')
+locator = core.db.locator.FileLocator('brain_no_gaps_preserve_order.vt')
 controller.write_vistrail(locator)

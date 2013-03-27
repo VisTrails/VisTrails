@@ -660,7 +660,6 @@ class WorkflowLayout(object):
             
                 #separate modules that have no previous x value
                 temp = []
-                print [(m.shortname, m.prev_x) for m in layer.modules]
                 for i in reversed(range(len(layer.modules))):
                     if layer.modules[i].prev_x is None:
                         temp.append((i,layer.modules.pop(i)))
@@ -671,8 +670,6 @@ class WorkflowLayout(object):
                 #put separated modules back in their original slot
                 for item in reversed(temp):
                     layer.modules.insert(item[0],item[1])
-                    
-                print [(m.shortname, m.prev_x) for m in layer.modules]
                     
                 #reassign index
                 for i in range(len(layer.modules)):
