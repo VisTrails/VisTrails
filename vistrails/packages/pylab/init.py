@@ -263,7 +263,8 @@ else:
              subworkflow='{package_dir}/dat-plots/histogram.xml',
              description=_("Build a histogram out of a numpy array"),
              ports=[
-                     DataPort(name='np_array', type=NumPyArray),
+                     DataPort(name='np_array', type=NumPyArray,
+                              multiple_values=True),
                      ConstantPort(name='xlabel', type=String, optional=True),
                      ConstantPort(name='ylabel', type=String, optional=True),
                      ConstantPort(name='color', type=Color, optional=True)])
