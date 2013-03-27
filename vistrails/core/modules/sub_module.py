@@ -63,7 +63,11 @@ class InputPort(Module):
         if exPipe is not None:
             self.setResult('InternalPipe', exPipe)
         else:
-            self.setResult('InternalPipe', InvalidOutput)
+            if self.hasInputFromPort('Default'):
+                self.setResult('InternalPipe',
+                               self.getInputFromPort('Default'))
+            else:
+                self.setResult('InternalPipe', InvalidOutput)
 
 ###############################################################################
     
@@ -475,6 +479,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(InputPort, "optional", Boolean, True)
     reg.add_input_port(InputPort, "spec", String)
     reg.add_input_port(InputPort, "ExternalPipe", Variant, True)
+    reg.add_input_port(InputPort, "Default", Variant)
     reg.add_output_port(InputPort, "InternalPipe", Variant)
 
     reg.add_module(OutputPort)
