@@ -765,6 +765,9 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         Replace the current location (row, col) with a cell widget
         
         """
+        prev_container = self.getCellWidget(row, col)
+        if prev_container is not None:
+            prev_container.setCellInfo(None)
         self.sheet.setCellByWidget(row, col, cellWidget)
 
     def dragEnterEvent(self, event):
