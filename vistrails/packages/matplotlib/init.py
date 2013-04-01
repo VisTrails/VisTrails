@@ -163,7 +163,7 @@ else:
     ########################################
     # Defines a variable loader
     #
-    class NumPyArrayLoader(FileVariableLoader):
+    class BinaryArrayLoader(FileVariableLoader):
         """Loads a NumPy array using numpy:fromfile().
         """
         FORMATS = [
@@ -210,7 +210,7 @@ else:
                                           remove_path=True, prefix="nparray_")
 
             self._format_field = QtGui.QComboBox()
-            for label, dtype in NumPyArrayLoader.FORMATS:
+            for label, dtype in BinaryArrayLoader.FORMATS:
                 self._format_field.addItem(label)
 
             layout = QtGui.QFormLayout()
@@ -220,14 +220,25 @@ else:
         def load(self):
             return build_variable(
                     self.filename,
-                    NumPyArrayLoader.FORMATS[
+                    BinaryArrayLoader.FORMATS[
                             self._format_field.currentIndex()][1])
 
         def get_default_variable_name(self):
             return self._varname
 
+    def npy_load(self, filename):
+        return build_variable(filename, 'npy')
+    def npy_get_varname(filename):
+        return derive_varname(filename, remove_ext=True,
+                              remove_path=True, prefix="nparray_")
+    NPYArrayLoader = FileVariableLoader.simple(
+            extension='.npy',
+            load=npy_load,
+            get_varname=npy_get_varname)
+
     _variable_loaders = {
-            NumPyArrayLoader: _("NumPy array"),
+            BinaryArrayLoader: _("Numpy plain binary array"),
+            NPYArrayLoader: _("Numpy .NPY format"),
     }
 
     ########################################

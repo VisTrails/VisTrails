@@ -17,29 +17,44 @@ class NumPyArray(Module):
     _output_ports = [
             ('value', '(edu.utah.sci.vistrails.basic:List)')]
 
-    FORMAT_MAP = dict(
-          int8 = numpy.int8,
-         uint8 = numpy.uint8,
-         int16 = numpy.int16,
-        uint16 = numpy.uint16,
-         int32 = numpy.int32,
-        uint32 = numpy.uint32,
-         int64 = numpy.int64,
-        uint64 = numpy.uint64,
+    NPY_FMT = object()
 
-         float32 = numpy.float32,
-         float64 = numpy.float64,
+    FORMAT_MAP = dict(
+               npy = NPY_FMT,
+
+              int8 = numpy.int8,
+             uint8 = numpy.uint8,
+             int16 = numpy.int16,
+            uint16 = numpy.uint16,
+             int32 = numpy.int32,
+            uint32 = numpy.uint32,
+             int64 = numpy.int64,
+            uint64 = numpy.uint64,
+
+           float32 = numpy.float32,
+           float64 = numpy.float64,
 
          complex64 = numpy.complex64,
         complex128 = numpy.complex128,
     )
 
     def compute(self):
+        filename = self.getInputFromPort('file').name
         if self.hasInputFromPort('datatype'):
             dtype = NumPyArray.FORMAT_MAP[self.getInputFromPort('datatype')]
         else:
-            dtype = numpy.float32
-        array = numpy.fromfile(self.getInputFromPort('file').name, dtype)
+            if filename[-4].lower() == '.npy':
+                dtype = self.NPY_FMT
+            else:
+                dtype = numpy.float32
+        if dtype is self.NPY_FMT:
+            # Numpy's ".NPY" format
+            # Written with: numpy.save('xxx.npy', array)
+            array = numpy.load(filename)
+        else:
+            # Numpy's plain binary format
+            # Written with: array.tofile('xxx.dat')
+            array = numpy.fromfile(filename, dtype)
         self.setResult('value', array)
 
 
