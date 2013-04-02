@@ -90,12 +90,14 @@ else:
     _ = translate('packages.matplotlib')
 
     # Builds a DAT variable from a data file
-    def build_variable(filename, dtype):
+    def build_variable(filename, dtype, shape=None):
         var = Variable(type=List)
         # We use the high-level interface to build the variable pipeline
         mod = var.add_module(NumPyArray)
         mod.add_function('file', File, filename)
         mod.add_function('datatype', String, dtype)
+        if shape is not None:
+            mod.add_function('shape', List, repr(shape))
         # We select the 'value' output port of the NumPyArray module as the
         # port that will be connected to plots when this variable is used
         var.select_output_port(mod, 'value')
@@ -201,7 +203,8 @@ else:
 
         @classmethod
         def can_load(cls, filename):
-            return filename.lower().endswith('.dat')
+            return (filename.lower().endswith('.dat') or
+                    filename.lower().endswith('.ima'))
 
         def __init__(self, filename):
             FileVariableLoader.__init__(self)
@@ -209,19 +212,34 @@ else:
             self._varname = derive_varname(filename, remove_ext=True,
                                           remove_path=True, prefix="nparray_")
 
+            layout = QtGui.QFormLayout()
+
             self._format_field = QtGui.QComboBox()
             for label, dtype in BinaryArrayLoader.FORMATS:
                 self._format_field.addItem(label)
-
-            layout = QtGui.QFormLayout()
             layout.addRow(_("Data &format:"), self._format_field)
+
+            self._shape = QtGui.QLineEdit()
+            layout.addRow(_("&Shape:"), self._shape)
+            shape_label = QtGui.QLabel(_("Comma-separated list of dimensions"))
+            label_font = shape_label.font()
+            label_font.setItalic(True)
+            shape_label.setFont(label_font)
+            layout.addRow('', shape_label)
+
             self.setLayout(layout)
 
         def load(self):
+            shape = str(self._shape.text())
+            if not shape:
+                shape = None
+            else:
+                shape = [int(d.strip()) for d in shape.split(',')]
             return build_variable(
                     self.filename,
                     BinaryArrayLoader.FORMATS[
-                            self._format_field.currentIndex()][1])
+                            self._format_field.currentIndex()][1],
+                    shape)
 
         def get_default_variable_name(self):
             return self._varname

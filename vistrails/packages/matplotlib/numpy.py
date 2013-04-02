@@ -13,7 +13,8 @@ class NumPyArray(Module):
     """
     _input_ports = [
             ('file', '(edu.utah.sci.vistrails.basic:File)'),
-            ('datatype', '(edu.utah.sci.vistrails.basic:String)')]
+            ('datatype', '(edu.utah.sci.vistrails.basic:String)'),
+            ('shape', '(edu.utah.sci.vistrails.basic:List)')]
     _output_ports = [
             ('value', '(edu.utah.sci.vistrails.basic:List)')]
 
@@ -55,6 +56,8 @@ class NumPyArray(Module):
             # Numpy's plain binary format
             # Written with: array.tofile('xxx.dat')
             array = numpy.fromfile(filename, dtype)
+        if self.hasInputFromPort('shape'):
+            array.shape = tuple(self.getInputFromPort('shape'))
         self.setResult('value', array)
 
 
