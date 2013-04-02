@@ -134,6 +134,12 @@ else:
                  ConstantPort(name='alpha', type=Float, optional=True),
                  ConstantPort(name='facecolor', type=Color, optional=True),
                  ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib image",
+             subworkflow='{package_dir}/dat-plots/imshow.xml',
+             description=_("Shows a 2D MxN or MxNx3 matrix as an image"),
+             ports=[
+                 DataPort(name='matrix', type=List),
+                 ConstantPort(name='title', type=String, optional=True)]),
         Plot(name="Matplotlib line plot",
              subworkflow='{package_dir}/dat-plots/line.xml',
              description=_("Build a plot out of two lists"),
