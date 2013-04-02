@@ -100,7 +100,7 @@ class MashupsManager(object):
                         mashuptrail = Mashuptrail(self.getNewMashuptrailId(), 
                                                   version, id_scope)
                         p_mashup = p_mashuptrail.getMashup(mshpv)
-                        mashup = p_mashup.doCopy()
+                        mashup = p_mashup.do_copy()
                         mashup.id_scope = id_scope
                         mashup.version = version
                         mashup.validateForPipeline(pipeline)

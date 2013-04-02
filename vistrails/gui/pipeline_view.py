@@ -3162,11 +3162,14 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         jobView.delete_job(self.controller)
         jobView.updating_now = True
 
-        self.controller.execute_current_workflow()
-        
-        jobView.updating_now = False
-        from vistrails.gui.vistrails_window import _app
-        _app.notify('execution_updated')
+        try:
+            self.controller.execute_current_workflow()
+        except Exception, e:
+            debug.critical(str(e))
+        finally:
+            jobView.updating_now = False
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
         
     def publish_to_web(self):
         from vistrails.gui.publishing import QVersionEmbed

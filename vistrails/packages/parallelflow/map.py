@@ -485,7 +485,7 @@ class Map(Module, NotCacheable):
         from vistrails.core.vistrail.port_spec import PortSpec
         v_module = self.createSignature(v_module)
         port_spec2 = PortSpec(**{'signature': v_module})
-        matched = reg.are_specs_matched(port_spec1, port_spec2)
+        matched = reg.are_specs_matched(port_spec2, port_spec1)
                 
         return matched
         
