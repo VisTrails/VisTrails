@@ -400,6 +400,9 @@
       <outputPortSpec arg="rectangle" compute_name="rectangles" name="rectangleProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.Rectangle" />
     </value>
   </addPortSpec>
+  <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.imshow" port="X" type="input">
+    <value>basic:List</value>
+  </changePortSpec>
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.plot">
     <value>object</value>
   </changeModule>
