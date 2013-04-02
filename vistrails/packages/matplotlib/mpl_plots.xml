@@ -1457,7 +1457,7 @@ If None, default to rc image.aspect value.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="alpha" arg_pos="5" name="alpha" />
     <inputPortSpec arg="vmax" arg_pos="7" name="vmax" />
-    <inputPortSpec arg="X" arg_pos="0" name="X" required="True" />
+    <inputPortSpec arg="X" arg_pos="0" name="X" required="True" port_type="basic:List" />
     <inputPortSpec arg="hold" arg_pos="16" name="hold" />
     <inputPortSpec arg="norm" arg_pos="2" name="norm" />
     <inputPortSpec arg="interpolation" arg_pos="4" name="interpolation" />

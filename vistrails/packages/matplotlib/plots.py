@@ -2468,7 +2468,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
                {'optional': True}),
               ("vmax", "basic:String",
                {'optional': True}),
-              ("X", "basic:String",
+              ("X", "basic:List",
                {}),
               ("hold", "basic:String",
                {'optional': True}),
