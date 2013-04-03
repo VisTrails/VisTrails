@@ -100,9 +100,11 @@ class IPythonSet:
 
         e = None
         if self.engine_type == 'local':
+            work_dir = os.path.realpath(os.path.dirname(sys.argv[0]))
             e = LocalEngineLauncher(config=self.config,
                                     log=self.logger,
-                                    profile_dir=self.profile_dir)
+                                    profile_dir=self.profile_dir,
+                                    work_dir=work_dir)
         elif self.engine_type == 'ssh':
             # TODO: How to execute this remotely!?
             e = SSHEngineLauncher(config=self.config,
