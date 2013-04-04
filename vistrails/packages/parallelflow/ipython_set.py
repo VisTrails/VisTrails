@@ -10,7 +10,9 @@ from IPython.parallel.apps.launcher import LocalControllerLauncher,\
                                            
 from PyQt4 import QtCore, QtGui
 
-local_profile_dir = os.path.join(os.getenv('HOME'), '.ipython/profile_default')
+from core import system
+
+local_profile_dir = os.path.join(system.home_directory(), '.ipython/profile_default')
 
 class IPythonSet:
     """

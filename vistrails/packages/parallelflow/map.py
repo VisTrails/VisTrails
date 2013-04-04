@@ -343,6 +343,7 @@ class Map(Module, NotCacheable):
             raise ModuleError(self,
                               'Output ports not found: %s' %ports)
         
+        import core.modules.module_registry
         reg = core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
