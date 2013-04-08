@@ -198,7 +198,7 @@ class Map(Module, NotCacheable):
                 else:
                     self.element = element[0]
                     
-                pipeline_modules = copy.deepcopy(original_pipeline.modules)
+                pipeline_modules = dict([(k,m.do_copy()) for k, m in original_pipeline.modules.iteritems()])
                     
                 # checking type and setting input in the module
                 self.typeChecking(connector.obj, nameInput, inputList)
