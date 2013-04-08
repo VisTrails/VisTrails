@@ -315,7 +315,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="yerr" name="yerr">
       <docstring>if not None, will be used to generate errorbars on the bar chart</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="left" arg_pos="0" name="left" port_type="basic:List" required="True">
+    <inputPortSpec arg="left" arg_pos="0" name="left" port_type="basic:List" required="False">
       <docstring>the x coordinates of the left sides of the bars</docstring>
       <alternateSpec arg="left" name="leftScalar" port_type="basic:Float">
         <docstring>the x coordinate of the left side of the bar</docstring>
@@ -2988,7 +2988,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <values>[['solid line style', 'dashed line style', 'dash-dot line style', 'dotted line style', 'point marker', 'pixel marker', 'circle marker', 'triangle_down marker', 'triangle_up marker', 'triangle_left marker', 'triangle_right marker', 'tri_down marker', 'tri_up marker', 'tri_left marker', 'tri_right marker', 'square marker', 'pentagon marker', 'star marker', 'hexagon1 marker', 'hexagon2 marker', 'plus marker', 'x marker', 'diamond marker', 'thin_diamond marker', 'vline marker', 'hline marker']]</values>
     </inputPortSpec>
     <inputPortSpec arg="y" name="y" port_type="basic:List" required="True" arg_pos="1" in_args="True" />
-    <inputPortSpec arg="x" name="x" port_type="basic:List" required="True" arg_pos="0" in_args="True" />
+    <inputPortSpec arg="x" name="x" port_type="basic:List" required="False" arg_pos="0" in_args="True" />
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.lines.Line2D" />
   </moduleSpec>
 </specs>

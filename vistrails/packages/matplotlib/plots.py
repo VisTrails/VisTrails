@@ -541,7 +541,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
               ("yerr", "basic:String",
                {'optional': True, 'docstring': 'if not None, will be used to generate errorbars on the bar chart'}),
               ("left", "basic:List",
-               {'docstring': 'the x coordinates of the left sides of the bars'}),
+               {'optional': True, 'docstring': 'the x coordinates of the left sides of the bars'}),
               ("leftScalar", "basic:Float",
                {'optional': True, 'docstring': 'the x coordinate of the left side of the bar'}),
               ("rectangleProperties", "MplRectangleProperties",
@@ -624,9 +624,9 @@ Additional kwargs: hold = [True|False] overrides default hold state
         elif self.hasInputFromPort('leftScalar'):
             val = self.getInputFromPort('leftScalar')
             kwargs['left'] = val
-        else:
-            raise ModuleError(self, 'Must set one of "left", '                                   '"leftScalar"')
 
+        if not kwargs.has_key('left'):
+            kwargs['left'] = range(len(kwargs['height']))
         rectangles = matplotlib.pyplot.bar(*args, **kwargs)
         if self.hasInputFromPort('rectangleProperties'):
             properties = self.getInputFromPort('rectangleProperties')
@@ -5014,7 +5014,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
               ("y", "basic:List",
                {}),
               ("x", "basic:List",
-               {}),
+               {'optional': True}),
               ("lineProperties", "MplLine2DProperties",
                {}),
         ]
@@ -5028,8 +5028,9 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
-        args.append(val)
+        if self.hasInputFromPort('x'):
+            val = self.getInputFromPort('x')
+            args.append(val)
         val = self.getInputFromPort('y')
         args.append(val)
 

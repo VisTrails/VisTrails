@@ -385,6 +385,9 @@
       <alternateSpec arg="width" name="widthSequence" port_type="basic:List" />
     </value>
   </addPortSpec>
+  <changePortSpec attr="required" code_ref="matplotlib.pyplot.bar" port="left" type="input">
+    <value>False</value>
+  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.bar" port="left" type="input">
     <value>basic:List</value>
   </changePortSpec>
@@ -413,7 +416,7 @@
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.plot" port="x" type="input">
     <value>
-      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" required="True" />
+      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.plot" port="line" type="output">
