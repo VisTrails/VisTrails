@@ -111,7 +111,7 @@ else:
              subworkflow='{package_dir}/dat-plots/bar.xml',
              description=_("Build a bar diagram out of two lists"),
              ports=[
-                 DataPort(name='left', type=List),
+                 DataPort(name='left', type=List, optional=True),
                  DataPort(name='height', type=List),
                  ConstantPort(name='title', type=String, optional=True),
                  ConstantPort(name='alpha', type=Float, optional=True),
@@ -144,7 +144,7 @@ else:
              subworkflow='{package_dir}/dat-plots/line.xml',
              description=_("Build a plot out of two lists"),
              ports=[
-                 DataPort(name='x', type=List),
+                 DataPort(name='x', type=List, optional=True),
                  DataPort(name='y', type=List),
                  ConstantPort(name='title', type=String, optional=True),
                  ConstantPort(name='markers', type=Boolean, optional=False),

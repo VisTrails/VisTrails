@@ -825,4 +825,9 @@
       <port id="47" moduleId="1" moduleName="MplFigure" name="axesProperties" signature="(org.vistrails.matplotlib.new:MplAxesProperties)" type="destination" />
     </add>
   </action>
+  <action date="2013-04-08 16:35:41" id="75" prevId="74" session="8" user="Remi">
+    <change id="246" newObjId="29" oldObjId="8" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="29" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </change>
+  </action>
 </vistrail>

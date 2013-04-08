@@ -1092,4 +1092,12 @@
       <parameter alias="" id="50" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:List" val="['self']" />
     </change>
   </action>
+  <action date="2013-04-08 16:35:29" id="129" prevId="128" session="17" user="Remi">
+    <add id="313" objectId="29" parentObjId="10" parentObjType="module" what="function">
+      <function id="29" name="optional" pos="2" />
+    </add>
+    <add id="314" objectId="51" parentObjId="29" parentObjType="function" what="parameter">
+      <parameter alias="" id="51" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
 </vistrail>
