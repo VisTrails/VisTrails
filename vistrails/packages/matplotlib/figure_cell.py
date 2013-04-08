@@ -138,9 +138,7 @@ class MplFigureCellWidget(QCellWidget):
             # self.layout().addWidget(self.getFigManager().window)
 
         # Update the new figure canvas
-        # self.getFigManager().canvas.draw()
-        self.canvas.draw()
-            
+        # self.getFigManager().canvas.draw()            
 
         # # Replace the old one with the new one
         # if newFigManager!=self.figManager:
@@ -218,12 +216,14 @@ class MplFigureCellWidget(QCellWidget):
         self.figure.set_size_inches(8.0,6.0)
         self.canvas.print_figure(filename)
         self.figure.set_size_inches(previous_size[0],previous_size[1])
+        self.canvas.draw()
         
     def saveToPDF(self, filename):
         previous_size = tuple(self.figure.get_size_inches())
         self.figure.set_size_inches(8.0,6.0)
         self.canvas.print_figure(filename)
         self.figure.set_size_inches(previous_size[0],previous_size[1])
+        self.canvas.draw()
 
 class MplNavigationToolbar(NavigationToolbar2QT):
     # override a bunch of stuff here...

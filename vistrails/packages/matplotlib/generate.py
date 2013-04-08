@@ -8,7 +8,7 @@ def generate_from_specs(fname, out_fname, template_fname):
     template = Template(filename=template_fname, 
                         module_directory='/tmp/mako')
 
-    f = open(out_fname, 'w')
+    f = open(out_fname, 'wb') # 'b' ensures that we always use LF line endings
     f.write(template.render(specs=specs))
     f.close()        
 

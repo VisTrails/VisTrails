@@ -1,5 +1,5 @@
 import matplotlib.pyplot
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from bases import MplPlot
 
 <%def name="do_translate(t_spec, t_ps)">\
