@@ -734,4 +734,79 @@
       <port id="41" moduleId="1" moduleName="MplFigure" name="axesProperties" signature="(org.vistrails.matplotlib.new:MplAxesProperties)" type="destination" />
     </add>
   </action>
+  <action date="2013-04-09 16:23:45" id="62" prevId="61" session="11" user="Remi">
+    <add id="225" objectId="21" parentObjId="" parentObjType="" what="connection">
+      <connection id="21" />
+    </add>
+    <add id="226" objectId="42" parentObjId="21" parentObjType="connection" what="port">
+      <port id="42" moduleId="13" moduleName="Color" name="value_as_string" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="227" objectId="43" parentObjId="21" parentObjType="connection" what="port">
+      <port id="43" moduleId="7" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:23:52" id="63" prevId="62" session="11" user="Remi">
+    <add id="228" objectId="22" parentObjId="" parentObjType="" what="connection">
+      <connection id="22" />
+    </add>
+    <add id="229" objectId="44" parentObjId="22" parentObjType="connection" what="port">
+      <port id="44" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="230" objectId="45" parentObjId="22" parentObjType="connection" what="port">
+      <port id="45" moduleId="5" moduleName="MplRectangleProperties" name="facecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:23:53" id="64" prevId="63" session="11" user="Remi">
+    <delete id="231" objectId="32" parentObjId="16" parentObjType="connection" what="port" />
+    <delete id="232" objectId="33" parentObjId="16" parentObjType="connection" what="port" />
+    <delete id="233" objectId="16" parentObjId="" parentObjType="" what="connection" />
+    <delete id="234" objectId="18" parentObjId="9" parentObjType="connection" what="port" />
+    <delete id="235" objectId="19" parentObjId="9" parentObjType="connection" what="port" />
+    <delete id="236" objectId="9" parentObjId="" parentObjType="" what="connection" />
+    <delete id="237" objectId="24" parentObjId="12" parentObjType="connection" what="port" />
+    <delete id="238" objectId="25" parentObjId="12" parentObjType="connection" what="port" />
+    <delete id="239" objectId="12" parentObjId="" parentObjType="" what="connection" />
+    <delete id="240" objectId="34" parentObjId="10" parentObjType="module" what="location" />
+    <delete id="241" objectId="10" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-09 16:23:58" id="65" prevId="64" session="11" user="Remi">
+    <change id="242" newObjId="50" oldObjId="25" parentObjId="7" parentObjType="module" what="location">
+      <location id="50" x="-207.553517043" y="398.490045401" />
+    </change>
+  </action>
+  <action date="2013-04-09 16:23:58" id="66" prevId="65" session="11" user="Remi">
+    <add id="243" objectId="23" parentObjId="" parentObjType="" what="connection">
+      <connection id="23" />
+    </add>
+    <add id="244" objectId="46" parentObjId="23" parentObjType="connection" what="port">
+      <port id="46" moduleId="14" moduleName="Color" name="value" signature="(edu.utah.sci.vistrails.basic:Color)" type="source" />
+    </add>
+    <add id="245" objectId="47" parentObjId="23" parentObjType="connection" what="port">
+      <port id="47" moduleId="8" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:24:03" id="67" prevId="66" session="11" user="Remi">
+    <add id="246" objectId="24" parentObjId="" parentObjType="" what="connection">
+      <connection id="24" />
+    </add>
+    <add id="247" objectId="48" parentObjId="24" parentObjType="connection" what="port">
+      <port id="48" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="248" objectId="49" parentObjId="24" parentObjType="connection" what="port">
+      <port id="49" moduleId="5" moduleName="MplRectangleProperties" name="edgecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:24:04" id="68" prevId="67" session="11" user="Remi">
+    <delete id="249" objectId="34" parentObjId="17" parentObjType="connection" what="port" />
+    <delete id="250" objectId="35" parentObjId="17" parentObjType="connection" what="port" />
+    <delete id="251" objectId="17" parentObjId="" parentObjType="" what="connection" />
+    <delete id="252" objectId="20" parentObjId="10" parentObjType="connection" what="port" />
+    <delete id="253" objectId="21" parentObjId="10" parentObjType="connection" what="port" />
+    <delete id="254" objectId="10" parentObjId="" parentObjType="" what="connection" />
+    <delete id="255" objectId="26" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="256" objectId="27" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="257" objectId="13" parentObjId="" parentObjType="" what="connection" />
+    <delete id="258" objectId="35" parentObjId="11" parentObjType="module" what="location" />
+    <delete id="259" objectId="11" parentObjId="" parentObjType="" what="module" />
+  </action>
 </vistrail>
