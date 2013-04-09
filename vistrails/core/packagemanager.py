@@ -133,6 +133,7 @@ class PackageManager(object):
             raise
         finally:
             sys.path = old_sys_path
+        os.environ['VISTRAILS_USERPACKAGES_DIR'] = conf.userPackageDirectory
         self._userpackages = userpackages
         return userpackages
 

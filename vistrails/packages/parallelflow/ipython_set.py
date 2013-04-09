@@ -10,7 +10,9 @@ from IPython.parallel.apps.launcher import LocalControllerLauncher,\
                                            
 from PyQt4 import QtCore, QtGui
 
-local_profile_dir = os.path.join(os.getenv('HOME'), '.ipython/profile_default')
+from vistrails.core import system
+
+local_profile_dir = os.path.join(system.home_directory(), '.ipython/profile_default')
 
 class IPythonSet:
     """
@@ -100,9 +102,11 @@ class IPythonSet:
 
         e = None
         if self.engine_type == 'local':
+            work_dir = os.path.realpath(os.path.dirname(sys.argv[0]))
             e = LocalEngineLauncher(config=self.config,
                                     log=self.logger,
-                                    profile_dir=self.profile_dir)
+                                    profile_dir=self.profile_dir,
+                                    work_dir=work_dir)
         elif self.engine_type == 'ssh':
             # TODO: How to execute this remotely!?
             e = SSHEngineLauncher(config=self.config,
