@@ -56,7 +56,10 @@ class ConstantWidgetMixin(object):
             if self.parent() and hasattr(self.parent(), 'updateMethod'):
                 self.parent().updateMethod()
             self._last_contents = newContents
-            self.emit(QtCore.SIGNAL('contentsChanged'), (self,newContents))    
+            self.emit(QtCore.SIGNAL('contentsChanged'), (self, newContents))
+
+    def setDefault(self, strValue):
+        pass
 
 class StandardConstantWidgetBase(ConstantWidgetMixin):
     """
@@ -443,6 +446,7 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         assert param.namespace is None
         self._silent = False
         self.setContents(param.strValue)
+        self._is_default = not param.strValue
         self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
                      self.change_state)
         
@@ -462,7 +466,13 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
             self.update_parent()
         else:
             self._silent = False
-            
+        self._is_default = False
+
+    def setDefault(self, strValue):
+        if self._is_default:
+            self.setContents(strValue)
+            self._is_default = True
+
     def change_state(self, state):
         if not self._silent:
             self.update_parent()
@@ -528,8 +538,10 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
         psi = param.port_spec_item
         if not param.strValue and psi and psi.default:
             contents = psi.default
+            self._is_default = True
         else:
             contents = param.strValue
+            self._is_default = not contents
         QtGui.QWidget.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         layout = QtGui.QHBoxLayout()
@@ -565,7 +577,13 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
                                   float(color[1])*255,
                                   float(color[2])*255)
             self.color_indicator.setColor(qcolor, silent)
-        
+        self._is_default = False
+
+    def setDefault(self, strValue):
+        if self._is_default:
+            self.setContents(strValue, True)
+            self._is_default = True
+
     def mousePressEvent(self, event):
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)

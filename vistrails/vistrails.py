@@ -33,8 +33,30 @@
 ##
 ###############################################################################
 """Main file for the VisTrails distribution."""
-import os, os.path
+
+import os
 import sys
+
+
+# Allows the userpackages directory to be overridden through an environment
+# variable
+# As this variable is set by the package manager, this also allows
+# multiprocessing to work correctly on Windows, where fork is not used and thus
+# 'userpackages' needs to be available in processes spawned from a
+# userpackage's code
+try:
+    userpackages_dir = os.environ['VISTRAILS_USERPACKAGES_DIR']
+except KeyError:
+    pass
+else:
+    old_sys_path = list(sys.path)
+    sys.path.insert(0, os.path.join(userpackages_dir, os.path.pardir))
+    try:
+        import userpackages
+    except ImportError:
+        sys.stderr.write("Couldn't import VISTRAILS_USERPACKAGES_DIR (%s), "
+                         "continuing\n" % userpackages_dir)
+
 def disable_lion_restore():
     """ Prevent Mac OS 10.7 to restore windows state since it would
     make Qt 4.7.3 unstable due to its lack of handling Cocoa's Main
