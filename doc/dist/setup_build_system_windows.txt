@@ -1,0 +1,13 @@
+
+== Preparing to generate the release ==
+Install InnoDB Setup
+Download and install the QuickStart Pack of Inno Setup from http://www.jrsoftware.org/isdl.php 
+
+Checkout VisTrails git repository
+In dist/windows/Input folder create a folder named x86
+Copy python27.dll 32 bit version into the x86 folder
+Inside the x86 folder create a folder called alps_libs
+
+In dist/windows/Input folder create a folder named x64
+Copy python27.dll 64 bit version into the x64 folder
+Inside the x64 folder create a folder called alps_libs
