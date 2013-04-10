@@ -50,7 +50,7 @@ from core.cache.utils import hash_list
 from core.modules import module_registry
 from core.modules.basic_modules import String, Boolean, Variant, NotCacheable
 from core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError
+    ModuleError, ModuleSuspended
 from core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 
@@ -78,6 +78,8 @@ class OutputPort(Module):
 class Group(Module):
     def __init__(self):
         Module.__init__(self)
+        self.is_group = True
+        self.persistent_modules = []
 
     def compute(self):
         if not hasattr(self, 'pipeline') or self.pipeline is None:
@@ -91,6 +93,7 @@ class Group(Module):
                                          "remap dictionaries don't exist")
             
         res = self.interpreter.setup_pipeline(self.pipeline)
+        self.persistent_modules = res[0].values()
         if len(res[5]) > 0:
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n'.join(me.msg for me in res[5].itervalues()))
@@ -116,6 +119,12 @@ class Group(Module):
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n '.join(me.module.__class__.__name__ + ': ' + \
                                             me.msg for me in res[2].itervalues()))
+        if len(res[4]) > 0:
+            # extract messages and previous ModuleSuspended exceptions
+            message = '\n'.join([msg for msg in res[4].itervalues()])
+            children = [tmp_id_to_module_map[module_id]._module_suspended
+                        for module_id in res[4]]
+            raise ModuleSuspended(self, message, children=children)
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
@@ -126,10 +135,7 @@ class Group(Module):
                                            **{'reset_computed': False})
 
     def is_cacheable(self):
-        for module in self.pipeline.modules.itervalues():
-            if not module.summon().is_cacheable():
-                return False
-        return True
+        return all(m.is_cacheable() for m in self.persistent_modules)
 
 ###############################################################################
 
@@ -219,6 +225,13 @@ def read_vistrail(vt_fname):
     import db.services.io
     from core.vistrail.vistrail import Vistrail
     vistrail = db.services.io.open_vistrail_from_xml(vt_fname)
+    Vistrail.convert(vistrail)
+    return vistrail
+
+def read_vistrail_from_db(db_connection, abs_id):
+    import db.services.io
+    from core.vistrail.vistrail import Vistrail
+    vistrail = db.services.io.open_vistrail_from_db(db_connection, abs_id)
     Vistrail.convert(vistrail)
     return vistrail
 
@@ -432,6 +445,24 @@ def group_signature(pipeline, module, chm):
     for m_id in module.pipeline.graph.sinks():
         sig_list.append(module.pipeline.subpipeline_signature(m_id))
     return Hasher.compound_signature(sig_list)
+
+def parse_abstraction_name(filename, get_all_parts=False):
+    # assume only 1 possible prefix or suffix
+    import re
+    prefixes = ["abstraction_"]
+    suffixes = [".vt", ".xml"]
+    path, fname = os.path.split(filename)
+    hexpat = '[a-fA-F0-9]'
+    uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
+    prepat = '|'.join(prefixes).replace('.','\\.')
+    sufpat = '|'.join(suffixes).replace('.','\\.')
+    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
+    matchobj = pattern.match(fname)
+    prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
+    if get_all_parts:
+        return (path, prefix, absname, uuid[1:-1], suffix)
+    return absname
+
 
 ###############################################################################
 

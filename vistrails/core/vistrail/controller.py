@@ -58,7 +58,7 @@ from core.modules.module_registry import ModuleRegistryException, \
 from core.modules.package import Package
 from core.modules.sub_module import new_abstraction, read_vistrail, \
     get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
-    get_next_abs_annotation_key, save_abstraction
+    get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
 from core.packagemanager import PackageManager, get_package_manager
 import core.packagerepository
 from core.thumbnails import ThumbnailCache
@@ -86,6 +86,19 @@ from db.services.io import SaveBundle, open_vt_log_from_db
 
 from db.services.vistrail import getSharedRoot
 from core.utils import any
+
+class CompareThumbnailsError(Exception):
+
+    def __init__(self, msg, first=None, second=None):
+        Exception.__init__(self, msg)
+        self._msg = msg
+        self._first = first
+        self._second = second
+        
+    def __str__(self):
+        return "Comparing thumbnails failed.\n%s\n%s\n%s" % \
+            (self._msg, self._first, self._second)
+
 
 def vt_action(f):
     def new_f(self, *args, **kwargs):
@@ -1561,23 +1574,6 @@ class VistrailController(object):
                                               namespace, None, module_version)
         return None
 
-    def parse_abstraction_name(self, filename, get_all_parts=False):
-        # assume only 1 possible prefix or suffix
-        import re
-        prefixes = ["abstraction_"]
-        suffixes = [".vt", ".xml"]
-        path, fname = os.path.split(filename)
-        hexpat = '[a-fA-F0-9]'
-        uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
-        prepat = '|'.join(prefixes).replace('.','\\.')
-        sufpat = '|'.join(suffixes).replace('.','\\.')
-        pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
-        matchobj = pattern.match(fname)
-        prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
-        if get_all_parts:
-            return (path, prefix, absname, uuid[1:-1], suffix)
-        return absname
-
     def add_abstraction_to_registry(self, abs_vistrail, abs_fname, name, 
                                     namespace=None, module_version=None,
                                     is_global=True, avail_fnames=[]):
@@ -1668,7 +1664,7 @@ class VistrailController(object):
     def load_abstraction(self, abs_fname, is_global=True, abs_name=None,
                          module_version=None, avail_fnames=[]):
         if abs_name is None:
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
         if abs_fname in self._loaded_abstractions:
             abs_vistrail = self._loaded_abstractions[abs_fname]
         else:
@@ -1723,7 +1719,7 @@ class VistrailController(object):
     def unload_abstractions(self):
         reg = core.modules.module_registry.get_module_registry()
         for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
             # FIXME? do we need to remove all versions (call
             # delete_module over and over?)
             for namespace in get_all_abs_namespaces(abs_vistrail):
@@ -1743,7 +1739,7 @@ class VistrailController(object):
         #         # in the module palette
         #         if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
         #             continue
-        #     abs_name = self.parse_abstraction_name(abs_fname)
+        #     abs_name = parse_abstraction_name(abs_fname)
         #     abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
         #     try:
         #         descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
@@ -1869,7 +1865,7 @@ class VistrailController(object):
         abs_fname = invalid_module.module_descriptor.module.vt_fname
         #print "&&& abs_fname", abs_fname
         (path, prefix, abs_name, abs_namespace, suffix) = \
-            self.parse_abstraction_name(abs_fname, True)
+            parse_abstraction_name(abs_fname, True)
         # abs_vistrail = invalid_module.vistrail
         abs_vistrail = read_vistrail(abs_fname)
         abs_namespace = get_cur_abs_namespace(abs_vistrail)
@@ -2077,28 +2073,33 @@ class VistrailController(object):
                 raise
         except MissingModule, e:
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
-                if (descriptor_tuple[1], '') not in lookup:
+                if (descriptor_tuple[1], None) not in lookup:
                     raise
-                abs_fname = lookup[(descriptor_tuple[1], '')]
+                abs_fnames = lookup[(descriptor_tuple[1], None)]
             else:
-                abs_fname = lookup[(descriptor_tuple[1], descriptor_tuple[2])]
-            new_desc = \
-                self.load_abstraction(abs_fname, False, 
-                                      descriptor_tuple[1],
-                                      descriptor_tuple[4],
-                                      lookup.values())
-            descriptor_tuple = (new_desc.package, new_desc.name, 
-                                new_desc.namespace, new_desc.package_version,
-                                str(new_desc.version))
+                abs_fnames = [lookup[(descriptor_tuple[1], descriptor_tuple[2])]]
+            for abs_fname in abs_fnames:
+                new_desc = \
+                    self.load_abstraction(abs_fname, False, 
+                                          descriptor_tuple[1],
+                                          descriptor_tuple[4],
+                                          [v for k, v in lookup.iteritems()
+                                           if k[1] != None])
+                descriptor_tuple = (new_desc.package, new_desc.name, 
+                                    new_desc.namespace, new_desc.package_version,
+                                    str(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
         return None
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
         for abs_fname in abs_fnames:
-            path, prefix, abs_name, abs_namespace, suffix = self.parse_abstraction_name(abs_fname, True)
+            path, prefix, abs_name, abs_namespace, suffix = parse_abstraction_name(abs_fname, True)
             # abs_name = os.path.basename(abs_fname)[12:-4]
             lookup[(abs_name, abs_namespace)] = abs_fname
+            if (abs_name, None) not in lookup:
+                lookup[(abs_name, None)] = []
+            lookup[(abs_name, None)].append(abs_fname)
             
         # we're going to recurse manually (see
         # add_abstraction_to_regsitry) because we can't call
@@ -2279,8 +2280,8 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
+            error = None
             (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
-            
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
                 not extra_info['pathDumpCells']):
@@ -2303,12 +2304,41 @@ class VistrailController(object):
             
             thumb_cache = ThumbnailCache.getInstance()
             
-            if len(result.errors) == 0 and thumb_cache.conf.autoSave:
+            if len(result.errors) == 0 and \
+            (thumb_cache.conf.autoSave or 'compare_thumbnails' in extra_info):
                 old_thumb_name = self.vistrail.get_thumbnail(version)
+                if 'compare_thumbnails' in extra_info:
+                    old_thumb_name = None
                 fname = thumb_cache.add_entry_from_cell_dump(
-                                        extra_info['pathDumpCells'], 
+                                        extra_info['pathDumpCells'],
                                         old_thumb_name)
-                if fname is not None: 
+                if 'compare_thumbnails' in extra_info:
+                    # check thumbnail difference
+                    prev = None
+                    if self.vistrail.has_thumbnail(version):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(version))
+                    elif version in self.vistrail.actionMap and \
+                        int(self.vistrail.get_upgrade(self.vistrail.actionMap[version].parent)) == version and \
+                        self.vistrail.has_thumbnail(self.vistrail.actionMap[version].parent):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(self.vistrail.actionMap[version].parent))
+                    else:
+                        error = CompareThumbnailsError("No thumbnail exist for version %s" % version)
+                    if prev:
+                        if not prev:
+                            error = CompareThumbnailsError("No thumbnail file exist for version %s" % version)
+                        elif not fname:
+                            raise CompareThumbnailsError("No thumbnail generated")
+                        else:
+                            next = thumb_cache.get_abs_name_entry(fname)
+                            if not next:
+                                raise CompareThumbnailsError("No thumbnail file generated for version %s" % version)
+                            else:
+                                min_err = extra_info['compare_thumbnails'](prev, next)
+                                treshold = 0.1
+                                if min_err > treshold:
+                                    raise CompareThumbnailsError("Thumbnails are different with value %s" % min_err, prev, next)
+
+                if fname is not None:
                     self.vistrail.set_thumbnail(version, fname)
                     changed = True
               
@@ -2321,7 +2351,9 @@ class VistrailController(object):
                 changed = True
             
             results.append(result)
-            
+            if error:
+                result.errors[version] = error
+                return ([result], False)
         if self.logging_on():
             self.set_changed(True)
             
@@ -3061,7 +3093,7 @@ class VistrailController(object):
             # prevent conflicts and copies the abstraction to the new
             # path so save_bundle has a valid file
             path, prefix, absname, old_ns, suffix = \
-                self.parse_abstraction_name(abs_fname, True)
+                parse_abstraction_name(abs_fname, True)
             new_abs_fname = os.path.join(abs_save_dir, 
                                          '%s%s(%s)%s' % (prefix, absname, 
                                                          namespace, suffix))
@@ -3077,7 +3109,7 @@ class VistrailController(object):
                 if abs_module is not None:
                     abs_fname = abs_module.vt_fname
                     path, prefix, abs_name, old_ns, suffix = \
-                        self.parse_abstraction_name(abs_fname, True)
+                        parse_abstraction_name(abs_fname, True)
                     # do our indexing by abstraction name
                     # we know that abstractions with different names
                     # cannot overlap, but those that have the same

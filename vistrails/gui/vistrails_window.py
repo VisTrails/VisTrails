@@ -946,6 +946,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def init_palettes(self):
         # palettes are global!
         from gui.debug import DebugView
+        from gui.job_monitor import QJobView
         from gui.debugger import QDebugger
         from gui.module_configuration import QModuleConfiguration
         from gui.module_documentation import QModuleDocumentation
@@ -1016,6 +1017,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                ((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
+               (QJobView, True),
                (QExplorerWindow, True),
 #               ((QLatexAssistant, True),
 #                (('controller_changed', 'set_controller'),)),
@@ -1709,6 +1711,10 @@ class QVistrailsWindow(QVistrailViewWindow):
             current_view = self.get_current_view()
         if current_view:
             locator = current_view.controller.locator
+            from gui.job_monitor import QJobView
+            jobView = QJobView.instance()
+            jobView.delete_job(current_view.controller, all=True)
+
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
             text = current_view.controller.name
@@ -2041,8 +2047,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                       
     def showRepositoryOptions(self):
         """ Displays Repository Options for authentication and pushing VisTrail to Repository """
-        dialog = QRepositoryDialog(self)
-        dialog.exec_()
+        self.publish_to_crowdlabs()
 
     def setDBDefault(self, dbState):
         """ setDBDefault(on: bool) -> None
@@ -2118,6 +2123,10 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.recentVistrailLocators = RecentVistrailList()
         conf.subscribe('maxRecentVistrails', self.max_recent_vistrails_changed)
         self.update_recent_vistrail_actions()
+
+    def check_running_jobs(self):
+        from gui.job_monitor import QJobView
+        QJobView.instance().load_running_jobs()
 
     def open_recent_vistrail(self):
         """ open_recent_vistrail() -> None
@@ -2406,8 +2415,9 @@ class QVistrailsWindow(QVistrailViewWindow):
         
     def publish_to_crowdlabs(self):
         dialog = QRepositoryDialog(self)
-        dialog.exec_()
-        
+        if QRepositoryDialog.cookiejar:
+            dialog.exec_()
+
     def invalidate_pipelines(self):
         """ invalidate_pipelines() -> None
             Clears the cache and reloads the current pipelines in all views

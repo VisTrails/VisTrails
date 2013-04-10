@@ -647,6 +647,34 @@ Here is an example of the syntax of the ``package_requirements`` function, taken
 
 A key element of ``package_requirements`` is the use of the function ``python_module_exists``  (see Lines 3 and 5), which checks whether a given module has been installed in your local Python system.
 
+
+Automatically Installing Python Modules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A more advanced method is to attempt to install a python module
+automatically using a system package manager. This method currently
+works for apt- and rpm-based systems.  By using
+``core.bundles.py_import``, you can attempt to automatically install a
+system dependency, all you need to specify is the python module name
+and the name of the package that contains it.  The following example
+can be put in your ``init.py`` file, with the desired module and
+package names changed:
+
+.. code-block:: python
+   :linenos:
+
+    from core.bundles import py_import
+    from core import debug
+    try:
+        pkg_dict = {'linux-ubuntu': 'your-apt-package',
+                    'linux-fedora': 'your-deb-package'}
+        your-py-module = py_import('your-py-module', pkg_dict)
+    except Exception, e:
+        debug.critical("Exception: %s" % e)
+
+Note that, if you use this method, you should not specify it in the
+``package_requirements``, because that would block the install attempt.
+
 Required Executables
 ^^^^^^^^^^^^^^^^^^^^
 

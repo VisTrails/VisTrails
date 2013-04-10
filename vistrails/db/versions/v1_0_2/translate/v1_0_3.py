@@ -33,14 +33,86 @@
 ##
 ###############################################################################
 
-from db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
-                                      DBWorkflow, DBLog, DBRegistry
+from db.versions.v1_0_2.domain import DBVistrail, DBAdd, DBChange, DBDelete, \
+    DBAnnotation, DBWorkflow, DBLog, DBRegistry, DBPortSpec
+
+def update_portSpec(old_obj, translate_dict):
+    new_obj = DBPortSpec.update_version(old_obj, translate_dict)
+    defaults = []
+    labels = []
+    sigstring_items = []
+    for item in old_obj.db_portSpecItems:
+        if item.db_default:
+            defaults.append(item.db_default)
+        else:
+            defaults.append("")
+        if item.db_label:
+            labels.append(item.db_label)
+        else:
+            labels.append("")
+
+        namespace_str = ""
+        if item.db_namespace:
+            namespace_str = ":%s" % item.db_namespace
+        sigstring_items.append("%s:%s%s" % (item.db_package, item.db_module, 
+                                            namespace_str))
+
+    new_obj.db_sigstring = "(" + ",".join(sigstring_items) + ")"
+    new_obj.defaults = str(defaults)
+    new_obj.labels = str(labels)
+    return new_obj
+
+def update_portSpecs(old_obj, translate_dict):
+    new_port_specs = []
+    for port_spec in old_obj.db_portSpecs:
+        new_port_specs.append(update_portSpec(port_spec, translate_dict))
+    return new_port_specs
+
+def update_portSpec_op(old_obj, translate_dict):
+    return update_portSpec(old_obj.db_data, translate_dict)
 
 def translateVistrail(_vistrail):
     """ Translate new DBVistrailVariable based vistrail variables to old
          annotation based type """
+
+    def update_workflow(old_obj, trans_dict):
+        return DBWorkflow.update_version(old_obj.db_workflow, 
+                                         trans_dict, DBWorkflow())
+
+    def update_operations(old_obj, trans_dict):
+        new_ops = []
+        for obj in old_obj.db_operations:
+            if obj.vtType == 'delete':
+                new_ops.append(DBDelete.update_version(obj, trans_dict))
+            elif obj.vtType == 'add':
+                if obj.db_what == 'portSpec':
+                    trans_dict['DBAdd'] = {'data': update_portSpec_op}
+                    new_op = DBAdd.update_version(obj, trans_dict)
+                    new_ops.append(new_op)
+                    del trans_dict['DBAdd']
+                else:
+                    new_op = DBAdd.update_version(obj, trans_dict)
+                    new_ops.append(new_op)
+            elif obj.vtType == 'change':
+                if obj.db_what == 'portSpec':
+                    trans_dict['DBChange'] = {'data': update_portSpec_op}
+                    new_op = DBChange.update_version(obj, trans_dict)
+                    new_ops.append(new_op)
+                    del trans_dict['DBChange']
+                else:
+                    new_op = DBChange.update_version(obj, trans_dict)
+                    new_ops.append(new_op)
+        return new_ops
     
-    vistrail = DBVistrail.update_version(_vistrail, {})
+    translate_dict = {'DBModule': {'portSpecs': update_portSpecs},
+                      'DBModuleDescriptor': {'portSpecs': update_portSpecs},
+                      'DBAction': {'operations': update_operations},
+                      'DBGroup': {'workflow': update_workflow},
+                      }
+    
+    vistrail = DBVistrail()
+    id_scope = vistrail.idScope
+    vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
 
     key = '__vistrail_vars__'
 
@@ -62,8 +134,12 @@ def translateVistrail(_vistrail):
 def translateWorkflow(_workflow):
     def update_workflow(old_obj, translate_dict):
         return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
-    workflow = DBWorkflow.update_version(_workflow, translate_dict)
+    translate_dict = {'DBModule': {'portSpecs': update_portSpecs},
+                      'DBGroup': {'workflow': update_workflow}}
+
+    workflow = DBWorkflow()
+    id_scope = workflow.idScope
+    workflow = DBWorkflow.update_version(_workflow, translate_dict, workflow)
 
     workflow.db_version = '1.0.2'
     return workflow
@@ -75,7 +151,9 @@ def translateLog(_log):
     return log
 
 def translateRegistry(_registry):
-    translate_dict = {}
-    registry = DBRegistry.update_version(_registry, translate_dict)
+    translate_dict = {'DBModuleDescriptor': {'portSpecs': update_portSpecs}}
+    registry = DBRegistry()
+    id_scope = registry.idScope
+    registry = DBRegistry.update_version(_registry, translate_dict, registry)
     registry.db_version = '1.0.2'
     return registry

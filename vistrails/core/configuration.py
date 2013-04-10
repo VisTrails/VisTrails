@@ -207,6 +207,7 @@ def default():
         'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,
         'rootDirectory': (None, str),
+        'runningJobsList': (None, str),
         'shell': default_shell(),
         'showScrollbars': True,
         'showMovies': True,

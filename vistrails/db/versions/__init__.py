@@ -80,6 +80,7 @@ def translate_object(obj, method_name, version=None, target_version=None):
         '0.9.5': '1.0.0',
         '1.0.0': '1.0.1',
         '1.0.1': '1.0.2',
+        '1.0.2': '1.0.3',
         }
 
     rev_version_map = {

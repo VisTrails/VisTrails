@@ -148,6 +148,9 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-w", "--executeworkflows", action="store_true",
             default = None,
             help="The workflows will be executed")
+        add("-F", "--fixedcells", action="store_true",
+            default = None,
+            help="Use a fixed spreadsheet cell size of 200*180")
         add("-I", "--workflowinfo", action="store",
             default = None,
             help=("Save workflow graph and spec in specified directory "
@@ -217,6 +220,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.useCache = bool(get('cache'))
         if get('verbose')!=None:
             self.temp_configuration.verbosenessLevel = get('verbose')
+        if get('fixedcells') != None:
+            self.temp_configuration.fixedSpreadsheetCells = str(get('fixedcells'))
         if get('noninteractive')!=None:
             self.temp_configuration.interactiveMode = \
                                                   not bool(get('noninteractive'))

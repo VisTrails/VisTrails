@@ -15,10 +15,11 @@ class Machine(Module):
         kwargs = self.get_kwargs(self.queue_cls)
         inherits = self.getInputFromPort('inherits').queue if self.hasInputFromPort('inherits') else None
 
-        if self.signature in QUEUE_REGISTER:
-            q = QUEUE_REGISTER[self.signature]
-            if hasattr(q, "disconnect"):
-                q.disconnect()
+# never disconnect because we want to check jobs later
+#        if self.signature in QUEUE_REGISTER:
+#            q = QUEUE_REGISTER[self.signature]
+#            if hasattr(q, "disconnect"):
+#                q.disconnect()
 
 
         self.queue = self.queue_cls(**kwargs) if inherits is None else self.queue_cls(inherits, **kwargs) 
