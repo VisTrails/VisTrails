@@ -36,7 +36,7 @@ import os
 import stat
 from time import localtime
 from datetime import datetime
-from core.thumbnails import ThumbnailCache
+from vistrails.core.thumbnails import ThumbnailCache
 
 from entity import Entity
 

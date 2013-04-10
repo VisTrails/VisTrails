@@ -32,16 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 import os
 import sqlite3
 import uuid
 
-from core.modules.basic_modules import Path
-from gui.common_widgets import QSearchBox, QSearchEditBox
-from gui.modules.constant_configuration import ConstantWidgetMixin
-from gui.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.core.modules.basic_modules import Path
+from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 from db_utils import DatabaseAccessSingleton
 import repo
 
@@ -824,7 +823,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             self.keep_local.setChecked(False)
 
     def set_values(self):
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
             reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
@@ -911,7 +910,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.state_changed = False
 
     def get_values(self):
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
             reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 

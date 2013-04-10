@@ -37,41 +37,41 @@
 QBuilderWindow
 """
 from PyQt4 import QtCore, QtGui
-from core import system
-from core.configuration import (get_vistrails_configuration, 
+from vistrails.core import system
+from vistrails.core.configuration import (get_vistrails_configuration, 
                                 get_vistrails_persistent_configuration)
-from core.db.locator import DBLocator, FileLocator, XMLFileLocator, untitled_locator
-from core.packagemanager import get_package_manager
-from core.recent_vistrails import RecentVistrailList
-import core.interpreter.cached
-import core.system
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.vistrail import Vistrail
-from gui.application import VistrailsApplication
-from gui.controlflow_assist import QControlFlowAssistDialog
-from gui.graphics_view import QInteractiveGraphicsView
-from gui.module_palette import QModulePalette
-from gui.open_db_window import QOpenDBWindow
-from gui.preferences import QPreferencesDialog
-from gui.repository import QRepositoryDialog
-from gui.shell import QShellDialog
-from gui.debugger import QDebugger
-from gui.pipeline_view import QPipelineView
-from gui.theme import CurrentTheme
-from gui.view_manager import QViewManager
-from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
-from gui.vis_diff import QVisualDiff
-from gui.utils import build_custom_window, show_info
-from gui.collection.workspace import QWorkspaceWindow
-from gui.collection.explorer import QExplorerWindow
-from gui.collection.vis_log import QVisualLog
+from vistrails.core.db.locator import DBLocator, FileLocator, XMLFileLocator, untitled_locator
+from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.recent_vistrails import RecentVistrailList
+import vistrails.core.interpreter.cached
+import vistrails.core.system
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.gui.application import VistrailsApplication
+from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
+from vistrails.gui.graphics_view import QInteractiveGraphicsView
+from vistrails.gui.module_palette import QModulePalette
+from vistrails.gui.open_db_window import QOpenDBWindow
+from vistrails.gui.preferences import QPreferencesDialog
+from vistrails.gui.repository import QRepositoryDialog
+from vistrails.gui.shell import QShellDialog
+from vistrails.gui.debugger import QDebugger
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.view_manager import QViewManager
+from vistrails.gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
+from vistrails.gui.vis_diff import QVisualDiff
+from vistrails.gui.utils import build_custom_window, show_info
+from vistrails.gui.collection.workspace import QWorkspaceWindow
+from vistrails.gui.collection.explorer import QExplorerWindow
+from vistrails.gui.collection.vis_log import QVisualLog
 import sys
-import db.services.vistrail
-from gui import merge_gui
-from db.services.io import SaveBundle
-from core.thumbnails import ThumbnailCache
-import gui.debug
-from gui.mashups.mashups_manager import MashupsManager
+import vistrails.db.services.vistrail
+from vistrails.gui import merge_gui
+from vistrails.db.services.io import SaveBundle
+from vistrails.core.thumbnails import ThumbnailCache
+import vistrails.gui.debug
+from vistrails.gui.mashups.mashups_manager import MashupsManager
 
 ################################################################################
 
@@ -779,7 +779,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showMessages)
 
-        self.connect(gui.debug.DebugView.getInstance(),
+        self.connect(vistrails.gui.debug.DebugView.getInstance(),
                      QtCore.SIGNAL("messagesView(bool)"),
                      self.messagesAction.setChecked)
 
@@ -1353,7 +1353,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             fileName = QtGui.QFileDialog.getSaveFileName(
                 active_window,
                 "Save PDF...",
-                core.system.vistrails_file_directory(),
+                vistrails.core.system.vistrails_file_directory(),
                 "PDF files (*.pdf)",
                 None)
 
@@ -1437,7 +1437,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             if thumb_cache.conf.autoSave else []
         s2 = SaveBundle(c2.vistrail.vtType, c2.vistrail, c2.log, thumbnails=t2)
 
-        db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
+        vistrails.db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
         vistrail = s1.vistrail
         vistrail.locator = None
         vistrail.set_defaults()
@@ -1536,7 +1536,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.debugger.hide()
 
     def showMessages(self, checked=True):
-        debugView = gui.debug.DebugView.getInstance()
+        debugView = vistrails.gui.debug.DebugView.getInstance()
         if checked:
             debugView.show()
         else:
@@ -1609,7 +1609,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         layout.setSpacing(6)
         layout.setMargin(11)
         layout.addStrut(400)
-        new_version_exists, version = core.system.new_vistrails_release_exists()
+        new_version_exists, version = vistrails.core.system.new_vistrails_release_exists()
         if new_version_exists:
             msg = 'Version %s of VisTrails is available at <a href="%s">%s</a>' % \
                     (version, "http://www.vistrails.org/index.php/Downloads",
@@ -1743,7 +1743,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                         abstraction = \
                             currentScene.controller.current_pipeline.modules[id]
                         if abstraction.vtType == 'abstraction':
-                            from core.modules.abstraction import identifier as abstraction_pkg
+                            from vistrails.core.modules.abstraction import identifier as abstraction_pkg
                             if abstraction.package == abstraction_pkg and abstraction.vistrail.get_annotation('__abstraction_descriptor_info__') is None:
                                 desc = abstraction.module_descriptor
                                 filename = desc.module.vt_fname
@@ -1833,7 +1833,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewManager.queryVistrail()
 
     def flush_cache(self):
-        core.interpreter.cached.CachedInterpreter.flush()
+        vistrails.core.interpreter.cached.CachedInterpreter.flush()
 
     def execute_current_exploration(self):
         """execute_current_exploration() -> None
@@ -1891,10 +1891,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         only cells belonging to the pipeline specified by locator:version
         
         """
-        from packages.spreadsheet.spreadsheet_controller import spreadsheetController
+        from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         
-        from core.inspector import PipelineInspector
+        from vistrails.core.inspector import PipelineInspector
         currentView = self.viewManager.currentWidget()
         controller = currentView.controller
         inspector = PipelineInspector()
@@ -1914,7 +1914,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             
         self.hide()
         spreadsheetWindow.prepareReviewingMode(vCol)
-        from gui.paramexplore.virtual_cell import _positionPipelines
+        from vistrails.gui.paramexplore.virtual_cell import _positionPipelines
         [newPipeline] = _positionPipelines('Pipeline Review',
                                            1, 1, 1, [pipeline],
                                            (1, vCol, cells), pipeline)

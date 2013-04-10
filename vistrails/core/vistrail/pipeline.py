@@ -34,34 +34,43 @@
 ###############################################################################
 ##TODO Tests
 """ This module defines the class Pipeline """
-
-from core.cache.hasher import Hasher
-from core.configuration import get_vistrails_configuration
-from core.data_structures.bijectivedict import Bidict
-from core.data_structures.graph import Graph
-from core import debug
-from core.modules.module_descriptor import ModuleDescriptor
-from core.modules.module_registry import get_module_registry, \
+from vistrails.core.cache.hasher import Hasher
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.data_structures.graph import Graph
+from vistrails.core import debug
+from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, PortMismatch
-from core.utils import VistrailsInternalError
-from core.utils import expression, append_to_dict_of_lists
-from core.utils.uxml import named_elements
-from core.vistrail.abstraction import Abstraction
-from core.vistrail.connection import Connection
-from core.vistrail.group import Group
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.plugin_data import PluginData
-from core.vistrail.port import Port, PortEndPoint
-from core.vistrail.port_spec import PortSpec
-from db.domain import DBWorkflow
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.utils import expression, append_to_dict_of_lists
+from vistrails.core.utils.uxml import named_elements
+from vistrails.core.vistrail.abstraction import Abstraction
+from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.group import Group
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.plugin_data import PluginData
+from vistrails.core.vistrail.port import Port, PortEndPoint
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.db.domain import DBWorkflow
 from types import ListType
-import core.vistrail.action
-from core.utils import profile, InvalidPipeline, versions_increasing
+import vistrails.core.vistrail.action
+from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
+
+import unittest
+from vistrails.core.vistrail.abstraction import Abstraction
+from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.port import Port
+from vistrails.db.domain import IdScope
 
 ##############################################################################
 
@@ -1238,15 +1247,6 @@ class Pipeline(DBWorkflow):
 
 ################################################################################
 
-import unittest
-from core.vistrail.abstraction import Abstraction
-from core.vistrail.connection import Connection
-from core.vistrail.location import Location
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.port import Port
-from db.domain import IdScope
 
 class TestPipeline(unittest.TestCase):
 
@@ -1442,7 +1442,7 @@ class TestPipeline(unittest.TestCase):
         self.assertNotEquals(p1.id, p3.id)
 
     def test_copy2(self):
-        import core.db.io
+        import vistrails.core.db.io
 
         # nedd to id modules and abstraction_modules with same counter
         id_scope = IdScope(remap={Abstraction.vtType: Module.vtType})
@@ -1456,28 +1456,28 @@ class TestPipeline(unittest.TestCase):
         self.assertNotEquals(p1.id, p3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         p1 = self.create_default_pipeline()
-        xml_str = core.db.io.serialize(p1)
-        p2 = core.db.io.unserialize(xml_str, Pipeline)
+        xml_str = vistrails.core.db.io.serialize(p1)
+        p2 = vistrails.core.db.io.unserialize(xml_str, Pipeline)
         self.assertEquals(p1, p2)
         self.assertEquals(p1.id, p2.id)        
 
     def test_serialization2(self):
-        import core.db.io
+        import vistrails.core.db.io
         p1 = self.create_pipeline2()
-        xml_str = core.db.io.serialize(p1)
-        p2 = core.db.io.unserialize(xml_str, Pipeline)
+        xml_str = vistrails.core.db.io.serialize(p1)
+        p2 = vistrails.core.db.io.unserialize(xml_str, Pipeline)
         self.assertEquals(p1, p2)
         self.assertEquals(p1.id, p2.id)        
 
     def test_aliases(self):
         """ Exercises aliases manipulation """
-        import core.db.action
-        from core.db.locator import XMLFileLocator
-        import core.system
+        import vistrails.core.db.action
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.system
         v = XMLFileLocator( \
-            core.system.vistrails_root_directory() +
+            vistrails.core.system.vistrails_root_directory() +
             '/tests/resources/test_alias.xml').load()
 
         p1 = v.getPipeline('alias')
@@ -1496,7 +1496,7 @@ class TestPipeline(unittest.TestCase):
                                 type=old_param.type)
         action_spec = ('change', old_param, new_param,
                        func.vtType, func.real_id)
-        action = core.db.action.create_action([action_spec])
+        action = vistrails.core.db.action.create_action([action_spec])
         p1.perform_action(action)
         self.assertEquals(p1.has_alias('v1'),False)
         v1 = p2.aliases['v1']
@@ -1508,7 +1508,7 @@ class TestPipeline(unittest.TestCase):
                                 val=str(v),
                                 type=old_param.type)
         func2 = p2.modules[0].functions[0]
-        action2 = core.db.action.create_action([('change',
+        action2 = vistrails.core.db.action.create_action([('change',
                                                  old_param2,
                                                  new_param2,
                                                  func2.vtType,
@@ -1625,9 +1625,9 @@ class TestPipeline(unittest.TestCase):
 #             print c
 
     def test_incorrect_port_spec(self):
-        import core.modules.basic_modules
+        import vistrails.core.modules.basic_modules
         p = Pipeline()
-        basic_version = core.modules.basic_modules.version
+        basic_version = vistrails.core.modules.basic_modules.version
         m1 = Module(name="String",
                     package="edu.utah.sci.vistrails.basic",
                     version=basic_version,

@@ -37,25 +37,25 @@
 # assignPipelineCellLocations
 # executePipelineWithProgress
 ################################################################################
-
 from PyQt4 import QtCore, QtGui
+from vistrails.core.vistrail.controller import VistrailController
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.inspector import PipelineInspector
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.utils import DummyView
+from vistrails.core.vistrail.action import Action
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.port import Port
+from vistrails.core.vistrail import module
+from vistrails.core.vistrail import connection
+import vistrails.db.services.action
+import copy
+
 # FIXME broke this as Actions have been changed around
 #
 # from core.vistrail.action import AddModuleAction, AddConnectionAction, \
 #      DeleteConnectionAction, ChangeParameterAction
-from core.vistrail.controller import VistrailController
-from core.modules.module_registry import get_module_registry
-from core.inspector import PipelineInspector
-from core.interpreter.default import get_default_interpreter
-from core.utils import DummyView
-from core.vistrail.action import Action
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.port import Port
-from core.vistrail import module
-from core.vistrail import connection
-import db.services.action
-import copy
 
 ################################################################################
 

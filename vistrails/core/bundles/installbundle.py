@@ -32,8 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core import is_running_gui
+from vistrails.core import is_running_gui
+import vistrails.gui
 
 def install(dependency_dictionary):
     """Tries to import a python module. If unsuccessful, tries to install
@@ -43,6 +43,6 @@ about which system it runs on."""
     if not is_running_gui():
         return False
 
-    import gui.bundles.installbundle
-    return gui.bundles.installbundle.install(dependency_dictionary)
+    import vistrails.gui.bundles.installbundle
+    return vistrails.gui.bundles.installbundle.install(dependency_dictionary)
 

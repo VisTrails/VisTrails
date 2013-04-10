@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.services.action_chain import simplify_ops
-from db.domain import DBAction, DBAdd, DBDelete, DBChange
+from vistrails.db.services.action_chain import simplify_ops
+from vistrails.db.domain import DBAction, DBAdd, DBDelete, DBChange
 import copy
 
 def create_delete_op_chain(object, parent=(None, None)):

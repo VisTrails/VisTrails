@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
-from db.versions.v1_0_0.domain import DBVistrail, DBWorkflow, DBLog, \
+from vistrails.db.versions.v1_0_0.domain import DBVistrail, DBWorkflow, DBLog, \
     DBRegistry
 
 def translateVistrail(_vistrail):

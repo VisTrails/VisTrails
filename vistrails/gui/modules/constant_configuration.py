@@ -40,8 +40,8 @@ constants.
 
 """
 from PyQt4 import QtCore, QtGui
-from core.utils import any, expression
-from core import system
+from vistrails.core.utils import any, expression
+from vistrails.core import system
 
 ############################################################################
 

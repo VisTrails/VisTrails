@@ -33,7 +33,10 @@
 ##
 ###############################################################################
 import copy
-from core.data_structures.point import Point
+from vistrails.core.data_structures.point import Point
+
+import unittest
+import random
 
 ################################################################################
 # Rect
@@ -124,8 +127,6 @@ class Rect(object):
 ################################################################################
 # Unit tests
 
-import unittest
-import random
 
 class TestRect(unittest.TestCase):
 

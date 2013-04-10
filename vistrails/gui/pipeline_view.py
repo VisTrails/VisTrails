@@ -45,42 +45,44 @@ QGraphicsModuleItem
 QPipelineScene
 QPipelineView
 """
-
 from PyQt4 import QtCore, QtGui
-from core.configuration import get_vistrails_configuration
-from core import debug
-from core.db.action import create_action
-from core.layout.workflow_layout import WorkflowLayout, \
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
+from vistrails.core.db.action import create_action
+from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline
-from core.system import systemType
-from core.utils import profile
-from core.vistrail.annotation import Annotation
-from gui.modules.module_configure import DefaultModuleConfigurationWidget
-from core.modules.module_registry import get_module_registry, \
+from vistrails.core.system import systemType
+from vistrails.core.utils import profile
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.gui.modules.module_configure import DefaultModuleConfigurationWidget
+from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 
-from core.vistrail.location import Location
-from core.vistrail.module import Module
-from core.vistrail.port import PortEndPoint
-from core.vistrail.port_spec import PortSpec
-from core.vistrail.vistrail import Vistrail
-from core.interpreter.default import get_default_interpreter
-from gui.base_view import BaseView
-from gui.controlflow_assist import QControlFlowAssistDialog
-from gui.graphics_view import (QInteractiveGraphicsScene,
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.port import PortEndPoint
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
+from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
-from gui.module_annotation import QModuleAnnotation
-from gui.module_palette import QModuleTreeWidget
-from gui.module_documentation import QModuleDocumentation
-from gui.theme import CurrentTheme
-from gui.utils import getBuilderWindow
-from gui.variable_dropbox import QDragVariableLabel
+from vistrails.gui.module_annotation import QModuleAnnotation
+from vistrails.gui.module_palette import QModuleTreeWidget
+from vistrails.gui.module_documentation import QModuleDocumentation
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import getBuilderWindow
+from vistrails.gui.variable_dropbox import QDragVariableLabel
 
 import copy
 import math
 import operator
 
+import vistrails.api
+import vistrails.gui.utils
+import vistrails.core
 
 ##############################################################################
 # 2008-06-24 cscheid
@@ -2838,7 +2840,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """ open_configure_window(int) -> None
         Open the modal configuration window for module with given id
         """
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.configure_module()
             
     def perform_configure_done_actions(self, module_id):
@@ -2851,7 +2853,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """ open_documentation_window(int) -> None
         Opens the modal module documentation window for module with given id
         """
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.show_documentation()
 
     def toggle_breakpoint(self, id):
@@ -2901,7 +2903,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Opens the modal annotations window for module with given id
         """
         if self.controller:
-            from gui.module_info import QModuleInfo
+            from vistrails.gui.module_info import QModuleInfo
             module_info = QModuleInfo.instance()
             module_info.show_annotations()
 
@@ -3006,7 +3008,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         # add to suspended modules dialog
         if type(error) == str:
             return
-        from gui.job_monitor import QJobView
+        from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
         try:
             result = jobView.add_job(self.controller, error)
@@ -3097,8 +3099,8 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.detachable = True
 
     def set_default_layout(self):
-        from gui.module_palette import QModulePalette
-        from gui.module_info import QModuleInfo
+        from vistrails.gui.module_palette import QModulePalette
+        from vistrails.gui.module_info import QModuleInfo
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QModulePalette,
              QtCore.Qt.RightDockWidgetArea: QModuleInfo,
@@ -3151,7 +3153,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def execute(self):
         # view.checkModuleConfigPanel()
         # reset job view
-        from gui.job_monitor import QJobView
+        from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
         if jobView.updating_now:
             debug.critical("Execution Aborted: Job Monitor is updating. Please wait a few seconds and try again.")
@@ -3165,17 +3167,17 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             debug.critical(str(e))
         finally:
             jobView.updating_now = False
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             _app.notify('execution_updated')
         
     def publish_to_web(self):
-        from gui.publishing import QVersionEmbed
+        from vistrails.gui.publishing import QVersionEmbed
         panel = QVersionEmbed.instance()
         panel.switchType('Wiki')
         panel.set_visible(True)
         
     def publish_to_paper(self):
-        from gui.publishing import QVersionEmbed
+        from vistrails.gui.publishing import QVersionEmbed
         panel = QVersionEmbed.instance()
         panel.switchType('Latex')
         panel.set_visible(True)
@@ -3313,42 +3315,40 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 ################################################################################
 # Testing
 
-import api
-import gui.utils
 
-class TestPipelineView(gui.utils.TestVisTrailsGUI):
+class TestPipelineView(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_quick_change_version_with_ports(self):
-        import core.system
-        filename = (core.system.vistrails_root_directory() + 
+        import vistrails.core.system
+        filename = (vistrails.core.system.vistrails_root_directory() + 
                     '/tests/resources/triangle_count.vt')
-        view = api.open_vistrail_from_file(filename)
-        api.select_version(-1, view.controller)
-        api.select_version('count + area', view.controller)
-        api.select_version('writing to file', view.controller)
+        view = vistrails.api.open_vistrail_from_file(filename)
+        vistrails.api.select_version(-1, view.controller)
+        vistrails.api.select_version('count + area', view.controller)
+        vistrails.api.select_version('writing to file', view.controller)
 
     def test_change_version_with_common_connections(self):
-        import core.system
-        filename = (core.system.vistrails_root_directory() + 
+        import vistrails.core.system
+        filename = (vistrails.core.system.vistrails_root_directory() + 
                     '/tests/resources/terminator.vt')
-        view = api.open_vistrail_from_file(filename)
-        api.select_version('Image Slices HW', view.controller)
-        api.select_version('Combined Rendering HW', view.controller)
+        view = vistrails.api.open_vistrail_from_file(filename)
+        vistrails.api.select_version('Image Slices HW', view.controller)
+        vistrails.api.select_version('Combined Rendering HW', view.controller)
 
     def test_switch_mode(self):
-        api.switch_to_pipeline_view()
-        api.switch_to_history_view()
-        api.switch_to_query_view()
-        api.switch_to_pipeline_view()
-        api.switch_to_history_view()
-        api.switch_to_query_view()
+        vistrails.api.switch_to_pipeline_view()
+        vistrails.api.switch_to_history_view()
+        vistrails.api.switch_to_query_view()
+        vistrails.api.switch_to_pipeline_view()
+        vistrails.api.switch_to_history_view()
+        vistrails.api.switch_to_query_view()
 
     def test_group(self):
-        api.new_vistrail()
-        m1 = api.add_module(0, 0,    'edu.utah.sci.vistrails.basic', 'File', '')
-        m2 = api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
-        m3 = api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
-        r = api.get_module_registry()
+        vistrails.api.new_vistrail()
+        m1 = vistrails.api.add_module(0, 0,    'edu.utah.sci.vistrails.basic', 'File', '')
+        m2 = vistrails.api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
+        m3 = vistrails.api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
+        r = vistrails.api.get_module_registry()
         src = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
                               'value_as_string', 'output')
         dst = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
@@ -3357,7 +3357,7 @@ class TestPipelineView(gui.utils.TestVisTrailsGUI):
 #         assert src.name == 'value_as_string'
 #         dst = r.module_destination_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
 #         assert dst.name == 'name'
-        api.add_connection(m1.id, src, m2.id, dst)
-        api.add_connection(m2.id, src, m3.id, dst)
-        api.create_group([0, 1, 2], [0, 1])
+        vistrails.api.add_connection(m1.id, src, m2.id, dst)
+        vistrails.api.add_connection(m2.id, src, m3.id, dst)
+        vistrails.api.create_group([0, 1, 2], [0, 1])
 

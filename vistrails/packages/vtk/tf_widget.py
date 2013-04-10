@@ -35,18 +35,19 @@
 
 ##############################################################################
 # Transfer Function Widget for VTK
-
 from PyQt4 import QtCore, QtGui
-from gui.modules.constant_configuration import ConstantWidgetMixin
-from core.modules.basic_modules import new_constant, init_constant, Module
-from core.modules.module_registry import get_module_registry
-from core.system import get_elementtree_library
-ElementTree = get_elementtree_library()
-from core.utils.color import ColorByName
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.core.modules.basic_modules import new_constant, init_constant, Module
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.system import get_elementtree_library
+from vistrails.core.utils.color import ColorByName
 import vtk
 import math
 import pickle
 import copy
+import StringIO
+import unittest
+ElementTree = get_elementtree_library()
 
 ################################################################################
 # etc
@@ -182,7 +183,12 @@ class TransferFunction(object):
             node = ElementTree.fromstring(strNode)
         except SyntaxError:
             #it was serialized using pickle
-            tf = pickle.loads(strNode.decode('hex'))
+            class FixUnpickler(pickle.Unpickler):
+                def find_class(self, module, name):
+                    if module == 'packages.vtk.tf_widget':
+                        module = 'vistrails.packages.vtk.tf_widget'
+                    return pickle.Unpickler.find_class(self, module, name)
+            tf = FixUnpickler(StringIO.StringIO(strNode.decode('hex'))).load()
             tf._pts.sort()
             return tf
         
@@ -702,7 +708,6 @@ def initialize():
     init_constant(TransferFunctionConstant)
     
 ##############################################################################
-import unittest
 class TestTransferFunction(unittest.TestCase):
     def test_serialization(self):
         tf = TransferFunction()

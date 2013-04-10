@@ -33,14 +33,15 @@
 ##
 ###############################################################################
 # Utilities for user-defined Modules
-
 import os
 import tempfile
-from core.modules import basic_modules
-from core.system import link_or_copy
-from core.utils import VistrailsInternalError
-from core.configuration import get_vistrails_configuration
-from core import debug
+from vistrails.core.modules import basic_modules
+from vistrails.core.system import link_or_copy
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
+
+import unittest
 
 ################################################################################
 
@@ -140,7 +141,6 @@ future."""
         
 ################################################################################
 
-import unittest
 
 class TestFilePool(unittest.TestCase):
 

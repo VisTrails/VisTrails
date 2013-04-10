@@ -35,11 +35,11 @@
 
 from PyQt4 import QtCore, QtGui
 
-from core import debug, configuration
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from gui import theme
-from core.db.locator import BaseLocator
-from gui.common_widgets import QDockPushButton
+from vistrails.core import debug, configuration
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui import theme
+from vistrails.core.db.locator import BaseLocator
+from vistrails.gui.common_widgets import QDockPushButton
 
 refresh_states = [('Off', 0), ('10 sec', 10),
                   ('1 min', 60), ('10 min', 600),
@@ -303,7 +303,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 for url in conf.runningJobsList.split(';'):
                     loc, version = url.split('?')
                     locator = BaseLocator.from_url(loc)
-                    from gui.vistrails_window import _app
+                    from vistrails.gui.vistrails_window import _app
                     _app.open_vistrail_without_prompt(locator, int(version.split('=')[1]))
                     _app.get_current_view().execute()
             else:
@@ -333,7 +333,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.setToolTip(0, "This Job has a method to check if it has finished.")
         self.workflowFinished = False
         self.jobs = {}
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         self.view = _app.get_current_view()
     
     def countJobs(self):
@@ -342,7 +342,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.setText(0, "%s (%s/%s)" % (self.name, finished, count))
 
     def goto(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.change_view(self.view)
         self.view.version_selected(self.version, True, double_click=True)
     

@@ -10,7 +10,7 @@ from IPython.parallel.apps.launcher import LocalControllerLauncher,\
                                            
 from PyQt4 import QtCore, QtGui
 
-from core import system
+from vistrails.core import system
 
 local_profile_dir = os.path.join(system.home_directory(), '.ipython/profile_default')
 

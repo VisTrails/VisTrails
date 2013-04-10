@@ -36,6 +36,5 @@
 """Package for bundle management. "Bundle" refers to system-level
 packages managed by specialized systems such as RedHat's RPM, Debian
 and Ubuntu's APT, OSX's fink, etc."""
-
-from core.bundles.pyimport import py_import
-from core.bundles.installbundle import install
+from vistrails.core.bundles.pyimport import py_import
+from vistrails.core.bundles.installbundle import install

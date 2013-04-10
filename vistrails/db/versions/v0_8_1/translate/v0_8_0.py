@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db import VistrailsDBException
-from db.versions.v0_8_0.domain import DBAdd, DBAnnotation, DBChange, DBDelete
+from vistrails.db import VistrailsDBException
+from vistrails.db.versions.v0_8_0.domain import DBAdd, DBAnnotation, DBChange, DBDelete
 
 # two step process
 # 1. remap all the old "notes" so that they exist in the id scope

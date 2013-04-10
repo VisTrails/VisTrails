@@ -35,15 +35,14 @@
 
 ##############################################################################
 # Enumeration Widget for Web Services
-
 from PyQt4 import QtCore, QtGui
-import core.modules
-from core.modules.constant_configuration import ConstantWidgetMixin
-from core.modules.basic_modules import Constant, Module
-from core.modules.constant_configuration import StandardConstantWidget
-import core.modules.module_registry
-from core.modules.vistrails_module import new_module
-import packages.webServices
+import vistrails.core.modules
+from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.core.modules.basic_modules import Constant, Module
+from vistrails.core.modules.constant_configuration import StandardConstantWidget
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.vistrails_module import new_module
+import vistrails.packages.webServices
 
 class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
     enumerationlist = []
@@ -53,7 +52,7 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
         Initializes the line edit with contents
         """
         dictkey = param._namespace
-        typedict = packages.webServices.webServicesmodulesDict[dictkey]
+        typedict = vistrails.packages.webServices.webServicesmodulesDict[dictkey]
         w = param._namespace.replace('|Types','')
         dictkey = w + "." + param._type
         obj = typedict[dictkey]
@@ -94,7 +93,7 @@ def new_constant(name, namespace, identifier,
     
     new_constant dynamically creates a new Module derived from Constant
     with a widget type."""
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     
     def __init__(self):
         Constant.__init__(self)

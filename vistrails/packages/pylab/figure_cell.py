@@ -37,8 +37,8 @@ Matplotlib viewer into our spreadsheet
 
 """
 from PyQt4 import QtGui
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_cell import QCellWidget
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import pylab
 
 ################################################################################

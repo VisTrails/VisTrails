@@ -36,12 +36,15 @@
     * Port
 
  """
-from db.domain import DBPort
-from core.utils import VistrailsInternalError, all
-from core.vistrail.port_spec import PortSpec, PortEndPoint
-import core.modules.vistrails_module
+from vistrails.db.domain import DBPort
+from vistrails.core.utils import VistrailsInternalError, all
+from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
+import vistrails.core.modules.vistrails_module
 import __builtin__
 import copy
+
+import unittest
+from vistrails.db.domain import IdScope
 
 ################################################################################
 
@@ -238,16 +241,14 @@ class Port(DBPort):
 
 ###############################################################################
 
-import unittest
-from db.domain import IdScope
 
 if __name__ == '__main__':
-    import core.modules.basic_modules
-    import core.modules.module_registry
+    import vistrails.core.modules.basic_modules
+    import vistrails.core.modules.module_registry
     
 class TestPort(unittest.TestCase):
     def setUp(self):
-        self.registry = core.modules.module_registry.get_module_registry()
+        self.registry = vistrails.core.modules.module_registry.get_module_registry()
 
     def create_port(self, id_scope=IdScope()):
         port = Port(id=id_scope.getNewId(Port.vtType),
@@ -270,10 +271,10 @@ class TestPort(unittest.TestCase):
         self.assertNotEquals(p1.id, p3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         p1 = self.create_port()
-        xml_str = core.db.io.serialize(p1)
-        p2 = core.db.io.unserialize(xml_str, Port)
+        xml_str = vistrails.core.db.io.serialize(p1)
+        p2 = vistrails.core.db.io.unserialize(xml_str, Port)
         self.assertEquals(p1, p2)
         self.assertEquals(p1.id, p2.id)
 

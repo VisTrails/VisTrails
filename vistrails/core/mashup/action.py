@@ -34,8 +34,8 @@
 
 from datetime import date, datetime
 from time import strptime
-from db.domain import DBMashupAction
-from core.mashup.mashup import Mashup
+from vistrails.db.domain import DBMashupAction
+from vistrails.core.mashup.mashup import Mashup
 
 class Action(DBMashupAction):
     
@@ -149,14 +149,14 @@ class Action(DBMashupAction):
 ################################################################################
             
 import unittest
-from db.domain import IdScope
+from vistrails.db.domain import IdScope
 import copy
 
 class TestAction(unittest.TestCase):
     def create_action(self, id_scope=IdScope()):
-        from core.mashup.component import Component
-        from core.mashup.alias import Alias
-        from core.mashup.mashup import Mashup
+        from vistrails.core.mashup.component import Component
+        from vistrails.core.mashup.alias import Alias
+        from vistrails.core.mashup.mashup import Mashup
         c1 = Component(id=id_scope.getNewId('mashup_component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,

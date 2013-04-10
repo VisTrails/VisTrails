@@ -36,20 +36,19 @@
 
 QParameterExplorationTab
 """
-
 from PyQt4 import QtCore, QtGui
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape
-from core import debug
-from core.interpreter.default import get_default_interpreter
-from core.modules.module_registry import get_module_registry
-from core.param_explore import ActionBasedParameterExploration
-from core.system import current_time
-from gui.common_widgets import QDockContainer, QToolWindowInterface
-from gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
-from gui.paramexplore.virtual_cell import QVirtualCellWindow
-from gui.paramexplore.param_view import QParameterView
-from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
+from vistrails.core import debug
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.param_explore import ActionBasedParameterExploration
+from vistrails.core.system import current_time
+from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
+from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
+from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
+from vistrails.gui.paramexplore.param_view import QParameterView
+from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 
 ################################################################################
 

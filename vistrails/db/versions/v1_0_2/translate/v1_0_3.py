@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
+from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
                                       DBWorkflow, DBLog, DBRegistry
 
 def translateVistrail(_vistrail):

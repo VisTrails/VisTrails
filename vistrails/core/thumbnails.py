@@ -43,10 +43,10 @@ import mimetypes
 # mimetypes are broken by default on windows so use the builtins
 # Remove line below when it is fixed here: http://bugs.python.org/issue15207
 mimetypes.init(files=[])
-from core import debug
-from core.configuration import get_vistrails_configuration, \
+from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
-from core.utils import VistrailsInternalError
+from vistrails.core.utils import VistrailsInternalError
 
 ############################################################################
 class CacheEntry(object):

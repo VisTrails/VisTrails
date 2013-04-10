@@ -37,24 +37,23 @@ vistrail views and tools
 
 QViewManager
 """
-
 from PyQt4 import QtCore, QtGui
-from gui.theme import CurrentTheme
-from gui.utils import getBuilderWindow
-from gui.vistrail_view import QVistrailView
-from core import system, debug
-from core.configuration import get_vistrails_configuration
-from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
-from core.db.io import load_vistrail
-from core.thumbnails import ThumbnailCache
-from core.log.log import Log
-from core.log.opm_graph import OpmGraph
-from core.collection import Collection
-import core.system
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.tag import Tag
-from core.vistrail.vistrail import Vistrail
-from core.modules.module_registry import ModuleRegistry, \
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import getBuilderWindow
+from vistrails.gui.vistrail_view import QVistrailView
+from vistrails.core import system, debug
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.db.locator import FileLocator, XMLFileLocator, untitled_locator
+from vistrails.core.db.io import load_vistrail
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.log.log import Log
+from vistrails.core.log.opm_graph import OpmGraph
+from vistrails.core.collection import Collection
+import vistrails.core.system
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.tag import Tag
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.modules.module_registry import ModuleRegistry, \
     ModuleRegistryException
 import copy
 
@@ -540,7 +539,7 @@ class QViewManager(QtGui.QTabWidget):
                     action_list.append(('add', module))
                 for connection in workflow.connection_list:
                     action_list.append(('add', connection))
-                action = core.db.action.create_action(action_list)
+                action = vistrails.core.db.action.create_action(action_list)
                 vistrail.add_action(action, 0L)
                 vistrail.update_id_scope()
                 vistrail.addTag("Imported workflow", action.id)
@@ -684,7 +683,7 @@ class QViewManager(QtGui.QTabWidget):
             if not quiet and vistrailView.controller.changed:
                 text = vistrailView.controller.name
                 if text=='':
-                    text = 'Untitled%s'%core.system.vistrails_default_file_type()
+                    text = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
                 text = ('Vistrail ' +
                         QtCore.Qt.escape(text) +
                         ' contains unsaved changes.\n Do you want to '

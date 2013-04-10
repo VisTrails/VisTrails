@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import QToolWindowInterface
+from vistrails.gui.common_widgets import QToolWindowInterface
 
 class QVistrailsPaletteInterface(QToolWindowInterface):
     def __init__(self):

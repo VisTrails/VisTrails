@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.modules.basic_modules import new_constant
+from vistrails.core.modules.basic_modules import new_constant
 
 #################################################################################
 ## The ListOfElements Module

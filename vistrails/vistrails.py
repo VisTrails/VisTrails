@@ -68,26 +68,46 @@ def disable_lion_restore():
     major = int(release[0])
     minor = int(release[1])
     if major*100+minor<107: return
-    import os
     ssPath = os.path.expanduser('~/Library/Saved Application State/org.vistrails.savedState')
     if os.path.exists(ssPath):
         os.system('rm -rf "%s"' % ssPath)
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
 if __name__ == '__main__':
+    # Fix import path: add parent directory(so that we can
+    # import vistrails.[gui|...] and remove other paths below it (we might have
+    # been started from a subdir)
+
+    # DAK: the deletes screw things up in the binary (definitely for
+    #   Mac) and since subdir is unlikely, I'm commenting them out. A
+    #   better solution is probably to move vistrails.py up a
+    #   directory in the repo
+    vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+    # i = 0
+    # print "vistrails_dir:", vistrails_dir
+    # while i < len(sys.path):
+    #     rpath = os.path.realpath(sys.path[i])
+    #     if rpath.startswith(vistrails_dir):
+    #         print " deleting", rpath, sys.path[i]
+    #         del sys.path[i]
+    #     else:
+    #         i += 1
+    sys.path.insert(0, vistrails_dir)
+    print sys.path
+
     disable_lion_restore()
 
     # does not work because it checks if gui already running
     #import gui.requirements
     #gui.requirements.check_pyqt4()
 
-    import core.requirements
-    import gui.bundles.installbundle
+    import vistrails.core.requirements
+    import vistrails.gui.bundles.installbundle
     try:
-        core.requirements.require_python_module('PyQt4.QtGui')
-        core.requirements.require_python_module('PyQt4.QtOpenGL')
-    except core.requirements.MissingRequirement, req:
-        r = gui.bundles.installbundle.install(
+        vistrails.core.requirements.require_python_module('PyQt4.QtGui')
+        vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
+    except vistrails.core.requirements.MissingRequirement, req:
+        r = vistrails.gui.bundles.installbundle.install(
             {'linux-ubuntu': ['python-qt4',
                               'python-qt4-gl',
                               'python-qt4-sql'],
@@ -96,24 +116,22 @@ if __name__ == '__main__':
             raise req
 
     from PyQt4 import QtGui
-    import gui.application
-    import sys
-    import os
+    import vistrails.gui.application
     try:
-        v = gui.application.start_application()
+        v = vistrails.gui.application.start_application()
         if v != 0:
-            app = gui.application.get_vistrails_application()
+            app = vistrails.gui.application.get_vistrails_application()
             if app:
                 app.finishSession()
             sys.exit(v)
-        app = gui.application.get_vistrails_application()()
+        app = vistrails.gui.application.get_vistrails_application()()
     except SystemExit, e:
-        app = gui.application.get_vistrails_application()
+        app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
         sys.exit(e)
     except Exception, e:
-        app = gui.application.get_vistrails_application()
+        app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
         print "Uncaught exception on initialization: %s" % e
@@ -124,5 +142,5 @@ if __name__ == '__main__':
         not app.temp_configuration.check('spreadsheetDumpCells')): 
         v = app.exec_()
         
-    gui.application.stop_application()
+    vistrails.gui.application.stop_application()
     sys.exit(v)

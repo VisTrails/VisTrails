@@ -36,11 +36,11 @@
 widget
 
 """
-from core.modules.basic_modules import PythonSource
-from core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from gui.modules.module_configure import StandardModuleConfigurationWidget
-from gui.modules.python_source_configure import PythonEditor
-from gui.modules.source_configure import SourceConfigurationWidget
+from vistrails.core.modules.basic_modules import PythonSource
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
+from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.gui.modules.python_source_configure import PythonEditor
+from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 import urllib
 
 ############################################################################

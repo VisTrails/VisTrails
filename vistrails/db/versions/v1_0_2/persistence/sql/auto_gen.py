@@ -34,9 +34,8 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-
 from sql_dao import SQLDAO
-from db.versions.v1_0_2.domain import *
+from vistrails.db.versions.v1_0_2.domain import *
 
 class DBPortSpecSQLDAOBase(SQLDAO):
 

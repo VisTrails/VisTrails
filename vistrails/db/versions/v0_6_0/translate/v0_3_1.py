@@ -32,14 +32,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import sys
 import copy
 from datetime import datetime
 from time import strptime
 
-from core.data_structures.graph import Graph
-from db.versions.v0_6_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
+from vistrails.core.data_structures.graph import Graph
+from vistrails.db.versions.v0_6_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
     DBConnection, DBPortSpec, DBFunction, DBParameter, DBLocation, DBAdd, \
     DBChange, DBDelete, DBAnnotation, DBPort
 

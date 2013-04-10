@@ -35,18 +35,17 @@
 from __future__ import with_statement
 
 from datetime import datetime
-from core import debug
-from core.bundles import py_import
-from core.system import get_elementtree_library, temporary_directory,\
+from vistrails.core import debug
+from vistrails.core.bundles import py_import
+from vistrails.core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline, systemType, get_executable_path
-from core.utils import Chdir
-from core.log.log import Log
-from core.mashup.mashup_trail import Mashuptrail
-from core.modules.sub_module import get_cur_abs_namespace,\
+from vistrails.core.utils import Chdir
+from vistrails.core.log.log import Log
+from vistrails.core.mashup.mashup_trail import Mashuptrail
+from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
     parse_abstraction_name, read_vistrail_from_db
 
-import core.requirements
-ElementTree = get_elementtree_library()
+import vistrails.core.requirements
 
 import sys
 import os
@@ -55,20 +54,28 @@ import shutil
 import tempfile
 import copy
 
-from db import VistrailsDBException
-from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
+from vistrails.db import VistrailsDBException
+from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
     DBMashuptrail
-import db.services.abstraction
-import db.services.log
-import db.services.opm
-import db.services.prov
-import db.services.registry
-import db.services.workflow
-import db.services.vistrail
-from db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
+import vistrails.db.services.abstraction
+import vistrails.db.services.log
+import vistrails.db.services.opm
+import vistrails.db.services.prov
+import vistrails.db.services.registry
+import vistrails.db.services.workflow
+import vistrails.db.services.vistrail
+from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
     translate_object, translate_vistrail, translate_workflow, translate_log, \
     translate_registry
+
+import unittest
+import vistrails.core.system
+import os
+
+ElementTree = get_elementtree_library()
+
+
 
 _db_lib = None
 def get_db_lib():
@@ -681,7 +688,7 @@ def open_vistrail_from_xml(filename):
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
         vistrail = translate_vistrail(vistrail, version)
-        db.services.vistrail.update_id_scope(vistrail)
+        vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
             msg = "This vistrail was created by a newer version of VisTrails "
@@ -701,7 +708,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
 
     """
 
-    core.requirements.require_executable('unzip')
+    vistrails.core.requirements.require_executable('unzip')
 
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     output = []
@@ -743,7 +750,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
                     mashups.append(mashup)
                 else:
                     handled = False
-                    from core.packagemanager import get_package_manager
+                    from vistrails.core.packagemanager import get_package_manager
                     pm = get_package_manager()
                     for package in pm.enabled_package_list():
                         if package.can_handle_vt_file(fname):
@@ -761,7 +768,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
     vistrail.db_log_filename = log_fname
 
     # call package hooks
-    from core.packagemanager import get_package_manager
+    from vistrails.core.packagemanager import get_package_manager
     pm = get_package_manager()
     for package in pm.enabled_package_list():
         package.loadVistrailFileHook(vistrail, vt_save_dir)
@@ -827,7 +834,7 @@ def open_vistrail_from_db(db_connection, id, lock=False, version=None):
     vistrail = translate_vistrail(vistrail, version)
     for db_action in vistrail.db_get_actions():
         db_action.db_operations.sort(key=lambda x: x.db_id)
-    db.services.vistrail.update_id_scope(vistrail)
+    vistrails.db.services.vistrail.update_id_scope(vistrail)
     return vistrail
 
 def save_vistrail_to_xml(vistrail, filename, version=None):
@@ -867,7 +874,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     
     """
 
-    core.requirements.require_executable('zip')
+    vistrails.core.requirements.require_executable('zip')
 
     if save_bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
@@ -962,7 +969,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     # call package hooks
     # it will fail if package manager has not been constructed yet
     try:
-        from core.packagemanager import get_package_manager
+        from vistrails.core.packagemanager import get_package_manager
         pm = get_package_manager()
         for package in pm.enabled_package_list():
             package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
@@ -1054,7 +1061,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             old_vistrail = translate_vistrail(old_vistrail, version)
             # the "old" one is modified and changes integrated
             current_action = \
-                db.services.vistrail.synchronize(old_vistrail, vistrail, 
+                vistrails.db.services.vistrail.synchronize(old_vistrail, vistrail, 
                                                  current_action)
             vistrail = old_vistrail
     vistrail.db_last_modified = get_current_time(db_connection)
@@ -1076,7 +1083,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     for id, name in tagMap.iteritems():
         if id not in workflowIds:
             #print "creating workflow", vistrail.db_id, id, name,
-            workflow = db.services.vistrail.materializeWorkflow(vistrail, id)
+            workflow = vistrails.db.services.vistrail.materializeWorkflow(vistrail, id)
             workflow.db_id = None
             workflow.db_vistrail_id = vistrail.db_id
             workflow.db_parent_id = id
@@ -1099,7 +1106,7 @@ def open_workflow_from_xml(filename):
     daoList = getVersionDAO(version)
     workflow = daoList.open_from_xml(filename, DBWorkflow.vtType, tree)
     workflow = translate_workflow(workflow, version)
-    db.services.workflow.update_id_scope(workflow)
+    vistrails.db.services.workflow.update_id_scope(workflow)
     return workflow
 
 def open_workflow_from_db(db_connection, id, lock=False, version=None):
@@ -1208,14 +1215,14 @@ def open_log_from_xml(filename, was_appended=False):
                 workflow_exec = log.db_workflow_execs[0]
             workflow_execs.append(workflow_exec)
         log = DBLog(workflow_execs=workflow_execs)
-        db.services.log.update_ids(log)
+        vistrails.db.services.log.update_ids(log)
     else:
         tree = ElementTree.parse(filename)
         version = get_version_for_xml(tree.getroot())
         daoList = getVersionDAO(version)
         log = daoList.open_from_xml(filename, DBLog.vtType, tree)
         log = translate_log(log, version)
-        db.services.log.update_id_scope(log)
+        vistrails.db.services.log.update_id_scope(log)
     return log
 
 def open_log_from_db(db_connection, id, lock=False, version=None):
@@ -1338,7 +1345,7 @@ def save_opm_to_xml(opm_graph, filename, version=None):
     daoList = getVersionDAO(version)
     tags = {'xmlns': 'http://openprovenance.org/model/v1.01.a',
             }
-    opm_graph = db.services.opm.create_opm(opm_graph.workflow, 
+    opm_graph = vistrails.db.services.opm.create_opm(opm_graph.workflow, 
                                            opm_graph.version,
                                            opm_graph.log,
                                            opm_graph.registry)
@@ -1358,7 +1365,7 @@ def save_prov_to_xml(prov_document, filename, version=None):
             'xmlns:dcterms': 'http://purl.org/dc/terms/',
             'xmlns:vt': 'http://www.vistrails.org/registry.xsd',
             }
-    prov_document = db.services.prov.create_prov(prov_document.workflow, 
+    prov_document = vistrails.db.services.prov.create_prov(prov_document.workflow, 
                                                  prov_document.version,
                                                  prov_document.log)
     daoList.save_to_xml(prov_document, filename, tags, version)
@@ -1373,7 +1380,7 @@ def open_registry_from_xml(filename):
     daoList = getVersionDAO(version)
     registry = daoList.open_from_xml(filename, DBRegistry.vtType, tree)
     registry = translate_registry(registry, version)
-    db.services.registry.update_id_scope(registry)
+    vistrails.db.services.registry.update_id_scope(registry)
     return registry
 
 def open_registry_from_db(db_connection, id, lock=False, version=None):
@@ -1463,7 +1470,7 @@ def open_abstraction_from_db(db_connection, id, lock=False):
     # need them ordered by their id
     for db_action in abstraction.db_get_actions():
         db_action.db_operations.sort(key=lambda x: x.db_id)
-    db.services.abstraction.update_id_scope(abstraction)
+    vistrails.db.services.abstraction.update_id_scope(abstraction)
     return abstraction
 
 def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
@@ -1491,7 +1498,7 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
                                                        abstraction.db_id,
                                                        True)
             # the "old" one is modified and changes integrated
-            db.services.vistrail.synchronize(old_abstraction, abstraction,
+            vistrails.db.services.vistrail.synchronize(old_abstraction, abstraction,
                                              0L)
             abstraction = old_abstraction
     if do_copy:
@@ -1842,16 +1849,13 @@ def remove_temp_folder(temp_dir):
 ##############################################################################
 # Testing
 
-import unittest
-import core.system
-import os
 
 class TestDBIO(unittest.TestCase):
     def test1(self):
         """test importing an xml file"""
 
         vistrail = open_vistrail_from_xml( \
-            os.path.join(core.system.vistrails_root_directory(),
+            os.path.join(vistrails.core.system.vistrails_root_directory(),
                          'tests/resources/dummy.xml'))
         assert vistrail is not None
         
@@ -1859,7 +1863,7 @@ class TestDBIO(unittest.TestCase):
         """test importing an xml file"""
 
         vistrail = open_vistrail_from_xml( \
-            os.path.join(core.system.vistrails_root_directory(),
+            os.path.join(vistrails.core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.xml'))
         assert vistrail is not None
 
@@ -1869,7 +1873,7 @@ class TestDBIO(unittest.TestCase):
         # FIXME include abstractions
         (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
             DBVistrail.vtType,
-            os.path.join(core.system.vistrails_root_directory(),
+            os.path.join(vistrails.core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.vt'))
         assert save_bundle.vistrail is not None
 
@@ -1877,12 +1881,12 @@ class TestDBIO(unittest.TestCase):
         """ test saving a vt file """
 
         # FIXME include abstractions
-        filename = os.path.join(core.system.vistrails_root_directory(),
+        filename = os.path.join(vistrails.core.system.vistrails_root_directory(),
                                 'tests/resources/dummy_new_temp.vt')
     
         (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
             DBVistrail.vtType,
-            os.path.join(core.system.vistrails_root_directory(),
+            os.path.join(vistrails.core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.vt'))
         try:
             save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)

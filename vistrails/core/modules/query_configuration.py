@@ -34,11 +34,11 @@
 ###############################################################################
 
 # *** MOVED *** to gui.modules.query_configuration
-
 import traceback
-from core import debug
+from vistrails.core import debug
+
+from vistrails.gui.modules.query_configuration import *
 debug.warning("The use of core.modules.query_configuration is deprecated.  "
               "Please use gui.modules.query_configuration.",
               ''.join(traceback.format_stack()))
 
-from gui.modules.query_configuration import *

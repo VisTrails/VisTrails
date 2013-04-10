@@ -43,10 +43,13 @@ Use this at your own risk!
 import inspect
 import os
 import sys
-from core import debug
-from core.utils import VistrailsInternalError
+from vistrails.core import debug
+from vistrails.core.utils import VistrailsInternalError
 from itertools import izip
 
+import struct
+
+import unittest
 try:
     import hashlib
     md5_hash = hashlib.md5
@@ -160,7 +163,6 @@ exchanged securely)
 
 """ 
 
-import struct
 
 def crypt(key,data,iv='\00\00\00\00\00\00\00\00',n=32):
     """
@@ -248,7 +250,6 @@ def xtea_decrypt(key,block,n=32,endian="!"):
     
 ##############################################################################
 
-import unittest
 class A(object):
     def set_key(self, chain, key, value):
         chain.set_key(key,value)

@@ -2,6 +2,8 @@ from batchq import queues
 from batchq.core.batch import BatchQ
 from batchq.queues import containers
 
+from vistrails.core.modules.basic_modules import File, Directory
+
 ###
 # Categories
 categories = {
@@ -19,7 +21,6 @@ type_conversion = {str:'(edu.utah.sci.vistrails.basic:String)', bool:'(edu.utah.
 
 batch_queue_list = [(a, getattr(queues,a)) for a in dir(queues) if isinstance(getattr(queues,a),type) and issubclass(getattr(queues,a),BatchQ) ]
 
-from core.modules.basic_modules import File, Directory
 
 def create_directory(self, generator = None):
     x = self.interpreter.filePool.create_directory()

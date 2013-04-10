@@ -54,8 +54,8 @@ ChangeLog
     * Updated package to version 0.9.1 
     * Expanded map of simple types
 """
-
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
+import vistrails.core
 
 identifier = 'edu.utah.sci.vistrails.webservices'
 name = 'Web Services'
@@ -67,7 +67,7 @@ def package_dependencies():
     return ['edu.utah.sci.vistrails.http']
     
 def package_requirements():
-    import core.requirements
-    if not core.requirements.python_module_exists('ZSI'):
-        raise core.requirements.MissingRequirement('ZSI')
+    import vistrails.core.requirements
+    if not vistrails.core.requirements.python_module_exists('ZSI'):
+        raise vistrails.core.requirements.MissingRequirement('ZSI')
     import ZSI

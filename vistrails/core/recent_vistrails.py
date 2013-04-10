@@ -34,9 +34,8 @@
 ###############################################################################
 """ RecentVistrailList is a Helper class to manage serialization and
 unserialization of a list of locators to XML """
-
-from core.system import get_elementtree_library
-from core.db.locator import FileLocator, DBLocator
+from vistrails.core.system import get_elementtree_library
+from vistrails.core.db.locator import FileLocator, DBLocator
 
 ElementTree = get_elementtree_library()
 

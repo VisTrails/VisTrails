@@ -34,9 +34,8 @@
 ###############################################################################
 
 """Utility functions for core.bundles"""
-
-from core import debug
-import core.system
+from vistrails.core import debug
+import vistrails.core.system
 import os
 import platform
 
@@ -45,12 +44,12 @@ import platform
 def guess_graphical_sudo():
     """Tries to guess what to call to run a shell with elevated
 privileges."""
-    if core.system.executable_is_in_path('kdesu'):
+    if vistrails.core.system.executable_is_in_path('kdesu'):
         return 'kdesu -c'
-    elif core.system.executable_is_in_path('gksu'):
+    elif vistrails.core.system.executable_is_in_path('gksu'):
         return 'gksu'
-    elif (core.system.executable_is_in_path('sudo') and
-          core.system.executable_is_in_path('zenity')):
+    elif (vistrails.core.system.executable_is_in_path('sudo') and
+          vistrails.core.system.executable_is_in_path('zenity')):
         # This is a reasonably convoluted hack to only prompt for the password
         # if user has not recently entered it
         return ('((echo "" | sudo -v -S -p "") || ' +

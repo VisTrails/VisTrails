@@ -35,11 +35,10 @@
 
 ##############################################################################
 # Data inspectors for VTK
-
-from core.modules.vistrails_module import ModuleError
-from core.utils import VistrailsInternalError
-from core.modules.basic_modules import Module, Float, Integer
-from core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.modules.basic_modules import Module, Float, Integer
+from vistrails.core.modules.module_registry import get_module_registry
 import vtk
 from base_module import vtkBaseModule
 from hasher import vtk_hasher

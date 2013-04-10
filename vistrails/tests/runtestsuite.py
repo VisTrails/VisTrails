@@ -42,28 +42,24 @@ runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
-
 import os
 import sys
 import unittest
 import os.path
 import optparse
+from optparse import OptionParser
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
-if __name__ == '__main__':
-    _this_dir = sys.argv[0]
-else:
-    _this_dir = sys.modules[__name__].__file__
-_this_dir = os.path.split(_this_dir)[0]
-if not _this_dir:
-    root_directory = os.path.join('.','..')
-else:
-    root_directory = os.path.join(_this_dir,  '..')
-sys.path.append(root_directory)
+_this_dir = os.path.dirname(os.path.realpath(__file__))
+root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
+sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
 
-import tests
-import core
+import vistrails.tests
+import vistrails.core
+import vistrails.core.db.io
+import vistrails.core.db.locator
+import vistrails.gui.application
 
 ###############################################################################
 # Testing Examples
@@ -117,7 +113,6 @@ def get_test_cases(module):
 
 ###############################################################################
 
-from optparse import OptionParser
 usage = "Usage: %prog [options] [module1 module2 ...]"
 parser = OptionParser(usage=usage)
 parser.add_option("-V", "--verbose", action="store", type="int",
@@ -146,15 +141,14 @@ if len(args) > 0:
 sys.argv = sys.argv[:1]
 
 # creates the app so that testing can happen
-import gui.application
 
 # We need the windows so we can test events, etc.
-v = gui.application.start_application({'interactiveMode': True,
+v = vistrails.gui.application.start_application({'interactiveMode': True,
                                        'nologger': True,
                                        'singleInstance': False,
                                        'fixedSpreadsheetCells': True})
 if v != 0:
-    app = gui.application.get_vistrails_application()
+    app = vistrails.gui.application.get_vistrails_application()
     if app:
         app.finishSession()
     sys.exit(v)
@@ -171,7 +165,7 @@ if test_modules:
 else:
     sub_print("Trying to import all modules")
 
-for (p, subdirs, files) in os.walk(root_directory):
+for (p, subdirs, files) in os.walk(os.path.join(root_directory)):
     # skip subversion subdirectories
     if p.find('.svn') != -1 or p.find('.git') != -1 :
         continue
@@ -179,9 +173,9 @@ for (p, subdirs, files) in os.walk(root_directory):
         # skip files that don't look like VisTrails python modules
         if not filename.endswith('.py'):
             continue
-#        module = p[5:] + '/' + filename[:-3]
-        module = p[len(root_directory)+1:] + os.sep + filename[:-3]
-        if (module.startswith('tests') or
+        module = os.path.join("vistrails", p[len(root_directory)+1:], 
+                              filename[:-3])
+        if (module.startswith('vistrails.tests') or
             module.startswith(os.sep) or
             module.startswith('\\') or
             ('#' in module)):
@@ -204,7 +198,7 @@ for (p, subdirs, files) in os.walk(root_directory):
                 m = __import__(module, globals(), locals(), ['foo'])
             else:
                 m = __import__(module)
-        except tests.NotModule:
+        except vistrails.tests.NotModule:
             if verbose >= 1:
                 print "Skipping %s, not an importable module" % filename
         except:
@@ -255,9 +249,9 @@ def image_test_generator(vtfile, version):
         try:
             errs = []
             filename = os.path.join(EXAMPLES_PATH, vtfile)
-            locator = core.db.locator.FileLocator(os.path.abspath(filename))
-            (v, abstractions, thumbnails, mashups) = core.db.io.load_vistrail(locator)
-            errs = core.console_mode.run([(locator, version)], update_vistrail=False,
+            locator = vistrails.core.db.locator.FileLocator(os.path.abspath(filename))
+            (v, abstractions, thumbnails, mashups) = vistrails.core.db.io.load_vistrail(locator)
+            errs = vistrails.core.console_mode.run([(locator, version)], update_vistrail=False,
                         extra_info={'compare_thumbnails': compare_thumbnails})
             if len(errs) > 0:
                 for err in errs:
@@ -285,9 +279,7 @@ if not result.wasSuccessful():
     tests_passed = False
 
 if test_examples:
-    import core.db.io
-    import core.db.locator
-    import core.console_mode
+    import vistrails.core.console_mode
     print "Testing examples:"
     summary = {}
     nworkflows = 0
@@ -298,15 +290,15 @@ if test_examples:
             filename = os.path.join(EXAMPLES_PATH,
                                     vtfile)
             print filename
-            locator = core.db.locator.FileLocator(os.path.abspath(filename))
-            (v, abstractions, thumbnails, mashups) = core.db.io.load_vistrail(locator)
+            locator = vistrails.core.db.locator.FileLocator(os.path.abspath(filename))
+            (v, abstractions, thumbnails, mashups) = vistrails.core.db.io.load_vistrail(locator)
             w_list = []
             for version,tag in v.get_tagMap().iteritems():
                 if tag not in VT_EXAMPLES[vtfile]:
                     w_list.append((locator,version))
                     nworkflows += 1
             if len(w_list) > 0:
-                errs = core.console_mode.run(w_list, update_vistrail=False)
+                errs = vistrails.core.console_mode.run(w_list, update_vistrail=False)
                 summary[vtfile] = errs
         except Exception, e:
             errs.append((vtfile,"None", "None", str(e)))
@@ -333,7 +325,7 @@ if test_examples:
     else:
         print "Examples ran successfully."
 
-gui.application.get_vistrails_application().finishSession()
-gui.application.stop_application()
+vistrails.gui.application.get_vistrails_application().finishSession()
+vistrails.gui.application.stop_application()
 # Test Runners can use the return value to know if the tests passed
 sys.exit(0 if tests_passed else 1)

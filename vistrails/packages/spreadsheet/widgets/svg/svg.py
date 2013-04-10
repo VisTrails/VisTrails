@@ -35,15 +35,15 @@
 ################################################################################
 # SVG widgets implementation
 ################################################################################
-from core.modules.basic_modules import File
-from core.modules.vistrails_module import Module
+from vistrails.core.modules.basic_modules import File
+from vistrails.core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui, QtSvg
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_base import StandardSingleCellSheetReference
-from packages.spreadsheet.spreadsheet_controller import spreadsheetController
-from packages.spreadsheet.spreadsheet_event import (DisplayCellEvent,
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.spreadsheet_base import StandardSingleCellSheetReference
+from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
+from vistrails.packages.spreadsheet.spreadsheet_event import (DisplayCellEvent,
                                                     BatchDisplayCellEvent)
-from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 import shutil
 ################################################################################
 

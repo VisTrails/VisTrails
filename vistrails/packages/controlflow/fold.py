@@ -32,14 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core import debug
-from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
+from vistrails.core import debug
+from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
     ModuleConnector, InvalidOutput, ModuleSuspended
-from core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
+from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
      File, NotCacheable, Constant, List
-from core.modules.module_registry import get_module_registry
-from core.vistrail.port_spec import PortSpec
-from core.utils import VistrailsInternalError
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.utils import VistrailsInternalError
 
 import copy
 from itertools import izip

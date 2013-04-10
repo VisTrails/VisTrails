@@ -34,19 +34,18 @@
 ###############################################################################
 
 """Describes the start-up process of VisTrails"""
-
-from core import debug
-from core import system
-from core.utils.uxml import named_elements, elements_filter, \
+from vistrails.core import debug
+from vistrails.core import system
+from vistrails.core.utils.uxml import named_elements, elements_filter, \
      eval_xml_value, enter_named_element
 import copy
-import core.packagemanager
-import core.utils
+import vistrails.core.packagemanager
+import vistrails.core.utils
 import os.path
 import shutil
 import sys
 import tempfile
-import core.configuration
+import vistrails.core.configuration
 import xml.dom.minidom
 
 ################################################################################
@@ -70,13 +69,13 @@ class VistrailsStartup(object):
         
         """
         assert (config is None or
-                isinstance(config, core.configuration.ConfigurationObject))
+                isinstance(config, vistrails.core.configuration.ConfigurationObject))
         assert (tempconfig is None or
-                isinstance(tempconfig, core.configuration.ConfigurationObject))
+                isinstance(tempconfig, vistrails.core.configuration.ConfigurationObject))
         if config:
             self.configuration = config
         else:
-            self.configuration = core.configuration.default()
+            self.configuration = vistrails.core.configuration.default()
         if tempconfig:
             self.temp_configuration = tempconfig
         else:
@@ -95,7 +94,7 @@ class VistrailsStartup(object):
         
         self.setupDefaultFolders()
         #package_manager needs the persistent configuration    
-        self._package_manager = core.packagemanager.PackageManager(
+        self._package_manager = vistrails.core.packagemanager.PackageManager(
             self.configuration)
             
         self._do_load_packages = True
@@ -298,7 +297,7 @@ by startup.py. This should only be called after init()."""
         def install_default_startup():
             debug.log('Will try to create default startup script')
             try:
-                root_dir = core.system.vistrails_root_directory()
+                root_dir = vistrails.core.system.vistrails_root_directory()
                 default_file = os.path.join(root_dir,'core','resources',
                                             'default_vistrails_startup')
                 user_file = os.path.join(self.temp_configuration.dotVistrails,
@@ -315,7 +314,7 @@ by startup.py. This should only be called after init()."""
         def install_default_startupxml_if_needed():
             fname = os.path.join(self.temp_configuration.dotVistrails,
                                  'startup.xml')
-            root_dir = core.system.vistrails_root_directory() 
+            root_dir = vistrails.core.system.vistrails_root_directory() 
             origin = os.path.join(root_dir, 'core','resources',
                                   'default_vistrails_startup_xml')
             def skip():
@@ -323,7 +322,7 @@ by startup.py. This should only be called after init()."""
                     try:
                         d = self.startup_dom()
                         v = str(d.getElementsByTagName('startup')[0].attributes['version'].value)
-                        r = core.utils.version_string_to_list(v)
+                        r = vistrails.core.utils.version_string_to_list(v)
                         return r >= [0, 1]
                     except:
                         return False
@@ -517,8 +516,8 @@ by startup.py. This should only be called after init()."""
         
     def setupLogFile(self):
         def get_version():
-            import core.system
-            version = core.system.vistrails_version()
+            import vistrails.core.system
+            version = vistrails.core.system.vistrails_version()
             return version.replace(".","_")
         #To make sure we always save a log file name according to the
         #current version, we will only consider the directory stored in
@@ -551,9 +550,9 @@ by startup.py. This should only be called after init()."""
         on purpose, not a typo against the coding rule
         
         """
-        import core.modules.vistrails_module
-        import core.modules.basic_modules
-        import core.modules.sub_module
+        import vistrails.core.modules.vistrails_module
+        import vistrails.core.modules.basic_modules
+        import vistrails.core.modules.sub_module
 
     def installPackages(self):
         """ installPackages() -> None
@@ -563,9 +562,9 @@ by startup.py. This should only be called after init()."""
         self._package_manager.initialize_packages(self._package_dictionary)
 
         # Enable abstractions
-        import core.modules.abstraction
+        import vistrails.core.modules.abstraction
         abstraction_pkg = "abstraction"
-        abstraction_dict = {abstraction_pkg: 'core.modules.'}
+        abstraction_dict = {abstraction_pkg: 'vistrails.core.modules.'}
         self._package_manager.initialize_abstraction_pkg(abstraction_dict)
 
     def runStartupHooks(self):

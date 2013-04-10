@@ -37,7 +37,9 @@ import shutil
 import sys
 import stat
 import subprocess
-import core.system
+import vistrails.core.system
+
+import unittest
 
 try:
     from ctypes import windll, Structure, c_ulong, c_ulonglong, byref, sizeof
@@ -145,7 +147,7 @@ def executable_is_in_path(filename):
     
     """
     pathlist = (os.environ['PATH'].split(os.pathsep) +
-                [core.system.vistrails_root_directory(),
+                [vistrails.core.system.vistrails_root_directory(),
                  "."])
     for dir in pathlist:
         fullpath = os.path.join(dir, filename)
@@ -220,7 +222,6 @@ def execute_piped_cmdlines(cmd_list_list):
 
 ################################################################################
 
-import unittest
 
 class TestWindows(unittest.TestCase):
      """ Class to test Windows specific functions """

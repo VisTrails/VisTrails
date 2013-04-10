@@ -32,17 +32,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import base64
 import os
-import core.db.action
-from core.modules.basic_modules import File, Boolean, String, Directory
-from core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from core.vistrail.vistrail import Vistrail
-from db.services.locator import DBLocator
-from core.system import get_elementtree_library
-from db.services import io
-from db.versions import currentVersion
+import vistrails.core.db.action
+from vistrails.core.modules.basic_modules import File, Boolean, String, Directory
+from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.db.services.locator import DBLocator
+from vistrails.core.system import get_elementtree_library
+from vistrails.db.services import io
+from vistrails.db.versions import currentVersion
 
 ElementTree = get_elementtree_library()
 
@@ -121,7 +120,7 @@ class VtlFileCreator(NotCacheable, Module):
                 action_list.append(('add', module))
             for connection in pipeline.connection_list:
                 action_list.append(('add', connection))
-            action = core.db.action.create_action(action_list)
+            action = vistrails.core.db.action.create_action(action_list)
             vistrail.add_action(action, 0L)
             vistrail.addTag("Imported workflow", action.id)
             if not forceDB:

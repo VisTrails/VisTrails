@@ -34,11 +34,11 @@
 ###############################################################################
 
 # *** MOVED *** to gui.modules.tuple_configuration
-
 import traceback
-from core import debug
+from vistrails.core import debug
+
+from vistrails.gui.modules.tuple_configuration import *
 debug.warning("The use of core.modules.tuple_configuration is deprecated.  "
               "Please use gui.modules.tuple_configuration.",
               ''.join(traceback.format_stack()))
 
-from gui.modules.tuple_configuration import *

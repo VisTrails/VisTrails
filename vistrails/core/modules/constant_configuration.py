@@ -34,11 +34,11 @@
 ###############################################################################
 
 # *** MOVED *** to gui.modules.constant_configuration
-
 import traceback
-from core import debug
+from vistrails.core import debug
+
+from vistrails.gui.modules.constant_configuration import *
 debug.warning("The use of core.modules.constant_configuration is deprecated.  "
               "Please use gui.modules.constant_configuration.",
               ''.join(traceback.format_stack()))
 
-from gui.modules.constant_configuration import *

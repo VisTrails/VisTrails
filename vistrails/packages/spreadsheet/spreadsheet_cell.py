@@ -41,12 +41,12 @@
 from PyQt4 import QtCore, QtGui
 import datetime
 import os
-from core import system, debug
+from vistrails.core import system, debug
 import cell_rc
 import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
-from core.configuration import get_vistrails_configuration
+from vistrails.core.configuration import get_vistrails_configuration
 
 ################################################################################
 
