@@ -1189,4 +1189,171 @@
     <delete id="354" objectId="63" parentObjId="21" parentObjType="module" what="location" />
     <delete id="355" objectId="21" parentObjId="" parentObjType="" what="module" />
   </action>
+  <action date="2013-04-11 11:23:27" id="138" prevId="137" session="23" user="Remi">
+    <add id="356" objectId="34" parentObjId="" parentObjType="" what="connection">
+      <connection id="34" />
+    </add>
+    <add id="357" objectId="68" parentObjId="34" parentObjType="connection" what="port">
+      <port id="68" moduleId="8" moduleName="MplLine2DProperties" name="self" signature="(org.vistrails.matplotlib.new:MplLine2DProperties)" type="source" />
+    </add>
+    <add id="358" objectId="69" parentObjId="34" parentObjType="connection" what="port">
+      <port id="69" moduleId="5" moduleName="MplLinePlot" name="lineProperties" signature="(org.vistrails.matplotlib.new:MplLine2DProperties)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:23:32" id="139" prevId="138" session="23" user="Remi">
+    <delete id="359" objectId="36" parentObjId="18" parentObjType="connection" what="port" />
+    <delete id="360" objectId="37" parentObjId="18" parentObjType="connection" what="port" />
+    <delete id="361" objectId="18" parentObjId="" parentObjType="" what="connection" />
+    <delete id="362" objectId="38" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="363" objectId="39" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="364" objectId="19" parentObjId="" parentObjType="" what="connection" />
+    <delete id="365" objectId="40" parentObjId="20" parentObjType="connection" what="port" />
+    <delete id="366" objectId="41" parentObjId="20" parentObjType="connection" what="port" />
+    <delete id="367" objectId="20" parentObjId="" parentObjType="" what="connection" />
+    <delete id="368" objectId="26" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="369" objectId="27" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="370" objectId="13" parentObjId="" parentObjType="" what="connection" />
+    <delete id="371" objectId="60" parentObjId="30" parentObjType="connection" what="port" />
+    <delete id="372" objectId="61" parentObjId="30" parentObjType="connection" what="port" />
+    <delete id="373" objectId="30" parentObjId="" parentObjType="" what="connection" />
+    <delete id="374" objectId="53" parentObjId="15" parentObjType="module" what="location" />
+    <delete id="375" objectId="49" parentObjId="19" parentObjType="function" what="parameter" />
+    <delete id="376" objectId="19" parentObjId="15" parentObjType="module" what="function" />
+    <delete id="377" objectId="50" parentObjId="20" parentObjType="function" what="parameter" />
+    <delete id="378" objectId="20" parentObjId="15" parentObjType="module" what="function" />
+    <delete id="379" objectId="15" parentObjId="" parentObjType="" what="module" />
+    <delete id="380" objectId="54" parentObjId="18" parentObjType="module" what="location" />
+    <delete id="381" objectId="44" parentObjId="26" parentObjType="function" what="parameter" />
+    <delete id="382" objectId="26" parentObjId="18" parentObjType="module" what="function" />
+    <delete id="383" objectId="18" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-11 11:23:39" id="140" prevId="139" session="23" user="Remi">
+    <delete id="384" objectId="52" parentObjId="14" parentObjType="module" what="location" />
+    <delete id="385" objectId="38" parentObjId="21" parentObjType="function" what="parameter" />
+    <delete id="386" objectId="21" parentObjId="14" parentObjType="module" what="function" />
+    <delete id="387" objectId="39" parentObjId="22" parentObjType="function" what="parameter" />
+    <delete id="388" objectId="22" parentObjId="14" parentObjType="module" what="function" />
+    <delete id="389" objectId="41" parentObjId="23" parentObjType="function" what="parameter" />
+    <delete id="390" objectId="23" parentObjId="14" parentObjType="module" what="function" />
+    <delete id="391" objectId="14" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-11 11:25:45" id="141" prevId="140" session="23" user="Remi">
+    <change id="392" newObjId="67" oldObjId="49" parentObjId="8" parentObjType="module" what="location">
+      <location id="67" x="-213.340096165" y="288.12805368" />
+    </change>
+    <change id="393" newObjId="68" oldObjId="66" parentObjId="12" parentObjType="module" what="location">
+      <location id="68" x="-192.432854679" y="416.545272306" />
+    </change>
+    <change id="394" newObjId="69" oldObjId="62" parentObjId="13" parentObjType="module" what="location">
+      <location id="69" x="-425.291680675" y="416.935722552" />
+    </change>
+    <change id="395" newObjId="70" oldObjId="59" parentObjId="20" parentObjType="module" what="location">
+      <location id="70" x="-201.435320002" y="533.894199796" />
+    </change>
+    <change id="396" newObjId="71" oldObjId="65" parentObjId="22" parentObjType="module" what="location">
+      <location id="71" x="-455.69619567" y="536.916558146" />
+    </change>
+  </action>
+  <action date="2013-04-11 11:26:35" id="142" prevId="141" session="23" user="Remi">
+    <delete id="397" objectId="3" parentObjId="3" parentObjType="function" what="parameter" />
+    <delete id="398" objectId="3" parentObjId="8" parentObjType="module" what="function" />
+  </action>
+  <action date="2013-04-11 11:26:41" id="143" prevId="142" session="23" user="Remi">
+    <add id="399" objectId="23" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="23" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="400" objectId="72" parentObjId="23" parentObjType="module" what="location">
+      <location id="72" x="-480.783221818" y="-85.094375543" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:26:45" id="144" prevId="143" session="23" user="Remi">
+    <add id="401" objectId="30" parentObjId="23" parentObjType="module" what="function">
+      <function id="30" name="name" pos="0" />
+    </add>
+    <add id="402" objectId="52" parentObjId="30" parentObjType="function" what="parameter">
+      <parameter alias="" id="52" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="marker" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:26:47" id="145" prevId="144" session="23" user="Remi">
+    <add id="403" objectId="31" parentObjId="23" parentObjType="module" what="function">
+      <function id="31" name="optional" pos="1" />
+    </add>
+    <add id="404" objectId="53" parentObjId="31" parentObjType="function" what="parameter">
+      <parameter alias="" id="53" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:26:54" id="146" prevId="145" session="23" user="Remi">
+    <add id="405" objectId="32" parentObjId="23" parentObjType="module" what="function">
+      <function id="32" name="spec" pos="2" />
+    </add>
+    <add id="406" objectId="54" parentObjId="32" parentObjType="function" what="parameter">
+      <parameter alias="" id="54" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:String" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:26:58" id="147" prevId="146" session="23" user="Remi">
+    <change id="407" newObjId="73" oldObjId="72" parentObjId="23" parentObjType="module" what="location">
+      <location id="73" x="-521.912169997" y="330.449825025" />
+    </change>
+  </action>
+  <action date="2013-04-11 11:26:59" id="148" prevId="147" session="23" user="Remi">
+    <add id="408" objectId="35" parentObjId="" parentObjType="" what="connection">
+      <connection id="35" />
+    </add>
+    <add id="409" objectId="70" parentObjId="35" parentObjType="connection" what="port">
+      <port id="70" moduleId="23" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="410" objectId="71" parentObjId="35" parentObjType="connection" what="port">
+      <port id="71" moduleId="8" moduleName="MplLine2DProperties" name="marker" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:53:16" id="149" prevId="148" session="26" user="Remi">
+    <change id="411" newObjId="55" oldObjId="53" parentObjId="31" parentObjType="function" what="parameter">
+      <parameter alias="" id="55" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="False" />
+    </change>
+  </action>
+  <action date="2013-04-11 12:25:33" id="150" prevId="149" session="29" user="Remi">
+    <change id="412" newObjId="56" oldObjId="55" parentObjId="31" parentObjType="function" what="parameter">
+      <parameter alias="" id="56" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </change>
+  </action>
+  <action date="2013-04-11 12:25:42" id="151" prevId="150" session="29" user="Remi">
+    <add id="413" objectId="33" parentObjId="8" parentObjType="module" what="function">
+      <function id="33" name="marker" pos="2" />
+    </add>
+    <add id="414" objectId="57" parentObjId="33" parentObjType="function" what="parameter">
+      <parameter alias="" id="57" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="caretdown" />
+    </add>
+  </action>
+  <action date="2013-04-11 12:26:13" id="152" prevId="151" session="29" user="Remi">
+    <add id="415" objectId="24" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="24" name="String" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="416" objectId="74" parentObjId="24" parentObjType="module" what="location">
+      <location id="74" x="-583.845191338" y="-70.6759968462" />
+    </add>
+  </action>
+  <action date="2013-04-11 12:26:17" id="153" prevId="152" session="29" user="Remi">
+    <add id="417" objectId="34" parentObjId="24" parentObjType="module" what="function">
+      <function id="34" name="value" pos="0" />
+    </add>
+    <add id="418" objectId="58" parentObjId="34" parentObjType="function" what="parameter">
+      <parameter alias="" id="58" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="nothing" />
+    </add>
+  </action>
+  <action date="2013-04-11 12:26:21" id="154" prevId="153" session="29" user="Remi">
+    <change id="419" newObjId="75" oldObjId="74" parentObjId="24" parentObjType="module" what="location">
+      <location id="75" x="-626.865363332" y="451.71180593" />
+    </change>
+  </action>
+  <action date="2013-04-11 12:26:22" id="155" prevId="154" session="29" user="Remi">
+    <add id="420" objectId="36" parentObjId="" parentObjType="" what="connection">
+      <connection id="36" />
+    </add>
+    <add id="421" objectId="72" parentObjId="36" parentObjType="connection" what="port">
+      <port id="72" moduleId="24" moduleName="String" name="value" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="422" objectId="73" parentObjId="36" parentObjType="connection" what="port">
+      <port id="73" moduleId="23" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
 </vistrail>
