@@ -1,0 +1,62 @@
+Building VisTrails from Source
+
+--- Instructions Mac OSX Lion ----
+
+Install the following required software:
+  XCode
+  Command Line Tools (separate download through apple developer web site)
+  
+  Python (python.org) 
+       make sure to update the PATH to use this python. There's a script that does that in /Applications/Python 2.7/Update Shell Profile.command
+
+  Git
+
+  CMake
+
+  Qt
+
+  Boost (if we want to include text analysis support in VTK (it is currently included in 2.0 but I couldn't get it to work in VTK 5.10 on a Mac)
+
+  VTK
+
+  sip
+
+  PyQt4
+
+  QScintilla and python bindings (read instructions in QScintilla documentation)
+
+  NumPy (Binary installation)
+
+  SciPy (Binary installation)
+
+  Matplotlib (Binary installation)
+
+  suds (patched version)
+
+  MySQLdb (you also need to install MySQL Server so we get the lib and headers)
+
+  libxml2 and libxslt (same versions as in Snow Leopard, instructions here: http://www.vistrails.org/index.php/Mac_Intel_Instructions)
+
+  Numeric 23.8.2 (source files is in ~/src (needed by NumScipy)
+    $ cd ~/src/Numeric-23.8.2
+    $ python setup.py
+
+  fftw3 lib (source files is in ~/src)
+
+  Stockwell (needed by NumSciPy got the files from Erik Anderson the folder is also in ~/src) 
+       cd ~/src/stockwell 
+       make
+        cp *.so /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/
+        pexpect (easy_install pexpect)
+  psycopg2 (need PostGreSQL)
+        http://www.enterprisedb.com/products-services-training/pgdownload#osx
+  ScientificPython
+  batchq (ALPS) download and install it from https://github.com/troelsfr/BatchQ
+  h5py (ALPS) need to install hdf5 (make sure to --enable-hl)
+  
+  download Thuban (http://wald.intevation.org/frs/?group_id=6&release_id=275#thuban-_1.2.2-title-content) and build only libraries/pyshapelib
+for shape files (not sure which package requires this)
+
+   easy_install numexpr
+   easy_install Cython
+   easy_install tables (this didn't work on Lion)

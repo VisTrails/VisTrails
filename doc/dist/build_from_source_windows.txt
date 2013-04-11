@@ -1,0 +1,95 @@
+
+== Windows Build ==
+
+Download and install python from www.python.org. Get both 32-bit and 64-bit versions. Install the 64-bit version in C:\Python27_64 and the 32-bit version in C:\Python27
+
+Download and install msysgit (the windows git user is winbuild and there's no passphrase when generating the ssh keys.
+
+Download and install PyQt4 binary installers (includes sip, Qt and QScintilla)
+
+Download and install active tcl/tk 8.5 both 32-bit and 64-bit versions (make sure to install them in different directories C:\Tcl and C:\Tcl_64
+
+download boost library from www.boost.org and uncompress it to a local folder,
+I had problems building vtk with recent versions of boost, the version I know it works for sure is 1.46.1.
+So extract the zip file to a folder, for example ~/src/boost_1_46_1 vtk will use the same boost for both 32-bit and 64-bit versions
+
+Download and install cmake
+Get vtk source
+uncompress it to (e.g, ~\src\vtk\vtk-5.10.1\
+and rename the VTK folder to src
+create build and build64 folders in ~\src\vtk\vtk-5.10.1
+
+vtk 32-bit:
+  run cmake-gui pointing the src folder to src and build folder to build and press configure
+  select Visual Studio 9 2008 
+  mark the following variables:
+   BUILD_SHARED_LIBS 
+   VTK_WRAP_PYTHON
+ on the top check Advanced
+   now mark
+    VTK_USE_BOOST
+    VTK_USE_TEXT_ANALYSIS  
+ and press configure
+  Set 
+     Boost_INCLUDE_DIR  to ~/src/boost_1_46_1 (or where you uncompressed boost)
+   make sure it is using the correct versions of tcl and python (they should point to 32-bit installed versions)
+ press configure again and finally press generate
+  now browse to the build directory and open VTK.sln in Visual Studio
+  On the top bar select Release and then build solution (F7)   
+If all goes well, you can install vtk python bindings:
+open a command prompt in the build/Wrapping/Python folder and run the following command:
+C:\Python27\python.exe setup.py BUILD_TYPE=Release install
+
+
+vtk 64-bit:
+
+  run cmake-gui again pointing the src folder to src and build folder to build64 and press configure
+  select Visual Studio 9 2008 Win64
+  mark the following variables:   
+     BUILD_SHARED_LIBS    
+     VTK_WRAP_PYTHON 
+on the top check Advanced   
+   now mark    
+     VTK_USE_BOOST    
+     VTK_USE_TEXT_ANALYSIS   
+and press configure   
+
+ Set 
+     Boost_INCLUDE_DIR  to ~/src/boost_1_46_1 (or where you uncompressed boost)
+     Boost_LIBRARY_DIRS to ~/src/boost_1_46_1/libs 
+
+    make sure it is using the correct versions of tcl and python (they should point to 64-bit installed versions) press configure again and finally press generate  now browse to the build64 directory and open VTK.sln in Visual Studio  On the top bar select Release and then build solution (F7)  
+If all goes well, switch to the 64 bit Path and you can install vtk python bindings:
+open a command prompt in the build64/Wrapping/Python folder and run the following command:
+C:\Python27_64\python.exe setup.py BUILD_TYPE=Release install 
+
+Now let's build each configuration at time, starting with the 32-bit version:
+
+== 32-bit version ==
+
+Download and install numpy from numpy.scipy.org (there is a win32 super pack for python 2.7 binary version on source forge)
+
+Download and install scipy from scipy.org (there is a win32 super pack for python 2.7 binary version on source forge)
+
+Download and install matplotlib from matplotlib.org  (there is a win32 for python 2.7 version on source forge)
+
+Download and install mysqldb python from source forge, there's a win32 binary installer for python 2.7.
+
+Download and install hdf5-1.8.4 from http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.4/bin/windows/hdf5-1.8.4-32bit-VS2008-IVF101.zip
+
+Download fftw (http://www.fftw.org/install/windows.html) from ftp://ftp.fftw.org/pub/fftw/fftw-3.3.3-dll32.zip and extract the zip file to the folder ~/src/fftw-3.3.3-dll32
+
+Download and install setuptools (easy_install)
+
+Download and install the patched version of suds
+
+Copy sockwell files to C:\Python27\Lib\site-packages folder
+st.pyd and sine.pyd
+
+== 64-bit version ==
+
+Go to http://www.lfd.uci.edu/~gohlke/pythonlibs/
+
+Download hdf5-1.8.4 from http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.4/bin/windows/hdf5-1.8.4-64bit-VS2008-IVF101.zip 
+
+#Under construction
