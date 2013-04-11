@@ -16,4 +16,13 @@
       <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
     </value>
   </addPortSpec>
+  <changePortSpec attr="translations" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>{'caretright': 5, 'star': '*', 'point': '.', 'mathtext': '$...$', 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'plus': '+', 'hline': '_', 'vline': '|', 'tickdown': 3, 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'tickleft': 0, 'tickright': 1, 'tri_down': '1', 'thin_diamond': 'd', 'caretup': 6, 'diamond': 'D', 'caretdown': 7, 'hexagon2': 'H', 'tri_up': '2', 'square': 's', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'octagon': '8', 'tri_right': '4', 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>['enum']</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>[['caretdown', 'caretleft', 'caretright', 'caretup', 'circle', 'diamond', 'hexagon1', 'hexagon2', 'hline', 'nothing', 'octagon', 'pentagon', 'pixel', 'plus', 'point', 'square', 'star', 'thin_diamond', 'tickdown', 'tickleft', 'tickright', 'tickup', 'tri_down', 'tri_left', 'tri_right', 'tri_up', 'triangle_down', 'triangle_left', 'triangle_right', 'triangle_up', 'vline', 'x', 'mathtext']]</value>
+  </changePortSpec>
 </diff>
