@@ -37,13 +37,14 @@
 QParameterView
 """
 from PyQt4 import QtCore, QtGui
-from core.inspector import PipelineInspector
-from core.modules.module_registry import get_module_registry
-from core.modules.basic_modules import Constant
-from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
-from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from core.utils import InstanceObject
+from vistrails.core.inspector import PipelineInspector
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.basic_modules import Constant
+from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
+from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.utils import InstanceObject
+from vistrails.core.debug import debug
 
 ################################################################################
 
@@ -107,7 +108,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_pipeline(self, pipeline):
         self.pipeline = pipeline
-        self.parameterWidget.set_pipeline(pipeline)
+        self.parameterWidget.set_pipeline(pipeline, self.controller)
         self.pipeline_view.updateAnnotatedIds(pipeline)
 
 class QParameterWidget(QSearchTreeWindow):
@@ -124,9 +125,9 @@ class QParameterWidget(QSearchTreeWindow):
         treeWidget = QParameterTreeWidget(self)
         return treeWidget
 
-    def set_pipeline(self, pipeline):
+    def set_pipeline(self, pipeline, controller):
         self.pipeline = pipeline
-        self.treeWidget.updateFromPipeline(pipeline)
+        self.treeWidget.updateFromPipeline(pipeline, controller)
 
 
 class QParameterTreeWidget(QSearchTreeWidget):
@@ -147,7 +148,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
         self.setItemDelegate(self.delegate)
         self.showUnsetParameters = False
 
-    def updateFromPipeline(self, pipeline):
+    def updateFromPipeline(self, pipeline, controller):
         """ updateFromPipeline(pipeline: Pipeline) -> None
         Read the list of aliases and parameters from the pipeline
         
@@ -180,13 +181,45 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                                      aliasRoot, label)
             aliasRoot.setExpanded(True)
 
+        vistrailVarsRoot = QParameterTreeWidgetItem(None, self,
+                                      QtCore.QStringList('Vistrail Variables'))
+        vistrailVarsRoot.setHidden(True)
+
         # Now go through all modules and functions
 
         inspector = PipelineInspector()
         inspector.inspect_ambiguous_modules(pipeline)
         sortedModules = sorted(pipeline.modules.iteritems(),
                                key=lambda item: item[1].name)
+
+        reg = get_module_registry()
+
         for mId, module in sortedModules:
+            if module.is_vistrail_var():
+                vistrailVarsRoot.setHidden(False)
+                vistrailVarsRoot.setExpanded(True)
+                port_spec = module.get_port_spec('value', 'input')
+                if not port_spec:
+                    debug.critical("Not port_spec for value in module %s" % module)
+                    continue
+                port_spec_items = port_spec.port_spec_items
+
+                vv = controller.get_vistrail_variable_by_uuid(
+                                        module.get_vistrail_var())
+
+                label = QtCore.QStringList('%s = %s' % (vv.name, vv.value))
+                pList = [ParameterInfo(module_id=mId,
+                                       name=port_spec.name,
+                                       pos=port_spec.port_spec_items[pId].pos,
+                                       value="",
+                                       spec=port_spec.port_spec_items[pId],
+                                       is_alias=False)
+                         for pId in xrange(len(port_spec.port_spec_items))]
+                mItem = QParameterTreeWidgetItem((vv.name, pList),
+                                                 vistrailVarsRoot,
+                                                 label)
+                continue
+                
             function_names = {}
             # Add existing parameters
             mLabel = QtCore.QStringList(module.name)
@@ -209,9 +242,10 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     
                     try:
                         port_spec = function.get_spec('input')
-                    except:
-                        print "meiswrong", module, function, function.sigstring 
-                        raise
+                    except Exception, e:
+                        debug.critical("get_spec failed: %s %s %s" % \
+                                       (module, function, function.sigstring))
+                        continue
                     port_spec_items = port_spec.port_spec_items
                     pList = [ParameterInfo(module_id=mId,
                                            name=function.name,
@@ -228,7 +262,6 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                                      moduleItem,
                                                      label)
             # Add available parameters
-            reg = get_module_registry()
             if module.is_valid:
                 for port_spec in module.destinationPorts():
                     if port_spec.name in function_names or \

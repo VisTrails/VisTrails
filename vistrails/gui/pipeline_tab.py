@@ -37,16 +37,15 @@ pipeline
 
 QPipelineTab
 """
-
 from PyQt4 import QtCore, QtGui
-from core.vistrail.module import Module
-from core.vistrail.connection import Connection
-from gui.common_widgets import QDockContainer, QToolWindowInterface
-from gui.method_palette import QMethodPalette
-from gui.module_configuration import QModuleConfiguration
-from gui.module_methods import QModuleMethods
-from gui.pipeline_view import QPipelineView
-from gui.vistrail_variables import QVistrailVariables
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.connection import Connection
+from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
+from vistrails.gui.method_palette import QMethodPalette
+from vistrails.gui.module_configuration import QModuleConfiguration
+from vistrails.gui.module_methods import QModuleMethods
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.vistrail_variables import QVistrailVariables
 from weakref import proxy
 
 ################################################################################

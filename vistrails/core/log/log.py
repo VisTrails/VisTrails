@@ -32,12 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 
-from core.log.machine import Machine
-from core.log.workflow_exec import WorkflowExec
-from db.domain import DBLog
+from vistrails.core.log.machine import Machine
+from vistrails.core.log.workflow_exec import WorkflowExec
+from vistrails.db.domain import DBLog
 
 class Log(DBLog):
     """ Class that stores info for logging a workflow execution. """

@@ -32,16 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 import os
 import sqlite3
 import uuid
 
-from core.modules.basic_modules import Path
-from core.modules.constant_configuration import ConstantWidgetMixin
-from core.modules.module_configure import StandardModuleConfigurationWidget
-from gui.common_widgets import QSearchBox, QSearchEditBox
+from vistrails.core.modules.basic_modules import Path
+from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.core.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
 from db_utils import DatabaseAccessSingleton
 
 
@@ -726,7 +725,7 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
         self.write_managed_checkbox.setChecked(False)
 
     def set_values(self):
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         ManagedRef = \
             reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence.exp', 
@@ -810,7 +809,7 @@ class ManagedPathConfiguration(StandardModuleConfigurationWidget):
             self.write_managed_checkbox.setChecked(local_write)
 
     def get_values(self):
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         ManagedRef = \
             reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence.exp', 

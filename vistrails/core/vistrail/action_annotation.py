@@ -32,8 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.db.domain import DBActionAnnotation
 
-from db.domain import DBActionAnnotation
+import unittest
+import copy
+import vistrails.core
 
 class ActionAnnotation(DBActionAnnotation):
 
@@ -102,13 +105,11 @@ class ActionAnnotation(DBActionAnnotation):
 ################################################################################
 # Unit tests
 
-import unittest
-import copy
 
 class TestActionAnnotation(unittest.TestCase):
 
     def create_annotation(self, id_scope=None):
-        from db.domain import IdScope
+        from vistrails.db.domain import IdScope
 
         if id_scope is None:
             id_scope = IdScope()
@@ -119,7 +120,7 @@ class TestActionAnnotation(unittest.TestCase):
         return annotation
 
     def test_copy(self):
-        from db.domain import IdScope
+        from vistrails.db.domain import IdScope
         id_scope = IdScope()
 
         a1 = self.create_annotation(id_scope)
@@ -131,10 +132,10 @@ class TestActionAnnotation(unittest.TestCase):
         self.assertNotEquals(a1.id, a3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         a1 = self.create_annotation()
-        xml_str = core.db.io.serialize(a1)
-        a2 = core.db.io.unserialize(xml_str, ActionAnnotation)
+        xml_str = vistrails.core.db.io.serialize(a1)
+        a2 = vistrails.core.db.io.unserialize(xml_str, ActionAnnotation)
         self.assertEquals(a1, a2)
         self.assertEquals(a1.id, a2.id)
 

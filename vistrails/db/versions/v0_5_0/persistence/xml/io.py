@@ -32,13 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from xml.parsers.expat import ExpatError
 import xml.dom.minidom
 
-from db import VistrailsDBException
-from db.versions.v0_5_0 import version as my_version
-    
+from vistrails.db import VistrailsDBException
+from vistrails.db.versions.v0_5_0 import version as my_version
+
 def parse_xml_file(filename):
     try:
         return xml.dom.minidom.parse(filename)

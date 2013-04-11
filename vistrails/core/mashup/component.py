@@ -33,40 +33,63 @@
 ##
 ###############################################################################
 import urllib
+from vistrails.core.mashup import conv_from_bool, conv_to_bool, convert_symbols
+from vistrails.db.domain import DBMashupComponent
 
-from core.mashup import XMLObject
-from core.system import get_elementtree_library
-ElementTree = get_elementtree_library()
+import unittest
+from vistrails.db.domain import IdScope
+import copy
+
+systype = type
 
 ################################################################################
-class Component(XMLObject):
+class Component(DBMashupComponent):
     def __init__(self, id, vttype, param_id, parent_vttype, parent_id, mid, 
                  type, value, p_pos, pos, strvaluelist, minVal="0",
-                 maxVal="1", stepSize="1", parent='', seq=False, widget="text"):
+                 maxVal="1", stepSize="1", parent='', seq=0, widget="text"):
     
         """Component() 
         widget can be: text, slider, combobox, numericstepper, checkbox
 
         """
-        self.id = id
-        self.vttype = vttype
-        self.vtid = param_id
-        self.vtparent_type = parent_vttype
-        self.vtparent_id = parent_id
-        self.vtmid = mid
-        self.vtpos = p_pos
-        self.type = type
-        self.pos = pos
-        self.val = value
-        self.minVal = minVal
-        self.maxVal = maxVal
-        self.stepSize = stepSize
-        self.strvaluelist = strvaluelist
-        self.parent = parent
-        self.seq = seq
-        self.widget = widget
+        DBMashupComponent.__init__(self, id, param_id, vttype, parent_vttype, 
+                                   parent_id, p_pos, mid, pos, type, value, 
+                                   minVal, maxVal, stepSize, strvaluelist, 
+                                   widget, seq, parent)
+        if systype(seq) == bool:
+            self.seq = seq
 
+    id = DBMashupComponent.db_id
+    vttype = DBMashupComponent.db_vttype
+    vtid = DBMashupComponent.db_vtid
+    vtparent_type = DBMashupComponent.db_vtparent_type
+    vtparent_id = DBMashupComponent.db_vtparent_id
+    vtmid = DBMashupComponent.db_vtmid
+    vtpos = DBMashupComponent.db_vtpos
+    pos = DBMashupComponent.db_pos
+    type = DBMashupComponent.db_type
+    minVal = DBMashupComponent.db_minVal
+    maxVal = DBMashupComponent.db_maxVal
+    stepSize = DBMashupComponent.db_stepSize
+    parent = DBMashupComponent.db_parent
+    widget = DBMashupComponent.db_widget
+    strvaluelist = DBMashupComponent.db_strvaluelist
+    
+    def _get_seq(self):
+        return conv_to_bool(self.db_seq)
+    def _set_seq(self, s):
+        self.db_seq = conv_from_bool(s)
+    seq = property(_get_seq,_set_seq)
+     
+    def _get_val(self):
+        self.db_val = convert_symbols(self.db_val)
+        return self.db_val
+    def _set_val(self, v):
+        self.db_val = v
+    val = property(_get_val,_set_val)
+    
     def _get_valuelist(self):
+        self.strvaluelist = convert_symbols(self.strvaluelist)
         data = self.strvaluelist.split(',')
         result = []
         for d in data:
@@ -77,123 +100,112 @@ class Component(XMLObject):
         for v in valuelist:
             q.append(urllib.quote_plus(v))
         self.strvaluelist = ",".join(q)
-
     valueList = property(_get_valuelist,_set_valuelist)
 
+    @staticmethod
+    def convert(_component):
+        _component.__class__ = Component
+        
     def __copy__(self):
-        return Component.doCopy(self)
+        return Component.do_copy(self)
     
-    def doCopy(self, new_ids=False, id_scope=None, id_remap=None):
-        """doCopy() -> Component 
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        """do_copy() -> Component 
         returns a clone of itself"""
-        cp = Component(id=self.id, vttype=self.vttype, param_id=self.vtid, 
-                       parent_vttype=self.vtparent_type, 
-                       parent_id=self.vtparent_id, mid = self.vtmid, 
-                       type = self.type, value = self.val, p_pos = self.vtpos, 
-                       pos = self.pos, strvaluelist = self.strvaluelist, 
-                       minVal = self.minVal, maxVal= self.maxVal, 
-                       stepSize=self.stepSize, parent=self.parent, 
-                       seq = self.seq, widget=self.widget)
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId('component')
-            if 'component' in id_scope.remap:
-                id_remap[(id_scope.remap['component'], self.id)] = new_id
-            else:
-                id_remap[('component', self.id)] = new_id
-            cp.id = new_id
+        cp = DBMashupComponent.do_copy(self, new_ids, id_scope, id_remap)      
+        Component.convert(cp)
         return cp
     
     ##########################################################################
     # Serialization / Unserialization
     
-    def toXml(self, node=None):
-        """toXml(node: ElementTree.Element) -> ElementTree.Element
-             writes itself to xml
-        """
-        if node is None:
-            node = ElementTree.Element('component')
-        #set attributes
-        node.set('id', self.convert_to_str(self.id,'long'))
-        node.set('vttype', self.convert_to_str(self.vttype,'str'))
-        node.set('vtid', self.convert_to_str(self.vtid,'long'))
-        node.set('vtparent_type', self.convert_to_str(self.vtparent_type,'str'))
-        node.set('vtparent_id', self.convert_to_str(self.vtparent_id,'long'))
-        node.set('vtmid', self.convert_to_str(self.vtmid,'long'))
-        node.set('vtpos', self.convert_to_str(self.vtpos,'long'))
-        
-        node.set('pos', self.convert_to_str(self.pos,'long'))
-        node.set('type', self.convert_to_str(self.type,'str'))
-        
-        node.set('val', self.convert_to_str(self.val, 'str'))
-        node.set('minVal', self.convert_to_str(self.minVal,'str'))
-        node.set('maxVal', self.convert_to_str(self.maxVal,'str'))
-        node.set('stepSize', self.convert_to_str(self.stepSize,'str'))
-        node.set('valueList',self.convert_to_str(self.strvaluelist,'str'))
-        node.set('parent', self.convert_to_str(self.parent,'str'))
-        node.set('seq', self.convert_to_str(self.seq,'bool'))
-        node.set('widget',self.convert_to_str(self.widget,'str'))
-        return node
-
-    @staticmethod
-    def fromXml(node):
-        if node.tag != 'component':
-            return None
-
-        #read attributes
-        data = node.get('id', None)
-        id = Component.convert_from_str(data, 'long')
-        data = node.get('vttype', None)
-        vttype = Component.convert_from_str(data, 'str')
-        data = node.get('vtid', None)
-        vtid = Component.convert_from_str(data, 'long')
-        data = node.get('vtparent_type', None)
-        vtparent_type = Component.convert_from_str(data, 'str')
-        data = node.get('vtparent_id', None)
-        vtparent_id = Component.convert_from_str(data, 'long')
-        data = node.get('vtmid', None)
-        vtmid = Component.convert_from_str(data, 'long')
-        data = node.get('vtpos', None)
-        vtpos = Component.convert_from_str(data, 'long')
-        data = node.get('pos', None)
-        pos = Component.convert_from_str(data, 'long')
-        data = node.get('type', None)
-        type = Component.convert_from_str(data, 'str')
-        data = node.get('val', None)
-        val = Component.convert_from_str(data, 'str')
-        val = val.replace("&lt;", "<")
-        val = val.replace("&gt;", ">")
-        val = val.replace("&amp;","&")
-        data = node.get('minVal', None)
-        minVal = Component.convert_from_str(data, 'str')
-        data = node.get('maxVal', None)
-        maxVal = Component.convert_from_str(data, 'str')
-        data = node.get('stepSize', None)
-        stepSize = Component.convert_from_str(data, 'str')
-        data = node.get('valueList', None)
-        values = Component.convert_from_str(data, 'str')
-        values = values.replace("&lt;", "<")
-        values = values.replace("&gt;", ">")
-        values = values.replace("&amp;","&")
-        data = node.get('parent', None)
-        parent = Component.convert_from_str(data, 'str')
-        data = node.get('seq', None)
-        seq = Component.convert_from_str(data, 'bool')
-        data = node.get('widget', None)
-        widget = Component.convert_from_str(data, 'str')
-       
-        component = Component(id=id, vttype=vttype, param_id=vtid, 
-                              parent_vttype=vtparent_type, 
-                              parent_id=vtparent_id, mid=vtmid, type=type,
-                              value=val, p_pos=vtpos, pos=pos,
-                              minVal=minVal,
-                              maxVal=maxVal,
-                              stepSize=stepSize,
-                              strvaluelist=values,
-                              parent=parent,
-                              seq=seq,
-                              widget=widget)
-        return component
+#    def toXml(self, node=None):
+#        """toXml(node: ElementTree.Element) -> ElementTree.Element
+#             writes itself to xml
+#        """
+#        if node is None:
+#            node = ElementTree.Element('component')
+#        #set attributes
+#        node.set('id', self.convert_to_str(self.id,'long'))
+#        node.set('vttype', self.convert_to_str(self.vttype,'str'))
+#        node.set('vtid', self.convert_to_str(self.vtid,'long'))
+#        node.set('vtparent_type', self.convert_to_str(self.vtparent_type,'str'))
+#        node.set('vtparent_id', self.convert_to_str(self.vtparent_id,'long'))
+#        node.set('vtmid', self.convert_to_str(self.vtmid,'long'))
+#        node.set('vtpos', self.convert_to_str(self.vtpos,'long'))
+#        
+#        node.set('pos', self.convert_to_str(self.pos,'long'))
+#        node.set('type', self.convert_to_str(self.type,'str'))
+#        
+#        node.set('val', self.convert_to_str(self.val, 'str'))
+#        node.set('minVal', self.convert_to_str(self.minVal,'str'))
+#        node.set('maxVal', self.convert_to_str(self.maxVal,'str'))
+#        node.set('stepSize', self.convert_to_str(self.stepSize,'str'))
+#        node.set('valueList',self.convert_to_str(self.strvaluelist,'str'))
+#        node.set('parent', self.convert_to_str(self.parent,'str'))
+#        node.set('seq', self.convert_to_str(self.seq,'bool'))
+#        node.set('widget',self.convert_to_str(self.widget,'str'))
+#        return node
+#
+#    @staticmethod
+#    def fromXml(node):
+#        if node.tag != 'component':
+#            return None
+#
+#        #read attributes
+#        data = node.get('id', None)
+#        id = Component.convert_from_str(data, 'long')
+#        data = node.get('vttype', None)
+#        vttype = Component.convert_from_str(data, 'str')
+#        data = node.get('vtid', None)
+#        vtid = Component.convert_from_str(data, 'long')
+#        data = node.get('vtparent_type', None)
+#        vtparent_type = Component.convert_from_str(data, 'str')
+#        data = node.get('vtparent_id', None)
+#        vtparent_id = Component.convert_from_str(data, 'long')
+#        data = node.get('vtmid', None)
+#        vtmid = Component.convert_from_str(data, 'long')
+#        data = node.get('vtpos', None)
+#        vtpos = Component.convert_from_str(data, 'long')
+#        data = node.get('pos', None)
+#        pos = Component.convert_from_str(data, 'long')
+#        data = node.get('type', None)
+#        type = Component.convert_from_str(data, 'str')
+#        data = node.get('val', None)
+#        val = Component.convert_from_str(data, 'str')
+#        val = val.replace("&lt;", "<")
+#        val = val.replace("&gt;", ">")
+#        val = val.replace("&amp;","&")
+#        data = node.get('minVal', None)
+#        minVal = Component.convert_from_str(data, 'str')
+#        data = node.get('maxVal', None)
+#        maxVal = Component.convert_from_str(data, 'str')
+#        data = node.get('stepSize', None)
+#        stepSize = Component.convert_from_str(data, 'str')
+#        data = node.get('valueList', None)
+#        values = Component.convert_from_str(data, 'str')
+#        values = values.replace("&lt;", "<")
+#        values = values.replace("&gt;", ">")
+#        values = values.replace("&amp;","&")
+#        data = node.get('parent', None)
+#        parent = Component.convert_from_str(data, 'str')
+#        data = node.get('seq', None)
+#        seq = Component.convert_from_str(data, 'bool')
+#        data = node.get('widget', None)
+#        widget = Component.convert_from_str(data, 'str')
+#       
+#        component = Component(id=id, vttype=vttype, param_id=vtid, 
+#                              parent_vttype=vtparent_type, 
+#                              parent_id=vtparent_id, mid=vtmid, type=type,
+#                              value=val, p_pos=vtpos, pos=pos,
+#                              minVal=minVal,
+#                              maxVal=maxVal,
+#                              stepSize=stepSize,
+#                              strvaluelist=values,
+#                              parent=parent,
+#                              seq=seq,
+#                              widget=widget)
+#        return component
 
     ##########################################################################
     # Operators
@@ -275,13 +287,10 @@ maxVal='%s' stepSize='%s' strvaluelist='%s' parent='%s' seq='%s' widget='%s')@%X
     
 ################################################################################
 
-import unittest
-from db.domain import IdScope
-import copy
 
 class TestComponent(unittest.TestCase):
     def create_component(self, id_scope=IdScope()):
-        c = Component(id=id_scope.getNewId('component'),
+        c = Component(id=id_scope.getNewId('mashup_component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,
                           type='String', value='test', p_pos=0, pos=1, 
@@ -294,16 +303,9 @@ class TestComponent(unittest.TestCase):
         c2 = copy.copy(c1)
         self.assertEqual(c1, c2)
         self.assertEqual(c1.id, c2.id)
-        c3 = c2.doCopy(True, id_scope, {})
+        c3 = c2.do_copy(True, id_scope, {})
         self.assertEqual(c1,c3)
         self.assertNotEqual(c1.id, c3.id)
-        
-    def test_serialization(self):
-        c1 = self.create_component()
-        node = c1.toXml()
-        c2 = Component.fromXml(node)
-        self.assertEqual(c1,c2)
-        self.assertEqual(c1.id, c2.id)
         
     def test_valuelist(self):
         c1 = self.create_component()
@@ -312,12 +314,12 @@ class TestComponent(unittest.TestCase):
         c1.valueList = ['1','2','3']
         self.assertEqual(c1.strvaluelist,"1,2,3")
         
-        #testing values with , after serialization
-        c1.valueList = ['a,b,c', '123', ',as']
-        c2 = Component.fromXml(c1.toXml())
-        self.assertEqual(c1.strvaluelist, c2.strvaluelist)
-        self.assertEqual(c1.valueList, c2.valueList)
-        self.assertEqual(c2.valueList, ['a,b,c', '123', ',as'])
+#        #testing values with , after serialization
+#        c1.valueList = ['a,b,c', '123', ',as']
+#        c2 = Component.fromXml(c1.toXml())
+#        self.assertEqual(c1.strvaluelist, c2.strvaluelist)
+#        self.assertEqual(c1.valueList, c2.valueList)
+#        self.assertEqual(c2.valueList, ['a,b,c', '123', ',as'])
         
     def test_str(self):
         c1 = self.create_component()

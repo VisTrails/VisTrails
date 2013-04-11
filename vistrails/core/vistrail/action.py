@@ -32,14 +32,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from datetime import date, datetime
 from time import strptime
 
-from core.vistrail.annotation import Annotation
-from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from db.domain import DBAction
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
+from vistrails.db.domain import DBAction
 from itertools import izip
+
+import unittest
+import vistrails.core
 
 class Action(DBAction):
 
@@ -187,17 +189,16 @@ class Action(DBAction):
 ################################################################################
 # Unit tests
 
-import unittest
 
 class TestAction(unittest.TestCase):
     
     def create_action(self, id_scope=None):
-        from core.vistrail.action import Action
-        from core.vistrail.module import Module
-        from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module_param import ModuleParam
-        from core.vistrail.operation import AddOp
-        from db.domain import IdScope
+        from vistrails.core.vistrail.action import Action
+        from vistrails.core.vistrail.module import Module
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.operation import AddOp
+        from vistrails.db.domain import IdScope
         from datetime import datetime
         
         if id_scope is None:
@@ -225,7 +226,7 @@ class TestAction(unittest.TestCase):
 
     def test_copy(self):
         import copy
-        from db.domain import IdScope
+        from vistrails.db.domain import IdScope
         
         id_scope = IdScope()
         a1 = self.create_action(id_scope)
@@ -237,18 +238,18 @@ class TestAction(unittest.TestCase):
         self.assertNotEquals(a1.id, a3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         a1 = self.create_action()
-        xml_str = core.db.io.serialize(a1)
-        a2 = core.db.io.unserialize(xml_str, Action)
+        xml_str = vistrails.core.db.io.serialize(a1)
+        a2 = vistrails.core.db.io.unserialize(xml_str, Action)
         self.assertEquals(a1, a2)
         self.assertEquals(a1.id, a2.id)
 
     def test1(self):
         """Exercises aliasing on modules"""
-        import core.vistrail
-        from core.db.locator import XMLFileLocator
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
+        import vistrails.core.vistrail
+        from vistrails.core.db.locator import XMLFileLocator
+        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         p1 = v.getPipeline('final')
         p2 = v.getPipeline('final')
@@ -259,10 +260,10 @@ class TestAction(unittest.TestCase):
 
     def test2(self):
         """Exercises aliasing on points"""
-        import core.vistrail
-        from core.db.locator import XMLFileLocator
-        import core.system
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
+        import vistrails.core.vistrail
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.system
+        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml').load()
         p1 = v.getPipeline('final')
         v.getPipeline('final')

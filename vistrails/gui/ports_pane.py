@@ -36,16 +36,16 @@ from PyQt4 import QtCore, QtGui
 from itertools import izip
 import os
 
-from core import debug
-from core.modules.basic_modules import identifier as basic_identifier
-from core.modules.module_registry import get_module_registry
-from core.modules.utils import create_port_spec_string
-from core.vistrail.port_spec import PortSpec
-from core.system import vistrails_root_directory
-from gui.modules import get_widget_class
-from gui.common_widgets import QToolWindowInterface
-from gui.port_documentation import QPortDocumentation
-from gui.theme import CurrentTheme
+from vistrails.core import debug
+from vistrails.core.modules.basic_modules import identifier as basic_identifier
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.utils import create_port_spec_string
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.system import vistrails_root_directory
+from vistrails.gui.modules import get_widget_class
+from vistrails.gui.common_widgets import QToolWindowInterface
+from vistrails.gui.port_documentation import QPortDocumentation
+from vistrails.gui.theme import CurrentTheme
 
 class AliasLabel(QtGui.QLabel):
     """

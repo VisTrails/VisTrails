@@ -36,17 +36,18 @@
       
 # from xml import dom
 # from xml.dom.xmlbuilder import DOMInputSource, DOMBuilder
-
 import xml.etree.cElementTree as ElementTree
 import datetime
 import os
 import shutil
 import subprocess
 import time
-from core.system.unix import executable_is_in_path, list2cmdline, \
+from vistrails.core.system.unix import executable_is_in_path, list2cmdline, \
      executable_is_in_pythonpath, execute_cmdline, execute_piped_cmdlines
-import core.utils
-    
+import vistrails.core.utils
+
+import unittest
+
 ###############################################################################
 # Extract system detailed information of a Mac system
 #
@@ -253,7 +254,6 @@ def get_executable_path(executable_name):
 
 ################################################################################
 
-import unittest
 
 class TestMacOSX(unittest.TestCase):
      """ Class to test Mac OS X specific functions """

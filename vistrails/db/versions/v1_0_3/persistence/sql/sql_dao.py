@@ -32,10 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db import VistrailsDBException
-from db.services.io import get_db_lib
-from core import debug
+from vistrails.db import VistrailsDBException
+from vistrails.db.services.io import get_db_lib
+from vistrails.core import debug
 
 class SQLDAO:
     def __init__(self):

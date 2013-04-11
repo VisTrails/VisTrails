@@ -32,23 +32,27 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBAdd, DBChange, DBDelete
-from db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
+from vistrails.db.domain import DBAdd, DBChange, DBDelete
+from vistrails.db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
     DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \
     DBPortSpec
 
-from core.vistrail.annotation import Annotation
-from core.vistrail.abstraction import Abstraction
-from core.vistrail.connection import Connection
-from core.vistrail.group import Group
-from core.vistrail.location import Location
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.plugin_data import PluginData
-from core.vistrail.port import Port
-from core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.abstraction import Abstraction
+from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.group import Group
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.plugin_data import PluginData
+from vistrails.core.vistrail.port import Port
+from vistrails.core.vistrail.port_spec import PortSpec
+
+import unittest
+import copy
+from vistrails.db.domain import IdScope
+import vistrails.core
 
 def convert_data(_data):
     map = {
@@ -335,17 +339,14 @@ class DeleteOp(DBDelete):
 ################################################################################
 # Unit tests
 
-import unittest
-import copy
-from db.domain import IdScope
 
 class TestOperation(unittest.TestCase):
     
     def create_ops(self, id_scope=IdScope()):
-        from core.vistrail.module import Module
-        from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module_param import ModuleParam
-        from core.vistrail.annotation import Annotation
+        from vistrails.core.vistrail.module import Module
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.annotation import Annotation
         
         if id_scope is None:
             id_scope = IdScope(remap={AddOp.vtType: 'operation',
@@ -403,9 +404,9 @@ class TestOperation(unittest.TestCase):
                 self.assertNotEquals(op1.data.db_id, op3.data.db_id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         for op1 in self.create_ops():
-            xml_str = core.db.io.serialize(op1)
-            op2 = core.db.io.unserialize(xml_str, op1.__class__)
+            xml_str = vistrails.core.db.io.serialize(op1)
+            op2 = vistrails.core.db.io.unserialize(xml_str, op1.__class__)
             self.assertEquals(op1, op2)
             self.assertEquals(op1.id, op2.id)

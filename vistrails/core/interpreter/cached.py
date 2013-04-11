@@ -32,41 +32,44 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import base64
-from core import modules
-from core.common import *
-from core.data_structures.bijectivedict import Bidict
-import core.db.io
-from core.log.controller import DummyLogController
-# from core.modules.module_utils import FilePool
-from core.modules.vistrails_module import ModuleConnector, ModuleError, \
+from vistrails.core import modules
+from vistrails.core.common import *
+from vistrails.core.data_structures.bijectivedict import Bidict
+import vistrails.core.db.io
+from vistrails.core.log.controller import DummyLogController
+from vistrails.core.modules.vistrails_module import ModuleConnector, ModuleError, \
     ModuleBreakpoint, ModuleErrors
-from core.utils import DummyView
-from core.vistrail.annotation import Annotation
-from core.vistrail.vistrail import Vistrail
+from vistrails.core.utils import DummyView
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.vistrail import Vistrail
 import copy
-import core.interpreter.base
-import core.interpreter.utils
-import core.system
-import core.vistrail.pipeline
+import vistrails.core.interpreter.base
+import vistrails.core.interpreter.utils
+import vistrails.core.system
+import vistrails.core.vistrail.pipeline
 import gc
 import cPickle
 
+import unittest
+import vistrails.core.packagemanager
+
+# from core.modules.module_utils import FilePool
+
 ##############################################################################
 
-class CachedInterpreter(core.interpreter.base.BaseInterpreter):
+class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
     def __init__(self):
-        core.interpreter.base.BaseInterpreter.__init__(self)
+        vistrails.core.interpreter.base.BaseInterpreter.__init__(self)
         self.debugger = None
         self.create()
 
     def create(self):
         # FIXME moved here because otherwise we hit the registry too early
-        from core.modules.module_utils import FilePool
+        from vistrails.core.modules.module_utils import FilePool
         self._file_pool = FilePool()
-        self._persistent_pipeline = core.vistrail.pipeline.Pipeline()
+        self._persistent_pipeline = vistrails.core.vistrail.pipeline.Pipeline()
         self._objects = {}
         self._executed = {}
         self.filePool = self._file_pool
@@ -125,6 +128,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -175,9 +179,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             pipeline.validate()
 
         self.resolve_aliases(pipeline, aliases)
-        if controller is not None:
-            # Controller is none for sub_modules, so we can't resolve variables
-            self.resolve_variables(controller, pipeline)
+        if vistrail_variables:
+            self.resolve_variables(vistrail_variables,  pipeline)
 
         self.update_params(pipeline, params)
         
@@ -196,6 +199,13 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
             obj.signature = module._signature
+            
+            # Checking if output should be stored
+            if module.has_annotation_with_key('annotate_output'):
+                annotate_output = module.get_annotation_by_key('annotate_output')
+                #print annotate_output
+                if annotate_output:
+                    obj.annotate_output = True
                 
             reg = modules.module_registry.get_module_registry()
             for f in module.functions:
@@ -218,7 +228,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                         errors[i] = err
                         to_delete.append(obj.id)
                 else:
-                    tupleModule = core.interpreter.base.InternalTuple()
+                    tupleModule = vistrails.core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
                     for (j,p) in enumerate(f.params):
                         try:
@@ -273,6 +283,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -310,6 +321,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             suspended[obj.id] = obj.suspended
             for callable_ in module_suspended_hook:
                 callable_(obj.id)
+                
+        def set_computing(obj):
+            i = get_remapped_id(obj.id)
+            view.set_module_computing(i)
 
         # views work on local ids
         def begin_compute(obj):
@@ -347,6 +362,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             if was_suspended:
                 view.set_module_suspended(i, error)
+                error = error.msg
             elif not error:
                 view.set_module_success(i)
             else:
@@ -366,6 +382,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             view.set_module_progress(i, percentage)
             
+        def add_exec(exec_):
+            logger.add_exec(exec_, self.parent_execs)
+            
         logging_obj = InstanceObject(signalSuccess=add_to_executed,
                                      signalSuspended=add_to_suspended,
                                      begin_update=begin_update,
@@ -373,6 +392,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                      update_progress=update_progress,
                                      end_update=end_update,
                                      update_cached=update_cached,
+                                     set_computing=set_computing,
+                                     add_exec = add_exec,
                                      annotate=annotate,
                                      log=logger)
 
@@ -394,6 +415,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['version'] = current_version
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
+            obj.moduleInfo['controller'] = controller
             if extra_info is not None:
                 obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:
@@ -519,7 +541,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                               modules_added=modules_added,
                               conns_added=conns_added)
 
-    @lock_method(core.interpreter.utils.get_interpreter_lock())
+    @lock_method(vistrails.core.interpreter.utils.get_interpreter_lock())
     def execute(self, pipeline, **kwargs):
         """execute(pipeline, **kwargs):
 
@@ -572,6 +594,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -735,18 +758,16 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 ##############################################################################
 # Testing
 
-import unittest
-import core.packagemanager
 
 class TestCachedInterpreter(unittest.TestCase):
 
     def test_cache(self):
-        from core.db.locator import XMLFileLocator
-        from core.vistrail.controller import VistrailController
-        from core.db.io import load_vistrail
+        from vistrails.core.db.locator import XMLFileLocator
+        from vistrails.core.vistrail.controller import VistrailController
+        from vistrails.core.db.io import load_vistrail
         
         """Test if basic caching is working."""
-        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
         
@@ -760,7 +781,7 @@ class TestCachedInterpreter(unittest.TestCase):
         p1 = controller.current_pipeline
         
         view = DummyView()
-        interpreter = core.interpreter.cached.CachedInterpreter.get()
+        interpreter = vistrails.core.interpreter.cached.CachedInterpreter.get()
         result = interpreter.execute(p1, 
                                      locator=v,
                                      current_version=n,

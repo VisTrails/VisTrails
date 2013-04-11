@@ -32,19 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from itertools import izip
 import os
 
-from core.system import vistrails_root_directory
-from db import VistrailsDBException
+from vistrails.core.system import vistrails_root_directory
+from vistrails.db import VistrailsDBException
 
 currentVersion = '1.0.3'
 
 def getVersionDAO(version=None):
     if version is None:
         version = currentVersion
-    persistence_dir = 'db.versions.' + get_version_name(version) + \
+    persistence_dir = 'vistrails.db.versions.' + get_version_name(version) + \
         '.persistence'
     try:
         persistence = __import__(persistence_dir, {}, {}, [''])
@@ -93,8 +92,9 @@ def translate_object(obj, method_name, version=None, target_version=None):
         }
 
     def get_translate_module(map, start_version, end_version):
-        translate_dir = 'db.versions.' + get_version_name(end_version) + \
-            '.translate.' + get_version_name(start_version)
+        translate_dir = 'vistrails.db.versions.' + \
+            get_version_name(end_version) + '.translate.' + \
+            get_version_name(start_version)
         return __import__(translate_dir, {}, {}, [''])
 
     path = []

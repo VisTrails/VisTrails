@@ -36,16 +36,20 @@
 
     * ModuleFunction
 """
-
-from db.domain import DBFunction
-from core.modules.utils import create_port_spec_string
-from core.utils import enum, VistrailsInternalError, all, eprint
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.port_spec import PortSpec
+from vistrails.db.domain import DBFunction
+from vistrails.core.modules.utils import create_port_spec_string
+from vistrails.core.utils import enum, VistrailsInternalError, all, eprint
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.port_spec import PortSpec
 from itertools import izip
 import copy
 import __builtin__
 
+import unittest
+import copy
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.db.domain import IdScope
+import vistrails.core
 
 ################################################################################
 
@@ -228,10 +232,6 @@ class ModuleFunction(DBFunction):
 ################################################################################
 # Testing
 
-import unittest
-import copy
-from core.vistrail.module_param import ModuleParam
-from db.domain import IdScope
 
 #TODO add more meaningful tests
 
@@ -259,10 +259,10 @@ class TestModuleFunction(unittest.TestCase):
         self.assertNotEquals(f1.real_id, f3.real_id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         f1 = self.create_function()
-        xml_str = core.db.io.serialize(f1)
-        f2 = core.db.io.unserialize(xml_str, ModuleFunction)
+        xml_str = vistrails.core.db.io.serialize(f1)
+        f2 = vistrails.core.db.io.unserialize(xml_str, ModuleFunction)
         self.assertEquals(f1, f2)
         self.assertEquals(f1.real_id, f2.real_id)
                             

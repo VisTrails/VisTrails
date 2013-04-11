@@ -35,10 +35,12 @@
 """
 This module handles Parameter Exploration in VisTrails
 """
-from core import debug
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
+from vistrails.core import debug
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
 import copy
+
+import unittest
 
 ################################################################################
 
@@ -239,7 +241,6 @@ class ActionBasedParameterExploration(object):
 
 ################################################################################
         
-import unittest
 
 class TestParameterExploration(unittest.TestCase):
     """

@@ -32,22 +32,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.data_structures.bijectivedict import Bidict
+from vistrails.core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
-from core.modules.module_registry import get_module_registry, \
+from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-import core.db.io
-from core.requirements import MissingRequirement
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.port_spec import PortSpec, PortEndPoint
+import vistrails.core.db.io
+from vistrails.core.requirements import MissingRequirement
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 import copy
-from core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.pipeline import Pipeline
+
+from eigen import *
 
 ##########################################################################
 
-from eigen import *
 
 _debug = False
 
@@ -71,10 +71,10 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
         print 'version_c:', version_c
 
     if pipeline_a is None:
-        pipeline_a = core.db.io.get_workflow(vistrail, version_a)
+        pipeline_a = vistrails.core.db.io.get_workflow(vistrail, version_a)
         pipeline_a.validate()
     if pipeline_c is None:
-        pipeline_c = core.db.io.get_workflow(vistrail, version_c)
+        pipeline_c = vistrails.core.db.io.get_workflow(vistrail, version_c)
         pipeline_c.validate()
     
     e = EigenPipelineSimilarity2(pipeline_a, pipeline_c, alpha=alpha)
@@ -169,7 +169,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
     # STEP 2: find actions to be remapped (b-a)
 
     # this creates a new action with new operations
-    baAction = core.db.io.getPathAsAction(vistrail, version_a, version_b, True)
+    baAction = vistrails.core.db.io.getPathAsAction(vistrail, version_a, version_b, True)
 
 #     for operation in baAction.operations:
 #         print "ba_op0:", operation.id,  operation.vtType, operation.what, 
@@ -215,11 +215,11 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                     graph = pipeline_c.graph
                     for _, c_id in graph.edges_from(remap_id):
                         conn = pipeline_c.connections[c_id]
-                        ops.extend(core.db.io.create_delete_op_chain(conn))
+                        ops.extend(vistrails.core.db.io.create_delete_op_chain(conn))
                     for _, c_id in graph.edges_to(remap_id):
                         conn = pipeline_c.connections[c_id]
-                        ops.extend(core.db.io.create_delete_op_chain(conn))
-                    ops.extend(core.db.io.create_delete_op_chain(module))
+                        ops.extend(vistrails.core.db.io.create_delete_op_chain(conn))
+                    ops.extend(vistrails.core.db.io.create_delete_op_chain(module))
                     c_modules.discard(remap_id)
                 else:
                     ops.append(op)
@@ -228,7 +228,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                 if connection_remap.has_key(op.old_obj_id):
                     conn = pipeline_c.connections[connection_remap[ \
                             op.old_obj_id]]
-                    ops.extend(core.db.io.create_delete_op_chain(conn))
+                    ops.extend(vistrails.core.db.io.create_delete_op_chain(conn))
                     c_connections.discard(conn.id)
                 else:
                     ops.append(op)
@@ -276,7 +276,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                 # the module already exists
                 if op.vtType == 'add':
                     if op.parentObjId in c_locations:
-                        new_op_list = core.db.io.create_change_op_chain(
+                        new_op_list = vistrails.core.db.io.create_change_op_chain(
                             c_locations[op.parentObjId], op.data,
                             (op.parentObjType, op.parentObjId))
                         op = new_op_list[0]
@@ -286,7 +286,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
             elif op.what == 'annotation':
                 if op.vtType == 'add':
                     if (op.parentObjId, op.data.key) in c_annotations:
-                        new_op_list = core.db.io.create_change_op_chain(
+                        new_op_list = vistrails.core.db.io.create_change_op_chain(
                             c_annotations[(op.parentObjId, op.data.key)],
                             op.data,
                             (Module.vtType, op.parentObjId))
@@ -297,7 +297,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
             elif op.what == 'parameter':
                 if op.vtType == 'add':
                     if (op.parentObjId, op.data.pos) in c_parameters:
-                        new_op_list = core.db.io.create_change_op_chain(
+                        new_op_list = vistrails.core.db.io.create_change_op_chain(
                             c_parameters[(op.parentObjId, op.data.pos)],
                             op.data,
                             (ModuleFunction.vtType, op.parentObjId))
@@ -442,7 +442,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
 #         print operation.parentObjId
 
     baAction.prevId = version_c
-    core.db.io.fixActions(vistrail, version_c, [baAction])
+    vistrails.core.db.io.fixActions(vistrail, version_c, [baAction])
     for operation in baAction.operations:
         if operation.what == 'location' and (operation.vtType == 'add' or
                                              operation.vtType == 'change'):

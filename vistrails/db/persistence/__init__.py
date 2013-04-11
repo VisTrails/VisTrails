@@ -32,5 +32,4 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.versions.v1_0_3.persistence import *
+from vistrails.db.versions.v1_0_3.persistence import *

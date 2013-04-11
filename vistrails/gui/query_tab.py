@@ -37,24 +37,24 @@ the current pipeline/version view
 
 QQueryTab
 """
-
 from PyQt4 import QtCore, QtGui
+from vistrails.core.vistrail.action import Action
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.vistrail import Vistrail
+import vistrails.db.services.io
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.gui.method_dropbox import QMethodInputForm
+from vistrails.gui.modules import get_widget_class
+from vistrails.gui.pipeline_tab import QPipelineTab
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.vistrail_controller import VistrailController
+import copy
+
 # FIXME broke this as Actions have been changed
 #
 # from core.vistrail.action import ChangeParameterAction, \
 #      ChangeAnnotationAction, AddModulePortAction
-from core.vistrail.action import Action
-from core.vistrail.location import Location
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.vistrail import Vistrail
-import db.services.io
-from core.modules.module_registry import get_module_registry
-from gui.method_dropbox import QMethodInputForm
-from gui.modules import get_widget_class
-from gui.pipeline_tab import QPipelineTab
-from gui.theme import CurrentTheme
-from gui.vistrail_controller import VistrailController
-import copy
 
 ################################################################################
 

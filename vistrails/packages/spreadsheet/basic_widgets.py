@@ -39,7 +39,7 @@
 #   SingleCellSheetReference
 #   SpreadsheetCell
 ################################################################################
-from core.modules.vistrails_module import Module, NotCacheable, ModuleError
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from spreadsheet_base import (StandardSheetReference,
                               StandardSingleCellSheetReference)
 from spreadsheet_controller import spreadsheetController

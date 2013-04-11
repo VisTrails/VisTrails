@@ -32,16 +32,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import __builtin__
 from itertools import izip
 import operator
 
-from core.data_structures.bijectivedict import Bidict
-from core.modules.utils import create_port_spec_string, parse_port_spec_string
-from core.utils import enum, VistrailsInternalError
-from core.vistrail.port_spec_item import PortSpecItem
-from db.domain import DBPortSpec
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.modules.utils import create_port_spec_string, parse_port_spec_string
+from vistrails.core.utils import enum, VistrailsInternalError
+from vistrails.core.vistrail.port_spec_item import PortSpecItem
+from vistrails.db.domain import DBPortSpec
+
+import unittest
+import copy
+from vistrails.db.domain import IdScope
+import vistrails.core
 
 ################################################################################
 
@@ -181,7 +185,7 @@ class PortSpec(DBPortSpec):
 
     @staticmethod
     def convert(_port_spec):
-        from core.modules.module_registry import module_registry_loaded, \
+        from vistrails.core.modules.module_registry import module_registry_loaded, \
             ModuleRegistryException
         if _port_spec.__class__ == PortSpec:
             return
@@ -326,7 +330,7 @@ class PortSpec(DBPortSpec):
         # multiple parameters, where each parameter can be either of the above:
         # add_input_port(_, _, [Float, (Integer, 'count')])
 
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         registry = get_module_registry()
         entries = []
         def canonicalize(sig_item):
@@ -459,9 +463,6 @@ class PortSpec(DBPortSpec):
 ################################################################################
 # Testing
 
-import unittest
-import copy
-from db.domain import IdScope
 
 class TestPortSpec(unittest.TestCase):
 
@@ -486,15 +487,15 @@ class TestPortSpec(unittest.TestCase):
         self.assertNotEquals(s1.id, s3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         s1 = self.create_port_spec()
-        xml_str = core.db.io.serialize(s1)
-        s2 = core.db.io.unserialize(xml_str, PortSpec)
+        xml_str = vistrails.core.db.io.serialize(s1)
+        s2 = vistrails.core.db.io.unserialize(xml_str, PortSpec)
         self.assertEquals(s1, s2)
         self.assertEquals(s1.id, s2.id)
 
     def test_create_from_signature(self):
-        from core.modules.basic_modules import Float
+        from vistrails.core.modules.basic_modules import Float
         port_spec = PortSpec(id=-1,
                              name="SetXYZ",
                              type='input',

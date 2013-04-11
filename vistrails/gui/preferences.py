@@ -32,20 +32,19 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtGui, QtCore
-from core import get_vistrails_application
-from core.packagemanager import get_package_manager
-from core.utils import InvalidPipeline
-from core.utils.uxml import (named_elements,
+from vistrails.core import get_vistrails_application
+from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.utils import InvalidPipeline
+from vistrails.core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
-from gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
+from vistrails.gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
                                QThumbnailConfiguration)
-from gui.module_palette import QModulePalette
-from gui.pipeline_view import QPipelineView
-from core.configuration import get_vistrails_persistent_configuration, \
+from vistrails.gui.module_palette import QModulePalette
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
-from core import debug
+from vistrails.core import debug
 import os.path
 
 ##############################################################################
@@ -300,7 +299,7 @@ class QPackagesWidget(QtGui.QWidget):
         dependency_graph = pm.dependency_graph()
         new_deps = self._current_package.dependencies()
 
-        from core.modules.basic_modules import identifier as basic_modules_identifier
+        from vistrails.core.modules.basic_modules import identifier as basic_modules_identifier
         if self._current_package.identifier != basic_modules_identifier:
             new_deps.append(basic_modules_identifier)
 
@@ -428,8 +427,8 @@ class QPackagesWidget(QtGui.QWidget):
         self._enable_button.setEnabled(False)
         assert self._current_package
         pm = get_package_manager()
-        from core.modules.basic_modules import identifier as basic_modules_identifier
-        from core.modules.abstraction import identifier as abstraction_identifier
+        from vistrails.core.modules.basic_modules import identifier as basic_modules_identifier
+        from vistrails.core.modules.abstraction import identifier as abstraction_identifier
         is_not_basic_modules = (self._current_package.identifier != basic_modules_identifier)
         is_not_abstraction = (self._current_package.identifier != abstraction_identifier)
         can_disable = (pm.can_be_disabled(self._current_package.identifier) and
@@ -460,10 +459,6 @@ class QPackagesWidget(QtGui.QWidget):
         assert self._current_package
         p = self._current_package
 
-        # A delayed signal can result in the package already has been removed
-        pm = get_package_manager()
-        if not pm.has_package(p.identifier):
-            return
         try:
             p.load()
         except Exception, e:
@@ -506,6 +501,9 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         self._current_package = pm.get_package_by_codepath(codepath)
         self.set_buttons_to_enabled_package()
+        # A delayed signal can result in the package already has been removed
+        if not pm.has_package(self._current_package.identifier):
+            return
         self.set_package_information()
         self._enabled_packages_list.setFocus()
 
@@ -522,7 +520,7 @@ class QPackagesWidget(QtGui.QWidget):
         self._available_packages_list.setFocus()
 
     def invalidate_current_pipeline(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.invalidate_pipelines()
         
 class QPreferencesDialog(QtGui.QDialog):
@@ -638,5 +636,5 @@ class QPreferencesDialog(QtGui.QDialog):
         
         """
         from PyQt4 import QtCore
-        from gui.application import get_vistrails_application
+        from vistrails.gui.application import get_vistrails_application
         get_vistrails_application().save_configuration()

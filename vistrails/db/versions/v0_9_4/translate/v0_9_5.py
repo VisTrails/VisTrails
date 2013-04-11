@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
-from db.versions.v0_9_4.domain import DBVistrail, DBWorkflow, DBLog, DBGroup
+from vistrails.db.versions.v0_9_4.domain import DBVistrail, DBWorkflow, DBLog, DBGroup
 
 def translateVistrail(_vistrail):
     def update_port_spec_spec(new_obj, translate_dict):

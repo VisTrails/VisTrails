@@ -39,10 +39,9 @@ QVistrailViewTabBar
 QVistrailViewToolBar
 QVistrailInteractionToolBar
 """
-
 from PyQt4 import QtCore, QtGui
-from core.configuration import get_vistrails_configuration
-from gui.theme import CurrentTheme
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.gui.theme import CurrentTheme
 
 ################################################################################
 

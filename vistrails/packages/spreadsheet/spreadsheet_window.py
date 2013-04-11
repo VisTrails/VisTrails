@@ -44,8 +44,8 @@ from spreadsheet_tabcontroller import StandardWidgetTabController
 from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import QCellContainer
 from spreadsheet_config import configuration
-from core.modules import module_utils
-from core.utils import trace_method
+from vistrails.core.modules import module_utils
+from vistrails.core.utils import trace_method
 import ctypes
 import os.path
 import sys

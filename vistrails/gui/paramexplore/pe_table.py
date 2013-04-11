@@ -32,30 +32,33 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.modules.vistrails_module import Module
-""" The file describes the parameter exploration table for VisTrails
-
-QParameterExplorationTable
-"""
+from vistrails.core.modules.vistrails_module import Module
 from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
-from gui.theme import CurrentTheme
-from gui.common_widgets import QPromptWidget
-from gui.modules.paramexplore import QParameterEditor
-from gui.paramexplore.param_view import QParameterTreeWidget
-from gui.utils import show_warning
-from core import debug
-from core.modules.basic_modules import Constant
-from core.modules.module_registry import get_module_registry
-from core.system import current_time
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module import Module as VistrailModule
-from core.paramexplore.paramexplore import ParameterExploration
-import core.db.action
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.common_widgets import QPromptWidget
+from vistrails.gui.modules.paramexplore import QParameterEditor
+from vistrails.gui.paramexplore.param_view import QParameterTreeWidget
+from vistrails.gui.utils import show_warning
+from vistrails.core import debug
+from vistrails.core.modules.basic_modules import Constant
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.system import current_time
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module import Module as VistrailModule
+from vistrails.core.paramexplore.paramexplore import ParameterExploration
+import vistrails.core.db.action
+import vistrails.gui
+
+""" The file describes the parameter exploration table for VisTrails
+
+QParameterExplorationTable
+"""
+
 
 ################################################################################
 class QParameterExplorationWidget(QtGui.QScrollArea):
@@ -360,11 +363,11 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                 interpolator.function = p_code
 
     def get_palette(self):
-        from gui.paramexplore.pe_inspector import QParamExploreInspector
+        from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
         return QParamExploreInspector.instance()
     
     def get_param_view(self):
-        from gui.paramexplore.param_view import QParameterView
+        from vistrails.gui.paramexplore.param_view import QParameterView
         return QParameterView.instance()
     
 class QParameterExplorationTable(QPromptWidget):
@@ -591,7 +594,7 @@ class QParameterExplorationTable(QPromptWidget):
                                                     )
                             action_spec = ('change', old_param, new_param,
                                            parentType, function.real_id)
-                            action = core.db.action.create_action([action_spec])
+                            action = vistrails.core.db.action.create_action([action_spec])
                             actions.append(action)
                         parameterValues[dim].append(actions)
                         tmp_id -= 1
@@ -1001,9 +1004,9 @@ class QDimensionRadioButton(QtGui.QRadioButton):
 
 if __name__=="__main__":        
     import sys
-    import gui.theme
+    import vistrails.gui.theme
     app = QtGui.QApplication(sys.argv)
-    gui.theme.initializeCurrentTheme()
+    vistrails.gui.theme.initializeCurrentTheme()
     vc = QDimensionLabel(CurrentTheme.EXPLORE_SHEET_PIXMAP, 'Hello World')
     vc.show()
     sys.exit(app.exec_())

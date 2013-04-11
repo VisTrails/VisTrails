@@ -32,8 +32,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.db.domain import DBPluginData
 
-from db.domain import DBPluginData
+import unittest
+import copy
+import random
+from vistrails.db.domain import IdScope
+import vistrails.core
 
 class PluginData(DBPluginData):
 
@@ -77,10 +82,6 @@ class PluginData(DBPluginData):
 ################################################################################
 # Testing
 
-import unittest
-import copy
-import random
-from db.domain import IdScope
 
 class TestPluginData(unittest.TestCase):
 
@@ -91,10 +92,10 @@ class TestPluginData(unittest.TestCase):
         self.create_data(2, "testing the data field")
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         p_data1 = self.create_data()
-        xml_str = core.db.io.serialize(p_data1)
-        p_data2 = core.db.io.unserialize(xml_str, PluginData)
+        xml_str = vistrails.core.db.io.serialize(p_data1)
+        p_data2 = vistrails.core.db.io.unserialize(xml_str, PluginData)
         self.assertEquals(p_data1, p_data2)
         self.assertEquals(p_data1.id, p_data2.id)
 

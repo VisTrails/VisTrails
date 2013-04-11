@@ -42,17 +42,16 @@ QAliasListItem
 QAliasList
 
 """
-
 import copy
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 
 
-from core.data_structures.bijectivedict import Bidict
-from core.mashup.alias import Alias
-from gui.base_view import BaseView
-from gui.mashups.alias_inspector import QAliasInspector
-from gui.utils import show_question, YES_BUTTON, NO_BUTTON
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.mashup.alias import Alias
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.mashups.alias_inspector import QAliasInspector
+from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON
 
 ###############################################################################
 class QAliasListPanel(QtGui.QWidget, BaseView):
@@ -140,8 +139,8 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
         self.aliasesChanged.emit()
         
     def set_default_layout(self):
-        from gui.mashups.mashups_inspector import QMashupsInspector
-        from gui.mashups.alias_parameter_view import QAliasParameterView
+        from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
+        from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
              QtCore.Qt.RightDockWidgetArea: QAliasParameterView,
@@ -176,7 +175,6 @@ class QAliasList(QtGui.QTreeWidget):
         self.panel = panel
         self.aliases = Bidict()
         self.alias_widgets = {}
-        self.current_item = None
         self.controller = controller
         self.header().setStretchLastSection(True)
         self.setHeaderLabels(QtCore.QStringList() << "Position" << "Name" << "Type")
@@ -271,10 +269,12 @@ class QAliasList(QtGui.QTreeWidget):
                 alias = self.createAliasItem(copy.copy(alias))
                 self.aliases[alias.name] = alias
         
-        if (self.previousSelected > -1 and 
-            self.previousSelected < self.topLevelItemCount()):
+        if self.previousSelected > -1:
+            if self.previousSelected >= self.topLevelItemCount():
+                self.previousSelected = self.topLevelItemCount()-1
             item = self.topLevelItem(self.previousSelected)
             self.setItemSelected(item, True)
+            self.setCurrentItem(item)
         self.itemSelectionChanged.connect(self.setPreviousSelected)
             
     def updatePosNumbers(self):
@@ -309,24 +309,28 @@ class QAliasList(QtGui.QTreeWidget):
                 
     @pyqtSlot(bool)
     def removeCurrentAlias(self, checked=False):
-        item = self.currentItem() 
+        item = self.currentItem()
+        if not item:
+            return
         name = item.alias.name
+        # item will get recreated after question dialog shows so keep only index
+        pos = self.indexOfTopLevelItem(item)
         res = show_question("Mashups", 
                 "Are you sure do you want to remove '%s' from the mashup?"%name,
                 [YES_BUTTON, NO_BUTTON], NO_BUTTON)
         if res == YES_BUTTON:
-        
-            old_alias = item.alias.name
-            del self.aliases[old_alias]
-        
-            pos = self.indexOfTopLevelItem(item)
+            self.previousSelected = pos 
             self.takeTopLevelItem(pos)
+            del self.aliases[name]
+
             self.updatePosNumbers()
-            if pos < self.topLevelItemCount() -1:
+            if pos >= self.topLevelItemCount() - 1:
+                pos = self.topLevelItemCount() - 1
+            self.previousSelected = pos
+            if pos != -1:
                 new_item = self.topLevelItem(pos)
-            else:
-                new_item = self.topLevelItem(pos-1)
-            self.setCurrentItem(new_item)
+                self.setCurrentItem(new_item)
+                self.setItemSelected(new_item, True)
             self.aliasRemoved.emit(name)        
 ################################################################################
 

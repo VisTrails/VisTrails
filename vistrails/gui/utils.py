@@ -35,11 +35,13 @@
 
 """ Utilities for creating simple dialogs, notifications in Vistrails
 without exposing Qt codes """
-
 from PyQt4 import QtGui, QtCore
-from gui.theme import CurrentTheme
-import gui.theme
-from core.system import systemType
+from vistrails.gui.theme import CurrentTheme
+import vistrails.gui.theme
+from vistrails.core.system import systemType
+
+import unittest
+
 ################################################################################
 
 OK_BUTTON              = QtGui.QMessageBox.Ok
@@ -217,20 +219,19 @@ def getCurrentVersion():
     return -1
 
 def initTheme():
-    return gui.theme.initializeCurrentTheme()
+    return vistrails.gui.theme.initializeCurrentTheme()
 
 ################################################################################
 # VisTrails GUI unit test class - setUp and teardown ensure no
 # vistrails are open
 
-import unittest
 
 class TestVisTrailsGUI(unittest.TestCase):
 
     def _close_all(self):
-        import api
+        import vistrails.api
         # Close all open vistrails
-        api.close_all_vistrails()
+        vistrails.api.close_all_vistrails()
 
     def setUp(self):
         # we need to call twice because VisTrails will create a new vistrail

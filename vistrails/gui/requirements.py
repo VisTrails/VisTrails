@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.requirements import MissingRequirement, require_python_module
-import core.bundles.installbundle
+from vistrails.core.requirements import MissingRequirement, require_python_module
+import vistrails.core.bundles.installbundle
 
 def check_pyqt4():
     # checks for the presence of pyqt4, which is more important than the rest,
@@ -43,7 +42,7 @@ def check_pyqt4():
         require_python_module('PyQt4.QtGui')
         require_python_module('PyQt4.QtOpenGL')
     except MissingRequirement:
-        r = core.bundles.installbundle.install(
+        r = vistrails.core.bundles.installbundle.install(
             {'linux-ubuntu': ['python-qt4',
                               'python-qt4-gl',
                               'python-qt4-sql']})

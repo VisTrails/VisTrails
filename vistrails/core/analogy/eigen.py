@@ -32,21 +32,24 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.data_structures.bijectivedict import Bidict
+from vistrails.core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
 import copy
+
+import math
+import operator
+from pipeline_utils import *
+
+from vistrails.core.utils import append_to_dict_of_lists
+from vistrails.core.system import temporary_directory
+
 try:
     import scipy
     _analogies_available = True
 except ImportError:
     _analogies_available = False
 
-import math
-import operator
-from pipeline_utils import *
 
-from core.utils import append_to_dict_of_lists
-from core.system import temporary_directory
 
 ##############################################################################
 # This is the analogy implementation

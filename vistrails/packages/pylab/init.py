@@ -32,17 +32,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-import core.modules
-import core.modules.module_registry
-from core import debug
-from core.modules.basic_modules import File, String, Boolean
-from core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
+import vistrails.core.modules
+import vistrails.core.modules.module_registry
+from vistrails.core import debug
+from vistrails.core.modules.basic_modules import File, String, Boolean
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from plot import MplPlot, MplPlotConfigurationWidget
 import time
 import urllib
 
-from core.bundles import py_import
+from vistrails.core.bundles import py_import
 try:
     mpl_dict = {'linux-ubuntu': 'python-matplotlib',
                 'linux-fedora': 'python-matplotlib'}
@@ -170,7 +169,7 @@ class MplScatterplot(NotCacheable, Module):
 
 def initialize(*args, **keywords):    
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     
     reg.add_module(MplPlot, configureWidgetType=MplPlotConfigurationWidget)
 #    reg.add_input_port(MplPlot, 'source', String, True)

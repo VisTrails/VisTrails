@@ -34,7 +34,6 @@
 ###############################################################################
 
 """Configuration variables for controlling specific things in VisTrails."""
-
 import copy
 import os.path
 import shutil
@@ -42,11 +41,11 @@ import sys
 import tempfile
 import weakref
 
-from core import debug
-from core import system
-from core.utils import (InstanceObject, Ref, append_to_dict_of_lists,
+from vistrails.core import debug
+from vistrails.core import system
+from vistrails.core.utils import (InstanceObject, Ref, append_to_dict_of_lists,
                         VistrailsInternalError)
-from core.utils.uxml import (named_elements,
+from vistrails.core.utils.uxml import (named_elements,
                              elements_filter, eval_xml_value,
                              quote_xml_value)
 
@@ -208,6 +207,7 @@ def default():
         'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,
         'rootDirectory': (None, str),
+        'runningJobsList': (None, str),
         'shell': default_shell(),
         'showScrollbars': True,
         'showMovies': True,
@@ -217,6 +217,7 @@ def default():
         'spreadsheetDumpCells': (None, str),
         'spreadsheetDumpPDF': False,
         'staticRegistry': (None, str),
+        'temporaryDirectory': (None, str),
         'thumbs': default_thumbs(),
         'upgradeOn': True,
         'upgradeDelay': True,
@@ -306,7 +307,7 @@ def get_vistrails_persistent_configuration():
     get_vistrails_temp_configuration.
 
     """
-    from core.application import get_vistrails_application
+    from vistrails.core.application import get_vistrails_application
     app = get_vistrails_application()
     if hasattr(app, 'configuration'):
         return app.configuration
@@ -322,7 +323,7 @@ def get_vistrails_configuration():
     use get_vistrails_persistent_configuration() instead.
     
     """
-    from core.application import get_vistrails_application
+    from vistrails.core.application import get_vistrails_application
     app = get_vistrails_application()
     if hasattr(app, 'temp_configuration'):
         return app.temp_configuration
@@ -338,7 +339,7 @@ def get_vistrails_temp_configuration():
     use get_vistrails_persistent_configuration() instead.
     
     """
-    from core.application import get_vistrails_application
+    from vistrails.core.application import get_vistrails_application
     app = get_vistrails_application()
     if hasattr(app, 'temp_configuration'):
         return app.temp_configuration

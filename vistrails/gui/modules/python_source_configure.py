@@ -32,19 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
-from core import system
-from core.utils import PortAlreadyExists
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from gui.modules.source_configure import SourceConfigurationWidget
-from gui.theme import CurrentTheme
-from gui.utils import getBuilderWindow
-from core import debug
+from vistrails.core import system
+from vistrails.core.utils import PortAlreadyExists
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.gui.modules.source_configure import SourceConfigurationWidget
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import getBuilderWindow
+from vistrails.core import debug
 import sys
 import urllib
-import core.bundles
+import vistrails.core.bundles
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
     def __init__( self, document ):
@@ -128,17 +127,17 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
 install_attempted = False
 def PythonEditor(parent=None):
     global install_attempted
-    installed = core.requirements.python_module_exists('PyQt4.Qsci')
+    installed = vistrails.core.requirements.python_module_exists('PyQt4.Qsci')
     if not installed and not install_attempted:
         install_attempted = True
-        from core.bundles import installbundle
+        from vistrails.core.bundles import installbundle
         installed = installbundle.install({'linux-ubuntu': 'python-qscintilla2'})
     if installed:
         return NewPythonEditor(parent)
     return OldPythonEditor(parent)
 
 def NewPythonEditor(parent):
-    core.requirements.require_python_module('PyQt4.Qsci')
+    vistrails.core.requirements.require_python_module('PyQt4.Qsci')
     from PyQt4.Qsci import QsciScintilla, QsciLexerPython
     class _PythonEditor(QsciScintilla):
     

@@ -32,31 +32,30 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import os
 import re
 from itertools import chain
 
-from core import debug
-from core.configuration import get_vistrails_configuration
-from core.modules.vistrails_module import Module, ModuleError
-from core.modules.sub_module import read_vistrail, new_abstraction, \
+from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.sub_module import read_vistrail, new_abstraction, \
     get_abstraction_dependencies, save_abstraction
-import core.modules.module_registry
-from core.system import vistrails_version
-from core.utils import InvalidPipeline
+import vistrails.core.modules.module_registry
+from vistrails.core.system import vistrails_version
+from vistrails.core.utils import InvalidPipeline
 
 name = 'My SubWorkflows'
 version = '1.6'
 identifier = 'local.abstractions'
 
-vistrails = {}
+my_vistrails = {}
 
 def initialize(*args, **kwargs):
-    import core.packagemanager
-    manager = core.packagemanager.get_package_manager()
+    import vistrails.core.packagemanager
+    manager = vistrails.core.packagemanager.get_package_manager()
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
 #     conf = get_vistrails_configuration()
 #     if conf.check("userPackageDirectory"):
 #         if conf.check('userPackageDirectory'):
@@ -68,8 +67,8 @@ def initialize(*args, **kwargs):
 #     for abstraction in os.listdir(abstraction_dir):
 #         if p.match(abstraction):
 #             abs_fnames.append(os.path.join(abstraction_dir, abstraction))
-    abs_vistrails = vistrails
-    last_count = len(vistrails) + 1
+    abs_vistrails = my_vistrails
+    last_count = len(my_vistrails) + 1
 
     cannot_load = {}
     while len(abs_vistrails) > 0 and len(abs_vistrails) < last_count:
@@ -99,10 +98,10 @@ def initialize(*args, **kwargs):
                     # handle_invalid_pipeline will raise it's own InvalidPipeline
                     # exception if it fails
                     try:
-                        import core.vistrail.controller
+                        import vistrails.core.vistrail.controller
                         module_version = abs_vistrail.get_latest_version()
                         # Use a "dummy" controller to handle the upgrade
-                        controller = core.vistrail.controller.VistrailController(abs_vistrail)
+                        controller = vistrails.core.vistrail.controller.VistrailController(abs_vistrail)
                         (new_version, new_pipeline) = \
                             controller.handle_invalid_pipeline(e, long(module_version), 
                                                                abs_vistrail, False, True)
@@ -134,10 +133,10 @@ def initialize(*args, **kwargs):
         debug.critical("Cannot load subworkflow '%s'" % abs_name)
 
 def package_dependencies():
-    import core.packagemanager
-    manager = core.packagemanager.get_package_manager()
+    import vistrails.core.packagemanager
+    manager = vistrails.core.packagemanager.get_package_manager()
 
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     conf = get_vistrails_configuration()
     if conf.check("abstractionsDirectory"):
         abstraction_dir = conf.abstractionsDirectory
@@ -149,7 +148,7 @@ def package_dependencies():
             try:
                 vistrail = read_vistrail(abs_fname)
                 dependencies = get_abstraction_dependencies(vistrail)
-            except core.modules.module_registry.MissingPackage, e:
+            except vistrails.core.modules.module_registry.MissingPackage, e:
                 dependencies = {e._identifier: set()}
             add_abstraction = True
             inter_depends = []
@@ -164,7 +163,7 @@ def package_dependencies():
                 # print 'adding', abstraction[:-4]
                 all_packages.update(p for p in dependencies.iterkeys()
                                     if p != identifier)
-                vistrails[abstraction[:-4]] = \
+                my_vistrails[abstraction[:-4]] = \
                     (vistrail, abs_fname, inter_depends)
             else:
                 debug.critical(("Subworkflow '%s' is missing packages it " +

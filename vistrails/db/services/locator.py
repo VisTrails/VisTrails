@@ -32,24 +32,23 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import os.path
-import core.configuration
-import core.system
-from db.services import io
-from db.services.io import SaveBundle
-from db.domain import DBVistrail, DBWorkflow
+import vistrails.core.configuration
+import vistrails.core.system
+from vistrails.db.services import io
+from vistrails.db.services.io import SaveBundle
+from vistrails.db.domain import DBVistrail, DBWorkflow
 import urllib
 import urlparse
 import cgi
-from db import VistrailsDBException
-from core import debug
-from core.system import get_elementtree_library, systemType
-
-ElementTree = get_elementtree_library()
+from vistrails.db import VistrailsDBException
+from vistrails.core import debug
+from vistrails.core.system import get_elementtree_library, systemType
 import hashlib
 from time import strptime
 from datetime import datetime
+
+ElementTree = get_elementtree_library()
 
 class BaseLocator(object):
 
@@ -169,11 +168,11 @@ class XMLFileLocator(BaseLocator):
         self._mshptrail = kwargs.get('mashuptrail', None)
         self._mshpversion = kwargs.get('mashupVersion', None)
         self._parameterexploration = kwargs.get('parameterExploration', None)
-        config = core.configuration.get_vistrails_configuration()
+        config = vistrails.core.configuration.get_vistrails_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
         else:
-            self._dot_vistrails = core.system.default_dot_vistrails()
+            self._dot_vistrails = vistrails.core.system.default_dot_vistrails()
         self.kwargs = kwargs
 
     def load(self, type):
@@ -405,7 +404,7 @@ class ZIPFileLocator(XMLFileLocator):
     def load(self, type):
         fname = self._find_latest_temporary()
         if fname:
-            from db.domain import DBVistrail
+            from vistrails.db.domain import DBVistrail
             obj = io.open_from_xml(fname, type)
             return SaveBundle(DBVistrail.vtType, obj)
         else:

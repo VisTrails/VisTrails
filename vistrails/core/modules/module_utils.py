@@ -33,12 +33,15 @@
 ##
 ###############################################################################
 # Utilities for user-defined Modules
-
 import os
 import tempfile
-from core.modules import basic_modules
-from core.system import link_or_copy
-from core.utils import VistrailsInternalError
+from vistrails.core.modules import basic_modules
+from vistrails.core.system import link_or_copy
+from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
+
+import unittest
 
 ################################################################################
 
@@ -48,7 +51,15 @@ class FilePool(object):
 use temporary files. """
     
     def __init__(self):
-        self.directory = tempfile.mkdtemp(prefix='vt_tmp')
+        d = {'prefix':'vt_tmp'}
+        if get_vistrails_configuration().check('temporaryDirectory'):
+            dir = get_vistrails_configuration().temporaryDirectory
+            if os.path.exists(dir):
+                d['dir'] = dir
+            else:
+                debug.critical("Temporary directory does not exist: %s" % dir)
+
+        self.directory = tempfile.mkdtemp(**d)
         self.files = {}
         
     def cleanup(self):
@@ -130,7 +141,6 @@ future."""
         
 ################################################################################
 
-import unittest
 
 class TestFilePool(unittest.TestCase):
 

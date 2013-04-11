@@ -32,23 +32,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import sys
 import os.path
 import shutil
 import hashlib
-import core.system
-import core.modules.module_registry
-import core.modules.basic_modules
+import vistrails.core.system
+import vistrails.core.modules.module_registry
+import vistrails.core.modules.basic_modules
 import traceback
-from core.packagemanager import get_package_manager
-from core.modules import vistrails_module
-from core.modules.package import Package
-from core.modules.vistrails_module import Module, ModuleError, new_module
-from core.upgradeworkflow import UpgradeWorkflowHandler
-from core import debug
+from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.modules import vistrails_module
+from vistrails.core.modules.package import Package
+from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core import debug
 
-from core.bundles import py_import
+from vistrails.core.bundles import py_import
 try:
     mpl_dict = {'linux-ubuntu': 'python-suds',
                 'linux-fedora': 'python-suds'}
@@ -78,58 +77,58 @@ wsdlSchemas = ['http://www.w3.org/2001/XMLSchema',
               'http://schemas.xmlsoap.org/soap/encoding/']
 #Dictionary of primitive types
 #list extracted from http://www.w3.org/2001/XMLSchema
-wsdlTypesDict = { 'string' : core.modules.basic_modules.String,
-                'float': core.modules.basic_modules.Float,
-                'decimal': core.modules.basic_modules.Float,
-                'double': core.modules.basic_modules.Float,
-                'boolean': core.modules.basic_modules.Boolean,
-                'anyType': core.modules.basic_modules.Variant,
-                'anyURI': core.modules.basic_modules.String,
-                'DataHandler':core.modules.basic_modules.String,
-                'dateTime': core.modules.basic_modules.String,
-                'duration': core.modules.basic_modules.String,
-                'time': core.modules.basic_modules.String,
-                'date': core.modules.basic_modules.String,
-                'gYearMonth': core.modules.basic_modules.String,
-                'gYear': core.modules.basic_modules.String,
-                'gMonthDay': core.modules.basic_modules.String,
-                'gDay': core.modules.basic_modules.String,
-                'gMonth': core.modules.basic_modules.String,
-                'hexBinary': core.modules.basic_modules.String,
-                'base64': core.modules.basic_modules.String,
-                'base64Binary': core.modules.basic_modules.String,
-                'QName': core.modules.basic_modules.String,
-                'normalizedString': core.modules.basic_modules.String,
-                'token': core.modules.basic_modules.String,
-                'language': core.modules.basic_modules.String,
-                'IDREFS': core.modules.basic_modules.String,
-                'ENTITIES': core.modules.basic_modules.String,
-                'NMTOKEN': core.modules.basic_modules.String,
-                'NMTOKENS': core.modules.basic_modules.String,
-                'Name': core.modules.basic_modules.String,
-                'NCName': core.modules.basic_modules.String,
-                'ID': core.modules.basic_modules.String,
-                'IDREF': core.modules.basic_modules.String,
-                'ENTITY': core.modules.basic_modules.String,
-                'integer' : core.modules.basic_modules.Integer,
-                'nonPositiveInteger' : core.modules.basic_modules.Integer,
-                'negativeInteger' : core.modules.basic_modules.Integer,
-                'long' : core.modules.basic_modules.Integer,
-                'int' : core.modules.basic_modules.Integer,
-                'short' : core.modules.basic_modules.Integer,
-                'byte' : core.modules.basic_modules.Integer,
-                'nonNegativeInteger' : core.modules.basic_modules.Integer,
-                'unsignedLong' : core.modules.basic_modules.Integer,
-                'unsignedInt' : core.modules.basic_modules.Integer,
-                'unsignedShort' : core.modules.basic_modules.Integer,
-                'unsignedByte' : core.modules.basic_modules.Integer,
-                'positiveInteger' : core.modules.basic_modules.Integer,
-                'Array': core.modules.basic_modules.List,
+wsdlTypesDict = { 'string' : vistrails.core.modules.basic_modules.String,
+                'float': vistrails.core.modules.basic_modules.Float,
+                'decimal': vistrails.core.modules.basic_modules.Float,
+                'double': vistrails.core.modules.basic_modules.Float,
+                'boolean': vistrails.core.modules.basic_modules.Boolean,
+                'anyType': vistrails.core.modules.basic_modules.Variant,
+                'anyURI': vistrails.core.modules.basic_modules.String,
+                'DataHandler':vistrails.core.modules.basic_modules.String,
+                'dateTime': vistrails.core.modules.basic_modules.String,
+                'duration': vistrails.core.modules.basic_modules.String,
+                'time': vistrails.core.modules.basic_modules.String,
+                'date': vistrails.core.modules.basic_modules.String,
+                'gYearMonth': vistrails.core.modules.basic_modules.String,
+                'gYear': vistrails.core.modules.basic_modules.String,
+                'gMonthDay': vistrails.core.modules.basic_modules.String,
+                'gDay': vistrails.core.modules.basic_modules.String,
+                'gMonth': vistrails.core.modules.basic_modules.String,
+                'hexBinary': vistrails.core.modules.basic_modules.String,
+                'base64': vistrails.core.modules.basic_modules.String,
+                'base64Binary': vistrails.core.modules.basic_modules.String,
+                'QName': vistrails.core.modules.basic_modules.String,
+                'normalizedString': vistrails.core.modules.basic_modules.String,
+                'token': vistrails.core.modules.basic_modules.String,
+                'language': vistrails.core.modules.basic_modules.String,
+                'IDREFS': vistrails.core.modules.basic_modules.String,
+                'ENTITIES': vistrails.core.modules.basic_modules.String,
+                'NMTOKEN': vistrails.core.modules.basic_modules.String,
+                'NMTOKENS': vistrails.core.modules.basic_modules.String,
+                'Name': vistrails.core.modules.basic_modules.String,
+                'NCName': vistrails.core.modules.basic_modules.String,
+                'ID': vistrails.core.modules.basic_modules.String,
+                'IDREF': vistrails.core.modules.basic_modules.String,
+                'ENTITY': vistrails.core.modules.basic_modules.String,
+                'integer' : vistrails.core.modules.basic_modules.Integer,
+                'nonPositiveInteger' : vistrails.core.modules.basic_modules.Integer,
+                'negativeInteger' : vistrails.core.modules.basic_modules.Integer,
+                'long' : vistrails.core.modules.basic_modules.Integer,
+                'int' : vistrails.core.modules.basic_modules.Integer,
+                'short' : vistrails.core.modules.basic_modules.Integer,
+                'byte' : vistrails.core.modules.basic_modules.Integer,
+                'nonNegativeInteger' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedLong' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedInt' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedShort' : vistrails.core.modules.basic_modules.Integer,
+                'unsignedByte' : vistrails.core.modules.basic_modules.Integer,
+                'positiveInteger' : vistrails.core.modules.basic_modules.Integer,
+                'Array': vistrails.core.modules.basic_modules.List,
 
                 # soapenc types
-                'arrayCoordinate': core.modules.basic_modules.String,
-                'Struct': core.modules.basic_modules.String,
-                'NOTATION': core.modules.basic_modules.String                
+                'arrayCoordinate': vistrails.core.modules.basic_modules.String,
+                'Struct': vistrails.core.modules.basic_modules.String,
+                'NOTATION': vistrails.core.modules.basic_modules.String                
                 }
 
 def initialize(*args, **keywords):
@@ -138,7 +137,7 @@ def initialize(*args, **keywords):
     global package_cache
 
     #Create a directory for the SUDSWebServices package
-    location = os.path.join(core.system.default_dot_vistrails(),
+    location = os.path.join(vistrails.core.system.default_dot_vistrails(),
                                      "SUDSWebServices")
     if not os.path.isdir(location):
         try:
@@ -178,7 +177,7 @@ def initialize(*args, **keywords):
         
 def finalize():
     # unload service packages
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     for s in webServicesDict.itervalues():
         if s.package:
             reg.remove_package(s.package)
@@ -309,7 +308,7 @@ class Service:
         return False
 
     def createPackage(self):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         if self.signature in reg.packages:
             reg.remove_package(reg.packages[self.signature])
 
@@ -350,7 +349,7 @@ class Service:
         if pm.has_package(self.signature):
             # do nothing
             return
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
 
         # create a document hash integer from the cached sax tree
         # "name" is what suds use as the cache key
@@ -475,7 +474,7 @@ class Service:
 
     def createTypeClasses(self):
         # first create classes
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         self.typeClasses = {}
         for t in self.wstypes.itervalues():
             def compute(self):
@@ -568,7 +567,7 @@ It is a WSDL type with signature:
                 ptype = part.type
                 if part.max is not None and (part.max == 'unbounded' or int(part.max)>1):
                     # it can be multiple objects which means we need to make it a list
-                    c = core.modules.basic_modules.List
+                    c = vistrails.core.modules.basic_modules.List
                 elif ptype[1] in wsdlSchemas:
                     c = wsdlTypesDict[ptype[0]]
                 elif ptype in self.typeClasses:
@@ -584,7 +583,7 @@ It is a WSDL type with signature:
 
     def createMethodClasses(self):
         # register modules
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         self.methodClasses = {}
         for m in self.wsmethods.itervalues():
             def compute(self):
@@ -714,7 +713,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         configuration.wsdlList = ';'.join(wsdlList)
 
     if old_module.package == 'edu.utah.sci.vistrails.sudswebservices':
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         new_descriptor = reg.get_descriptor_by_name(toSignature(wsdl), name,
                                                     namespace)
         if not new_descriptor:
@@ -865,7 +864,7 @@ def callContextMenu(signature):
             s = webServicesDict[address]
             del webServicesDict[address]
 
-            reg = core.modules.module_registry.get_module_registry()
+            reg = vistrails.core.modules.module_registry.get_module_registry()
             reg.remove_package(s.package)
             wsdlList = configuration.wsdlList.split(";")
             wsdlList.remove(address)

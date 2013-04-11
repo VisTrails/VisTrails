@@ -36,8 +36,8 @@
 It requires suds library to be installed. Click on configure to add wsdl
 urls to the package (use a ; to separate the urls).
 """
-
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
+import vistrails.core
 
 identifier = 'edu.utah.sci.vistrails.sudswebservices'
 name = 'SUDS Web Services'
@@ -63,7 +63,7 @@ def can_handle_vt_file(name):
 #    return ['edu.utah.sci.vistrails.http']
     
 def package_requirements():
-    import core.requirements
-    if not core.requirements.python_module_exists('suds'):
-        raise core.requirements.MissingRequirement('suds')
+    import vistrails.core.requirements
+    if not vistrails.core.requirements.python_module_exists('suds'):
+        raise vistrails.core.requirements.MissingRequirement('suds')
     import suds

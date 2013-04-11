@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.domain import DBWorkflowExec
+from vistrails.db.domain import DBWorkflowExec
 
 def update_id_scope(log):
     if hasattr(log, 'update_id_scope'):

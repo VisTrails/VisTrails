@@ -33,11 +33,11 @@
 ##
 ###############################################################################
 from PyQt4 import QtCore, QtGui
-from gui.theme import CurrentTheme
-from gui.modules import get_widget_class
-from gui.modules.constant_configuration import ConstantWidgetMixin, \
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
     StandardConstantWidget
-from core.modules.module_registry import get_module_registry
+from vistrails.core.modules.module_registry import get_module_registry
 
 class QAliasSliderWidget(QtGui.QWidget):
     def __init__(self, alias, vtparam, parent=None):

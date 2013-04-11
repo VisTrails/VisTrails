@@ -32,22 +32,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core import modules
-from core.common import *
-from core.data_structures.bijectivedict import Bidict
-# from core.modules.module_utils import FilePool
-from core.modules.vistrails_module import ModuleConnector, ModuleError
-from core.utils import DummyView
+from vistrails.core import modules
+from vistrails.core.common import *
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.modules.vistrails_module import ModuleConnector, ModuleError
+from vistrails.core.utils import DummyView
 import copy
-import core.interpreter.base
-import core.interpreter.utils
-import core.vistrail.pipeline
+import vistrails.core.interpreter.base
+import vistrails.core.interpreter.utils
+import vistrails.core.vistrail.pipeline
 import atexit
+
+# from core.modules.module_utils import FilePool
 
 ################################################################################
 
-class Interpreter(core.interpreter.cached.CachedInterpreter):
+class Interpreter(vistrails.core.interpreter.cached.CachedInterpreter):
 
     def clean_non_cacheable_modules(self):
         non_cacheable_modules = [i for

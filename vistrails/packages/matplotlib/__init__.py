@@ -43,8 +43,8 @@ name = 'matplotlib.new'
 version = '1.0.0'
 
 def package_dependencies():
-    import core.packagemanager
-    manager = core.packagemanager.get_package_manager()
+    import vistrails.core.packagemanager
+    manager = vistrails.core.packagemanager.get_package_manager()
     #deps = ['org.vistrails.dakoop.numpy']
     if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
         #return deps + ['edu.utah.sci.vistrails.spreadsheet']
@@ -53,8 +53,8 @@ def package_dependencies():
         return []
 
 def package_requirements():
-    import core.requirements
-    if not core.requirements.python_module_exists('matplotlib'):
-        raise core.requirements.MissingRequirement('matplotlib')
-    if not core.requirements.python_module_exists('pylab'):
-        raise core.requirements.MissingRequirement('pylab')
+    import vistrails.core.requirements
+    if not vistrails.core.requirements.python_module_exists('matplotlib'):
+        raise vistrails.core.requirements.MissingRequirement('matplotlib')
+    if not vistrails.core.requirements.python_module_exists('pylab'):
+        raise vistrails.core.requirements.MissingRequirement('pylab')

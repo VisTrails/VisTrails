@@ -34,12 +34,12 @@
 ###############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
 from PyQt4 import QtCore, QtGui
-from core.modules.basic_modules import String
-from core.modules.vistrails_module import Module, NotCacheable
-from core.modules.module_registry import get_module_registry
-from core.vistrail.module_function import ModuleFunction, ModuleParam
-from gui.modules.source_configure import SourceConfigurationWidget
-from gui.modules.python_source_configure import PythonEditor
+from vistrails.core.modules.basic_modules import String
+from vistrails.core.modules.vistrails_module import Module, NotCacheable
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.vistrail.module_function import ModuleFunction, ModuleParam
+from vistrails.gui.modules.source_configure import SourceConfigurationWidget
+from vistrails.gui.modules.python_source_configure import PythonEditor
 import urllib
 
 ################################################################################
@@ -183,9 +183,9 @@ class vtkInteractionHandler(NotCacheable, Module):
         Redraw all cells on the current sheet
         
         """
-        from packages.spreadsheet.spreadsheet_controller \
+        from vistrails.packages.spreadsheet.spreadsheet_controller \
              import spreadsheetController
-        from packages.spreadsheet.spreadsheet_event \
+        from vistrails.packages.spreadsheet.spreadsheet_event \
              import RepaintCurrentSheetEvent
         spreadsheetController.postEventToSpreadsheet(RepaintCurrentSheetEvent())
 

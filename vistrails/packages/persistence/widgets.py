@@ -32,18 +32,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from PyQt4 import QtCore, QtGui
 import os
 import sqlite3
 import uuid
 
-from core.modules.basic_modules import Path
-from gui.common_widgets import QSearchBox, QSearchEditBox
-from gui.modules.constant_configuration import ConstantWidgetMixin
-from gui.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.core.modules.basic_modules import Path
+from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 from db_utils import DatabaseAccessSingleton
-
+import repo
 
 class IntegerWrapper(object):
     def __init__(self, idx):
@@ -824,7 +823,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             self.keep_local.setChecked(False)
 
     def set_values(self):
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
             reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
@@ -911,7 +910,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.state_changed = False
 
     def get_values(self):
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
             reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
@@ -1061,7 +1060,6 @@ class PersistentConfiguration(QtGui.QDialog):
         return QtCore.QSize(800,320)
 
     def write(self):
-        from init import PersistentPath
         info_list = self.ref_search.ref_widget.get_info_list()
         if len(info_list) < 1:
             return
@@ -1077,18 +1075,17 @@ class PersistentConfiguration(QtGui.QDialog):
 
             # FIXME really should move this calls to a higher level so
             # we don't need to instantiate a module
-            git_util = PersistentPath()
             if info[1] is None:
                 version = "HEAD"
             else:
                 version = info[1]
-            git_util.git_get_path(info[0], version, None, chosen_path)
+            repo.get_current_repo().get_path(info[0], version, None, 
+                                             chosen_path)
         else:
             # have multiple files/dirs
             get_dir = QtGui.QFileDialog.getExistingDirectory
             chosen_path = str(get_dir(self,
                                       'Save All to Directory...'))
-            git_util = PersistentPath()
             has_overwrite = False
             # if untitled (no name, use the uuid)
             for info in info_list:
@@ -1121,7 +1118,8 @@ class PersistentConfiguration(QtGui.QDialog):
                 else:
                     name = info[0]
                 full_path = os.path.join(chosen_path, name)
-                git_util.git_get_path(info[0], version, None, full_path)
+                repo.get_current_repo().git_get_path(info[0], version, None, 
+                                                     full_path)
             
     def delete(self):
         from init import PersistentPath

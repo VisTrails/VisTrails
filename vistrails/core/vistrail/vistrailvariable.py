@@ -32,8 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.db.domain import DBVistrailVariable
 
-from db.domain import DBVistrailVariable
+import unittest
+import copy
+import vistrails.core
 
 class VistrailVariable(DBVistrailVariable):
 
@@ -106,8 +109,6 @@ namespace=%s value=%s</vistrailvariable>"
 ################################################################################
 # Unit tests
 
-import unittest
-import copy
 
 class TestVistrailVariable(unittest.TestCase):
 
@@ -123,10 +124,10 @@ class TestVistrailVariable(unittest.TestCase):
         self.assertEquals(a1, a3)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         a1 = self.create_vv()
-        xml_str = core.db.io.serialize(a1)
-        a2 = core.db.io.unserialize(xml_str, VistrailVariable)
+        xml_str = vistrails.core.db.io.serialize(a1)
+        a2 = vistrails.core.db.io.unserialize(xml_str, VistrailVariable)
         self.assertEquals(a1, a2)
 
     def test_str(self):

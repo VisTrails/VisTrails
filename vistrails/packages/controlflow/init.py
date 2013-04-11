@@ -32,10 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.modules.vistrails_module import Module
-from core.modules.module_registry import get_module_registry
-from core.modules.basic_modules import Boolean, String, Variant, List
-from core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.basic_modules import Boolean, String, Variant, List
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 import copy
 
 from fold import Fold

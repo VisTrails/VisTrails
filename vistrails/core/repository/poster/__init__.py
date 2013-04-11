@@ -61,8 +61,7 @@ Support for streaming HTTP uploads, and multipart/form-data encoding
 New releases of poster will always have a version number that compares greater
 than an older version of poster.
 New in version 0.6."""
-
-import core.repository.poster.streaminghttp
-import core.repository.poster.encode
+import vistrails.core.repository.poster.streaminghttp
+import vistrails.core.repository.poster.encode
 
 #version = (0, 7, 0) # Thanks JP!

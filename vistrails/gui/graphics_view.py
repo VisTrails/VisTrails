@@ -39,14 +39,13 @@ QInteractiveGraphicsScene
 QInteractiveGraphicsView
 QPIPGraphicsView
 """
-
-from core import debug
+from vistrails.core import debug
 from PyQt4 import QtCore, QtGui
-from gui.theme import CurrentTheme
-from core.configuration import get_vistrails_configuration
-import core.system
+from vistrails.gui.theme import CurrentTheme
+from vistrails.core.configuration import get_vistrails_configuration
+import vistrails.core.system
 import math
-from gui.qt import qt_super
+from vistrails.gui.qt import qt_super
 ################################################################################
 
 class QGraphicsItemInterface(object):
@@ -634,7 +633,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         if filename is None:
             fileName = QtGui.QFileDialog.getSaveFileName(self.window(),
                 "Save PDF...",
-                core.system.vistrails_file_directory(),
+                vistrails.core.system.vistrails_file_directory(),
                 "PDF files (*.pdf)",
                 None)
 
@@ -650,7 +649,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
     # However, it breaks things on Linux, because it
     # makes zooming _extremely_ slow, so we check it
     # before we run.
-    if core.system.systemType == 'Darwin':
+    if vistrails.core.system.systemType == 'Darwin':
         def setScene(self, scene):
             """ setScene(scene: QGraphicsScene) -> None
             Make sure the viewport background brush the same as the scene

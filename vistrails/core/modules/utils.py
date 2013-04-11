@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
+import vistrails.core
 def create_descriptor_string(package, name, namespace=None,
                              use_package=True):
     package_str = ""
@@ -64,7 +64,7 @@ def parse_descriptor_string(d_string, cur_package=None):
     package = ''
     qual_name = ''
     name = ''
-    namespace = ''
+    namespace = None
     parts = d_string.strip().split(':', 1)
     if len(parts) > 1:
         qual_name = parts[1]
@@ -75,13 +75,13 @@ def parse_descriptor_string(d_string, cur_package=None):
     else:
         qual_name = d_string
         if cur_package is None:
-            from core.modules.module_registry import get_module_registry
+            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             if reg._current_package is not None:
                 package = reg._current_package.identifier
             else:
-                import core.modules.basic_modules
-                basic_pkg = core.modules.basic_modules.identifier
+                import vistrails.core.modules.basic_modules
+                basic_pkg = vistrails.core.modules.basic_modules.identifier
                 package = basic_pkg
         else:
             package = cur_package

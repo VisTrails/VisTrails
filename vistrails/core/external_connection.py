@@ -41,10 +41,13 @@ classes:
  - ExtConnectionList 
 """
 import os.path
-from core.utils import VistrailsInternalError, abstract
-from core.utils.enum import enum
-from core.utils.uxml import named_elements, XMLWrapper
+from vistrails.core.utils import VistrailsInternalError, abstract
+from vistrails.core.utils.enum import enum
+from vistrails.core.utils.uxml import named_elements, XMLWrapper
 
+import unittest
+import vistrails.core.system
+import os
 ################################################################################
 
 ConnectionType = enum('ConnectionType',
@@ -312,9 +315,6 @@ allowed!'
        
 ###############################################################################
 
-import unittest
-import core.system
-import os
 class TestConnectionList(unittest.TestCase):
     def test1(self):
         """ Exercising writing and reading a file """

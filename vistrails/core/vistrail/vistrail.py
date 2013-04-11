@@ -32,32 +32,39 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.paramexplore.paramexplore import ParameterExploration
-""" This file contains the definition of the class Vistrail """
+from vistrails.core.paramexplore.paramexplore import ParameterExploration
 
 import copy
 import datetime
 import getpass
 
-from db.domain import DBVistrail
-from db.services.io import open_vt_log_from_db, open_log_from_xml
-from core.db.locator import DBLocator
-from core.log.log import Log
-from core.data_structures.graph import Graph
-from core.data_structures.bijectivedict import Bidict
-from core import debug
-import core.db.io
-from core.utils import VistrailsInternalError, \
+from vistrails.db.domain import DBVistrail
+from vistrails.db.services.io import open_vt_log_from_db, open_log_from_xml
+from vistrails.core.db.locator import DBLocator
+from vistrails.core.log.log import Log
+from vistrails.core.data_structures.graph import Graph
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
+import vistrails.core.db.io
+from vistrails.core.utils import VistrailsInternalError, \
      InvalidPipeline
-from core.vistrail.action import Action
-from core.vistrail.action_annotation import ActionAnnotation
-from core.vistrail.vistrailvariable import VistrailVariable
-from core.vistrail.annotation import Annotation
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from core.vistrail.plugin_data import PluginData
+from vistrails.core.vistrail.action import Action
+from vistrails.core.vistrail.action_annotation import ActionAnnotation
+from vistrails.core.vistrail.vistrailvariable import VistrailVariable
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
+from vistrails.core.vistrail.plugin_data import PluginData
+
+import unittest
+import copy
+import random
+
+""" This file contains the definition of the class Vistrail """
+
+
 ################################################################################
 
 class Vistrail(DBVistrail):
@@ -300,7 +307,7 @@ class Vistrail(DBVistrail):
         Returns a pipeline given a version number.
 
         """
-        workflow = core.db.io.get_workflow(self, version)
+        workflow = vistrails.core.db.io.get_workflow(self, version)
         return workflow
 
     def make_actions_from_diff(self, diff):
@@ -442,7 +449,7 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return core.db.io.get_workflow_diff_with_connections((self, v1), 
+        return vistrails.core.db.io.get_workflow_diff_with_connections((self, v1), 
                                                              (self, v2))
         
     def get_pipeline_diff(self, v1, v2):
@@ -468,7 +475,7 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return core.db.io.get_workflow_diff((self, v1), (self, v2))
+        return vistrails.core.db.io.get_workflow_diff((self, v1), (self, v2))
                         
     def getFirstCommonVersion(self, v1, v2):
         """ Returns the first version that it is common to both v1 and v2 
@@ -520,7 +527,7 @@ class Vistrail(DBVistrail):
         """general_action_chain(v1, v2): Returns an action that turns
         pipeline v1 into v2."""
 
-        return core.db.io.getPathAsAction(self, v1, v2)
+        return vistrails.core.db.io.getPathAsAction(self, v1, v2)
     
     def actionChain(self, t, start=0):
         """ actionChain(t:int, start=0) -> [Action]  
@@ -1102,7 +1109,7 @@ class Vistrail(DBVistrail):
             m.name = "InputPort"
             actions.append(m)
 
-            c = core.vistrail.connection.Connection()
+            c = vistrails.core.vistrail.connection.Connection()
             fresh_id = sub_pipeline.fresh_connection_id()
             c.id = fresh_id
 
@@ -1113,10 +1120,10 @@ class Vistrail(DBVistrail):
         Returns the log object for this vistrail if available
         """
         log = Log()
-        if type(self.locator) == core.db.locator.ZIPFileLocator:
+        if type(self.locator) == vistrails.core.db.locator.ZIPFileLocator:
             if self.db_log_filename is not None:
                 log = open_log_from_xml(self.db_log_filename, True)
-        if type(self.locator) == core.db.locator.DBLocator:
+        if type(self.locator) == vistrails.core.db.locator.DBLocator:
             connection = self.locator.get_connection()
             log = open_vt_log_from_db(connection, self.db_id)
         Log.convert(log)
@@ -1175,9 +1182,6 @@ class VersionNotTagged(Exception):
 ##############################################################################
 # Testing
 
-import unittest
-import copy
-import random
 
 class TestVistrail(unittest.TestCase):
 
@@ -1234,17 +1238,17 @@ class TestVistrail(unittest.TestCase):
         # FIXME add checks for equality
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         v1 = self.create_vistrail()
-        xml_str = core.db.io.serialize(v1)
-        v2 = core.db.io.unserialize(xml_str, Vistrail)
+        xml_str = vistrails.core.db.io.serialize(v1)
+        v2 = vistrails.core.db.io.unserialize(xml_str, Vistrail)
         # FIXME add checks for equality
 
     def test1(self):
-        import core.vistrail
-        from core.db.locator import XMLFileLocator
-        import core.system
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
+        import vistrails.core.vistrail
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.system
+        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         #testing nodes in different branches
         v1 = 36
@@ -1264,10 +1268,10 @@ class TestVistrail(unittest.TestCase):
             self.fail("vistrails tree is not single rooted.")
 
     def test2(self):
-        import core.vistrail
-        from core.db.locator import XMLFileLocator
-        import core.system
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
+        import vistrails.core.vistrail
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.system
+        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         #testing diff
         v1 = 17
@@ -1282,9 +1286,9 @@ class TestVistrail(unittest.TestCase):
         p = v.getPipeline(0)
 
     def test_empty_action_chain_2(self):
-        from core.db.locator import XMLFileLocator
-        import core.system
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.system
+        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         assert v.actionChain(17, 17) == []
 
@@ -1297,32 +1301,32 @@ class TestVistrail(unittest.TestCase):
         self.assertRaises(InvalidPipeline, lambda: v.getPipeline(-1))
 
     def test_version_graph(self):
-        from core.db.locator import XMLFileLocator
-        import core.system
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.system
+        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         v.getVersionGraph()
 
     def test_plugin_info(self):
-        import core.db.io
+        import vistrails.core.db.io
         plugin_info_str = "this is a test of plugin_info"
         v1 = self.create_vistrail()
         v1.plugin_info = plugin_info_str
-        xml_str = core.db.io.serialize(v1)
-        v2 = core.db.io.unserialize(xml_str, Vistrail)
+        xml_str = vistrails.core.db.io.serialize(v1)
+        v2 = vistrails.core.db.io.unserialize(xml_str, Vistrail)
         assert plugin_info_str == v2.plugin_info
 
     def test_database_info(self):
-        import core.db.io
+        import vistrails.core.db.io
         database_info_str = "db.hostname.edu:3306:TABLE_NAME"
         v1 = self.create_vistrail()
         v1.database_info = database_info_str
-        xml_str = core.db.io.serialize(v1)
-        v2 = core.db.io.unserialize(xml_str, Vistrail)
+        xml_str = vistrails.core.db.io.serialize(v1)
+        v2 = vistrails.core.db.io.unserialize(xml_str, Vistrail)
         assert database_info_str == v2.database_info
 
     def test_plugin_data(self):
-        import core.db.io
+        import vistrails.core.db.io
         v1 = self.create_vistrail()
         plugin_data_str = "testing plugin_data"
         p = PluginData(id=v1.idScope.getNewId(PluginData.vtType),
@@ -1347,15 +1351,15 @@ class TestVistrail(unittest.TestCase):
                 p.show_comparison(p2)
                 return False
             return True
-        from core.db.locator import XMLFileLocator
-        from core.db.locator import FileLocator
-        import core.system
+        from vistrails.core.db.locator import XMLFileLocator
+        from vistrails.core.db.locator import FileLocator
+        import vistrails.core.system
         import sys
 
         def do_test(filename, locator_class, old_v=None, new_v=None):
-            v = locator_class(core.system.vistrails_root_directory() +
-                               filename).load()
-            if type(v) != Vistrail:
+            v = locator_class(vistrails.core.system.vistrails_root_directory() +
+                              filename).load()
+            if not isinstance(v, Vistrail):
                 v = v.vistrail
             version_ids = v.actionMap.keys()
             if old_v is None:

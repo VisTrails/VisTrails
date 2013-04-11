@@ -37,9 +37,11 @@ import logging.handlers
 import inspect
 import os
 import os.path
+import time
+import vistrails.core
+
 # from core.utils import VersionTooLow
 # from core import system
-import time
 
 ################################################################################
 
@@ -145,8 +147,8 @@ class DebugPrint:
             # in this case we will deal with log files differently on Windows:
             # we will check if we need to rotate the file at the beginning of 
             # the session.
-            import core.system
-            if core.system.systemType in ["Windows", "Microsoft"]:
+            import vistrails.core.system
+            if vistrails.core.system.systemType in ["Windows", "Microsoft"]:
                 if not os.path.exists(f):
                     open(f,'w').close()
                 rotate_file_if_necessary(f)

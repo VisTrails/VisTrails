@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from core.modules.source_configure import SourceConfigurationWidget, \
+from vistrails.core.modules.source_configure import SourceConfigurationWidget, \
     SourceEditor
 
 class RSourceConfigurationWidget(SourceConfigurationWidget):

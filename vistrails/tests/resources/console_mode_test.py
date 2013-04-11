@@ -36,11 +36,10 @@
 """Testing package for console_mode"""
 
 ##############################################################################
-
-import core.modules
-import core.modules.module_registry
-from core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from core.modules.basic_modules import Float, Integer
+import vistrails.core.modules
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
+from vistrails.core.modules.basic_modules import Float, Integer
 
 identifier = 'edu.utah.sci.vistrails.console_mode_test'
 version = '0.9.0'
@@ -84,7 +83,7 @@ class TestOptionalPorts(Module):
 ##############################################################################
 
 def initialize():
-    reg = core.modules.module_registry.get_module_registry()
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     reg.add_module(TestTupleExecution)
     reg.add_input_port(TestTupleExecution, 'input', [Float, Float])
     reg.add_output_port(TestTupleExecution, 'output', (Float, 'output'))

@@ -35,9 +35,8 @@
 
 """module that allows online inspection of environment to test presence of
 runtime components such as binaries, libraries, other python modules, etc."""
-
 import sys
-import core.system
+import vistrails.core.system
 
 ##############################################################################
 
@@ -60,9 +59,9 @@ Returns if python module of given name can be safely imported."""
 def executable_file_exists(filename):
     """executable_file_exists(filename): Boolean.
 Returns if certain file is in current path and is executable."""
-    result = core.system.executable_is_in_path(filename)
+    result = vistrails.core.system.executable_is_in_path(filename)
     if result == "":
-        result = core.system.executable_is_in_pythonpath(filename)
+        result = vistrails.core.system.executable_is_in_pythonpath(filename)
     return result != ""
 
 # FIXME: Add documentation.
