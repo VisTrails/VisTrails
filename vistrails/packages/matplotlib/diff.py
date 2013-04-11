@@ -345,7 +345,7 @@ if __name__ == '__main__':
     import sys
     if len(sys.argv) < 2:
         usage()
-    if sys.argv[1] == "apply":
+    elif sys.argv[1] == "apply":
         run_apply()
     elif sys.argv[1] == "compute":
         run_compute()
