@@ -809,4 +809,36 @@
     <delete id="258" objectId="35" parentObjId="11" parentObjType="module" what="location" />
     <delete id="259" objectId="11" parentObjId="" parentObjType="" what="module" />
   </action>
+  <action date="2013-04-11 11:02:22" id="69" prevId="68" session="14" user="Remi">
+    <add id="260" objectId="18" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="18" name="Integer" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="261" objectId="51" parentObjId="18" parentObjType="module" what="location">
+      <location id="51" x="152.042289496" y="345.225433798" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:02:26" id="70" prevId="69" session="14" user="Remi">
+    <add id="262" objectId="25" parentObjId="" parentObjType="" what="connection">
+      <connection id="25" />
+    </add>
+    <add id="263" objectId="50" parentObjId="25" parentObjType="connection" what="port">
+      <port id="50" moduleId="18" moduleName="Integer" name="value" signature="(edu.utah.sci.vistrails.basic:Integer)" type="source" />
+    </add>
+    <add id="264" objectId="51" parentObjId="25" parentObjType="connection" what="port">
+      <port id="51" moduleId="4" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-11 11:02:30" id="71" prevId="70" session="14" user="Remi">
+    <change id="265" newObjId="52" oldObjId="51" parentObjId="18" parentObjType="module" what="location">
+      <location id="52" x="114.478900327" y="271.887388276" />
+    </change>
+  </action>
+  <action date="2013-04-11 11:02:30" id="72" prevId="71" session="14" user="Remi">
+    <add id="266" objectId="27" parentObjId="18" parentObjType="module" what="function">
+      <function id="27" name="value" pos="0" />
+    </add>
+    <add id="267" objectId="33" parentObjId="27" parentObjType="function" what="parameter">
+      <parameter alias="" id="33" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="10" />
+    </add>
+  </action>
 </vistrail>
