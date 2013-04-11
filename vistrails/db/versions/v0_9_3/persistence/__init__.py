@@ -32,16 +32,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
-from core.system import get_elementtree_library
+from vistrails.core.system import get_elementtree_library
+
+from vistrails.db import VistrailsDBException
+from vistrails.db.versions.v0_9_3 import version as my_version
+from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBWorkflow, DBLog, \
+    DBAbstraction, DBGroup
+
 ElementTree = get_elementtree_library()
 
-from db import VistrailsDBException
-from db.versions.v0_9_3 import version as my_version
-from db.versions.v0_9_3.domain import DBVistrail, DBWorkflow, DBLog, \
-    DBAbstraction, DBGroup
 
 class DAOList(dict):
     def __init__(self):

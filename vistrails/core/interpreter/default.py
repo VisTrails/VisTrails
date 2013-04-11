@@ -32,12 +32,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import vistrails.core.interpreter.cached
+import vistrails.core.interpreter.noncached
 
-import core.interpreter.cached
-import core.interpreter.noncached
+import unittest
 
-cached_interpreter = core.interpreter.cached.CachedInterpreter
-noncached_interpreter = core.interpreter.noncached.Interpreter
+cached_interpreter = vistrails.core.interpreter.cached.CachedInterpreter
+noncached_interpreter = vistrails.core.interpreter.noncached.Interpreter
 __default_interpreter = cached_interpreter
 
 ##############################################################################
@@ -63,7 +64,6 @@ def set_default_interpreter(interpreter_class):
 
 ##############################################################################
 
-import unittest
 
 class TestDefaultInterpreter(unittest.TestCase):
 

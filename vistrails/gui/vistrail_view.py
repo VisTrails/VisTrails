@@ -34,37 +34,36 @@
 ###############################################################################
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
-
 from PyQt4 import QtCore, QtGui
 
-from core import debug
-from core.collection import Collection
-from core.db.locator import untitled_locator
-from core.debug import critical
-from core.data_structures.bijectivedict import Bidict
-from core.system import vistrails_default_file_type
-from core.thumbnails import ThumbnailCache
-from core.vistrail.vistrail import Vistrail
-from core.vistrail.pipeline import Pipeline
-from core.log.log import Log
-from core.log.opm_graph import OpmGraph
-from core.log.prov_document import ProvDocument
-from core.db.locator import FileLocator, XMLFileLocator
-from core.modules.module_registry import ModuleRegistry
-from core.configuration import get_vistrails_configuration
+from vistrails.core import debug
+from vistrails.core.collection import Collection
+from vistrails.core.db.locator import untitled_locator
+from vistrails.core.debug import critical
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.system import vistrails_default_file_type
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.log.log import Log
+from vistrails.core.log.opm_graph import OpmGraph
+from vistrails.core.log.prov_document import ProvDocument
+from vistrails.core.db.locator import FileLocator, XMLFileLocator
+from vistrails.core.modules.module_registry import ModuleRegistry
+from vistrails.core.configuration import get_vistrails_configuration
 
-from gui.collection.vis_log import QLogView
-from gui.common_widgets import QMouseTabBar
-from gui.pipeline_view import QPipelineView
-from gui.version_view import QVersionTreeView
-from gui.query_view import QQueryView
-from gui.paramexplore.pe_view import QParamExploreView
-from gui.vis_diff import QDiffView
-from gui.paramexplore.param_view import QParameterView
-from gui.vistrail_controller import VistrailController
-from gui.mashups.mashup_view import QMashupView
-from gui.ports_pane import ParameterEntry
-from gui.query_view import QueryEntry
+from vistrails.gui.collection.vis_log import QLogView
+from vistrails.gui.common_widgets import QMouseTabBar
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.version_view import QVersionTreeView
+from vistrails.gui.query_view import QQueryView
+from vistrails.gui.paramexplore.pe_view import QParamExploreView
+from vistrails.gui.vis_diff import QDiffView
+from vistrails.gui.paramexplore.param_view import QParameterView
+from vistrails.gui.vistrail_controller import VistrailController
+from vistrails.gui.mashups.mashup_view import QMashupView
+from vistrails.gui.ports_pane import ParameterEntry
+from vistrails.gui.query_view import QueryEntry
 
 ################################################################################
 
@@ -136,7 +135,7 @@ class QVistrailView(QtGui.QWidget):
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
 
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.register_notification("reg_new_abstraction", 
                                    self.controller.check_subworkflow_versions)
         _app.register_notification("reg_deleted_abstraction",
@@ -216,7 +215,7 @@ class QVistrailView(QtGui.QWidget):
         self.setWindowTitle(title)
 
     def reset_version_view(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if self.version_view is not None:
             select_node = True
             if _app._previous_view and _app._previous_view in self.detached_views:
@@ -237,7 +236,7 @@ class QVistrailView(QtGui.QWidget):
         self.set_to_current(view)
          
     def pipeline_selected(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if hasattr(self.window(), 'qactions'):
             window = self.window()
         else:
@@ -258,7 +257,7 @@ class QVistrailView(QtGui.QWidget):
                              self.stack.currentWidget().get_title())
 
     def history_selected(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if get_vistrails_configuration().detachHistoryView:
             _app.history_view.raise_()
             return
@@ -280,7 +279,7 @@ class QVistrailView(QtGui.QWidget):
                              self.stack.currentWidget().get_title())
 
     def query_selected(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if hasattr(self.window(), 'qactions'):
             window = self.window()
         else:
@@ -299,7 +298,7 @@ class QVistrailView(QtGui.QWidget):
                              self.stack.currentWidget().get_title())
 
     def explore_selected(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if hasattr(self.window(), 'qactions'):
             window = self.window()
         else:
@@ -319,7 +318,7 @@ class QVistrailView(QtGui.QWidget):
                              self.stack.currentWidget().get_title())
 
     def provenance_selected(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if hasattr(self.window(), 'qactions'):
             window = self.window()
         else:
@@ -338,7 +337,7 @@ class QVistrailView(QtGui.QWidget):
                              self.stack.currentWidget().get_title())
 
     def mashup_selected(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if hasattr(self.window(), 'qactions'):
             window = self.window()
         else:
@@ -448,7 +447,7 @@ class QVistrailView(QtGui.QWidget):
         return view
 
     def detach_history_view(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = self.version_view
         window = _app.history_view
         self.version_index = window.stack.addWidget(view)
@@ -456,7 +455,7 @@ class QVistrailView(QtGui.QWidget):
         window.view = view
 
     def detach_view(self, tab_idx):
-        from gui.vistrails_window import QBaseViewWindow
+        from vistrails.gui.vistrails_window import QBaseViewWindow
         if self.tab_to_stack_idx.has_key(tab_idx):
             stack_index = self.tab_to_stack_idx[tab_idx]
             view = self.stack.widget(stack_index)
@@ -594,7 +593,7 @@ class QVistrailView(QtGui.QWidget):
         return widget
 
     def view_changed(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.closeNotPinPalettes()
         #view = self.stack.currentWidget()
         view = self.get_current_outer_tab()
@@ -658,7 +657,7 @@ class QVistrailView(QtGui.QWidget):
         if index < 0 or self.controller is None:
             return
 
-        from gui.vistrails_window import _app, QVistrailViewWindow
+        from vistrails.gui.vistrails_window import _app, QVistrailViewWindow
 
         self.stack.setCurrentIndex(self.tab_to_stack_idx[index])
         if isinstance(self.window(),QVistrailViewWindow):
@@ -687,7 +686,7 @@ class QVistrailView(QtGui.QWidget):
         self.set_to_current(view)
         
     def set_to_current(self, view):
-        from gui.vistrails_window import _app, QVistrailViewWindow
+        from vistrails.gui.vistrails_window import _app, QVistrailViewWindow
         if isinstance(view, QDiffView):
             view.set_to_current()
             #print "view changed!", self.controller, \
@@ -772,14 +771,14 @@ class QVistrailView(QtGui.QWidget):
         return view
 
     def create_log_view(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = self.create_view(QLogView, False)
         self.set_notification('execution_changed', view.execution_changed)
         return view
     
     def create_mashup_view(self):
         #print "******* create mashup view"
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         view = self.create_view(QMashupView, False)
         view.set_controller(self.controller)
         self.set_notification('controller_changed', view.controllerChanged)
@@ -789,7 +788,7 @@ class QVistrailView(QtGui.QWidget):
     
     def gen_module_selected(self, view):
         def module_selected(module_id, selection = []):
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             pipeline = view.scene().current_pipeline
             if pipeline is not None and module_id in pipeline.modules:
                 module = pipeline.modules[module_id]
@@ -800,8 +799,8 @@ class QVistrailView(QtGui.QWidget):
 
     def version_selected(self, version_id, by_click, do_validate=True,
                          from_root=False, double_click=False):
-        from gui.vistrails_window import _app
-        from gui.vis_diff import QDiffView
+        from vistrails.gui.vistrails_window import _app
+        from vistrails.gui.vis_diff import QDiffView
         if hasattr(self.window(), 'qactions'):
             window = self.window()
         else:
@@ -925,14 +924,14 @@ class QVistrailView(QtGui.QWidget):
             import traceback
             debug.critical('Failed to index vistrail', traceback.format_exc())
 
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         # update recent files menu items
         if not self.is_abstraction:
             _app.set_current_locator(locator)
         _app.view_changed(self)
         _app.notify("vistrail_saved")
         # reload workspace entry
-        from gui.collection.workspace import QWorkspaceWindow
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
         QWorkspaceWindow.instance().add_vt_window(self)
         return locator
 
@@ -1062,7 +1061,7 @@ class QVistrailView(QtGui.QWidget):
         """
         # Quick workaround for notes focus out bug (ticket #182)
         # There's probably a much better way to fix this.
-        from gui.version_prop import QVersionProp
+        from vistrails.gui.version_prop import QVersionProp
         prop = QVersionProp.instance()
         prop.versionNotes.commit_changes()
 
@@ -1101,7 +1100,7 @@ class QVistrailView(QtGui.QWidget):
         """open_mashup(mashup: Mashup) -> None
         It will switch to version view, select the corresponding node 
         and run the mashup """
-        from gui.version_prop import QVersionProp
+        from vistrails.gui.version_prop import QVersionProp
         #first we will show the hisotry view and select the version that has
         #this mashup
         vt_version = mashup.version
@@ -1117,7 +1116,7 @@ class QVistrailView(QtGui.QWidget):
         """edit_mashup(mashup: Mashup) -> None
         It will select the corresponding node, switch to mashup view, 
         and select mashup """
-        from gui.mashups.mashups_inspector import QMashupsInspector
+        from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
         vt_version = mashup.version
         window = self.window()
         window.qactions['history'].trigger()
@@ -1406,7 +1405,7 @@ class QVistrailView(QtGui.QWidget):
     def stateChanged(self):
         """ stateChanged() -> None
         Handles 'stateChanged' signal from VistrailController """
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify("state_changed", self)
         _app.state_changed(self)
         
@@ -1569,7 +1568,7 @@ class QVistrailView(QtGui.QWidget):
 if __name__=="__main__":
     # Initialize the Vistrails Application and Theme
     import sys
-    from gui import qt, theme
+    from vistrails.gui import qt, theme
     app = qt.createBogusQtGuiApp(sys.argv)
     theme.initializeCurrentTheme()
 

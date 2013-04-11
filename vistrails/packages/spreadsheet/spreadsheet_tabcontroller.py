@@ -38,19 +38,19 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.db.locator import FileLocator, _DBLocator as DBLocator
-from core.interpreter.default import get_default_interpreter
-from db.services.io import SaveBundle
+from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.db.services.io import SaveBundle
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
 from spreadsheet_registry import spreadsheetRegistry
-from core.utils import DummyView
-from core.utils.uxml import XMLWrapper, named_elements
+from vistrails.core.utils import DummyView
+from vistrails.core.utils.uxml import XMLWrapper, named_elements
 import copy
 import gc
-from gui.theme import CurrentTheme
-from gui.utils import show_warning
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import show_warning
 
 ################################################################################
 
@@ -631,7 +631,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             return dom.toxml()
         
         def need_save():
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             need_save_vt = False
             for t in self.tabWidgets:
                 dim = t.getDimension()

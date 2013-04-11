@@ -34,11 +34,11 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
-from core.data_structures.bijectivedict import Bidict
-from gui.base_view import BaseView
-from gui.mashups.mashups_manager import MashupsManager
-from gui.mashups.alias_list import QAliasListPanel
-from gui.utils import show_question, YES_BUTTON, NO_BUTTON, CANCEL_BUTTON
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.mashups.mashups_manager import MashupsManager
+from vistrails.gui.mashups.alias_list import QAliasListPanel
+from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON, CANCEL_BUTTON
 
 class QMashupView(QtGui.QMainWindow, BaseView):
     #signals
@@ -78,8 +78,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.manager = MashupsManager.getInstance()
         
     def set_default_layout(self):
-        from gui.mashups.mashups_inspector import QMashupsInspector
-        from gui.mashups.alias_parameter_view import QAliasParameterView
+        from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
+        from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
              QtCore.Qt.RightDockWidgetArea: QAliasParameterView,
@@ -121,14 +121,14 @@ class QMashupView(QtGui.QMainWindow, BaseView):
     def controllerChanged(self, controller):
         if controller is self.controller:
             return
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         self.set_controller(controller)
         self.versionChanged(self.controller.current_version)
         if _app.get_current_tab() == self:
             self.updateView()
         
     def updateView(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if self.vtversion > 0:
             if self.mshpController is not None:
                 self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
@@ -298,7 +298,7 @@ Click on No to create a new tag.""" %pname,
         self.mshpController.updateAliasesFromPipeline(pipeline)
         
     def mshpVersionChanged(self, versionId):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         #print "*** mshpVersionChanged ", versionId
         self.aliasPanel.updateVersion(versionId)
         if not self.mshpController.versionHasTag(versionId):
@@ -329,8 +329,8 @@ class QMashupViewTab(QtGui.QWidget, BaseView):
         self.version = version
     
     def set_default_layout(self):
-        from gui.mashups.mashups_inspector import QMashupsInspector
-        from gui.mashups.alias_parameter_view import QAliasParameterView
+        from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
+        from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
              QtCore.Qt.RightDockWidgetArea: QAliasParameterView,

@@ -36,11 +36,10 @@
 ############################################################################
 # web browser view implementation
 ############################################################################
-
-from core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui, QAxContainer
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_cell import QCellWidget
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import shutil
 ############################################################################
 

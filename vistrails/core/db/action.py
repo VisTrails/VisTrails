@@ -32,22 +32,21 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.vistrail.location import Location
-import db.services.action
+from vistrails.core.vistrail.location import Location
+import vistrails.db.services.action
 
 def create_action(op_list):
     if len(op_list) > 0:
-        from core.vistrail.action import Action
-        action = db.services.action.create_action(op_list)
+        from vistrails.core.vistrail.action import Action
+        action = vistrails.db.services.action.create_action(op_list)
         Action.convert(action)
         return action
     return None
 
 def create_action_from_ops(ops, simplify=False):
     if len(ops) > 0:
-        from core.vistrail.action import Action
-        action = db.services.action.create_action_from_ops(ops, simplify)
+        from vistrails.core.vistrail.action import Action
+        action = vistrails.db.services.action.create_action_from_ops(ops, simplify)
         Action.convert(action)
         return action
     return None

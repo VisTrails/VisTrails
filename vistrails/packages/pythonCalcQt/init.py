@@ -32,11 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-import core.modules.module_registry
-from core.modules.vistrails_module import Module, ModuleError
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from PyQt4 import QtCore, QtGui
-import api
+import vistrails.api
 
 class QPythonCalc(QtGui.QWidget):
     """QPythonCalc is a widget used for specifying PythonCalc
@@ -105,14 +104,14 @@ class QPythonCalc(QtGui.QWidget):
 
         """
         pythoncalc = "edu.utah.sci.vistrails.pythoncalc"
-        module = api.add_module(0, 0, pythoncalc, 'PythonCalc', '')
-        api.get_current_controller().update_function(module, 'value1',
+        module = vistrails.api.add_module(0, 0, pythoncalc, 'PythonCalc', '')
+        vistrails.api.get_current_controller().update_function(module, 'value1',
                                                      [str(self.value1Edit.text())])
-        api.get_current_controller().update_function(module, 'value2',
+        vistrails.api.get_current_controller().update_function(module, 'value2',
                                                      [str(self.value2Edit.text())])
-        api.get_current_controller().update_function(module, 'op',
+        vistrails.api.get_current_controller().update_function(module, 'op',
                                                      [str(self.opCombo.currentText())])
-        api.switch_to_pipeline_view()
+        vistrails.api.switch_to_pipeline_view()
 
 def initialize(*args, **keywords):
     """ initialize() -> None    

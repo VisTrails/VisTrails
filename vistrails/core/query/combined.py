@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from version import SearchCompiler
 from visual import VisualQuery
 
@@ -61,7 +60,7 @@ class CombinedSearch(VisualQuery):
         return True
     
     def getResultEntity(self, vistrail, versions_to_check):
-        from core.collection.vistrail import VistrailEntity
+        from vistrails.core.collection.vistrail import VistrailEntity
 
         locators = []
         vistrail_entity = None

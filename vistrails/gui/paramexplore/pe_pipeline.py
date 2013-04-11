@@ -36,10 +36,10 @@
 pipeline in a specific way in the parameter exploration window
 """
 from PyQt4 import QtCore, QtGui
-from core.inspector import PipelineInspector
-from gui.common_widgets import QToolWindowInterface
-from gui.pipeline_view import QPipelineView, QGraphicsModuleItem
-from gui.theme import CurrentTheme
+from vistrails.core.inspector import PipelineInspector
+from vistrails.gui.common_widgets import QToolWindowInterface
+from vistrails.gui.pipeline_view import QPipelineView, QGraphicsModuleItem
+from vistrails.gui.theme import CurrentTheme
 
 ################################################################################
 class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):

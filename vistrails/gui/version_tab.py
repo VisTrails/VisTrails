@@ -34,11 +34,10 @@
 ###############################################################################
 """ The file describes the pipeline tab widget to manage a single
 vistrail version tree"""
-
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import QDockContainer, QToolWindowInterface
-from gui.version_prop import QVersionProp
-from gui.version_view import QVersionTreeView
+from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
+from vistrails.gui.version_prop import QVersionProp
+from vistrails.gui.version_view import QVersionTreeView
 
 ################################################################################
         

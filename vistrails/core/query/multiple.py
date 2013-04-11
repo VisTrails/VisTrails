@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.query import Query
+from vistrails.core.query import Query
 from combined import CombinedSearch
 
 class MultipleSearch(Query):

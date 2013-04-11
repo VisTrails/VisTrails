@@ -46,13 +46,13 @@ QVersionMashups
 """
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from core.thumbnails import ThumbnailCache
-from gui.theme import CurrentTheme
-from gui.common_widgets import QSearchBox
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from core.utils import all
-from core import debug
+from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.common_widgets import QSearchBox
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.utils import all
+from vistrails.core import debug
 
 ################################################################################
 
@@ -749,8 +749,8 @@ class QVersionMashups(QtGui.QWidget):
         """
         #self.mashupsList.clear()
         
-        from gui.mashups.mashups_manager import MashupsManager
-        from gui.mashups.mashups_inspector import QMashupListPanelItem
+        from vistrails.gui.mashups.mashups_manager import MashupsManager
+        from vistrails.gui.mashups.mashups_inspector import QMashupListPanelItem
         getMshptrail = MashupsManager.getMashuptrailforVersionInVistrailController
         if self.controller:
             vistrail = self.controller.vistrail
@@ -787,7 +787,7 @@ class QVersionMashups(QtGui.QWidget):
         self.openMashup(version)
 
     def openMashup(self, version):
-        from gui.mashups.mashups_manager import MashupsManager
+        from vistrails.gui.mashups.mashups_manager import MashupsManager
         item_key = (self.mtrail.id, version)
         if self.apps.has_key(item_key):
             app = self.apps[item_key]

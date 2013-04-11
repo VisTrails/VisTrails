@@ -39,10 +39,9 @@ QKeyValueDelegate
 QModuleAnnotation
 QModuleAnnotationTable
 """
-
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import QToolWindowInterface
-from core import debug
+from vistrails.gui.common_widgets import QToolWindowInterface
+from vistrails.core import debug
 
 ################################################################################
 

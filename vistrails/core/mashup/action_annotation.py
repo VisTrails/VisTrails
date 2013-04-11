@@ -31,7 +31,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from db.domain import DBMashupActionAnnotation
+from vistrails.db.domain import DBMashupActionAnnotation
 from datetime import date, datetime
 from time import strptime
 
@@ -142,7 +142,7 @@ class ActionAnnotation(DBMashupActionAnnotation):
         
 ################################################################################
 import unittest
-from db.domain import IdScope
+from vistrails.db.domain import IdScope
 import copy
 
 class TestActionAnnotation(unittest.TestCase):

@@ -44,19 +44,17 @@
 #    Added CombineRGBA to create image from channels.
 #    Moved quiet to configuration
 #    Fixed bug with GaussianBlur
-
-
-import core.modules
-import core.modules.module_registry
-import core.modules.basic_modules
-from core import debug
-from core.modules.vistrails_module import Module, ModuleError, new_module, \
+import vistrails.core.modules
+import vistrails.core.modules.module_registry
+import vistrails.core.modules.basic_modules
+from vistrails.core import debug
+from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module, \
      IncompleteImplementation
-import core.configuration
-import core.requirements
-import core.system
-from core.system import list2cmdline
-import core.bundles
+import vistrails.core.configuration
+import vistrails.core.requirements
+import vistrails.core.system
+from vistrails.core.system import list2cmdline
+import vistrails.core.bundles
 import os
 
 ################################################################################
@@ -299,8 +297,8 @@ def initialize():
 #    global __version__
 #    __version__ = version_line[2]
 
-    reg = core.modules.module_registry.get_module_registry()
-    basic = core.modules.basic_modules
+    reg = vistrails.core.modules.module_registry.get_module_registry()
+    basic = vistrails.core.modules.basic_modules
     reg.add_module(ImageMagick, abstract=True)
     reg.add_input_port(ImageMagick, "input", (basic.File, 'the input file'))
     reg.add_input_port(ImageMagick, "inputFormat", (basic.String, 'coerce interpretation of file to this format'))

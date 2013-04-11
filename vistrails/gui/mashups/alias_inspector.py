@@ -45,16 +45,15 @@ QListEditDialog
 QListEditItemDelegate
 
 """
-
 import copy
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
-from core.mashup.alias import Alias
-from core.modules.module_registry import get_module_registry
-from gui.modules import get_widget_class
-from gui.modules.constant_configuration import StandardConstantWidget
-from gui.theme import CurrentTheme
-from gui.utils import show_warning
+from vistrails.core.mashup.alias import Alias
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.constant_configuration import StandardConstantWidget
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.utils import show_warning
 ################################################################################
 class QAliasInspector(QtGui.QScrollArea):
     """

@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
-from db.versions.v0_9_3.domain import DBVistrail, DBAction, DBTag, DBModule, \
+from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBAction, DBTag, DBModule, \
     DBConnection, DBPortSpec, DBFunction, DBParameter, DBLocation, DBAdd, \
     DBChange, DBDelete, DBAnnotation, DBPort, DBAbstractionRef, DBGroup, \
     DBWorkflow, DBLog

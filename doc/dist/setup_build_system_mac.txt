@@ -1,0 +1,46 @@
+# Required software for building binaries 
+Install Mercurial http://mercurial.selenic.com/
+
+Checkout and install altgraph 
+$ hg clone https://bitbucket.org/ronaldoussoren/altgraph
+$ cd altgraph
+$ python setup.py install
+$ cd ..
+
+Checkout and install macholib 
+$ hg clone https://bitbucket.org/ronaldoussoren/macholib
+$ cd macholib
+$ python setup.py install
+$ cd ..
+
+Checkout and install modulegraph
+$ hg clone https://bitbucket.org/ronaldoussoren/modulegraph
+$ cd modulegraph
+$ python setup.py install
+$ cd ..
+
+Checkout and install py2app 
+$ hg clone https://bitbucket.org/ronaldoussoren/py2app
+$ cd py2app
+$ python setup.py install
+$ cd ..
+
+Now we need to prepare Qt's plugin libs to be included in the binary because py2app doesn't seem to handle them correctly
+
+Just copy the iconengines and imageformats plugins and run 
+vistrails/dist/mac/Input/fix_qtplugin_libs.py on each folder:
+$ cd dist/mac/Input
+$ mkdir plugins
+$ cd plugins
+$ cp -r /Developer/Applications/Qt/plugins/iconengines .
+$ cp -r /Developer/Applications/Qt/plugins/imageformats .
+$ cd ../..
+$ python fix_qtplugin_libs.py Input/plugins/iconengines/
+$ python fix_qtplugin_libs.py Input/plugins/imageformats/
+
+Create a directory alps_libs in Input to store the alps_libs
+
+#GDAL Framework
+Install GDAL Framework Complete 1.8.1 http://www.kyngchaos.com/software/frameworks
+then copy site-packages to python.org directory:
+$ cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Python/2.7/site-packages/* /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/

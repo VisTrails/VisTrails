@@ -32,10 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
-from core.data_structures.bijectivedict import Bidict
-from core.utils import VistrailsInternalError
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.utils import VistrailsInternalError
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -466,7 +465,7 @@ Makes sure input port 'name' is filled."""
                     return defaultValue
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         # Cannot resolve circular reference here, need to be fixed later
-        from core.modules.sub_module import InputPort
+        from vistrails.core.modules.sub_module import InputPort
         for conn in self.inputPorts[inputPort]:
             if type(conn.obj)==InputPort:
                 return conn()
@@ -500,7 +499,7 @@ Makes sure input port 'name' is filled."""
         if not self.inputPorts.has_key(inputPort):
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         # Cannot resolve circular reference here, need to be fixed later
-        from core.modules.sub_module import InputPort
+        from vistrails.core.modules.sub_module import InputPort
         fromInputPortModule = [connector()
                                for connector in self.inputPorts[inputPort]
                                if type(connector.obj)==InputPort]
@@ -540,7 +539,7 @@ Makes sure input port 'name' is filled."""
         for use in creating the object output by a Module.
         """
         # FIXME (DAK): I don't get this, shouldn't we import module_registry?
-        import core.modules.vistrails_module
+        import vistrails.core.modules.vistrails_module
         try:
             reg = core.modules.module_registry.get_module_registry()
             m = reg.get_module_by_name(ident, name, ns)

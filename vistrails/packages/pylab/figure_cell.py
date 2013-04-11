@@ -37,8 +37,8 @@ Matplotlib viewer into our spreadsheet
 
 """
 from PyQt4 import QtGui
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_cell import QCellWidget
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import pylab
 
 ################################################################################
@@ -150,6 +150,7 @@ class MplFigureCellWidget(QCellWidget):
         self.figManager.canvas.figure.set_size_inches(8.0,6.0)
         self.figManager.canvas.print_figure(filename)
         self.figManager.canvas.figure.set_size_inches(*previous_size, forward=True)
+        self.figManager.canvas.draw()
         
     def saveToPDF(self, filename):
         #resizing to default size so the image is not clipped
@@ -157,7 +158,9 @@ class MplFigureCellWidget(QCellWidget):
         self.figManager.canvas.figure.set_size_inches(8.0,6.0)
         self.figManager.canvas.print_figure(filename)
         self.figManager.canvas.figure.set_size_inches(*previous_size, forward=True)
+        self.figManager.canvas.draw()
 
     def saveToPNG(self, filename):
         self.figManager.canvas.print_figure(filename)
+        self.figManager.canvas.draw()
         return True

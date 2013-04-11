@@ -32,8 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.db.domain import DBAnnotation
 
-from db.domain import DBAnnotation
+import unittest
+import copy
+import vistrails.core
 
 class Annotation(DBAnnotation):
 
@@ -95,13 +98,11 @@ class Annotation(DBAnnotation):
 ################################################################################
 # Unit tests
 
-import unittest
-import copy
 
 class TestAnnotation(unittest.TestCase):
 
     def create_annotation(self, id_scope=None):
-        from db.domain import IdScope
+        from vistrails.db.domain import IdScope
 
         if id_scope is None:
             id_scope = IdScope()
@@ -111,7 +112,7 @@ class TestAnnotation(unittest.TestCase):
         return annotation
 
     def test_copy(self):
-        from db.domain import IdScope
+        from vistrails.db.domain import IdScope
         id_scope = IdScope()
 
         a1 = self.create_annotation(id_scope)
@@ -123,10 +124,10 @@ class TestAnnotation(unittest.TestCase):
         self.assertNotEquals(a1.id, a3.id)
 
     def test_serialization(self):
-        import core.db.io
+        import vistrails.core.db.io
         a1 = self.create_annotation()
-        xml_str = core.db.io.serialize(a1)
-        a2 = core.db.io.unserialize(xml_str, Annotation)
+        xml_str = vistrails.core.db.io.serialize(a1)
+        a2 = vistrails.core.db.io.unserialize(xml_str, Annotation)
         self.assertEquals(a1, a2)
         self.assertEquals(a1.id, a2.id)
 

@@ -42,17 +42,16 @@ QAliasListItem
 QAliasList
 
 """
-
 import copy
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 
 
-from core.data_structures.bijectivedict import Bidict
-from core.mashup.alias import Alias
-from gui.base_view import BaseView
-from gui.mashups.alias_inspector import QAliasInspector
-from gui.utils import show_question, YES_BUTTON, NO_BUTTON
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.mashup.alias import Alias
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.mashups.alias_inspector import QAliasInspector
+from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON
 
 ###############################################################################
 class QAliasListPanel(QtGui.QWidget, BaseView):
@@ -140,8 +139,8 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
         self.aliasesChanged.emit()
         
     def set_default_layout(self):
-        from gui.mashups.mashups_inspector import QMashupsInspector
-        from gui.mashups.alias_parameter_view import QAliasParameterView
+        from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
+        from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QMashupsInspector,
              QtCore.Qt.RightDockWidgetArea: QAliasParameterView,

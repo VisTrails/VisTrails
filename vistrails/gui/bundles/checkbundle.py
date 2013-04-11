@@ -34,9 +34,8 @@
 ###############################################################################
 
 """Module with utilities to inspect bundles, if possible."""
-
-from gui.bundles.utils import guess_system, guess_graphical_sudo
-import gui.bundles.checkbundle # this is on purpose
+from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
+import vistrails.gui.bundles.checkbundle # this is on purpose
 import os
 
 ##############################################################################

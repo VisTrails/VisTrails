@@ -36,8 +36,7 @@
 
 ############################################################################
 # Utility functions for debugging on eigen.py
-
-from core.data_structures.point import Point
+from vistrails.core.data_structures.point import Point
 
 def smart_sum(v):
     try:

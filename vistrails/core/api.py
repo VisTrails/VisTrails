@@ -1,16 +1,17 @@
 import itertools
 
-import core.application
-from core.db.locator import FileLocator
-import core.db.io
-from core.modules.module_registry import get_module_registry
-from core.modules.utils import create_port_spec_string
-from core.packagemanager import get_package_manager
+import vistrails.core.application
+from vistrails.core.db.locator import FileLocator
+import vistrails.core.db.io
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.utils import create_port_spec_string
+from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.vistrail import Vistrail
+
 # from core.modules.package import Package as _Package
 # from core.vistrail.module import Module as _Module
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.port_spec import PortSpec
-from core.vistrail.vistrail import Vistrail
 
 _api = None
 
@@ -131,7 +132,7 @@ class Module(object):
                 # print 'update literal', type(value), value
                 num_params += 1
         if num_ports > 1 or (num_ports == 1 and num_params > 0):
-            reg = core.modules.module_registry.get_module_registry()
+            reg = vistrails.core.modules.module_registry.get_module_registry()
             tuple_desc = \
                 reg.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
                                            'Tuple', '')
@@ -252,7 +253,7 @@ class VisTrailsAPI(object):
 
     def __init__(self, app=None):
         if app is None:
-            app = core.application.get_vistrails_application()
+            app = vistrails.core.application.get_vistrails_application()
         self._packages = None
         self._controller = app.get_controller()
         self._old_log = None
@@ -342,7 +343,7 @@ class VisTrailsAPI(object):
     def load_vistrail(self, fname):
         locator = FileLocator(fname)
         (vistrail, abstraction_files, thumbnail_files, mashups) = \
-            core.db.io.load_vistrail(locator, False)
+            vistrails.core.db.io.load_vistrail(locator, False)
         self._controller.set_vistrail(vistrail, locator, abstraction_files,
                                       thumbnail_files, mashups)
         self._controller.select_latest_version()
@@ -355,7 +356,7 @@ class VisTrailsAPI(object):
             action_list.append(('add', module))
         for connection in workflow.connection_list:
             action_list.append(('add', connection))
-        action = core.db.action.create_action(action_list)
+        action = vistrails.core.db.action.create_action(action_list)
         vistrail = Vistrail()
         vistrail.add_action(action, 0L)
         vistrail.update_id_scope()
@@ -378,7 +379,7 @@ class VisTrailsAPI(object):
             hasattr(self._controller.vistrail, 'db_log_filename') and
             self._controller.vistrail.db_log_filename is not None):
             self._old_log = \
-                core.db.io.open_log(self._controller.vistrail.db_log_filename, True)
+                vistrails.core.db.io.open_log(self._controller.vistrail.db_log_filename, True)
         if self._old_log is not None:
             wf_execs.extend(self._old_log.workflow_execs)
         wf_execs.extend(self._controller.log.workflow_execs)

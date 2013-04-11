@@ -33,8 +33,12 @@
 ##
 ###############################################################################
 import urllib
-from core.mashup import conv_from_bool, conv_to_bool, convert_symbols
-from db.domain import DBMashupComponent
+from vistrails.core.mashup import conv_from_bool, conv_to_bool, convert_symbols
+from vistrails.db.domain import DBMashupComponent
+
+import unittest
+from vistrails.db.domain import IdScope
+import copy
 
 systype = type
 
@@ -283,9 +287,6 @@ maxVal='%s' stepSize='%s' strvaluelist='%s' parent='%s' seq='%s' widget='%s')@%X
     
 ################################################################################
 
-import unittest
-from db.domain import IdScope
-import copy
 
 class TestComponent(unittest.TestCase):
     def create_component(self, id_scope=IdScope()):

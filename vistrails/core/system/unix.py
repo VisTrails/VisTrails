@@ -39,7 +39,7 @@ import os.path
 import stat
 import subprocess
 import sys
-import core.utils
+import vistrails.core.utils
 import re
 
 def executable_is_in_path(filename):
@@ -54,7 +54,7 @@ the filename if true, or an empty string if false."""
     if result != 0:
         msg = ("'%s' failed. Return code %s. Output: %s" %
                (cmdline, result, output))
-        raise core.utils.VistrailsInternalError(msg)
+        raise vistrails.core.utils.VistrailsInternalError(msg)
     else:
         output = output[0][:-1]
         return output

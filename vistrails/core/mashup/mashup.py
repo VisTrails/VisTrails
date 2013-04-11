@@ -32,13 +32,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.db.domain import IdScope
+from vistrails.db.domain import DBMashup
+from vistrails.core.mashup import conv_to_bool, conv_from_bool
+from vistrails.core.mashup.alias import Alias
+from vistrails.core.mashup.component import Component
+from vistrails.core.system import get_elementtree_library
 
-from db.domain import IdScope
-from db.domain import DBMashup
-from core.mashup import conv_to_bool, conv_from_bool
-from core.mashup.alias import Alias
-from core.mashup.component import Component
-from core.system import get_elementtree_library
+import unittest
+import copy
+
 ElementTree = get_elementtree_library()
 
 class Mashup(DBMashup):
@@ -284,9 +287,6 @@ layout='%s' geometry='%s' alias_list='%s')@%X" %
         
 ################################################################################
 
-import unittest
-from db.domain import IdScope
-import copy
 
 class TestMashup(unittest.TestCase):
     def create_mashup(self, id_scope=IdScope()):

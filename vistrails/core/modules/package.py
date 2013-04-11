@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import __builtin__
 import copy
 import os
@@ -41,14 +40,14 @@ import sys
 import traceback
 import xml.dom
 
-from core import debug
-from core import get_vistrails_application
-from core.configuration import ConfigurationObject, get_vistrails_configuration
-from core.modules.module_descriptor import ModuleDescriptor
-from core.utils import versions_increasing
-from core.utils.uxml import (named_elements, enter_named_element)
+from vistrails.core import debug
+from vistrails.core import get_vistrails_application
+from vistrails.core.configuration import ConfigurationObject, get_vistrails_configuration
+from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.utils import versions_increasing
+from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 
-from db.domain import DBPackage
+from vistrails.db.domain import DBPackage
 
 ##############################################################################
 
@@ -252,6 +251,7 @@ class Package(DBPackage):
             self._existing_paths = existing_paths
         else:
             self._existing_paths = set(sys.modules.iterkeys())
+        self._warn_vistrails_prefix = False
         self._force_no_unload = force_no_unload_pkg_list
         self._force_unload = force_unload_pkg_list
         self._force_sys_unload = force_sys_unload
@@ -259,11 +259,14 @@ class Package(DBPackage):
         
     def _reset_import(self):
         __builtin__.__import__ = self._real_import
+        if self._warn_vistrails_prefix:
+            debug.warning('In package "%s", Please use the "vistrails." prefix when importing vistrails packages.' % self.identifier)
         return self._imported_paths
 
     def _import(self, name, globals=None, locals=None, fromlist=None, level=-1):
         # if name != 'core.modules.module_registry':
         #     print 'running import', name, fromlist
+
         def in_package_list(pkg_name, pkg_list):
             for pkg in pkg_list:
                 if pkg_name == pkg or pkg_name.startswith(pkg + '.'):
@@ -292,8 +295,23 @@ class Package(DBPackage):
                  not qual_name.endswith('_rc'):
                 self._imported_paths.add(qual_name)
 
-        res = apply(self._real_import, 
-                    (name, globals, locals, fromlist, level))
+        try:
+            res = self._real_import(name, globals, locals, fromlist, level)
+        except ImportError:
+            # backward compatibility for packages that import without
+            # "vistrails." prefix
+            fixed = False
+            fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
+            for pkg in fix_pkgs:
+                if name == pkg or name.startswith(pkg + '.'):
+                    self._warn_vistrails_prefix = True
+                    fixed = True
+                    name = "vistrails." + name
+                    break
+            if fixed:
+                res = self._real_import(name, globals, locals, fromlist, level)
+            else:
+                raise
         mod = res
         if not fromlist or len(fromlist) < 1:
             checked_add_package(mod.__name__, mod)
@@ -357,7 +375,7 @@ class Package(DBPackage):
             elif prefix is not None:
                 r = not import_from(prefix)
             else:
-                r = (not import_from('packages.') and
+                r = (not import_from('vistrails.packages.') and
                      not import_from('userpackages.'))
         except Exception, e:
             raise self.LoadFailed(self, e, traceback.format_exc())

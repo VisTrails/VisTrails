@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
 
 
 identifier = 'edu.utah.sci.vistrails.persistence'

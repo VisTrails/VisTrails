@@ -34,10 +34,13 @@
 ###############################################################################
 # We need to remove QtGui and QtCore refernce by storing all of our
 # notes in plain text, not html, should be fix later
-from core.query import extract_text
-import core.utils
+from vistrails.core.query import extract_text
+import vistrails.core.utils
 import re
 import time
+
+import unittest
+import datetime
 
 ################################################################################
 
@@ -595,8 +598,6 @@ class SearchCompiler(object):
 
 ################################################################################
 
-import unittest
-import datetime
 
 class TestSearch(unittest.TestCase):
     def test1(self):
@@ -649,10 +650,10 @@ class TestSearch(unittest.TestCase):
         self.assertEquals(TimeSearchStmt('13 apr 2006 21:00').date,
                           TimeSearchStmt('04/13/2006 21:00:00').date)
     def test15(self):
-        import core.vistrail
-        from core.db.locator import XMLFileLocator
-        import core.system
-        v = XMLFileLocator(core.system.vistrails_root_directory() +
+        import vistrails.core.vistrail
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.system
+        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         # FIXME: Add notes to this.
 #         self.assertTrue(NotesSearchStmt('mapper').match(v.actionMap[36]))
@@ -680,8 +681,8 @@ class TestSearch(unittest.TestCase):
                           SearchCompiler('before:this day').searchStmt.matchList[0].date)
     def test23(self):
         t = time.localtime()
-        import core.utils
-        inv = core.utils.invert(TimeSearchStmt.months)
+        import vistrails.core.utils
+        inv = vistrails.core.utils.invert(TimeSearchStmt.months)
         m = inv[t[1]]
         self.assertEquals(SearchCompiler('after:%s %s %s' % (t[0], m, t[2])).searchStmt.matchList[0].date,
                           SearchCompiler('after:today').searchStmt.matchList[0].date)

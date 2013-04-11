@@ -36,19 +36,18 @@
 Dialog for web repository options
 Includes login and upload tabs
 """
-
 from PyQt4 import QtGui, QtCore
-from core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
-from core.repository.poster.encode import multipart_encode
-from core.repository.poster.streaminghttp import register_openers
-from core.vistrail.controller import VistrailController
-from core.db.locator import ZIPFileLocator, FileLocator
-from core.db.io import load_vistrail
-from core import debug
+from vistrails.core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
+from vistrails.core.repository.poster.encode import multipart_encode
+from vistrails.core.repository.poster.streaminghttp import register_openers
+from vistrails.core.vistrail.controller import VistrailController
+from vistrails.core.db.locator import ZIPFileLocator, FileLocator
+from vistrails.core.db.io import load_vistrail
+from vistrails.core import debug
 import urllib, urllib2, cookielib
 import os
 import tempfile
-import api
+import vistrails.api
 import json
 
 ##############################################################################
@@ -294,7 +293,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self.unsupported_packages = set()
             has_python_source = False
 
-            vistrail = api.get_current_vistrail()
+            vistrail = vistrails.api.get_current_vistrail()
 
             for version_id in vistrail.get_tagMap():
                 pipeline = vistrail.getPipeline(version_id)
@@ -361,7 +360,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                          " your workflows have been verfied")
 
             self._repository_status['support_status'] = ""
-            controller = api.get_current_controller()
+            controller = vistrails.api.get_current_controller()
             if controller.vistrail.get_annotation('repository_vt_id'):
                 # Since repository_vt_id doesn't mirror crowdlabs vt id
                 # get the crowdlabs vt id for linkage
@@ -429,7 +428,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             # writing tmp vt and switching back to orginal vt
             locator = ZIPFileLocator(filename)
-            controller = api.get_current_controller()
+            controller = vistrails.api.get_current_controller()
             tmp_controller = VistrailController()
             tmp_controller.set_vistrail(controller.vistrail.do_copy(), locator)
             tmp_controller.changed = True
@@ -512,7 +511,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     updated_vt.close()
 
                     # switch vistrails to updated one
-                    controller = api.get_current_controller()
+                    controller = vistrails.api.get_current_controller()
 
                     updated_locator = FileLocator(updated_filename)
 
@@ -643,7 +642,7 @@ class QRepositoryLoginPopup(QtGui.QDialog):
         Attempts to log into web repository
         stores auth cookie for session
         """
-        from gui.application import get_vistrails_application
+        from vistrails.gui.application import get_vistrails_application
 
         self.dialog.loginUser = self.loginUser.text()
         params = urllib.urlencode({'username':self.dialog.loginUser,

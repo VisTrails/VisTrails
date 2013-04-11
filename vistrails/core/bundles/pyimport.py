@@ -35,11 +35,10 @@
 
 """module responsible for smartly importing python modules, checking
 for necessary installs."""
-
 import traceback
 
-import core.bundles.installbundle
-from core import debug
+import vistrails.core.bundles.installbundle
+from vistrails.core import debug
 
 ##############################################################################
 
@@ -75,7 +74,7 @@ about which system it runs on."""
     debug.warning("Import of python module '%s' failed. "
                   "Will try to install bundle." % module_name)
 
-    success = core.bundles.installbundle.install(dependency_dictionary)
+    success = vistrails.core.bundles.installbundle.install(dependency_dictionary)
 
     if not success:
         raise PyImportException(module_name, traceback.format_exc())

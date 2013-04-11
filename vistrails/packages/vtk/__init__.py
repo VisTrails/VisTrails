@@ -36,25 +36,25 @@
 software system for 3D computer graphics, image processing, and
 visualization used by thousands of researchers and developers around
 the world. http://www.vtk.org"""
-
+import vistrails.core
 identifier = 'edu.utah.sci.vistrails.vtk'
 name = 'VTK'
 version = '0.9.3'
 
 def package_dependencies():
-    import core.packagemanager
-    manager = core.packagemanager.get_package_manager()
+    import vistrails.core.packagemanager
+    manager = vistrails.core.packagemanager.get_package_manager()
     if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
         return ['edu.utah.sci.vistrails.spreadsheet']
     else:
         return []
 
 def package_requirements():
-    import core.requirements
-    if not core.requirements.python_module_exists('vtk'):
-        raise core.requirements.MissingRequirement('vtk')
-    if not core.requirements.python_module_exists('PyQt4'):
-        from core import debug
+    import vistrails.core.requirements
+    if not vistrails.core.requirements.python_module_exists('vtk'):
+        raise vistrails.core.requirements.MissingRequirement('vtk')
+    if not vistrails.core.requirements.python_module_exists('PyQt4'):
+        from vistrails.core import debug
         debug.warning('PyQt4 is not available. There will be no interaction '
                       'between VTK and the spreadsheet.')
     import vtk

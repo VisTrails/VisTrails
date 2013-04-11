@@ -31,11 +31,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
-from core.modules.utils import parse_port_spec_item_string, \
+from vistrails.core.modules.utils import parse_port_spec_item_string, \
     create_port_spec_item_string
-from db.domain import DBPortSpecItem
+from vistrails.db.domain import DBPortSpecItem
+
+import unittest
+from vistrails.db.domain import IdScope
 
 class PortSpecItem(DBPortSpecItem):
 
@@ -133,7 +135,7 @@ class PortSpecItem(DBPortSpecItem):
 
     def _get_descriptor(self):
         if self._descriptor is None:
-            from core.modules.module_registry import get_module_registry
+            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             if self.package is None:
                 self._descriptor = \
@@ -169,8 +171,6 @@ class PortSpecItem(DBPortSpecItem):
 ################################################################################
 # Testing
 
-import unittest
-from db.domain import IdScope
 
 class TestPortSpecItem(unittest.TestCase):
     def create_port_spec_item(self):

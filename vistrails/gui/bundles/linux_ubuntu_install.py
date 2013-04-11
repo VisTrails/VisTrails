@@ -35,21 +35,25 @@
 ###############################################################################
 
 # Installs a package through APT, showing progress.
-
-if __name__ != '__main__':
-    import tests
-    raise tests.NotModule('This should not be imported as a module')
-
 import apt
 import apt_pkg
 import sys, os
 import copy
 import time
 
-package_name = sys.argv[1]
-
 from apt.progress import InstallProgress
 from apt.progress import FetchProgress
+
+from PyQt4 import QtCore, QtGui
+import vistrails.tests
+
+if __name__ != '__main__':
+    import vistrails.tests
+    raise vistrails.tests.NotModule('This should not be imported as a module')
+
+
+package_name = sys.argv[1]
+
 
 cache = apt.Cache(apt.progress.OpTextProgress())
 
@@ -64,7 +68,6 @@ if pkg.isInstalled:
 
 ##############################################################################
 
-from PyQt4 import QtCore, QtGui
 
 class GUIInstallProgress(InstallProgress):
     def __init__(self, pbar, status_label):

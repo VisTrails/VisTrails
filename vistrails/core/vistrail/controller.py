@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 from itertools import izip
 import os
@@ -40,56 +39,55 @@ import uuid
 import shutil
 import tempfile
 
-from core.configuration import get_vistrails_configuration
-import core.db.action
-import core.db.io
-import core.db.locator
-from core import debug
-from core.data_structures.graph import Graph
-from core.interpreter.default import get_default_interpreter
-from core.layout.workflow_layout import WorkflowLayout, \
+from vistrails.core.configuration import get_vistrails_configuration
+import vistrails.core.db.action
+import vistrails.core.db.io
+import vistrails.core.db.locator
+from vistrails.core import debug
+from vistrails.core.data_structures.graph import Graph
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
-from core.log.controller import LogControllerFactory, DummyLogController
-from core.log.log import Log
-from core.modules.abstraction import identifier as abstraction_pkg, \
+from vistrails.core.log.controller import LogControllerFactory, DummyLogController
+from vistrails.core.log.log import Log
+from vistrails.core.modules.abstraction import identifier as abstraction_pkg, \
     version as abstraction_ver
-from core.modules.basic_modules import identifier as basic_pkg
-import core.modules.module_registry
-from core.modules.module_registry import ModuleRegistryException, \
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort, \
     MissingPackage, PortsIncompatible
-from core.modules.package import Package
-from core.modules.sub_module import new_abstraction, read_vistrail, \
+from vistrails.core.modules.package import Package
+from vistrails.core.modules.sub_module import new_abstraction, read_vistrail, \
     get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
     get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
-from core.packagemanager import PackageManager, get_package_manager
-import core.packagerepository
-from core.thumbnails import ThumbnailCache
-from core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
-from core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
+from vistrails.core.packagemanager import PackageManager, get_package_manager
+import vistrails.core.packagerepository
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
+from vistrails.core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
-from core.system import vistrails_default_file_type
-from core.vistrail.abstraction import Abstraction
-from core.vistrail.action import Action
-from core.vistrail.annotation import Annotation
-from core.vistrail.connection import Connection
-from core.vistrail.group import Group
-from core.vistrail.location import Location
-from core.vistrail.module import Module
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.pipeline import Pipeline
-from core.vistrail.port import Port
-from core.vistrail.port_spec import PortSpec
-from core.vistrail.vistrail import Vistrail
-from core.theme import DefaultCoreTheme
-from db import VistrailsDBException
-from db.domain import IdScope, DBWorkflowExec
-from db.services.io import create_temp_folder, remove_temp_folder
-from db.services.io import SaveBundle, open_vt_log_from_db
-
-from db.services.vistrail import getSharedRoot
-from core.utils import any
+from vistrails.core.system import vistrails_default_file_type
+from vistrails.core.vistrail.abstraction import Abstraction
+from vistrails.core.vistrail.action import Action
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.group import Group
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.port import Port
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.theme import DefaultCoreTheme
+from vistrails.db import VistrailsDBException
+from vistrails.db.domain import IdScope, DBWorkflowExec
+from vistrails.db.services.io import create_temp_folder, remove_temp_folder
+from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
+from vistrails.db.services.vistrail import getSharedRoot
+from vistrails.core.utils import any
 
 def vt_action(description_or_f=None):
     def get_f(f, description=None):
@@ -355,7 +353,7 @@ class VistrailController(object):
         if module is not None:
             ops.append(('add', module))
         ops.append(('add', connection))
-        action = core.db.action.create_action(ops)
+        action = vistrails.core.db.action.create_action(ops)
         return action
         
     def connect_vistrail_var(self, descriptor, var_uuid,
@@ -379,7 +377,7 @@ class VistrailController(object):
         ops.extend([('delete', c) for c in connections])
         ops.extend([('delete', m) for m in modules])
         if len(ops) > 0:
-            action = core.db.action.create_action(ops)
+            action = vistrails.core.db.action.create_action(ops)
             return action
         return None
 
@@ -521,7 +519,7 @@ class VistrailController(object):
     def create_module_from_descriptor_static(id_scope, descriptor, 
                                              x=0.0, y=0.0, 
                                              internal_version=-1):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         package = reg.get_package_by_name(descriptor.identifier)
         loc_id = id_scope.getNewId(Location.vtType)
         location = Location(id=loc_id,
@@ -571,7 +569,7 @@ class VistrailController(object):
     @staticmethod
     def create_module_static(id_scope, identifier, name, namespace='', 
                              x=0.0, y=0.0, internal_version=-1):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         d = reg.get_descriptor_by_name(identifier, name, namespace)
         static_call = VistrailController.create_module_from_descriptor_static
         return static_call(id_scope, d, x, y, internal_version)
@@ -599,7 +597,7 @@ class VistrailController(object):
             raise VistrailsInternalError("output port spec is None")
         if input_port_spec is None:
             raise VistrailsInternalError("input port spec is None")
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         if not reg.ports_can_connect(output_port_spec, input_port_spec):
             raise PortsIncompatible(output_module.package,
                                     output_module.name,
@@ -921,7 +919,7 @@ class VistrailController(object):
     def add_module_action(self, module):
         if not self.current_pipeline:
             raise Exception("No version is selected")
-        action = core.db.action.create_action([('add', module)])
+        action = vistrails.core.db.action.create_action([('add', module)])
         return action
 
     def add_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
@@ -959,7 +957,7 @@ class VistrailController(object):
 
         """
         ops = self.delete_module_list_ops(pipeline, module_ids)
-        return core.db.action.create_action(ops)
+        return vistrails.core.db.action.create_action(ops)
 
     @vt_action
     def delete_module_list(self, module_ids):
@@ -1001,13 +999,13 @@ class VistrailController(object):
         
         """
         action_list = self.move_modules_ops(move_list)
-        action = core.db.action.create_action(action_list)
+        action = vistrails.core.db.action.create_action(action_list)
         self.add_new_action(action)
         return self.perform_action(action)
 
     @vt_action
     def add_connection_action(self, connection):
-        action = core.db.action.create_action([('add', connection)])
+        action = vistrails.core.db.action.create_action([('add', connection)])
         return action
 
     def add_connection(self, output_id, output_port_spec, 
@@ -1042,12 +1040,12 @@ class VistrailController(object):
         for c_id in connect_ids:
             action_list.append(('delete', 
                                 self.current_pipeline.connections[c_id]))
-        action = core.db.action.create_action(action_list)
+        action = vistrails.core.db.action.create_action(action_list)
         return action
 
     @vt_action
     def add_function_action(self, module, function):
-        action = core.db.action.create_action([('add', function, 
+        action = vistrails.core.db.action.create_action([('add', function, 
                                                 module.vtType, module.id)])
         return action
 
@@ -1064,7 +1062,7 @@ class VistrailController(object):
                                            query_methods=query_methods,
                                            should_replace=should_replace)
         if len(op_list) > 0:
-            action = core.db.action.create_action(op_list)
+            action = vistrails.core.db.action.create_action(op_list)
             return action
         return None
 
@@ -1076,7 +1074,7 @@ class VistrailController(object):
             return None
         op = ('change', old_param, new_param, 
               function.vtType, function.real_id)
-        action = core.db.action.create_action([op])
+        action = vistrails.core.db.action.create_action([op])
         return action
 
     @vt_action
@@ -1088,7 +1086,7 @@ class VistrailController(object):
 
         module = self.current_pipeline.get_module_by_id(module_id)
         function = module.functions[function_pos]
-        action = core.db.action.create_action([('delete', function,
+        action = vistrails.core.db.action.create_action([('delete', function,
                                                 module.vtType, module.id)])
         return action
 
@@ -1096,7 +1094,7 @@ class VistrailController(object):
     def delete_function(self, real_id, module_id):
         module = self.current_pipeline.get_module_by_id(module_id)
         function = module.get_function_by_real_id(real_id)
-        action = core.db.action.create_action([('delete', function,
+        action = vistrails.core.db.action.create_action([('delete', function,
                                                 module.vtType, module.id)])
         return action
 
@@ -1108,7 +1106,7 @@ class VistrailController(object):
         """
         module = self.current_pipeline.get_module_by_id(module_id)
         annotation = module.get_annotation_by_key(key)
-        action = core.db.action.create_action([('delete', annotation,
+        action = vistrails.core.db.action.create_action([('delete', annotation,
                                                 module.vtType, module.id)])
         return action
 
@@ -1133,11 +1131,11 @@ class VistrailController(object):
         if module.has_annotation_with_key(pair[0]):
             old_annotation = module.get_annotation_by_key(pair[0])
             action = \
-                core.db.action.create_action([('change', old_annotation,
+                vistrails.core.db.action.create_action([('change', old_annotation,
                                                    annotation,
                                                    module.vtType, module.id)])
         else:
-            action = core.db.action.create_action([('add', annotation,
+            action = vistrails.core.db.action.create_action([('add', annotation,
                                                         module.vtType, 
                                                         module.id)])
         return action
@@ -1155,7 +1153,7 @@ class VistrailController(object):
     def update_functions(self, module, functions):
         op_list = self.update_functions_ops(module, functions)
         if len(op_list) > 0:
-            action = core.db.action.create_action(op_list)
+            action = vistrails.core.db.action.create_action(op_list)
         else:
             action = None
         return action
@@ -1166,14 +1164,14 @@ class VistrailController(object):
         op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
                                                      added_ports)
         op_list.extend(self.update_functions_ops_from_ids(module_id, functions))
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         return action
 
     @vt_action
     def update_ports(self, module_id, deleted_ports, added_ports):
         op_list = self.update_port_spec_ops_from_ids(module_id, deleted_ports, 
                                                      added_ports)
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         return action
 
     def has_module_port(self, module_id, port_tuple):
@@ -1209,7 +1207,7 @@ class VistrailController(object):
                              name=port_tuple[1],
                              sigstring=port_tuple[2],
                              )
-        action = core.db.action.create_action([('add', port_spec,
+        action = vistrails.core.db.action.create_action([('add', port_spec,
                                                 module.vtType, module.id)])
         return action
 
@@ -1231,7 +1229,7 @@ class VistrailController(object):
             if function.name == port_spec.name:
                 action_list.append(('delete', function, 
                                     module.vtType, module.id))
-        action = core.db.action.create_action(action_list)
+        action = vistrails.core.db.action.create_action(action_list)
         return action
 
     def create_group(self, module_ids, connection_ids):
@@ -1246,7 +1244,7 @@ class VistrailController(object):
                        for m_id in module_ids)
         op_list.append(('add', group))
         op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         self.add_new_action(action)
 #         for op in action.operations:
 #             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
@@ -1265,7 +1263,7 @@ class VistrailController(object):
                        for m_id in module_ids)
         op_list.append(('add', abstraction))
         op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         self.add_new_action(action)
         result = self.perform_action(action)
         return abstraction
@@ -1289,7 +1287,7 @@ class VistrailController(object):
         op_list.append(('delete', self.current_pipeline.modules[group_id]))
         op_list.append(('add', abstraction))
         op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         self.add_new_action(action)
         result = self.perform_action(action)
         return abstraction
@@ -1312,7 +1310,7 @@ class VistrailController(object):
         op_list.append(('delete', pipeline.modules[module_id]))
         op_list.extend(('add', m) for m in modules)
         op_list.extend(('add', c) for c in connections)
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         self.add_new_action(action)
         res = self.perform_action(action)
         self.validate(self.current_pipeline, False)
@@ -1490,7 +1488,7 @@ class VistrailController(object):
                                                [port_name])
                 op_list.extend(ops)
         self.flush_delayed_actions()
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         if action is not None:
             self.add_new_action(action)
             self.perform_action(action)
@@ -1736,7 +1734,7 @@ class VistrailController(object):
         abs_vistrail = Vistrail()
         
         id_remap = {}
-        action = core.db.action.create_paste_action(pipeline, 
+        action = vistrails.core.db.action.create_paste_action(pipeline, 
                                                     abs_vistrail.idScope,
                                                     id_remap)
         abs_vistrail.add_action(action, 0L, 0)
@@ -1756,7 +1754,7 @@ class VistrailController(object):
         return None
 
     def get_abstraction_desc(self, package, name, namespace, module_version=None):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         if reg.has_descriptor_with_name(package, name, namespace,
                                         None, module_version):
             return reg.get_descriptor_by_name(package, name,
@@ -1766,7 +1764,7 @@ class VistrailController(object):
     def add_abstraction_to_registry(self, abs_vistrail, abs_fname, name, 
                                     namespace=None, module_version=None,
                                     is_global=True, avail_fnames=[]):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         cur_namespace = get_cur_abs_namespace(abs_vistrail)
         if namespace is None:
             namespace = cur_namespace
@@ -1906,7 +1904,7 @@ class VistrailController(object):
         return desc
     
     def unload_abstractions(self):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
             abs_name = parse_abstraction_name(abs_fname)
             # FIXME? do we need to remove all versions (call
@@ -2025,7 +2023,7 @@ class VistrailController(object):
         if not overwrite and os.path.exists(vt_fname):
             raise VistrailsInternalError("'%s' already exists" % \
                                              vt_fname)
-        core.db.io.save_vistrail_to_xml(vistrail, vt_fname)
+        vistrails.core.db.io.save_vistrail_to_xml(vistrail, vt_fname)
         return vt_fname
 
     def upgrade_abstraction_module(self, module_id, test_only=False):
@@ -2111,7 +2109,7 @@ class VistrailController(object):
                                          self.current_version)
 
     def get_abstraction_descriptor(self, name, namespace=None):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         return reg.get_descriptor_by_name(abstraction_pkg, name, namespace)
 
 #     def load_abstraction(self, abs_fname, abs_name=None):
@@ -2148,7 +2146,7 @@ class VistrailController(object):
     def import_abstraction(self, new_name, package, name, namespace, 
                            module_version=None):
         # copy from a local namespace to local.abstractions
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         descriptor = self.get_abstraction_desc(package, name, namespace, str(module_version))
         if descriptor is None:
             # if not self.abstraction_exists(name):
@@ -2210,7 +2208,7 @@ class VistrailController(object):
                     try:
                         vistrail = abstraction.vistrail
                     except MissingPackageVersion, e:
-                        reg = core.modules.module_registry.get_module_registry()
+                        reg = vistrails.core.modules.module_registry.get_module_registry()
                         abstraction._module_descriptor = \
                             reg.get_similar_descriptor(*abstraction.descriptor_info)
                         vistrail = abstraction.vistrail
@@ -2222,7 +2220,7 @@ class VistrailController(object):
         return abstractions
 
     def check_abstraction(self, descriptor_tuple, lookup):
-        reg = core.modules.module_registry.get_module_registry()
+        reg = vistrails.core.modules.module_registry.get_module_registry()
         try:
             descriptor = reg.get_descriptor_by_name(*descriptor_tuple)
             if not os.path.exists(descriptor.module.vt_fname):
@@ -2451,7 +2449,7 @@ class VistrailController(object):
                                                     should_replace=True, 
                                                     aliases=aliases))
 
-        action = core.db.action.create_action(op_list)
+        action = vistrails.core.db.action.create_action(op_list)
         self.add_new_action(action)
 
         self.current_pipeline = current_pipeline
@@ -2744,7 +2742,7 @@ class VistrailController(object):
             pkg.init_module.load_from_identifier(identifier)
             return True
         # Package is not available, let's try to fetch it
-        rep = core.packagerepository.get_repository()
+        rep = vistrails.core.packagerepository.get_repository()
         if rep:
             codepath = rep.find_package(identifier)
             if codepath and self.install_missing_package(identifier):
@@ -2770,7 +2768,7 @@ class VistrailController(object):
             action.add_annotation(annotation)
         
     def create_upgrade_action(self, actions):
-        new_action = core.db.action.merge_actions(actions)
+        new_action = vistrails.core.db.action.merge_actions(actions)
         self.set_action_annotation(new_action, Action.ANNOTATION_DESCRIPTION, 
                                    "Upgrade")
         return new_action
@@ -3363,7 +3361,7 @@ class VistrailController(object):
             save_bundle = SaveBundle(self.vistrail.vtType)
             if export:
                 save_bundle.vistrail = self.vistrail.do_copy()
-                if type(locator) == core.db.locator.DBLocator:
+                if type(locator) == vistrails.core.db.locator.DBLocator:
                     save_bundle.vistrail.db_log_filename = None
             else:
                 save_bundle.vistrail = self.vistrail
@@ -3385,7 +3383,7 @@ class VistrailController(object):
             if self.locator != locator:
                 # check for db log
                 log = Log()
-                if type(self.locator) == core.db.locator.DBLocator:
+                if type(self.locator) == vistrails.core.db.locator.DBLocator:
                     connection = self.locator.get_connection()
                     db_log = open_vt_log_from_db(connection, 
                                                  self.vistrail.db_id)
@@ -3408,7 +3406,7 @@ class VistrailController(object):
                     self.locator = locator
                 save_bundle = locator.save_as(save_bundle, version)
                 new_vistrail = save_bundle.vistrail
-                if type(locator) == core.db.locator.DBLocator:
+                if type(locator) == vistrails.core.db.locator.DBLocator:
                     new_vistrail.db_log_filename = None
                     locator.kwargs['obj_id'] = new_vistrail.db_id
                 if not export:
@@ -3435,8 +3433,8 @@ class VistrailController(object):
             # FIXME abstractions only work with FileLocators right now
             if is_abstraction:
                 new_vistrail.is_abstraction = True
-                if ( type(self.locator) == core.db.locator.XMLFileLocator or
-                     type(self.locator) == core.db.locator.ZIPFileLocator ):
+                if ( type(self.locator) == vistrails.core.db.locator.XMLFileLocator or
+                     type(self.locator) == vistrails.core.db.locator.ZIPFileLocator ):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
                         del self._loaded_abstractions[filename]
@@ -3490,7 +3488,7 @@ class VistrailController(object):
     def write_log(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
-                log = core.db.io.merge_logs(self.log, 
+                log = vistrails.core.db.io.merge_logs(self.log, 
                                             self.vistrail.db_log_filename)
             else:
                 log = self.log
@@ -3505,7 +3503,7 @@ class VistrailController(object):
         return self.vistrail.get_persisted_log()
  
     def write_registry(self, locator):
-        registry = core.modules.module_registry.get_module_registry()
+        registry = vistrails.core.modules.module_registry.get_module_registry()
         save_bundle = SaveBundle(registry.vtType, registry=registry)
         locator.save_as(save_bundle)
 

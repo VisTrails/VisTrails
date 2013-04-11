@@ -34,10 +34,10 @@
 ###############################################################################
 import copy
 import os.path
-from core.system import current_user, current_time
-from core.mashup.alias import Alias
-from core.mashup.component import Component
-from core.mashup.mashup import Mashup
+from vistrails.core.system import current_user, current_time
+from vistrails.core.mashup.alias import Alias
+from vistrails.core.mashup.component import Component
+from vistrails.core.mashup.mashup import Mashup
 
 class MashupController(object):
     def __init__(self, originalController, vt_controller, vt_version, mshptrail=None):

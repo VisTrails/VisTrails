@@ -34,31 +34,31 @@
 ###############################################################################
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
-
-import core.cache.hasher
-from core.modules.module_registry import get_module_registry
-from core.modules import vistrails_module
-from core.modules.vistrails_module import Module, new_module, \
+import vistrails.core.cache.hasher
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules import vistrails_module
+from vistrails.core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
-from core.system import vistrails_version
-from core.utils import InstanceObject
-from core import debug
+from vistrails.core.system import vistrails_version
+from vistrails.core.utils import InstanceObject
+from vistrails.core import debug
 
 
-import core.system
+import vistrails.core.system
 from itertools import izip
 import re
 import os
 import os.path
 import shutil
+#import zipfile
+import urllib
+
 try:
     import hashlib
     sha_hash = hashlib.sha1
 except ImportError:
     import sha
     sha_hash = sha.new
-#import zipfile
-import urllib
 
 ###############################################################################
 
@@ -259,25 +259,25 @@ def string_compare(value_a, value_b, query_method):
 
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
                        False, staticmethod(lambda x: type(x) == bool),
-                       widget_type=('gui.modules.constant_configuration', 
+                       widget_type=('vistrails.gui.modules.constant_configuration', 
                                     'BooleanWidget'))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
                        staticmethod(lambda x: type(x) == float),
-                       query_widget_type=('gui.modules.query_configuration',
+                       query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
-                       param_explore_widget_list=[('gui.modules.paramexplore',
+                       param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'FloatExploreWidget')])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
                        staticmethod(lambda x: type(x) == int),
-                       query_widget_type=('gui.modules.query_configuration',
+                       query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
-                       param_explore_widget_list=[('gui.modules.paramexplore',
+                       param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'IntegerExploreWidget')])
 String  = new_constant('String'  , staticmethod(str), "", 
                        staticmethod(lambda x: type(x) == str),
-                       query_widget_type=('gui.modules.query_configuration',
+                       query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'StringQueryWidget'),
                        query_compute=string_compare)
 
@@ -328,7 +328,8 @@ class Path(Constant):
         
     @staticmethod
     def get_widget_class():
-        return ("gui.modules.constant_configuration", "PathChooserWidget")
+        return ("vistrails.gui.modules.constant_configuration", 
+                "PathChooserWidget")
 
 Path.default_value = Path()
 
@@ -349,7 +350,7 @@ class File(Path):
         n = self.get_name()
         if (self.hasInputFromPort("create_file") and
             self.getInputFromPort("create_file")):
-            core.system.touch(n)
+            vistrails.core.system.touch(n)
         if not os.path.isfile(n):
             raise ModuleError(self, 'File "%s" does not exist' % n)
         self.set_results(n)
@@ -358,7 +359,8 @@ class File(Path):
 
     @staticmethod
     def get_widget_class():
-        return ("gui.modules.constant_configuration", "FileChooserWidget")
+        return ("vistrails.gui.modules.constant_configuration", 
+                "FileChooserWidget")
 
 File.default_value = File()
     
@@ -379,7 +381,7 @@ class Directory(Path):
         if (self.hasInputFromPort("create_directory") and
             self.getInputFromPort("create_directory")):
             try:
-                core.system.mkdir(n)
+                vistrails.core.system.mkdir(n)
             except Exception, e:
                 raise ModuleError(self, 'mkdir: ' + str(e))
         if not os.path.isdir(n):
@@ -404,7 +406,8 @@ class Directory(Path):
             
     @staticmethod
     def get_widget_class():
-        return ("gui.modules.constant_configuration", "DirectoryChooserWidget")
+        return ("vistrails.gui.modules.constant_configuration", 
+                "DirectoryChooserWidget")
 
 Directory.default_value = Directory()
 
@@ -418,7 +421,7 @@ def path_parameter_hasher(p):
                     v_list.extend(get_mtime(subpath))
         return v_list
 
-    h = core.cache.hasher.Hasher.parameter_signature(p)
+    h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
     hasher = sha_hash()
     try:
         # FIXME: This will break with aliases - I don't really care that much
@@ -454,7 +457,8 @@ class OutputPath(Path):
         
     @staticmethod
     def get_widget_class():
-        return ("gui.modules.constant_configuration", "OutputPathChooserWidget")
+        return ("vistrails.gui.modules.constant_configuration", 
+                "OutputPathChooserWidget")
 
 OutputPath.default_value = OutputPath()
 
@@ -470,13 +474,13 @@ class FileSink(NotCacheable, Module):
         full_path = output_path.name
 
         try:
-            core.system.link_or_copy(input_file.name, full_path)
+            vistrails.core.system.link_or_copy(input_file.name, full_path)
         except OSError, e:
             if self.hasInputFromPort("overwrite") and \
                     self.getInputFromPort("overwrite"):
                 try:
                     os.unlink(full_path)
-                    core.system.link_or_copy(input_file.name, full_path)
+                    vistrails.core.system.link_or_copy(input_file.name, full_path)
                 except OSError:
                     msg = "(override true) Could not create file '%s'" % \
                         full_path
@@ -502,7 +506,7 @@ class FileSink(NotCacheable, Module):
                                                            file_extension)
                         counter += 1
                     try:
-                        core.system.link_or_copy(input_file.name, filename)
+                        vistrails.core.system.link_or_copy(input_file.name, filename)
                     except OSError:
                         msg = "Could not publish file '%s' \n   on  '%s': %s" % \
                                (full_path, filename, e)
@@ -579,16 +583,16 @@ class Color(Constant):
 
     @staticmethod
     def get_widget_class():
-        return ("gui.modules.constant_configuration", "ColorWidget")
+        return ("vistrails.gui.modules.constant_configuration", "ColorWidget")
         
     @staticmethod
     def get_query_widget_class():
-        return ("gui.modules.query_configuration", "ColorQueryWidget")
+        return ("vistrails.gui.modules.query_configuration", "ColorQueryWidget")
 
     @staticmethod
     def get_param_explore_widget_list():
-        return [('gui.modules.paramexplore', 'RGBExploreWidget'),
-                ('gui.modules.paramexplore', 'HSVExploreWidget')]
+        return [('vistrails.gui.modules.paramexplore', 'RGBExploreWidget'),
+                ('vistrails.gui.modules.paramexplore', 'HSVExploreWidget')]
 
     @staticmethod
     def query_compute(value_a, value_b, query_method):
@@ -840,7 +844,7 @@ class PythonSource(NotCacheable, Module):
         use_input and use_output control whether to use the inputport
         and output port dictionary as local variables inside the
         execution."""
-        import core.packagemanager
+        import vistrails.core.packagemanager
         def fail(msg):
             raise ModuleError(self, msg)
         def cache_this():
@@ -854,7 +858,7 @@ class PythonSource(NotCacheable, Module):
             outputDict = dict([(k, None)
                                for k in self.outputPorts])
             locals_.update(outputDict)
-        _m = core.packagemanager.get_package_manager()
+        _m = vistrails.core.packagemanager.get_package_manager()
         reg = get_module_registry()
         locals_.update({'fail': fail,
                         'package_manager': _m,
@@ -879,7 +883,7 @@ class SmartSource(NotCacheable, Module):
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
-        import core.packagemanager
+        import vistrails.core.packagemanager
         def fail(msg):
             raise ModuleError(self, msg)
         def cache_this():
@@ -913,7 +917,7 @@ class SmartSource(NotCacheable, Module):
             outputDict = dict([(k, None)
                                for k in self.outputPorts])
             locals_.update(outputDict)
-        _m = core.packagemanager.get_package_manager()
+        _m = vistrails.core.packagemanager.get_package_manager()
         locals_.update({'fail': fail,
                         'package_manager': _m,
                         'cache_this': cache_this,
@@ -969,7 +973,7 @@ it avoids moving the entire file contents to/from memory."""
         self._filename_in_archive = filename_in_archive
         self._output_filename = output_filename
 
-    if core.system.systemType in ['Windows', 'Microsoft']:
+    if vistrails.core.system.systemType in ['Windows', 'Microsoft']:
         def extract(self):
             os.system('unzip -p "%s" "%s" > "%s"' %
                       (self._archive,
@@ -1086,7 +1090,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(StandardOutput, "value", Module)
 
     reg.add_module(Tuple, 
-                   configureWidgetType=("gui.modules.tuple_configuration",
+                   configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "TupleConfigurationWidget"))
     reg.add_output_port(Tuple, 'self', Tuple)
 
@@ -1094,7 +1098,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(TestTuple, 'tuple', [Integer, String])
 
     reg.add_module(Untuple, 
-                   configureWidgetType=("gui.modules.tuple_configuration",
+                   configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "UntupleConfigurationWidget"))
     reg.add_input_port(Untuple, 'tuple', Tuple)
 
@@ -1112,13 +1116,13 @@ def initialize(*args, **kwargs):
     reg.add_module(Null)
 
     reg.add_module(PythonSource,
-                   configureWidgetType=("gui.modules.python_source_configure",
+                   configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
     reg.add_input_port(PythonSource, 'source', String, True)
     reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
-                   configureWidgetType=("gui.modules.python_source_configure",
+                   configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
     reg.add_input_port(SmartSource, 'source', String, True)
 
@@ -1130,12 +1134,12 @@ def initialize(*args, **kwargs):
     reg.add_module(Variant)
 
     # initialize the sub_module modules, too
-    import core.modules.sub_module
-    core.modules.sub_module.initialize(*args, **kwargs)
+    import vistrails.core.modules.sub_module
+    vistrails.core.modules.sub_module.initialize(*args, **kwargs)
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-   from core.upgradeworkflow import UpgradeWorkflowHandler
+   from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
    reg = get_module_registry()
 
    def outputName_remap(old_conn, new_module):

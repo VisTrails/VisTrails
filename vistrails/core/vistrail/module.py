@@ -35,22 +35,24 @@
 # Check for testing
 """ This module defines the class Module 
 """
-
 import copy
 from itertools import izip
 import weakref
 
-from db.domain import DBModule
-from core.data_structures.point import Point
-from core.vistrail.annotation import Annotation
-from core.vistrail.location import Location
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.port import Port, PortEndPoint
-from core.vistrail.port_spec import PortSpec
-from core.utils import NoSummon, VistrailsInternalError, report_stack
-from core.modules.module_descriptor import OverloadedPort
-from core.modules.module_registry import get_module_registry, ModuleRegistry
+from vistrails.db.domain import DBModule
+from vistrails.core.data_structures.point import Point
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.port import Port, PortEndPoint
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.utils import NoSummon, VistrailsInternalError, report_stack
+from vistrails.core.modules.module_descriptor import OverloadedPort
+from vistrails.core.modules.module_registry import get_module_registry, ModuleRegistry
+
+import unittest
+import vistrails.core
 
 ################################################################################
 
@@ -403,12 +405,11 @@ class Module(DBModule):
 ################################################################################
 # Testing
 
-import unittest
 
 class TestModule(unittest.TestCase):
 
     def create_module(self, id_scope=None):
-        from db.domain import IdScope
+        from vistrails.db.domain import IdScope
         if id_scope is None:
             id_scope = IdScope()
         
@@ -426,7 +427,7 @@ class TestModule(unittest.TestCase):
 
     def test_copy(self):
         """Check that copy works correctly"""
-        from db.domain import IdScope
+        from vistrails.db.domain import IdScope
         
         id_scope = IdScope()
         m1 = self.create_module(id_scope)
@@ -439,11 +440,11 @@ class TestModule(unittest.TestCase):
 
     def test_serialization(self):
         """ Check that serialize and unserialize are working properly """
-        import core.db.io
+        import vistrails.core.db.io
 
         m1 = self.create_module()
-        xml_str = core.db.io.serialize(m1)
-        m2 = core.db.io.unserialize(xml_str, Module)
+        xml_str = vistrails.core.db.io.serialize(m1)
+        m2 = vistrails.core.db.io.unserialize(xml_str, Module)
         self.assertEquals(m1, m2)
         self.assertEquals(m1.id, m2.id)
         

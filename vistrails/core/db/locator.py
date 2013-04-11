@@ -32,23 +32,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import base64
 import getpass
 import os.path
-from core import get_vistrails_application
-from core.configuration import get_vistrails_configuration
-from core.system import vistrails_default_file_type, get_elementtree_library, \
+from vistrails.core import get_vistrails_application
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
                         default_connections_file, default_dot_vistrails
-from core.external_connection import ExtConnectionList, DBConnection
-from core.thumbnails import ThumbnailCache
-from core import debug
-from db.services.locator import XMLFileLocator as _XMLFileLocator, \
+from vistrails.core.external_connection import ExtConnectionList, DBConnection
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core import debug
+from vistrails.db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator, \
     BaseLocator as _BaseLocator
-from db.services.io import SaveBundle, test_db_connection
-from db import VistrailsDBException
-from db.domain import DBWorkflow
+from vistrails.db.services.io import SaveBundle, test_db_connection
+from vistrails.db import VistrailsDBException
+from vistrails.db.domain import DBWorkflow
 ElementTree = get_elementtree_library()
 
 class BaseLocator(_BaseLocator):
@@ -93,11 +92,11 @@ class CoreLocator(object):
     # function gets called
     @staticmethod
     def get_convert_klass(vt_type):
-        from core.vistrail.vistrail import Vistrail
-        from core.vistrail.pipeline import Pipeline
-        from core.log.log import Log
-        from core.modules.module_registry import ModuleRegistry
-        from core.log.opm_graph import OpmGraph
+        from vistrails.core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.pipeline import Pipeline
+        from vistrails.core.log.log import Log
+        from vistrails.core.modules.module_registry import ModuleRegistry
+        from vistrails.core.log.opm_graph import OpmGraph
         
         klass_map = {Vistrail.vtType: Vistrail,
                      Pipeline.vtType: Pipeline,
@@ -112,7 +111,7 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         _XMLFileLocator.__init__(self, filename, **kwargs)
         
     def load(self, klass=None):
-        from core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import Vistrail
         if klass is None:
             klass = Vistrail
         obj = _XMLFileLocator.load(self, klass.vtType)
@@ -159,17 +158,17 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
     @staticmethod
     def prompt_autosave(parent_widget):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_autosave_prompt(parent_widget)
         
     @staticmethod
     def load_from_gui(parent_widget, obj_type):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_load_file_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
     def save_from_gui(parent_widget, obj_type, locator=None):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
@@ -201,7 +200,7 @@ class DBLocator(_DBLocator, CoreLocator):
         self.ext_connection_id = -1
 
     def load(self, klass=None):
-        from core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import Vistrail
         if klass is None:
             klass = Vistrail
         save_bundle = _DBLocator.load(self, klass.vtType, ThumbnailCache.getInstance().get_directory())
@@ -255,8 +254,8 @@ class DBLocator(_DBLocator, CoreLocator):
         return save_bundle
 
     def update_from_gui(self, parent_widget, klass=None):
-        from core.vistrail.vistrail import Vistrail
-        import gui.extras.core.db.locator as db_gui
+        from vistrails.core.vistrail.vistrail import Vistrail
+        import vistrails.gui.extras.core.db.locator as db_gui
         if klass is None:
             klass = Vistrail
         config = self.find_connection_info(self._host, self._port, self._db) 
@@ -447,12 +446,12 @@ class DBLocator(_DBLocator, CoreLocator):
 
     @staticmethod
     def load_from_gui(parent_widget, obj_type):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_load_db_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
     def save_from_gui(parent_widget, obj_type, locator=None):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_save_db_locator_from_gui(parent_widget, obj_type,
                                                    locator)
 
@@ -468,7 +467,7 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
         _ZIPFileLocator.__init__(self, filename, **kwargs)
 
     def load(self, klass=None):
-        from core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import Vistrail
         if klass is None:
             klass = Vistrail
         save_bundle = _ZIPFileLocator.load(self, klass.vtType)
@@ -507,17 +506,17 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     @staticmethod
     def prompt_autosave(parent_widget):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_autosave_prompt(parent_widget)
 
     @staticmethod
     def load_from_gui(parent_widget, obj_type):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_load_file_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
     def save_from_gui(parent_widget, obj_type, locator=None):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
@@ -539,17 +538,17 @@ class FileLocator(CoreLocator):
 
     @staticmethod
     def prompt_autosave(parent_widget):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_autosave_prompt(parent_widget)
     
     @staticmethod
     def load_from_gui(parent_widget, obj_type):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_load_file_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
     def save_from_gui(parent_widget, obj_type, locator=None):
-        import gui.extras.core.db.locator as db_gui
+        import vistrails.gui.extras.core.db.locator as db_gui
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
@@ -692,7 +691,7 @@ class FileLocator(CoreLocator):
                     oldf = open(fname)
                     oldcontents = oldf.read()
                     if oldcontents != vtcontent:
-                        import gui.extras.core.db.locator as db_gui
+                        import vistrails.gui.extras.core.db.locator as db_gui
                         (overwrite, newname) = \
                                  db_gui.ask_to_overwrite_file(None, 'vistrail')
                         create_file = True

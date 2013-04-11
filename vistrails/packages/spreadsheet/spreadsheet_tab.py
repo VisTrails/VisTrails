@@ -50,7 +50,7 @@ from spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 from spreadsheet_config import configuration
-from core.inspector import PipelineInspector
+from vistrails.core.inspector import PipelineInspector
 import spreadsheet_rc
 
 ################################################################################

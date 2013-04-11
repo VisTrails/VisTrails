@@ -66,10 +66,10 @@ def usage(usageDict):
 
 def parse_db_cmd_line(argv, more_options={}):
     options = {}
-    optionsUsage = {'h:': ('set database host/port', False, 'host:port'),
+    optionsUsage = {'t:': ('set database host/port', False, 'host:port'),
                     'p': ('use password', False),
                     'u:': ('set database user', False, 'user'),
-                    'D:': ('set database name', False, 'database'),
+                    'D:': ('set database name', False, 'database')
                     }
     optionsUsage.update(more_options)
 
@@ -101,8 +101,8 @@ def parse_db_cmd_line(argv, more_options={}):
 
     if options['p']:
         config['passwd'] = getpass.getpass()
-    if options['h']:
-        host_arr = options['h'].split(':', 1)
+    if options['t']:
+        host_arr = options['t'].split(':', 1)
         config['host'] = host_arr[0]
         if len(host_arr) > 1:
             config['port'] = int(host_arr[1])

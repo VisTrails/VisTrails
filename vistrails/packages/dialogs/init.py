@@ -32,13 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.modules.vistrails_module import Module, ModuleError
-import core.modules
-import core.modules.basic_modules
-import core.modules.module_registry
-import core.system
-import gui.application
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+import vistrails.core.modules
+import vistrails.core.modules.basic_modules
+import vistrails.core.modules.module_registry
+import vistrails.core.system
+import vistrails.gui.application
 from PyQt4 import QtCore, QtGui
 
 ##############################################################################
@@ -97,8 +96,8 @@ class PasswordDialog(TextDialog):
 ##############################################################################
 
 def initialize(*args, **keywords):
-    reg = core.modules.module_registry.get_module_registry()
-    basic = core.modules.basic_modules
+    reg = vistrails.core.modules.module_registry.get_module_registry()
+    basic = vistrails.core.modules.basic_modules
     reg.add_module(Dialog)
     reg.add_module(TextDialog)
 

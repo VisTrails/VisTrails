@@ -38,21 +38,21 @@ import os
 import tempfile
 import uuid
 from PyQt4 import QtCore, QtGui
-from gui.vistrail_controller import VistrailController
-import core.db.action
-from core.vistrail.controller import VistrailController as BaseVistrailController
-from gui.mashups.controller import MashupController
-from core.mashup.mashup_trail import Mashuptrail
-from core.mashup.mashup import Mashup
-from core.utils import DummyView
-from core.vistrail.vistrail import Vistrail
-from db.services.locator import DBLocator
-from core.db.locator import FileLocator
-import core.system
-from db.domain import IdScope
-from core.system import get_elementtree_library
-from db.services import io
-from db.versions import currentVersion
+from vistrails.gui.vistrail_controller import VistrailController
+import vistrails.core.db.action
+from vistrails.core.vistrail.controller import VistrailController as BaseVistrailController
+from vistrails.gui.mashups.controller import MashupController
+from vistrails.core.mashup.mashup_trail import Mashuptrail
+from vistrails.core.mashup.mashup import Mashup
+from vistrails.core.utils import DummyView
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.db.services.locator import DBLocator
+from vistrails.core.db.locator import FileLocator
+import vistrails.core.system
+from vistrails.db.domain import IdScope
+from vistrails.core.system import get_elementtree_library
+from vistrails.db.services import io
+from vistrails.db.versions import currentVersion
 
 ElementTree = get_elementtree_library()
 
@@ -107,8 +107,8 @@ class MashupsManager(object):
                         currVersion = mashuptrail.addVersion(
                                       parent_id=mashuptrail.getLatestVersion(),
                                       mashup=mashup, 
-                                      user=core.system.current_user(),
-                                      date=core.system.current_time())
+                                      user=vistrails.core.system.current_user(),
+                                      date=vistrails.core.system.current_time())
                         mashuptrail.currentVersion = currVersion
                         mashuptrail.updateIdScope()
                         p_tag = p_mashuptrail.getTagForActionId(mshpv)
@@ -151,8 +151,8 @@ class MashupsManager(object):
             mashup.loadAliasesFromPipeline(pipeline, id_scope)
             currVersion = mashuptrail.addVersion(parent_id=mashuptrail.getLatestVersion(),
                                              mashup=mashup, 
-                                             user=core.system.current_user(),
-                                             date=core.system.current_time())
+                                             user=vistrails.core.system.current_user(),
+                                             date=vistrails.core.system.current_time())
     
             mashuptrail.currentVersion = currVersion
             
@@ -296,7 +296,7 @@ class MashupsManager(object):
                 self.accept()
                 
             def setMashupsList(self, mshptrail):
-                from gui.mashups.mashups_inspector import QMashupListPanelItem
+                from vistrails.gui.mashups.mashups_inspector import QMashupListPanelItem
                 self.mashupsList.clear()
                 tagMap = mshptrail.getTagMap()
                 tags = tagMap.keys()
@@ -337,7 +337,7 @@ class MashupsManager(object):
         
     @staticmethod
     def createMashupApp(vtcontroller, mashuptrail, version):
-        from gui.mashups.mashup_app import QMashupAppMainWindow
+        from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
         vistrail_view = vtcontroller.vistrail_view
         vtVersion = mashuptrail.vtVersion
         view = DummyView()
@@ -391,7 +391,7 @@ class MashupsManager(object):
                     pip = vtcontroller.vistrail.getPipeline(version)
                     vistrail = Vistrail()
                     id_remap = {}
-                    action = core.db.action.create_paste_action(pip, 
+                    action = vistrails.core.db.action.create_paste_action(pip, 
                                                         vistrail.idScope,
                                                         id_remap)
                     vistrail.add_action(action, 0L, 0)

@@ -34,9 +34,9 @@
 ###############################################################################
 from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from core.mashup.controller import MashupController as BaseController
-from core.mashup.alias import Alias
-from gui.utils import show_warning
+from vistrails.core.mashup.controller import MashupController as BaseController
+from vistrails.core.mashup.alias import Alias
+from vistrails.gui.utils import show_warning
 
 class MashupController(BaseController, QObject):
     #signals
@@ -81,7 +81,7 @@ class MashupController(BaseController, QObject):
         self.stateChanged.emit()
         
     def execute(self, params):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         result = BaseController.execute(self, params)
         _app.notify('execution_updated')
         return result

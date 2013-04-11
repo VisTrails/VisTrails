@@ -38,8 +38,7 @@ This package defines a set of modules that perform some of the
 operations exposed by the ImageMagick package.
 
 """
-
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
 
 identifier = 'edu.utah.sci.vistrails.imagemagick'
 name = 'ImageMagick'

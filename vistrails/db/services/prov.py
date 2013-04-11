@@ -32,17 +32,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
 import sys
 import os
 #sys.path.append(os.getenv('VISTRAILS', ''))
-from db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
+import vistrails.db.services.io
+from vistrails.db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
     DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \
     DBVtConnection, DBRefProvEntity, DBRefProvPlan, DBRefProvActivity, \
     DBRefProvAgent, DBIsPartOf, IdScope, DBGroupExec, DBLoopExec, DBModuleExec, \
     DBWorkflowExec, DBFunction, DBParameter, DBGroup, DBAbstraction
-from db.services.vistrail import materializeWorkflow
+from vistrails.db.services.vistrail import materializeWorkflow
 
 def create_prov_document(entities, activities, agents, connections, usages,
                          generations, associations):
@@ -563,12 +563,12 @@ def create_prov_from_vistrail(vistrail, version, log):
     return create_prov(workflow, version, log)
     
 def run(vistrail_xml, version, log_xml, output_fname):
-    from db.persistence import DAOList
-    from core.vistrail.vistrail import Vistrail
-    import db.services.io
+    from vistrails.db.persistence import DAOList
+    from vistrails.core.vistrail.vistrail import Vistrail
+    import vistrails.db.services.io
     
-    vistrail = db.services.io.open_vistrail_from_xml(vistrail_xml)
-    log = db.services.io.open_log_from_xml(log_xml, was_appended=True)
+    vistrail = vistrails.db.services.io.open_vistrail_from_xml(vistrail_xml)
+    log = vistrails.db.services.io.open_log_from_xml(log_xml, was_appended=True)
     version_id = vistrail.db_get_actionAnnotation_by_key((Vistrail.TAG_ANNOTATION, version)).db_action_id
     prov_document = create_prov_from_vistrail(vistrail, int(version_id), log)
     dao_list = DAOList()

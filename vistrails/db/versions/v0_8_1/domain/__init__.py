@@ -32,5 +32,4 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from db.versions.v0_8_0.domain import *
+from vistrails.db.versions.v0_8_0.domain import *

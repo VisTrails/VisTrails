@@ -39,19 +39,17 @@ directory. This way, files that haven't been changed do not need
 downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
-
-
 from PyQt4 import QtGui
-from core.modules.vistrails_module import ModuleError
-from core.configuration import get_vistrails_persistent_configuration
-from gui.utils import show_warning
-import core.modules.vistrails_module
-import core.modules
-import core.modules.basic_modules
-import core.modules.module_registry
-import core.system
-from core import debug
-import gui.repository
+from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.core.configuration import get_vistrails_persistent_configuration
+from vistrails.gui.utils import show_warning
+import vistrails.core.modules.vistrails_module
+import vistrails.core.modules
+import vistrails.core.modules.basic_modules
+import vistrails.core.modules.module_registry
+import vistrails.core.system
+from vistrails.core import debug
+import vistrails.gui.repository
 import httplib
 import urllib2
 import os.path
@@ -61,9 +59,13 @@ import datetime
 import urllib
 
 import hashlib
+from vistrails.core.repository.poster.encode import multipart_encode
+from vistrails.core.repository.poster.streaminghttp import register_openers
+
+import unittest
+from vistrails.core.utils import DummyView
+
 # special file uploaders used to push files to repository
-from core.repository.poster.encode import multipart_encode
-from core.repository.poster.streaminghttp import register_openers
 
 package_directory = None
 
@@ -80,7 +82,7 @@ urllib._urlopener = MyURLopener()
 
 ###############################################################################
 
-class HTTP(core.modules.vistrails_module.Module):
+class HTTP(vistrails.core.modules.vistrails_module.Module):
     pass
 
 class HTTPFile(HTTP):
@@ -131,7 +133,7 @@ class HTTPFile(HTTP):
             if self._file_is_in_local_cache(local_filename):
                 debug.warning(('A network error occurred. HTTPFile will use'
                                 ' cached version of file'))
-                result = core.modules.basic_modules.File()
+                result = vistrails.core.modules.basic_modules.File()
                 result.name = local_filename
                 return (1, result, local_filename)
             else:
@@ -142,7 +144,7 @@ class HTTPFile(HTTP):
             mod_header = f1.info().getheader('last-modified')
             content_type = f1.info().getmaintype()
              
-            result = core.modules.basic_modules.File()
+            result = vistrails.core.modules.basic_modules.File()
             result.name = local_filename
 
             if (not self._file_is_in_local_cache(local_filename) or
@@ -266,7 +268,7 @@ class RepoSync(HTTP):
 
         # local file not on repository, so upload
         if not self.on_server and os.path.isfile(self.in_file.name):
-            cookiejar = gui.repository.QRepositoryDialog.cookiejar
+            cookiejar = vistrails.gui.repository.QRepositoryDialog.cookiejar
             if cookiejar:
                 register_openers(cookiejar=cookiejar)
 
@@ -322,7 +324,7 @@ class RepoSync(HTTP):
                         urllib.urlretrieve(self.url, local_filename)
                     except IOError, e:
                         raise ModuleError(self, ("Invalid URL: %s" % e))
-                out_file = core.modules.basic_modules.File()
+                out_file = vistrails.core.modules.basic_modules.File()
                 out_file.name = local_filename
                 debug.warning('RepoSync is using repository data')
                 self.setResult("file", out_file)
@@ -342,7 +344,7 @@ class RepoSync(HTTP):
                 pass
 
             if os.path.isfile(dataset_path):
-                out_file = core.modules.basic_modules.File()
+                out_file = vistrails.core.modules.basic_modules.File()
                 out_file.name = dataset_path
                 self.setResult("file", out_file)
         else: # is client
@@ -382,8 +384,8 @@ class RepoSync(HTTP):
                     self.data_sync()
 
 def initialize(*args, **keywords):
-    reg = core.modules.module_registry.get_module_registry()
-    basic = core.modules.basic_modules
+    reg = vistrails.core.modules.module_registry.get_module_registry()
+    basic = vistrails.core.modules.basic_modules
 
     reg.add_module(HTTP, abstract=True)
     reg.add_module(HTTPFile)
@@ -417,8 +419,6 @@ def initialize(*args, **keywords):
 
 ##############################################################################
 
-import unittest
-from core.utils import DummyView
 
 class TestHTTPFile(unittest.TestCase):
     
@@ -429,13 +429,13 @@ class TestHTTPFile(unittest.TestCase):
         self.assertEquals(foo.filename, '/~cscheid/stuff/vtkdata-5.0.2.zip')
 
     def testIncorrectURL(self):
-        from core.db.locator import XMLFileLocator
-        import core.vistrail
-        from core.vistrail.module import Module
-        from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module_param import ModuleParam
-        import core.interpreter
-        p = core.vistrail.pipeline.Pipeline()
+        from vistrails.core.db.locator import XMLFileLocator
+        import vistrails.core.vistrail
+        from vistrails.core.vistrail.module import Module
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module_param import ModuleParam
+        import vistrails.core.interpreter
+        p = vistrails.core.vistrail.pipeline.Pipeline()
         m_param = ModuleParam(type='String',
                               val='http://illbetyouthisdoesnotexistohrly',
                               )
@@ -443,12 +443,12 @@ class TestHTTPFile(unittest.TestCase):
                                     parameters=[m_param],
                                     )
         p.add_module(Module(name='HTTPFile',
-                           package=identifier,
-                           version=version,
-                           id=0,
-                           functions=[m_function],
-                           ))
-        interpreter = core.interpreter.default.get_default_interpreter()
+                            package=identifier,
+                            version=version,
+                            id=0,
+                            functions=[m_function],
+                            ))
+        interpreter = vistrails.core.interpreter.default.get_default_interpreter()
         kwargs = {'locator': XMLFileLocator('foo'),
                   'current_version': 1L,
                   'view': DummyView(),
@@ -456,13 +456,13 @@ class TestHTTPFile(unittest.TestCase):
         interpreter.execute(p, **kwargs)
 
     def testIncorrectURL_2(self):
-        import core.vistrail
-        from core.db.locator import XMLFileLocator
-        from core.vistrail.module import Module
-        from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module_param import ModuleParam
-        import core.interpreter
-        p = core.vistrail.pipeline.Pipeline()
+        import vistrails.core.vistrail
+        from vistrails.core.db.locator import XMLFileLocator
+        from vistrails.core.vistrail.module import Module
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module_param import ModuleParam
+        import vistrails.core.interpreter
+        p = vistrails.core.vistrail.pipeline.Pipeline()
         m_param = ModuleParam(type='String',
                               val='http://neitherodesthisohrly',
                               )
@@ -475,7 +475,7 @@ class TestHTTPFile(unittest.TestCase):
                            id=0,
                            functions=[m_function],
                            ))
-        interpreter = core.interpreter.default.get_default_interpreter()
+        interpreter = vistrails.core.interpreter.default.get_default_interpreter()
         kwargs = {'locator': XMLFileLocator('foo'),
                   'current_version': 1L,
                   'view': DummyView(),

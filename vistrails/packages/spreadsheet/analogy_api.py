@@ -37,9 +37,9 @@
 # and it should be reimplemented to integrate between the spreadsheet
 # and the analogy
 ################################################################################
-
 import os
-import core.analogy
+import vistrails.core.analogy
+import vistrails.gui
 
 class SpreadsheetAnalogyObject(object):
     """
@@ -108,7 +108,7 @@ class SpreadsheetAnalogyObject(object):
             p3_actions):
             return None
 
-        perform = core.analogy.perform_analogy_on_vistrail
+        perform = vistrails.core.analogy.perform_analogy_on_vistrail
 
         controller = p1_controller
         vt = controller.vistrail

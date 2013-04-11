@@ -35,12 +35,11 @@
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
-
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
-from gui.theme import CurrentTheme
-from gui.modules.constant_configuration import StandardConstantWidget
-from core.system import systemType
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.modules.constant_configuration import StandardConstantWidget
+from vistrails.core.system import systemType
 ################################################################################
 
 class QToolWindow(QtGui.QDockWidget):
@@ -203,9 +202,11 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         self.setRootIsDecorated(True)
         self.setDragEnabled(True)
         self.flags = QtCore.Qt.ItemIsDragEnabled
-    
+
+        self._search_was_empty = True
+
     def searchItemName(self, name):
-        """ searchItemName(name: QString) -> None        
+        """ searchItemName(name: QString) -> None
         Search and refine the module tree widget to contain only items
         whose name is 'name'
         
@@ -242,12 +243,18 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
 
         if str(name)=='':
             testFunction = lambda x: True
+            if not self._search_was_empty:
+                self.collapseAll()
+                self._search_was_empty = True
         else:
             matchedItems = set(self.findItems(name,
                                               QtCore.Qt.MatchContains |
                                               QtCore.Qt.MatchWrap |
                                               QtCore.Qt.MatchRecursive))
             testFunction = matchedItems.__contains__
+            if self._search_was_empty:
+                self.expandAll()
+                self._search_was_empty = False
         for itemIndex in xrange(self.topLevelItemCount()):
             recursiveSetVisible(self.topLevelItem(itemIndex),
                                 testFunction)

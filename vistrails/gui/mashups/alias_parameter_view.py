@@ -40,13 +40,13 @@ QAliasParameterView
 """
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
-from core.inspector import PipelineInspector
-from core.vistrail.module_param import ModuleParam
-from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
-from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
-from gui.vistrails_palette import QVistrailsPaletteInterface
-from gui.theme import CurrentTheme
-from core.utils import InstanceObject
+from vistrails.core.inspector import PipelineInspector
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
+from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.gui.theme import CurrentTheme
+from vistrails.core.utils import InstanceObject
 
 ################################################################################
 class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
@@ -83,7 +83,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.parameter_panel.treeWidget.aliasChanged.connect(self.aliasChanged)
         
     def updateMshpController(self, mshpController):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         self.mshpController = mshpController
         self.parameter_panel.set_pipeline(
                         self.mshpController.vtPipeline)
@@ -113,7 +113,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
             self.pipeline_view.zoomToFit()
             
     def aliasChanged(self, param):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.notify('alias_changed', param)
         
 ################################################################################

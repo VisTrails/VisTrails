@@ -36,22 +36,24 @@ import os
 import sys
 import tempfile
 import urllib
+import rpy2.robjects as robjects
+
+from vistrails.core.modules.basic_modules import File, Constant, \
+    new_constant, list_compute
+
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+    ModuleConnector, NotCacheable
+from vistrails.core.modules.basic_modules import new_constant
+import vistrails.core.modules.module_registry
+from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 # FIXME when rpy2 is installed on the path, we won't need this
 old_sys_path = sys.path
 sys.path.append(os.path.dirname(__file__))
-import rpy2.robjects as robjects
 sys.path = old_sys_path
 
-from core.modules.basic_modules import File, Constant, \
-    new_constant, list_compute
     # new_constant as _new_constant
 
-from core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, NotCacheable
-from core.modules.basic_modules import new_constant
-import core.modules.module_registry
-from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 r_temp_files = []
 
@@ -380,7 +382,7 @@ class RSource(Module):
         use_input and use_output control whether to use the inputport
         and output port dictionary as local variables inside the
         execution."""
-        import core.packagemanager
+        import vistrails.core.packagemanager
         def fail(msg):
             raise ModuleError(self, msg)
         def cache_this():

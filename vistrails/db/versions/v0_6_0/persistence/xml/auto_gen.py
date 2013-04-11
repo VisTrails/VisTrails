@@ -34,9 +34,8 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-
 from xml_dao import XMLDAO
-from db.versions.v0_6_0.domain import *
+from vistrails.db.versions.v0_6_0.domain import *
 
 class DBPortSpecXMLDAOBase(XMLDAO):
 

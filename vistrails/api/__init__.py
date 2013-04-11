@@ -32,8 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.gui.application import get_vistrails_application
 
-from gui.application import get_vistrails_application
+import unittest
+import copy
+import random
+import vistrails.gui.utils
 
 ##############################################################################
 # Exceptions
@@ -122,7 +126,7 @@ def close_current_vistrail(quiet=False):
     get_vistrails_application().builderWindow.close_vistrail(get_current_vistrail_view())
 
 def get_module_registry():
-    from core.modules.module_registry import get_module_registry
+    from vistrails.core.modules.module_registry import get_module_registry
     return get_module_registry()
 
 ##############################################################################
@@ -287,7 +291,7 @@ def get_available_versions():
     return (vistrail.actionMap.keys(), vistrail.get_tagMap())
 
 def open_vistrail_from_file(filename):
-    from core.db.locator import FileLocator
+    from vistrails.core.db.locator import FileLocator
 
     f = FileLocator(filename)
     view = get_builder_window().open_vistrail(f)
@@ -311,8 +315,8 @@ def new_vistrail():
     return result
 
 def get_vistrail_from_file(filename):
-    from core.db.locator import FileLocator
-    from core.vistrail.vistrail import Vistrail
+    from vistrails.core.db.locator import FileLocator
+    from vistrails.core.vistrail.vistrail import Vistrail
     v = FileLocator(filename).load()
     if type(v) != Vistrail:
         v = v.vistrail
@@ -321,20 +325,16 @@ def get_vistrail_from_file(filename):
 ##############################################################################
 # Testing
 
-import unittest
-import copy
-import random
-import gui.utils
 
-class TestAPI(gui.utils.TestVisTrailsGUI):
+class TestAPI(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_close_current_vistrail_no_vistrail(self):
         self.assertRaises(NoVistrail, lambda: get_current_vistrail_view())
 
     def test_new_vistrail_no_save(self):
         v = new_vistrail()
-        import gui.vistrail_view
-        assert isinstance(v, gui.vistrail_view.QVistrailView)
+        import vistrails.gui.vistrail_view
+        assert isinstance(v, vistrails.gui.vistrail_view.QVistrailView)
         assert not v.controller.changed
         close_vistrail(v)
 

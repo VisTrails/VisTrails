@@ -32,11 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from core.log.module_exec import ModuleExec
-from core.log.loop_exec import LoopExec
-from core.vistrail.annotation import Annotation
-from db.domain import DBGroupExec
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.log.loop_exec import LoopExec
+from vistrails.core.vistrail.annotation import Annotation
+from vistrails.db.domain import DBGroupExec
 
 class GroupExec(DBGroupExec):
     """ Class that stores info for logging a group/abstraction execution. """

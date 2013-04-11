@@ -36,16 +36,22 @@
 from __future__ import absolute_import
 import os.path
 import uuid
-from core.application import is_running_gui
-from core.configuration import get_vistrails_configuration
-import core.interpreter.default
-import core.db.io
-from core.db.io import load_vistrail
-from core.db.locator import XMLFileLocator, ZIPFileLocator
-from core import debug
-from core.utils import VistrailsInternalError, expression
-from core.vistrail.controller import VistrailController
-from core.vistrail.vistrail import Vistrail
+from vistrails.core.application import is_running_gui
+from vistrails.core.configuration import get_vistrails_configuration
+import vistrails.core.interpreter.default
+import vistrails.core.db.io
+from vistrails.core.db.io import load_vistrail
+from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
+from vistrails.core import debug
+from vistrails.core.utils import VistrailsInternalError, expression
+from vistrails.core.vistrail.controller import VistrailController
+from vistrails.core.vistrail.vistrail import Vistrail
+
+import vistrails.core.packagemanager
+import vistrails.core.system
+import unittest
+import vistrails.core.vistrail
+import vistrails.db
 
 ################################################################################
     
@@ -88,7 +94,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                     
         if workflow_info is not None and controller.current_pipeline is not None:
             if is_running_gui():
-                from gui.pipeline_view import QPipelineView
+                from vistrails.gui.pipeline_view import QPipelineView
                 pipeline_view = QPipelineView()
                 pipeline_view.scene().setupScene(controller.current_pipeline)
                 base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
@@ -100,7 +106,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                                "running in gui mode")
             base_fname = "%s_%s_pipeline.xml" % (locator.short_name, version)
             filename = os.path.join(workflow_info, base_fname)
-            core.db.io.save_workflow(controller.current_pipeline, filename)
+            vistrails.core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
             conf = get_vistrails_configuration()
             if conf.has('thumbs'):
@@ -134,7 +140,7 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
     """
     result = []
     if is_running_gui():
-        from gui.vistrail_controller import VistrailController as \
+        from vistrails.gui.vistrail_controller import VistrailController as \
              GUIVistrailController
         for locator, workflow in w_list:
             try:
@@ -153,7 +159,7 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
             
                 if (workflow_info is not None and 
                     controller.current_pipeline is not None):
-                    from gui.pipeline_view import QPipelineView
+                    from vistrails.gui.pipeline_view import QPipelineView
                     pipeline_view = QPipelineView()
                     controller.current_pipeline_view = pipeline_view.scene()
                     controller.set_vistrail(v, locator, abstractions, thumbnails,
@@ -187,16 +193,16 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
     """
     result = []
     if is_running_gui():
-        from gui.vistrail_controller import VistrailController as \
+        from vistrails.gui.vistrail_controller import VistrailController as \
              GUIVistrailController
         for locator in vt_list:
             try:
                 (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
                 controller = GUIVistrailController()
                 if tree_info is not None:
-                        from gui.version_view import QVersionTreeView
+                        from vistrails.gui.version_view import QVersionTreeView
                         version_view = QVersionTreeView()
-                        from gui.pipeline_view import QPipelineView
+                        from vistrails.gui.pipeline_view import QPipelineView
                         pipeline_view = QPipelineView()
                         controller.current_pipeline_view = pipeline_view.scene()
                         controller.set_vistrail(v, locator, abstractions, thumbnails,
@@ -249,12 +255,12 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
     
     """
     if is_running_gui():
-        from gui.vistrail_controller import VistrailController as \
+        from vistrails.gui.vistrail_controller import VistrailController as \
              GUIVistrailController
         try:
             (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
             controller = GUIVistrailController()
-            from gui.pipeline_view import QPipelineView
+            from vistrails.gui.pipeline_view import QPipelineView
             pipeline_view = QPipelineView()
             controller.current_pipeline_view = pipeline_view.scene()
             controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
@@ -286,48 +292,44 @@ def run_parameter_explorations(w_list, extra_info = {},
     return all_errors
 
 def cleanup():
-    core.interpreter.cached.CachedInterpreter.cleanup()
+    vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
 
 ################################################################################
 #Testing
 
-import core.packagemanager
-import core.system
-import unittest
-import core.vistrail
 
 class TestConsoleMode(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
-        manager = core.packagemanager.get_package_manager()
+        manager = vistrails.core.packagemanager.get_package_manager()
         if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
             return
 
-        d = {'console_mode_test': 'tests.resources.'}
+        d = {'console_mode_test': 'vistrails.tests.resources.'}
         manager.late_enable_package('console_mode_test',d)
 
     def tearDown(self):
-        manager = core.packagemanager.get_package_manager()
+        manager = vistrails.core.packagemanager.get_package_manager()
         if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
             manager.late_disable_package('console_mode_test')
             
     def test1(self):
-        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                                  '/tests/resources/dummy.xml')
         result = run([(locator, "int chain")], update_vistrail=False)
         self.assertEqual(len(result), 0)
 
     def test_tuple(self):
-        from core.vistrail.module_param import ModuleParam
-        from core.vistrail.module_function import ModuleFunction
-        from core.utils import DummyView
-        from core.vistrail.module import Module
-        import db.domain
+        from vistrails.core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.utils import DummyView
+        from vistrails.core.vistrail.module import Module
+        import vistrails.db.domain
        
-        id_scope = db.domain.IdScope()
-        interpreter = core.interpreter.default.get_default_interpreter()
+        id_scope = vistrails.db.domain.IdScope()
+        interpreter = vistrails.core.interpreter.default.get_default_interpreter()
         v = DummyView()
-        p = core.vistrail.pipeline.Pipeline()
+        p = vistrails.core.vistrail.pipeline.Pipeline()
         params = [ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
                               pos=0,
                               type='Float',
@@ -356,26 +358,26 @@ class TestConsoleMode(unittest.TestCase):
         interpreter.execute(p, **kwargs)
 
     def test_python_source(self):
-        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                                  '/tests/resources/pythonsource.xml')
         result = run([(locator,"testPortsAndFail")], update_vistrail=False)
         self.assertEqual(len(result), 0)
 
     def test_python_source_2(self):
-        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                                  '/tests/resources/pythonsource.xml')
         result = run_and_get_results([(locator, "test_simple_success")],
                                      update_vistrail=False)[0]
         self.assertEquals(len(result.executed), 1)
 
     def test_dynamic_module_error(self):
-        locator = XMLFileLocator(core.system.vistrails_root_directory() + 
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() + 
                                  '/tests/resources/dynamic_module_error.xml')
         result = run([(locator, "test")], update_vistrail=False)
         self.assertNotEqual(len(result), 0)
 
     def test_change_parameter(self):
-        locator = XMLFileLocator(core.system.vistrails_root_directory() + 
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() + 
                                  '/tests/resources/test_change_vistrail.xml')
         result = run([(locator, "v1")], update_vistrail=False)
         self.assertEqual(len(result), 0)
@@ -385,7 +387,7 @@ class TestConsoleMode(unittest.TestCase):
 
     def test_ticket_73(self):
         # Tests serializing a custom-named module to disk
-        locator = XMLFileLocator(core.system.vistrails_root_directory() + 
+        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() + 
                                  '/tests/resources/test_ticket_73.xml')
         v = locator.load()
 

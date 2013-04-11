@@ -35,13 +35,14 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal
 
-spreadsheet = __import__('packages.spreadsheet', globals(), locals(), 
-                            ['spreadsheet_controller'], -1) 
+from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
+                                         QAliasNumericStepperWidget)
+from vistrails.gui.utils import show_warning
+
+spreadsheet = __import__('vistrails.packages.spreadsheet', globals(), locals(), 
+                         ['spreadsheet_controller'], -1) 
 spreadsheetController = spreadsheet.spreadsheet_controller.spreadsheetController
 
-from gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
-                                         QAliasNumericStepperWidget)
-from gui.utils import show_warning
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
     #signals
@@ -388,7 +389,7 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
         return (True, [])
     
     def showBuilderWindow(self):
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         _app.show()
             
 class QCustomDockWidget(QtGui.QDockWidget):

@@ -44,21 +44,20 @@ QGraphicsVersionItem
 QVersionTreeScene
 QVersionTreeView
 """
-
 from PyQt4 import QtCore, QtGui
-from core.system import systemType
-from core.thumbnails import ThumbnailCache
-from gui.base_view import BaseView
-from gui.graphics_view import (QInteractiveGraphicsScene,
+from vistrails.core.system import systemType
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.gui.base_view import BaseView
+from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface,
                                QGraphicsRubberBandItem)
-from gui.qt import qt_super
-from gui.theme import CurrentTheme
-from gui.version_prop import QVersionPropOverlay
-from gui.vis_diff import QVisualDiff
-from gui.collection.workspace import QParamExplorationEntityItem
-import gui.utils
+from vistrails.gui.qt import qt_super
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.version_prop import QVersionPropOverlay
+from vistrails.gui.vis_diff import QVisualDiff
+from vistrails.gui.collection.workspace import QParamExplorationEntityItem
+import vistrails.gui.utils
 import math
 
 
@@ -680,7 +679,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
               len(data.items) == 1 and
               type(data.items[0]) == QParamExplorationEntityItem):
             # apply this parameter exploration to the new version, validate it and switch to PE view
-            from gui.vistrails_window import _app
+            from vistrails.gui.vistrails_window import _app
             view = _app.get_current_view()
             view.apply_parameter_exploration(self.id, data.items[0].entity.pe)
             event.accept()
@@ -1077,13 +1076,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             event.accept()
             versions = [item.id for item in selectedItems]
-            res = gui.utils.show_question("VisTrails",
+            res = vistrails.gui.utils.show_question("VisTrails",
                                            "Are you sure that you want to "
                                            "prune the selected version(s)?",
-                                           [gui.utils.YES_BUTTON,
-                                            gui.utils.NO_BUTTON],
-                                           gui.utils.NO_BUTTON)
-            if res == gui.utils.YES_BUTTON:
+                                           [vistrails.gui.utils.YES_BUTTON,
+                                            vistrails.gui.utils.NO_BUTTON],
+                                           vistrails.gui.utils.NO_BUTTON)
+            if res == vistrails.gui.utils.YES_BUTTON:
                 self.controller.prune_versions(versions)
         else:
             qt_super(QVersionTreeScene, self).keyPressEvent(event)
@@ -1137,8 +1136,8 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.versionProp.hide()
 
     def set_default_layout(self):
-        from gui.collection.workspace import QWorkspaceWindow
-        from gui.version_prop import QVersionProp
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        from vistrails.gui.version_prop import QVersionProp
         self.set_palette_layout(
             {QtCore.Qt.LeftDockWidgetArea: QWorkspaceWindow,
              QtCore.Qt.RightDockWidgetArea: QVersionProp,
@@ -1185,19 +1184,19 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     
     def execute(self):
         res = self.controller.execute_current_workflow()
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         if len(res[0][0].errors) > 0:
             _app.qactions['pipeline'].trigger()
         _app.notify('execution_updated')
         
     def publish_to_web(self):
-        from gui.publishing import QVersionEmbed
+        from vistrails.gui.publishing import QVersionEmbed
         panel = QVersionEmbed.instance()
         panel.switchType('Wiki')
         panel.set_visible(True)
         
     def publish_to_paper(self):
-        from gui.publishing import QVersionEmbed
+        from vistrails.gui.publishing import QVersionEmbed
         panel = QVersionEmbed.instance()
         panel.switchType('Latex')
         panel.set_visible(True)
@@ -1215,7 +1214,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
-                if type(item) == gui.version_view.QGraphicsVersionItem:
+                if type(item) == vistrails.gui.version_view.QGraphicsVersionItem:
                     item.text.clearFocus()
         qt_super(QVersionTreeView, self).selectModules()
                 
@@ -1259,7 +1258,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         An action was performed on the current vistrail
         
         """
-        from gui.vistrails_window import _app
+        from vistrails.gui.vistrails_window import _app
         select_node = True
         if _app._previous_view and _app._previous_view.window() != self.window():
             select_node = False

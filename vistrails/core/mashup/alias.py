@@ -32,8 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from db.domain import DBMashupAlias
-from core.mashup.component import Component
+from vistrails.db.domain import DBMashupAlias
+from vistrails.core.mashup.component import Component
+
+import unittest
+from vistrails.db.domain import IdScope
+import copy
 
 ################################################################################
 class Alias(DBMashupAlias):
@@ -127,9 +131,6 @@ class Alias(DBMashupAlias):
 
 ################################################################################
 
-import unittest
-from db.domain import IdScope
-import copy
 
 class TestAlias(unittest.TestCase):
     def create_alias(self, id_scope=IdScope()):

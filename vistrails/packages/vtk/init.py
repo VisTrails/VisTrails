@@ -35,19 +35,15 @@
 ################################################################################
 # VTK Package for VisTrails
 ################################################################################
+from vistrails.core.bundles import py_import
 
-from core.bundles import py_import
-
-vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
-                        'linux-fedora': 'vtk-python'})
-
-from core.utils import all, any, VistrailsInternalError, InstanceObject
-from core.debug import debug
-from core.modules.basic_modules import Integer, Float, String, File, \
+from vistrails.core.utils import all, any, VistrailsInternalError, InstanceObject
+from vistrails.core.debug import debug
+from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
      Variant, Color, Boolean, identifier as basic_pkg
-from core.modules.module_registry import get_module_registry
-from core.modules.vistrails_module import new_module, ModuleError
-from core.vistrail.connection import Connection
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import new_module, ModuleError
+from vistrails.core.vistrail.connection import Connection
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
@@ -62,7 +58,12 @@ from hasher import vtk_hasher
 import operator
 import re
 import sys
-from core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+
+import warnings
+vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
+                        'linux-fedora': 'vtk-python'})
+
 
 #TODO: Change the Core > Module > Registry > Add Input : To support vector as type.
 
@@ -71,7 +72,6 @@ from core.upgradeworkflow import UpgradeWorkflowHandler
 # filter some deprecation warnings coming from the fact that vtk calls
 # range() with float parameters
 
-import warnings
 warnings.filterwarnings("ignore",
                         message="integer argument expected, got float")
 

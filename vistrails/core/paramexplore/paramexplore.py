@@ -33,22 +33,26 @@
 ##
 ###############################################################################
 """ This file contains the definition of the class ParameterExploration """
-
 import datetime
 
 from xml.sax.saxutils import unescape
 
-import core.db.action
+import vistrails.core.db.action
 
-from db.domain import DBParameterExploration
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
-from core.vistrail.module import Module
-from core.modules.paramexplore import IntegerLinearInterpolator, \
+from vistrails.db.domain import DBParameterExploration
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.module import Module
+from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator,\
    UserDefinedFunctionInterpolator
 
-from core import debug
+from vistrails.core import debug
+
+import unittest
+import copy
+import random
+
 ###############################################################################
 
 class ParameterExploration(DBParameterExploration):
@@ -130,7 +134,7 @@ class ParameterExploration(DBParameterExploration):
         if not pipeline:
             return
         unescape_dict = { "&apos;":"'", '&quot;':'"', '&#xa;':'\n' }
-        from core.modules.module_registry import get_module_registry
+        from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         parameterValues = [[], [], [], []]
         # a list of added functions [(module_id, function_name)] = function
@@ -216,7 +220,7 @@ class ParameterExploration(DBParameterExploration):
                                                  parameters=params)
                         tmp_f_id -= 1
                         added_functions[(module.id, port_spec.name)]=function 
-                        action = core.db.action.create_action([('add',
+                        action = vistrails.core.db.action.create_action([('add',
                                                                 function,
                                                                 module.vtType,
                                                                 module.id)])
@@ -240,7 +244,7 @@ class ParameterExploration(DBParameterExploration):
                     tmp_p_id -= 1
                     action_spec = ('change', old_param, new_param,
                                    function.vtType, function.real_id)
-                    action = core.db.action.create_action([action_spec])
+                    action = vistrails.core.db.action.create_action([action_spec])
                     actions.append(action)
                 parameterValues[dim].append(actions)
         return [zip(*p) for p in parameterValues], function_actions, vistrail_vars
@@ -268,9 +272,6 @@ class ParameterExploration(DBParameterExploration):
 
 # Testing
 
-import unittest
-import copy
-import random
 
 #class TestVistrail(unittest.TestCase):
 

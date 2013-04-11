@@ -32,9 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 import copy
-from db.versions.v0_7_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
+from vistrails.db.versions.v0_7_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
     DBConnection, DBPortSpec, DBFunction, DBParameter, DBLocation, DBAdd, \
     DBChange, DBDelete, DBAnnotation, DBPort
 
@@ -151,8 +150,8 @@ def translate_vtk(module_id, port_name, specs=None):
     return port_name
 
 def convert_data(child, parent_type, parent_id):
-    from core.vistrail.port_spec import PortSpec
-    from core.modules.module_registry import get_module_registry
+    from vistrails.core.vistrail.port_spec import PortSpec
+    from vistrails.core.modules.module_registry import get_module_registry
     global module_map, translate_ports
 
     registry = get_module_registry()

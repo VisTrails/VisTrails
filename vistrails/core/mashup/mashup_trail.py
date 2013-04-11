@@ -33,12 +33,11 @@
 ##
 ###############################################################################
 
-from db.domain import DBMashuptrail
-from core.mashup.action import Action
-from core.vistrail.annotation import Annotation 
-from core.mashup.action_annotation import ActionAnnotation 
-
-from db.domain import IdScope
+from vistrails.db.domain import IdScope
+from vistrails.db.domain import DBMashuptrail
+from vistrails.core.mashup.action import Action
+from vistrails.core.vistrail.annotation import Annotation 
+from vistrails.core.mashup.action_annotation import ActionAnnotation 
 
 ################################################################################
     
