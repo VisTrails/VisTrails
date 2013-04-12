@@ -147,7 +147,7 @@ else:
                  DataPort(name='x', type=List, optional=True),
                  DataPort(name='y', type=List),
                  ConstantPort(name='title', type=String, optional=True),
-                 ConstantPort(name='marker', type=String, optional=False),
+                 ConstantPort(name='marker', type=String, optional=True),
                  ConstantPort(name='markercolor', type=Color, optional=True),
                  ConstantPort(name='edgecolor', type=Color, optional=True)]),
         Plot(name="Matplotlib pie diagram",
