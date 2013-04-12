@@ -3555,7 +3555,7 @@ class VistrailController(object):
         new_modules ignore preserve_order, and don't need exist yet in the pipeline
         new_connections associated with new_modules
         module_size_func is used to determine size of a module. It takes a
-            core.layout.workflow_layout.Module object and returns a (width, height)
+            vistrails.core.layout.workflow_layout.Module object and returns a (width, height)
             tuple.
         If no_gaps is True, all connected modules will be at most 1 layer above or
             below their child or parent respectively
@@ -3567,7 +3567,7 @@ class VistrailController(object):
         action_list = self.layout_modules_ops(old_modules, preserve_order, 
                                       new_modules, new_connections, module_size_func, no_gaps)
         if(len(action_list) > 0):
-            action = core.db.action.create_action(action_list)
+            action = vistrails.core.db.action.create_action(action_list)
             self.add_new_action(action)
             version = self.perform_action(action)
             self.change_selected_version(version)
@@ -3584,7 +3584,7 @@ class VistrailController(object):
         new_modules ignore preserve_order, and don't need exist yet in the pipeline
         new_connections associated with new_modules
         module_size_func is used to determine size of a module. It takes a
-            core.layout.workflow_layout.Module object and returns a (width, height)
+            vistrails.core.layout.workflow_layout.Module object and returns a (width, height)
             tuple.
         If no_gaps is True, all connected modules will be at most 1 layer above or
             below their child or parent respectively

@@ -1,16 +1,16 @@
 import sys
-sys.path.append('/Users/benbu/src/vistrails/vistrails/vistrails/')
+sys.path.append('/Users/benbu/src/vistrails/vistrails/')
 
-import core.application
-import core.db.action
-import core.db.locator
-import core.modules.module_registry
+import vistrails.core.application
+import vistrails.core.db.action
+import vistrails.core.db.locator
+import vistrails.core.modules.module_registry
 
 
 #init vistrails
-vt_app = core.application.init()
+vt_app = vistrails.core.application.init()
 controller = vt_app.get_controller()
-registry = core.modules.module_registry.get_module_registry()
+registry = vistrails.core.modules.module_registry.get_module_registry()
 
 #========================== convenience methods ================================
 def newModule(package_name, module_name):
@@ -28,7 +28,7 @@ def setPortValue(module, port_name, value):
 
 def addToPipeline(items, ops=[]):
     item_ops = [('add',item) for item in items]
-    action = core.db.action.create_action(item_ops + ops)
+    action = vistrails.core.db.action.create_action(item_ops + ops)
     controller.add_new_action(action)
     version = controller.perform_action(action)
     controller.change_selected_version(version)
@@ -158,5 +158,5 @@ layoutAndAdd(camera, camera_renderer)
 # layoutAndAdd(cell, renderer_cell)
 
 #write to file
-locator = core.db.locator.FileLocator('brain_no_gaps_preserve_order.vt')
+locator = vistrails.core.db.locator.FileLocator('brain_no_gaps_preserve_order.vt')
 controller.write_vistrail(locator)

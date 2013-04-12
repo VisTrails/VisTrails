@@ -37,8 +37,8 @@ This module describes a core theme structure for VisTrails GUI. It
 specifies measurements
 """
 
-from core.utils.color import ColorByName
-import core.system
+from vistrails.core.utils.color import ColorByName
+import vistrails.core.system
 ################################################################################
 
 class DefaultCoreTheme(object):
