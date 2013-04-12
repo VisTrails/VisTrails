@@ -37,7 +37,9 @@ This module describes a theme structure for VisTrails GUI. It
 specifies colors, background images and other measurements
 """
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.utils.color import ColorByName
+from vistrails.core.theme import DefaultCoreTheme
 import vistrails.core.system
 
 import unittest
@@ -53,7 +55,7 @@ def _create_configure_shape(w, h):
     return QtGui.QPolygonF(poly)
     
 
-class DefaultTheme(object):
+class DefaultTheme(DefaultCoreTheme):
     """
     This is the default theme which contains color, images,
     measurements, etc. for Vistrail. Other themes should derive from
@@ -66,73 +68,16 @@ class DefaultTheme(object):
         This is for initializing all Qt objects
         
         """
+        DefaultCoreTheme.__init__(self)
         ######################
         #### MEASUREMENTS ####
 
-        # Padded space of Version shape and its label
-        self.VERSION_LABEL_MARGIN = (60, 35)
-
-        # Padded space of Module shape into its label
-        self.MODULE_LABEL_MARGIN = (20, 20, 20, 15)
-
-        # Margin of Module shape into its ports
-        self.MODULE_PORT_MARGIN = (4, 4, 4, 4)
-
-        # Space between ports inside a module
-        self.MODULE_PORT_SPACE = 4
-
-        # The space added to the end of port shapes before it reaches the
-        # margin of the module
-        self.MODULE_PORT_PADDED_SPACE = 20
-
-        # Width and Height of Port shape
-        self.PORT_WIDTH = 10
-        self.PORT_HEIGHT = 10
+        # Port shape
         self.PORT_RECT = QtCore.QRectF(0, 0, self.PORT_WIDTH, self.PORT_HEIGHT)
 
-        # Width and Height of Configure button shape
-        self.CONFIGURE_WIDTH = 6
-        self.CONFIGURE_HEIGHT = 10
-
+        # Configure button shape
         self.CONFIGURE_SHAPE = _create_configure_shape(self.CONFIGURE_WIDTH,
                                                        self.CONFIGURE_HEIGHT)
-
-        self.BREAKPOINT_FRINGE = \
-            (((0.0,0.0),(-0.5,0.25),(-0.5,0.75),(0.0,1.0)),
-             ((0.0,0.0),(0.5,0.25),(0.5,0.75),(0.0,1.0)))
-                                       
-
-        # The number of control points when drawing connection curve
-        self.CONNECTION_CONTROL_POINTS = 20
-
-        # Control the size and gap for the 3 little segments when
-        # draw connections between versions
-        self.LINK_SEGMENT_LENGTH = 15
-        self.LINK_SEGMENT_GAP = 5
-        self.LINK_SEGMENT_SQUARE_LENGTH = 12
-
-        # The size of the frame containing the PIP graphics view
-        self.PIP_IN_FRAME_WIDTH = 5
-        self.PIP_OUT_FRAME_WIDTH = 1
-
-        # The size of the frame containing the PIP graphics view
-        self.PIP_DEFAULT_SIZE = (128, 128)
-
-        # The default minimum size of the graphics views
-        self.BOUNDING_RECT_MINIMUM = 512
-
-        # Default Paramter Inspector Window dimension
-        self.VISUAL_DIFF_PARAMETER_WINDOW_SIZE = (348,256)
-
-        # Default legend size (small rectangular shape)
-        self.VISUAL_DIFF_LEGEND_SIZE = (16, 16)
-
-        # Virtual Cell Label default  size
-        self.VIRTUAL_CELL_LABEL_SIZE = (40, 40)
-
-        # Query Preview Size
-        self.QUERY_PREVIEW_SIZE = (256, 256)
-
 
         #### BRUSH & PEN ####
         # Background brush of the pipeline view
