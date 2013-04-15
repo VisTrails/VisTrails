@@ -93,7 +93,6 @@ if __name__ == '__main__':
     #     else:
     #         i += 1
     sys.path.insert(0, vistrails_dir)
-    print sys.path
 
     disable_lion_restore()
 
