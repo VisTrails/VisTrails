@@ -1275,7 +1275,7 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
     daoList = getVersionDAO(version)
     if do_append:
         log_file = open(filename, 'ab')
-        for workflow_exec in log.workflow_execs:
+        for workflow_exec in log.db_workflow_execs:
             # cannot do correct numbering here...
             # but need to save so that we can use it for deletes
             wf_exec_id = workflow_exec.db_id
