@@ -101,8 +101,10 @@ class WebViewCellWidget(QCellWidget):
 
     def dumpToFile(self, filename):
         if self.urlSrc is not None:
-            shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
-            
+            local_url = str(self.urlSrc.toLocalFile())
+            if local_url:
+                shutil.copyfile(local_url, filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
