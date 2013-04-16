@@ -279,8 +279,8 @@ def translateRegistry(_registry):
 class TestTranslate(unittest.TestCase):
     def testParamexp(self):
         """test translating parameter explorations from 1.0.2 to 1.0.3"""
-        from vistrails.db.services.io import open_bundle_from_zip_xml
-        from vistrails.core.system import vistrails_root_directory
+        from db.services.io import open_bundle_from_zip_xml
+        from core.system import vistrails_root_directory
         import os
         (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
                         os.path.join(vistrails_root_directory(),
@@ -296,8 +296,8 @@ class TestTranslate(unittest.TestCase):
         
     def testVistrailvars(self):
         """test translating vistrail variables from 1.0.2 to 1.0.3"""
-        from vistrails.db.services.io import open_bundle_from_zip_xml
-        from vistrails.core.system import vistrails_root_directory
+        from db.services.io import open_bundle_from_zip_xml
+        from core.system import vistrails_root_directory
         import os
         (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
                         os.path.join(vistrails_root_directory(),
@@ -308,7 +308,7 @@ class TestTranslate(unittest.TestCase):
         self.assertNotEqual(visvars[0].db_name, visvars[1].db_name)
 
 if __name__ == '__main__':
-    from vistrails.gui.application import start_application
+    from gui.application import start_application
     v = start_application({'interactiveMode': False,
                            'nologger': True,
                            'singleInstance': False,
