@@ -32,7 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.vistrails_module import Module, InvalidOutput
+from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
+    ModuleError
 from vistrails.core.modules.basic_modules import NotCacheable
 from vistrails.core.utils import VistrailsInternalError
 import copy
@@ -100,4 +101,22 @@ class If(Module, NotCacheable):
                     self.setResult('Result', result[0])
                 else:
                     self.setResult('Result', result)
-                                  
+
+#################################################################################
+## Default module
+
+class Default(Module, NotCacheable):
+    """
+    The Default module allows the user to provide a default value.
+
+    This module can be put in the middle of a connection to provide a default
+    value from the Default port in case nothing is set on the Input port. This
+    is particularly useful when using subworkflows, with InputPort modules with
+    optional set to True.
+    """
+
+    def compute(self):
+        if self.hasInputFromPort('Input'):
+            self.setResult('Result', self.getInputFromPort('Input'))
+        else:
+            self.setResult('Result', self.getInputFromPort('Default'))
