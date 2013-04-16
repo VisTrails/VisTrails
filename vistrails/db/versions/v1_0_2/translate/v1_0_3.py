@@ -32,9 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from db.versions.v1_0_2.domain import DBVistrail, DBAdd, DBChange, DBDelete, \
     DBAnnotation, DBWorkflow, DBLog, DBRegistry, DBPortSpec
+
+from core import debug
+
+import unittest
 
 def update_portSpec(old_obj, translate_dict):
     new_obj = DBPortSpec.update_version(old_obj, translate_dict)
@@ -128,6 +131,10 @@ def translateVistrail(_vistrail):
         annotation = DBAnnotation(id=new_id, key=key, value=str(vars))
         vistrail.db_add_annotation(annotation)
 
+    if _vistrail.db_parameter_explorations:
+        debug.warning(("Vistrail contains %s parameter explorations that "
+                      "cannot be converted") % len(_vistrail.db_parameter_explorations))
+
     vistrail.db_version = '1.0.2'
     return vistrail
 
@@ -157,3 +164,35 @@ def translateRegistry(_registry):
     registry = DBRegistry.update_version(_registry, translate_dict, registry)
     registry.db_version = '1.0.2'
     return registry
+
+class TestTranslate(unittest.TestCase):
+    def testParamexp(self):
+        """test translating parameter explorations from 1.0.3 to 1.0.2"""
+        from db.services.io import open_bundle_from_zip_xml
+        from core.system import vistrails_root_directory
+        import os
+        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
+                        os.path.join(vistrails_root_directory(),
+                        'tests/resources/paramexp-1.0.3.vt'))
+        vistrail = save_bundle.vistrail
+        # paramexps cannot be downgraded but should produce a warning
+        
+    def testVistrailvars(self):
+        """test translating vistrail variables from 1.0.3 to 1.0.2"""
+        from db.services.io import open_bundle_from_zip_xml
+        from core.system import vistrails_root_directory
+        import os
+        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
+                        os.path.join(vistrails_root_directory(),
+                        'tests/resources/visvar-1.0.3.vt'))
+        vistrail = save_bundle.vistrail
+        visvars = vistrail.db_annotations_key_index['__vistrail_vars__']
+        self.assertTrue(visvars.db_value)
+
+if __name__ == '__main__':
+    from gui.application import start_application
+    v = start_application({'interactiveMode': False,
+                           'nologger': True,
+                           'singleInstance': False,
+                           'fixedSpreadsheetCells': True})
+    unittest.main()
