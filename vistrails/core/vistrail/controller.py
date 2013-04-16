@@ -3603,9 +3603,6 @@ class VistrailController(object):
         
         if not old_modules or len(old_modules) == 0:
             old_modules = self.current_pipeline.modules.values()
-
-        if len(old_modules) <= 0:
-            return []
         
         #create layout objects
         layoutPipeline = LayoutPipeline()
