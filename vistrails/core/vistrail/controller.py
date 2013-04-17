@@ -3589,14 +3589,24 @@ class VistrailController(object):
         If no_gaps is True, all connected modules will be at most 1 layer above or
             below their child or parent respectively
         """
-        
+
+        connected_input_ports = set(
+                c.destination.spec for c in self.current_pipeline.connection_list)
+        connected_input_ports.update(
+                c.destination.spec for c in new_connections)
+        connected_output_ports = set(
+                c.source.spec for c in self.current_pipeline.connection_list)
+        connected_output_ports.update(
+                c.source.spec for c in new_connections)
+        connected_ports = connected_input_ports | connected_output_ports
+
         def get_visible_port_names(port_list, visible_ports):
             output_list = []
             visible_list = []
-            for i,p in enumerate(port_list):
+            for i, p in enumerate(port_list):
                 if not p.optional:
                     output_list.append(p.name)
-                elif p.name in visible_ports:
+                elif p.name in visible_ports or p in connected_ports:
                     visible_list.append(p.name)
             output_list.extend(visible_list)
             return output_list
