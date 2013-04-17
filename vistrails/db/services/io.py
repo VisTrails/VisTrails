@@ -791,7 +791,7 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
     abstractions = []
     try:
         for abs_id in get_db_abstraction_ids_from_vistrail(db_connection, vistrail.db_id):
-            abs = read_vistrail_from_db(db_connection, abs_id)
+            abs = read_vistrail_from_db(db_connection, abs_id, vistrail.db_version)
             abs_fname = '%s%s(%s)%s' % ('abstraction_', abs.db_name, 
                                       get_cur_abs_namespace(abs), '.xml')
             fname = os.path.join(vt_abs_dir, abs_fname)
@@ -1092,7 +1092,8 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             workflow.db_name = name
             wfToSave.append(workflow)
             #print "done"
-    dao_list.save_many_to_db(db_connection, wfToSave, True)
+    if wfToSave:
+        dao_list.save_many_to_db(db_connection, wfToSave, True)
     db_connection.commit()
     return vistrail
 
@@ -1274,7 +1275,7 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
     daoList = getVersionDAO(version)
     if do_append:
         log_file = open(filename, 'ab')
-        for workflow_exec in log.workflow_execs:
+        for workflow_exec in log.db_workflow_execs:
             # cannot do correct numbering here...
             # but need to save so that we can use it for deletes
             wf_exec_id = workflow_exec.db_id

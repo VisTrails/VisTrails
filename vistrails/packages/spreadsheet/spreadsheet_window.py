@@ -491,6 +491,13 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             sheet.tabWidget.setCurrentWidget(sheet)
             sheet.setCellPipelineInfo(row, col,
                                       (e.vistrail, pid, cid))
+            rowCount, colCount = sheet.getDimension()
+            rowSpan = max(1, e.rowSpan)
+            colSpan = max(1, e.colSpan)
+            if row + rowSpan > rowCount or col + colSpan > colCount:
+                sheet.setDimension(
+                        max(rowCount, row + rowSpan),
+                        max(colCount, col + colSpan))
             if e.rowSpan>=1 or e.colSpan>=1:
                 sheet.setSpan(row, col, e.rowSpan, e.colSpan)
             if e.inputPorts!=None:

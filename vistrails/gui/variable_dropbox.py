@@ -149,7 +149,7 @@ class QVariableDropBox(QtGui.QScrollArea):
             self.vWidget.clear()
             if controller:
                 reg = module_registry.get_module_registry()
-                for var in controller.vistrail.vistrail_vars:
+                for var in [v for v in controller.vistrail.vistrail_vars]:
                     try:
                         descriptor = reg.get_descriptor_by_name(var.package,
                                                                 var.module, 
