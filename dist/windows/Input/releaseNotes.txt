@@ -1,5 +1,44 @@
 RELEASE NOTES
 -------------
+Release Name: v2.0.2 build 9ff90a0b6dec from v2.0 branch
+
+Enhancements: 
+ - Added animation support to matplotlib/pylab (38fb971b6305)
+ - Job Monitor Improvements (af8f43039c94)
+ - Job Monitoring Tool View (3c43a8c5b3b7)
+ - Add support for customizing which packages are (not) reloaded (91e18f8749a0)
+ - Testing: Validate Workflows by comparing old and new thumbnails (401588f3bfdb)
+ - Added saving/loading SubWorkflows to/from the DB as part of a vistrail bundle (0704f03b2011)
+ - Ticket #628: Set the path to the vistrails tmp dir (f07b3223d16d)
+
+Bug fixes: 
+ - Saving log to previous version failed (e66941c40e22)
+ - Opened vistrails were not selected (14415ac3c709)
+ - parallelflow: Do not deepcopy module dict (e66a6a3713ec)
+ - Fixed matplotlib spreadsheet cell resizing issue. (45f803f0763c)
+ - API: return result after execution (aec0ed019ac5)
+ - Job Monitor icons were set incorrectly (d5e332c4e410)
+ - Job Monitor did not delete job when vistrail was closed (d5e332c4e410)
+ - Workspace: Sometimes selecting an open vistrail does not select it (e1f57079d0fd)
+ - Ticket #651: Function remap upgrade operations performed in incorrect order (6aaa72017fa8)
+ - Fix ordering in function remap (6aaa72017fa8)
+ - Ticket #648: 'OutputPort' object has no attribute 'module_exec' (c9847fc14bb9)
+ - Ticket #647: ModuleSuspended does not work inside Groups (c9847fc14bb9)
+ - Ticket #645: Document py_import in dev guide (bf9a58708fa2)
+ - Ticket #646: Reloading packages fails in some cases (91e18f8749a0)
+ - Fix issues with package reloading (91e18f8749a0)
+ - Fixed broken mimetypes on Windows (9aa51dd35301)
+ - Ticket #643: cannot open workflow triangle_area.vt (67726aceba3b)
+ - Ticket #625: Improve crowdLabs upload interface (7389abac0902)
+ - Added DB version map 1.0.2->1.0.3 needed when downgrading the log (172301ad3858)
+ - Saving abstractions do DB was missing version translation (45ebc5afa303)
+ - Removed faulty import DBProvModel (6727b6ee2fe8)
+ - Ticket #619: Create Analogy does not work on spreadsheet (39df0813e11c)
+ - Fix issue with analogy api in the spreadsheet (39df0813e11c)
+ - Ticket #638: Re-execution of SubWorkflow is missing parameters (294574341168)
+ - Fix issue with subworkflow caching (294574341168)
+ - Ticket #634: Package Documentation says port sigstring can contain spaces (dfc9db1f4dc5)
+
 Release Name: v2.0.1 build 5e35e2b83b90 from v2.0 branch
 
 Enhancements:
