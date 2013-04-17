@@ -1356,4 +1356,28 @@
       <port id="73" moduleId="23" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
+  <action date="2013-04-17 16:15:29" id="156" prevId="155" session="32" user="Remi">
+    <delete id="423" objectId="57" parentObjId="33" parentObjType="function" what="parameter" />
+    <delete id="424" objectId="33" parentObjId="8" parentObjType="module" what="function" />
+  </action>
+  <action date="2013-04-17 16:19:11" id="157" prevId="156" session="32" user="Remi">
+    <change id="425" newObjId="76" oldObjId="68" parentObjId="12" parentObjType="module" what="location">
+      <location id="76" x="-125.925604453" y="413.987301143" />
+    </change>
+    <change id="426" newObjId="77" oldObjId="69" parentObjId="13" parentObjType="module" what="location">
+      <location id="77" x="-282.045295572" y="416.935722552" />
+    </change>
+    <change id="427" newObjId="78" oldObjId="70" parentObjId="20" parentObjType="module" what="location">
+      <location id="78" x="-134.928069776" y="531.336228633" />
+    </change>
+    <change id="428" newObjId="79" oldObjId="71" parentObjId="22" parentObjType="module" what="location">
+      <location id="79" x="-312.449810567" y="536.916558146" />
+    </change>
+    <change id="429" newObjId="80" oldObjId="73" parentObjId="23" parentObjType="module" what="location">
+      <location id="80" x="-470.752746746" y="423.815772458" />
+    </change>
+    <change id="430" newObjId="81" oldObjId="75" parentObjId="24" parentObjType="module" what="location">
+      <location id="81" x="-488.734920554" y="534.845868713" />
+    </change>
+  </action>
 </vistrail>

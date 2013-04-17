@@ -163,7 +163,7 @@ else:
                  DataPort(name='r', type=List),
                  DataPort(name='theta', type=List),
                  ConstantPort(name='title', type=String, optional=True),
-                 ConstantPort(name='markers', type=Boolean, optional=False),
+                 ConstantPort(name='marker', type=String, optional=True),
                  ConstantPort(name='markercolor', type=Color, optional=True),
                  ConstantPort(name='edgecolor', type=Color, optional=True)]),
     ]
