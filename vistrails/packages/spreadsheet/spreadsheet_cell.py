@@ -54,6 +54,7 @@ from vistrails.core.system import strftime
 
 from .analogy_api import SpreadsheetAnalogy
 from .spreadsheet_config import configuration
+from . import spreadsheet_controller
 import cell_rc
 import celltoolbar_rc
 
@@ -316,7 +317,7 @@ class QCellToolBar(QtGui.QToolBar):
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
         self.addSaveCellAction()
         self.addExecuteCellAction()
-        if sheet.allow_delete_cell:
+        if spreadsheet_controller.get_ss_hook('tab_delete_cell'):
             self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()

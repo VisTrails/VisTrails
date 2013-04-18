@@ -55,7 +55,7 @@ from vistrails.db.services.io import SaveBundle
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
 
-from . import spreadsheet_flags
+from . import spreadsheet_controller
 from .spreadsheet_registry import spreadsheetRegistry
 from .spreadsheet_tab import StandardWidgetTabBar, StandardWidgetSheetTab, \
     StandardTabDockWidget
@@ -68,28 +68,22 @@ class StandardWidgetTabController(QtGui.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
-    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS,
-            close_tab_action=None):
-        """ StandardWidgetTabController(parent: QWidget, swflags: int)
+    def __init__(self, parent=None):
+        """ StandardWidgetTabController(parent: QWidget)
                 -> StandardWidgetTabController
         Initialize signals/slots and widgets for the tab bar
 
         """
-
         QtGui.QTabWidget.__init__(self, parent)
         self.operatingWidget = self
-        self.setTabBar(
-                StandardWidgetTabBar(self, swflags=swflags))
+        self.setTabBar(StandardWidgetTabBar(self))
         self.setTabShape(QtGui.QTabWidget.Triangular)
         self.setTabPosition(QtGui.QTabWidget.South)
         self.tabWidgets = []
         self.floatingTabWidgets = []
-        self._flags = swflags
-        if swflags & spreadsheet_flags.WINDOW_CREATE_FIRST_SHEET:
+        if spreadsheet_controller.get_ss_hook('window_create_first_sheet'):
             self.addTabWidget(
-                    StandardWidgetSheetTab(
-                            self,
-                            swflags=swflags),
+                    StandardWidgetSheetTab(self),
                     'Sheet 1')
         self.connect(self.tabBar(),
                      QtCore.SIGNAL('tabMoveRequest(int,int)'),
@@ -117,11 +111,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.spreadsheetFileName = None
         self.loadingMode = False
         self.editingMode = False
-        if swflags & spreadsheet_flags.TAB_CLOSE_SHEET:
+        if spreadsheet_controller.get_ss_hook('tab_close_sheet'):
             self.closeButton = QtGui.QToolButton(self)
             self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
             self.closeButton.setAutoRaise(True)
             self.setCornerWidget(self.closeButton)
+            close_tab_action = spreadsheet_controller.get_ss_hook(
+                    'close_tab_action')
             def close_veto():
                 if (close_tab_action is None or
                         close_tab_action(self.currentWidget())):
@@ -324,9 +320,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         self.setCurrentIndex(
                 self.addTabWidget(
-                        StandardWidgetSheetTab(
-                                self,
-                                swflags=self._flags),
+                        StandardWidgetSheetTab(self),
                         'Sheet %d' % (self.count()+1)))
         self.currentWidget().sheet.stretchCells()
 
