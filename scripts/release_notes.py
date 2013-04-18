@@ -49,7 +49,7 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "5e35e2b83b90" # hash of version used on last release notes
+commit_start = "3813fdd2573b" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.0" # git branch to be used
 release_name = "2.0.2"

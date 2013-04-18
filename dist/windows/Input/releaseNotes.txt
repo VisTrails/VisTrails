@@ -1,6 +1,6 @@
 RELEASE NOTES
 -------------
-Release Name: v2.0.2 build 9ff90a0b6dec from v2.0 branch
+Release Name: v2.0.2 build 3813fdd2573b from v2.0 branch
 
 Enhancements: 
  - Added animation support to matplotlib/pylab (38fb971b6305)
@@ -39,7 +39,7 @@ Bug fixes:
  - Fix issue with subworkflow caching (294574341168)
  - Ticket #634: Package Documentation says port sigstring can contain spaces (dfc9db1f4dc5)
 
-Release Name: v2.0.1 build 5e35e2b83b90 from v2.0 branch
+From Release: v2.0.1 build 5e35e2b83b90 from v2.0 branch
 
 Enhancements:
  - ALPS package: Updated to version 2.1.1 (4741aa04a9d7) 

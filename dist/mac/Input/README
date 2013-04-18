@@ -26,7 +26,7 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0.2 build 9ff90a0b6dec from v2.0 branch
+Release Name: v2.0.2 build 3813fdd2573b from v2.0 branch
 
 Enhancements: 
  - Added animation support to matplotlib/pylab (38fb971b6305)
