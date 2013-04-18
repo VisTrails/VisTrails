@@ -112,6 +112,7 @@ Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 Source: Input\qt.conf; DestDir: {app}\vistrails\Python27
 
 ;;;; ------- QT LIBS ------- ;;;;
+;;;; -- Already included in PyQt4 binary ---- ;;;;
 ;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\phonon4.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\Qt3Support4.dll; DestDir: {app}\vistrails
@@ -138,11 +139,11 @@ Source: Input\qt.conf; DestDir: {app}\vistrails\Python27
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
 Source: Input\x86\python27.dll; DestDir: {app}\vistrails
 Source: Input\x86\python27.dll; DestDir: {app}\vistrails\Python27
-Source: I:\emanuele\src\vtk\vtk-5.10.0\build\bin\Release\*.dll; DestDir: {app}\vistrails
-Source: I:\emanuele\src\vtk\vtk-5.10.0\build\bin\Release\*.pyd; DestDir: {app}\vistrails
-;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
+Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.dll; DestDir: {app}\vistrails
+Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
-Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
+
+;-->Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
 Source: Input\x86\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
@@ -153,11 +154,11 @@ Source: Input\x86\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recurs
 ;Source: E:\src\itk\bin\Release\*.pyd; DestDir: {app}\vistrails
 ;Source: E:\src\itk\bin\Release\*.py; DestDir: {app}\vistrails
 ;;;; --------- END OF ITK FILES --------- ;;;;
-Source: I:\emanuele\src\fftw-3.2.2.pl1-dll32\libfftw3-3.dll; DestDir: {app}\vistrails
-Source: I:\emanuele\src\hdf5-1.8.4-32bit-VS2008-IVF101\*; DestDir: {app}\vistrails\libsrc\hdf5-1.8.4-32bit-VS2008-IVF101; Flags: recursesubdirs
+Source: C:\Users\vistrails\src\fftw-3.3.3-dll32\libfftw3-3.dll; DestDir: {app}\vistrails
+Source: C:\Users\vistrails\src\hdf5-1.8.4-32bit-VS2008-IVF101\*; DestDir: {app}\vistrails\libsrc\hdf5-1.8.4-32bit-VS2008-IVF101; Flags: recursesubdirs
 
 [Dirs]
-Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
+;Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
 ;;Name: {app}\Configuration
 ;;Name: {app}\itkExtras
@@ -232,6 +233,13 @@ Name: {app}\vistrails\lib\site-packages; Type: filesandordirs
 [Run]
 Filename: {tmp}\vcredist_x86.exe; Parameters: /Q; Components: ; Tasks: 
 
+
+[ThirdPartySettings]
+CompileLogFile=Output\build.log
+CompileLogMethod=append
+
+[PreCompile]
+Name: "C:\Python27\python.exe"; Parameters: "C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py"; Flags: abortonerror cmdprompt
 
 [Code]
 var
