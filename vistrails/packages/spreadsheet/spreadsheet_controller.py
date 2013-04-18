@@ -60,6 +60,7 @@ class SpreadsheetController(object):
         self._cellContainerClass = None
                 # This could be in SpreadsheetWindow but findSpreadsheetWindow
                 # is unnecessarily slow
+        self._ss_hooks = None
 
     def findSpreadsheetWindow(self, show=True, create=True, **kwargs):
         """ findSpreadsheetWindow(...) -> QWidget
@@ -163,5 +164,48 @@ class SpreadsheetController(object):
                     stacklevel=2)
         self._cellContainerClass = containerclass
 
+    _default_hooks = dict(
+            # The window's menu
+            window_menubar=None,
+            window_menu_main=True,
+            window_menu_view=True,
+            window_menu_window=True,
+            # Allows to close the application from the spreadsheet via Ctrl+Q
+            window_quit_action=True,
+
+            # Creates a first empty sheet 'Sheet 1' when creating the window
+            window_create_first_sheet=True,
+            # Allows to create a new sheet from a sheet's toolbar
+            tab_create_sheet=True,
+            # Allows to rename a sheet from the tab bar
+            tab_rename_sheet=True,
+            # Allows to close a sheet from the tab bar
+            tab_close_sheet=True,
+            close_tab_action=None,
+            # Allows to delete (i.e. empty) a cell in the sheet
+            tab_delete_cell=True,
+    )
+
+    def set_hooks(self, ss_hooks):
+        if self._ss_hooks is not None:
+            warnings.warn(
+                    "spreadsheetController: the hooks dict was changed!\n"
+                    "This shouldn't happen and could have unknown effects on "
+                    "the application\n"
+                    "It either means that two different module try to set a "
+                    "different set of hooks,\nor that the dict was assigned "
+                    "after the first access",
+                    stacklevel=2)
+        self._ss_hooks = ss_hooks
+
+    def _get_hook(self, hook):
+        if self._ss_hooks is None:
+            self._ss_hooks = dict()
+        try:
+            return self._ss_hooks[hook]
+        except KeyError:
+            return self._default_hooks[hook]
+
 spreadsheetController = SpreadsheetController()
+get_ss_hook = spreadsheetController._get_hook
 registeredWidgets = {}

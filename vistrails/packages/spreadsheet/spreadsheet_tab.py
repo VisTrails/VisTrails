@@ -52,7 +52,6 @@ from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 import spreadsheet_controller
 from spreadsheet_config import configuration
-import spreadsheet_flags
 from vistrails.core.inspector import PipelineInspector
 import spreadsheet_rc
 
@@ -90,15 +89,15 @@ class StandardWidgetToolBar(QtGui.QToolBar):
     included
     
     """
-    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ StandardWidgetToolBar(parent: QWidget, swflags: int)
+    def __init__(self, parent=None):
+        """ StandardWidgetToolBar(parent: QWidget)
                 -> StandardWidgetToolBar
         Init the toolbar with default actions
-        
+
         """
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
-        if swflags & spreadsheet_flags.TAB_CREATE_SHEET:
+        if spreadsheet_controller.get_ss_hook('tab_create_sheet'):
             self.addAction(self.sheetTab.tabWidget.newSheetAction())
         self.addAction(self.sheetTab.tabWidget.openAction())
         self.addAction(self.sheetTab.tabWidget.saveAction())
@@ -601,18 +600,15 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     displaying the spreadsheet.
     
     """
-    def __init__(self, tabWidget, row=None , col=None,
-            swflags=spreadsheet_flags.DEFAULTS):
+    def __init__(self, tabWidget, row=None , col=None):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
-                                col: int,
-                                swflags: int) -> StandardWidgetSheet
+                                col: int) -> StandardWidgetSheet
         Initialize with a toolbar and a sheet widget
-                                
+
         """
         QtGui.QWidget.__init__(self, None)
         StandardWidgetSheetTabInterface.__init__(self)
-        self.allow_delete_cell = swflags & spreadsheet_flags.TAB_DELETE_CELL
         if not row:
             row = configuration.rowCount
         if not col:
@@ -621,9 +617,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)
         self.sheet.setFitToWindow(True)
-        self.toolBar = StandardWidgetToolBar(
-                self,
-                swflags=swflags)
+        self.toolBar = StandardWidgetToolBar(self)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
         self.vLayout.setMargin(0)
@@ -888,11 +882,11 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     to change tab name
     
     """
-    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ StandardWidgetTabBar(parent: QWidget, swflags: int)
+    def __init__(self, parent=None):
+        """ StandardWidgetTabBar(parent: QWidget)
                 -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
-        
+
         """
         QtGui.QTabBar.__init__(self, parent)
         self.setAcceptDrops(True)
@@ -911,14 +905,14 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                                                  self)
         self.outerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
                                                  None)
-        self._allow_renaming = swflags & spreadsheet_flags.TAB_RENAME_SHEET
 
     def mouseDoubleClickEvent(self, e):
         """ mouseDoubleClickEvent(e: QMouseEvent) -> None
         Handle Double-Click event to start the editor
         
         """
-        if (not self._allow_renaming or 
+        allow_renaming = spreadsheet_controller.get_ss_hook('tab_rename_sheet')
+        if (not allow_renaming or
                 e.buttons() != QtCore.Qt.LeftButton or
                 self.editor):
             return
