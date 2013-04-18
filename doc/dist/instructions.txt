@@ -16,7 +16,21 @@ Binary build instructions
 
 == Preparation ==
 
-These work for making  both Mac and Windows releases and need to be done only once before generating them. I think it is easier to do on a Mac, commit the changes and load them on the Windows machines.
+These work for making  both Mac and Windows releases and need to be
+done only once before generating them. I think it is easier to do on a
+Mac, commit the changes and load them on the Windows machines.
+
+=== Change in Licensing or Update the look and feel in the Mac .dmg
+file ===
+If you ever need to change the VisTrails license or need to change the
+look and feel of the .dmg file we distribute, you can do that by
+opening dist/mac/vistrails.dmgCanvas. In the project settings you can
+update the license text (that one the is displayed when you open
+the .dmg). Else you can control the background image and other
+settings.
+Usually you don't need to touch this file. So go ahead to the next steps.
+
+
 
 Updating version numbers
 
@@ -30,6 +44,16 @@ If there is a version upgrade from 2.0 to 2.1 you need to update the
    dist/windows/vistrailsx64.iss (AppVerName)
    dist/source/make-vistrails-src-release.py (VT_VERSION)
    doc/usersguide/conf.py
+   
+The splash screen also needs to be updated: 
+   vistrails/gui/resources/images/vistrails_splash.png
+
+The Adobe Illustrator source file is in the master branch, in
+dist/common/splash folder. You need to install the font file in that
+folder too before opening the .ai file. After the changes, export the
+file to a .png file. Then open it in Photoshop and resize the image to
+546x340 pixels. Then replace the file in 
+  vistrails/gui/resources/images/vistrails_splash.png
 
 Commit and push your changes.
 
@@ -67,7 +91,7 @@ Run git log to know what is the latest hash tag on the release branch and copy t
 Update the following files with the "revision number"
   vistrails/core/system/__init__.py (function vistrails_revision())
   dist/mac/Input/README (Release Name...)
-  dist/source/make-vistrails-src-release.py 
+  dist/source/make-vistrails-src-release.py (VT_HASH)
   dist/windows/Input/releaseNotes.txt
   scripts/create_release_wiki_table.py
   scripts/release_notes.py
@@ -120,3 +144,25 @@ This will launch InnoSetup
 Press the compile script button
 When it finishes a file called dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
 Upload the file to sourceForge (I use WinFTP for this).
+
+
+
+== Source Distribution Instructions ==
+cd path/to/dist/source
+make sure make-vistrails-src-release.py is updated with the right
+branch VT_BRANCH, VT_VERSION and VT_HASH.
+Also update the SF_USERNAME with the vistrails build username if you
+want to upload directly from the script. I usually don't because I
+don't want to commit the vistrails username to the repository so I
+skip the upload to source forge step and use the scp command line above to
+upload the file using my own user.
+
+All the files you need to upload to source forge using the vistrails
+username are in the vistrails server machine. In the cron directory,
+you can look how it is configured so the nightly builds are uploaded
+every night when there are changes.
+
+to generate the tarball:
+$ python make-vistrails-src-release.py
+It will checkout the hash code defined in the file and rename the
+tarball apropriately.
