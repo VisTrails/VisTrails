@@ -11,8 +11,8 @@ setup_build_system_mac.txt and setup_build_system_windows.txt
 
 3. Now follow the instructions below:
 
-Mac Binary build instructions
------------------------------
+Binary build instructions
+-------------------------
 
 == Preparation ==
 
@@ -23,6 +23,7 @@ Updating version numbers
 If there is a version upgrade from 2.0 to 2.1 you need to update the
    following files (the variable name that needs to be updated are in parentheses:
    scripts/release_notes.py (release_name)
+   scripts/create_release_wiki_table.py (VT_VERSION)
    vistrails/core/system/__init__.py (function vistrails_version())
    dist/mac/setup.py (VERSION)
    dist/windows/vistrails.iss (AppVerName)
@@ -50,7 +51,7 @@ RELEASE NOTES
 
 Also take a look if there aren't repeated items... They might happen when there are merges across the branches and the commit messages got repeated.
 
-Then you can copy the final text into dist/windows/Input/releaseNotes.txt
+Then do the same into dist/windows/Input/releaseNotes.txt
 
 Then commit and push your changes. Now you are ready to generate the binaries on each platform.
 
