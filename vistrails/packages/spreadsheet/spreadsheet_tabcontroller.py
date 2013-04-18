@@ -308,12 +308,27 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Actual code to create a new sheet
         
         """
-        self.setCurrentIndex(
-                self.addTabWidget(
-                        StandardWidgetSheetTab(self),
-                        'Sheet %d' % (self.count()+1)))
-        self.currentWidget().sheet.stretchCells()
-        
+        new_tab_action = spreadsheet_controller.get_ss_hook(
+                'create_sheet_action')
+        if new_tab_action is None:
+            tab = StandardWidgetSheetTab(self)
+            name = None
+        else:
+            res = new_tab_action(
+                    self,
+                    'Sheet %d' % (self.count()+1))
+            if res is None:
+                return
+            tab, name = res
+        if tab is not None:
+            if name is None:
+                'Sheet %d' % (self.count()+1)
+            self.setCurrentIndex(
+                    self.addTabWidget(
+                            tab,
+                            name))
+            self.currentWidget().sheet.stretchCells()
+
     def tabInserted(self, index):
         """tabInserted(index: int) -> None
         event handler to get when sheets are inserted """

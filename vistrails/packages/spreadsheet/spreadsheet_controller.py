@@ -177,6 +177,7 @@ class SpreadsheetController(object):
             window_create_first_sheet=True,
             # Allows to create a new sheet from a sheet's toolbar
             tab_create_sheet=True,
+            create_sheet_action=None,
             # Allows to rename a sheet from the tab bar
             tab_rename_sheet=True,
             # Allows to close a sheet from the tab bar
