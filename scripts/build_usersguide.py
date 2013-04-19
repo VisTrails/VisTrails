@@ -54,7 +54,7 @@ PATH_TO_VISTRAILS_GIT = "/Users/vistrails/code/vistrails"
 HTML_FOLDER = None
 
 # Complete file path to where copy final pdf file
-PDF_FILE = "/Users/vistrails/code/vistrails/dist/mac/dist/doc/VisTrails.pdf"
+PDF_FILE = "/Users/vistrails/code/vistrails/dist/mac/dist/VisTrails/doc/VisTrails.pdf"
 
 # Should we run a `git pull` before building docs? 
 PERFORM_GIT_PULL = True
