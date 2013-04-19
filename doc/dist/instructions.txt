@@ -97,6 +97,12 @@ Update the following files with the "revision number"
   scripts/release_notes.py
 add and commit the changes. This will be the version released.
 
+Update usersguide paths
+
+Make sure the generated users guide is saved to the correct path by
+editing the following file:
+scripts/build_usersguide.py
+By default it is configured for mac
 
 Now run the following:
 $ cd dist/mac/
@@ -113,9 +119,8 @@ where [SFUSER] is your sourceforge user.
 Update your local copy so you get the newest changes you pushed from
 the Mac.
 VisTrails needs to be run on Windows before the release so it builds
-all the *.pyc files before hand. I think there's a python command that
-does that but I don't know. That should be nice to be automated.
-Running the test suite should be fine.
+all the *.pyc files before hand. This can be done by running:
+$ python -m compileall .
 Also, as we are running both 32-bit and 64-bit versions on the same
 system, make sure the PATH variables are set accordingly to use the
 32-bit version of python, vtk, etc. (if you run vistrails 32-bit) or

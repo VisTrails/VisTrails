@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'VisTrails'
-copyright = u'2011, University of Utah'
+copyright = u'2012-, NYU Poly, 2011, University of Utah'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
