@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -351,7 +351,7 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s.%s -- contact@vistrails.org
 
-Copyright (C) 2011-2012 NYU-Poly. Copyright (c) 2006-2011 University of Utah. 
+Copyright (C) 2011-2013 NYU-Poly. Copyright (C) 2006-2011 University of Utah. 
 All rights reserved.
 http://www.vistrails.org
 
