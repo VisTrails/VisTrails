@@ -42,6 +42,7 @@ If there is a version upgrade from 2.0 to 2.1 you need to update the
    dist/mac/setup.py (VERSION)
    dist/windows/vistrails.iss (AppVerName)
    dist/windows/vistrailsx64.iss (AppVerName)
+   dist/windows/custom/*.iss (AppVerName)
    dist/source/make-vistrails-src-release.py (VT_VERSION)
    doc/usersguide/conf.py
    
@@ -137,6 +138,11 @@ Press the compile script button
 When it finishes a file called dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
 Upload the file to sourceForge (I use WinFTP for this).
 
+Custom 32-bit builds
+For every vistrails-*.iss file in dist/windows/custom folder, run
+InnoSetup. Binaries will be generated in custom/Output folder. Rename it according to the release name and create a zip file from it.
+Upload the file to sourceForge (I use WinFTP for this). 
+
 == Windows 64-bit Binary Instructions ==
 
 ALPS
@@ -150,6 +156,10 @@ Press the compile script button
 When it finishes a file called dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
 Upload the file to sourceForge (I use WinFTP for this).
 
+Custom 64-bit builds
+For every vistrailsx64-*.iss file in dist/windows/custom folder, run
+InnoSetup. Binaries will be generated in custom/Output folder. Rename it according to the release name and create a zip file from it.
+Upload the file to sourceForge (I use WinFTP for this). 
 
 
 == Source Distribution Instructions ==
