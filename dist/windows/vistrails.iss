@@ -338,4 +338,4 @@ LogFileOverwrite=false
 
 
 [InnoIDE_PreCompile]
-Name: C:\Python27\python.exe; Parameters: I:\emanuele\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 
+Name: C:\Python27\python.exe; Parameters: C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 
