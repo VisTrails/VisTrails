@@ -112,6 +112,7 @@ Source: Input\vcredist_x64.exe; DestDir: {tmp}; Flags: deleteafterinstall
 Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 Source: Input\qt.conf; DestDir: {app}\vistrails\Python27_64
 ;;;; ------- QT LIBS ------- ;;;;
+;;;; -- Already included in PyQt4 binary ---- ;;;;
 ;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\phonon4.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\Qt3Support4.dll; DestDir: {app}\vistrails
@@ -348,4 +349,4 @@ LogFile=Output\build.log
 LogFileOverwrite=false
 
 [InnoIDE_PreCompile]
-Name: C:\Python27_64\python.exe; Parameters: I:\emanuele\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 
+Name: C:\Python27_64\python.exe; Parameters: C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 

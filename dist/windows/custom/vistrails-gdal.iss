@@ -35,18 +35,18 @@
 [Setup]
 AppName=VisTrails
 AppVerName=VisTrails 2.0.2
-WizardImageFile=resources\images\vistrails_icon.bmp
+WizardImageFile=..\resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
 DefaultDirName={code:CustomAppDir}\VisTrails
-SetupIconFile=resources\icons\vistrails_install2.ico
+SetupIconFile=..\resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
-InfoAfterFile=Input\releaseNotes.txt
+InfoAfterFile=..\Input\releaseNotes.txt
 PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
-LicenseFile=Input\license.txt
-OutputBaseFilename=vistrails-setup
+LicenseFile=..\Input\license.txt
+OutputBaseFilename=vistrails-gdal-setup
 
 [Files]
 Source: C:\Python27\w9xpopen.exe; DestDir: {app}\vistrails\Python27
@@ -61,34 +61,34 @@ Source: C:\Python27\libs\*; DestDir: {app}\vistrails\Python27\libs
 Source: C:\Python27\Scripts\*; DestDir: {app}\vistrails\Python27\Scripts
 Source: C:\Python27\tcl\*; DestDir: {app}\vistrails\Python27\tcl; Flags: recursesubdirs
 Source: C:\Python27\Tools\*; DestDir: {app}\vistrails\Python27\Tools; Flags: recursesubdirs
-Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\DDBJ_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\EMBOSS_webservices.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\EMBOSS_webservices.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\gridfieldexample.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\bathymetry.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\croos2.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\gridfieldexample.xml; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\head.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\KEGG_SearchEntities_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\KEGG_webservices.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\lung.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\noaa_webservices.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\offscreen.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\plot.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\protein_visualization.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\r_stats.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\spx.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\structure_or_id_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\terminator.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\triangle_area.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\vtk.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
-Source: ..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\head.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\KEGG_SearchEntities_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\KEGG_webservices.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\lung.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\noaa_webservices.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\offscreen.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\plot.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\protein_visualization.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\r_stats.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\spx.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\structure_or_id_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\terminator.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\triangle_area.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\vtk.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
+Source: ..\..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
@@ -97,19 +97,19 @@ Source: ..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: example
 ;Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
-Source: ..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
-Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
-Source: ..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
-Source: Input\unzip.exe; DestDir: {app}\vistrails
-Source: Input\zip.exe; DestDir: {app}\vistrails
-Source: Input\git.exe; DestDir: {app}\vistrails
-Source: Input\tar.exe; DestDir: {app}\vistrails
-Source: Input\runvistrails.py; DestDir: {app}
-Source: Input\*.dll; DestDir: {app}\vistrails
-Source: Input\license.txt; DestDir: {app}
-Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
-Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
-Source: Input\qt.conf; DestDir: {app}\vistrails\Python27
+Source: ..\..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
+Source: ..\..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: ..\..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
+Source: ..\Input\unzip.exe; DestDir: {app}\vistrails
+Source: ..\Input\zip.exe; DestDir: {app}\vistrails
+Source: ..\Input\git.exe; DestDir: {app}\vistrails
+Source: ..\Input\tar.exe; DestDir: {app}\vistrails
+Source: ..\Input\runvistrails.py; DestDir: {app}
+Source: ..\Input\*.dll; DestDir: {app}\vistrails
+Source: ..\Input\license.txt; DestDir: {app}
+Source: ..\Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
+Source: ..\Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
+Source: ..\Input\qt.conf; DestDir: {app}\vistrails\Python27
 
 ;;;; ------- QT LIBS ------- ;;;;
 ;;;; -- Already included in PyQt4 binary ---- ;;;;
@@ -137,15 +137,15 @@ Source: Input\qt.conf; DestDir: {app}\vistrails\Python27
 ;Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
 ;Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
-Source: Input\x86\python27.dll; DestDir: {app}\vistrails
-Source: Input\x86\python27.dll; DestDir: {app}\vistrails\Python27
+Source: ..\Input\x86\python27.dll; DestDir: {app}\vistrails
+Source: ..\Input\x86\python27.dll; DestDir: {app}\vistrails\Python27
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.dll; DestDir: {app}\vistrails
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 
 ;-->Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-Source: Input\x86\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: ..\Input\x86\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
@@ -156,6 +156,8 @@ Source: Input\x86\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recurs
 ;;;; --------- END OF ITK FILES --------- ;;;;
 Source: C:\Users\vistrails\src\fftw-3.3.3-dll32\libfftw3-3.dll; DestDir: {app}\vistrails
 Source: C:\Users\vistrails\src\hdf5-1.8.4-32bit-VS2008-IVF101\*; DestDir: {app}\vistrails\libsrc\hdf5-1.8.4-32bit-VS2008-IVF101; Flags: recursesubdirs
+;;;; --- GDAL Files ----;;;;
+Source: C:\Users\vistrails\code\extra_packages\gdal\x86\site-packages\*; DestDir: {app}\vistrails\Python27\Lib\site-packages; Flags: recursesubdirs
 
 [Dirs]
 ;Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
@@ -176,6 +178,7 @@ Name: {app}\vistrails\vistrails\vtk
 Name: {app}\vistrails\vistrails\Python24\DLLs
 Name: {app}\vistrails\Python27\include
 Name: {app}\vistrails\Python27\Lib
+Name: {app}\vistrails\Python27\Lib\site-packages
 Name: {app}\vistrails\Python27\libs
 Name: {app}\vistrails\Python27\Scripts
 Name: {app}\vistrails\Python27\sip
