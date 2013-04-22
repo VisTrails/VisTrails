@@ -2,10 +2,8 @@ from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import List
 
+from engine_manager import EngineManager
 from map import Map
-
-ipythonSet = None
-profile_dir = None
 
 
 def initialize(*args,**keywords):
@@ -17,3 +15,18 @@ def initialize(*args,**keywords):
     reg.add_input_port(Map, 'InputPort', (List, ''))
     reg.add_input_port(Map, 'OutputPort', (List, ''))
     reg.add_output_port(Map, 'Result', (List, ''))
+
+
+def finalize():
+    EngineManager.cleanup()
+
+
+def menu_items():
+    return (
+            ("Start new engine processes",
+             lambda: EngineManager.start_engines()),
+            ("Cleanup started processes",
+             lambda: EngineManager.cleanup()),
+            ("Request cluster shutdown",
+             lambda: EngineManager.shutdown_cluster()),
+    )
