@@ -7,12 +7,11 @@ from IPython.config.loader import Config
 from IPython.parallel.apps.launcher import LocalControllerLauncher,\
                                            LocalEngineLauncher, \
                                            SSHEngineLauncher
-                                           
+from IPython.utils.path import get_ipython_dir
+
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core import system
-
-local_profile_dir = os.path.join(system.home_directory(), '.ipython/profile_default')
+local_profile_dir = os.path.join(get_ipython_dir(), 'profile_default')
 
 class IPythonSet:
     """

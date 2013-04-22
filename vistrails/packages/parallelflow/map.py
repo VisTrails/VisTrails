@@ -289,6 +289,7 @@ class Map(Module, NotCacheable):
                 import inspect
         
                 # VisTrails API
+                import vistrails
                 import vistrails.core
                 import vistrails.core.db.action
                 import vistrails.core.application
@@ -301,7 +302,7 @@ class Map(Module, NotCacheable):
                 from vistrails.core.interpreter.default import get_default_interpreter
             
             # initializing a VisTrails application
-            dview.execute('app = core.application.init(args=[])')
+            dview.execute('app = vistrails.core.application.init(args=[])')
             
             dview['init'] = True
         

@@ -20,7 +20,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(Map, 'InputList', (List, ""))
     reg.add_input_port(Map, 'InputPort', (List, ""))
     reg.add_input_port(Map, 'OutputPort', (List, ""))
-    reg.add_output_port(Map, 'Result', (Variant, ""))
+    reg.add_output_port(Map, 'Result', (List, ""))
     
 #################################################################################
 
