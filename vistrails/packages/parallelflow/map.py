@@ -264,27 +264,31 @@ class Map(Module, NotCacheable):
             break
                 
         # IPython stuff
-        from init import profile_dir, ipythonSet
-        if not ipythonSet:
-            msg = "Exception while loading IPython: No IPython engines detected!"
-            raise ModuleError(self, msg)
         try:
-            rc = Client(profile_dir + '/security/ipcontroller-client.json')
+            rc = Client()
             engines = rc.ids
+            if not engines:
+                raise ModuleError(
+                        self,
+                        "Exception while loading IPython: No IPython engines "
+                        "detected!")
             dview = rc[:]
         except Exception, error:
             msg = "Exception while loading IPython: '%s'" %str(error)
             raise ModuleError(self, msg)
-        
+
+        # initializes each engine
         # importing modules and initializing the VisTrails application
-        # in the engines *only* in the first execution
-        try:
-            dview['init']
-        except:
-            # imports for the IPython engines
-            # here, it is assumed that VisTrails code is already in PYTHONPATH
-            # then, when the engines are started, they can see the VisTrails API
-            with dview.sync_imports():
+        # in the engines *only* in the first execution on this engine
+        uninitialized = []
+        for eng in engines:
+            try:
+                rc[eng]['init']
+            except:
+                uninitialized.append(eng)
+        if uninitialized:
+            init_view = rc[uninitialized]
+            with init_view.sync_imports():
                 import tempfile
                 import inspect
         
@@ -302,9 +306,10 @@ class Map(Module, NotCacheable):
                 from vistrails.core.interpreter.default import get_default_interpreter
             
             # initializing a VisTrails application
-            dview.execute('app = vistrails.core.application.init(args=[])')
+            init_view.execute('app = vistrails.core.application.init(args=[])',
+                          block=True)
             
-            dview['init'] = True
+            init_view['init'] = True
         
         # setting computing color
         module.logging.set_computing(module)
