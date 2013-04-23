@@ -38,6 +38,8 @@ $ cd ../..
 $ python fix_qtplugin_libs.py Input/plugins/iconengines/
 $ python fix_qtplugin_libs.py Input/plugins/imageformats/
 
+Copy /usr/bin/git to dist/mac/Input
+
 Create a directory alps_libs in Input to store the alps_libs
 
 #GDAL Framework
