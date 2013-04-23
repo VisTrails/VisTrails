@@ -27,6 +27,8 @@ def menu_items():
              lambda: EngineManager.start_engines()),
             ("Show information on the cluster",
              lambda: EngineManager.info()),
+            ("Change profile",
+             lambda: EngineManager.change_profile()),
             ("Cleanup started processes",
              lambda: EngineManager.cleanup()),
             ("Request cluster shutdown",

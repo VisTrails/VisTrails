@@ -77,6 +77,21 @@ class EngineManager(object):
         self.started_engines = set()
         self._client = None
 
+    def _select_profile(self):
+        # See IPython.core.profileapp:list_profile_in()
+        profiles = []
+        for filename in os.listdir(get_ipython_dir()):
+            if filename.startswith('profile_'):
+                profiles.append(filename[8:])
+
+        if profiles == ['default'] and not qt_available:
+            self.profile = 'default'
+        elif not qt_available:
+            raise ValueError("'default' IPython profile does not exist "
+                             "and PyQt4 is not available")
+        else:
+            self.profile = choose_profile(profiles)
+
     def ensure_controller(self, connect_only=False):
         """Make sure a controller is available, else start a local one.
         """
@@ -84,25 +99,13 @@ class EngineManager(object):
             return self._client
 
         if self.profile is None:
-            # See IPython.core.profileapp:list_profile_in()
-            profiles = []
-            for filename in os.listdir(get_ipython_dir()):
-                if filename.startswith('profile_'):
-                    profiles.append(filename[8:])
-
-            if profiles == ['default'] and not qt_available:
-                self.profile = 'default'
-            elif not qt_available:
-                raise ValueError("'default' IPython profile does not exist "
-                                 "and PyQt4 is not available")
-            else:
-                self.profile = choose_profile(profiles)
+            self._select_profile()
         if self.profile is None:
             return None
         print "parallelflow: using IPython profile %r" % self.profile
 
         try:
-            self._client = Client()
+            self._client = Client(profile=self.profile)
             print "parallelflow: connected to controller"
             return self._client
         except error.TimeoutError:
@@ -160,7 +163,7 @@ class EngineManager(object):
             else:
                 self.started_controller = proc
                 print "parallelflow: controller started, connecting"
-                self._client = Client()
+                self._client = Client(profile=self.profile)
                 return self._client
 
         return None
@@ -251,6 +254,7 @@ class EngineManager(object):
         client = self.ensure_controller(connect_only=True)
 
         print "----- IPython information -----"
+        print "profile: %s" % self.profile
         connected = client is not None
         print "connected to controller: %s" % (
                 "yes" if connected else "no")
@@ -280,15 +284,19 @@ class EngineManager(object):
                     engines.items(),
                     key=lambda (ip_id, (pid, system, fqdn)): (fqdn, ip_id))
             print "engines:"
+            print "\tid\tsystem\tPID\tnode FQDN"
+            print "\t--\t------\t---\t---------"
             for ip_id, (pid, system, fqdn) in engines:
-                print "\tid\tsystem\tPID\tnode FQDN"
                 print "\t%d\t%s\t%d\t%s" % (ip_id, system, pid, fqdn)
-        print "----------"
+        print ""
 
         if qt_available:
             dialog = QtGui.QDialog()
             layout = QtGui.QVBoxLayout()
             form = QtGui.QFormLayout()
+            form.addRow(
+                    "Profile:",
+                    QtGui.QLabel(self.profile))
             form.addRow(
                     "Connected:",
                     QtGui.QLabel("yes" if connected else "no"))
@@ -331,6 +339,22 @@ class EngineManager(object):
             dialog.setLayout(layout)
             dialog.exec_()
 
+    def change_profile(self):
+        self.cleanup()
+
+        old_profile = self.profile
+        self._select_profile()
+        if not self.profile:
+            self.profile = old_profile
+
+        if self.profile != old_profile:
+            # Here, the processes that were started but the user didn't want to
+            # clean up are abandonned
+            # They will continue running but later cleanups won't ask for these
+            # ones
+            self.started_engines = set()
+            self.started_controller = None
+
     def cleanup(self):
         """Shut down the started processes (with user confirmation).
         """
@@ -340,6 +364,7 @@ class EngineManager(object):
         print ("parallelflow: cleanup: %s, %d engines running" % (
                "controller running" if ctrl else "no controller",
                engines))
+
         if engines > 0:
             if qt_available:
                 if self._client is not None:
@@ -365,6 +390,7 @@ class EngineManager(object):
                 print ("parallelflow: %d engines terminated" %
                        len(self.started_engines))
                 self.started_engines = set()
+
         if ctrl:
             if qt_available:
                 res = QtGui.QMessageBox.question(
@@ -391,6 +417,18 @@ class EngineManager(object):
     def shutdown_cluster(self):
         """Use the client to request a shutdown of the whole cluster.
         """
+        client = self.ensure_controller(connect_only=True)
+        if client is None:
+            if qt_available:
+                QtGui.QMessageBox.information(
+                        None,
+                        "Couldn't connect",
+                        "Couldn't connect to a controller. Is the cluster "
+                        "down already?")
+            print ("parallelflow: shutdown_cluster requested, but could "
+                   "not connect to a controller")
+            return
+
         if qt_available:
             res = QtGui.QMessageBox.question(
                     None,
@@ -400,19 +438,6 @@ class EngineManager(object):
                     QtGui.QMessageBox.Ok,
                     QtGui.QMessageBox.Cancel)
             if res != QtGui.QMessageBox.Ok:
-                return
-        if self._client is None:
-            try:
-                self._client = Client()
-            except (error.TimeoutError, IOError):
-                if qt_available:
-                    QtGui.QMessageBox.information(
-                            None,
-                            "Couldn't connect",
-                            "Couldn't connect to a controller. Is the cluster "
-                            "down already?")
-                print ("parallelflow: shutdown_cluster requested, but could "
-                       "not connect to a controller")
                 return
 
         self._client.shutdown(
