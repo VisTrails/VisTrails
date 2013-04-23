@@ -52,7 +52,7 @@ plist = dict(
     CFBundleIdentifier='org.vistrails',
 )
 
-sys.path.append('../../vistrails')
+sys.path.append('../..')
 APP = ['../../vistrails/vistrails.py']
 #comma-separated list of additional data files and
 #folders to include (not for code!)
@@ -64,7 +64,7 @@ OPTIONS = {'argv_emulation': True,
 			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
                         shelve, uuid, \
                         sine,st,Numeric,pexpect,psycopg2,sqlite3,suds,shapelib, dbflib,mpl_toolkits.mplot3d,_mysql_exceptions',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,packages,core,gui,db,numpy,scipy,api,twisted,Scientific,distutils,h5py,batchq,osgeo',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,api,twisted,Scientific,distutils,h5py,batchq,osgeo',
            'excludes': 'mpl_toolkits.basemap, PyQt4.uic',
            'plist': plist,
            }
