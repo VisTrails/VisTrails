@@ -77,7 +77,7 @@ class EngineManager(object):
         self.started_engines = set()
         self._client = None
 
-    def ensure_controller(self):
+    def ensure_controller(self, connect_only=False):
         """Make sure a controller is available, else start a local one.
         """
         if self._client:
@@ -107,7 +107,9 @@ class EngineManager(object):
             return self._client
         except error.TimeoutError:
             print "parallelflow: timeout when connecting to controller"
-            if qt_available:
+            if connect_only:
+                start_ctrl = False
+            elif qt_available:
                 res = QtGui.QMessageBox.question(
                         None,
                         "Start controller",
@@ -119,7 +121,9 @@ class EngineManager(object):
                 start_ctrl = True
         except IOError:
             print "parallelflow: didn't find a controller to connect to"
-            if qt_available:
+            if connect_only:
+                start_ctrl = False
+            elif qt_available:
                 res = QtGui.QMessageBox.question(
                         None,
                         "Start controller",
@@ -240,6 +244,92 @@ class EngineManager(object):
                 bar.hide()
                 bar.deleteLater()
             print "parallelflow: %d engines started" % (i + 1)
+
+    def info(self):
+        """Show some information on the cluster.
+        """
+        client = self.ensure_controller(connect_only=True)
+
+        print "----- IPython information -----"
+        connected = client is not None
+        print "connected to controller: %s" % (
+                "yes" if connected else "no")
+        st_ctrl = (self.started_controller is not None and
+                        self.started_controller.poll() is None)
+        print "controller started from VisTrails: %s" % (
+                "running" if st_ctrl else "no")
+        st_engines = sum(1 for p in self.started_engines if p.poll() is None)
+        print "engines started from VisTrails: %d" % st_engines
+        if client is not None:
+            nb_engines = len(client.ids)
+        else:
+            nb_engines = None
+        print "total engines in cluster: %s" % (
+                nb_engines if nb_engines is not None else "(unknown)")
+        if connected:
+            dview = client[:]
+            with dview.sync_imports():
+                import os
+                import platform
+                import socket
+            engines = dview.apply_async(
+                    eval,
+                    '(os.getpid(), platform.system(), socket.getfqdn())'
+            ).get_dict()
+            engines = sorted(
+                    engines.items(),
+                    key=lambda (ip_id, (pid, system, fqdn)): (fqdn, ip_id))
+            print "engines:"
+            for ip_id, (pid, system, fqdn) in engines:
+                print "\tid\tsystem\tPID\tnode FQDN"
+                print "\t%d\t%s\t%d\t%s" % (ip_id, system, pid, fqdn)
+        print "----------"
+
+        if qt_available:
+            dialog = QtGui.QDialog()
+            layout = QtGui.QVBoxLayout()
+            form = QtGui.QFormLayout()
+            form.addRow(
+                    "Connected:",
+                    QtGui.QLabel("yes" if connected else "no"))
+            form.addRow(
+                    "Controller started from VisTrails:",
+                    QtGui.QLabel("running" if st_ctrl else "no"))
+            form.addRow(
+                    "Engines started from VisTrails:",
+                    QtGui.QLabel(str(st_engines)))
+            form.addRow(
+                    "Total engines in cluster:",
+                    QtGui.QLabel(str(nb_engines)
+                                 if nb_engines is not None
+                                 else "(unknown)"))
+            layout.addLayout(form)
+            if connected:
+                tree = QtGui.QTreeWidget()
+                tree.setHeaderHidden(False)
+                tree.setHeaderLabels(["IPython id", "PID", "System type"])
+                engine_tree = dict()
+                for ip_id, (pid, system, fqdn) in engines:
+                    engine_tree.setdefault(fqdn, []).append(
+                            (ip_id, pid, system))
+                for fqdn, info in engine_tree.iteritems():
+                    node = QtGui.QTreeWidgetItem([fqdn])
+                    tree.addTopLevelItem(node)
+                    for ip_id, pid, system in info:
+                        node.addChild(QtGui.QTreeWidgetItem([
+                                str(ip_id),
+                                str(pid),
+                                system]))
+                for i in xrange(tree.columnCount()):
+                    tree.resizeColumnToContents(i)
+                layout.addWidget(tree)
+
+            ok = QtGui.QPushButton("Ok")
+            QtCore.QObject.connect(ok, QtCore.SIGNAL('clicked()'),
+                                   dialog, QtCore.SLOT('accept()'))
+            layout.addWidget(ok, 1, QtCore.Qt.AlignHCenter)
+            dialog.setLayout(layout)
+            dialog.exec_()
 
     def cleanup(self):
         """Shut down the started processes (with user confirmation).

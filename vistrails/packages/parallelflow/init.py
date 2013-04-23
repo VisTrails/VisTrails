@@ -25,6 +25,8 @@ def menu_items():
     return (
             ("Start new engine processes",
              lambda: EngineManager.start_engines()),
+            ("Show information on the cluster",
+             lambda: EngineManager.info()),
             ("Cleanup started processes",
              lambda: EngineManager.cleanup()),
             ("Request cluster shutdown",
