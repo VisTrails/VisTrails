@@ -34,24 +34,25 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.0 alpha
+AppVerName=VisTrails 2.0.2
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
-WizardImageBackColor=$9d5942
+WizardImageBackColor=$009D5942
 DefaultDirName={code:CustomAppDir}\VisTrails
 SetupIconFile=resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
 InfoAfterFile=Input\releaseNotes.txt
-DisableDirPage=false
 PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
 LicenseFile=Input\license.txt
+OutputBaseFilename=vistrails-setup
+
 [Files]
 Source: C:\Python27\w9xpopen.exe; DestDir: {app}\vistrails\Python27
 Source: C:\Python27\LICENSE.txt; DestDir: {app}\vistrails\Python27
 Source: C:\Python27\*.exe; DestDir: {app}\vistrails\Python27
-Source: C:\Python27\qt.conf; DestDir: {app}\vistrails\Python27
+;Source: C:\Python27\qt.conf; DestDir: {app}\vistrails\Python27
 Source: C:\Python27\README.txt; DestDir: {app}\vistrails\Python27
 Source: C:\Python27\DLLs\*; DestDir: {app}\vistrails\Python27\DLLs
 Source: C:\Python27\include\*; DestDir: {app}\vistrails\Python27\include
@@ -108,6 +109,8 @@ Source: Input\*.dll; DestDir: {app}\vistrails
 Source: Input\license.txt; DestDir: {app}
 Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
 Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
+Source: Input\qt.conf; DestDir: {app}\vistrails\Python27
+
 ;;;; ------- QT LIBS ------- ;;;;
 ;;;; -- Already included in PyQt4 binary ---- ;;;;
 ;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
@@ -142,7 +145,7 @@ Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: 
 
 ;-->Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-Source: Input\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: Input\x86\alps_libs\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
@@ -222,10 +225,11 @@ Name: {app}\vistrails\*.pyd; Type: files
 Name: {app}\vistrails\dgnlib.dll; Type: files
 Name: {app}\vistrails\_Xdmf.dll; Type: files
 Name: {app}\vistrails\geotiff.dll; Type: files
+Name: {app}\vistrails\libmysql.dll; Type: files
 Name: {app}\examples\gridfieldexample.vt; Type: files
 Name: {app}\vistrails\vistrails; Type: filesandordirs
 Name: {app}\vistrails\packages\gridfield; Type: filesandordirs
-
+Name: {app}\vistrails\lib\site-packages; Type: filesandordirs
 [Run]
 Filename: {tmp}\vcredist_x86.exe; Parameters: /Q; Components: ; Tasks: 
 
@@ -343,7 +347,6 @@ end;
 [InnoIDE_Settings]
 LogFile=Output\build.log
 LogFileOverwrite=false
-
 
 [InnoIDE_PreCompile]
 Name: C:\Python27\python.exe; Parameters: C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 
