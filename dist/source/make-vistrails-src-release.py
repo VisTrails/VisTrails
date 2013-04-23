@@ -45,7 +45,7 @@ VT_VERSION = '2.1beta'
 VT_BRANCH = 'v2.1'
 
 # Hash used in the release
-VT_HASH = '3813fdd2573b'
+VT_HASH = '19514847cab3'
 
 # Prefix of target git export dir (also used as prefix for log files)
 EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
