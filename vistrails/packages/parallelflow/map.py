@@ -28,7 +28,7 @@ from itertools import izip
 import os
 import tempfile
 
-from IPython.parallel import Client
+from .api import get_client
 
 
 ################################################################################
@@ -271,14 +271,13 @@ class Map(Module, NotCacheable):
 
         # IPython stuff
         try:
-            rc = Client()
+            rc = get_client()
             engines = rc.ids
             if not engines:
                 raise ModuleError(
                         self,
                         "Exception while loading IPython: No IPython engines "
                         "detected!")
-            dview = rc[:]
         except Exception, error:
             msg = "Exception while loading IPython: '%s'" %str(error)
             raise ModuleError(self, msg)
@@ -323,7 +322,8 @@ class Map(Module, NotCacheable):
         # executing function in engines
         # each map returns a dictionary
         try:
-            map_result = dview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
+            ldview = rc.load_balanced_view()
+            map_result = ldview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
         except Exception, error:
             msg = "Exception while executing in the IPython engines: '%s'" %str(error)
             raise ModuleError(self, msg)

@@ -179,7 +179,7 @@ class EngineManager(object):
             if res is not None:
                 return None, res
 
-    def start_engines(self, nb=None):
+    def start_engines(self, nb=None, prompt_text="Number of engines to start"):
         """Start some engines locally
         """
         c = self.ensure_controller()
@@ -196,7 +196,7 @@ class EngineManager(object):
                 nb, res = QtGui.QInputDialog.getInt(
                         None,
                         "Start engines",
-                        "Number of engines to start",
+                        prompt_text,
                         1,  # value
                         1,  # min
                         16) # max
