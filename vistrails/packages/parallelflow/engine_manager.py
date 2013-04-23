@@ -7,6 +7,8 @@ from IPython.utils.path import get_ipython_dir, locate_profile
 from IPython.parallel import Client
 from IPython.parallel import error
 
+from vistrails.core.system import vistrails_root_directory
+
 
 try:
     from PyQt4 import QtCore, QtGui
@@ -172,8 +174,12 @@ class EngineManager(object):
     def start_process(condition, *args):
         """Executes a file and waits for a condition.
         """
-        print "Popen(%s)" % (', '.join(repr(a) for a in args))
-        p = subprocess.Popen(args)
+        prev_dir = os.getcwd()
+        os.chdir(os.path.join(vistrails_root_directory(), os.path.pardir))
+        try:
+            p = subprocess.Popen(args)
+        finally:
+            os.chdir(prev_dir)
         while True:
             time.sleep(1)
             if condition():
