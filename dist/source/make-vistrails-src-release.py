@@ -39,10 +39,10 @@ GIT_URL = "git://www.vistrails.org/vistrails.git"
 GIT_ARGS = ""
 
 # VisTrails Release Version
-VT_VERSION = '2.0.2'
+VT_VERSION = '2.1beta'
 
 # Branch to be used to build release
-VT_BRANCH = 'v2.0'
+VT_BRANCH = 'v2.1'
 
 # Hash used in the release
 VT_HASH = '3813fdd2573b'
