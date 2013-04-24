@@ -188,7 +188,7 @@ class EngineManager(object):
             if res is not None:
                 return None, res
 
-    def start_engines(self, nb=None, prompt_text="Number of engines to start"):
+    def start_engines(self, nb=None, prompt="Number of engines to start"):
         """Start some engines locally
         """
         c = self.ensure_controller()
@@ -205,7 +205,7 @@ class EngineManager(object):
                 nb, res = QtGui.QInputDialog.getInt(
                         None,
                         "Start engines",
-                        prompt_text,
+                        prompt,
                         1,  # value
                         1,  # min
                         16) # max
@@ -276,7 +276,7 @@ class EngineManager(object):
             nb_engines = None
         print "total engines in cluster: %s" % (
                 nb_engines if nb_engines is not None else "(unknown)")
-        if connected:
+        if connected and client.ids:
             dview = client[:]
             with dview.sync_imports():
                 import os
@@ -318,7 +318,7 @@ class EngineManager(object):
                                  if nb_engines is not None
                                  else "(unknown)"))
             layout.addLayout(form)
-            if connected:
+            if connected and client.ids:
                 tree = QtGui.QTreeWidget()
                 tree.setHeaderHidden(False)
                 tree.setHeaderLabels(["IPython id", "PID", "System type"])
@@ -386,7 +386,7 @@ class EngineManager(object):
                                 total),
                         QtGui.QMessageBox.Yes,
                         QtGui.QMessageBox.No)
-                res = res == QtGui.QMessageBox.Yes
+                res = res != QtGui.QMessageBox.No
             else:
                 res = True
             if res:
@@ -406,7 +406,7 @@ class EngineManager(object):
                         "it?",
                         QtGui.QMessageBox.Yes,
                         QtGui.QMessageBox.No)
-                res = res == QtGui.QMessageBox.Yes
+                res = res != QtGui.QMessageBox.No
             else:
                 res = True
             if res:

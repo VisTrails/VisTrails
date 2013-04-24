@@ -12,20 +12,22 @@ load_balanced_view() returns a LoadBalancedView of the cluster. It is
 equivalent to get_client().load_balanced_view(), with the difference that it
 will prompt the user to create new engines if none are started.
 
-map() might use IPython's parallel map_sync(), or the standard map() function
-if IPython cannot be used. If the 'ask' keyword argument is true, the user will
-be prompted to start IPython engines, but the function will still default to
-map() if the user cancels.
+parallel_map() might use IPython's parallel map_sync(), or the standard map()
+function if IPython cannot be used.
 If the 'ipython' keyword argument is True, the function will return an
 additional boolean indicating whether this was computed through IPython (True)
 or with the default map() function (False).
+
+All of these functions have an 'ask' parameter, that indicates whether to
+prompt the user to start a cluster if none is available. It is True by default
+(except for parallel_map).
 """
 
 
-__all__ = ['get_client', 'direct_view', 'load_balanced_view', 'map']
+__all__ = ['get_client', 'direct_view', 'load_balanced_view', 'parallel_map']
 
 
-def get_client():
+def get_client(ask=True):
     """Returns a Client object, from which you can construct a view.
 
     This may return None if no client is available, if the user cancels, etc.
@@ -33,10 +35,10 @@ def get_client():
     """
     from engine_manager import EngineManager
 
-    return EngineManager.ensure_controller()
+    return EngineManager.ensure_controller(connect_only=not ask)
 
 
-def direct_view():
+def direct_view(ask=True):
     """Returns a DirectView of the whole cluster.
 
     This is equivalent to get_client()[:], with the difference that it will
@@ -45,7 +47,7 @@ def direct_view():
     from engine_manager import EngineManager
 
     c = EngineManager.ensure_controller()
-    if not c.ids:
+    if ask and not c.ids:
         EngineManager.start_engines(
                 prompt="A module requested an IPython cluster, but no engines "
                        "are started. Do you want to start some?")
@@ -55,7 +57,7 @@ def direct_view():
         return None
 
 
-def load_balanced_view():
+def load_balanced_view(ask=True):
     """Returns a LoadBalancedView of the cluster.
 
     This is equivalent to get_client().load_balanced_view(), with the
@@ -65,7 +67,7 @@ def load_balanced_view():
     from engine_manager import EngineManager
 
     c = EngineManager.ensure_controller()
-    if not c.ids:
+    if ask and not c.ids:
         EngineManager.start_engines(
                 prompt="A module requested an IPython cluster, but no engines "
                        "are started. Do you want to start some?")
@@ -75,7 +77,7 @@ def load_balanced_view():
         return None
 
 
-def map(function, *args, **kwargs):
+def parallel_map(function, *args, **kwargs):
     """Wrapper around IPython's map_sync() that defaults to map().
 
     This might use IPython's parallel map_sync(), or the standard map()
@@ -100,6 +102,12 @@ def map(function, *args, **kwargs):
     else:
         from engine_manager import EngineManager
         c = EngineManager.ensure_controller(connect_only=not ask)
+        if c is not None and not c.ids:
+            EngineManager.start_engines(
+                    prompt="A module is performing a parallelizable "
+                    "operation, however no IPython engines are running. Do "
+                    "you want to start some?")
+
         if c is None or not c.ids:
             result, ipython = map(function, *args), False
         else:
