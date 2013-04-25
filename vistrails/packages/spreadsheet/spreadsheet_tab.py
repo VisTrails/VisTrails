@@ -115,7 +115,8 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.addSeparator()
         self.layout().setSpacing(2)
         self.currentToolBarAction = None
-    
+        self.currentContainerToolBarAction = None
+
     def rowCountSpinBox(self):
         """ rowCountSpinBox() -> SizeSpinBox
         Return the row spin box widget:
@@ -152,8 +153,7 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         remove the cell toolbar
         
         """
-        if (not self.currentToolBarAction or
-            self.widgetForAction(self.currentToolBarAction)!=cellToolBar):
+        if self.widgetForAction(self.currentToolBarAction) != cellToolBar:
             if self.currentToolBarAction:
                 self.removeAction(self.currentToolBarAction)
             if cellToolBar:
@@ -162,6 +162,27 @@ class StandardWidgetToolBar(QtGui.QToolBar):
                 self.currentToolBarAction.setEnabled(True)
             else:
                 self.currentToolBarAction = None
+
+    def setContainerToolBar(self, cnToolBar):
+        """ setContainerToolBar(cnToolBar: QToolBar) -> None
+        Set the current cell container toolbar on this toolbar. Use None to
+        remove the container toolbar
+
+        """
+        if (self.widgetForAction(self.currentContainerToolBarAction) !=
+                cnToolBar):
+            if self.currentContainerToolBarAction:
+                self.removeAction(self.currentContainerToolBarAction)
+            if cnToolBar:
+                if self.currentToolBarAction is not None:
+                    act = self.insertWidget(self.currentToolBarAction, cnToolBar)
+                else:
+                    act = self.addWidget(cnToolBar)
+                act.setVisible(True)
+                act.setEnabled(True)
+                self.currentContainerToolBarAction = act
+            else:
+                self.currentContainerToolBarAction = None
 
 class StandardWidgetSheetTabInterface(object):
     """
@@ -272,6 +293,15 @@ class StandardWidgetSheetTabInterface(object):
         if self.emptyCellToolBar==None:
             self.emptyCellToolBar = QCellToolBar(self)
         return self.emptyCellToolBar
+
+    def getContainerToolBar(self, row, col):
+        """ getContainerToolBar(row: int, col: int) -> QWidget
+        Return the toolbar for the CellContainer at location (row, col)
+
+        """
+        widget = self.getCellWidget(row, col)
+        if widget is not None and isinstance(widget, CellContainerInterface):
+            return widget.containerToolBar()
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect

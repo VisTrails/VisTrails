@@ -707,6 +707,9 @@ class CellContainerInterface(object):
         self.toolBar = None
         return widget
 
+    def containerToolBar(self):
+        return None
+
 
 class QCellContainer(CellContainerInterface, QtGui.QWidget):
     """ QCellContainer is a simple QWidget containing the actual cell

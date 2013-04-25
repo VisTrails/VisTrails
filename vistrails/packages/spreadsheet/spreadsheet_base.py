@@ -40,6 +40,7 @@
 #   StandardSingleCellSheetTab
 ################################################################################
 from PyQt4 import QtCore, QtGui
+from spreadsheet_cell import CellContainerInterface
 from spreadsheet_helpers import CellHelpers
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetSheetTab,
@@ -202,6 +203,15 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
             return self.toolBars[cell.toolBarType]
         else:
             return self.blankCellToolBar
+
+    def getContainerToolBar(self, row, col):
+        """ getContainerToolBar(row: int, col: int) -> QWidget
+        Return the toolbar for the CellContainer at location (row, col)
+
+        """
+        widget = self.getCellWidget(row, col)
+        if widget is not None and isinstance(widget, CellContainerInterface):
+            return widget.containerToolBar()
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect
