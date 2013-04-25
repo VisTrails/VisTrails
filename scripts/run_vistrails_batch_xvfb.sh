@@ -79,5 +79,5 @@ fi
 echo -n "Executing VisTrails on display $VIRTUAL_DISPLAY.0 - "
 cd $VISTRAILS_DIR
 export DISPLAY=$VIRTUAL_DISPLAY
-python vistrails.py -b $VT_FILE:$WORKFLOW 
+python vistrails/run.py -b $VT_FILE:$WORKFLOW 
 
