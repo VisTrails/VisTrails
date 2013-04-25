@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 import __builtin__
-from itertools import izip
+from itertools import izip, chain
 import copy
 import os
 import tempfile
@@ -532,13 +532,14 @@ class ModuleRegistry(DBRegistry):
         self.package_versions = self.db_packages_identifier_index
         self.packages = {}
         self._module_key_map = {}
-        for (key, _), pkg in self.package_versions.iteritems():
-            if key in self.packages:
-                old_pkg = self.packages[key]
-                if versions_increasing(old_pkg.version, pkg.version):
+        for pkg in self.package_versions.itervalues():
+            for key in chain(pkg.old_identifiers, [pkg.identifier]):
+                if key in self.packages:
+                    old_pkg = self.packages[key]
+                    if versions_increasing(old_pkg.version, pkg.version):
+                        self.packages[key] = pkg
+                else:
                     self.packages[key] = pkg
-            else:
-                self.packages[key] = pkg
             for descriptor in pkg.descriptor_list:
                 self.descriptors_by_id[descriptor.id] = descriptor
                 k = (descriptor.identifier, descriptor.name, 
@@ -621,13 +622,13 @@ class ModuleRegistry(DBRegistry):
         package.delete_descriptor(desc)
     def add_package(self, package):
         DBRegistry.db_add_package(self, package)
-        key = package.identifier
-        if key in self.packages:
-            old_pkg = self.packages[key]
-            if versions_increasing(old_pkg.version, package.version):
+        for key in chain(package.old_identifiers, [package.identifier]):
+            if key in self.packages:
+                old_pkg = self.packages[key]
+                if versions_increasing(old_pkg.version, package.version):
+                    self.packages[key] = package
+            else:
                 self.packages[key] = package
-        else:
-            self.packages[key] = package
 
     def delete_package(self, package):
         DBRegistry.db_delete_package(self, package)
