@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -264,7 +264,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.layout().setMargin(0)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
-        if sheet.allow_delete_cell:
+        if spreadsheet_controller.get_ss_hook('tab_delete_cell'):
             self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
@@ -706,6 +706,9 @@ class CellContainerInterface(object):
             self.setWidget(None)
         self.toolBar = None
         return widget
+
+    def containerToolBar(self):
+        return None
 
 
 class QCellContainer(CellContainerInterface, QtGui.QWidget):

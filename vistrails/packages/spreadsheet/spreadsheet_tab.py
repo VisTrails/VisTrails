@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -52,7 +52,6 @@ from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 import spreadsheet_controller
 from spreadsheet_config import configuration
-import spreadsheet_flags
 from vistrails.core.inspector import PipelineInspector
 import spreadsheet_rc
 
@@ -90,25 +89,34 @@ class StandardWidgetToolBar(QtGui.QToolBar):
     included
     
     """
-    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ StandardWidgetToolBar(parent: QWidget, swflags: int)
+    def __init__(self, parent=None):
+        """ StandardWidgetToolBar(parent: QWidget)
                 -> StandardWidgetToolBar
         Init the toolbar with default actions
-        
+
         """
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
-        if swflags & spreadsheet_flags.TAB_CREATE_SHEET:
+        if spreadsheet_controller.get_ss_hook('tab_create_sheet'):
             self.addAction(self.sheetTab.tabWidget.newSheetAction())
         self.addAction(self.sheetTab.tabWidget.openAction())
         self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
+        additional_actions = spreadsheet_controller.get_ss_hook('toolbar_actions')
+        if additional_actions:
+            self.addSeparator()
+            for action in additional_actions:
+                if isinstance(action, QtGui.QWidget):
+                    self.addWidget(action)
+                else:
+                    self.addAction(action)
         self.addSeparator()
         self.layout().setSpacing(2)
         self.currentToolBarAction = None
-    
+        self.currentContainerToolBarAction = None
+
     def rowCountSpinBox(self):
         """ rowCountSpinBox() -> SizeSpinBox
         Return the row spin box widget:
@@ -145,8 +153,7 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         remove the cell toolbar
         
         """
-        if (not self.currentToolBarAction or
-            self.widgetForAction(self.currentToolBarAction)!=cellToolBar):
+        if self.widgetForAction(self.currentToolBarAction) != cellToolBar:
             if self.currentToolBarAction:
                 self.removeAction(self.currentToolBarAction)
             if cellToolBar:
@@ -155,6 +162,27 @@ class StandardWidgetToolBar(QtGui.QToolBar):
                 self.currentToolBarAction.setEnabled(True)
             else:
                 self.currentToolBarAction = None
+
+    def setContainerToolBar(self, cnToolBar):
+        """ setContainerToolBar(cnToolBar: QToolBar) -> None
+        Set the current cell container toolbar on this toolbar. Use None to
+        remove the container toolbar
+
+        """
+        if (self.widgetForAction(self.currentContainerToolBarAction) !=
+                cnToolBar):
+            if self.currentContainerToolBarAction:
+                self.removeAction(self.currentContainerToolBarAction)
+            if cnToolBar:
+                if self.currentToolBarAction is not None:
+                    act = self.insertWidget(self.currentToolBarAction, cnToolBar)
+                else:
+                    act = self.addWidget(cnToolBar)
+                act.setVisible(True)
+                act.setEnabled(True)
+                self.currentContainerToolBarAction = act
+            else:
+                self.currentContainerToolBarAction = None
 
 class StandardWidgetSheetTabInterface(object):
     """
@@ -261,10 +289,19 @@ class StandardWidgetSheetTabInterface(object):
                 if container.toolBar==None:
                     container.toolBar = toolBarType(self)
                 return container.toolBar
-        else:
-            if self.emptyCellToolBar==None:
-                self.emptyCellToolBar = QCellToolBar(self)
-            return self.emptyCellToolBar
+
+        if self.emptyCellToolBar==None:
+            self.emptyCellToolBar = QCellToolBar(self)
+        return self.emptyCellToolBar
+
+    def getContainerToolBar(self, row, col):
+        """ getContainerToolBar(row: int, col: int) -> QWidget
+        Return the toolbar for the CellContainer at location (row, col)
+
+        """
+        widget = self.getCellWidget(row, col)
+        if widget is not None and isinstance(widget, CellContainerInterface):
+            return widget.containerToolBar()
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect
@@ -601,18 +638,15 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     displaying the spreadsheet.
     
     """
-    def __init__(self, tabWidget, row=None , col=None,
-            swflags=spreadsheet_flags.DEFAULTS):
+    def __init__(self, tabWidget, row=None , col=None):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
-                                col: int,
-                                swflags: int) -> StandardWidgetSheet
+                                col: int) -> StandardWidgetSheet
         Initialize with a toolbar and a sheet widget
-                                
+
         """
         QtGui.QWidget.__init__(self, None)
         StandardWidgetSheetTabInterface.__init__(self)
-        self.allow_delete_cell = swflags & spreadsheet_flags.TAB_DELETE_CELL
         if not row:
             row = configuration.rowCount
         if not col:
@@ -621,9 +655,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)
         self.sheet.setFitToWindow(True)
-        self.toolBar = StandardWidgetToolBar(
-                self,
-                swflags=swflags)
+        self.toolBar = StandardWidgetToolBar(self)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
         self.vLayout.setMargin(0)
@@ -888,11 +920,11 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     to change tab name
     
     """
-    def __init__(self, parent=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ StandardWidgetTabBar(parent: QWidget, swflags: int)
+    def __init__(self, parent=None):
+        """ StandardWidgetTabBar(parent: QWidget)
                 -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
-        
+
         """
         QtGui.QTabBar.__init__(self, parent)
         self.setAcceptDrops(True)
@@ -911,14 +943,14 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                                                  self)
         self.outerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
                                                  None)
-        self._allow_renaming = swflags & spreadsheet_flags.TAB_RENAME_SHEET
 
     def mouseDoubleClickEvent(self, e):
         """ mouseDoubleClickEvent(e: QMouseEvent) -> None
         Handle Double-Click event to start the editor
         
         """
-        if (not self._allow_renaming or 
+        allow_renaming = spreadsheet_controller.get_ss_hook('tab_rename_sheet')
+        if (not allow_renaming or
                 e.buttons() != QtCore.Qt.LeftButton or
                 self.editor):
             return

@@ -1,6 +1,7 @@
 VisTrails is distributed under the "Modified BSD License".
 
-Copyright (c) 2006-2011, University of Utah.
+Copyright (C) 2011-2013, NYU-Poly.
+Copyright (C) 2006-2011, University of Utah.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

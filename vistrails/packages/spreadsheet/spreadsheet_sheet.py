@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -511,8 +511,12 @@ class StandardWidgetSheet(QtGui.QTableWidget):
 
         """
         self.activeCell = (row, col)
+
+        cnToolBar = self.parent().getContainerToolBar(row, col)
+        self.parent().toolBar.setContainerToolBar(cnToolBar)
+
         toolBar = self.parent().getCellToolBar(row, col)
-        if toolBar:
+        if toolBar and hasattr(toolBar, 'snapTo'):
             toolBar.snapTo(row, col)
         self.parent().toolBar.setCellToolBar(toolBar)
 

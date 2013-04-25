@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,11 +40,11 @@ from PyQt4 import QtCore, QtGui
 from spreadsheet_base import StandardSheetReference
 from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
      RepaintCurrentSheetEventType
+import spreadsheet_controller
 from spreadsheet_tabcontroller import StandardWidgetTabController
 from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import CellContainerInterface
 from spreadsheet_config import configuration
-import spreadsheet_flags
 from vistrails.core.application import get_vistrails_application
 from vistrails.core.modules import module_utils
 from vistrails.core.utils import trace_method
@@ -62,11 +62,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     
     """
 
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(),
-                 menuBar=None, swflags=spreadsheet_flags.DEFAULTS,
-                 close_tab_action=None):
-        """ SpreadsheetWindow(parent: QWidget, f: WindowFlags,
-                menuBar: QMenuBar, swflags: int, close_tab_action: function))
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+        """ SpreadsheetWindow(parent: QWidget, f: WindowFlags))
             -> SpreadsheetWindow
         Layout menu, status bar and tab widget
 
@@ -80,9 +77,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.shownConfig = False #flag to control the window setup code is done only once
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
-            self.stackedCentralWidget,
-            swflags=swflags,
-            close_tab_action=close_tab_action)
+            self.stackedCentralWidget)
         self.stackedCentralWidget.addWidget(self.tabController)
         self.fullScreenStackedWidget = QtGui.QStackedWidget(
             self.stackedCentralWidget)
@@ -94,7 +89,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.visApp = QtCore.QCoreApplication.instance()
         self.visApp.installEventFilter(self)
         
-        self.setupMenu(menuBar, swflags)
+        self.setupMenu()
         
         self.connect(self.tabController,
                      QtCore.SIGNAL('needChangeTitle'),
@@ -103,7 +98,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.echoMode = False
         self.echoCellEvents = []
 
-        if (swflags & spreadsheet_flags.WINDOW_QUIT_ACTION and
+        if (spreadsheet_controller.get_ss_hook('window_quit_action') and
                 hasattr(self.visApp, 'builderWindow')):
             self.quitAction = QtGui.QAction('&Quit VisTrails', self)
             self.addAction(self.quitAction)
@@ -136,24 +131,25 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.tabController.cleanup()
         self.file_pool.cleanup()
 
-    def setupMenu(self, menuBar=None, swflags=spreadsheet_flags.DEFAULTS):
-        """ setupMenu(menuBar: QMenuBar, swflags: int) -> None
+    def setupMenu(self):
+        """ setupMenu() -> None
         Add all available actions to the menu bar
 
         """
+        menuBar = spreadsheet_controller.get_ss_hook('window_menubar')
         if menuBar is None:
             menuBar = self.menuBar()
-        if swflags & spreadsheet_flags.WINDOW_MENU_MAIN:
+        if spreadsheet_controller.get_ss_hook('window_menu_main'):
             mainMenu = QtGui.QMenu('&Main', self.menuBar())
             menuBar.addAction(mainMenu.menuAction())
             mainMenu.addAction(self.tabController.saveAction())
             mainMenu.addAction(self.tabController.saveAsAction())
             mainMenu.addAction(self.tabController.openAction())
             mainMenu.addSeparator()
-            if swflags & spreadsheet_flags.TAB_CREATE_SHEET:
+            if spreadsheet_controller.get_ss_hook('tab_create_sheet'):
                 mainMenu.addAction(self.tabController.newSheetAction())
             mainMenu.addAction(self.tabController.deleteSheetAction())
-        if swflags & spreadsheet_flags.WINDOW_MENU_VIEW:
+        if spreadsheet_controller.get_ss_hook('window_menu_view'):
             viewMenu = QtGui.QMenu('&View', self.menuBar())
             menuBar.addAction(viewMenu.menuAction())
             viewMenu.addAction(self.interactiveModeAction())
@@ -161,7 +157,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             viewMenu.addSeparator()
             viewMenu.addAction(self.fitToWindowAction())
             viewMenu.addAction(self.fullScreenAction())
-        if swflags & spreadsheet_flags.WINDOW_MENU_WINDOW:
+        if spreadsheet_controller.get_ss_hook('window_menu_window'):
             windowMenu = QtGui.QMenu('&Window', self.menuBar())
             menuBar.addAction(windowMenu.menuAction())
             windowMenu.addAction(self.showBuilderWindowAction())

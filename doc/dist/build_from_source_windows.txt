@@ -3,7 +3,7 @@
 
 Download and install python from www.python.org. Get both 32-bit and 64-bit versions. Install the 64-bit version in C:\Python27_64 and the 32-bit version in C:\Python27
 
-Download and install msysgit (the windows git user is winbuild and there's no passphrase when generating the ssh keys.
+Download and install msysgit (the windows git user is winbuild and there's no passphrase when generating the ssh keys).
 
 Download and install PyQt4 binary installers (includes sip, Qt and QScintilla)
 
@@ -40,6 +40,17 @@ If all goes well, you can install vtk python bindings:
 open a command prompt in the build/Wrapping/Python folder and run the following command:
 C:\Python27\python.exe setup.py BUILD_TYPE=Release install
 
+I've created two environment variables called PATH32 and PATH64 configured with
+the environment for each version of VisTrails:
+
+PATH32 = C:\Tcl\bin;C:\Python27\Lib\site-packages\PyQt4;C:\Python27;C:\Python27\Scripts;C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release;C:\Users\vistrails\code\vistrails\dist\windows\Input
+
+PATH64 = C:\Tcl_64\bin;C:\Python27_64\Lib\site-packages\PyQt4;C:\Python27_64;C:\Python27_64\Scripts;C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release;C:\Users\vistrails\code\vistrails\dist\windows\Input
+
+Then, when I need to use the right environment, I just update the PATH
+variable with the right one:
+
+PATH = %PATH64%;%PATH%
 
 vtk 64-bit:
 
@@ -75,7 +86,7 @@ Download and install matplotlib from matplotlib.org  (there is a win32 for pytho
 
 Download and install mysqldb python from source forge, there's a win32 binary installer for python 2.7.
 
-Download and install hdf5-1.8.4 from http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.4/bin/windows/hdf5-1.8.4-32bit-VS2008-IVF101.zip
+Download and unzip hdf5-1.8.4 from http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.4/bin/windows/hdf5-1.8.4-32bit-VS2008-IVF101.zip
 
 Download fftw (http://www.fftw.org/install/windows.html) from ftp://ftp.fftw.org/pub/fftw/fftw-3.3.3-dll32.zip and extract the zip file to the folder ~/src/fftw-3.3.3-dll32
 
@@ -83,13 +94,30 @@ Download and install setuptools (easy_install)
 
 Download and install the patched version of suds
 
-Copy sockwell files to C:\Python27\Lib\site-packages folder
+Copy stockwell files from x86_bin folder to C:\Python27\Lib\site-packages
 st.pyd and sine.pyd
 
 == 64-bit version ==
 
-Go to http://www.lfd.uci.edu/~gohlke/pythonlibs/
+Go to http://www.lfd.uci.edu/~gohlke/pythonlibs/ and download and
+ install the 64-bit versions of (they are all binaries):
+ numpy (get the MKL version)
+ scipy
+ matplotlib
+ MySQL-python
+ psycopg
 
-Download hdf5-1.8.4 from http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.4/bin/windows/hdf5-1.8.4-64bit-VS2008-IVF101.zip 
+Download and unzip hdf5-1.8.4 from http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.4/bin/windows/hdf5-1.8.4-64bit-VS2008-IVF101.zip 
 
+Download fftw (http://www.fftw.org/install/windows.html) from
+ftp://ftp.fftw.org/pub/fftw/fftw-3.3.3-dll64.zip and extract the zip
+file to the folder ~/src/fftw-3.3.3-dll64 Follow the instructions on
+the web page to generate the .lib files
+
+Download and install setuptools (easy_install)
+
+Download and install the patched version of suds
+
+Copy stockwell files from x64_bin folder to C:\Python27_64\Lib\site-packages
+st.pyd and sine.pyd
 #Under construction
