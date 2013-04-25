@@ -137,6 +137,7 @@ class VistrailController(object):
         self.name = ''
         self.file_name = ''
         self._current_version = -1
+        self.is_abstraction = False
         self.changed = False
 
         # if _cache_pipelines is True, cache pipelines to speed up
