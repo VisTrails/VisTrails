@@ -185,6 +185,8 @@ class SpreadsheetController(object):
             close_tab_action=None,
             # Allows to delete (i.e. empty) a cell in the sheet
             tab_delete_cell=True,
+            # Additional actions or widgets to add to the toolbar
+            toolbar_actions=None,
     )
 
     def set_hooks(self, ss_hooks):

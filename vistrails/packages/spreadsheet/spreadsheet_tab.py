@@ -104,6 +104,14 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
+        additional_actions = spreadsheet_controller.get_ss_hook('toolbar_actions')
+        if additional_actions:
+            self.addSeparator()
+            for action in additional_actions:
+                if isinstance(action, QtGui.QWidget):
+                    self.addWidget(action)
+                else:
+                    self.addAction(action)
         self.addSeparator()
         self.layout().setSpacing(2)
         self.currentToolBarAction = None
