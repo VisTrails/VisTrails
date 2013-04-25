@@ -43,7 +43,6 @@ from vistrails.core.modules.utils import parse_descriptor_string, \
     create_descriptor_string, parse_port_spec_string, \
     create_port_spec_string, expand_port_spec_string
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.system import get_vistrails_default_pkg_prefix
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.port import Port
