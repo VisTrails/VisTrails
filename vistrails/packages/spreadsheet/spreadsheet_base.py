@@ -202,7 +202,6 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
             return self.toolBars[cell.toolBarType]
         else:
             return self.blankCellToolBar
-        return self.sheet.getCellToolBar(row, col)
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect

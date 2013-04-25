@@ -268,10 +268,10 @@ class StandardWidgetSheetTabInterface(object):
                 if container.toolBar==None:
                     container.toolBar = toolBarType(self)
                 return container.toolBar
-        else:
-            if self.emptyCellToolBar==None:
-                self.emptyCellToolBar = QCellToolBar(self)
-            return self.emptyCellToolBar
+
+        if self.emptyCellToolBar==None:
+            self.emptyCellToolBar = QCellToolBar(self)
+        return self.emptyCellToolBar
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect
