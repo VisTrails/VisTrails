@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -248,7 +248,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.0'
+    return '2.1 beta'
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
@@ -294,7 +294,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "1b88c3949efd"
+        release = "19514847cab3"
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(['git', 'describe', '--always', '--abbrev=12'],
@@ -352,7 +352,7 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s.%s -- contact@vistrails.org
 
-Copyright (c) 2011-2012 NYU-Poly. Copyright (c) 2006-2011 University of Utah. 
+Copyright (C) 2011-2013 NYU-Poly. Copyright (C) 2006-2011 University of Utah. 
 All rights reserved.
 http://www.vistrails.org
 

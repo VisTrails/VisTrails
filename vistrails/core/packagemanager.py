@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -402,16 +402,6 @@ Returns true if given package identifier is present."""
         after VisTrails initialization. All reverse dependencies need to be
         already disabled.
         """
-        # if parallel flow, stop controller, if still running
-        if 'parallelflow' in package_codepath:
-            try:
-                from vistrails.packages.parallelflow.init import ipythonSet
-                if ipythonSet:
-                    ipythonSet.stop_engines()
-                    ipythonSet.stop_controller()
-            except:
-                pass
-        
         pkg = self.get_package_by_codepath(package_codepath)
         self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
