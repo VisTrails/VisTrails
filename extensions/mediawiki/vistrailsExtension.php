@@ -179,9 +179,9 @@ function printVistrailTag($input,$params) {
                 chdir($PATH_TO_VISTRAILS);
                 $setVariables = 'export PATH=$PATH:/usr/bin/X11;export HOME=/var/lib/wwwrun; export TEMP=/tmp; export DISPLAY=localhost:1.0; export LD_LIBRARY_PATH=/usr/local/lib;';
 
-                $mainCommand = 'python vistrails.py -b -e '. $destdir.' -t ' .
-                           $host . ' -r ' . $port . ' -f ' . $dbname . ' -u ' .
-                           $username . ' "' . $vtid .':' . $version .'"';
+                $mainCommand = 'python vistrails/run.py -b -e '. $destdir.' -t ' .
+                            host . ' -r ' . $port . ' -f ' . $dbname . ' -u ' .
+                            username . ' "' . $vtid .':' . $version .'"';
                 $result = exec($setVariables.$mainCommand . ' 2>&1', $output, $result);
             }
             else {

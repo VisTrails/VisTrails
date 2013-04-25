@@ -24,7 +24,7 @@ Local Setup
 
 If you want to run a local copy of VisTrails instead, add the following path to your python file or executable:
 
-``\renewcommand{\vistrailspath}{/path/to/vistrails.py}``
+``\renewcommand{\vistrailspath}{/path/to/vistrails/run.py}``
 
 Depending on how you are running VisTrails and on which OS you are running, the \vistrailspath should be configured appropriately. Please check head.tex in VisTrails' extensions/latex directory for detailed instructions on the configuration for the different platforms. 
 
