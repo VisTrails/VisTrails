@@ -150,6 +150,7 @@ class PackageManager(object):
         self._configuration = configuration
         self._package_list = {}
         self._package_versions = {}
+        self._old_identifier_map = {}
         self._dependency_graph = vistrails.core.data_structures.graph.Graph()
         self._registry = None
         self._userpackages = None
@@ -187,6 +188,7 @@ exiting VisTrails."""
             package.finalize()
         self._package_list = {}
         self._package_versions = {}
+        self._old_identifier_map = {}
         global _package_manager
         _package_manager = None
 
@@ -209,6 +211,15 @@ To do so, call initialize_packages()"""
         self.late_enable_package(self._abstraction_pkg.codepath, 
                                  prefix_dictionary, False)
 
+    def remove_old_identifiers(self, identifier):
+        # remove refs in old_identifier_map
+        old_ids = []
+        for old_id, cur_id in self._old_identifier_map.iteritems():
+            if cur_id == identifier:
+                old_ids.append(old_id)
+        for old_id in old_ids:
+            del self._old_identifier_map[old_id]
+
     def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
         pkg = self._package_list[codepath]
@@ -216,6 +227,7 @@ To do so, call initialize_packages()"""
         del self._package_versions[pkg.identifier][pkg.version]
         if len(self._package_versions[pkg.identifier]) == 0:
             del self._package_versions[pkg.identifier]
+        self.remove_old_identifiers(pkg.identifier)
         self.remove_menu_items(pkg)
         pkg.finalize()
         del self._package_list[codepath]
@@ -226,6 +238,9 @@ To do so, call initialize_packages()"""
     def has_package(self, identifier, version=None):
         """has_package(identifer: string) -> Boolean.
 Returns true if given package identifier is present."""
+
+        # check if it's an old identifier
+        identifier = self._old_identifier_map.get(identifier, identifier)
         if identifier in self._package_versions:
             return (version is None or 
                     version in self._package_versions[identifier])
@@ -240,6 +255,8 @@ Returns true if given package identifier is present."""
         return self._registry.create_package(codepath, False)
 
     def get_package(self, identifier, version=None):
+        # check if it's an old identifier
+        identifier = self._old_identifier_map.get(identifier, identifier)
         package_versions = self._package_versions[identifier]
         if version is not None:
             return package_versions[version]
@@ -305,6 +322,8 @@ Returns true if given package identifier is present."""
             else:
                 identifier = dep
 
+            # check if it's an old identifier
+            identifier = self._old_identifier_map.get(identifier, identifier)
             if identifier not in self._package_versions:
                 missing_deps.append((identifier, None, None))
             else:
@@ -373,6 +392,8 @@ Returns true if given package identifier is present."""
         if pkg.identifier not in self._package_versions:
             self._package_versions[pkg.identifier] = {}
         self._package_versions[pkg.identifier][pkg.version] = pkg
+        for old_id in pkg.old_identifiers:
+            self._old_identifier_map[old_id] = pkg.identifier
         try:
             self.add_dependencies(pkg)
             #check_requirements is now called in pkg.initialize()
@@ -386,6 +407,7 @@ Returns true if given package identifier is present."""
             del self._package_versions[pkg.identifier][pkg.version]
             if len(self._package_versions[pkg.identifier]) == 0:
                 del self._package_versions[pkg.identifier]
+            self.remove_old_identifiers(pkg.identifier)
             self._dependency_graph.delete_vertex(pkg.identifier)
             # invert self.add_package
             del self._package_list[package_codepath]
@@ -488,6 +510,8 @@ Returns true if given package identifier is present."""
                                       package.identifier)
                 self._package_versions[package.identifier][package.version] = \
                     package
+                for old_id in package.old_identifiers:
+                    self._old_identifier_map[old_id] = package.identifier
 
         for pkg in failed:
             del self._package_list[pkg.codepath]
@@ -505,6 +529,7 @@ Returns true if given package identifier is present."""
                 del self._package_versions[package.identifier][package.version]
                 if len(self._package_versions[package.identifier]) == 0:
                     del self._package_versions[package.identifier]
+                self.remove_old_identifiers(package.identifier)
                 failed.append(package)
 
         for pkg in failed:
