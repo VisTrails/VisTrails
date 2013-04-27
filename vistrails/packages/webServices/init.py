@@ -1355,8 +1355,8 @@ def verify_wsdl(wsdlList):
         if remoteHeader != None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
-            httpfile = reg.get_descriptor_by_name('edu.utah.sci.vistrails.http',
-                                                  'HTTPFile').module()
+            httpfile = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.http', 'HTTPFile').module()
             try:
                 isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:

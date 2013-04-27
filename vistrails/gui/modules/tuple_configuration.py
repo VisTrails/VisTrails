@@ -44,6 +44,7 @@ from vistrails.core import debug
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import PortAlreadyExists
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
@@ -160,8 +161,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                          validateInput)
             # FIXME just use descriptors here!!
             variant_desc = registry.get_descriptor_by_name(
-                    'edu.utah.sci.vistrails.basic',
-                    'Variant')
+                get_vistrails_basic_pkg_id(), 'Variant')
             for _, pkg in sorted(registry.packages.iteritems()):
                 pkg_item = QtGui.QStandardItem("----- %s -----" % pkg.name)
                 pkg_item.setData(QtCore.QVariant(''), QtCore.Qt.UserRole)

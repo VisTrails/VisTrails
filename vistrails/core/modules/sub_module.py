@@ -41,7 +41,8 @@ import uuid
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
-from vistrails.core.modules.basic_modules import String, Boolean, Variant, NotCacheable
+from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
+    NotCacheable, identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
     ModuleError, ModuleSuspended
 from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
@@ -325,11 +326,9 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     output_modules = []
     for module in pipeline.module_list:
         #FIXME make this compare more robust
-        if module.name == 'InputPort' and \
-                module.package == 'edu.utah.sci.vistrails.basic':
+        if module.name == 'InputPort' and module.package == basic_pkg:
             input_modules.append(module)
-        elif module.name == 'OutputPort' and \
-                module.package == 'edu.utah.sci.vistrails.basic':
+        elif module.name == 'OutputPort' and module.package == basic_pkg:
             output_modules.append(module)
     input_ports = []
     output_ports = []

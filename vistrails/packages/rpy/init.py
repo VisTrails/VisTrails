@@ -39,7 +39,7 @@ import urllib
 import rpy2.robjects as robjects
 
 from vistrails.core.modules.basic_modules import File, Constant, \
-    new_constant, list_compute
+    new_constant
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     ModuleConnector, NotCacheable
@@ -52,25 +52,7 @@ old_sys_path = sys.path
 sys.path.append(os.path.dirname(__file__))
 sys.path = old_sys_path
 
-    # new_constant as _new_constant
-
-
 r_temp_files = []
-
-# # bckward compatibility
-# from core.modules.constant_configuration import StandardConstantWidget
-
-# def new_constant(name, py_conversion, default_value, validation,
-#                  widget_type=StandardConstantWidget, str_conversion=None,
-#                  base_class=Constant, compute=None):
-#     m = _new_constant(name, py_conversion, default_value, validation,
-#                       widget_type)
-#     m.__bases__  = (base_class,)
-#     m.translate_to_string = str_conversion
-#     m.compute = compute
-#     m._input_ports = []
-#     m._output_ports = []
-#     return m
 
 class TypeException(Exception):
     pass
@@ -193,10 +175,8 @@ RMatrix = new_constant('RMatrix', staticmethod(matrix_conv),
                        staticmethod(lambda x: isinstance(x, robjects.RArray)),
                        base_class=RArray,
                        compute=matrix_compute)
-RMatrix._input_ports.extend([('rvector', 
-                              '(edu.utah.sci.vistrails.rpy:RVector:Types)'), 
-                             ('nrows', 
-                              '(edu.utah.sci.vistrails.basic:Integer)')])
+RMatrix._input_ports.extend([('rvector', '(Types|RVector)'), 
+                             ('nrows', '(basic:Integer)')])
 
 def create_list(v_dict):
     data_dict = {}
@@ -216,8 +196,8 @@ def list_conv(v):
 RList = new_constant('RList', staticmethod(list_conv),
                      robjects.r.list(),
                      staticmethod(lambda x: isinstance(x, robjects.Vector)),
-                     base_class=RVector,
-                     compute=list_compute)
+                     base_class=RVector)
+# compute=list_compute)
 
 def create_data_frame(v_dict):
     data_dict = {}
@@ -240,8 +220,8 @@ RDataFrame = new_constant('RDataFrame', staticmethod(data_frame_conv),
                                            isinstance(x, robjects.RDataFrame)))
                           
 class RVectorFromList(Module):
-    _input_ports = [('list', '(edu.utah.sci.vistrails.basic:List)')]
-    _output_ports = [('rvector', '(edu.utah.sci.vistrails.rpy:RVector:Types)')]
+    _input_ports = [('list', '(basic:List)')]
+    _output_ports = [('rvector', '(Types|RVector)')]
 
     def compute(self):
         ilist = self.getInputFromPort('list')
@@ -249,8 +229,8 @@ class RVectorFromList(Module):
         self.setResult('rvector', rvector)
 
 class ListFromRVector(Module):
-    _input_ports = [('rvector', '(edu.utah.sci.vistrails.rpy:RVector:Types)')]
-    _output_ports = [('list', '(edu.utah.sci.vistrails.basic:List)')]
+    _input_ports = [('rvector', '(Types|RVector)')]
+    _output_ports = [('list', '(basic:List)')]
 
     def compute(self):
         rvector = self.getInputFromPort('rvector')
@@ -258,8 +238,8 @@ class ListFromRVector(Module):
         self.setResult('list', olist)
 
 class RMatrixFromNestedList(Module):
-    _input_ports = [('list', '(edu.utah.sci.vistrails.basic:List)')]
-    _output_ports = [('rmatrix', '(edu.utah.sci.vistrails.rpy:RMatrix:Types)')]
+    _input_ports = [('list', '(basic:List)')]
+    _output_ports = [('rmatrix', '(Types|RMatrix)')]
 
     def compute(self):
         ilist = self.getInputFromPort('list')
@@ -267,8 +247,8 @@ class RMatrixFromNestedList(Module):
         self.setResult('rmatrix', rmatrix)
 
 class NestedListFromRMatrix(Module):
-    _input_ports = [('rmatrix', '(edu.utah.sci.vistrails.rpy:RMatrix:Types)')]
-    _output_ports = [('list', '(edu.utah.sci.vistrails.basic:List)')]
+    _input_ports = [('rmatrix', '(Types|RMatrix)')]
+    _output_ports = [('list', '(basic:List)')]
     
     def compute(self):
         rmatrix = self.getInputFromPort('rmatrix')
@@ -281,9 +261,8 @@ class NestedListFromRMatrix(Module):
         self.setResult('list', olist)
 
 class RDataFrameFromDict(Module):
-    _input_ports = [('dict', '(edu.utah.sci.vistrails.basic:Dictionary)')]
-    _output_ports = [('rdataframe', 
-                      '(edu.utah.sci.vistrails.rpy:RDataFrame:Types)')]
+    _input_ports = [('dict', '(basic:Dictionary)')]
+    _output_ports = [('rdataframe', '(Types|RDataFrame)')]
     
     def compute(self):
         idict = self.getInputFromPort('dict')
@@ -291,9 +270,8 @@ class RDataFrameFromDict(Module):
         self.setResult('rdataframe', rdataframe)
 
 class DictFromRDataFrame(Module):
-    _input_ports = [('rdataframe', 
-                     '(edu.utah.sci.vistrails.rpy:RDataFrame:Types)')]
-    _output_ports = [('dict', '(edu.utah.sci.vistrails.basic:Dictionary)')]
+    _input_ports = [('rdataframe','(Types|RDataFrame)')]
+    _output_ports = [('dict', '(basic:Dictionary)')]
 
     def compute(self):
         rdataframe = self.getInputFromPort('rdataframe')
@@ -305,9 +283,9 @@ class DictFromRDataFrame(Module):
         self.setResult('dict', odict)
 
 class RListFromDict(Module):
-    # _input_ports = [('dict', '(edu.utah.sci.vistrails.basic:Dictionary)')]
-    _input_ports = [('dict', '(edu.utah.sci.vistrails.basic:Module)')]
-    _output_ports = [('rlist', '(edu.utah.sci.vistrails.rpy:RList:Types)')]
+    # _input_ports = [('dict', '(basic:Dictionary)')]
+    _input_ports = [('dict', '(basic:Module)')]
+    _output_ports = [('rlist', '(Types|RList)')]
     
     def compute(self):
         idict = self.getInputFromPort('dict')
@@ -315,9 +293,9 @@ class RListFromDict(Module):
         self.setResult('rlist', rlist)
 
 class DictFromRList(Module):
-    _input_ports = [('rlist', '(edu.utah.sci.vistrails.rpy:RList:Types)')]
-    # _output_ports = [('dict', '(edu.utah.sci.vistrails.basic:Dictionary)')]
-    _output_ports = [('dict', '(edu.utah.sci.vistrails.basic:Module)')]
+    _input_ports = [('rlist', '(Types|RList)')]
+    # _output_ports = [('dict', '(basic:Dictionary)')]
+    _output_ports = [('dict', '(basic:Module)')]
 
     def compute(self):
         rlist = self.getInputFromPort('rlist')
@@ -330,16 +308,14 @@ class DictFromRList(Module):
         self.setResult('dict', odict)
 
 class RRead(Module):
-    _input_ports = [('file', '(edu.utah.sci.vistrails.basic:File)'),
-                    ('header', '(edu.utah.sci.vistrails.basic:Boolean)', True),
-                    ('sep', '(edu.utah.sci.vistrails.basic:String)', True),
-                    ('commentChar', 
-                     '(edu.utah.sci.vistrails.basic:String)', True),
-                    ('quote', '(edu.utah.sci.vistrails.basic:String)', True),
-                    ('dec', '(edu.utah.sci.vistrails.basic:String)', True),
-                    ('fill', '(edu.utah.sci.vistrails.basic:Boolean)', True)]
-    _output_ports = [('rdataframe',
-                      '(edu.utah.sci.vistrails.rpy:RDataFrame:Types)')]
+    _input_ports = [('file', '(basic:File)'),
+                    ('header', '(basic:Boolean)', True),
+                    ('sep', '(basic:String)', True),
+                    ('commentChar', '(basic:String)', True),
+                    ('quote', '(basic:String)', True),
+                    ('dec', '(basic:String)', True),
+                    ('fill', '(basic:Boolean)', True)]
+    _output_ports = [('rdataframe', '(Types|RDataFrame)')]
 
     def do_read(self, read_cmd):
         fname = self.getInputFromPort('file').name
@@ -372,7 +348,7 @@ class RReadDelim2(RRead):
 
 # class RSource(NotCacheable, Module):
 class RSource(Module):
-    _input_ports = [('source', '(edu.utah.sci.vistrails.basic:String)', True)]
+    _input_ports = [('source', '(basic:String)', True)]
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False,
@@ -424,7 +400,7 @@ class RSource(Module):
                       excluded_inputs=set(['source']))
 
 class RFigure(RSource):
-    _output_ports = [('imageFile', '(edu.utah.sci.vistrails.basic:File)')]
+    _output_ports = [('imageFile', '(basic:File)')]
     def run_figure(self, code_str, graphics_dev, width, height, 
                    excluded_inputs=set(['source'])):
         f, fname = tempfile.mkstemp(prefix='vtr', suffix='.' + graphics_dev)

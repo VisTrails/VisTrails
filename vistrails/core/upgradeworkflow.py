@@ -43,6 +43,7 @@ from vistrails.core.modules.utils import parse_descriptor_string, \
     create_descriptor_string, parse_port_spec_string, \
     create_port_spec_string, expand_port_spec_string
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.port import Port
@@ -422,8 +423,8 @@ class UpgradeWorkflowHandler(object):
     @staticmethod
     def replace_group(controller, pipeline, module_id, new_subpipeline):
         old_group = pipeline.modules[module_id]
-        new_group = controller.create_module('edu.utah.sci.vistrails.basic', 
-                                             'Group', '', 
+        basic_pkg = get_vistrails_basic_pkg_id()
+        new_group = controller.create_module(basic_pkg, 'Group', '', 
                                              old_group.location.x, 
                                              old_group.location.y)
         new_group.pipeline = new_subpipeline

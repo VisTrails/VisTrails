@@ -38,6 +38,7 @@ import operator
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.modules.utils import create_port_spec_string, parse_port_spec_string
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import enum, VistrailsInternalError
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
 from vistrails.db.domain import DBPortSpec
@@ -343,7 +344,7 @@ class PortSpec(DBPortSpec):
                 return (descriptor, label)
             elif type(sig_item) == __builtin__.list:
                 descriptor = registry.get_descriptor_by_name(
-                    'edu.utah.sci.vistrails.basic', 'List')
+                    get_vistrails_basic_pkg_id(), 'List')
                 return (descriptor, None)
             else:
                 # type(sig_item) == __builtin__.type:
@@ -471,7 +472,8 @@ class TestPortSpec(unittest.TestCase):
         port_spec = PortSpec(id=id_scope.getNewId(PortSpec.vtType),
                              name='SetValue',
                              type='input',
-                             sigstring='(edu.utah.sci.vistrails.basic:String)',
+                             sigstring='(%s:String)' % \
+                                 get_vistrails_basic_pkg_id(),
                              )
         return port_spec
 
@@ -503,13 +505,14 @@ class TestPortSpec(unittest.TestCase):
                                         (Float, "z")])
 
     def test_create_from_items(self):
+        basic_pkg = get_vistrails_basic_pkg_id()
         item_a = PortSpecItem(pos=0,
-                              package="edu.utah.sci.vistrails.basic",
+                              package=basic_pkg,
                               module="Integer",
                               label="a",
                               default="123")
         item_b = PortSpecItem(pos=1,
-                              package="edu.utah.sci.vistrails.basic",
+                              package=basic_pkg,
                               module="String",
                               label="b",
                               default="abc")

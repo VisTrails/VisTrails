@@ -168,6 +168,8 @@ class PackageManager(object):
             def setup_basic_package():
                 # setup basic package
                 basic_package = self.add_package('basic_modules')
+                # FIXME need to serialize old_identifiers
+                basic_package.old_identifiers = ['edu.utah.sci.vistrails.basic']
                 self._registry._default_package = basic_package
                 prefix_dictionary = {'basic_modules': 'vistrails.core.modules.'}
                 self.initialize_packages(prefix_dictionary)
