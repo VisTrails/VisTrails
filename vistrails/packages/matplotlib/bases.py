@@ -158,7 +158,8 @@ class MplFigure(Module):
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("self", "(MplFigure)")]
+    _output_ports = [("file", "(basic:File)"),
+                     ("self", "(MplFigure)")]
 
     def __init__(self):
         Module.__init__(self)
@@ -193,6 +194,8 @@ class MplFigure(Module):
         if self.hasInputFromPort("setLegend"):
             legend = self.getInputFromPort("setLegend")
             self.figInstance.gca().legend()
+
+        #FIXME write file out if File port is attached!
 
         # if num_rows > 1 or num_cols > 1:
         #     # need to reconstruct plot...

@@ -664,6 +664,18 @@
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.hist">
     <value>tuple</value>
   </changeModule>
+  <changePortSpec attr="name" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
+    <value>bins</value>
+  </changePortSpec>
+  <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
+    <value>basic:Integer</value>
+  </changePortSpec>
+  <deletePortSpec altName="binsScalar" code_ref="matplotlib.pyplot.hist" port="bins" type="alternate" />
+  <addPortSpec altName="binsSequence" code_ref="matplotlib.pyplot.hist" port="bins" type="alternate">
+    <value>
+      <alternateSpec arg="bins" name="binsSequence" port_type="basic:List" />
+    </value>
+  </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.hist" port="rectangle" type="output">
     <value>
       <outputPortSpec arg="rectangle" compute_name="rectangles" name="rectangleProperties" plural="True" port_type="__property__" property_key="2" property_type="matplotlib.patches.Rectangle" />
