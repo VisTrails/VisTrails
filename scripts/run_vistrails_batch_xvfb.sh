@@ -1,7 +1,7 @@
 #!/bin/bash
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -79,5 +79,5 @@ fi
 echo -n "Executing VisTrails on display $VIRTUAL_DISPLAY.0 - "
 cd $VISTRAILS_DIR
 export DISPLAY=$VIRTUAL_DISPLAY
-python vistrails.py -b $VT_FILE:$WORKFLOW 
+python vistrails/run.py -b $VT_FILE:$WORKFLOW 
 

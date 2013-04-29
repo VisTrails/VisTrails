@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -2631,112 +2631,14 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def layout(self):
         if len(self.items()) <= 0:
             return
-
-        def get_visible_ports(port_list, visible_ports):
-            output_list = []
-            visible_list = []
-            for p in port_list:
-                if not p.optional:
-                    output_list.append(p)
-                elif p.name in visible_ports:
-                    visible_list.append(p)
-            output_list.extend(visible_list)
-            return output_list
         
-        module_ids = self.get_selected_module_ids()
-        if len(module_ids) == 0:
-            self.selectAll()
-            module_ids = self.modules
-
-        wf = LayoutPipeline()
-        wf_module_map = {}
-        wf_iport_map = {}
-        wf_oport_map = {}
-
-        center = [0.0, 0.0]
-        # print "module_ids:", module_ids
-            
-        for module_id in module_ids:
-            module_item = self.modules[module_id]
-            module = module_item.module
-
-            center[0] += module_item.scenePos().x()
-            center[1] += module_item.scenePos().y()
-            m = wf.createModule(module_id, 
-                                module.name,
-                                len(module_item.inputPorts),
-                                len(module_item.outputPorts))
-            m._module_item = module_item
-            wf_module_map[module_id] = m
-
-            input_ports = get_visible_ports(module.destinationPorts(), 
-                                            module.visible_input_ports)
-            output_ports = get_visible_ports(module.sourcePorts(),
-                                             module.visible_output_ports)
-            for i, p in enumerate(input_ports):
-                if module_id not in wf_iport_map:
-                    wf_iport_map[module_id] = {}
-                wf_iport_map[module_id][p.name] = m.input_ports[i]
-            for i, p in enumerate(output_ports):
-                if module_id not in wf_oport_map:
-                    wf_oport_map[module_id] = {}
-                wf_oport_map[module_id][p.name] = m.output_ports[i]
-
-        for conn_item in self.connections.itervalues():
-            c = conn_item.connection
-            if c.sourceId in module_ids and c.destinationId in module_ids:
-                src = wf_oport_map[c.sourceId][c.source.name]
-                dst = wf_iport_map[c.destinationId][c.destination.name]
-                wf.createConnection(src.module, src.index, 
-                                    dst.module, dst.index)
-        
-        def get_module_size(m):
-            rect = m._module_item.boundingRect()
+        def _func(module):
+            rect = self.modules[module.shortname].boundingRect()
             return (rect.width(), rect.height())
         
-        layout = WorkflowLayout(wf, get_module_size, 
-                                CurrentTheme.MODULE_PORT_MARGIN, 
-                                (CurrentTheme.PORT_WIDTH, 
-                                 CurrentTheme.PORT_HEIGHT), 
-                                CurrentTheme.MODULE_PORT_SPACE)
-        layout.compute_module_sizes()
-        layout.assign_modules_to_layers()
-        layout.assign_module_permutation_to_each_layer()
-        layer_x_separation = layer_y_separation = 50
-        layout.compute_layout(layer_x_separation, layer_y_separation)
-
-        move_list = []
-        center[0] /= float(len(module_ids))
-        center[1] /= float(len(module_ids))
-        center_out = [0.0, 0.0]
-        for module in wf.modules:
-            center_out[0] += module.layout_pos.x
-            center_out[1] += module.layout_pos.y
-        center_out[0] /= float(len(module_ids))
-        center_out[1] /= float(len(module_ids))
-        self.handlePositionChanges = False
-        try:
-            for module in wf.modules:
-                m_item = self.modules[module.shortname]
-                m_item.setPos(
-                    module.layout_pos.x - center_out[0] + center[0],
-                    module.layout_pos.y - center_out[1] + center[1])
-
-            for conn_item in self.connections.itervalues():
-                c = conn_item.connection
-                if c.sourceId in module_ids or c.destinationId in module_ids:
-                    srcModule = self.modules[c.sourceId]
-                    dstModule = self.modules[c.destinationId]
-                    srcPortItem = srcModule.getOutputPortItem(c.source)
-                    dstPortItem = dstModule.getInputPortItem(c.destination)
-                    conn_item.prepareGeometryChange()
-                    conn_item.setupConnection(srcPortItem.getPosition(),
-                                              dstPortItem.getPosition())
-        finally:
-            self.handlePositionChanges = True
-        # trigger the moves to be persisted
-        self.controller.flush_delayed_actions()
-        self.setupScene(self.controller.current_pipeline)
+        selected = [self.modules[i].module for i in self.get_selected_module_ids()]
+        self.controller.layout_modules(selected,
+                                       module_size_func=_func)
 
     def makeAbstraction(self):
         items = self.get_selected_item_ids(True)
@@ -3000,12 +2902,24 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        text = "Module is suspended, reason: %s" % error
+        msg = error if type(error) == str else error.msg
+        text = "Module is suspended, reason: %s" % msg
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, text))
         QtCore.QCoreApplication.processEvents()
-
-
+        # add to suspended modules dialog
+        if type(error) == str:
+            return
+        from vistrails.gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        try:
+            result = jobView.add_job(self.controller, error)
+            if result:
+                jobView.set_visible(True)
+        except Exception, e:
+            import traceback
+            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
+            
     def reset_module_colors(self):
         for module in self.modules.itervalues():
             module.statusBrush = None
@@ -3140,9 +3054,23 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     
     def execute(self):
         # view.checkModuleConfigPanel()
-        self.controller.execute_current_workflow()
-        from vistrails.gui.vistrails_window import _app
-        _app.notify('execution_updated')
+        # reset job view
+        from vistrails.gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        if jobView.updating_now:
+            debug.critical("Execution Aborted: Job Monitor is updating. Please wait a few seconds and try again.")
+            return
+        jobView.delete_job(self.controller)
+        jobView.updating_now = True
+
+        try:
+            self.controller.execute_current_workflow()
+        except Exception, e:
+            debug.critical(str(e))
+        finally:
+            jobView.updating_now = False
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
         
     def publish_to_web(self):
         from vistrails.gui.publishing import QVersionEmbed

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,7 +40,7 @@ import copy
 
 from fold import Fold
 from utils import Map, Filter, AreaFilter, SimilarityFilter
-from conditional import If
+from conditional import If, Default
 from products import Dot, Cross
 from order import ExecuteInOrder
 
@@ -67,6 +67,7 @@ def initialize(*args,**keywords):
     registerControl(AreaFilter)
     registerControl(SimilarityFilter)
     registerControl(If)
+    registerControl(Default)
 
     reg.add_input_port(Fold, 'FunctionPort', (Module, ""))
     reg.add_input_port(Fold, 'InputList', (List, ""))
@@ -86,6 +87,10 @@ def initialize(*args,**keywords):
     reg.add_input_port(If, 'TrueOutputPorts', (List, ""), optional=True)
     reg.add_input_port(If, 'FalseOutputPorts', (List, ""), optional=True)
     reg.add_output_port(If, 'Result', (Variant, ""))
+
+    reg.add_input_port(Default, 'Input', (Variant, ""))
+    reg.add_input_port(Default, 'Default', (Variant, ""))
+    reg.add_output_port(Default, 'Result', (Variant, ""))
 
     reg.add_module(Dot)
     reg.add_input_port(Dot, 'List_1', (List, ""))

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,13 +36,12 @@ from vistrails.core.configuration import ConfigurationObject
 
 
 identifier = 'edu.utah.sci.vistrails.persistence'
-version = '0.2.3'
+version = '0.3.0'
 name = 'Persistence'
 
 configuration = ConfigurationObject(global_db=(None, str), 
                                     local_db=(None, str),
                                     git_bin=(None, str),
-                                    tar_bin=(None, str),
                                     search_dbs=(None, str),
                                     compress_by_default=False,
                                     debug=False)

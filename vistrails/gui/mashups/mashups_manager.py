@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -100,7 +100,7 @@ class MashupsManager(object):
                         mashuptrail = Mashuptrail(self.getNewMashuptrailId(), 
                                                   version, id_scope)
                         p_mashup = p_mashuptrail.getMashup(mshpv)
-                        mashup = p_mashup.doCopy()
+                        mashup = p_mashup.do_copy()
                         mashup.id_scope = id_scope
                         mashup.version = version
                         mashup.validateForPipeline(pipeline)

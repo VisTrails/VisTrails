@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,6 +46,8 @@ import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.layout.workflow_layout import WorkflowLayout, \
+    Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from vistrails.core.log.controller import LogControllerFactory, DummyLogController
 from vistrails.core.log.log import Log
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg, \
@@ -79,11 +81,11 @@ from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port import Port
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import IdScope, DBWorkflowExec
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
-
 from vistrails.db.services.vistrail import getSharedRoot
 from vistrails.core.utils import any
 
@@ -167,6 +169,9 @@ class VistrailController(object):
 
         # this is a reference to the current parameter exploration
         self.current_parameter_exploration = None
+        
+        # theme used to estimate module size for layout
+        self.layoutTheme = DefaultCoreTheme()
         
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
@@ -963,6 +968,29 @@ class VistrailController(object):
         action = self.create_module_list_deletion_action(self.current_pipeline,
                                                          module_ids)
         return action
+    
+    def move_modules_ops(self, move_list):
+        """ move_module_list(move_list: [(id,x,y)]) -> [operations]        
+        Returns the operations that will move each module to its 
+        specified location
+        
+        """
+        operations = []
+        for (id, x, y) in move_list:
+            module = self.current_pipeline.get_module_by_id(id)
+            if module.location:
+                if module.location.x == x and module.location.y == y:
+                    continue
+            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+            location = Location(id=loc_id, x=x, y=y)
+            if module.location and module.location.id != -1:
+                old_location = module.location
+                operations.append(('change', old_location, location,
+                                    module.vtType, module.id))
+            else:
+                #should probably be an error
+                operations.append(('add', location, module.vtType, module.id))
+        return operations
 
     def move_module_list(self, move_list):
         """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
@@ -970,21 +998,7 @@ class VistrailController(object):
         allowed to to emit to avoid recursive actions
         
         """
-        action_list = []
-        for (id, x, y) in move_list:
-            module = self.current_pipeline.get_module_by_id(id)
-            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-            location = Location(id=loc_id,
-                                x=x, 
-                                y=y,
-                                )
-            if module.location and module.location.id != -1:
-                old_location = module.location
-                action_list.append(('change', old_location, location,
-                                    module.vtType, module.id))
-            else:
-                # probably should be an error
-                action_list.append(('add', location, module.vtType, module.id))
+        action_list = self.move_modules_ops(move_list)
         action = vistrails.core.db.action.create_action(action_list)
         self.add_new_action(action)
         return self.perform_action(action)
@@ -3530,3 +3544,153 @@ class VistrailController(object):
 
     def can_undo(self):
         return self.current_version > 0
+
+    def layout_modules(self, old_modules=[], preserve_order=False, 
+               new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):
+        """Lays out modules and returns the new version.
+        
+        If old_modules are not specified, all modules in current pipeline are used.
+        If preserve_order is True, modules in each row will be ordered based on
+            their current x value
+        new_modules ignore preserve_order, and don't need exist yet in the pipeline
+        new_connections associated with new_modules
+        module_size_func is used to determine size of a module. It takes a
+            vistrails.core.layout.workflow_layout.Module object and returns a (width, height)
+            tuple.
+        If no_gaps is True, all connected modules will be at most 1 layer above or
+            below their child or parent respectively
+        """
+        
+        #fixes issue when opening old vistrails that needs upgrade
+        self.flush_delayed_actions()
+        
+        action_list = self.layout_modules_ops(old_modules, preserve_order, 
+                                      new_modules, new_connections, module_size_func, no_gaps)
+        if(len(action_list) > 0):
+            action = vistrails.core.db.action.create_action(action_list)
+            self.add_new_action(action)
+            version = self.perform_action(action)
+            self.change_selected_version(version)
+            return version
+        return self.current_version
+
+    def layout_modules_ops(self, old_modules=[], preserve_order=False, 
+               new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):
+        """Returns operations needed to layout the modules.
+        
+        If old_modules are not specified, all modules in current pipeline are used.
+        If preserve_order is True, modules in each row will be ordered based on
+            their current x value
+        new_modules ignore preserve_order, and don't need exist yet in the pipeline
+        new_connections associated with new_modules
+        module_size_func is used to determine size of a module. It takes a
+            vistrails.core.layout.workflow_layout.Module object and returns a (width, height)
+            tuple.
+        If no_gaps is True, all connected modules will be at most 1 layer above or
+            below their child or parent respectively
+        """
+
+        connected_input_ports = set(
+                c.destination.spec for c in self.current_pipeline.connection_list)
+        connected_input_ports.update(
+                c.destination.spec for c in new_connections)
+        connected_output_ports = set(
+                c.source.spec for c in self.current_pipeline.connection_list)
+        connected_output_ports.update(
+                c.source.spec for c in new_connections)
+        connected_ports = connected_input_ports | connected_output_ports
+
+        def get_visible_port_names(port_list, visible_ports):
+            output_list = []
+            visible_list = []
+            for i, p in enumerate(port_list):
+                if not p.optional:
+                    output_list.append(p.name)
+                elif p.name in visible_ports or p in connected_ports:
+                    visible_list.append(p.name)
+            output_list.extend(visible_list)
+            return output_list
+        
+        if not old_modules or len(old_modules) == 0:
+            old_modules = self.current_pipeline.modules.values()
+        
+        #create layout objects
+        layoutPipeline = LayoutPipeline()
+
+        module_info = {} # {id: (module, layoutModule, in_port_names=[], out_port_names=[])}
+        
+        #add modules to layout, and find their visible ports
+        def _add_layout_module(module, prev_x):
+            in_ports = get_visible_port_names(module.destinationPorts(), 
+                                         module.visible_input_ports)
+            out_ports = get_visible_port_names(module.sourcePorts(),
+                                          module.visible_output_ports)
+            
+            layoutModule = layoutPipeline.createModule(module.id, 
+                                        module.name,
+                                        len(in_ports),
+                                        len(out_ports),
+                                        prev_x)
+            
+            module_info[module.id] = (module, layoutModule, in_ports, out_ports)
+        
+        for module in old_modules:
+            _add_layout_module(module, module.location.x)
+            
+        for module in new_modules:
+            _add_layout_module(module, None)
+        
+        #add connections to layout
+        old_ids = [module.id for module in old_modules]
+        old_conns = self.get_connections_to(self.current_pipeline, old_ids)
+        for conn in old_conns + new_connections:
+            if conn.source.moduleId in module_info:
+                layoutPipeline.createConnection(
+                        module_info[conn.source.moduleId][1],
+                        module_info[conn.source.moduleId][3].index(conn.source.name),
+                        module_info[conn.destination.moduleId][1],
+                        module_info[conn.destination.moduleId][2].index(conn.destination.name))
+            
+        #set default module size function if needed
+        paddedPortWidth = self.layoutTheme.PORT_WIDTH + self.layoutTheme.MODULE_PORT_SPACE
+        def estimate_module_size(module):
+            width = max(len(module.name)*6 + self.layoutTheme.MODULE_LABEL_MARGIN[0] + self.layoutTheme.MODULE_LABEL_MARGIN[1],
+                        len(module_info[module.shortname][2]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE,
+                        len(module_info[module.shortname][3]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE)
+            height = LayoutDefaults.u * 5 #todo, fix these sizes
+            return (width, height)
+        if module_size_func is None:
+            module_size_func = estimate_module_size
+            
+        workflowLayout = WorkflowLayout(layoutPipeline,
+                                        module_size_func,
+                                        self.layoutTheme.MODULE_PORT_MARGIN, 
+                                        (self.layoutTheme.PORT_WIDTH, self.layoutTheme.PORT_HEIGHT), 
+                                        self.layoutTheme.MODULE_PORT_SPACE)
+    
+        #do layout with layer x and y separation of 50
+        workflowLayout.run_all(50,50,preserve_order,no_gaps)
+                
+        #maintain center
+        center_x, center_y = self.get_avg_location([item[0] for item in module_info.values()])
+        new_center_x = sum([m.layout_pos.x for m in layoutPipeline.modules]) / len(layoutPipeline.modules)
+        new_center_y = -sum([m.layout_pos.y for m in layoutPipeline.modules]) / len(layoutPipeline.modules)
+        offset_x = center_x - new_center_x
+        offset_y = center_y - new_center_y
+        
+        #generate module move list
+        moves = []
+        for (module, layoutModule, _, _) in module_info.values():
+            new_x = layoutModule.layout_pos.x+offset_x
+            new_y = -layoutModule.layout_pos.y+offset_y
+            if module.id in self.current_pipeline.modules:
+                moves.append((module.id, new_x, new_y))
+            else:
+                #module doesn't exist in pipeline yet, just change x,y
+                module.location.x = new_x
+                module.location.y = new_y
+                
+        #return module move operations
+        return self.move_modules_ops(moves)
+        
+            

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -1601,6 +1601,7 @@ class ModuleRegistry(DBRegistry):
                                    descriptor.namespace)
         package._abs_pkg_upgrades.clear()
         
+        package.unload()
         self.delete_package(package)
         self.signals.emit_deleted_package(package)
 

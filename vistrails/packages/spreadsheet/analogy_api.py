@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -96,35 +96,21 @@ class SpreadsheetAnalogyObject(object):
         analogy is not applicable, this should return None
         
         """
-        def get_controller_by_locator(locator):
-            import vistrails.gui.application
-            app = vistrails.gui.application.get_vistrails_application()
-            m = app.builderWindow
-            # slow, but who cares
-            for v in xrange(m.stack.count()):
-                view = m.stack.widget(v)
-                if view.controller.vistrail.locator == locator:
-                    return view.controller
-            if not view:
-                raise Exception("Couldn't find")
 
+        (p1_locator, p1_number, p1_actions, p1_pipeline, p1_controller) = self._p1Info
+        (p2_locator, p2_number, p2_actions, p2_pipeline, p2_controller) = self._p2Info
+        (p3_locator, p3_number, p3_actions, p3_pipeline, p3_controller) = pInfo
 
-        (p1_locator, p1_number, p1_actions, p1_pipeline) = self._p1Info
-        (p2_locator, p2_number, p2_actions, p2_pipeline) = self._p2Info
-        (p3_locator, p3_number, p3_actions, p3_pipeline) = pInfo
-
-        # print type(p1_locator), p1_locator
-        if (p1_locator != p2_locator or
-            p1_locator != p3_locator or
+        if (p1_controller != p2_controller or
+            p1_controller != p3_controller or
             p1_actions or
             p2_actions or
             p3_actions):
             return None
-        #p1_locator = os.path.split(p1_vistrail)[1]
 
         perform = vistrails.core.analogy.perform_analogy_on_vistrail
 
-        controller = get_controller_by_locator(p3_locator)
+        controller = p1_controller
         vt = controller.vistrail
         if controller.current_version != p3_number:
             controller.change_selected_version(p3_number)
@@ -135,7 +121,7 @@ class SpreadsheetAnalogyObject(object):
         
         new_version = controller.current_version
         new_pipeline = vt.getPipeline(new_version)
-        return (p3_locator, new_version, [], new_pipeline)
+        return (controller.locator, new_version, [], new_pipeline, controller)
 
     def __call__(self):
         """ __call__() -> SpreadsheetAnalogy

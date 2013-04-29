@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -561,12 +561,15 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.emit(QtCore.SIGNAL('needChangeTitle'),
                   'VisTrails - Spreadsheet - %s' % displayName)
 
+    def pipelineId(self, pipelineInfo):
+        return (pipelineInfo['controller'], pipelineInfo['version'])
+
     def addPipeline(self, pipelineInfo):
         """ addPipeline(pipelineInfo: dict) -> None
         Add vistrail pipeline executions to history
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -579,7 +582,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Get the current pipeline id
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         return self.executedPipelines[1][vistrail]
 
     def increasePipelineCellId(self, pipelineInfo):
@@ -587,7 +590,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Increase the current cell pipeline id
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         cid = self.executedPipelines[2][vistrail]
         self.executedPipelines[2][vistrail] += 1
         return cid
@@ -597,7 +600,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Get current pipeline cell id
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         return self.executedPipelines[2][vistrail]
         
     def addPipelineCell(self, pipelineInfo):
@@ -605,7 +608,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Add vistrail pipeline executions to history
         
         """
-        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
+        vistrail = self.pipelineId(pipelineInfo)
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -636,8 +639,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                     for c in xrange(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
-                            locator = info[0]['locator']
-                            view = _app.ensureVistrail(locator)
+                            controller = info[0]['controller']
+                            view = _app.ensureController(controller)
                             if view:
                                 controller = view.get_controller()
                                 if controller.changed:
@@ -667,7 +670,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                             newinfo0['pipeline'] = None
                             newinfo0['actions'] = []
                             newinfo0['locator'] = \
-                                          serialize_locator(newinfo0['locator'])
+                                          serialize_locator(newinfo0['controller'].locator)
+                            newinfo0['controller'] = None
                             indexFile.write('%s\n'
                                             %str((r, c,
                                                   newinfo0,
@@ -675,7 +679,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 indexFile.write('---\n')
             indexFile.write(str(len(self.executedPipelines[0]))+'\n')
             for vistrail in self.executedPipelines[0]:
-                indexFile.write('%s\n'%str((serialize_locator(vistrail[0]),
+                indexFile.write('%s\n'%str((serialize_locator(vistrail[0].locator),
                                             vistrail[1])))
             self.changeSpreadsheetFileName(fileName)
             indexFile.close()

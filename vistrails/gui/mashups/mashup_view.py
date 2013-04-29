@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -119,6 +119,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         #print "      *** mashup view versionChanged ", self.vtversion
         
     def controllerChanged(self, controller):
+        if controller is self.controller:
+            return
         from vistrails.gui.vistrails_window import _app
         self.set_controller(controller)
         self.versionChanged(self.controller.current_version)

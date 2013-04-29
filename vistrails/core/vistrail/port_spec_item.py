@@ -1,6 +1,7 @@
 ###############################################################################
 ##
-## Copyright (C) 2006-2012, University of Utah. 
+## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -149,7 +149,7 @@ class QVariableDropBox(QtGui.QScrollArea):
             self.vWidget.clear()
             if controller:
                 reg = module_registry.get_module_registry()
-                for var in controller.vistrail.vistrail_vars:
+                for var in [v for v in controller.vistrail.vistrail_vars]:
                     try:
                         descriptor = reg.get_descriptor_by_name(var.package,
                                                                 var.module, 

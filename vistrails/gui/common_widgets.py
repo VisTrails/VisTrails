@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -202,9 +202,11 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         self.setRootIsDecorated(True)
         self.setDragEnabled(True)
         self.flags = QtCore.Qt.ItemIsDragEnabled
-    
+
+        self._search_was_empty = True
+
     def searchItemName(self, name):
-        """ searchItemName(name: QString) -> None        
+        """ searchItemName(name: QString) -> None
         Search and refine the module tree widget to contain only items
         whose name is 'name'
         
@@ -241,12 +243,18 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
 
         if str(name)=='':
             testFunction = lambda x: True
+            if not self._search_was_empty:
+                self.collapseAll()
+                self._search_was_empty = True
         else:
             matchedItems = set(self.findItems(name,
                                               QtCore.Qt.MatchContains |
                                               QtCore.Qt.MatchWrap |
                                               QtCore.Qt.MatchRecursive))
             testFunction = matchedItems.__contains__
+            if self._search_was_empty:
+                self.expandAll()
+                self._search_was_empty = False
         for itemIndex in xrange(self.topLevelItemCount()):
             recursiveSetVisible(self.topLevelItem(itemIndex),
                                 testFunction)

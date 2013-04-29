@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,28 +33,26 @@
 ##
 ###############################################################################
 from vistrails.db.domain import IdScope
-from vistrails.core.mashup import XMLObject
+from vistrails.db.domain import DBMashup
+from vistrails.core.mashup import conv_to_bool, conv_from_bool
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.mashup.component import Component
 from vistrails.core.system import get_elementtree_library
 
 import unittest
-from vistrails.db.domain import IdScope
 import copy
 
 ElementTree = get_elementtree_library()
 
-class Mashup(XMLObject):
+class Mashup(DBMashup):
     def __init__(self, id, name, vtid=None, version=None, alias_list=None, 
-                 t='vistrail', has_seq=None, layout='', geometry='', id_scope=IdScope()):
-        self.id = id
-        self.name = name
-        self.version = version
-        self.alias_list = alias_list
-        self.vtid = vtid
-        self.type = t
-        self.layout = layout
-        self.geometry = geometry
+                 t='vistrail', has_seq=None, layout='', geometry='', 
+                 id_scope=IdScope()):
+        if has_seq == None:
+            has_seq = 0
+            
+        DBMashup.__init__(self, id, name, version, alias_list, t, vtid, layout, 
+                          geometry, has_seq)
         self.id_scope = id_scope
         if has_seq == None:
             self.has_seq = False
@@ -64,91 +62,101 @@ class Mashup(XMLObject):
                         self.has_seq = True
         else:
             self.has_seq = has_seq
+    id = DBMashup.db_id
+    name = DBMashup.db_name
+    version = DBMashup.db_version
+    alias_list = DBMashup.db_aliases
+    aliases = DBMashup.db_aliases
+    vtid = DBMashup.db_vtid
+    type = DBMashup.db_type
+    layout = DBMashup.db_layout
+    geometry = DBMashup.db_geometry
+        
+    def _get_has_seq(self):
+        return conv_to_bool(self.db_has_seq)
+    def _set_has_seq(self, s):
+        self.db_has_seq = conv_from_bool(s)
+    has_seq = property(_get_has_seq,_set_has_seq)
+    
+    @staticmethod
+    def convert(_mashup):
+        _mashup.__class__ = Mashup
+
+        for alias in _mashup.alias_list:
+            Alias.convert(alias)
             
     def __copy__(self):
-        return Mashup.doCopy(self)
+        return Mashup.do_copy(self)
     
-    def doCopy(self, new_ids=False, id_scope=None, id_remap=None):
-        """doCopy() -> Mashup 
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        """do_copy() -> Mashup 
         returns a clone of itself"""
-        cp = Mashup(id=self.id, name=self.name, vtid=self.vtid,
-                    version=self.version,t=self.type)
-        cp.alias_list = []
-        for alias in self.alias_list:
-            cp.alias_list.append(alias.doCopy(new_ids,id_scope,id_remap))
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId('mashup')
-            if 'mashup' in id_scope.remap:
-                id_remap[(id_scope.remap['mashup'], self.id)] = new_id
-            else:
-                id_remap[('mashup', self.id)] = new_id
-            cp.id = new_id
+        cp = DBMashup.do_copy(self, new_ids, id_scope, id_remap)
+        Mashup.convert(cp)
         return cp
     
     ##########################################################################
     # Serialization / Unserialization
     
-    def toXml(self, node=None):
-        """toXml(node: ElementTree.Element) -> ElementTree.Element
-           writes itself to xml
-        """
-
-        if node is None:
-            node = ElementTree.Element('mashup')
-
-        #set attributes
-        node.set('id', self.convert_to_str(self.id,'long'))
-        node.set('version', self.convert_to_str(self.version,'long'))
-        node.set('vtid', self.convert_to_str(self.vtid,'str'))
-        node.set('name', self.convert_to_str(self.name,'str'))
-        node.set('type', self.convert_to_str(self.type,'str'))
-        node.set('has_seq', self.convert_to_str(self.has_seq,'bool'))
-        for v in self.alias_list:
-            child_ = ElementTree.SubElement(node, 'alias')
-            v.toXml(child_)
-        
-        layoutnode = ElementTree.SubElement(node,'layout')
-        layoutnode.text = str(self.layout)
-        
-        geomnode = ElementTree.SubElement(node,'geometry')
-        geomnode.text = str(self.geometry)
-        
-        return node
-
-    @staticmethod
-    def fromXml(node):
-        if node.tag != 'mashup':
-            #print "node.tag != 'mashup'"
-            return None
-        #read attributes
-        data = node.get('id', None)
-        id = Mashup.convert_from_str(data, 'long')
-        data = node.get('name', None)
-        name = Mashup.convert_from_str(data, 'str')
-        data = node.get('version', None)
-        version = Mashup.convert_from_str(data, 'long')
-        data = node.get('vtid', None)
-        vtid = Mashup.convert_from_str(data, 'str')
-        data = node.get('type', None)
-        type = Mashup.convert_from_str(data, 'str')
-        data = node.get('has_seq', None)
-        seq = Component.convert_from_str(data, 'bool')
-        alias_list = []
-        layout = None
-        geometry = None
-        for child in node.getchildren():
-            if child.tag == "alias":
-                alias = Alias.fromXml(child)
-                alias_list.append(alias)
-            if child.tag == "layout":
-                layout = str(child.text).strip(" \n\t")
-            if child.tag == "geometry":
-                geometry = str(child.text).strip(" \n\t")
-        return Mashup(id=id, name=name, vtid=vtid, version=version, 
-                               alias_list=alias_list, t=type, has_seq=seq,
-                               layout=layout, geometry=geometry)
+#    def toXml(self, node=None):
+#        """toXml(node: ElementTree.Element) -> ElementTree.Element
+#           writes itself to xml
+#        """
+#
+#        if node is None:
+#            node = ElementTree.Element('mashup')
+#
+#        #set attributes
+#        node.set('id', self.convert_to_str(self.id,'long'))
+#        node.set('version', self.convert_to_str(self.version,'long'))
+#        node.set('vtid', self.convert_to_str(self.vtid,'str'))
+#        node.set('name', self.convert_to_str(self.name,'str'))
+#        node.set('type', self.convert_to_str(self.type,'str'))
+#        node.set('has_seq', self.convert_to_str(self.has_seq,'bool'))
+#        for v in self.alias_list:
+#            child_ = ElementTree.SubElement(node, 'alias')
+#            v.toXml(child_)
+#        
+#        layoutnode = ElementTree.SubElement(node,'layout')
+#        layoutnode.text = str(self.layout)
+#        
+#        geomnode = ElementTree.SubElement(node,'geometry')
+#        geomnode.text = str(self.geometry)
+#        
+#        return node
+#
+#    @staticmethod
+#    def fromXml(node):
+#        if node.tag != 'mashup':
+#            #print "node.tag != 'mashup'"
+#            return None
+#        #read attributes
+#        data = node.get('id', None)
+#        id = Mashup.convert_from_str(data, 'long')
+#        data = node.get('name', None)
+#        name = Mashup.convert_from_str(data, 'str')
+#        data = node.get('version', None)
+#        version = Mashup.convert_from_str(data, 'long')
+#        data = node.get('vtid', None)
+#        vtid = Mashup.convert_from_str(data, 'str')
+#        data = node.get('type', None)
+#        type = Mashup.convert_from_str(data, 'str')
+#        data = node.get('has_seq', None)
+#        seq = Component.convert_from_str(data, 'bool')
+#        alias_list = []
+#        layout = None
+#        geometry = None
+#        for child in node.getchildren():
+#            if child.tag == "alias":
+#                alias = Alias.fromXml(child)
+#                alias_list.append(alias)
+#            if child.tag == "layout":
+#                layout = str(child.text).strip(" \n\t")
+#            if child.tag == "geometry":
+#                geometry = str(child.text).strip(" \n\t")
+#        return Mashup(id=id, name=name, vtid=vtid, version=version, 
+#                               alias_list=alias_list, t=type, has_seq=seq,
+#                               layout=layout, geometry=geometry)
         
     def loadAliasesFromPipeline(self, pipeline, id_scope):
         """loadAliasesFromPipelines(pipeline: Pipeline) -> None 
@@ -299,16 +307,16 @@ class TestMashup(unittest.TestCase):
         m2 = copy.copy(m1)
         self.assertEqual(m1, m2)
         self.assertEqual(m1.id, m2.id)
-        m3 = m2.doCopy(True, id_scope, {})
+        m3 = m2.do_copy(True, id_scope, {})
         self.assertEqual(m1, m3)
         self.assertNotEqual(m1.id, m3.id)
         
-    def test_serialization(self):
-        m1 = self.create_mashup()
-        node = m1.toXml()
-        m2 = Mashup.fromXml(node)
-        self.assertEqual(m1, m2)
-        self.assertEqual(m1.id, m2.id)
+#    def test_serialization(self):
+#        m1 = self.create_mashup()
+#        node = m1.toXml()
+#        m2 = Mashup.fromXml(node)
+#        self.assertEqual(m1, m2)
+#        self.assertEqual(m1.id, m2.id)
         
     def test_str(self):
         m1 = self.create_mashup()

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -362,6 +362,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             if was_suspended:
                 view.set_module_suspended(i, error)
+                error = error.msg
             elif not error:
                 view.set_module_success(i)
             else:
@@ -414,6 +415,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['version'] = current_version
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
+            obj.moduleInfo['controller'] = controller
             if extra_info is not None:
                 obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:

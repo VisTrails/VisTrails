@@ -1,0 +1,61 @@
+
+== Preparing to generate the release ==
+Install InnoDB Setup
+Download and install the QuickStart Pack of Inno Setup from http://www.jrsoftware.org/isdl.php 
+
+Checkout VisTrails git repository
+In dist/windows/Input folder create a folder named x86
+Copy python27.dll 32 bit version into the x86 folder
+Inside the x86 folder create a folder called alps_libs
+
+In dist/windows/Input folder create a folder named x64
+Copy python27.dll 64 bit version into the x64 folder
+Inside the x64 folder create a folder called alps_libs
+
+
+== Custom Builds ==
+Inside dist/windows/custom there are scripts for custom builds.
+
+=== GDAL ===
+Download the GDAL files from:
+32-bit:
+http://www.gisinternals.com/sdk/Download.aspx?file=release-1500-gdal-1-9-2-mapserver-6-2-0\gdal-19-1500-core.msi
+http://www.gisinternals.com/sdk/Download.aspx?file=release-1500-gdal-1-9-2-mapserver-6-2-0\GDAL-1.9.2.win32-py2.7.msi
+Install the first file. 
+
+Install the second file to a custom Python27
+installation (I believe it can be any folder on your hard drive). I
+copied the installed python files to:
+C:\Users\vistrails\extra_packages\gdal\x86\site-packages
+I then went to the C:\Program Files (x86)\GDAL folder (created by the first
+installer) and copied all the dlls into the osgeo folder inside
+C:\Users\vistrails\extra_packages\gdal\x86\site-packages
+Compiled all .py files with python -m compileall . inside the
+site-packages folder
+
+The script dist/windows/custom/vistrails_gdal.iss will copy the files
+in the binary. Just execute Inno Setup as a normal release. It will
+create a file called vistrails-gdal-setup.exe into
+dist/windows/custom/Output
+
+64-bit:
+http://www.gisinternals.com/sdk/Download.aspx?file=release-1500-x64-gdal-1-9-2-mapserver-6-2-0\gdal-19-1500-x64-core.msi
+http://www.gisinternals.com/sdk/Download.aspx?file=release-1500-x64-gdal-1-9-2-mapserver-6-2-0\GDAL-1.9.2.win-amd64-py2.7.msi
+
+Install the first file. 
+
+Install the second file to a custom Python27_64
+installation (I believe it can be any folder on your hard drive). I
+copied the installed python files to:
+C:\Users\vistrails\extra_packages\gdal\x64\site-packages
+I then went to the C:\Program Files\GDAL folder (created by the first
+installer) and copied all the dlls into the osgeo folder inside
+C:\Users\vistrails\extra_packages\gdal\x64\site-packages
+Compiled all .py files with python -m compileall . inside the
+site-packages folder
+
+The script dist/windows/custom/vistrailsx64_gdal.iss will copy the files
+in the binary. Just execute Inno Setup as a normal release. It will
+create a file called vistrails-x64-gdal-setup.exe into
+dist/windows/custom/Output
+

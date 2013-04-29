@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -327,6 +327,7 @@ class UpgradeWorkflowHandler(object):
                 new_spec.name = spec_name
                 new_module.add_port_spec(new_spec)
 
+        function_ops = []
         for function in old_module.functions:
             if function.name not in function_remap:
                 function_name = function.name
@@ -336,7 +337,7 @@ class UpgradeWorkflowHandler(object):
                     # don't add the function back in
                     continue                    
                 elif type(remap) != type(""):
-                    ops.extend(remap(function, new_module))
+                    function_ops.extend(remap(function, new_module))
                     continue
                 else:
                     function_name = remap
@@ -355,6 +356,7 @@ class UpgradeWorkflowHandler(object):
 
         # add the new module
         ops.append(('add', new_module))
+        ops.extend(function_ops)
 
         create_new_connection = UpgradeWorkflowHandler.create_new_connection
 

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -355,7 +355,7 @@ Please type a unique name. """ % new_alias)
                                 self.widgetContentsChanged)
                 self.dv_widget.deleteLater()
             
-            self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, None)
+            self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, self)
             self.dv_layout.addWidget(self.dv_widget)
             self.connect(self.dv_widget,
                          QtCore.SIGNAL("contentsChanged"),

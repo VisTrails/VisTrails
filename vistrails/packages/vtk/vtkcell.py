@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -1100,7 +1100,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                     self.toolBar.row, self.toolBar.col)
                 if info:
                     info = info[0]
-                    view = builderWindow.ensureVistrail(info['locator'])
+                    view = builderWindow.ensureController(info['controller'])
                     if view:
                         controller = view.controller
                         controller.change_selected_version(info['version'])

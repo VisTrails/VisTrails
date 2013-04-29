@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -43,7 +43,7 @@ from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
 from vistrails.core.modules.basic_modules import String, Boolean, Variant, NotCacheable
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError
+    ModuleError, ModuleSuspended
 from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 import vistrails.db
@@ -55,7 +55,6 @@ except ImportError:
     import sha
     sha_hash = sha.new
 
-
 ##############################################################################
 
 class InputPort(Module):
@@ -65,7 +64,11 @@ class InputPort(Module):
         if exPipe is not None:
             self.setResult('InternalPipe', exPipe)
         else:
-            self.setResult('InternalPipe', InvalidOutput)
+            if self.hasInputFromPort('Default'):
+                self.setResult('InternalPipe',
+                               self.getInputFromPort('Default'))
+            else:
+                self.setResult('InternalPipe', InvalidOutput)
 
 ###############################################################################
     
@@ -81,6 +84,7 @@ class Group(Module):
     def __init__(self):
         Module.__init__(self)
         self.is_group = True
+        self.persistent_modules = []
 
     def compute(self):
         if not hasattr(self, 'pipeline') or self.pipeline is None:
@@ -120,6 +124,12 @@ class Group(Module):
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n '.join(me.module.__class__.__name__ + ': ' + \
                                             me.msg for me in res[2].itervalues()))
+        if len(res[4]) > 0:
+            # extract messages and previous ModuleSuspended exceptions
+            message = '\n'.join([msg for msg in res[4].itervalues()])
+            children = [tmp_id_to_module_map[module_id]._module_suspended
+                        for module_id in res[4]]
+            raise ModuleSuspended(self, message, children=children)
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
@@ -223,10 +233,10 @@ def read_vistrail(vt_fname):
     Vistrail.convert(vistrail)
     return vistrail
 
-def read_vistrail_from_db(db_connection, abs_id):
+def read_vistrail_from_db(db_connection, abs_id, version):
     import vistrails.db.services.io
     from vistrails.core.vistrail.vistrail import Vistrail
-    vistrail = vistrails.db.services.io.open_vistrail_from_db(db_connection, abs_id)
+    vistrail = vistrails.db.services.io.open_vistrail_from_db(db_connection, abs_id, version)
     Vistrail.convert(vistrail)
     return vistrail
 
@@ -470,6 +480,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(InputPort, "optional", Boolean, True)
     reg.add_input_port(InputPort, "spec", String)
     reg.add_input_port(InputPort, "ExternalPipe", Variant, True)
+    reg.add_input_port(InputPort, "Default", Variant)
     reg.add_output_port(InputPort, "InternalPipe", Variant)
 
     reg.add_module(OutputPort)

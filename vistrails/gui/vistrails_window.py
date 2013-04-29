@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -578,7 +578,7 @@ class QVistrailViewWindow(QBaseViewWindow):
                                                        'save_prov')}),
                        ('saveLog', "Log to XML...",
                         {'statusTip': "Save the execution log to a file",
-                         'enabled': False,
+                         'enabled': True,
                          'callback': \
                              _app.pass_through_locator(self.get_current_view,
                                                        'save_log',
@@ -958,6 +958,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def init_palettes(self):
         # palettes are global!
         from vistrails.gui.debug import DebugView
+        from vistrails.gui.job_monitor import QJobView
         from vistrails.gui.debugger import QDebugger
         from vistrails.gui.module_configuration import QModuleConfiguration
         from vistrails.gui.module_documentation import QModuleDocumentation
@@ -1030,6 +1031,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                ((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
+               (QJobView, True),
                (QExplorerWindow, True),
 #               ((QLatexAssistant, True),
 #                (('controller_changed', 'set_controller'),)),
@@ -1449,6 +1451,31 @@ class QVistrailsWindow(QVistrailViewWindow):
             # we don't want to ever close it again.
             self._first_view = None
 
+    def ensureController(self, controller):
+        """ ensureController(locator: VistrailController) -> QVistrailView        
+        This will first find among the opened vistrails to see if
+        controller is open. If not, it will try to open it if a locator exist.
+
+        This should be used when you have a controller and want to open the
+        associated vistrail 
+        """
+        if controller is None:
+            return None
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if view.controller is controller:
+                self.change_view(view)
+                return view
+        for (view, window) in self.windows.iteritems():
+            if view.controller == controller:
+                window.activateWindow()
+                window.raise_()
+                return view
+        # try to open it
+        if controller.locator:
+            return self.open_vistrail(controller.locator)
+        return None
+
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if
@@ -1740,6 +1767,10 @@ class QVistrailsWindow(QVistrailViewWindow):
             current_view = self.get_current_view()
         if current_view:
             locator = current_view.controller.locator
+            from vistrails.gui.job_monitor import QJobView
+            jobView = QJobView.instance()
+            jobView.delete_job(current_view.controller, all=True)
+
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
             text = current_view.controller.name
@@ -2163,6 +2194,10 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.recentVistrailLocators = RecentVistrailList()
         conf.subscribe('maxRecentVistrails', self.max_recent_vistrails_changed)
         self.update_recent_vistrail_actions()
+
+    def check_running_jobs(self):
+        from vistrails.gui.job_monitor import QJobView
+        QJobView.instance().load_running_jobs()
 
     def open_recent_vistrail(self):
         """ open_recent_vistrail() -> None

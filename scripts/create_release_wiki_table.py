@@ -6,12 +6,12 @@ wiki page
 """
 from datetime import date
 #Release version
-VT_VERSION = "2.0"
-VT_REVISION = "240bcab5bbcd"
+VT_VERSION = "2.1 beta"
+VT_REVISION = "19514847cab3"
 
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
-SF_FOLDER_NAME = "v2.0"
+SF_FOLDER_NAME = "v2.1"
 SF_DOWNLOAD_URL = "%s%s"%(SF_ROOT_URL,SF_FOLDER_NAME)
 #binaries names
 MAC_105_BIN = "vistrails-mac-10.5-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)

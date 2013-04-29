@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -50,7 +50,7 @@ import re
 import os
 import os.path
 import shutil
-import zipfile
+#import zipfile
 import urllib
 
 try:
@@ -762,31 +762,47 @@ class ConcatenateString(Module):
 ##############################################################################
 # List
 
-def list_conv(v):
-    v_list = eval(v)
-    return v_list
+class List(Constant):
+    default_value = []
 
-def list_compute(self):
-    if (not self.hasInputFromPort("value") and 
-        not self.hasInputFromPort("tail") and
-        not self.hasInputFromPort("head")):
-        # fail at getting the value port
-        self.getInputFromPort("value")
-            
-    head, middle, tail = [], [], []
-    if self.hasInputFromPort("value"):
-        # run the regular compute here
-        Constant.compute(self)
-        middle = self.outputPorts['value']
-    if self.hasInputFromPort("head"):
-        head = [self.getInputFromPort("head")]
-    if self.hasInputFromPort("tail"):
-        tail = self.getInputFromPort("tail")
-    self.setResult("value", head + middle + tail)
+    def __init__(self):
+        Constant.__init__(self)
+        self.input_ports_order = []
 
-List = new_constant('List' , staticmethod(list_conv),
-                    [], staticmethod(lambda x: type(x) == list),
-                    compute=list_compute)
+    @staticmethod
+    def validate(x):
+        return isinstance(x, list)
+
+    @staticmethod
+    def translate_to_python(v):
+        return eval(v)
+
+    def compute(self):
+        head, middle, items, tail = [], [], [], []
+        got_value = False
+
+        if self.hasInputFromPort('value'):
+            # run the regular compute here
+            Constant.compute(self)
+            middle = self.outputPorts['value']
+            got_value = True
+        if self.hasInputFromPort('head'):
+            head = self.getInputListFromPort('head')
+            got_value = True
+        if self.input_ports_order:
+            items = [self.getInputFromPort(p)
+                     for p in self.input_ports_order]
+            got_value = True
+        if self.hasInputFromPort('tail'):
+            tail = self.getInputFromPort('tail')
+            got_value = True
+
+        if not got_value:
+            self.getInputFromPort('value')
+        self.setResult('value', head + middle + items + tail)
+
+List._input_ports = [('value', List)]
+List._output_ports = [('value', List)]
 
 ##############################################################################
 # Dictionary
@@ -1044,7 +1060,10 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
 
-    reg.add_module(List)
+    reg.add_module(List,
+                   configureWidgetType=(
+                           "vistrails.gui.modules.list_configuration",
+                           "ListConfigurationWidget"))
     reg.add_input_port(List, "head", Module)
     reg.add_input_port(List, "tail", List)
 

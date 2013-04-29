@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
-    ModuleConnector, InvalidOutput
+    ModuleConnector, InvalidOutput, ModuleSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
      File, NotCacheable, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
@@ -86,54 +86,55 @@ class Fold(Module, NotCacheable):
         nameOutput = self.getInputFromPort('OutputPort')
         rawInputList = self.getInputFromPort('InputList')
 
-        # create inputList to always have iterable elements
+        # Create inputList to always have iterable elements
         # to simplify code
         if len(nameInput) == 1:
             element_is_iter = False
+            inputList = [[element] for element in rawInputList]
         else:
             element_is_iter = True
-        inputList = []
-        for element in rawInputList:
-            if not element_is_iter:
-                inputList.append([element])
-            else:
-                inputList.append(element)
-
+            inputList = rawInputList
+        suspended = []
         ## Update everything for each value inside the list
-        for i in xrange(len(inputList)): 
-            element = inputList[i]
+        for i, element in enumerate(inputList):
             if element_is_iter:
                 self.element = element
             else:
                 self.element = element[0]
             for connector in self.inputPorts.get('FunctionPort'):
-                if not self.upToDate:
-                    ##Type checking
-                    if i==0:
-                        self.typeChecking(connector.obj, nameInput, inputList)
-                    
-                    connector.obj.upToDate = False
-                    connector.obj.already_computed = False
-                    
-                    ## Setting information for logging stuff
-                    connector.obj.is_fold_operator = True
-                    connector.obj.first_iteration = False
-                    connector.obj.last_iteration = False
-                    connector.obj.fold_iteration = i
-                    if i==0:
-                        connector.obj.first_iteration = True
-                    if i==((len(inputList))-1):
-                        connector.obj.last_iteration = True
+                module = connector.obj
 
-                    self.setInputValues(connector.obj, nameInput, element)
-                connector.obj.update()
-                
+                if not self.upToDate:
+                    ## Type checking
+                    if i == 0:
+                        self.typeChecking(module, nameInput, inputList)
+
+                    module.upToDate = False
+                    module.already_computed = False
+
+                    ## Setting information for logging stuff
+                    module.is_fold_operator = True
+                    module.first_iteration = i == 0
+                    module.last_iteration = i == len(inputList) - 1
+                    module.fold_iteration = i
+
+                    self.setInputValues(module, nameInput, element)
+
+                module.update()
+                if hasattr(module, 'suspended') and module.suspended:
+                    suspended.append(module._module_suspended)
+                    module.suspended = False
+                    continue
                 ## Getting the result from the output port
-                if nameOutput not in connector.obj.outputPorts:
-                    raise ModuleError(connector.obj,\
-                                      'Invalid output port: %s'%nameOutput)
-                self.elementResult = connector.obj.get_output(nameOutput)
+                if nameOutput not in module.outputPorts:
+                    raise ModuleError(module,
+                                      'Invalid output port: %s' % nameOutput)
+                self.elementResult = copy.copy(module.get_output(nameOutput))
             self.operation()
+        if suspended:
+            self.suspended = "%d module(s) suspended: %s" % (
+                    len(suspended), suspended[0].msg)
+            self._module_suspended = suspended
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -194,7 +195,7 @@ class Fold(Module, NotCacheable):
 
         v_module = self.createSignature(v_module)
         port_spec2 = PortSpec(**{'signature': v_module})
-        matched = reg.are_specs_matched(port_spec1, port_spec2)
+        matched = reg.are_specs_matched(port_spec2, port_spec1)
                 
         return matched
         
@@ -210,7 +211,8 @@ class Fold(Module, NotCacheable):
             for element in self.getInputFromPort('InputList'):
                 self.element = element
                 self.operation()
-
+        if self.suspended:
+            raise ModuleSuspended(self, self.suspended, children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
     def setInitialValue(self):

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -95,15 +95,24 @@ error and the error message as a string."""
         self.errorTrace = traceback.format_exc()
 
 class ModuleSuspended(ModuleError):
-
     """Exception representing a VisTrails module being suspended. Raising 
     ModuleSuspended flags that the module is not ready to finish yet and
     that the workflow should be executed later.  A suspended module does
-    not execute the modules downstream but all modules upstream will be
+    not execute the modules downstream but all other branches will be
     executed. This is useful when executing external jobs where you do not
-    want to block vistrails while waiting for the execution to finish.  """
+    want to block vistrails while waiting for the execution to finish.
+
+    'queue' is a class instance that should provide a finished() method for
+    checking if the job has finished
+
+    'children' is a list of ModuleSuspended instances that is used for nested
+    modules
     
-    def __init__(self, module, errormsg):
+    """
+    
+    def __init__(self, module, errormsg, queue=None, children=None):
+        self.queue = queue
+        self.children = children
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
@@ -353,7 +362,8 @@ context."""
             self.computed = True
         except ModuleSuspended, e:
             self.suspended = e.msg
-            self.logging.end_update(self, e.msg, was_suspended=True)
+            self._module_suspended = e
+            self.logging.end_update(self, e, was_suspended=True)
             self.logging.signalSuspended(self)
             return
         except ModuleError, me:
