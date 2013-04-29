@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,7 +42,7 @@ Usage:
 from setuptools import setup
 import sys
 
-VERSION = '2.0-alpha'
+VERSION = '2.1beta'
 
 plist = dict(
     CFBundleName='VisTrails',
@@ -52,20 +52,20 @@ plist = dict(
     CFBundleIdentifier='org.vistrails',
 )
 
-sys.path.append('../../vistrails')
-APP = ['../../vistrails/vistrails.py']
+sys.path.append('../..')
+APP = ['../../vistrails/run.py']
 #comma-separated list of additional data files and
 #folders to include (not for code!)
 #DATA_FILES = ['/usr/local/graphviz-2.12/bin/dot',]
+#removed gridifield: gridfield, gridfield.core, gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
 OPTIONS = {'argv_emulation': True,
            'iconfile': 'resources/vistrails_icon.icns',
            'includes': 'sip,pylab,xml,\
 			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
-                        shelve, uuid, gridfield, gridfield.core, \
-                        gridfield.algebra, gridfield.gfvis, gridfield.selfe, \
-                        sine,st,Numeric,pexpect,psycopg2,sqlite3,suds,shapelib, dbflib,mpl_toolkits.mplot3d',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,tables,packages,core,gui,db,numpy,scipy,ZSI,api,twisted,Scientific,distutils,h5py',
-           'excludes': 'mpl_toolkits.basemap',
+                        shelve, uuid, \
+                        sine,st,Numeric,pexpect,psycopg2,sqlite3,suds,shapelib, dbflib,mpl_toolkits.mplot3d,_mysql_exceptions',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,api,twisted,Scientific,distutils,h5py,batchq,osgeo',
+           'excludes': 'mpl_toolkits.basemap, PyQt4.uic',
            'plist': plist,
            }
 

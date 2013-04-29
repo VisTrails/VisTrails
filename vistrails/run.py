@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     # DAK: the deletes screw things up in the binary (definitely for
     #   Mac) and since subdir is unlikely, I'm commenting them out. A
-    #   better solution is probably to move vistrails.py up a
+    #   better solution is probably to move run.py up a
     #   directory in the repo
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     # i = 0
@@ -93,7 +93,6 @@ if __name__ == '__main__':
     #     else:
     #         i += 1
     sys.path.insert(0, vistrails_dir)
-    print sys.path
 
     disable_lion_restore()
 

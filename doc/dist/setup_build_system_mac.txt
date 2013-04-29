@@ -38,9 +38,18 @@ $ cd ../..
 $ python fix_qtplugin_libs.py Input/plugins/iconengines/
 $ python fix_qtplugin_libs.py Input/plugins/imageformats/
 
+Copy /usr/bin/git to dist/mac/Input
+
 Create a directory alps_libs in Input to store the alps_libs
 
 #GDAL Framework
 Install GDAL Framework Complete 1.8.1 http://www.kyngchaos.com/software/frameworks
 then copy site-packages to python.org directory:
 $ cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Python/2.7/site-packages/* /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/
+
+#Install DMG Canvas
+Right now the only way is by copying the App from the build
+machine. The developers are now charging for a License when it used to
+be free. DMG Canvas is an application that creates the customized .dmg
+file. It provides a command line tool and we are using it in the main
+make_app script.

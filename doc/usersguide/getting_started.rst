@@ -81,7 +81,7 @@ allows dynamic installation of necessary packages. As a result, you do
 not need to manually install any of the dependent packages. Just
 download the |vistrails| source code and execute it with::
 
-   python vistrails.py
+   python vistrails/run.py
 
 and |vistrails| should detect all necessary software and, if necessary,
 ask for your permission to install it.
@@ -116,10 +116,10 @@ Quick Start
 On Windows and Mac OS X, you can launch |vistrails| by double-clicking
 on the |vistrails| application icon. In general, however, it is
 possible to start |vistrails| on any system by navigating to the
-directory where the file ``vistrails.py`` is located (usually
+directory where the file ``run.py`` is located (usually
 the root directory of your installation) and executing the command::
 
-   python vistrails.py
+   python run.py
 
 Depending on a number of factors, it can take a few seconds for the
 system to start up. As |vistrails| loads, you may see some messages

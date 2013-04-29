@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -54,7 +54,7 @@ PATH_TO_VISTRAILS_GIT = "/Users/emanuele/code/vistrails"
 HTML_FOLDER = None
 
 # Complete file path to where copy final pdf file
-PDF_FILE = "/Users/emanuele/code/vistrails/dist/mac/dist/doc/VisTrails.pdf"
+PDF_FILE = "/Users/vistrails/code/vistrails/dist/mac/dist/VisTrails/doc/VisTrails.pdf"
 
 # Should we run a `git pull` before building docs? 
 PERFORM_GIT_PULL = True

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -139,15 +139,16 @@ class QPackagesWidget(QtGui.QWidget):
         
         ######################################################################
         left_layout = QtGui.QVBoxLayout(left)
-        left_layout.setMargin(2)
-        left_layout.setSpacing(2)
-       
         left_layout.addWidget(QtGui.QLabel("Disabled packages:", left))
         self._available_packages_list = QtGui.QListWidget(left)
         left_layout.addWidget(self._available_packages_list)
         left_layout.addWidget(QtGui.QLabel("Enabled packages:", left))
         self._enabled_packages_list = QtGui.QListWidget(left)
         left_layout.addWidget(self._enabled_packages_list)
+        self.update_button = QtGui.QPushButton("Refresh Lists", left)
+        left_layout.addWidget(self.update_button, 0, QtCore.Qt.AlignLeft)
+        
+        self.update_button.clicked.connect(self.populate_lists)
 
         self.connect(self._available_packages_list,
                      QtCore.SIGNAL('itemSelectionChanged()'),

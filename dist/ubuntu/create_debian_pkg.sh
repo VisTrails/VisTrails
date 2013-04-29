@@ -1,7 +1,8 @@
 #!/bin/sh
 ###############################################################################
 ##
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
@@ -41,7 +42,7 @@ cp _debian/* debian/DEBIAN
 
 (cat <<EOF
 #!/bin/sh
-python /usr/local/vistrails/vistrails.py -l
+python /usr/local/vistrails/run.py -l
 EOF
 ) >> debian/usr/local/bin/vistrails
 

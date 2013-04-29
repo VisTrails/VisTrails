@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -233,10 +233,10 @@ def read_vistrail(vt_fname):
     Vistrail.convert(vistrail)
     return vistrail
 
-def read_vistrail_from_db(db_connection, abs_id):
+def read_vistrail_from_db(db_connection, abs_id, version):
     import vistrails.db.services.io
     from vistrails.core.vistrail.vistrail import Vistrail
-    vistrail = vistrails.db.services.io.open_vistrail_from_db(db_connection, abs_id)
+    vistrail = vistrails.db.services.io.open_vistrail_from_db(db_connection, abs_id, version)
     Vistrail.convert(vistrail)
     return vistrail
 

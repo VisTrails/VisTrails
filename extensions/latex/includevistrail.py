@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,7 +35,7 @@
 ###############################################################################
 
 # the input file format should follow this:
-#   path=/Users/emanuele/code/vistrails/branches/v1.2/vistrails/vistrails.py
+#   path=/Users/emanuele/code/vistrails/branches/v1.2/vistrails/run.py
 #   python=/path/to/python
 #   env=DYLD_LIBRARY_PATH= 
 #   download=http://url.from.where.download.vt.files
@@ -1466,7 +1466,7 @@ elif (not build_always or
 else:
     result, latex = (False, 
                      generate_latex_error("It is possible that %s is not a valid \
-url nor a valid path to vistrails.py or that you don't have an internet connection \
+url nor a valid path to vistrails/run.py or that you don't have an internet connection \
 and some workflows have the buildalways option. If you already have cached files, \
 try removing the buildalways option from vistrails latex command" %\
                      (path_to_vistrails)))
