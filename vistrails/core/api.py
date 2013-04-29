@@ -1,8 +1,9 @@
 import itertools
 
 import vistrails.core.application
-from vistrails.core.db.locator import FileLocator
+from vistrails.core.db.locator import FileLocator, untitled_locator
 import vistrails.core.db.io
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import create_port_spec_string
 from vistrails.core.packagemanager import get_package_manager
@@ -47,9 +48,7 @@ class Module(object):
     def __call__(self, *args, **kwargs):
         reg = get_module_registry()
         if len(args) > 0:
-            constant_desc = \
-                reg.get_descriptor_by_name("edu.utah.sci.vistrails.basic",  \
-                                                "Constant")
+            constant_desc = reg.get_descriptor_by_name(basic_pkg, "Constant")
             if reg.is_descriptor_subclass(self._module_desc, constant_desc):
                 kwargs['value'] = args[0]
             
@@ -133,9 +132,7 @@ class Module(object):
                 num_params += 1
         if num_ports > 1 or (num_ports == 1 and num_params > 0):
             reg = vistrails.core.modules.module_registry.get_module_registry()
-            tuple_desc = \
-                reg.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                           'Tuple', '')
+            tuple_desc = reg.get_descriptor_by_name(basic_pkg, 'Tuple')
             tuple_module = vt_api.add_module_from_descriptor(tuple_desc)
             output_port_spec = PortSpec(id=-1,
                                         name='value',
@@ -251,42 +248,56 @@ class Package(object):
 
 class VisTrailsAPI(object):
 
-    def __init__(self, app=None):
-        if app is None:
-            app = vistrails.core.application.get_vistrails_application()
+    # !!! Do not pass controller unless you know what you are doing !!!
+    def __init__(self, controller=None):
+        self._controller = controller
         self._packages = None
-        self._controller = app.get_controller()
         self._old_log = None
 
+    def _get_controller(self):
+        if self._controller is not None:
+            return self._controller
+        app = vistrails.core.application.get_vistrails_application()
+        controller = app.get_controller()
+        if controller is None:
+            raise Exception("You must have a vistrail open before calling "
+                            "this API method.")
+        return controller
+    controller = property(_get_controller)
+
+    # !!! Do not call set_controller unless you know what you are doing !!!
+    def set_controller(self, controller=None):
+        self._controller = controller
+
     def add_module(self, identifier, name, namespace='', internal_version=-1):
-        m = self._controller.add_module(identifier, name, namespace, 
+        m = self.controller.add_module(identifier, name, namespace, 
                                         internal_version=internal_version)
         # have to go back since there is a copy when the action is performed
-        module = self._controller.current_pipeline.modules[m.id]
+        module = self.controller.current_pipeline.modules[m.id]
         return Module.create_module(module)
 
     def add_module_from_descriptor(self, desc):
-        m = self._controller.add_module_from_descriptor(desc)
+        m = self.controller.add_module_from_descriptor(desc)
         # have to go back since there is a copy when the action is performed
-        module = self._controller.current_pipeline.modules[m.id]
+        module = self.controller.current_pipeline.modules[m.id]
         return Module.create_module(module)
 
     def add_connection(self, module_a, port_a, module_b, port_b):
-        conn = self._controller.add_connection(module_a._module.id, port_a,
+        conn = self.controller.add_connection(module_a._module.id, port_a,
                                                module_b._module.id, port_b)
 
     def add_port_spec(self, module, port_spec):
-        self._controller.add_module_port(module._module.id,
+        self.controller.add_module_port(module._module.id,
                                          (port_spec.type, port_spec.name,
                                           port_spec.sigstring))
 
     def change_parameter(self, module, function_name, param_list):
-        self._controller.update_function(module._module, function_name,
+        self.controller.update_function(module._module, function_name,
                                          param_list)
 
     def execute(self, custom_aliases=None, custom_params=None,
                  extra_info=None, reason='API Pipeline Execution'):
-        return self._controller.execute_current_workflow(custom_aliases, custom_params,
+        return self.controller.execute_current_workflow(custom_aliases, custom_params,
                                                   extra_info, reason)
 
     def get_packages(self):
@@ -324,29 +335,35 @@ class VisTrailsAPI(object):
         if type(version) == type(""):
             try:
                 version = \
-                    self._controller.vistrail.get_version_number(version)
+                    self.controller.vistrail.get_version_number(version)
             except:
                 raise Exception('Cannot locate version "%s"' % version)
         return version
 
     def tag_version(self, tag, version=None):
         if version is None:
-            version = self._controller.current_version
+            version = self.controller.current_version
         else:
             version = self._convert_version(version)
-        self._controller.vistrail.set_tag(version, tag)
+        self.controller.vistrail.set_tag(version, tag)
 
     def save_vistrail(self, fname, version=None):
         locator = FileLocator(fname)
-        self._controller.write_vistrail(locator, version)
+        self.controller.write_vistrail(locator, version)
 
-    def load_vistrail(self, fname):
-        locator = FileLocator(fname)
+    def new_vistrail(self):
+        self.load_vistrail(None)
+
+    def load_vistrail(self, fname=None):
+        if fname is None:
+            locator = copy.copy(untitled_locator())
+        else:
+            locator = FileLocator(fname)
         (vistrail, abstraction_files, thumbnail_files, mashups) = \
             vistrails.core.db.io.load_vistrail(locator, False)
-        self._controller.set_vistrail(vistrail, locator, abstraction_files,
+        self.controller.set_vistrail(vistrail, locator, abstraction_files,
                                       thumbnail_files, mashups)
-        self._controller.select_latest_version()
+        self.controller.select_latest_version()
         
     def load_workflow(self, fname):
         locator = FileLocator(fname)
@@ -361,27 +378,137 @@ class VisTrailsAPI(object):
         vistrail.add_action(action, 0L)
         vistrail.update_id_scope()
         vistrail.addTag("Imported workflow", action.id)
-        self._controller.set_vistrail(vistrail, None)
-        self._controller.select_latest_version()
+        self.controller.set_vistrail(vistrail, None)
+        self.controller.select_latest_version()
 
     def select_version(self, version):
-        self._controller.change_selected_version(self._convert_version(version))
+        self.controller.change_selected_version(self._convert_version(version))
 
     def close_vistrail(self):
-        self._controller.close_vistrail(self._controller.get_locator())
+        self.controller.close_vistrail(self.controller.get_locator())
 
     def get_current_workflow(self):
-        return self._controller.current_pipeline
+        return self.controller.current_pipeline
 
     def get_all_executions(self):
         wf_execs = []
         if (self._old_log is None and
-            hasattr(self._controller.vistrail, 'db_log_filename') and
-            self._controller.vistrail.db_log_filename is not None):
+            hasattr(self.controller.vistrail, 'db_log_filename') and
+            self.controller.vistrail.db_log_filename is not None):
             self._old_log = \
-                vistrails.core.db.io.open_log(self._controller.vistrail.db_log_filename, True)
+                vistrails.core.db.io.open_log(self.controller.vistrail.db_log_filename, True)
         if self._old_log is not None:
             wf_execs.extend(self._old_log.workflow_execs)
-        wf_execs.extend(self._controller.log.workflow_execs)
+        wf_execs.extend(self.controller.log.workflow_execs)
         return wf_execs
 
+import unittest
+class TestAPI(unittest.TestCase):
+    if not hasattr(unittest.TestCase, 'assertIsInstance'):
+        def assertIsInstance(self, obj, cls, msg=None):
+            assert(isinstance(obj, cls))
+    
+    @classmethod
+    def setUpClass(cls):
+        app = vistrails.core.application.get_vistrails_application()
+        app.new_vistrail()
+
+    @classmethod
+    def tearDownClass(cls):
+        app = vistrails.core.application.get_vistrails_application()
+        app.close_vistrail()
+
+    def setUp(self):
+        get_api().controller.change_selected_version(0)
+
+    def get_basic_package(self):
+        basic = get_api().get_package(basic_pkg)
+        self.assertIsInstance(basic, Package)
+        return basic
+
+    def create_modules(self,basic):
+        s1 = basic.String("abc")
+        self.assertIsInstance(s1, Module)
+        s2 = basic.String("def")
+        self.assertIsInstance(s2, Module)
+        return s1, s2
+        
+    def test_api(self):
+        self.get_basic_package()
+
+    def test_add_modules(self):
+        basic = self.get_basic_package()
+        s1, s2 = self.create_modules(basic)
+
+        # assert there exist two String modules
+        self.assertEqual(len(get_api().controller.current_pipeline.modules), 2)
+        for m in get_api().controller.current_pipeline.modules.itervalues():
+            self.assertEqual(m.package, basic_pkg)
+            self.assertEqual(m.name, "String")
+
+    def check_connections(self):
+        conns = []
+        modules = get_api().controller.current_pipeline.modules
+        for c in get_api().controller.current_pipeline.connections.itervalues():
+            conns.append((modules[c.sourceId].name, c.source.name,
+                          modules[c.destinationId].name, c.destination.name))
+        conns.sort()
+        self.assertEqual(conns,
+                         [('String', 'value', 'ConcatenateString', 'str1'),
+                          ('String', 'value', 'ConcatenateString', 'str2')])
+
+    def test_add_connections_by_assignment(self):
+        basic = self.get_basic_package()
+        s1, s2 = self.create_modules(basic)
+        c = basic.ConcatenateString()
+        c.str1 = s1.value
+        c.str2 = s2.value
+        self.check_connections()
+
+    def test_add_connections_by_call(self):
+        basic = self.get_basic_package()
+        s1, s2 = self.create_modules(basic)
+        c = basic.ConcatenateString()
+        c.str1(s1.value)
+        c.str2(s2.value)
+        self.check_connections()
+
+    def test_add_connections_by_constructor(self):
+        basic = self.get_basic_package()
+        s1, s2 = self.create_modules(basic)
+        c = basic.ConcatenateString(str1=s1.value, str2=s2.value)
+        self.check_connections()
+
+    def check_parameters(self):
+        params = []
+        for m in get_api().controller.current_pipeline.modules.itervalues():
+            for f in m.functions:
+                params.append((m.name, f.name, f.params[0].strValue))
+        params.sort()
+        self.assertEqual(params,
+                         [('String', 'value', 'abc'),
+                          ('String', 'value', 'def')])
+            
+    def test_add_parameters_by_assignment(self):
+        basic = self.get_basic_package()
+        s1, s2 = self.create_modules(basic)
+        s1.value = "abc"
+        s2.value = "def"
+        self.check_parameters()
+
+    def test_add_parameters_by_call(self):
+        basic = self.get_basic_package()
+        s1, s2 = self.create_modules(basic)
+        s1.value("abc")
+        s2.value("def")
+        self.check_parameters()
+
+    def test_add_parameters_by_constructor(self):
+        basic = self.get_basic_package()
+        s1 = basic.String("abc")
+        s2 = basic.String("def")
+        self.check_parameters()
+
+if __name__ == '__main__':
+    vistrails.core.application.init()
+    unittest.main()

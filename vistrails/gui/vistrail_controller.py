@@ -1364,6 +1364,8 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         reg = vistrails.core.modules.module_registry.get_module_registry()
+        spreadsheet_pkg = '%s.spreadsheet' % \
+                vistrails.core.system.get_vistrails_default_pkg_prefix()
 
         if pe.action_id != self.current_version:
             self.change_selected_version(pe.action_id)
@@ -1376,8 +1378,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.current_pipeline, actions, pre_actions)
             
             dim = [max(1, len(a)) for a in actions]
-            if (reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
-                reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
+            if (reg.has_module(spreadsheet_pkg, 'CellLocation') and
+                reg.has_module(spreadsheet_pkg, 'SheetReference')):
                 from vistrails.gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
                 from vistrails.gui.paramexplore.pe_view import QParamExploreView
                 modifiedPipelines, pipelinePositions = positionPipelines(
@@ -1477,8 +1479,9 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         controller.current_pipeline_view = DummyView().scene()
         controller.set_vistrail(Vistrail(), None)
         controller.change_selected_version(0L)
-        module = controller.add_module(0.0,0.0, 'edu.utah.sci.vistrails.basic', 
-                                       'ConcatenateString')
+        module = controller.add_module(0.0,0.0, 
+                        vistrails.core.system.get_vistrails_basic_pkg_id(), 
+                        'ConcatenateString')
         functions = [('str1', ['foo'], -1, True),
                      ('str2', ['bar'], -1, True)]
         controller.update_functions(module, functions)

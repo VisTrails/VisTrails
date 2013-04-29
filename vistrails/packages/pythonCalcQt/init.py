@@ -103,7 +103,7 @@ class QPythonCalc(QtGui.QWidget):
         provided in vistrails.api.
 
         """
-        pythoncalc = "edu.utah.sci.vistrails.pythoncalc"
+        pythoncalc = "org.vistrails.vistrails.pythoncalc"
         module = vistrails.api.add_module(0, 0, pythoncalc, 'PythonCalc', '')
         vistrails.api.get_current_controller().update_function(module, 'value1',
                                                      [str(self.value1Edit.text())])

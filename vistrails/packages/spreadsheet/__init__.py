@@ -33,9 +33,7 @@
 ##
 ###############################################################################
 
-identifier = 'edu.utah.sci.vistrails.spreadsheet'
-name = 'VisTrails Spreadsheet'
-version = '0.9.1'
+from identifiers import *
 
 # This must be here because of VisTrails protocol
 from spreadsheet_config import configuration

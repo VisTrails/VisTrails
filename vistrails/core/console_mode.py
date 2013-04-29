@@ -300,17 +300,19 @@ def cleanup():
 
 class TestConsoleMode(unittest.TestCase):
 
-    def setUp(self, *args, **kwargs):
+    @classmethod
+    def setUpClass(cls):
         manager = vistrails.core.packagemanager.get_package_manager()
-        if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
+        if manager.has_package('org.vistrails.vistrails.console_mode_test'):
             return
 
         d = {'console_mode_test': 'vistrails.tests.resources.'}
         manager.late_enable_package('console_mode_test',d)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         manager = vistrails.core.packagemanager.get_package_manager()
-        if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
+        if manager.has_package('org.vistrails.vistrails.console_mode_test'):
             manager.late_disable_package('console_mode_test')
             
     def test1(self):
@@ -345,8 +347,8 @@ class TestConsoleMode(unittest.TestCase):
         function.add_parameters(params)
         module = Module(id=id_scope.getNewId(Module.vtType),
                            name='TestTupleExecution',
-                           package='edu.utah.sci.vistrails.console_mode_test',
-                           version='0.9.0')
+                           package='org.vistrails.vistrails.console_mode_test',
+                           version='0.9.1')
         module.add_function(function)
         
         p.add_module(module)

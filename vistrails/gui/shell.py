@@ -259,9 +259,8 @@ class vistrails_module(object):
                 num_params += 1
         if num_ports > 1 or (num_ports == 1 and num_params > 0):
             reg = vistrails.core.modules.module_registry.get_module_registry()
-            tuple_desc = \
-                reg.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                           'Tuple', '')
+            tuple_desc = reg.get_descriptor_by_name(
+                vistrails.core.system.get_vistrails_basic_pkg_id(), 'Tuple')
 
             d = {'_module_desc': tuple_desc,
                  '_package': self._package,}

@@ -158,12 +158,12 @@ class DBConnection(Module):
         self.open()
 
     # nice to have enumeration constant type
-    _input_ports = [('host', '(edu.utah.sci.vistrails.basic:String)'),
-                    ('port', '(edu.utah.sci.vistrails.basic:Integer)'),
-                    ('user', '(edu.utah.sci.vistrails.basic:String)'),
-                    ('db_name', '(edu.utah.sci.vistrails.basic:String)'),
-                    ('protocol', '(edu.utah.sci.vistrails.basic:String)')]
-    _output_ports = [('self', '(edu.utah.sci.vistrails.sql:DBConnection)')]
+    _input_ports = [('host', '(basic:String)'),
+                    ('port', '(basic:Integer)'),
+                    ('user', '(basic:String)'),
+                    ('db_name', '(basic:String)'),
+                    ('protocol', '(basic:String)')]
+    _output_ports = [('self', '(DBConnection)')]
 
 class SQLSource(Module):
     def __init__(self):
@@ -198,13 +198,11 @@ class SQLSource(Module):
     def cachedOff(self):
         return False
     
-    _input_ports = [('connection', \
-                         '(edu.utah.sci.vistrails.sql:DBConnection)'),
-                    ('cacheResults', \
-                      '(edu.utah.sci.vistrails.basic:Boolean)'),    
-                    ('source', '(edu.utah.sci.vistrails.basic:String)')]
+    _input_ports = [('connection', '(DBConnection)'),
+                    ('cacheResults', '(basic:Boolean)'),    
+                    ('source', '(basic:String)')]
     _output_ports = \
-        [('resultSet', '(edu.utah.sci.vistrails.basic:List)')]
+        [('resultSet', '(basic:List)')]
 
 class SQLSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):

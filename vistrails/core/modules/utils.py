@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 import vistrails.core
+from vistrails.core.system import get_vistrails_default_pkg_prefix
+
 def create_descriptor_string(package, name, namespace=None,
                              use_package=True):
     package_str = ""
@@ -47,16 +49,16 @@ def parse_descriptor_string(d_string, cur_package=None):
     """parse_descriptor_string will expand names of modules using
     information about the current package and allowing shortcuts
     for any bundled vistrails packages (e.g. "basic" for
-    "edu.utah.sci.vistrails.basic").  It also allows a nicer
+    "org.vistrails.vistrails.basic").  It also allows a nicer
     format for namespace/module specification (namespace comes
     fist unlike port specifications where it is after the module
     name...
 
     Examples:
       "persistence:PersistentInputFile", None -> 
-          ("edu.utah.sci.vistrails.persistence", PersistentInputFile", "")
+          ("org.vistrails.vistrails.persistence", PersistentInputFile", "")
       "basic:String", None ->
-          ("edu.utah.sci.vistrails.basic", "String", "")
+          ("org.vistrails.vistrails.basic", "String", "")
       "NamespaceA|NamespaceB|Module", "org.example.my" ->
           ("org.example.my", "Module", "NamespaceA|NamespaceB")
     """
@@ -71,7 +73,7 @@ def parse_descriptor_string(d_string, cur_package=None):
         if '.' in parts[0]:
             package = parts[0]
         else:
-            package = 'edu.utah.sci.vistrails.' + parts[0]
+            package = '%s.%s' % (get_vistrails_default_pkg_prefix(), parts[0])
     else:
         qual_name = d_string
         if cur_package is None:

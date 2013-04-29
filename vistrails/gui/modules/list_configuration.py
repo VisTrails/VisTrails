@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
-
 
 class ListConfigurationWidget(StandardModuleConfigurationWidget):
     """
@@ -103,7 +103,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
             return
 
         if requested > current:
-            sigstring = '(edu.utah.sci.vistrails.basic:Module)'
+            sigstring = '(%s:Module)' % get_vistrails_basic_pkg_id()
             add_ports = [('input', 'item%d' % i, sigstring, -1)
                            for i in xrange(current, requested)]
             self.controller.update_ports(self.module.id, [], add_ports)

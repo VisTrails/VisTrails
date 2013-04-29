@@ -334,18 +334,19 @@ class TestConnection(unittest.TestCase):
 
     def create_connection(self, id_scope=IdScope()):
         from vistrails.core.vistrail.port import Port
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         source = Port(id=id_scope.getNewId(Port.vtType),
                       type='source', 
                       moduleId=21L, 
                       moduleName='String', 
                       name='value',
-                      signature='(edu.utah.sci.vistrails.basic:String)')
+                      signature='(%s:String)' % basic_pkg)
         destination = Port(id=id_scope.getNewId(Port.vtType),
                            type='destination',
                            moduleId=20L,
                            moduleName='Float',
                            name='value',
-                           signature='(edu.utah.sci.vistrails.basic:Float)')
+                           signature='(%s:Float)' % basic_pkg)
         connection = Connection(id=id_scope.getNewId(Connection.vtType),
                                 ports=[source, destination])
         return connection

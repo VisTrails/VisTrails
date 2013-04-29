@@ -62,9 +62,10 @@ except ImportError:
 
 ###############################################################################
 
-version = '1.6'
+version = '2.1'
 name = 'Basic Modules'
-identifier = 'edu.utah.sci.vistrails.basic'
+identifier = 'org.vistrails.vistrails.basic'
+old_identifiers = ['edu.utah.sci.vistrails.basic']
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -148,7 +149,7 @@ class Constant(Module):
             return (value_a != value_b)
         return False
 
-def new_constant(name, py_conversion, default_value, validation,
+def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
                  str_conversion=None, base_class=Constant,
                  compute=None, query_widget_type=None,
@@ -180,11 +181,27 @@ def new_constant(name, py_conversion, default_value, validation,
             base_class.__init__(self)
         return __init__
 
-    d = {'__init__': create_init(base_class),
-         'validate': validation,
-         'translate_to_python': py_conversion,
-         'default_value': default_value,
-         }
+    d = {'__init__': create_init(base_class)}
+
+    if py_conversion is not None:
+        d["translate_to_python"] = py_conversion
+    elif base_class == Constant:
+        raise Exception("Must specify translate_to_python for constant")
+    else:
+        d["translate_to_python"] = staticmethod(base_class.translate_to_python)
+    if validation is not None:
+        d["validate"] = validation
+    elif base_class == Constant:
+        raise Exception("Must specify validation for constant")
+    else:
+        d["validate"] = staticmethod(base_class.validate)
+    if default_value is not None:
+        d["default_value"] = default_value
+    elif base_class == Constant:
+        d["default_value"] = None
+    else:
+        d["default_value"] = base_class.default_value
+
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
     if compute is not None:

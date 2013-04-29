@@ -140,12 +140,12 @@
 ################################################################################
 import xml.sax.saxutils
 
-from vistrails.core.application import is_running_gui
 from vistrails.core.utils import memo_method
 import vistrails.gui
 
 # convenience method that does the full html extract if PyQt is loaded
 def extract_text(escaped_html_str):
+    from vistrails.core.application import is_running_gui
     notes = xml.sax.saxutils.unescape(escaped_html_str)
     if is_running_gui():
         from PyQt4 import QtGui

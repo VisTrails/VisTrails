@@ -1182,6 +1182,7 @@ class VersionNotTagged(Exception):
 ##############################################################################
 # Testing
 
+from vistrails.core.system import get_vistrails_basic_pkg_id
 
 class TestVistrail(unittest.TestCase):
 
@@ -1190,7 +1191,7 @@ class TestVistrail(unittest.TestCase):
 
         m = Module(id=vistrail.idScope.getNewId(Module.vtType),
                    name='Float',
-                   package='edu.utah.sci.vistrails.basic')
+                   package=get_vistrails_basic_pkg_id())
         add_op = AddOp(id=vistrail.idScope.getNewId(AddOp.vtType),
                        what=Module.vtType,
                        objectId=m.id,

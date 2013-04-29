@@ -32,8 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-name = "R"
-identifier = "org.vistrails.vistrails.rpy"
-version = "0.1.2"
-old_identifiers = ["edu.utah.sci.vistrails.rpy"]
 
+identifier = 'org.vistrails.vistrails.persistence'
+version = '0.3.1'
+name = 'Persistence'
+old_identifiers = ['edu.utah.sci.vistrails.persistence']
