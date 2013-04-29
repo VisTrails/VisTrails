@@ -180,6 +180,8 @@ class SpreadsheetController(object):
             tab_create_sheet_action=None,
             # Allows to rename a sheet from the tab bar
             tab_rename_sheet=True,
+            tab_begin_rename_action=None,
+            tab_end_rename_action=None,
             # Allows to close a sheet from the tab bar
             tab_close_sheet=True,
             tab_close_sheet_action=None,

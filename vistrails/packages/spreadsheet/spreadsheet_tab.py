@@ -920,13 +920,14 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     to change tab name
     
     """
-    def __init__(self, parent=None):
+    def __init__(self, tab_controller):
         """ StandardWidgetTabBar(parent: QWidget)
                 -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
 
         """
-        QtGui.QTabBar.__init__(self, parent)
+        QtGui.QTabBar.__init__(self, tab_controller)
+        self._tab_controller = tab_controller
         self.setAcceptDrops(True)
         self.setStatusTip('Move the sheet in, out and around'
                           'by dragging the tabs')
@@ -955,6 +956,19 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                 self.editor):
             return
 
+        text = self.tabText(self.currentIndex())
+        rename_begin = spreadsheet_controller.get_ss_hook(
+                'tab_begin_rename_action')
+        if rename_begin is not None:
+            text = rename_begin(
+                    self,
+                    self._tab_controller,
+                    self.currentIndex(),
+                    text)
+            if text is None:
+                # Hook aborted
+                return
+
         # Update the current editing tab widget
         self.editingIndex = self.currentIndex()
         
@@ -965,7 +979,6 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         rect.adjust(dx+1,1,-dx,-1)
 
         # Display the editor inplace of the tab text
-        text = self.tabText(self.editingIndex)
         self.editor = StandardWidgetTabBarEditor(text, self)
         self.editor.setFont(self.font())
         self.editor.setFrame(False)
@@ -983,12 +996,27 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         
         """
         if self.editingIndex>=0 and self.editor:
-            self.setTabText(self.editingIndex, self.editor.text())
-            self.emit(QtCore.SIGNAL('tabTextChanged(int,QString)'),
-                      self.editingIndex,self.editor.text())
-            self.editor.deleteLater()
-            self.editingIndex = -1
-            self.editor = None
+            text = unicode(self.editor.text())
+
+            rename_action = spreadsheet_controller.get_ss_hook(
+                    'tab_end_rename_action')
+            if rename_action is not None:
+                # Hook can return None to prevent the rename (or to do it
+                # itself), if it returns a name we'll rename to that
+                rename = rename_action(self, self._tab_controller,
+                                       self.editingIndex, text)
+            else:
+                rename = text
+
+            if rename is not None:
+                self.setTabText(self.editingIndex, rename)
+                self.emit(
+                        QtCore.SIGNAL('tabTextChanged(int, QString)'),
+                        self.editingIndex,
+                        rename)
+                self.editor.deleteLater()
+                self.editingIndex = -1
+                self.editor = None
 
     def indexAtPos(self, p):
         """ indexAtPos(p: QPoint) -> int Reimplement of the private
