@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'VisTrails'
-copyright = u'2012-, NYU Poly, 2011, University of Utah'
+copyright = u'2013, NYU Poly'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -175,7 +175,7 @@ htmlhelp_basename = 'VisTrailsdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'VisTrails.tex', u'VisTrails Documentation',
-   u'University of Utah', 'manual'),
+   u'NYU Poly', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
