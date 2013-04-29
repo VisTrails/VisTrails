@@ -35,4 +35,4 @@
 identifier = 'org.vistrails.vistrails.vtk'
 old_identifiers = ['edu.utah.sci.vistrails.vtk']
 name = 'VTK'
-version = '0.9.3'
+version = '0.9.4'
