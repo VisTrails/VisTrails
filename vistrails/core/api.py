@@ -271,7 +271,7 @@ class VisTrailsAPI(object):
 
     def add_module(self, identifier, name, namespace='', internal_version=-1):
         m = self.controller.add_module(identifier, name, namespace, 
-                                        internal_version=internal_version)
+                                       internal_version=internal_version)
         # have to go back since there is a copy when the action is performed
         module = self.controller.current_pipeline.modules[m.id]
         return Module.create_module(module)
@@ -290,6 +290,55 @@ class VisTrailsAPI(object):
         self.controller.add_module_port(module._module.id,
                                          (port_spec.type, port_spec.name,
                                           port_spec.sigstring))
+
+    def add_and_connect_module(self,
+                               identifier,
+                               name,
+                               port,
+                               module_b,
+                               port_b,
+                               is_source=False,
+                               auto_layout=True,
+                               **kwargs):
+        """Adds a module and connects in single action. Returns new module.
+
+        identifier - package identifier for new module
+        name - name of new module
+        module_b - existing module to connect new module to
+        port - port on new module to connect
+        port_b - port on existing module to connect
+        is_source - whether or not new module is source of connection
+        auto_layout - layout pipeline
+        **kwargs - additional arguments to create module
+        """
+
+        module = self.controller.create_module(identifier, name, **kwargs)
+
+        if is_source:
+            source, source_port = module, port
+            target, target_port = module_b._module, port_b
+        else:
+            target, target_port = module, port
+            source, source_port = module_b._module, port_b
+
+        create_conn = self.controller.create_connection
+        conn = create_conn(source, source_port, target, target_port)
+
+        if auto_layout:
+            layout = self.controller.layout_modules_ops
+            layout_ops = layout([], True, [module], [conn], None, True)
+        else:
+            layout_ops = []
+
+        ops = [('add', module), ('add', conn)] + layout_ops
+        action = vistrails.core.db.action.create_action(ops)
+        self.controller.add_new_action(action)
+        version = self.controller.perform_action(action)
+        self.controller.change_selected_version(version)
+
+        # have to go back since there is a copy when the action is performed
+        m = self.controller.current_pipeline.modules[module.id]
+        return Module.create_module(m)
 
     def change_parameter(self, module, function_name, param_list):
         self.controller.update_function(module._module, function_name,
