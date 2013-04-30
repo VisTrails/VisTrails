@@ -76,7 +76,7 @@ def find_workflows(path_name, vistrail_dir):
                                                op.vtType == 'change'):
                     module = op.db_data
                     if module.db_package == \
-                            'edu.utah.sci.vistrails.persistence':
+                            'org.vistrails.vistrails.persistence':
                         persistent_module_ids.add(module.db_id)
 
         execs = {}

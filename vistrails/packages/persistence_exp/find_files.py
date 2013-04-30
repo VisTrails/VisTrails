@@ -63,7 +63,7 @@ def find_files(filename, version=None):
             if op.db_what == 'module' and (op.vtType == 'add' or 
                                            op.vtType == 'change'):
                 module = op.db_data
-                if module.db_package == 'edu.utah.sci.vistrails.persistence':
+                if module.db_package == 'org.vistrails.vistrails.persistence':
                     persistent_module_ids.add(module.db_id)
                 
     filenames = {}
