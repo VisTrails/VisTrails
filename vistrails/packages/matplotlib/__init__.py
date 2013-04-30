@@ -38,9 +38,7 @@ VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
 """
 
-identifier = 'org.vistrails.matplotlib.new'
-name = 'matplotlib.new'
-version = '1.0.0'
+from identifiers import *
 
 def _is_dat_available():
     try:
@@ -52,12 +50,11 @@ def _is_dat_available():
 def package_dependencies():
     import vistrails.core.packagemanager
     manager = vistrails.core.packagemanager.get_package_manager()
-    #deps = ['org.vistrails.dakoop.numpy']
     deps = []
     if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
         deps += ['edu.utah.sci.vistrails.spreadsheet']
     if _is_dat_available():
-        deps += ['edu.utah.sci.vistrails.control_flow']
+        deps += ['org.vistrails.vistrails.control_flow']
     return deps
 
 def package_requirements():

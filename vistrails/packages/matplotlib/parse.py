@@ -34,7 +34,7 @@ ArtistInspector._get_valid_values_regex = re.compile(
 from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
-sys.path.append('/vistrails/src/git/vistrails')
+sys.path.append('/vistrails/src/git')
 from vistrails.core.modules.utils import expand_port_spec_string
 
 ##############################################################################
@@ -165,8 +165,8 @@ def parse_docutils_elt(elt, last_text=""):
                 parse_docutils_elt(child, last_text + text)
             if child.__class__ == docutils.nodes.literal_block:
                 check_str = (last_text + text).lower().strip()
-                if check_str == "call signature:" or \
-                        check_str == "call signatures:":
+                if check_str.endswith("\ncall signature:") or \
+                        check_str.endswith("\ncall signatures:"):
                     call_signatures.append(ntext)
             text += ntext.strip() + "\n\n"
             args += nargs
@@ -665,9 +665,9 @@ def parse_plots(plot_types, table_overrides):
         if plot == 'contour':
             # want to change the double newline to single newline...
             print "&*&* FINDING:", \
-                docstring.find("*extent*: [ None | (x0,x1,y0,y1) ]\n\n")
-            docstring = docstring.replace("*extent*: [ None | (x0,x1,y0,y1) ]\n\n", 
-                              "*extent*: [ None | (x0,x1,y0,y1) ]\n")
+                docstring.find("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n")
+            docstring = docstring.replace("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n", 
+                              "*extent*: [ *None* | (x0,x1,y0,y1) ]\n")
         if plot == 'annotate':
             docstring = docstring % dict((k,v) for k, v in matplotlib.docstring.interpd.params.iteritems() if k == 'Annotation')
         elif plot == 'barbs':

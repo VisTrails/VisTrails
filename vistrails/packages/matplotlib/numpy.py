@@ -12,11 +12,11 @@ class NumPyArray(Module):
     Declared as returning a List, but returns a Numpy array instead!
     """
     _input_ports = [
-            ('file', '(edu.utah.sci.vistrails.basic:File)'),
-            ('datatype', '(edu.utah.sci.vistrails.basic:String)'),
-            ('shape', '(edu.utah.sci.vistrails.basic:List)')]
+            ('file', '(org.vistrails.vistrails.basic:File)'),
+            ('datatype', '(org.vistrails.vistrails.basic:String)'),
+            ('shape', '(org.vistrails.vistrails.basic:List)')]
     _output_ports = [
-            ('value', '(edu.utah.sci.vistrails.basic:List)')]
+            ('value', '(org.vistrails.vistrails.basic:List)')]
 
     NPY_FMT = object()
 

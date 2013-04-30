@@ -39,6 +39,8 @@ VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
 """
 
-identifier = 'org.vistrails.matplotlib.new'
-name = 'matplotlib.new'
-version = '1.0.0'
+identifier = 'org.vistrails.vistrails.matplotlib'
+name = 'matplotlib'
+version = '1.0.1'
+old_identifiers = ['edu.utah.sci.vistrails.matplotlib',
+                   'org.vistrails.matplotlib.new']

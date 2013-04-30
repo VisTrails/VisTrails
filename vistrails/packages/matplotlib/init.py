@@ -41,9 +41,12 @@ import urllib
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
+import vistrails.core.db.action
 from vistrails.core.modules.basic_modules import Boolean, Color, File, List, \
     String, Integer, Float
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
+from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.operation import AddOp
 
 from vistrails.core.bundles import py_import
 try:
@@ -60,6 +63,7 @@ from .bases import _modules as _base_modules
 from .plots import _modules as _plot_modules
 from .artists import _modules as _artist_modules
 from .numpy import _modules as _numpy_modules
+from .identifiers import identifier
 
 ################################################################################
 
@@ -72,6 +76,7 @@ def initialize(*args, **kwargs):
                       'SpreadsheetCell'):
         from .figure_cell import MplFigureCell
         _modules.append(MplFigureCell)
+
 
 ###############################################################################
 
@@ -279,3 +284,215 @@ else:
             return_type=List,
             symmetric=True),
     ]
+
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+    create_new_connection = UpgradeWorkflowHandler.create_new_connection
+    reg = vistrails.core.modules.module_registry.get_module_registry()
+
+    def find_module_in_upgrade_action(action):
+        for op in action.operations:
+            if isinstance(op, AddOp):
+                if op.what == Module.vtType:
+                    return op.data
+        return None
+
+    def find_inputs(m):
+        functions = {}
+        for f in m.functions:
+            if f.name not in functions:
+                functions[f.name] = [f]
+            else:
+                functions[f.name].append(f)
+        connections = {}
+        for edge in pipeline.graph.iter_edges_to(m.id):
+            c = pipeline.connections[edge[2]]
+            if c.destination.name not in connections:
+                connections[c.destination.name] = [c]
+            else:
+                connections[c.destination.name].append(c)
+        return (functions, connections)
+
+    def find_figure(m):
+        has_new_module = False
+        for edge in pipeline.graph.iter_edges_from(m.id):
+            to_m = pipeline.modules[edge[1]]
+            if to_m.name == 'MplFigure':
+                # !!! assume only a single down-stream MplFigure !!!
+                # may have old or new module...
+                if pipeline.connections[edge[2]].destination.name == 'addPlot':
+                    return (to_m, None)
+                else:
+                    return (to_m, edge)
+        return (None, None)
+
+    def attach_inputs(new_module, inputs, selected_inputs):
+        conns = []
+        for port_name in selected_inputs:
+            if port_name in inputs[0]:
+                for f in inputs[0][port_name]:
+                    if len(f.parameters) > 0:
+                        new_param_vals, aliases = zip(*[(p.strValue, p.alias) 
+                                                        for p in f.parameters])
+                    else:
+                        new_param_vals = []
+                        aliases = []
+                    new_f = controller.create_function(new_module, 
+                                                       port_name,
+                                                       new_param_vals,
+                                                       aliases)
+                    new_module.add_function(new_f)
+            if port_name in inputs[1]:
+                for c in inputs[1][port_name]:
+                    source_module = pipeline.modules[c.source.id]
+                    new_conn = create_new_connection(controller,
+                                                     source_module,
+                                                     c.source,
+                                                     new_module,
+                                                     port_name)
+                    conns.append(new_conn)
+        return conns
+
+    module = pipeline.modules[module_id]
+    to_properties = []
+    to_axes = []
+    old_figure = (None, None)
+    if module.name == 'MplScatterplot':
+        props_name = 'MplPathCollectionProperties'
+        props_input = 'pathCollectionProperties'
+        to_properties = ['facecolor']
+        to_axes = ['title', 'xlabel', 'ylabel']
+        inputs = find_inputs(module)
+        old_loc = module.location
+        old_figure = find_figure(module)
+    elif module.name == 'MplHistogram':
+        props_name = 'MplRectangleProperties'
+        props_input = 'rectangleProperties'
+        to_properties = ['facecolor']
+        to_axes = ['title', 'xlabel', 'ylabel']
+        inputs = find_inputs(module)
+        old_loc = module.location
+        old_figure = find_figure(module)
+
+    module_remap = {'MplPlot': 
+                    [(None, '1.0.0', 'MplSource',
+                      {'dst_port_remap': {'source': 'source',
+                                          'Hide Toolbar': None},
+                       'src_port_remap': {'source': 'self'}})],
+                    'MplFigure': 
+                    [(None, '1.0.0', None,
+                      {'dst_port_remap': {'Script': 'addPlot'},
+                       'src_port_remap': {'FigureManager': 'self',
+                                          'File': 'file'}})],
+                    'MplFigureCell':
+                    [(None, '1.0.0', None,
+                      {'dst_port_remap': {'FigureManager': 'figure'}})],
+                    # we will delete parts of this but add back later
+                    'MplScatterplot':
+                    [(None, '1.0.0', 'MplScatter',
+                      {'dst_port_remap': {'xData': 'x',
+                                          'yData': 'y',
+                                          'facecolor': None,
+                                          'title': None,
+                                          'xlabel': None,
+                                          'ylabel': None},
+                       'src_port_remap': {'source': 'self'}})],
+                    'MplHistogram':
+                    [(None, '1.0.0', 'MplHist',
+                      {'dst_port_remap': {'columnData': 'x',
+                                          'bins': 'bins',
+                                          'facecolor': None,
+                                          'title': None,
+                                          'xlabel': None,
+                                          'ylabel': None},
+                       'src_port_remap': {'source': 'self'}})],
+                }
+
+    action_list = []
+    if old_figure[1] is not None and \
+       any(p in inputs[0] or p in inputs[1] for p in to_axes):
+        # need to remove the edge between plot and figure
+        pipeline.graph.delete_edge(*old_figure[1])
+        conn = pipeline.connections[old_figure[1][2]]
+        action = vistrails.core.db.action.create_action([('delete', conn)])
+        action_list.append(action)
+
+    normal_actions = UpgradeWorkflowHandler.remap_module(controller, module_id, 
+                                                        pipeline, module_remap)
+    action_list.extend(normal_actions)
+
+    more_ops = []
+    if any(p in inputs[0] or p in inputs[1] for p in to_properties):
+        # create props module
+        desc = reg.get_descriptor_by_name(identifier, props_name)
+        props_module = \
+            controller.create_module_from_descriptor(desc,
+                                                     old_loc.x + 100,
+                                                     old_loc.y + 100)
+        more_ops.append(('add', props_module))
+
+        # attach functions/connections
+        conns = attach_inputs(props_module, inputs, to_properties)
+        more_ops.extend([('add', c) for c in conns])
+        
+        # attach into pipeline
+        new_plot_module = find_module_in_upgrade_action(normal_actions[0])
+        assert new_plot_module is not None
+        new_conn = create_new_connection(controller,
+                                         props_module,
+                                         'self',
+                                         new_plot_module,
+                                         props_input)
+        more_ops.append(('add', new_conn))
+
+    if any(p in inputs[0] or p in inputs[1] for p in to_axes):
+        # create axes module
+        desc = reg.get_descriptor_by_name(identifier, "MplAxesProperties")
+        if old_figure[0] is not None:
+            old_loc = old_figure[0].location
+        axes_module = \
+            controller.create_module_from_descriptor(desc,
+                                                     old_loc.x + 100,
+                                                     old_loc.y + 100)
+        more_ops.append(('add', axes_module))
+
+        # attach functions/connections
+        conns = attach_inputs(axes_module, inputs, to_axes)
+        more_ops.extend([('add', c) for c in conns])
+        
+        # attach axes properties to new figure
+        if old_figure[0] is not None and old_figure[1] is not None:
+            # remap figure
+            fig_action = UpgradeWorkflowHandler.remap_module(controller,
+                                                             old_figure[0].id,
+                                                             pipeline,
+                                                             module_remap)
+            fig_module = find_module_in_upgrade_action(fig_action[0])
+            assert fig_module is not None
+            # add the removed edge back in
+            pipeline.graph.add_edge(*old_figure[1])
+            action_list.extend(fig_action)
+
+            new_plot_module = find_module_in_upgrade_action(normal_actions[0])
+            assert new_plot_module is not None
+            conn = create_new_connection(controller,
+                                         new_plot_module,
+                                         'self',
+                                         fig_module,
+                                         'addPlot')
+            action = vistrails.core.db.action.create_action([('add', conn)])
+            action_list.append(action)
+        else:
+            fig_module = old_figure[0]
+        new_conn = create_new_connection(controller,
+                                         axes_module,
+                                         'self',
+                                         fig_module,
+                                         'axesProperties')
+        more_ops.append(('add', new_conn))
+    
+    # for action in action_list:
+    #     for op in action.operations:
+    #         print "@+>:", op
+    return action_list
