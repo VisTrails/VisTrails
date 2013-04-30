@@ -130,6 +130,7 @@ class Package(DBPackage):
             self.package_dir = None
             self.prefix = None
             self.py_dependencies = set()
+            self.old_identifiers = []
         else:
             self._module = other._module
             self._init_module = other._init_module
@@ -138,6 +139,7 @@ class Package(DBPackage):
             self.package_dir = other.package_dir
             self.prefix = other.prefix
             self.py_dependencies = copy.copy(other.py_dependencies)
+            self.old_identifiers = [i for i in self.old_identifiers]
         # FIXME decide whether we want None or ''
         if self.version is None:
             self.version = ''
@@ -469,6 +471,8 @@ class Package(DBPackage):
             self.name = self._module.name
             self.identifier = self._module.identifier
             self.version = self._module.version
+            if hasattr(self._module, "old_identifiers"):
+                self.old_identifiers = self._module.old_identifiers
             self.package_dir = os.path.dirname(self._module.__file__)
         except AttributeError, e:
             try:

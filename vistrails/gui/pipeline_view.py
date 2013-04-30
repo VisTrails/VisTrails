@@ -57,7 +57,7 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.gui.modules.module_configure import DefaultModuleConfigurationWidget
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
@@ -1658,7 +1658,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                       self.module.visible_input_ports,
                                       self.nextInputPortPos,
                                       operator.add,
-                                      '(edu.utah.sci.vistrails.basic:Variant)')
+                                      '(%s:Variant)' % \
+                                          get_vistrails_basic_pkg_id())
         return item
 
     def getOutputPortItem(self, port, do_create=False):
@@ -1670,7 +1671,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                       self.module.visible_output_ports,
                                       self.nextOutputPortPos,
                                       operator.sub,
-                                      '(edu.utah.sci.vistrails.basic:Module)')
+                                      '(%s:Module)' % \
+                                          get_vistrails_basic_pkg_id())
         return item
 
     def addConnectionItem(self, item):
@@ -3255,17 +3257,17 @@ class TestPipelineView(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_group(self):
         vistrails.api.new_vistrail()
-        m1 = vistrails.api.add_module(0, 0,    'edu.utah.sci.vistrails.basic', 'File', '')
-        m2 = vistrails.api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
-        m3 = vistrails.api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
+        basic_pkg = get_vistrails_basic_pkg_id()
+        m1 = vistrails.api.add_module(0, 0,    basic_pkg, 'File', '')
+        m2 = vistrails.api.add_module(0, -100, basic_pkg, 'File', '')
+        m3 = vistrails.api.add_module(0, -100, basic_pkg, 'File', '')
         r = vistrails.api.get_module_registry()
-        src = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
-                              'value_as_string', 'output')
-        dst = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
-                              'name', 'input')
-#         src = r.module_source_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+        src = r.get_port_spec(basic_pkg, 'File', None, 'value_as_string', 
+                              'output')
+        dst = r.get_port_spec(basic_pkg, 'File', None, 'name', 'input')
+#         src = r.module_source_ports(True, basic_pkg, 'File', '')[1]
 #         assert src.name == 'value_as_string'
-#         dst = r.module_destination_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+#         dst = r.module_destination_ports(True, basic_pkg, 'File', '')[1]
 #         assert dst.name == 'name'
         vistrails.api.add_connection(m1.id, src, m2.id, dst)
         vistrails.api.add_connection(m2.id, src, m3.id, dst)

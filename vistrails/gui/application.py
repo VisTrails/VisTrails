@@ -200,6 +200,21 @@ parameters from other instances")
             return self.get_controller().vistrail
         return None
 
+    def ensure_vistrail(self, locator):
+        view = self.builderWindow.ensureVistrail(locator)
+        if view is not None:
+            return view.controller
+        return None
+
+    def add_vistrail(self, *objs):
+        return self.builderWindow.add_vistrail(*objs)
+
+    def remove_vistrail(self, locator):
+        pass
+
+    def select_version(self, version):
+        return self.builderWindow.select_version(version)
+
     def create_notification(self, notification_id, window=None, view=None):
         if view is not None:
             if view not in self.view_notifications:

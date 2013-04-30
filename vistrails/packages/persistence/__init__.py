@@ -34,10 +34,7 @@
 ###############################################################################
 from vistrails.core.configuration import ConfigurationObject
 
-
-identifier = 'edu.utah.sci.vistrails.persistence'
-version = '0.3.0'
-name = 'Persistence'
+from identifiers import *
 
 configuration = ConfigurationObject(global_db=(None, str), 
                                     local_db=(None, str),

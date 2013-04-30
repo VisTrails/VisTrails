@@ -41,6 +41,7 @@ package!
 
 """
 
-identifier = 'edu.utah.sci.vistrails.sql'
+identifier = 'org.vistrails.vistrails.sql'
 name = 'SQL'
-version = '0.0.3'
+version = '0.0.4'
+old_identifiers = ['edu.utah.sci.vistrails.sql']

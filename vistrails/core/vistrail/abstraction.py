@@ -219,7 +219,7 @@ class TestAbstraction(unittest.TestCase):
 #                                   name='value')
 #         m = Module(id=id_scope.getNewId(Module.vtType),
 #                    name='Float',
-#                    package='edu.utah.sci.vistrails.basic',
+#                    package='org.vistrails.vistrails.basic',
 #                    functions=[function])
 
 #         add_op = AddOp(id=id_scope.getNewId('operation'),
