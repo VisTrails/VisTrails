@@ -503,6 +503,8 @@ class VistrailController(object):
 
         """
         if action is not None:
+            if self.current_version == -1:
+                self.change_selected_version(0)
             self.vistrail.add_action(action, self.current_version, 
                                      self.current_session)
             if description is not None:
