@@ -332,7 +332,7 @@ class QMethodInputForm(QtGui.QGroupBox):
             # FIXME: Find the source of this problem instead
             # of working around it here.
             if p.identifier == '':
-                idn = 'edu.utah.sci.vistrails.basic'
+                idn = 'org.vistrails.vistrails.basic'
             else:
                 idn = p.identifier
 
