@@ -46,7 +46,7 @@ class NumPyArray(Module):
         if self.hasInputFromPort('datatype'):
             dtype = NumPyArray.FORMAT_MAP[self.getInputFromPort('datatype')]
         else:
-            if filename[-4].lower() == '.npy':
+            if filename[-4:].lower() == '.npy':
                 dtype = self.NPY_FMT
             else:
                 dtype = numpy.float32
@@ -174,3 +174,217 @@ class ExtractColumn(Module):
 
 
 _modules = [NumPyArray, CSVFile, ExtractColumn]
+
+
+###############################################################################
+
+import contextlib
+import unittest
+
+
+class NumpyTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import os
+        cls._test_dir = os.path.join(
+                os.path.dirname(__file__),
+                'test_files')
+
+    @staticmethod
+    @contextlib.contextmanager
+    def intercept_result(module, output_name):
+        old_setResult = module.setResult
+        results = []
+        def new_setResult(self, name, value):
+            if name == output_name:
+                results.append(value)
+            old_setResult(self, name, value)
+        module.setResult = new_setResult
+        try:
+            yield results
+        finally:
+            module.setResult = old_setResult
+
+    @staticmethod
+    def execute(modules, connections=[]):
+        from vistrails.core.db.locator import XMLFileLocator
+        from vistrails.core.interpreter.default import get_default_interpreter
+        from vistrails.core.utils import DummyView
+        from vistrails.core.vistrail.connection import Connection
+        from vistrails.core.vistrail.module import Module
+        from vistrails.core.vistrail.module_function import ModuleFunction
+        from vistrails.core.vistrail.module_param import ModuleParam
+        from vistrails.core.vistrail.pipeline import Pipeline
+        from vistrails.core.vistrail.port import Port
+
+        pipeline = Pipeline()
+        module_list = []
+        for name, identifier, version, functions in modules:
+            function_list = []
+            for func_name, params in functions:
+                param_list = []
+                for param_type, param_val in params:
+                    param_list.append(ModuleParam(type=param_type,
+                                                  val=param_val))
+                function_list.append(ModuleFunction(name=func_name,
+                                                    parameters=param_list))
+            module = Module(name=name,
+                            package=identifier,
+                            version=version,
+                            id=len(module_list),
+                            functions=function_list)
+            pipeline.add_module(module)
+            module_list.append(module)
+
+        for i, (sid, sport, did, dport, sig) in enumerate(connections):
+            pipeline.add_connection(Connection(
+                    id=i,
+                    ports=[
+                        Port(id=i*2,
+                             type='source',
+                             moduleId=module_list[sid].id,
+                             name=sport,
+                             signature=sig),
+                        Port(id=i*2+1,
+                             type='destination',
+                             moduleId=module_list[did].id,
+                             name=dport,
+                             signature=sig),
+                    ]))
+
+        interpreter = get_default_interpreter()
+        result = interpreter.execute(
+                pipeline,
+                locator=XMLFileLocator('foo.xml'),
+                current_version=1,
+                view=DummyView())
+        return result.errors
+
+    def test_raw_numpy(self):
+        """Uses NumPyArray to load an array in raw format.
+        """
+        from .identifiers import identifier, version
+
+        with NumpyTestCase.intercept_result(NumPyArray, 'value') as results:
+            self.assertFalse(self.execute([
+                    ('NumPyArray', identifier, version, [
+                        ('datatype', [('String', 'float32')]),
+                        ('shape', [('List', '[2, 3]')]),
+                        ('file', [('File', self._test_dir + '/random.dat')]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        self.assertTrue(
+                (results[0] == [[1.0, 7.0, 5.0], [3.0, 6.0, 1.0]]).all())
+
+    def test_npy_numpy(self):
+        """Uses NumPyArray to load an array in .NPY format.
+        """
+        from .identifiers import identifier, version
+
+        with NumpyTestCase.intercept_result(NumPyArray, 'value') as results:
+            self.assertFalse(self.execute([
+                    ('NumPyArray', identifier, version, [
+                        ('datatype', [('String', 'npy')]),
+                        ('file', [('File', self._test_dir + '/random.npy')]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        self.assertEqual(list(results[0]), [1.0, 7.0, 5.0, 3.0, 6.0, 1.0])
+
+    def test_npy_auto_numpy(self):
+        """Uses NumPyArray to load an array in (autodetected) .NPY format.
+        """
+        from .identifiers import identifier, version
+
+        with NumpyTestCase.intercept_result(NumPyArray, 'value') as results:
+            self.assertFalse(self.execute([
+                    ('NumPyArray', identifier, version, [
+                        ('file', [('File', self._test_dir + '/random.npy')]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        self.assertEqual(list(results[0]), [1.0, 7.0, 5.0, 3.0, 6.0, 1.0])
+
+    def test_csv_numeric(self):
+        """Uses CSVFile and ExtractColumn to load a numeric array.
+        """
+        from .identifiers import identifier, version
+
+        with NumpyTestCase.intercept_result(ExtractColumn, 'value') as results:
+            self.assertFalse(self.execute([
+                    ('CSVFile', identifier, version, [
+                        ('file', [('File', self._test_dir + '/test.csv')]),
+                    ]),
+                    ('ExtractColumn', identifier, version, [
+                        ('column_index', [('Integer', '1')]),
+                        ('column_name', [('String', 'col 2')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 1, 'csv',
+                     '(org.vistrails.vistrails.matplotlib:CSVFile)'),
+                ]))
+        self.assertEqual(len(results), 1)
+        self.assertEqual(list(results[0]), [2.0, 3.0, 14.5])
+
+    def test_csv_mismatch(self):
+        """Uses CSVFile and ExtractColumn with mismatching columns.
+        """
+        from .identifiers import identifier, version
+
+        self.assertTrue(self.execute([
+                ('CSVFile', identifier, version, [
+                    ('file', [('File', self._test_dir + '/test.csv')]),
+                ]),
+                ('ExtractColumn', identifier, version, [
+                    ('column_index', [('Integer', '0')]), # index is wrong
+                    ('column_name', [('String', 'col 2')]),
+                ]),
+            ],
+            [
+                (0, 'value', 1, 'csv',
+                 '(org.vistrails.vistrails.matplotlib:CSVFile)'),
+            ]))
+
+    def test_csv_missing(self):
+        """Uses CSVFile and ExtractColumn with a nonexisting column.
+        """
+        from .identifiers import identifier, version
+
+        self.assertTrue(self.execute([
+                ('CSVFile', identifier, version, [
+                    ('file', [('File', self._test_dir + '/test.csv')]),
+                ]),
+                ('ExtractColumn', identifier, version, [
+                    ('column_name', [('String', 'col not here')]),
+                ]),
+            ],
+            [
+                (0, 'value', 1, 'csv',
+                 '(org.vistrails.vistrails.matplotlib:CSVFile)'),
+            ]))
+
+    def test_csv_nonnumeric(self):
+        """Uses CSVFile and ExtractColumn to load strings.
+        """
+        from .identifiers import identifier, version
+
+        with NumpyTestCase.intercept_result(ExtractColumn, 'value') as results:
+            self.assertFalse(self.execute([
+                    ('CSVFile', identifier, version, [
+                        ('file', [('File', self._test_dir + '/test.csv')]),
+                        ('header_present', [('Boolean', 'False')]),
+                    ]),
+                    ('ExtractColumn', identifier, version, [
+                        ('column_index', [('Integer', '2')]),
+                        ('numeric', [('Boolean', 'False')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 1, 'csv',
+                     '(org.vistrails.vistrails.matplotlib:CSVFile)'),
+                ]))
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0],
+                         ['col moutarde', '4', 'not a number', '7'])
