@@ -40,8 +40,10 @@ import vistrails.core.db.action
 from vistrails.core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort
 from vistrails.core.modules.utils import parse_descriptor_string, \
-    create_descriptor_string, expand_port_spec_string
+    create_descriptor_string, parse_port_spec_string, \
+    create_port_spec_string, expand_port_spec_string
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.port import Port
@@ -99,7 +101,16 @@ class UpgradeWorkflowHandler(object):
                 s = reg.get_port_spec_from_descriptor(descriptor, port_name,
                                                       port_type)
                 found = True
-                sigstring = expand_port_spec_string(sigstring, basic_pkg)
+
+                spec_tuples = parse_port_spec_string(sigstring, basic_pkg)
+                for i in xrange(len(spec_tuples)):
+                    spec_tuple = spec_tuples[i]
+                    port_pkg = reg.get_package_by_name(spec_tuple[0])
+                    if port_pkg.identifier != spec_tuple[0]:
+                        # we have an old identifier
+                        spec_tuples[i] = (port_pkg.identifier,) + spec_tuple[1:]
+                sigstring = create_port_spec_string(spec_tuples)
+                # sigstring = expand_port_spec_string(sigstring, basic_pkg)
                 if s.sigstring != sigstring:
                     msg = ('%s port "%s" of module "%s" exists, but '
                            'signatures differ "%s" != "%s"') % \
@@ -412,8 +423,8 @@ class UpgradeWorkflowHandler(object):
     @staticmethod
     def replace_group(controller, pipeline, module_id, new_subpipeline):
         old_group = pipeline.modules[module_id]
-        new_group = controller.create_module('edu.utah.sci.vistrails.basic', 
-                                             'Group', '', 
+        basic_pkg = get_vistrails_basic_pkg_id()
+        new_group = controller.create_module(basic_pkg, 'Group', '', 
                                              old_group.location.x, 
                                              old_group.location.y)
         new_group.pipeline = new_subpipeline

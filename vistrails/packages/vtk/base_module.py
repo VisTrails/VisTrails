@@ -35,10 +35,12 @@
 ################################################################################
 # This describes basic modules used by other VTK module
 ################################################################################
+from itertools import izip
 import vtk
+
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from itertools import izip
+from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 
@@ -193,7 +195,7 @@ class vtkBaseModule(Module):
                 function = 'SetInputConnection'
             if function=='AddInputConnection':
                 desc = registry.get_descriptor_by_name(
-                    'edu.utah.sci.vistrails.vtk',
+                    vtk_pkg_identifier,
                     'vtkAlgorithmOutput')
                 for i in xrange(len(paramList)):
                     if type(paramList[i])==desc.module:
@@ -256,8 +258,7 @@ class vtkBaseModule(Module):
         Create a wrapper module in VisTrails with a vtk instance
         
         """
-        result = registry.get_descriptor_by_name(
-            'edu.utah.sci.vistrails.vtk',
-            classname).module()
+        result = registry.get_descriptor_by_name(vtk_pkg_identifier,
+                                                 classname).module()
         result.vtkInstance = instance
         return result

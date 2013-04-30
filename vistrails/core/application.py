@@ -41,15 +41,19 @@ from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import keychain
 from vistrails.core import system
+from vistrails.core.collection import Collection
 import vistrails.core.configuration
-from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.db.locator import FileLocator, DBLocator, untitled_locator
+import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 import vistrails.core.startup
+from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
 from vistrails.core.utils.uxml import enter_named_element
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
+from vistrails.db import VistrailsDBException
 
 VistrailsApplication = None
 
@@ -523,11 +527,93 @@ after self.init()"""
     def showBuilderWindow(self):
         pass
  
+    def add_vistrail(self, *objs):
+        """add_vistrail creates and returns a new controller based on the
+        information contained in objs.
+
+        """
+        raise NotImplementedError("Subclass must implement add_vistrail!")
+
+    def ensure_vistrail(self, locator):
+        """ensure_vistrail returns the controller matching the locator if the
+        vistrail is already open, otherwise it returns None.
+
+        """
+        raise NotImplementedError("Subclass must implement ensure_vistrail")
+
+    def select_version(self, version=None):
+        """select_version changes the version of the currently open vistrail
+        to the specified version.
+
+        """
+        raise NotImplementedError("Subclass must implement select_version")
+
+    def convert_version(self, version):
+        if isinstance(version, basestring):
+            try:
+                version = \
+                    self.get_controller.vistrail.get_version_number(version)
+            except:
+                version = None
+        return version
+
+    def new_vistrail(self):
+        self.open_vistrail(None)
+
+    def open_vistrail(self, locator=None, version=None, is_abstraction=False):
+        if isinstance(locator, basestring):
+            locator = FileLocator(fname)
+
+        controller = self.ensure_vistrail(locator)
+        if controller is None:
+            # vistrail is not already open
+            try:
+                loaded_objs = vistrails.core.db.io.load_vistrail(locator, False)
+                controller = self.add_vistrail(loaded_objs[0], locator, 
+                                               *loaded_objs[1:])
+                if not locator:
+                    return
+                controller.is_abstraction = is_abstraction
+                thumb_cache = ThumbnailCache.getInstance()
+                controller.vistrail.thumbnails = controller.find_thumbnails(
+                    tags_only=thumb_cache.conf.tagsOnly)
+                controller.vistrail.abstractions = controller.find_abstractions(
+                    controller.vistrail, True)
+                controller.vistrail.mashups = controller._mashups
+                collection = Collection.getInstance()
+                url = locator.to_url()
+                entity = collection.updateVistrail(url, controller.vistrail)
+                # add to relevant workspace categories
+                if not controller.is_abstraction:
+                    collection.add_to_workspace(entity)
+                collection.commit()
+            except VistrailsDBException, e:
+                import traceback
+                debug.critical(str(e), traceback.format_exc())
+                return None
+            except Exception, e:
+                # debug.critical('An error has occurred', str(e))
+                #print "An error has occurred", str(e)
+                raise
+
+        version = self.convert_version(version)
+        if version is None:
+            controller.select_latest_version()
+            version = controller.current_version
+        self.select_version(version)
+        controller.set_changed(False)
+        
+    def close_vistrail(self, locator=None):
+        pass
+
+    def open_workflow(self, locator):
+        pass
+
 class VistrailsCoreApplication(VistrailsApplicationInterface):
     def __init__(self):
         VistrailsApplicationInterface.__init__(self)
-        self._controller = None
-        self._vistrail = None
+        self._controllers = {}
+        self._cur_controller = None
 
     def init(self, optionsDict=None, args=None):
         VistrailsApplicationInterface.init(self, optionsDict=optionsDict, args=args)
@@ -536,20 +622,31 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
     def is_running_gui(self):
         return False
 
-    def get_vistrail(self):
-        if self._vistrail is None:
-            self._vistrail = Vistrail()
-        return self._vistrail
-
     def get_controller(self):
-        if self._controller is None:
-            v = self.get_vistrail()
-            self._controller = VistrailController(v)
-            self._controller.set_vistrail(v, None)
-            self._controller.change_selected_version(0)
-        return self._controller
+        return self._cur_controller
 
+    def add_vistrail(self, *objs):
+        (vistrail, locator, abstraction_files, thumbnail_files, mashups) = objs
+        controller = VistrailController()
+        controller.set_vistrail(*objs)
+        self._controllers[locator] = controller
+        self._cur_controller = controller
+        return self._cur_controller
         
-        
-        
+    def remove_vistrail(self):
+        if self._cur_controller is not None:
+            loc = self._cur_controller.locator
+            del self.controllers[loc]
+
+    def ensure_vistrail(self, locator):
+        if locator in self._controllers:
+            self._cur_controller = self._controller[locator]
+            return self._cur_controller
+        return None
+
+    def select_version(self, version):
+        if self._cur_controller is not None:
+            self._cur_controller.change_selected_version(version)
+            return True
+        return False
         

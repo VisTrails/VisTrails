@@ -49,6 +49,8 @@ import StringIO
 import unittest
 ElementTree = get_elementtree_library()
 
+from identifiers import identifier as vtk_pkg_identifier
+
 ################################################################################
 # etc
 
@@ -681,11 +683,11 @@ class vtkScaledTransferFunction(Module):
         self.setResult('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
         
-        of_module = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 
+        of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
                                                'vtkPiecewiseFunction').module()
         of_module.vtkInstance  = of
         
-        cf_module = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 
+        cf_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
                                                'vtkColorTransferFunction').module()
         cf_module.vtkInstance  = cf
         

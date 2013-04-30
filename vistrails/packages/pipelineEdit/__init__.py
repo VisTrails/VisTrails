@@ -36,6 +36,7 @@
 pipeline, change its parameters based on aliases, and execute them on
 the spreadsheet."""
 
-identifier = 'edu.utah.sci.vistrails.pipelineedit'
+identifier = 'org.vistrails.vistrails.pipelineedit'
 name = 'Pipeline Editor'
-version = '0.0.1'
+version = '0.0.2'
+old_identifiers = ['edu.utah.sci.vistrails.pipelineedit']

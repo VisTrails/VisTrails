@@ -45,6 +45,7 @@ import unittest
 import copy
 from vistrails.db.domain import IdScope
 import vistrails.core
+from vistrails.core.system import get_vistrails_basic_pkg_id
 
 ################################################################################
 
@@ -92,6 +93,9 @@ class ModuleParam(DBParameter):
 
         # this is used for parameter settings
         self._port_spec_item = None
+
+        # Used by constant widgets to determine how default is displayed
+        self.param_exists = True
 
     def __copy__(self):
         return ModuleParam.do_copy(self)
@@ -143,7 +147,7 @@ class ModuleParam(DBParameter):
         if self.db_type:
             (self._identifier, self._type, self._namespace) = \
                 parse_port_spec_item_string(self.db_type,
-                                            "edu.utah.sci.vistrails.basic")
+                                            get_vistrails_basic_pkg_id())
         else:
             self._identifier = None
             self._type = None
@@ -345,29 +349,31 @@ class TestModuleParam(unittest.TestCase):
     
     def testValue(self):
         """ Test values returned by value() function """
+        basic_pkg = get_vistrails_basic_pkg_id()
+
         p = ModuleParam()
         p.type = "Float"
-        p.identifier = 'edu.utah.sci.vistrails.basic'
+        p.identifier = basic_pkg
         assert p.value() == 0.0
         p.strValue = "1.5"
         assert p.value() == 1.5
 
         p.type = "Integer"
-        p.identifier = 'edu.utah.sci.vistrails.basic'
+        p.identifier = basic_pkg
         p.strValue = ""
         assert p.value() == 0
         p.strValue = "2"
         assert p.value() == 2
 
         p.type = "String"
-        p.identifier = 'edu.utah.sci.vistrails.basic'
+        p.identifier = basic_pkg
         p.strValue = ""
         assert p.value() == ""
         p.strValue = "test"
         assert p.value() == "test"
 
         p.type = "Boolean"
-        p.identifier = 'edu.utah.sci.vistrails.basic'
+        p.identifier = basic_pkg
         p.strValue = ""
         assert p.value() == False
         p.strValue = "False"
@@ -389,7 +395,9 @@ class TestModuleParam(unittest.TestCase):
 
 
     def test_parse(self):
+        basic_pkg = get_vistrails_basic_pkg_id()
+
         p = ModuleParam(type='Integer', val='1.5')
-        assert p.identifier == 'edu.utah.sci.vistrails.basic'
-        assert p.type == 'Integer'
-        assert not p.namespace
+        self.assertEqual(p.identifier, basic_pkg)
+        self.assertEqual(p.type, 'Integer')
+        self.assertFalse(p.namespace)

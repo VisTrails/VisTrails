@@ -35,6 +35,7 @@
 """ This modules builds a widget to interact with vistrail diff
 operation """
 from PyQt4 import QtCore, QtGui
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils.color import ColorByName
 from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -550,6 +551,8 @@ class QDiffView(QPipelineView):
         scene = self.scene()
         scene.clearItems()
 
+        basic_pkg = get_vistrails_basic_pkg_id()
+
 #         # FIXME HACK: We will create a dummy object that looks like a
 #         # controller so that the qgraphicsmoduleitems and the scene
 #         # are happy. It will simply store the pipeline will all
@@ -629,9 +632,9 @@ class QDiffView(QPipelineView):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,
@@ -672,9 +675,9 @@ class QDiffView(QPipelineView):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,
@@ -1045,6 +1048,8 @@ class QVisualDiff(QtGui.QMainWindow):
         scene = self.pipelineView.scene()
         scene.clearItems()
 
+        basic_pkg = get_vistrails_basic_pkg_id()
+
         # FIXME HACK: We will create a dummy object that looks like a
         # controller so that the qgraphicsmoduleitems and the scene
         # are happy. It will simply store the pipeline will all
@@ -1124,9 +1129,9 @@ class QVisualDiff(QtGui.QMainWindow):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,
@@ -1165,9 +1170,9 @@ class QVisualDiff(QtGui.QMainWindow):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,

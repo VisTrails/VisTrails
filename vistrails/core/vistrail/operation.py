@@ -343,6 +343,7 @@ class DeleteOp(DBDelete):
 class TestOperation(unittest.TestCase):
     
     def create_ops(self, id_scope=IdScope()):
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         from vistrails.core.vistrail.module import Module
         from vistrails.core.vistrail.module_function import ModuleFunction
         from vistrails.core.vistrail.module_param import ModuleParam
@@ -355,7 +356,7 @@ class TestOperation(unittest.TestCase):
 
         m = Module(id=id_scope.getNewId(Module.vtType),
                    name='Float',
-                   package='edu.utah.sci.vistrails.basic')
+                   package=basic_pkg)
         add_op = AddOp(id=id_scope.getNewId(AddOp.vtType),
                        what=Module.vtType,
                        objectId=m.id,

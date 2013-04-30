@@ -40,8 +40,9 @@ operations exposed by the ImageMagick package.
 """
 from vistrails.core.configuration import ConfigurationObject
 
-identifier = 'edu.utah.sci.vistrails.imagemagick'
+identifier = 'org.vistrails.vistrails.imagemagick'
 name = 'ImageMagick'
-version = '0.9.3'
+version = '0.9.4'
+old_identifiers = ['edu.utah.sci.vistrails.imagemagick']
 configuration = ConfigurationObject(quiet=False,
                                     path=(None, str))

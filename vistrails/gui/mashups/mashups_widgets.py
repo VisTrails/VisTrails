@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 from PyQt4 import QtCore, QtGui
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules import get_widget_class
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
@@ -81,7 +82,7 @@ class QSliderWidget(ConstantWidgetMixin, QtGui.QSlider):
         ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type in['Integer', 'Float']
         self.sliderType = int if param.type == 'Integer' else float
-        assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        assert param.identifier == get_vistrails_basic_pkg_id()
         
         self.connect(self, QtCore.SIGNAL('valueChanged(int)'),self.change_val)
         QtGui.QSlider.setSingleStep(self, 1)
@@ -183,7 +184,7 @@ class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
         QtGui.QSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type == 'Integer'
-        assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        assert param.identifier == get_vistrails_basic_pkg_id()
         
         self.connect(self, QtCore.SIGNAL('valueChanged(int)'),
                      self.change_val)
@@ -211,7 +212,7 @@ class QNumericStepperFloatWidget(ConstantWidgetMixin, QtGui.QDoubleSpinBox):
         QtGui.QDoubleSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type == 'Float'
-        assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        assert param.identifier == get_vistrails_basic_pkg_id()
         
         self.connect(self, QtCore.SIGNAL('valueChanged(double)'),
                      self.change_val)
@@ -320,7 +321,7 @@ class QDropDownWidget(QtGui.QWidget):
         
     def createAliasWidget(self, val=None, parent=None):
         if self.vtparam.identifier == '':
-            idn = 'edu.utah.sci.vistrails.basic'
+            idn = get_vistrails_basic_pkg_id()
         else:
             idn = self.vtparam.identifier
         reg = get_module_registry()

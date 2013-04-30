@@ -41,7 +41,9 @@ from vistrails.core.modules.basic_modules import Path
 from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
+
 from db_utils import DatabaseAccessSingleton
+from identifiers import identifier as persistence_pkg
 import repo
 
 class IntegerWrapper(object):
@@ -826,8 +828,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
-                                       'PersistentRef').module
+            reg.get_descriptor_by_name(persistence_pkg, 'PersistentRef').module
 
         def func_to_bool(function):
             try:
@@ -913,8 +914,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
-                                       'PersistentRef').module
+            reg.get_descriptor_by_name(persistence_pkg, 'PersistentRef').module
 
         functions = []
         if self.new_file and self.new_file.get_path() and \
