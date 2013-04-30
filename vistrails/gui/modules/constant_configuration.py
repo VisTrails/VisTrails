@@ -114,7 +114,7 @@ class StandardConstantWidgetBase(ConstantWidgetMixin):
         ConstantWidgetMixin.__init__(self, value)
 
         # assert param.namespace == None
-        # assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        # assert param.identifier == 'org.vistrails.vistrails.basic'
         if psi and psi.default:
             self.setDefault(psi.default)
         contents = param.strValue
@@ -442,7 +442,7 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         QtGui.QCheckBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type == 'Boolean'
-        assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        assert param.identifier == 'org.vistrails.vistrails.basic'
         assert param.namespace is None
         self._silent = False
         self.setContents(param.strValue)
