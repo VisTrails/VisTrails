@@ -1,168 +1,186 @@
 <vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
-  <action date="2013-03-04 13:56:56" id="1" prevId="0" session="2" user="Remi">
+  <action date="2013-04-30 13:29:51" id="1" prevId="0" session="2" user="Remi">
     <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="0" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="0" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
-      <location id="0" x="-128.219554031" y="85.1869639794" />
+      <location id="0" x="-55.3276157804" y="76.4048027444" />
     </add>
   </action>
-  <action date="2013-03-04 13:56:57" id="2" prevId="1" session="2" user="Remi">
+  <action date="2013-04-30 13:29:52" id="2" prevId="1" session="2" user="Remi">
     <add id="2" objectId="1" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="1" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="1" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="3" objectId="1" parentObjId="1" parentObjType="module" what="location">
-      <location id="1" x="89.5780445969" y="78.1612349914" />
+      <location id="1" x="179.156089194" y="70.2572898799" />
     </add>
   </action>
-  <action date="2013-03-04 13:57:23" id="3" prevId="2" session="2" user="Remi">
-    <add id="4" objectId="0" parentObjId="0" parentObjType="module" what="function">
+  <action date="2013-04-30 13:29:58" id="3" prevId="2" session="2" user="Remi">
+    <add id="4" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="5" objectId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="2" x="31.615780446" y="-86.9433962264" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:30:03" id="4" prevId="3" session="2" user="Remi">
+    <add id="6" objectId="3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3" name="OutputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="7" objectId="3" parentObjId="3" parentObjType="module" what="location">
+      <location id="3" x="76.4048027444" y="-209.015437393" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:30:03" id="5" prevId="4" session="2" user="Remi">
+    <add id="8" objectId="0" parentObjId="" parentObjType="" what="connection">
+      <connection id="0" />
+    </add>
+    <add id="9" objectId="0" parentObjId="0" parentObjType="connection" what="port">
+      <port id="0" moduleId="2" moduleName="PythonSource" name="self" signature="(org.vistrails.vistrails.basic:Module)" type="source" />
+    </add>
+    <add id="10" objectId="1" parentObjId="0" parentObjType="connection" what="port">
+      <port id="1" moduleId="3" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:30:29" id="6" prevId="5" session="2" user="Remi">
+    <add id="11" objectId="0" parentObjId="3" parentObjType="module" what="function">
       <function id="0" name="spec" pos="0" />
     </add>
-    <add id="5" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
-      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.matplotlib:NumPyArray" />
+    <add id="12" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="edu.utah.sci.vistrails.matplotlib:NumPyArray" />
     </add>
   </action>
-  <action date="2013-03-04 13:57:23" id="4" prevId="3" session="2" user="Remi">
-    <add id="6" objectId="1" parentObjId="0" parentObjType="module" what="function">
-      <function id="1" name="optional" pos="1" />
+  <action date="2013-04-30 13:30:41" id="7" prevId="6" session="2" user="Remi">
+    <add id="13" objectId="1" parentObjId="3" parentObjType="module" what="function">
+      <function id="1" name="name" pos="1" />
     </add>
-    <add id="7" objectId="1" parentObjId="1" parentObjType="function" what="parameter">
-      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
-    </add>
-  </action>
-  <action date="2013-03-04 13:57:24" id="5" prevId="4" session="2" user="Remi">
-    <change id="8" newObjId="2" oldObjId="1" parentObjId="1" parentObjType="function" what="parameter">
-      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="False" />
-    </change>
-  </action>
-  <action date="2013-03-04 13:57:30" id="6" prevId="5" session="2" user="Remi">
-    <add id="9" objectId="2" parentObjId="0" parentObjType="module" what="function">
-      <function id="2" name="name" pos="2" />
-    </add>
-    <add id="10" objectId="3" parentObjId="2" parentObjType="function" what="parameter">
-      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="array" />
+    <add id="14" objectId="1" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="result" />
     </add>
   </action>
-  <action date="2013-03-04 13:57:38" id="7" prevId="6" session="2" user="Remi">
-    <add id="11" objectId="3" parentObjId="1" parentObjType="module" what="function">
-      <function id="3" name="spec" pos="0" />
-    </add>
-    <add id="12" objectId="4" parentObjId="3" parentObjType="function" what="parameter">
-      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Float" />
-    </add>
-  </action>
-  <action date="2013-03-04 13:57:39" id="8" prevId="7" session="2" user="Remi">
-    <add id="13" objectId="4" parentObjId="1" parentObjType="module" what="function">
-      <function id="4" name="optional" pos="1" />
-    </add>
-    <add id="14" objectId="5" parentObjId="4" parentObjType="function" what="parameter">
-      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
-    </add>
-  </action>
-  <action date="2013-03-04 13:57:39" id="9" prevId="8" session="2" user="Remi">
-    <change id="15" newObjId="6" oldObjId="5" parentObjId="4" parentObjType="function" what="parameter">
-      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="False" />
-    </change>
-  </action>
-  <action date="2013-03-04 13:57:43" id="10" prevId="9" session="2" user="Remi">
-    <add id="16" objectId="5" parentObjId="1" parentObjType="module" what="function">
-      <function id="5" name="name" pos="2" />
-    </add>
-    <add id="17" objectId="7" parentObjId="5" parentObjType="function" what="parameter">
-      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="num" />
-    </add>
-  </action>
-  <action date="2013-03-04 13:58:00" id="11" prevId="10" session="2" user="Remi">
-    <add id="18" objectId="2" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="2" name="PythonSource" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
-    </add>
-    <add id="19" objectId="2" parentObjId="2" parentObjType="module" what="location">
-      <location id="2" x="-5.26929674099" y="-55.3276157804" />
-    </add>
-  </action>
-  <action date="2013-03-04 13:58:21" id="12" prevId="11" session="2" user="Remi">
-    <add id="20" objectId="6" parentObjId="2" parentObjType="module" what="function">
-      <function id="6" name="source" pos="0" />
-    </add>
-    <add id="21" objectId="8" parentObjId="6" parentObjType="function" what="parameter">
-      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="from%20vistrails.packages.pylab.init%20import%20NumPyArray%0A%0Aa%20%3D%20array.array%0Aoutput%20%3D%20NumPyArray%28%29%0Aoutput.array%20%3D%20a%20%2A%20number%0A" />
-    </add>
-  </action>
-  <action date="2013-03-04 14:00:10" id="13" prevId="12" session="2" user="Remi">
-    <add id="22" objectId="0" parentObjId="2" parentObjType="module" what="portSpec">
+  <action date="2013-04-30 13:31:35" id="8" prevId="7" session="2" user="Remi">
+    <add id="15" objectId="0" parentObjId="2" parentObjType="module" what="portSpec">
       <portSpec id="0" maxConns="-1" minConns="0" name="array" optional="0" sortKey="0" type="input">
         <portSpecItem default="" entryType="" id="-1" label="" module="NumPyArray" namespace="" package="edu.utah.sci.vistrails.matplotlib" pos="0" values="None" />
       </portSpec>
     </add>
-  </action>
-  <action date="2013-03-04 14:01:46" id="14" prevId="13" session="2" user="Remi">
-    <add id="23" objectId="1" parentObjId="2" parentObjType="module" what="portSpec">
+    <add id="16" objectId="1" parentObjId="2" parentObjType="module" what="portSpec">
       <portSpec id="1" maxConns="-1" minConns="0" name="number" optional="0" sortKey="1" type="input">
-        <portSpecItem default="" entryType="" id="-1" label="" module="Float" namespace="" package="edu.utah.sci.vistrails.basic" pos="0" values="None" />
+        <portSpecItem default="" entryType="" id="-1" label="" module="Float" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="None" />
       </portSpec>
     </add>
-    <add id="24" objectId="2" parentObjId="2" parentObjType="module" what="portSpec">
+    <add id="17" objectId="2" parentObjId="2" parentObjType="module" what="portSpec">
       <portSpec id="2" maxConns="-1" minConns="0" name="output" optional="0" sortKey="0" type="output">
         <portSpecItem default="" entryType="" id="-1" label="" module="NumPyArray" namespace="" package="edu.utah.sci.vistrails.matplotlib" pos="0" values="None" />
       </portSpec>
     </add>
-  </action>
-  <action date="2013-03-04 14:01:51" id="15" prevId="14" session="2" user="Remi">
-    <add id="25" objectId="0" parentObjId="" parentObjType="" what="connection">
-      <connection id="0" />
+    <add id="18" objectId="2" parentObjId="2" parentObjType="module" what="function">
+      <function id="2" name="source" pos="0" />
     </add>
-    <add id="26" objectId="0" parentObjId="0" parentObjType="connection" what="port">
-      <port id="0" moduleId="0" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
-    </add>
-    <add id="27" objectId="1" parentObjId="0" parentObjType="connection" what="port">
-      <port id="1" moduleId="2" moduleName="PythonSource" name="array" signature="(edu.utah.sci.vistrails.matplotlib:NumPyArray)" type="destination" />
+    <add id="19" objectId="2" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="from%20vistrails.packages.pylab.init%20import%20NumPyArray%0A%0Aa%20%3D%20array.array%0Aoutput%20%3D%20NumPyArray%28%29%0Aoutput.array%20%3D%20a%20%2A%20number%0A" />
     </add>
   </action>
-  <action date="2013-03-04 14:01:54" id="16" prevId="15" session="2" user="Remi">
-    <add id="28" objectId="1" parentObjId="" parentObjType="" what="connection">
+  <action date="2013-04-30 13:31:42" id="9" prevId="8" session="2" user="Remi">
+    <add id="20" objectId="1" parentObjId="" parentObjType="" what="connection">
       <connection id="1" />
     </add>
-    <add id="29" objectId="2" parentObjId="1" parentObjType="connection" what="port">
-      <port id="2" moduleId="1" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    <add id="21" objectId="2" parentObjId="1" parentObjType="connection" what="port">
+      <port id="2" moduleId="0" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
-    <add id="30" objectId="3" parentObjId="1" parentObjType="connection" what="port">
-      <port id="3" moduleId="2" moduleName="PythonSource" name="number" signature="(edu.utah.sci.vistrails.basic:Float)" type="destination" />
-    </add>
-  </action>
-  <action date="2013-03-04 14:02:05" id="17" prevId="16" session="2" user="Remi">
-    <add id="31" objectId="3" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="3" name="OutputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
-    </add>
-    <add id="32" objectId="3" parentObjId="3" parentObjType="module" what="location">
-      <location id="3" x="-4.3910806175" y="-187.060034305" />
+    <add id="22" objectId="3" parentObjId="1" parentObjType="connection" what="port">
+      <port id="3" moduleId="2" moduleName="PythonSource" name="array" signature="(edu.utah.sci.vistrails.matplotlib:NumPyArray)" type="destination" />
     </add>
   </action>
-  <action date="2013-03-04 14:02:07" id="18" prevId="17" session="2" user="Remi">
-    <add id="33" objectId="7" parentObjId="3" parentObjType="module" what="function">
-      <function id="7" name="spec" pos="0" />
-    </add>
-    <add id="34" objectId="9" parentObjId="7" parentObjType="function" what="parameter">
-      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.matplotlib:NumPyArray" />
-    </add>
-  </action>
-  <action date="2013-03-04 14:02:18" id="19" prevId="18" session="2" user="Remi">
-    <add id="35" objectId="8" parentObjId="3" parentObjType="module" what="function">
-      <function id="8" name="name" pos="1" />
-    </add>
-    <add id="36" objectId="10" parentObjId="8" parentObjType="function" what="parameter">
-      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="result" />
-    </add>
-  </action>
-  <action date="2013-03-04 14:02:25" id="20" prevId="19" session="2" user="Remi">
-    <add id="37" objectId="2" parentObjId="" parentObjType="" what="connection">
+  <action date="2013-04-30 13:31:44" id="10" prevId="9" session="2" user="Remi">
+    <add id="23" objectId="2" parentObjId="" parentObjType="" what="connection">
       <connection id="2" />
     </add>
-    <add id="38" objectId="4" parentObjId="2" parentObjType="connection" what="port">
-      <port id="4" moduleId="2" moduleName="PythonSource" name="output" signature="(edu.utah.sci.vistrails.matplotlib:NumPyArray)" type="source" />
+    <add id="24" objectId="4" parentObjId="2" parentObjType="connection" what="port">
+      <port id="4" moduleId="1" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
-    <add id="39" objectId="5" parentObjId="2" parentObjType="connection" what="port">
-      <port id="5" moduleId="3" moduleName="OutputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+    <add id="25" objectId="5" parentObjId="2" parentObjType="connection" what="port">
+      <port id="5" moduleId="2" moduleName="PythonSource" name="number" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
     </add>
   </action>
+  <action date="2013-04-30 13:31:58" id="11" prevId="10" session="2" user="Remi">
+    <add id="26" objectId="3" parentObjId="0" parentObjType="module" what="function">
+      <function id="3" name="optional" pos="0" />
+    </add>
+    <add id="27" objectId="3" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:31:58" id="12" prevId="11" session="2" user="Remi">
+    <change id="28" newObjId="4" oldObjId="3" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
+    </change>
+  </action>
+  <action date="2013-04-30 13:32:00" id="13" prevId="12" session="2" user="Remi">
+    <add id="29" objectId="4" parentObjId="0" parentObjType="module" what="function">
+      <function id="4" name="spec" pos="1" />
+    </add>
+    <add id="30" objectId="5" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="edu.utah.sci.vistrails.matplotlib:NumPyArray" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:32:05" id="14" prevId="13" session="2" user="Remi">
+    <add id="31" objectId="5" parentObjId="0" parentObjType="module" what="function">
+      <function id="5" name="name" pos="2" />
+    </add>
+    <add id="32" objectId="6" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="array" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:32:15" id="15" prevId="14" session="2" user="Remi">
+    <add id="33" objectId="6" parentObjId="1" parentObjType="module" what="function">
+      <function id="6" name="name" pos="0" />
+    </add>
+    <add id="34" objectId="7" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="num" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:32:15" id="16" prevId="15" session="2" user="Remi">
+    <add id="35" objectId="7" parentObjId="1" parentObjType="module" what="function">
+      <function id="7" name="optional" pos="1" />
+    </add>
+    <add id="36" objectId="8" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:32:15" id="17" prevId="16" session="2" user="Remi">
+    <change id="37" newObjId="9" oldObjId="8" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
+    </change>
+  </action>
+  <action date="2013-04-30 13:32:21" id="18" prevId="17" session="2" user="Remi">
+    <add id="38" objectId="8" parentObjId="1" parentObjType="module" what="function">
+      <function id="8" name="spec" pos="2" />
+    </add>
+    <add id="39" objectId="10" parentObjId="8" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Float" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:32:36" id="19" prevId="18" session="2" user="Remi">
+    <change id="40" newObjId="11" oldObjId="10" parentObjId="8" parentObjType="function" what="parameter">
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Float" />
+    </change>
+  </action>
+  <action date="2013-04-30 13:49:56" id="20" prevId="19" session="5" user="Remi">
+    <add id="41" objectId="3" parentObjId="" parentObjType="" what="connection">
+      <connection id="3" />
+    </add>
+    <add id="42" objectId="6" parentObjId="3" parentObjType="connection" what="port">
+      <port id="6" moduleId="2" moduleName="PythonSource" name="output" signature="(edu.utah.sci.vistrails.matplotlib:NumPyArray)" type="source" />
+    </add>
+    <add id="43" objectId="7" parentObjId="3" parentObjType="connection" what="port">
+      <port id="7" moduleId="3" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-30 13:49:57" id="21" prevId="20" session="5" user="Remi">
+    <delete id="44" objectId="0" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="45" objectId="1" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="46" objectId="0" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <vistrailVariable module="String" name="dat-sheet-1" namespace="" package="org.vistrails.vistrails.basic" uuid="4afaa8de-b1be-11e2-9478-8c89a505652a" value="scale_array.xml / Sheet 1" />
 </vistrail>
