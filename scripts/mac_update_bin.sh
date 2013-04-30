@@ -71,10 +71,10 @@ then
 fi
 ln -s -f -F $1/$ROOT_DIR_NAME $2/$BIN_PATH/$ROOT_DIR_NAME
 
-if [ -e "$2/$BIN_PATH/../../vistrails.py" ]
+if [ -e "$2/$BIN_PATH/../../run.py" ]
 then
-    rm $2/$BIN_PATH/../../vistrails.py
+    rm $2/$BIN_PATH/../../run.py
 fi
-ln -s -f -F $1/$ROOT_DIR_NAME/vistrails.py $2/$BIN_PATH/../../vistrails.py
+ln -s -f -F $1/$ROOT_DIR_NAME/run.py $2/$BIN_PATH/../../run.py
 
 exit 0

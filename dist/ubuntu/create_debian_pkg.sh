@@ -42,7 +42,7 @@ cp _debian/* debian/DEBIAN
 
 (cat <<EOF
 #!/bin/sh
-python /usr/local/vistrails/vistrails.py -l
+python /usr/local/vistrails/run.py -l
 EOF
 ) >> debian/usr/local/bin/vistrails
 
