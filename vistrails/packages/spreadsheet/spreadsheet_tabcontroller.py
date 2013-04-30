@@ -111,11 +111,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
             self.closeButton.setAutoRaise(True)
             self.setCornerWidget(self.closeButton)
-            close_tab_action = spreadsheet_controller.get_ss_hook(
-                    'close_tab_action')
+            close_action = spreadsheet_controller.get_ss_hook(
+                    'tab_close_sheet_action')
             def close_veto():
-                if (close_tab_action is None or
-                        close_tab_action(self.currentWidget())):
+                if (close_action is None or
+                        close_action(self.currentWidget())):
                     self.deleteSheetAction().trigger()
             self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
                          close_veto)
@@ -309,7 +309,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         """
         new_tab_action = spreadsheet_controller.get_ss_hook(
-                'create_sheet_action')
+                'tab_create_sheet_action')
         if new_tab_action is None:
             tab = StandardWidgetSheetTab(self)
             name = None

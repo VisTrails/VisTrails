@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # DAK: the deletes screw things up in the binary (definitely for
     #   Mac) and since subdir is unlikely, I'm commenting them out. A
-    #   better solution is probably to move vistrails.py up a
+    #   better solution is probably to move run.py up a
     #   directory in the repo
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     # i = 0

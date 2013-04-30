@@ -177,12 +177,14 @@ class SpreadsheetController(object):
             window_create_first_sheet=True,
             # Allows to create a new sheet from a sheet's toolbar
             tab_create_sheet=True,
-            create_sheet_action=None,
+            tab_create_sheet_action=None,
             # Allows to rename a sheet from the tab bar
             tab_rename_sheet=True,
+            tab_begin_rename_action=None,
+            tab_end_rename_action=None,
             # Allows to close a sheet from the tab bar
             tab_close_sheet=True,
-            close_tab_action=None,
+            tab_close_sheet_action=None,
             # Allows to delete (i.e. empty) a cell in the sheet
             tab_delete_cell=True,
             # Additional actions or widgets to add to the toolbar
