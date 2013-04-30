@@ -2,37 +2,37 @@
   <action date="2013-03-22 14:22:50" id="1" prevId="0" session="2" user="Remi">
     <annotation id="0" key="__description__" value="Paste" />
     <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="0" name="MplHist" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+      <module cache="1" id="0" name="MplHist" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
     </add>
     <add id="1" objectId="2" parentObjId="0" parentObjType="module" what="function">
       <function id="2" name="x" pos="2" />
     </add>
     <add id="2" objectId="2" parentObjId="2" parentObjType="function" what="parameter">
-      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:List" val="[1, 2, 2, 4, 4, 4, 5]" />
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="[1, 2, 2, 4, 4, 4, 5]" />
     </add>
     <add id="3" objectId="1" parentObjId="0" parentObjType="module" what="function">
       <function id="1" name="histtype" pos="1" />
     </add>
     <add id="4" objectId="1" parentObjId="1" parentObjType="function" what="parameter">
-      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="bar" />
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="bar" />
     </add>
     <add id="5" objectId="0" parentObjId="0" parentObjType="module" what="function">
       <function id="0" name="binsScalar" pos="0" />
     </add>
     <add id="6" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
-      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="10" />
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="10" />
     </add>
     <add id="7" objectId="0" parentObjId="0" parentObjType="module" what="location">
       <location id="0" x="-2.56901387759" y="61.6404676976" />
     </add>
     <add id="8" objectId="1" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="1" name="MplFigure" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+      <module cache="1" id="1" name="MplFigure" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
     </add>
     <add id="9" objectId="1" parentObjId="1" parentObjType="module" what="location">
       <location id="1" x="-7.11003383329" y="-6.47483163718" />
     </add>
     <add id="10" objectId="2" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="2" name="MplFigureCell" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+      <module cache="1" id="2" name="MplFigureCell" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
     </add>
     <add id="11" objectId="2" parentObjId="2" parentObjType="module" what="location">
       <location id="2" x="38.3001657233" y="-81.4016609052" />
@@ -41,29 +41,29 @@
       <connection id="0" />
     </add>
     <add id="13" objectId="1" parentObjId="0" parentObjType="connection" what="port">
-      <port id="1" moduleId="1" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.matplotlib.new:MplPlot)" type="destination" />
+      <port id="1" moduleId="1" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="destination" />
     </add>
     <add id="14" objectId="0" parentObjId="0" parentObjType="connection" what="port">
-      <port id="0" moduleId="0" moduleName="MplHist" name="self" signature="(org.vistrails.matplotlib.new:MplHist)" type="source" />
+      <port id="0" moduleId="0" moduleName="MplHist" name="self" signature="(org.vistrails.vistrails.matplotlib:MplHist)" type="source" />
     </add>
     <add id="15" objectId="1" parentObjId="" parentObjType="" what="connection">
       <connection id="1" />
     </add>
     <add id="16" objectId="3" parentObjId="1" parentObjType="connection" what="port">
-      <port id="3" moduleId="2" moduleName="MplFigureCell" name="figure" signature="(org.vistrails.matplotlib.new:MplFigure)" type="destination" />
+      <port id="3" moduleId="2" moduleName="MplFigureCell" name="figure" signature="(org.vistrails.vistrails.matplotlib:MplFigure)" type="destination" />
     </add>
     <add id="17" objectId="2" parentObjId="1" parentObjType="connection" what="port">
-      <port id="2" moduleId="1" moduleName="MplFigure" name="self" signature="(org.vistrails.matplotlib.new:MplFigure)" type="source" />
+      <port id="2" moduleId="1" moduleName="MplFigure" name="self" signature="(org.vistrails.vistrails.matplotlib:MplFigure)" type="source" />
     </add>
   </action>
   <action date="2013-03-22 14:22:56" id="2" prevId="1" session="2" user="Remi">
     <change id="18" newObjId="3" oldObjId="2" parentObjId="2" parentObjType="function" what="parameter">
-      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:List" val="" />
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="" />
     </change>
   </action>
   <action date="2013-03-22 14:23:17" id="3" prevId="2" session="2" user="Remi">
     <change id="19" newObjId="4" oldObjId="0" parentObjId="0" parentObjType="function" what="parameter">
-      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="" />
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="" />
     </change>
   </action>
   <action date="2013-03-22 14:23:18" id="4" prevId="3" session="2" user="Remi">
@@ -72,12 +72,12 @@
   </action>
   <action date="2013-03-22 14:23:27" id="5" prevId="4" session="2" user="Remi">
     <change id="22" newObjId="5" oldObjId="3" parentObjId="2" parentObjType="function" what="parameter">
-      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:List" val="[1, 2, 2, 3, 3, 3, 5]" />
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="[1, 2, 2, 3, 3, 3, 5]" />
     </change>
   </action>
   <action date="2013-03-22 14:23:35" id="6" prevId="5" session="2" user="Remi">
     <change id="23" newObjId="6" oldObjId="5" parentObjId="2" parentObjType="function" what="parameter">
-      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:List" val="" />
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="" />
     </change>
   </action>
   <action date="2013-03-22 14:23:35" id="7" prevId="6" session="2" user="Remi">
@@ -86,7 +86,7 @@
   </action>
   <action date="2013-03-22 14:23:40" id="8" prevId="7" session="2" user="Remi">
     <add id="26" objectId="3" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="3" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="3" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="27" objectId="3" parentObjId="3" parentObjType="module" what="location">
       <location id="3" x="-169.341614907" y="165.366459627" />
@@ -97,15 +97,15 @@
       <connection id="2" />
     </add>
     <add id="29" objectId="4" parentObjId="2" parentObjType="connection" what="port">
-      <port id="4" moduleId="3" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="4" moduleId="3" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="30" objectId="5" parentObjId="2" parentObjType="connection" what="port">
-      <port id="5" moduleId="0" moduleName="MplHist" name="x" signature="(edu.utah.sci.vistrails.basic:List)" type="destination" />
+      <port id="5" moduleId="0" moduleName="MplHist" name="x" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
     </add>
   </action>
   <action date="2013-03-22 14:23:48" id="10" prevId="9" session="2" user="Remi">
     <add id="31" objectId="4" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="4" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="4" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="32" objectId="4" parentObjId="4" parentObjType="module" what="location">
       <location id="4" x="-93.0186335404" y="173.316770186" />
@@ -116,10 +116,10 @@
       <connection id="3" />
     </add>
     <add id="34" objectId="6" parentObjId="3" parentObjType="connection" what="port">
-      <port id="6" moduleId="4" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="6" moduleId="4" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="35" objectId="7" parentObjId="3" parentObjType="connection" what="port">
-      <port id="7" moduleId="0" moduleName="MplHist" name="binsScalar" signature="(edu.utah.sci.vistrails.basic:Integer)" type="destination" />
+      <port id="7" moduleId="0" moduleName="MplHist" name="binsScalar" signature="(org.vistrails.vistrails.basic:Integer)" type="destination" />
     </add>
   </action>
   <action date="2013-03-22 14:24:14" id="12" prevId="11" session="2" user="Remi">
@@ -130,97 +130,97 @@
   <action date="2013-03-22 14:24:14" id="13" prevId="12" session="2" user="Remi">
     <annotation id="2" key="__description__" value="Paste" />
     <add id="37" objectId="5" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="5" name="MplRectangleProperties" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+      <module cache="1" id="5" name="MplRectangleProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
     </add>
     <add id="38" objectId="5" parentObjId="5" parentObjType="module" what="function">
       <function id="5" name="facecolor" pos="2" />
     </add>
     <add id="39" objectId="9" parentObjId="5" parentObjType="function" what="parameter">
-      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Color" val="1.0,0.955336842908,0.391927977417" />
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="1.0,0.955336842908,0.391927977417" />
     </add>
     <add id="40" objectId="4" parentObjId="5" parentObjType="module" what="function">
       <function id="4" name="edgecolor" pos="1" />
     </add>
     <add id="41" objectId="8" parentObjId="4" parentObjType="function" what="parameter">
-      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Color" val="1.0,0.349614709697,0.342015716793" />
+      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="1.0,0.349614709697,0.342015716793" />
     </add>
     <add id="42" objectId="3" parentObjId="5" parentObjType="module" what="function">
       <function id="3" name="alpha" pos="0" />
     </add>
     <add id="43" objectId="7" parentObjId="3" parentObjType="function" what="parameter">
-      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Float" val="0.8" />
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Float" val="0.8" />
     </add>
     <add id="44" objectId="6" parentObjId="5" parentObjType="module" what="location">
       <location id="6" x="111.444247381" y="-86.5950838679" />
     </add>
     <add id="45" objectId="6" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="6" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="6" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="46" objectId="8" parentObjId="6" parentObjType="module" what="function">
       <function id="8" name="spec" pos="2" />
     </add>
     <add id="47" objectId="12" parentObjId="8" parentObjType="function" what="parameter">
-      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Float" />
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Float" />
     </add>
     <add id="48" objectId="7" parentObjId="6" parentObjType="module" what="function">
       <function id="7" name="optional" pos="1" />
     </add>
     <add id="49" objectId="11" parentObjId="7" parentObjType="function" what="parameter">
-      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
     </add>
     <add id="50" objectId="6" parentObjId="6" parentObjType="module" what="function">
       <function id="6" name="name" pos="0" />
     </add>
     <add id="51" objectId="10" parentObjId="6" parentObjType="function" what="parameter">
-      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="alpha" />
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="alpha" />
     </add>
     <add id="52" objectId="7" parentObjId="6" parentObjType="module" what="location">
       <location id="7" x="128.230233484" y="16.2468337271" />
     </add>
     <add id="53" objectId="7" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="7" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="7" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="54" objectId="11" parentObjId="7" parentObjType="module" what="function">
       <function id="11" name="spec" pos="2" />
     </add>
     <add id="55" objectId="15" parentObjId="11" parentObjType="function" what="parameter">
-      <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Color" />
+      <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Color" />
     </add>
     <add id="56" objectId="10" parentObjId="7" parentObjType="module" what="function">
       <function id="10" name="optional" pos="1" />
     </add>
     <add id="57" objectId="14" parentObjId="10" parentObjType="function" what="parameter">
-      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
     </add>
     <add id="58" objectId="9" parentObjId="7" parentObjType="module" what="function">
       <function id="9" name="name" pos="0" />
     </add>
     <add id="59" objectId="13" parentObjId="9" parentObjType="function" what="parameter">
-      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="facecolor" />
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="facecolor" />
     </add>
     <add id="60" objectId="8" parentObjId="7" parentObjType="module" what="location">
       <location id="8" x="-25.4575881284" y="17.3961202181" />
     </add>
     <add id="61" objectId="8" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="8" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="8" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="62" objectId="14" parentObjId="8" parentObjType="module" what="function">
       <function id="14" name="spec" pos="2" />
     </add>
     <add id="63" objectId="18" parentObjId="14" parentObjType="function" what="parameter">
-      <parameter alias="" id="18" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Color" />
+      <parameter alias="" id="18" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Color" />
     </add>
     <add id="64" objectId="13" parentObjId="8" parentObjType="module" what="function">
       <function id="13" name="optional" pos="1" />
     </add>
     <add id="65" objectId="17" parentObjId="13" parentObjType="function" what="parameter">
-      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
     </add>
     <add id="66" objectId="12" parentObjId="8" parentObjType="module" what="function">
       <function id="12" name="name" pos="0" />
     </add>
     <add id="67" objectId="16" parentObjId="12" parentObjType="function" what="parameter">
-      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edgecolor" />
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="edgecolor" />
     </add>
     <add id="68" objectId="9" parentObjId="8" parentObjType="module" what="location">
       <location id="9" x="-176.055402052" y="17.9707634631" />
@@ -229,28 +229,28 @@
       <connection id="4" />
     </add>
     <add id="70" objectId="9" parentObjId="4" parentObjType="connection" what="port">
-      <port id="9" moduleId="5" moduleName="MplRectangleProperties" name="alpha" signature="(edu.utah.sci.vistrails.basic:Float)" type="destination" />
+      <port id="9" moduleId="5" moduleName="MplRectangleProperties" name="alpha" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
     </add>
     <add id="71" objectId="8" parentObjId="4" parentObjType="connection" what="port">
-      <port id="8" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="8" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="72" objectId="5" parentObjId="" parentObjType="" what="connection">
       <connection id="5" />
     </add>
     <add id="73" objectId="11" parentObjId="5" parentObjType="connection" what="port">
-      <port id="11" moduleId="5" moduleName="MplRectangleProperties" name="facecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+      <port id="11" moduleId="5" moduleName="MplRectangleProperties" name="facecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
     </add>
     <add id="74" objectId="10" parentObjId="5" parentObjType="connection" what="port">
-      <port id="10" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="10" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="75" objectId="6" parentObjId="" parentObjType="" what="connection">
       <connection id="6" />
     </add>
     <add id="76" objectId="13" parentObjId="6" parentObjType="connection" what="port">
-      <port id="13" moduleId="5" moduleName="MplRectangleProperties" name="edgecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+      <port id="13" moduleId="5" moduleName="MplRectangleProperties" name="edgecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
     </add>
     <add id="77" objectId="12" parentObjId="6" parentObjType="connection" what="port">
-      <port id="12" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="12" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
   </action>
   <action date="2013-03-22 14:24:47" id="14" prevId="13" session="2" user="Remi">
@@ -278,10 +278,10 @@
       <connection id="7" />
     </add>
     <add id="85" objectId="14" parentObjId="7" parentObjType="connection" what="port">
-      <port id="14" moduleId="5" moduleName="MplRectangleProperties" name="self" signature="(org.vistrails.matplotlib.new:MplRectangleProperties)" type="source" />
+      <port id="14" moduleId="5" moduleName="MplRectangleProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplRectangleProperties)" type="source" />
     </add>
     <add id="86" objectId="15" parentObjId="7" parentObjType="connection" what="port">
-      <port id="15" moduleId="0" moduleName="MplHist" name="rectangleProperties" signature="(org.vistrails.matplotlib.new:MplRectangleProperties)" type="destination" />
+      <port id="15" moduleId="0" moduleName="MplHist" name="rectangleProperties" signature="(org.vistrails.vistrails.matplotlib:MplRectangleProperties)" type="destination" />
     </add>
   </action>
   <action date="2013-03-22 14:25:00" id="16" prevId="15" session="2" user="Remi">
@@ -289,7 +289,7 @@
       <function id="15" name="name" pos="0" />
     </add>
     <add id="88" objectId="19" parentObjId="15" parentObjType="function" what="parameter">
-      <parameter alias="" id="19" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="bins" />
+      <parameter alias="" id="19" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="bins" />
     </add>
   </action>
   <action date="2013-03-22 14:25:01" id="17" prevId="16" session="2" user="Remi">
@@ -297,7 +297,7 @@
       <function id="16" name="optional" pos="1" />
     </add>
     <add id="90" objectId="20" parentObjId="16" parentObjType="function" what="parameter">
-      <parameter alias="" id="20" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+      <parameter alias="" id="20" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
     </add>
   </action>
   <action date="2013-03-22 14:25:16" id="18" prevId="17" session="2" user="Remi">
@@ -305,7 +305,7 @@
       <function id="17" name="spec" pos="2" />
     </add>
     <add id="92" objectId="21" parentObjId="17" parentObjType="function" what="parameter">
-      <parameter alias="" id="21" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:Integer" />
+      <parameter alias="" id="21" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Integer" />
     </add>
   </action>
   <action date="2013-03-22 14:25:23" id="19" prevId="18" session="2" user="Remi">
@@ -313,7 +313,7 @@
       <function id="18" name="spec" pos="0" />
     </add>
     <add id="94" objectId="22" parentObjId="18" parentObjType="function" what="parameter">
-      <parameter alias="" id="22" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:List" />
+      <parameter alias="" id="22" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:List" />
     </add>
   </action>
   <action date="2013-03-22 14:25:24" id="20" prevId="19" session="2" user="Remi">
@@ -321,12 +321,12 @@
       <function id="19" name="optional" pos="1" />
     </add>
     <add id="96" objectId="23" parentObjId="19" parentObjType="function" what="parameter">
-      <parameter alias="" id="23" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+      <parameter alias="" id="23" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
     </add>
   </action>
   <action date="2013-03-22 14:25:24" id="21" prevId="20" session="2" user="Remi">
     <change id="97" newObjId="24" oldObjId="23" parentObjId="19" parentObjType="function" what="parameter">
-      <parameter alias="" id="24" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="False" />
+      <parameter alias="" id="24" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
     </change>
   </action>
   <action date="2013-03-22 14:25:37" id="22" prevId="21" session="2" user="Remi">
@@ -339,7 +339,7 @@
       <function id="20" name="name" pos="2" />
     </add>
     <add id="100" objectId="25" parentObjId="20" parentObjType="function" what="parameter">
-      <parameter alias="" id="25" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="x" />
+      <parameter alias="" id="25" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="x" />
     </add>
   </action>
   <action date="2013-03-22 15:58:28" id="24" prevId="23" session="5" user="Remi">
@@ -421,10 +421,10 @@
       <connection id="8" />
     </add>
     <add id="124" objectId="16" parentObjId="8" parentObjType="connection" what="port">
-      <port id="16" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="16" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="125" objectId="17" parentObjId="8" parentObjType="connection" what="port">
-      <port id="17" moduleId="9" moduleName="Default" name="Input" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="17" moduleId="9" moduleName="Default" name="Input" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:18:57" id="34" prevId="33" session="8" user="Remi">
@@ -432,10 +432,10 @@
       <connection id="9" />
     </add>
     <add id="127" objectId="18" parentObjId="9" parentObjType="connection" what="port">
-      <port id="18" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="18" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="128" objectId="19" parentObjId="9" parentObjType="connection" what="port">
-      <port id="19" moduleId="10" moduleName="Default" name="Input" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="19" moduleId="10" moduleName="Default" name="Input" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:18:59" id="35" prevId="34" session="8" user="Remi">
@@ -443,10 +443,10 @@
       <connection id="10" />
     </add>
     <add id="130" objectId="20" parentObjId="10" parentObjType="connection" what="port">
-      <port id="20" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="20" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="131" objectId="21" parentObjId="10" parentObjType="connection" what="port">
-      <port id="21" moduleId="11" moduleName="Default" name="Input" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="21" moduleId="11" moduleName="Default" name="Input" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:19:02" id="36" prevId="35" session="8" user="Remi">
@@ -454,10 +454,10 @@
       <connection id="11" />
     </add>
     <add id="133" objectId="22" parentObjId="11" parentObjType="connection" what="port">
-      <port id="22" moduleId="9" moduleName="Default" name="Result" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="22" moduleId="9" moduleName="Default" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="134" objectId="23" parentObjId="11" parentObjType="connection" what="port">
-      <port id="23" moduleId="5" moduleName="MplRectangleProperties" name="alpha" signature="(edu.utah.sci.vistrails.basic:Float)" type="destination" />
+      <port id="23" moduleId="5" moduleName="MplRectangleProperties" name="alpha" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:19:03" id="37" prevId="36" session="8" user="Remi">
@@ -465,10 +465,10 @@
       <connection id="12" />
     </add>
     <add id="136" objectId="24" parentObjId="12" parentObjType="connection" what="port">
-      <port id="24" moduleId="10" moduleName="Default" name="Result" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="24" moduleId="10" moduleName="Default" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="137" objectId="25" parentObjId="12" parentObjType="connection" what="port">
-      <port id="25" moduleId="5" moduleName="MplRectangleProperties" name="facecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+      <port id="25" moduleId="5" moduleName="MplRectangleProperties" name="facecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:19:05" id="38" prevId="37" session="8" user="Remi">
@@ -476,10 +476,10 @@
       <connection id="13" />
     </add>
     <add id="139" objectId="26" parentObjId="13" parentObjType="connection" what="port">
-      <port id="26" moduleId="11" moduleName="Default" name="Result" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="26" moduleId="11" moduleName="Default" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="140" objectId="27" parentObjId="13" parentObjType="connection" what="port">
-      <port id="27" moduleId="5" moduleName="MplRectangleProperties" name="edgecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+      <port id="27" moduleId="5" moduleName="MplRectangleProperties" name="edgecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:19:07" id="39" prevId="38" session="8" user="Remi">
@@ -516,7 +516,7 @@
   </action>
   <action date="2013-03-25 12:19:33" id="43" prevId="42" session="8" user="Remi">
     <add id="155" objectId="12" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="12" name="Float" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="12" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="156" objectId="30" parentObjId="12" parentObjType="module" what="location">
       <location id="30" x="-440.259479435" y="581.562919784" />
@@ -532,10 +532,10 @@
       <connection id="14" />
     </add>
     <add id="159" objectId="28" parentObjId="14" parentObjType="connection" what="port">
-      <port id="28" moduleId="12" moduleName="Float" name="value" signature="(edu.utah.sci.vistrails.basic:Float)" type="source" />
+      <port id="28" moduleId="12" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
     </add>
     <add id="160" objectId="29" parentObjId="14" parentObjType="connection" what="port">
-      <port id="29" moduleId="9" moduleName="Default" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="29" moduleId="9" moduleName="Default" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:19:44" id="46" prevId="45" session="8" user="Remi">
@@ -543,7 +543,7 @@
       <function id="21" name="value" pos="0" />
     </add>
     <add id="162" objectId="26" parentObjId="21" parentObjType="function" what="parameter">
-      <parameter alias="" id="26" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Float" val="1.0" />
+      <parameter alias="" id="26" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Float" val="1.0" />
     </add>
   </action>
   <action date="2013-03-25 12:19:46" id="47" prevId="46" session="8" user="Remi">
@@ -568,10 +568,10 @@
       <connection id="15" />
     </add>
     <add id="179" objectId="30" parentObjId="15" parentObjType="connection" what="port">
-      <port id="30" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="30" moduleId="6" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="180" objectId="31" parentObjId="15" parentObjType="connection" what="port">
-      <port id="31" moduleId="5" moduleName="MplRectangleProperties" name="alpha" signature="(edu.utah.sci.vistrails.basic:Float)" type="destination" />
+      <port id="31" moduleId="5" moduleName="MplRectangleProperties" name="alpha" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:20:04" id="49" prevId="48" session="8" user="Remi">
@@ -581,7 +581,7 @@
   </action>
   <action date="2013-03-25 12:20:04" id="50" prevId="49" session="8" user="Remi">
     <add id="182" objectId="13" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="13" name="Color" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="13" name="Color" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="183" objectId="37" parentObjId="13" parentObjType="module" what="location">
       <location id="37" x="-184.511930373" y="629.442597919" />
@@ -597,10 +597,10 @@
       <connection id="16" />
     </add>
     <add id="186" objectId="32" parentObjId="16" parentObjType="connection" what="port">
-      <port id="32" moduleId="13" moduleName="Color" name="value" signature="(edu.utah.sci.vistrails.basic:Color)" type="source" />
+      <port id="32" moduleId="13" moduleName="Color" name="value" signature="(org.vistrails.vistrails.basic:Color)" type="source" />
     </add>
     <add id="187" objectId="33" parentObjId="16" parentObjType="connection" what="port">
-      <port id="33" moduleId="10" moduleName="Default" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="33" moduleId="10" moduleName="Default" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:20:13" id="53" prevId="52" session="8" user="Remi">
@@ -608,19 +608,19 @@
       <function id="22" name="value" pos="0" />
     </add>
     <add id="189" objectId="27" parentObjId="22" parentObjType="function" what="parameter">
-      <parameter alias="" id="27" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Color" val="0.227450980392,0.2,1.0" />
+      <parameter alias="" id="27" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.227450980392,0.2,1.0" />
     </add>
   </action>
   <action date="2013-03-25 12:20:17" id="54" prevId="53" session="8" user="Remi">
     <annotation id="5" key="__description__" value="Paste" />
     <add id="190" objectId="14" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="14" name="Color" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="14" name="Color" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="191" objectId="23" parentObjId="14" parentObjType="module" what="function">
       <function id="23" name="value" pos="0" />
     </add>
     <add id="192" objectId="28" parentObjId="23" parentObjType="function" what="parameter">
-      <parameter alias="" id="28" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Color" val="0.227450980392,0.2,1.0" />
+      <parameter alias="" id="28" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.227450980392,0.2,1.0" />
     </add>
     <add id="193" objectId="40" parentObjId="14" parentObjType="module" what="location">
       <location id="40" x="-141.303440349" y="130.7932671" />
@@ -636,15 +636,15 @@
       <connection id="17" />
     </add>
     <add id="196" objectId="34" parentObjId="17" parentObjType="connection" what="port">
-      <port id="34" moduleId="14" moduleName="Color" name="value" signature="(edu.utah.sci.vistrails.basic:Color)" type="source" />
+      <port id="34" moduleId="14" moduleName="Color" name="value" signature="(org.vistrails.vistrails.basic:Color)" type="source" />
     </add>
     <add id="197" objectId="35" parentObjId="17" parentObjType="connection" what="port">
-      <port id="35" moduleId="11" moduleName="Default" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="35" moduleId="11" moduleName="Default" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-03-25 12:20:24" id="57" prevId="56" session="8" user="Remi">
     <change id="198" newObjId="29" oldObjId="28" parentObjId="23" parentObjType="function" what="parameter">
-      <parameter alias="" id="29" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Color" val="0.0,0.0,0.0" />
+      <parameter alias="" id="29" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.0,0.0,0.0" />
     </change>
   </action>
   <action date="2013-03-25 12:30:51" id="58" prevId="57" session="8" user="Remi">
@@ -658,37 +658,37 @@
   <action date="2013-03-25 12:30:51" id="59" prevId="58" session="8" user="Remi">
     <annotation id="6" key="__description__" value="Paste" />
     <add id="201" objectId="15" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="15" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="15" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="202" objectId="26" parentObjId="15" parentObjType="module" what="function">
       <function id="26" name="name" pos="2" />
     </add>
     <add id="203" objectId="32" parentObjId="26" parentObjType="function" what="parameter">
-      <parameter alias="" id="32" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="title" />
+      <parameter alias="" id="32" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="title" />
     </add>
     <add id="204" objectId="25" parentObjId="15" parentObjType="module" what="function">
       <function id="25" name="spec" pos="1" />
     </add>
     <add id="205" objectId="31" parentObjId="25" parentObjType="function" what="parameter">
-      <parameter alias="" id="31" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="edu.utah.sci.vistrails.basic:String" />
+      <parameter alias="" id="31" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:String" />
     </add>
     <add id="206" objectId="24" parentObjId="15" parentObjType="module" what="function">
       <function id="24" name="optional" pos="0" />
     </add>
     <add id="207" objectId="30" parentObjId="24" parentObjType="function" what="parameter">
-      <parameter alias="" id="30" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+      <parameter alias="" id="30" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
     </add>
     <add id="208" objectId="44" parentObjId="15" parentObjType="module" what="location">
       <location id="44" x="69.0940578578" y="257.818016238" />
     </add>
     <add id="209" objectId="16" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="16" name="MplAxesProperties" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+      <module cache="1" id="16" name="MplAxesProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
     </add>
     <add id="210" objectId="45" parentObjId="16" parentObjType="module" what="location">
       <location id="45" x="82.8165723528" y="43.0862917059" />
     </add>
     <add id="211" objectId="17" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="17" name="MplTextProperties" namespace="" package="org.vistrails.matplotlib.new" version="1.0.0" />
+      <module cache="1" id="17" name="MplTextProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
     </add>
     <add id="212" objectId="46" parentObjId="17" parentObjType="module" what="location">
       <location id="46" x="82.8165723528" y="147.529750686" />
@@ -697,19 +697,19 @@
       <connection id="18" />
     </add>
     <add id="214" objectId="37" parentObjId="18" parentObjType="connection" what="port">
-      <port id="37" moduleId="16" moduleName="MplAxesProperties" name="titleProperties" signature="(org.vistrails.matplotlib.new:MplTextProperties)" type="destination" />
+      <port id="37" moduleId="16" moduleName="MplAxesProperties" name="titleProperties" signature="(org.vistrails.vistrails.matplotlib:MplTextProperties)" type="destination" />
     </add>
     <add id="215" objectId="36" parentObjId="18" parentObjType="connection" what="port">
-      <port id="36" moduleId="17" moduleName="MplTextProperties" name="self" signature="(org.vistrails.matplotlib.new:MplTextProperties)" type="source" />
+      <port id="36" moduleId="17" moduleName="MplTextProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplTextProperties)" type="source" />
     </add>
     <add id="216" objectId="19" parentObjId="" parentObjType="" what="connection">
       <connection id="19" />
     </add>
     <add id="217" objectId="39" parentObjId="19" parentObjType="connection" what="port">
-      <port id="39" moduleId="17" moduleName="MplTextProperties" name="text" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+      <port id="39" moduleId="17" moduleName="MplTextProperties" name="text" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
     </add>
     <add id="218" objectId="38" parentObjId="19" parentObjType="connection" what="port">
-      <port id="38" moduleId="15" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="38" moduleId="15" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
   </action>
   <action date="2013-03-25 12:30:54" id="60" prevId="59" session="8" user="Remi">
@@ -728,10 +728,10 @@
       <connection id="20" />
     </add>
     <add id="223" objectId="40" parentObjId="20" parentObjType="connection" what="port">
-      <port id="40" moduleId="16" moduleName="MplAxesProperties" name="self" signature="(org.vistrails.matplotlib.new:MplAxesProperties)" type="source" />
+      <port id="40" moduleId="16" moduleName="MplAxesProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplAxesProperties)" type="source" />
     </add>
     <add id="224" objectId="41" parentObjId="20" parentObjType="connection" what="port">
-      <port id="41" moduleId="1" moduleName="MplFigure" name="axesProperties" signature="(org.vistrails.matplotlib.new:MplAxesProperties)" type="destination" />
+      <port id="41" moduleId="1" moduleName="MplFigure" name="axesProperties" signature="(org.vistrails.vistrails.matplotlib:MplAxesProperties)" type="destination" />
     </add>
   </action>
   <action date="2013-04-09 16:23:45" id="62" prevId="61" session="11" user="Remi">
@@ -739,10 +739,10 @@
       <connection id="21" />
     </add>
     <add id="226" objectId="42" parentObjId="21" parentObjType="connection" what="port">
-      <port id="42" moduleId="13" moduleName="Color" name="value_as_string" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+      <port id="42" moduleId="13" moduleName="Color" name="value_as_string" signature="(org.vistrails.vistrails.basic:String)" type="source" />
     </add>
     <add id="227" objectId="43" parentObjId="21" parentObjType="connection" what="port">
-      <port id="43" moduleId="7" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="43" moduleId="7" moduleName="InputPort" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-04-09 16:23:52" id="63" prevId="62" session="11" user="Remi">
@@ -750,10 +750,10 @@
       <connection id="22" />
     </add>
     <add id="229" objectId="44" parentObjId="22" parentObjType="connection" what="port">
-      <port id="44" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="44" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="230" objectId="45" parentObjId="22" parentObjType="connection" what="port">
-      <port id="45" moduleId="5" moduleName="MplRectangleProperties" name="facecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+      <port id="45" moduleId="5" moduleName="MplRectangleProperties" name="facecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
     </add>
   </action>
   <action date="2013-04-09 16:23:53" id="64" prevId="63" session="11" user="Remi">
@@ -779,10 +779,10 @@
       <connection id="23" />
     </add>
     <add id="244" objectId="46" parentObjId="23" parentObjType="connection" what="port">
-      <port id="46" moduleId="14" moduleName="Color" name="value" signature="(edu.utah.sci.vistrails.basic:Color)" type="source" />
+      <port id="46" moduleId="14" moduleName="Color" name="value" signature="(org.vistrails.vistrails.basic:Color)" type="source" />
     </add>
     <add id="245" objectId="47" parentObjId="23" parentObjType="connection" what="port">
-      <port id="47" moduleId="8" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="47" moduleId="8" moduleName="InputPort" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-04-09 16:24:03" id="67" prevId="66" session="11" user="Remi">
@@ -790,10 +790,10 @@
       <connection id="24" />
     </add>
     <add id="247" objectId="48" parentObjId="24" parentObjType="connection" what="port">
-      <port id="48" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+      <port id="48" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
     </add>
     <add id="248" objectId="49" parentObjId="24" parentObjType="connection" what="port">
-      <port id="49" moduleId="5" moduleName="MplRectangleProperties" name="edgecolor" signature="(edu.utah.sci.vistrails.basic:Color)" type="destination" />
+      <port id="49" moduleId="5" moduleName="MplRectangleProperties" name="edgecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
     </add>
   </action>
   <action date="2013-04-09 16:24:04" id="68" prevId="67" session="11" user="Remi">
@@ -811,7 +811,7 @@
   </action>
   <action date="2013-04-11 11:02:22" id="69" prevId="68" session="14" user="Remi">
     <add id="260" objectId="18" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="18" name="Integer" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+      <module cache="1" id="18" name="Integer" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
     </add>
     <add id="261" objectId="51" parentObjId="18" parentObjType="module" what="location">
       <location id="51" x="152.042289496" y="345.225433798" />
@@ -822,10 +822,10 @@
       <connection id="25" />
     </add>
     <add id="263" objectId="50" parentObjId="25" parentObjType="connection" what="port">
-      <port id="50" moduleId="18" moduleName="Integer" name="value" signature="(edu.utah.sci.vistrails.basic:Integer)" type="source" />
+      <port id="50" moduleId="18" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
     </add>
     <add id="264" objectId="51" parentObjId="25" parentObjType="connection" what="port">
-      <port id="51" moduleId="4" moduleName="InputPort" name="Default" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      <port id="51" moduleId="4" moduleName="InputPort" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
   </action>
   <action date="2013-04-11 11:02:30" id="71" prevId="70" session="14" user="Remi">
@@ -838,7 +838,7 @@
       <function id="27" name="value" pos="0" />
     </add>
     <add id="267" objectId="33" parentObjId="27" parentObjType="function" what="parameter">
-      <parameter alias="" id="33" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Integer" val="10" />
+      <parameter alias="" id="33" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="10" />
     </add>
   </action>
 </vistrail>
