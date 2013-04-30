@@ -2475,8 +2475,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 assert len(data.items) == 1
-                if self.controller.current_version==-1:
-                    self.controller.change_selected_version(0)
                 self.add_module_event(event, data)
                 event.accept()
                 return
@@ -2683,8 +2681,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.controller and not self.read_only_mode:
-            if self.controller.current_version == -1:
-                self.controller.change_selected_version(0)
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text().toAscii())
             if text=='' or not text.startswith("<workflow"): return
