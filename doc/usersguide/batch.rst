@@ -9,38 +9,38 @@ Starting |vistrails| via the Command Line
 
 .. index:: command line arguments
 
-|vistrails| supports a number of command-line arguments that let you modify certain attributes and behaviors of the program. When invoking |vistrails| from the command line, the arguments are placed after the "vistrails.py" filename. For example,
+|vistrails| supports a number of command-line arguments that let you modify certain attributes and behaviors of the program. When invoking |vistrails| from the command line, the arguments are placed after the "run.py" filename. For example,
 
-   ``python vistrails.py -n``
+   ``python vistrails/run.py -n``
 
 suppresses the |vistrails| splash screen. Table :ref:`table-batch-cli` contains a complete list of the command line switches supported by \vistrails. Each command line switch has both a short form and a long form. The two forms are logically equivalent, and which one you use is a matter of personal preference. The short form consists of a single minus sign "-" followed by a single letter. The longer form uses two minus signs "--" followed by a descriptive word. For example, the above command to suppress the splash screen could have been written as:
 
-   ``python vistrails.py --nosplash``
+   ``python vistrails/run.py --nosplash``
 
 
 In addition to the explicit switches listed in Table :ref:`table-batch-cli`, the |vistrails| command line also lets you indicate the filename of the vistrail you wish to open. For example, assuming your "examples" directory is one level above your current working directory, this is how you would tell |vistrails| to load the "lung.vt" example at startup:
 
-   ``python vistrails.py ../examples/lung.vt``
+   ``python vistrails/run.py ../examples/lung.vt``
 
 
 Moreover, if you want |vistrails| to start on a *specific version* of the pipeline within the vistrail, you can indicate that version's tag name on the command line. The filename and version tag should be separated by a colon. For example, to start |vistrails| with the ``colormap`` version of the "lung.vt" vistrail, use:
 
-   ``python vistrails.py ../examples/lung.vt:colormap``
+   ``python vistrails/run.py ../examples/lung.vt:colormap``
 
 
 In the event that the version you want to open contains a space in its tag name, simply surround the entire "filename:tag" pair in double quotes. For example:
 
-   ``python vistrails.py "../examples/lung.vt:Axial View"``
+   ``python vistrails/run.py "../examples/lung.vt:Axial View"``
 
 
 You can also open up multiple vistrails at once by listing more than one vistrail file on the command line. This causes the vistrails to be opened in separate tabs, just as if you had opened them via the GUI. For example:
 
-   ``python vistrails.py ../examples/lung.vt ../examples/head.vt``
+   ``python vistrails/run.py ../examples/lung.vt ../examples/head.vt``
 
 
 You can specify version tags in conjunction with multiple filenames. Here is an example of an elaborate command-line invocation that opens two vistrails and sets each one to a specific version:
 
-   ``python vistrails.py "../examples/lung.vt:Axial View" ../examples/head.vt:bone``
+   ``python vistrails/run.py "../examples/lung.vt:Axial View" ../examples/head.vt:bone``
 
 
 
@@ -171,9 +171,9 @@ Specifying a User Configuration Directory
 =========================================
 
 In addition to the default .vistrails directory, VisTrails allows you to create and use additional configuration directories.  First, you will need to create a new directory.  This is done by running:
- ``python vistrails.py -S /path_to_new_directory/new_directory_name``.  
+ ``python vistrails/run.py -S /path_to_new_directory/new_directory_name``.  
 
-This will both create a new directory containing default configuration files and directories, and launch VisTrails, which will use the newly created files for configuration.  The user is then free to add desired configurations to the new directory.  Once a configuration directory exists, subsequent calls using the directory name (``python vistrails.py -S /path_to_directory/existing_directory``) will launch VisTrails using the 'existing_directory' for configuration and a new directory will not be created.
+This will both create a new directory containing default configuration files and directories, and launch VisTrails, which will use the newly created files for configuration.  The user is then free to add desired configurations to the new directory.  Once a configuration directory exists, subsequent calls using the directory name (``python vistrails/run.py -S /path_to_directory/existing_directory``) will launch VisTrails using the 'existing_directory' for configuration and a new directory will not be created.
 
 **Note:** If you would like to copy configuration directories, you must change the references in copy_of_directory/startup.xml to point to the new directory instead of the original.
 
@@ -186,7 +186,7 @@ As discussed in Chapter :ref:`chap-database`, |vistrails| can read and write vis
 
 The last four rows of Table :ref:`table-batch-cli` show the command-line switches that pertain to database connectivity. Be advised that these switches were designed primarily for use by VTL files (see Section :ref:`sec-cli-vtl`) and as such, are not necessarily user-friendly. In particular, these switches are ignored unless you also specify the vistrail ID and version name on the command line. For example, to open the ``contour`` version of the the "spx" vistrail (whose ID is 5) from the database "vistrails" residing on the host "vistrails.sci.utah.edu" with a username of "vistrails":
 
-   ``python vistrails.py -t vistrails.sci.utah.edu -f vistrails -u vistrails 5:contour``
+   ``python vistrails/run.py -t vistrails.sci.utah.edu -f vistrails -u vistrails 5:contour``
 
 
 Once |vistrails| opens, you will be prompted to enter the password. Upon successful authentication, the vistrail is loaded from the database and opened to the pipeline corresponding to the specified version.
@@ -200,7 +200,7 @@ As discussed in Chapter :ref:`chap-database`, one of the advantages of storing y
 
 A VTL is a very small text (XML) file that contains the parameters required to load a vistrail from a database. VTL files are intended for use with a |vistrails|-enabled wiki. You can open a VTL either by saving the file and passing its filename to the command line, or by configuring your web browser to do this for you. Here is the syntax for using a VTL file on the command line:
 
-   ``python vistrails.py sample.vtl``
+   ``python vistrails/run.py sample.vtl``
 
 
 Internally, |vistrails| parses the VTL file and loads the vistrail from the database exactly as if you had included its full parameter list on the command line.
@@ -224,7 +224,7 @@ Running |vistrails| in non-interactive mode has little effect, however, without 
 
 Consider the following example. The "offscreen.vt" vistrail (included in the "examples" directory) has a variety of output options, depending on which version you select in the ``History`` view (Figure :ref:`The different versions of the offscreen.vt vistrail... <fig-batch-version_tree>`). The version tagged ``only vtk`` displays its output as an interactive VTK rendering. The version tagged ``html`` creates a simple web page in the Spreadsheet. The ``offscreen`` version, however, outputs an image file named "image.png". Since its output (a file) can be easily accessed outside of |vistrails|, this version is an ideal candidate for running in batch mode.  To try it, invoke |vistrails| as shown, specifying both the name of the vistrail file and the desired version:
 
-   ``python vistrails.py -b ../examples/offscreen.vt:offscreen``
+   ``python vistrails/run.py -b ../examples/offscreen.vt:offscreen``
 
 .. _fig-batch-version_tree:
 
@@ -250,7 +250,7 @@ Running a Specific Workflow in Batch Mode
 
 To run a specific workflow in batch mode, call |Vistrails| with the following options:
 
-   ``python vistrails.py -b path_to_vistrails_file:pipeline``
+   ``python vistrails/run.py -b path_to_vistrails_file:pipeline``
 
 where pipeline can be a version **tag name** or version **id**.
 
@@ -276,15 +276,15 @@ Users can change workflow parameters that have an alias through the command line
 
 For example, offscreen pipeline in offscreen.vt always creates the file called image.png. If you want generate it with a different filename:
 
-``python vistrails.py -b ../examples/offscreen.vt:offscreen -a"filename=other.png"``
+``python vistrails/run.py -b ../examples/offscreen.vt:offscreen -a"filename=other.png"``
 
 filename in the example above is the alias name assigned to the parameter in the value method inside the String module. When running a pipeline from the command line, VisTrails will try to start the spreadsheet automatically if the pipeline requires it. For example, this other execution will also start the spreadsheet (attention to how $ characters are escaped when running on bash):
 
-``python vistrails.py -b ../examples/head.vt:aliases -a"isovalue=30\$&\$diffuse_color=0.8, 0.4, 0.2"``
+``python vistrails/run.py -b ../examples/head.vt:aliases -a"isovalue=30\$&\$diffuse_color=0.8, 0.4, 0.2"``
 
 You can also execute more than one pipeline on the command line:
 
-``python vistrails.py -b ../examples/head.vt:aliases ../examples/spx.vt:spx \ -a"isovalue=30"``
+``python vistrails/run.py -b ../examples/head.vt:aliases ../examples/spx.vt:spx \ -a"isovalue=30"``
 
 Use the -a parameter only once regardless the number of pipelines.
 
@@ -330,15 +330,15 @@ Executing Parameter Explorations from the Command Line
 
 Named parameter explorations can be executed from the command line in different ways using the -P flag. The parameter after the vistrail will then indicate the parameter exploration name in place of the workflow version. To open vistrails and execute a parameter exploration named "final" in terminator.vt run:
 
-``python vistrails.py -P terminator.vt:final``
+``python vistrails/run.py -P terminator.vt:final``
 
 To only show the spreadsheet run:
 
-``python vistrails.py -P -i terminator.vt:final``
+``python vistrails/run.py -P -i terminator.vt:final``
 
 To execute the spreadsheet in batch mode, and to output the spreadsheet as images to a directory, use the -b flag and specify a directory with the -e flag:
 
-``python vistrails.py -P -b -e ./final_images terminator.vt:final``
+``python vistrails/run.py -P -b -e ./final_images terminator.vt:final``
 
 This will create an image for each cell and also create a composite image for each sheet in the spreadsheet.
 

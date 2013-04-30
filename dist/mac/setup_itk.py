@@ -19,7 +19,7 @@ plist = dict(
 )
 
 sys.path.append('../..')
-APP = ['../../vistrails/vistrails.py']
+APP = ['../../vistrails/run.py']
 #comma-separated list of additional data files and
 #folders to include (not for code!)
 #DATA_FILES = ['/usr/local/graphviz-2.12/bin/dot',]

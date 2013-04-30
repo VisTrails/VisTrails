@@ -19,7 +19,7 @@ If you want to use a different server, add the following to your tex file:
 
 Or if you want to run a local copy of vistrails:
 
-\renewcommand{\vistrailspath}{/path/to/vistrails.py}
+\renewcommand{\vistrailspath}{/path/to/vistrails/run.py}
 
 To embed the links in the generated images, use 
 \renewcommand{\vistrailsdownload}{http://yourwebserver.somethingelse/download.php}

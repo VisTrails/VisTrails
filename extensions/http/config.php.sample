@@ -1,7 +1,7 @@
 <?php
 ////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (C) 2011-2012, NYU-Poly.
+// Copyright (C) 2011-2013, NYU-Poly.
 // Copyright (C) 2006-2011, University of Utah. 
 // All rights reserved.
 // Contact: contact@vistrails.org
@@ -48,7 +48,7 @@ $USE_VISTRAILS_XML_RPC_SERVER = True;
 //Set this to False if VisTrails server runs on a different machine
 $USE_LOCAL_VISTRAILS_SERVER = True;
 
-// Change this to point to the folder where vistrails.py is
+// Change this to point to the folder where run.py is
 // You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
 // Used in run_vistrails.php
 $PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
