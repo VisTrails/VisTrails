@@ -42,8 +42,10 @@ runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
+import doctest
 import os
 import sys
+import traceback
 import unittest
 import os.path
 import optparse
@@ -100,38 +102,23 @@ def sub_print(s, overline=False):
     print s
     print "-" * len(s)
 
-def get_test_cases(module):
-    """Return all test cases from the module. Test cases are classes derived
-    from unittest.TestCase"""
-    result = []
-    import inspect
-    for member_name in dir(module):
-        member = getattr(module, member_name)
-        if inspect.isclass(member) and issubclass(member, unittest.TestCase):
-            result.append(member)
-    return result
-
 ###############################################################################
 
 usage = "Usage: %prog [options] [module1 module2 ...]"
 parser = OptionParser(usage=usage)
 parser.add_option("-V", "--verbose", action="store", type="int",
-                  default=None, dest="verbose",
+                  default=0, dest="verbose",
                   help="set verboseness level(0--2, default=0, "
                   "higher means more verbose)")
 parser.add_option("-e", "--examples", action="store_true",
-                  default=None,
+                  default=False,
                   help="will run vistrails examples")
 
 (options, args) = parser.parse_args()
 # remove empty strings
 args = filter(len, args)
-verbose = 0
-if options.verbose:
-    verbose = options.verbose
-test_examples = False 
-if options.examples:
-    test_examples = True
+verbose = options.verbose
+test_examples = options.examples
 test_modules = None
 if len(args) > 0:
     test_modules = set(args)
@@ -159,13 +146,14 @@ print "Test Suite for VisTrails"
 tests_passed = True
 
 main_test_suite = unittest.TestSuite()
+test_loader = unittest.TestLoader()
 
 if test_modules:
     sub_print("Trying to import some of the modules")
 else:
     sub_print("Trying to import all modules")
 
-for (p, subdirs, files) in os.walk(os.path.join(root_directory)):
+for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
     if p.find('.svn') != -1 or p.find('.git') != -1 :
         continue
@@ -173,7 +161,7 @@ for (p, subdirs, files) in os.walk(os.path.join(root_directory)):
         # skip files that don't look like VisTrails python modules
         if not filename.endswith('.py'):
             continue
-        module = os.path.join("vistrails", p[len(root_directory)+1:], 
+        module = os.path.join("vistrails", p[len(root_directory)+1:],
                               filename[:-3])
         if (module.startswith('vistrails.tests') or
             module.startswith(os.sep) or
@@ -193,6 +181,7 @@ for (p, subdirs, files) in os.walk(os.path.join(root_directory)):
         module = module.replace('\\','.')
         if module.endswith('__init__'):
             module = module[:-9]
+        m = None
         try:
             if '.' in module:
                 m = __import__(module, globals(), locals(), ['foo'])
@@ -203,17 +192,32 @@ for (p, subdirs, files) in os.walk(os.path.join(root_directory)):
                 print "Skipping %s, not an importable module" % filename
         except:
             print msg, "ERROR: Could not import module!"
+            if verbose >= 1:
+                traceback.print_exc(file=sys.stdout)
             continue
 
-        test_cases = get_test_cases(m)
-        for test_case in test_cases:
-            suite = unittest.TestLoader().loadTestsFromTestCase(test_case)
+        if m is not None:
+            # Load the unittest TestCases
+            suite = test_loader.loadTestsFromModule(m)
+
+            # Load the doctests
+            #try:
+            #    suite.addTests(doctest.DocTestSuite(m))
+            #except ValueError:
+            #    pass # No doctest is fine, we check that some tests exist later
+            # The doctests are currently opt-in; a load_tests method can be
+            # defined to build a DocTestSuite
+
             main_test_suite.addTests(suite)
 
-        if not test_cases and verbose >= 1:
-            print msg, "WARNING: %s has no tests!" % filename
-        elif verbose >= 2:
-            print msg, "Ok: %s test cases." % len(test_cases)
+            if suite.countTestCases() == 0 and verbose >= 1:
+                print msg, "WARNING: %s has no tests!" % filename
+            elif verbose >= 2:
+                print msg, "Ok: %s test cases." % len(suite.countTestCases())
+
+sub_print("Imported modules. Running %d tests..." %
+          main_test_suite.countTestCases(),
+          overline=True)
 
 ############## TEST VISTRAIL IMAGES ####################
 # Compares thumbnails with the generated images to detect broken visualizations
@@ -234,7 +238,7 @@ def compare_thumbnails(prev, next):
         removealpha.SetComponents(0,1,2)
         removealpha.SetInputConnection(freader.GetOutputPort())
         removealpha.Update()
-        return removealpha.GetOutput()            
+        return removealpha.GetOutput()
     #do the image comparison
     a = removeAlpha(prev)
     b = removeAlpha(next)
@@ -278,9 +282,11 @@ result = unittest.TextTestRunner().run(main_test_suite)
 if not result.wasSuccessful():
     tests_passed = False
 
+sub_print("Tests finished.", overline=True)
+
 if test_examples:
     import vistrails.core.console_mode
-    print "Testing examples:"
+    sub_print("Testing examples:")
     summary = {}
     nworkflows = 0
     nvtfiles = 0
@@ -305,12 +311,12 @@ if test_examples:
             summary[vtfile] = errs
         nvtfiles += 1
 
-    print "-----------------------------------------------------------------"
-    print "Summary of Examples: %s workflows in %s vistrail files"%(nworkflows,
-                                                                    nvtfiles)
+    print "-" * 79
+    print "Summary of Examples: %s workflows in %s vistrail files" % (
+              nworkflows, nvtfiles)
     print ""
     errors = False
-    for vtfile, errs in summary.iteritems():        
+    for vtfile, errs in summary.iteritems():
         print vtfile
         if len(errs) > 0:
             for err in errs:
@@ -318,14 +324,15 @@ if test_examples:
             errors = True
         else:
             print "  Ok."
-    print "-----------------------------------------------------------------"
+    print "-" * 79
     if errors:
         tests_passed = False
-        print "There were errors. See summary for more information"
+        sub_print("There were errors. See summary for more information")
     else:
-        print "Examples ran successfully."
+        sub_print("Examples ran successfully.")
 
 vistrails.gui.application.get_vistrails_application().finishSession()
 vistrails.gui.application.stop_application()
+
 # Test Runners can use the return value to know if the tests passed
 sys.exit(0 if tests_passed else 1)
