@@ -42,7 +42,7 @@ runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
-import doctest
+#import doctest
 import os
 import sys
 import traceback
@@ -190,30 +190,33 @@ for (p, subdirs, files) in os.walk(root_directory):
         except vistrails.tests.NotModule:
             if verbose >= 1:
                 print "Skipping %s, not an importable module" % filename
+            continue
         except:
             print msg, "ERROR: Could not import module!"
             if verbose >= 1:
                 traceback.print_exc(file=sys.stdout)
             continue
 
-        if m is not None:
-            # Load the unittest TestCases
-            suite = test_loader.loadTestsFromModule(m)
+        # Load the unittest TestCases
+        suite = test_loader.loadTestsFromModule(m)
 
-            # Load the doctests
-            #try:
-            #    suite.addTests(doctest.DocTestSuite(m))
-            #except ValueError:
-            #    pass # No doctest is fine, we check that some tests exist later
-            # The doctests are currently opt-in; a load_tests method can be
-            # defined to build a DocTestSuite
+        # Load the doctests
+        #try:
+        #    suite.addTests(doctest.DocTestSuite(m))
+        #except ValueError:
+        #    pass # No doctest is fine, we check that some tests exist later
+        # The doctests are currently opt-in; a load_tests method can be
+        # defined to build a DocTestSuite
+        # This is because some modules have interpreter-formatted examples that
+        # are NOT doctests, and because mining the codebase for doctests is
+        # painfully slow
 
-            main_test_suite.addTests(suite)
+        main_test_suite.addTests(suite)
 
-            if suite.countTestCases() == 0 and verbose >= 1:
-                print msg, "WARNING: %s has no tests!" % filename
-            elif verbose >= 2:
-                print msg, "Ok: %s test cases." % len(suite.countTestCases())
+        if suite.countTestCases() == 0 and verbose >= 1:
+            print msg, "WARNING: %s has no tests!" % filename
+        elif verbose >= 2:
+            print msg, "Ok: %s test cases." % len(suite.countTestCases())
 
 sub_print("Imported modules. Running %d tests..." %
           main_test_suite.countTestCases(),
