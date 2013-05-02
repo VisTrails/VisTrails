@@ -1,7 +1,7 @@
 import contextlib
 
 
-def execute(modules, connections=[]):
+def execute(modules, connections=[], add_port_specs=[]):
     """Build a pipeline and execute it.
 
     This is useful to simply build a pipeline in a test case, and run it. When
@@ -24,6 +24,15 @@ def execute(modules, connections=[]):
             (source_module_index, 'source_port_name',
              dest_module_index, 'dest_module_name'),
          ]
+
+    add_port_specs is a list of specs to add to modules, with the following
+    format:
+        [
+            (mod_id, 'input'/'output', 'portname',
+             '(port_sig)'),
+        ]
+    It is useful to test modules that can have custom ports through a
+    configuration widget.
 
     The function returns the 'errors' dict it gets from the interpreter, so you
     should use a construct like self.assertFalse(execute(...)) if the execution
@@ -58,12 +67,23 @@ def execute(modules, connections=[]):
     from vistrails.core.vistrail.module_param import ModuleParam
     from vistrails.core.vistrail.pipeline import Pipeline
     from vistrails.core.vistrail.port import Port
+    from vistrails.core.vistrail.port_spec import PortSpec
 
     pm = get_package_manager()
 
+    port_spec_per_module = {} # mod_id -> [portspec: PortSpec]
+    for i, (mod_id, inout, name, sig) in enumerate(add_port_specs):
+        mod_specs = port_spec_per_module.setdefault(mod_id, [])
+        mod_specs.append(PortSpec(
+                id=i,
+                name=name,
+                type=inout,
+                sigstring=sig,
+                sort_key=-1))
+
     pipeline = Pipeline()
     module_list = []
-    for name, identifier, functions in modules:
+    for i, (name, identifier, functions) in enumerate(modules):
         function_list = []
         pkg = pm.get_package_by_identifier(identifier)
         for func_name, params in functions:
@@ -76,8 +96,10 @@ def execute(modules, connections=[]):
         module = Module(name=name,
                         package=identifier,
                         version=pkg.version,
-                        id=len(module_list),
+                        id=i,
                         functions=function_list)
+        for port_spec in port_spec_per_module.get(i, []):
+            module.add_port_spec(port_spec)
         pipeline.add_module(module)
         module_list.append(module)
 
@@ -89,12 +111,12 @@ def execute(modules, connections=[]):
                 ports=[
                     Port(id=i*2,
                          type='source',
-                         moduleId=module_list[sid].id,
+                         moduleId=sid,
                          name=sport,
                          signature=s_sig),
                     Port(id=i*2+1,
                          type='destination',
-                         moduleId=module_list[did].id,
+                         moduleId=did,
                          name=dport,
                          signature=d_sig),
                 ]))
