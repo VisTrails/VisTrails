@@ -841,4 +841,84 @@
       <parameter alias="" id="33" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="10" />
     </add>
   </action>
+  <action date="2013-05-02 13:58:40" id="73" prevId="72" session="17" user="Remi">
+    <delete id="268" objectId="1" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="269" objectId="0" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="270" objectId="0" parentObjId="" parentObjType="" what="connection" />
+    <delete id="271" objectId="4" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="272" objectId="5" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="273" objectId="2" parentObjId="" parentObjType="" what="connection" />
+    <delete id="274" objectId="6" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="275" objectId="7" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="276" objectId="3" parentObjId="" parentObjType="" what="connection" />
+    <delete id="277" objectId="14" parentObjId="7" parentObjType="connection" what="port" />
+    <delete id="278" objectId="15" parentObjId="7" parentObjType="connection" what="port" />
+    <delete id="279" objectId="7" parentObjId="" parentObjType="" what="connection" />
+    <delete id="280" objectId="0" parentObjId="0" parentObjType="module" what="location" />
+    <delete id="281" objectId="1" parentObjId="1" parentObjType="function" what="parameter" />
+    <delete id="282" objectId="1" parentObjId="0" parentObjType="module" what="function" />
+    <delete id="283" objectId="0" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-05-02 13:58:46" id="74" prevId="73" session="17" user="Remi">
+    <add id="284" objectId="19" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="19" name="MplHist" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="285" objectId="53" parentObjId="19" parentObjType="module" what="location">
+      <location id="53" x="-377.422624514" y="-55.4507173457" />
+    </add>
+  </action>
+  <action date="2013-05-02 13:59:00" id="75" prevId="74" session="17" user="Remi">
+    <change id="286" newObjId="54" oldObjId="53" parentObjId="19" parentObjType="module" what="location">
+      <location id="54" x="-5.36619845281" y="33.9859235345" />
+    </change>
+  </action>
+  <action date="2013-05-02 13:59:00" id="76" prevId="75" session="17" user="Remi">
+    <add id="287" objectId="26" parentObjId="" parentObjType="" what="connection">
+      <connection id="26" />
+    </add>
+    <add id="288" objectId="52" parentObjId="26" parentObjType="connection" what="port">
+      <port id="52" moduleId="3" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="289" objectId="53" parentObjId="26" parentObjType="connection" what="port">
+      <port id="53" moduleId="19" moduleName="MplHist" name="x" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-05-02 13:59:09" id="77" prevId="76" session="17" user="Remi">
+    <add id="290" objectId="27" parentObjId="" parentObjType="" what="connection">
+      <connection id="27" />
+    </add>
+    <add id="291" objectId="54" parentObjId="27" parentObjType="connection" what="port">
+      <port id="54" moduleId="4" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="292" objectId="55" parentObjId="27" parentObjType="connection" what="port">
+      <port id="55" moduleId="19" moduleName="MplHist" name="bins" signature="(org.vistrails.vistrails.basic:Integer)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-05-02 13:59:19" id="78" prevId="77" session="17" user="Remi">
+    <change id="293" newObjId="55" oldObjId="12" parentObjId="5" parentObjType="module" what="location">
+      <location id="55" x="-133.22664713" y="260.833487561" />
+    </change>
+  </action>
+  <action date="2013-05-02 13:59:19" id="79" prevId="78" session="17" user="Remi">
+    <add id="294" objectId="28" parentObjId="" parentObjType="" what="connection">
+      <connection id="28" />
+    </add>
+    <add id="295" objectId="56" parentObjId="28" parentObjType="connection" what="port">
+      <port id="56" moduleId="5" moduleName="MplRectangleProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplRectangleProperties)" type="source" />
+    </add>
+    <add id="296" objectId="57" parentObjId="28" parentObjType="connection" what="port">
+      <port id="57" moduleId="19" moduleName="MplHist" name="rectangleProperties" signature="(org.vistrails.vistrails.matplotlib:MplRectangleProperties)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-05-02 13:59:24" id="80" prevId="79" session="17" user="Remi">
+    <add id="297" objectId="29" parentObjId="" parentObjType="" what="connection">
+      <connection id="29" />
+    </add>
+    <add id="298" objectId="58" parentObjId="29" parentObjType="connection" what="port">
+      <port id="58" moduleId="19" moduleName="MplHist" name="self" signature="(org.vistrails.vistrails.matplotlib:MplHist)" type="source" />
+    </add>
+    <add id="299" objectId="59" parentObjId="29" parentObjType="connection" what="port">
+      <port id="59" moduleId="1" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="destination" />
+    </add>
+  </action>
 </vistrail>
