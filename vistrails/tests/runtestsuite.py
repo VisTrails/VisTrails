@@ -163,17 +163,9 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         module = os.path.join("vistrails", p[len(root_directory)+1:],
                               filename[:-3])
-        if (module.startswith('vistrails.tests') or
-            module.startswith(os.sep) or
-            module.startswith('\\') or
+        if (module.startswith(os.sep) or
             ('#' in module)):
             continue
-        if ('system' in module and not
-            module.endswith('__init__')):
-            continue
-        if test_modules and not module in test_modules:
-            continue
-        msg = ("%s %s |" % (" " * (40 - len(module)), module))
 
         # use qualified import names with periods instead of
         # slashes to avoid duplicates in sys.modules
@@ -181,6 +173,17 @@ for (p, subdirs, files) in os.walk(root_directory):
         module = module.replace('\\','.')
         if module.endswith('__init__'):
             module = module[:-9]
+
+        if test_modules and not module in test_modules:
+            continue
+        if module.startswith('vistrails.tests'):
+            continue
+        if ('system' in module and not
+            module.endswith('__init__')):
+            continue
+
+        msg = ("%s %s |" % (" " * (40 - len(module)), module))
+
         m = None
         try:
             if '.' in module:
@@ -271,12 +274,13 @@ def image_test_generator(vtfile, version):
 class TestVistrailImages(unittest.TestCase):
     pass
 
-for vt, t in image_tests:
-    for name, version in t:
-        test_name = 'test_%s' % name
-        test = image_test_generator(vt, version)
-        setattr(TestVistrailImages, test_name, test)
-        main_test_suite.addTest(TestVistrailImages(test_name))
+if not test_modules:
+    for vt, t in image_tests:
+        for name, version in t:
+            test_name = 'test_%s' % name
+            test = image_test_generator(vt, version)
+            setattr(TestVistrailImages, test_name, test)
+            main_test_suite.addTest(TestVistrailImages(test_name))
 
 ############## RUN TEST SUITE ####################
 
