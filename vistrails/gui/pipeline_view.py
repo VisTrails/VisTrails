@@ -3062,7 +3062,9 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         try:
             self.controller.execute_current_workflow()
         except Exception, e:
-            debug.critical(str(e))
+            import traceback
+            debug.critical(str(e) or e.__class__.__name__,
+                           traceback.format_exc())
         finally:
             jobView.updating_now = False
             from vistrails.gui.vistrails_window import _app
