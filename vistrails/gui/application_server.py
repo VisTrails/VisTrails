@@ -402,10 +402,13 @@ class RequestHandler(object):
                 (fd, fname) = tempfile.mkstemp(prefix='vt_tmp',
                                               suffix='.vt')
                 os.close(fd)
-                vt_file = open(fname, "wb")
-                vt_file.write(vt_filepath.data)
-                vt_file.close()
-                locator = ZIPFileLocator(fname).load()
+                try:
+                    vt_file = open(fname, "wb")
+                    vt_file.write(vt_filepath.data)
+                    vt_file.close()
+                    locator = ZIPFileLocator(fname).load()
+                finally:
+                    os.unlink(fname)
 
             # set some crowdlabs id info
             if repository_vt_id != -1:
@@ -1455,11 +1458,13 @@ class RequestHandler(object):
             (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
                                           suffix='.vt')
             os.close(fd)
-            fileLocator = FileLocator(name)
-            fileLocator.save(save_bundle)
-            contents = open(name).read()
-            result = base64.b64encode(contents)
-            os.unlink(name)
+            try:
+                fileLocator = FileLocator(name)
+                fileLocator.save(save_bundle)
+                contents = open(name).read()
+                result = base64.b64encode(contents)
+            finally:
+                os.unlink(name)
             return (result, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"

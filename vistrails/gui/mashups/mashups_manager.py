@@ -432,11 +432,13 @@ class MashupsManager(object):
                 (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
                                           suffix='.vt')
                 os.close(fd)
-                fileLocator = FileLocator(name)
-                newvtcontroller.write_vistrail(fileLocator)
-                contents = open(name).read()
-                vtcontent = base64.b64encode(contents)
-                os.unlink(name)
+                try:
+                    fileLocator = FileLocator(name)
+                    newvtcontroller.write_vistrail(fileLocator)
+                    contents = open(name).read()
+                    vtcontent = base64.b64encode(contents)
+                finally:
+                    os.unlink(name)
                 #if not vistrail.db_version:
                 #    vistrail.db_version = currentVersion
                 node.set('vtcontent',vtcontent)

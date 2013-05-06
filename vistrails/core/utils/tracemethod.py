@@ -134,19 +134,21 @@ class TestTraceMethod(unittest.TestCase):
         global _output_file
         (fd, name) = tempfile.mkstemp()
         os.close(fd)
-        _output_file = file(name, 'w')
+        try:
+            _output_file = file(name, 'w')
 
-        x = test_fun(10)
-        self.assertEquals(x, 15)
-        
-        _output_file.close()
-        _output_file = sys.stderr
+            x = test_fun(10)
+            self.assertEquals(x, 15)
 
-        output = "".join(file(name, 'r').readlines())
-        self.assertEquals(output,
-                          'test_fun.enter\n' +
-                          'test_fun.exit\n')
-        os.unlink(name)
+            _output_file.close()
+            _output_file = sys.stderr
+
+            output = "".join(file(name, 'r').readlines())
+            self.assertEquals(output,
+                              'test_fun.enter\n' +
+                              'test_fun.exit\n')
+        finally:
+            os.unlink(name)
 
     def test_trace_2(self):
         global _output_file
