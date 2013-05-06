@@ -427,9 +427,8 @@ class RFigure(RSource):
     _output_ports = [('imageFile', '(edu.utah.sci.vistrails.basic:File)')]
     def run_figure(self, code_str, graphics_dev, width, height, 
                    excluded_inputs=set(['source'])):
-        f, fname = tempfile.mkstemp(prefix='vtr', suffix='.' + graphics_dev)
+        fname = self.interpreter.filePool.create_file(prefix='vtr', suffix='.' + graphics_dev)
         r_temp_files.append(fname)
-        os.close(f)
         robjects.r[graphics_dev](file=fname, width=width, height=height)
         self.run_code(code_str, use_input=True, 
                       excluded_inputs=excluded_inputs)
