@@ -269,6 +269,9 @@ class StandardWidgetSheetTabInterface(object):
         prev_container = self.getCellWidget(row, col)
         if prev_container is not None:
             prev_container.setCellInfo(None)
+            oldCell = prev_container.widget()
+            if oldCell is not None and hasattr(oldCell, 'deleteLater'):
+                oldCell.deleteLater()
 
         self.setCellWidget(row, col, container)
         self.lastCellLocation = (row, col)
