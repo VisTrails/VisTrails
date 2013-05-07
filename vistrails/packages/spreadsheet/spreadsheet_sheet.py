@@ -243,6 +243,16 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                      self.selectCell)
         self.activeCell = (-1,-1)
 
+        palette = self.palette()
+        color = palette.color(
+                QtGui.QPalette.Active,
+                QtGui.QPalette.Highlight)
+        palette.setColor(
+                QtGui.QPalette.Inactive,
+                QtGui.QPalette.Highlight,
+                color)
+        self.setPalette(palette)
+
     def forceColumnMultiSelect(self, logicalIndex):
         """ forceColumnMultiSelect(logicalIndex: int) -> None        
         Make sure we always toggle the headerview in the right way        
