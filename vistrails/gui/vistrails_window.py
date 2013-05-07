@@ -1360,9 +1360,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 else:
                     for locator in untitled_temps:
                         locator.clean_temporaries()
-        self._first_view = None
-        self.new_vistrail(True)
-        self._first_view = self.get_current_view()
+        self._first_view = self.new_vistrail(True)
+        return self._first_view
 
     def change_view(self, view):
         if isinstance(view, QVistrailView) or view is None:
@@ -1487,8 +1486,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                 # FIXME how do we choose which one? -- really should open all
                 locator = untitled_temps[0]
 
-        self.open_vistrail(locator)
+        view = self.open_vistrail(locator)
         self.qactions['pipeline'].trigger()
+        return view
 
     def close_first_vistrail_if_necessary(self):
         # Close first vistrail of no change was made
@@ -1614,7 +1614,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def open_vistrail(self, locator, version=None, is_abstraction=False):
         """open_vistrail(locator: Locator, version = None: int or str,
-                         is_abstraction: bool)
+                         is_abstraction: bool) -> BaseView
 
         opens a new vistrail from the given locator, selecting the
         given version.
@@ -1636,7 +1636,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         return view
 
     def open_vistrail_from_locator(self, locator_class):
-        """ open_vistrail(locator_class) -> None
+        """ open_vistrail(locator_class) -> BaseView
         Prompt user for information to get to a vistrail in different ways,
         depending on the locator class given.
         """
@@ -1668,6 +1668,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                                               mashupVersion=mashupversion,
                                               execute_workflow=execute)
             self.set_current_locator(locator)
+            return self.get_current_view()
+        return None
 
     def executeParameterExploration(self, pe_id):
         vistrail = self.current_view.controller.vistrail
@@ -1786,14 +1788,14 @@ class QVistrailsWindow(QVistrailViewWindow):
                  self.current_view.log_view.set_exec_by_date(workflow_exec)
 
     def open_vistrail_default(self):
-        """ open_vistrail_default() -> None
+        """ open_vistrail_default() -> BaseView
         Opens a vistrail from the file/db
 
         """
         if self.dbDefault:
-            self.open_vistrail_from_locator(DBLocator)
+            return self.open_vistrail_from_locator(DBLocator)
         else:
-            self.open_vistrail_from_locator(FileLocator())
+            return self.open_vistrail_from_locator(FileLocator())
 
     def import_vistrail_default(self):
         """ import_vistrail_default() -> None
