@@ -772,8 +772,8 @@ class TestCachedInterpreter(unittest.TestCase):
         (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
         
         # the controller will take care of upgrades
-        controller = VistrailController()
-        controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
+        controller = VistrailController(v, locator, abstractions, thumbnails, 
+                                        mashups)
         p1 = v.getPipeline('int chain')
         n = v.get_version_number('int chain')
         controller.change_selected_version(n)

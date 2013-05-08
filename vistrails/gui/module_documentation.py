@@ -76,7 +76,7 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
         self.update_descriptor()
 
     def set_controller(self, controller):
-        scene = controller.current_pipeline_view
+        scene = controller.current_pipeline_scene
         selected_ids = scene.get_selected_module_ids() 
         modules = [controller.current_pipeline.modules[i] 
                    for i in selected_ids]

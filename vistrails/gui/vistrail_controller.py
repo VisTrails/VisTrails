@@ -63,6 +63,7 @@ from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.vistrail import Vistrail, TagExists
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 
@@ -105,18 +106,30 @@ class VistrailController(QtCore.QObject, BaseController):
 
     """
 
-    def __init__(self, vistrail=None, auto_save=True, name=''):
+    def __init__(self, vistrail=None, locator=None, abstractions=None,
+                 thumbnails=None, mashups=None, pipeline_view=None, 
+                 id_scope=None, set_log_on_vt=True, auto_save=True, name=''):
         """ VistrailController(vistrail: Vistrail, 
+                               locator: BaseLocator,
+                               abstractions: [<filename strings>],
+                               thumbnails: [<filename strings>],
+                               mashups: [<filename strings>],
+                               pipeline_view: QPipelineView
+                               id_scope: IdScope,
+                               set_log_on_vt: bool,
                                auto_save: bool, 
                                name: str) -> VistrailController
         Create a controller for a vistrail.
 
         """
+
         QtCore.QObject.__init__(self)
-        BaseController.__init__(self, vistrail, auto_save=auto_save)
-        self.set_file_name(name)
-        # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
-        self.current_pipeline_view = None
+
+        if pipeline_view is None:
+            self.current_pipeline_view = QPipelineView()
+        else:
+            self.current_pipeline_view = pipeline_view
+
         self.vistrail_view = None
         self.reset_pipeline_view = False
         self.reset_version_view = True
@@ -142,22 +155,43 @@ class VistrailController(QtCore.QObject, BaseController):
         self.animate_layout = False
         #this was moved to BaseController
         #self.num_versions_always_shown = 1
+        BaseController.__init__(self, vistrail, locator, abstractions, 
+                                thumbnails, mashups, id_scope, set_log_on_vt, 
+                                auto_save)
+
+    def _get_current_pipeline_scene(self):
+        return self.current_pipeline_view.scene()
+    current_pipeline_scene = property(_get_current_pipeline_scene)
 
     # just need to switch current_pipeline_view to update controller to
     # new version and pipeline...
     def _get_current_version(self):
-        return self.current_pipeline_view.current_version
+        if self.current_pipeline_view is None:
+            return -1
+        return self.current_pipeline_view.scene().current_version
     def _set_current_version(self, version):
         # print "set_current_version:", version, id(self.current_pipeline_view)
-        self.current_pipeline_view.current_version = version
+        if self.current_pipeline_view is not None:
+            self.current_pipeline_view.scene().current_version = version
     current_version = property(_get_current_version, _set_current_version)
 
     def _get_current_pipeline(self):
-        return self.current_pipeline_view.current_pipeline
+        if self.current_pipeline_view is None:
+            return None
+        return self.current_pipeline_view.scene().current_pipeline
     def _set_current_pipeline(self, pipeline):
-        self.current_pipeline_view.current_pipeline = pipeline
+        if self.current_pipeline_view is not None:
+            self.current_pipeline_view.scene().current_pipeline = pipeline
     current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
+    def set_pipeline_view(self, pipeline_view):
+        if self.current_pipeline_view is not None:
+            self.disconnect(self, QtCore.SIGNAL('versionWasChanged'),
+                            self.current_pipeline_view.version_changed)
+        self.current_pipeline_view = pipeline_view
+        self.connect(self, QtCore.SIGNAL('versionWasChanged'),
+                     self.current_pipeline_view.version_changed)
+    
     def setup_timer(self):
         self.timer = QtCore.QTimer(self)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
@@ -194,10 +228,16 @@ class VistrailController(QtCore.QObject, BaseController):
             self.reset_version_view = True
 
     def has_move_actions(self):
-        return self.current_pipeline_view.hasMoveActions()
+        return self.current_pipeline_scene.hasMoveActions()
 
     def flush_move_actions(self):
-        return self.current_pipeline_view.flushMoveActions()
+        return self.current_pipeline_scene.flushMoveActions()
+
+    ##########################################################################
+    # Pipeline View Methods
+
+    def updatePipelineScene(self):
+        self.current_pipeline_scene.setupScene(self.current_pipeline)
 
     ##########################################################################
     # Autosave
@@ -212,7 +252,9 @@ class VistrailController(QtCore.QObject, BaseController):
         from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
             get_vistrails_application().configuration.check('autosave')):
-            return self.locator or vistrails.core.db.locator.untitled_locator()
+            if self.locator is None:
+                raise Exception("locator is None")
+            return self.locator
         else:
             return None
 
@@ -222,23 +264,6 @@ class VistrailController(QtCore.QObject, BaseController):
             locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
-
-    def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None, set_log_on_vt=True):
-        """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
-        Start controlling a vistrail
-        
-        """
-        # self.vistrail = vistrail
-        BaseController.set_vistrail(self, vistrail, locator, abstractions,
-                                    thumbnails, mashups, 
-                                    set_log_on_vt=set_log_on_vt)
-        if locator != None:
-            self.set_file_name(locator.name)
-        else:
-            self.set_file_name('')
-        if locator and locator.has_temporaries():
-            self.set_changed(True)
 
     ##########################################################################
     # Actions, etc
@@ -316,8 +341,8 @@ class VistrailController(QtCore.QObject, BaseController):
     def execute_workflow_list(self, vistrails):
         old_quiet = self.quiet
         self.quiet = True
-        self.current_pipeline_view.reset_module_colors()
-        self.current_pipeline_view.update()
+        self.current_pipeline_scene.reset_module_colors()
+        self.current_pipeline_scene.update()
         (results, changed) = BaseController.execute_workflow_list(self, 
                                                                   vistrails)        
         self.quiet = old_quiet
@@ -340,7 +365,7 @@ class VistrailController(QtCore.QObject, BaseController):
             return self.execute_workflow_list([(self.locator,
                                          self.current_version,
                                          self.current_pipeline,
-                                         self.current_pipeline_view,
+                                         self.current_pipeline_scene,
                                          custom_aliases,
                                          custom_params,
                                          reason,
@@ -963,7 +988,7 @@ class VistrailController(QtCore.QObject, BaseController):
     # Clipboard, copy/paste
 
     def get_selected_item_ids(self):
-        return self.current_pipeline_view.get_selected_item_ids()
+        return self.current_pipeline_scene.get_selected_item_ids()
 
     def copy_modules_and_connections(self, module_ids, connection_ids):
         """copy_modules_and_connections(module_ids: [long],
@@ -1473,9 +1498,9 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
             os.remove(filename)
 
     def test_create_functions(self):
-        controller = VistrailController(auto_save=False)
-        controller.current_pipeline_view = DummyView().scene()
-        controller.set_vistrail(Vistrail(), None)
+        controller = VistrailController(Vistrail(), None, 
+                                        pipeline_view=DummyView(),
+                                        auto_save=False)
         controller.change_selected_version(0L)
         module = controller.add_module(0.0,0.0, 'edu.utah.sci.vistrails.basic', 
                                        'ConcatenateString')
@@ -1508,9 +1533,8 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()
-        controller = VistrailController(auto_save=False)
-        controller.current_pipeline_view = DummyView().scene()
-        controller.set_vistrail(v,locator)
+        controller = VistrailController(v, locator, pipeline_view=DummyView(),
+                                        auto_save=False)
         # DAK: version is different because of upgrades
         # controller.change_selected_version(9L)
         controller.select_latest_version()

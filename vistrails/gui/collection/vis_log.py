@@ -433,16 +433,7 @@ class QLogView(QPipelineView):
         self.log = self.controller.loaded_workflow_execs
 
     def set_to_current(self):
-        # change to normal controller hacks
-        #print "AAAAA doing set_to_current"
-        if self.controller.current_pipeline_view is not None:
-            self.disconnect(self.controller,
-                            QtCore.SIGNAL('versionWasChanged'),
-                            self.controller.current_pipeline_view.parent().version_changed)
-        self.controller.current_pipeline_view = self.scene()
-        self.connect(self.controller,
-                     QtCore.SIGNAL('versionWasChanged'),
-                     self.version_changed)
+        self.controller.set_pipeline_view(self)
 
     def version_changed(self):
         pass

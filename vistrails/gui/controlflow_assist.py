@@ -173,7 +173,7 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Create inner group from selected modules and their connections (plus newly created input/output connections)
         inner_group = self.controller.create_group(self.module_ids + [m.id for m in io_modules], self.connection_ids + [c.id for c in io_connections])
-        self.controller.current_pipeline_view.setupScene(self.controller.current_pipeline)
+        self.controller.updatePipelineScene()
         del io_modules[:]
         del io_connections[:]
         io_modules.append(inner_group)
@@ -298,5 +298,5 @@ print 'InputList: %%s' %% InputList
         
         # Create outer group from PythonSource, Map, and inner Group, along with their connections and IO modules
         outer_group = self.controller.create_group([m.id for m in io_modules], [c.id for c in io_connections])
-        self.controller.current_pipeline_view.setupScene(self.controller.current_pipeline)
+        self.controller.updatePipelineScene()
         

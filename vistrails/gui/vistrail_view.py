@@ -103,22 +103,27 @@ class QVistrailView(QtGui.QWidget):
         #self.button_to_tab_idx = Bidict()
         self.detached_views = {}
 
-        # Initialize the vistrail controller
-        self.controller = VistrailController(vistrail)
-
         # Create the initial views
         self.version_view = None
-        pipeline_view = self.create_pipeline_view()
+        pipeline_view = self.create_pipeline_view(False)
         self.version_view = self.create_version_view()
         self.query_view = self.create_query_view()
         self.pe_view = self.create_pe_view()
         self.log_view = self.create_log_view()
-        self.mashup_view = self.create_mashup_view()
+        self.mashup_view = self.create_mashup_view(False)
+
+        # Initialize the vistrail controller
+        self.locator = locator
+        self.controller = VistrailController(vistrail, 
+                                             self.locator, 
+                                             abstractions=abstraction_files, 
+                                             thumbnails=thumbnail_files,
+                                             mashups=mashups,
+                                             pipeline_view=pipeline_view)
         
         self.set_controller(self.controller)
-        self.locator = locator
-        self.controller.set_vistrail(vistrail, self.locator, abstraction_files,
-                                     thumbnail_files, mashups)
+        pipeline_view.set_to_current()
+
         self.tabs.setCurrentIndex(0)
         self.current_tab = self.stack.setCurrentIndex(0)
         self.pipeline_selected()
@@ -406,15 +411,15 @@ class QVistrailView(QtGui.QWidget):
         self.view_changed()
     
     def show_group(self):
-        pipelineView = self.controller.current_pipeline_view
-        items = pipelineView.get_selected_item_ids(True)
+        pipelineScene = self.controller.current_pipeline_scene
+        items = pipelineScene.get_selected_item_ids(True)
         if items is not None:
             for m_id in items[0]:
-                module = pipelineView.current_pipeline.modules[m_id]
+                module = pipelineScene.current_pipeline.modules[m_id]
                 if module.is_group() or module.is_abstraction():
                     newPipelineView = self.add_pipeline_view()
                     newPipelineView.controller.current_pipeline_view = \
-                        newPipelineView.scene()
+                        newPipelineView
                     module.pipeline.ensure_connection_specs()
                     newPipelineView.scene().setupScene(module.pipeline)
                     newPipelineView.scene().current_pipeline = module.pipeline
@@ -483,7 +488,7 @@ class QVistrailView(QtGui.QWidget):
                 w.close()
             
     def detachedViewWasClosed(self, view):
-        if self.controller.current_pipeline_view.parent() == view:
+        if self.controller.current_pipeline_view == view:
             self.controller.current_pipeline_view = None
             self.activateWindow()
             self.reset_tab_view_to_current()
@@ -715,12 +720,13 @@ class QVistrailView(QtGui.QWidget):
                 _app.notify("controller_changed", self.controller)
             self.reset_version_view()
             
-    def create_pipeline_view(self):
+    def create_pipeline_view(self, set_controller=True):
         view = self.create_view(QPipelineView)
         self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'), 
                      self.gen_module_selected(view))
-        view.set_controller(self.controller)
-        view.set_to_current()
+        if set_controller:
+            view.set_controller(self.controller)
+            view.set_to_current()
         self.set_notification('module_done_configure', view.done_configure)
         #self.switch_to_tab(view.tab_idx)
         return view
@@ -775,11 +781,12 @@ class QVistrailView(QtGui.QWidget):
         self.set_notification('execution_changed', view.execution_changed)
         return view
     
-    def create_mashup_view(self):
+    def create_mashup_view(self, set_controller=True):
         #print "******* create mashup view"
         from vistrails.gui.vistrails_window import _app
         view = self.create_view(QMashupView, False)
-        view.set_controller(self.controller)
+        if set_controller:
+            view.set_controller(self.controller)
         self.set_notification('controller_changed', view.controllerChanged)
         self.set_notification('alias_changed', view.aliasChanged)
         self.set_notification('version_changed', view.versionChanged)
@@ -1237,126 +1244,6 @@ class QVistrailView(QtGui.QWidget):
         self.set_pipeline_selection(old_action, new_action)
         return new_action.id
 
-    # def updateCursorState(self, mode):
-    #     """ updateCursorState(mode: Int) -> None 
-    #     Change cursor state in all different modes.
-
-    #     """
-    #     self.pipelineTab.pipelineView.setDefaultCursorState(mode)
-    #     self.versionTab.versionView.setDefaultCursorState(mode)
-    #     self.queryTab.pipelineView.setDefaultCursorState(mode)
-    #     if self.parent().parent().parent().pipViewAction.isChecked():
-    #         self.pipelineTab.pipelineView.pipFrame.graphicsView.setDefaultCursorState(mode)
-    #         self.versionTab.versionView.pipFrame.graphicsView.setDefaultCursorState(mode)
-
-
-    # def flush_changes(self):
-    #     """Flush changes in the vistrail before closing or saving.
-    #     """
-    #     # Quick workaround for notes focus out bug (ticket #182)
-    #     # There's probably a much better way to fix this.
-    #     prop = self.versionTab.versionProp
-    #     prop.versionNotes.commit_changes()
-
-    # def setup_view(self, version=None):
-    #     """setup_view(version = None:int) -> None
-
-    #     Sets up the correct view for a fresh vistrail.
-
-    #     Previously, there was a method setInitialView and another
-    #     setOpenView.
-
-    #     They were supposed to do different things but the code was
-    #     essentially identical.
-
-    #     FIXME: this means that the different calls are being handled
-    #     somewhere else in the code. Figure this out."""
-
-    #     if version is None:
-    #         self.controller.select_latest_version()
-    #         version = self.controller.current_version
-    #     else:
-    #         self.versionSelected(version, True, True, False)
-    #     self.controller.recompute_terse_graph()
-    #     self.controller.invalidate_version_tree(True)
-    #     self.setPIPMode(True)
-    #     self.setQueryMode(False)
-       
-    # def setPIPMode(self, on):
-    #     """ setPIPMode(on: bool) -> None
-    #     Set the PIP state for the view
-
-    #     """
-    #     self.pipelineTab.pipelineView.setPIPEnabled(on)
-    #     self.versionTab.versionView.setPIPEnabled(on)
-
-    # def setQueryMode(self, on):
-    #     """ setQueryMode(on: bool) -> None
-    #     Set the Reset Query button mode for the view
-        
-    #     """
-    #     self.pipelineTab.pipelineView.setQueryEnabled(on)
-    #     self.versionTab.versionView.setQueryEnabled(on)
-    #     self.queryTab.pipelineView.setQueryEnabled(on)
-
-    # def setMethodsMode(self, on):
-    #     """ setMethodsMode(on: bool) -> None
-    #     Set the methods panel state for the view
-
-    #     """
-    #     if on:
-    #         self.pipelineTab.methodPalette.toolWindow().show()
-    #     else:
-    #         self.pipelineTab.methodPalette.toolWindow().hide()
-
-    # def setSetMethodsMode(self, on):
-    #     """ setSetMethodsMode(on: bool) -> None
-    #     Set the set methods panel state for the view
-
-    #     """
-    #     if on:
-    #         self.pipelineTab.moduleMethods.toolWindow().show()
-    #     else:
-    #         self.pipelineTab.moduleMethods.toolWindow().hide()
-
-    # def setPropertiesMode(self, on):
-    #     """ setPropertiesMode(on: bool) -> None
-    #     Set the properties panel state for the view
-
-    #     """
-    #     if on:
-    #         self.versionTab.versionProp.toolWindow().show()
-    #     else:
-    #         self.versionTab.versionProp.toolWindow().hide()
-
-    # def setPropertiesOverlayMode(self, on):
-    #     """ setPropertiesMode(on: bool) -> None
-    #     Set the properties overlay state for the view
-
-    #     """
-    #     if on:
-    #         self.versionTab.versionView.versionProp.show()
-    #     else:
-    #         self.versionTab.versionView.versionProp.hide()
-            
-    # def setModuleConfigMode(self, on):
-    #     """ setModuleConfigMode(on: bool) -> None
-    #     Set the Module configuration panel state for the view
-
-    #     """
-    #     if on:
-    #         self.pipelineTab.moduleConfig.toolWindow().show()
-    #     else:
-    #         self.pipelineTab.moduleConfig.toolWindow().hide()
-
-    # def viewModeChanged(self, index):
-    #     """ viewModeChanged(index: int) -> None        
-    #     Slot for switching different views when the tab's current
-    #     widget is changed
-    #     """
-    #     if self.stackedWidget.count()>index:
-    #         self.stackedWidget.setCurrentIndex(index)
-
     def setVistrailVarsMode(self, on):
         """ setVistrailVarsMode(on: bool) -> None
         Set the vistrail variable panel state for the view
@@ -1367,40 +1254,6 @@ class QVistrailView(QtGui.QWidget):
         else:
             self.pipelineTab.vistrailVars.toolWindow().hide()
 
-    # def pasteToCurrentTab(self):
-    #     index = self.stackedWidget.currentIndex()
-    #     if index == 0:
-    #         self.pipelineTab.pipelineView.pasteFromClipboard()
-    #     elif index == 2:
-    #         self.queryTab.pipelineView.pasteFromClipboard()
-            
-    # def selectAll(self):
-    #     index = self.stackedWidget.currentIndex()
-    #     if index == 0:
-    #         self.pipelineTab.pipelineView.scene().selectAll()    
-    #     elif index == 2:
-    #         self.queryTab.pipelineView.scene().selectAll()
-            
-    # def sizeHint(self):
-    #     """ sizeHint(self) -> QSize
-    #     Return recommended size of the widget
-        
-    #     """
-    #     return QtCore.QSize(1024, 768)
-
-    # def set_vistrail(self, vistrail, locator=None, abstractions=None, 
-    #                  thumbnails=None):
-    #     """ set_vistrail(vistrail: Vistrail, locator: BaseLocator) -> None
-    #     Assign a vistrail to this view, and start interacting with it
-        
-    #     """
-    #     self.vistrail = vistrail
-    #     self.locator = locator
-    #     self.controller.set_vistrail(vistrail, locator, abstractions, thumbnails)
-    #     self.versionTab.setController(self.controller)
-    #     self.pipelineTab.setController(self.controller)
-    #     self.peTab.setController(self.controller)
-
     def stateChanged(self):
         """ stateChanged() -> None
         Handles 'stateChanged' signal from VistrailController """
@@ -1408,157 +1261,6 @@ class QVistrailView(QtGui.QWidget):
         _app.notify("state_changed", self)
         _app.state_changed(self)
         
-
-    # def stateChanged(self):
-    #     """ stateChanged() -> None
-
-    #     Handles 'stateChanged' signal from VistrailController
-        
-    #     Update the window and tab title
-        
-    #     """
-    #     title = self.controller.name
-    #     if title=='':
-    #         title = 'untitled%s'%vistrails_default_file_type()
-    #     if self.controller.changed:
-    #         title += '*'
-    #     self.setWindowTitle(title)
-    #     # propagate the state change to the version prop
-    #     # maybe in the future we should propagate as a signal
-    #     versionId = self.controller.current_version
-    #     self.versionTab.versionProp.updateVersion(versionId)
-
-    # def emitDockBackSignal(self):
-    #     """ emitDockBackSignal() -> None
-    #     Emit a signal for the View Manager to take this widget back
-        
-    #     """
-    #     self.emit(QtCore.SIGNAL('dockBack'), self)
-
-    # def closeEvent(self, event):
-    #     """ closeEvent(event: QCloseEvent) -> None
-    #     Only close if we save information
-        
-    #     """
-    #     if self.closeEventHandler:
-    #         if self.closeEventHandler(self):
-    #             event.accept()
-    #         else:
-    #             event.ignore()
-    #     else:
-    #         #I think there's a problem with two pipeline views and the same
-    #         #scene on Macs. After assigning a new scene just before deleting
-    #         #seems to solve the problem
-    #         self.peTab.annotatedPipelineView.setScene(QtGui.QGraphicsScene())
-    #         return QDockContainer.closeEvent(self, event)
-    #         # super(QVistrailView, self).closeEvent(event)
-
-    # def queryVistrail(self, on=True):
-    #     """ queryVistrail(on: bool) -> None
-    #     Inspecting the query tab to get a pipeline for querying
-        
-    #     """
-    #     if on:
-    #         queryPipeline = self.queryTab.controller.current_pipeline
-    #         if queryPipeline:
-    #             self.controller.query_by_example(queryPipeline)
-    #             self.setQueryMode(True)
-    #     else:
-    #         self.controller.set_search(None)
-    #         self.setQueryMode(False)
-
-    # def createPopupMenu(self):
-    #     """ createPopupMenu() -> QMenu
-    #     Create a pop up menu that has a list of all tool windows of
-    #     the current tab of the view. Tool windows can be toggled using
-    #     this menu
-        
-    #     """
-    #     return self.stackedWidget.currentWidget().createPopupMenu()
-
-    # def executeParameterExploration(self):
-    #     """ executeParameterExploration() -> None
-    #     Execute the current parameter exploration in the exploration tab
-        
-    #     """
-    #     self.peTab.performParameterExploration()
-
-    # def versionSelected(self, versionId, byClick, doValidate=True, 
-    #                     fromRoot=False):
-    #     """ versionSelected(versionId: int, byClick: bool) -> None
-    #     A version has been selected/unselected, update the controller
-    #     and the pipeline view
-        
-    #     """
-    #     if self.controller:
-    #         if byClick:
-    #             if self.controller.current_version > 0:
-    #                 if self.controller.has_move_actions():
-    #                     self.controller.flush_delayed_actions()
-    #                     self.controller.invalidate_version_tree(False)
-    #             self.controller.reset_pipeline_view = byClick
-    #             self.controller.change_selected_version(versionId, True,
-    #                                                     doValidate, fromRoot)
-    #             versionId = self.controller.current_version
-    #             self.controller.current_pipeline_view.fitToAllViews(True)
-    #             self.redo_stack = []
-    #         self.versionTab.versionProp.updateVersion(versionId)
-    #         self.versionTab.versionView.versionProp.updateVersion(versionId)
-    #         self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
-    #         self.execPipelineEnabled = versionId>-1
-    #         self.execExploreEnabled = \
-    #                     self.controller.vistrail.get_paramexp(versionId) != None
-    #         self.execDiffEnabled = False
-    #         self.execExploreChange = False
-    #         self.emit(QtCore.SIGNAL('execStateChange()'))
-
-    #         return versionId
-
-    # def twoVersionsSelected(self, id1, id2):
-    #     """ twoVersionsSelected(id1: Int, id2: Int) -> None
-    #     Just echo the signal from the view
-        
-    #     """
-    #     self.execDiffEnabled = True
-    #     self.execDiffId1 = id1
-    #     self.execDiffId2 = id2
-    #     self.emit(QtCore.SIGNAL('execStateChange()'))
-
-    # def queryPipelineChange(self, notEmpty):
-    #     """ queryPipelineChange(notEmpty: bool) -> None
-    #     Update the status of tool bar buttons if there are
-    #     modules on the query canvas
-        
-    #     """
-    #     self.execQueryEnabled = notEmpty
-    #     self.emit(QtCore.SIGNAL('execStateChange()'))
-                  
-    # def exploreChange(self, notEmpty):
-    #     """ exploreChange(notEmpty: bool) -> None
-    #     Update the status of tool bar buttons if there are
-    #     parameters in the exploration canvas
-        
-    #     """
-    #     self.execExploreEnabled = notEmpty
-    #     self.emit(QtCore.SIGNAL('execStateChange()'))
-        
-    # def checkModuleConfigPanel(self):
-    #     """ checkModuleConfigPanel(self) -> None 
-    #     This will ask if user wants to save changes """
-    #     self.pipelineTab.checkModuleConfigPanel()
-         
-
-    # def can_redo(self):
-    #     return len(self.redo_stack) <> 0
-
-    # def new_action(self, action):
-    #     """new_action
-
-    #     Handler for VistrailController.new_action
-
-    #     """
-    #     self.redo_stack = []
-
 ################################################################################
 # FIXME: There is a bug on VisTrails that shows up if you load terminator.vt,
 # open the image slices HW, undo about 300 times and then try to redo.

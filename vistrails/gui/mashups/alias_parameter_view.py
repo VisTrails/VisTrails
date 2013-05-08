@@ -88,7 +88,8 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.parameter_panel.set_pipeline(
                         self.mshpController.vtPipeline)
         self.pipeline_view.set_controller(self.mshpController.vtController)
-        self.mshpController.vtController.current_pipeline_view = self.pipeline_view.scene()
+        self.mshpController.vtController.current_pipeline_view = \
+                                                            self.pipeline_view
         self.pipeline_view.scene().current_pipeline = self.mshpController.vtPipeline
         self.mshpController.vtController.current_pipeline = self.mshpController.vtPipeline
         

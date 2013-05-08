@@ -465,18 +465,9 @@ class QDiffView(QPipelineView):
              })
             
     def set_to_current(self):
-        # change to normal controller hacks
-        #print "AAAAA doing set_to_current"
-        if self.controller.current_pipeline_view is not None:
-            self.disconnect(self.controller,
-                            QtCore.SIGNAL('versionWasChanged'),
-                            self.controller.current_pipeline_view.parent().version_changed)
-        self.controller.current_pipeline_view = self.scene()
+        self.controller.set_pipeline_view(self)
         self.controller.current_diff = self.diff
         self.controller.current_diff_versions = self.diff_versions
-        self.connect(self.controller,
-                     QtCore.SIGNAL('versionWasChanged'),
-                     self.version_changed)
 
     def set_default_layout(self):
         from vistrails.gui.module_palette import QModulePalette

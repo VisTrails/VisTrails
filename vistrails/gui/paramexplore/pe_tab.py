@@ -321,7 +321,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                         QtCore.QCoreApplication.processEvents()
                 kwargs = {'locator': self.controller.locator,
                           'current_version': self.controller.current_version,
-                          'view': self.controller.current_pipeline_view,
+                          'view': self.controller.current_pipeline_scene,
                           'module_executed_hook': [moduleExecuted],
                           'reason': 'Parameter Exploration',
                           'actions': performedActions[pi],

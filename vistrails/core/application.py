@@ -621,13 +621,100 @@ after self.init()"""
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
-        controller.set_changed(False)
+        return True
         
-    def close_vistrail(self, locator=None):
-        pass
-
     def open_workflow(self, locator):
-        pass
+        if isinstance(locator, basestring):
+            locator = BaseLocator.from_url(locator)
+
+        vistrail = Vistrail()
+        try:
+            if locator is None:
+                return False
+            if locator is not None:
+                workflow = locator.load(Pipeline)
+                action_list = []
+                for module in workflow.module_list:
+                    action_list.append(('add', module))
+                for connection in workflow.connection_list:
+                    action_list.append(('add', connection))
+                action = vistrails.core.db.action.create_action(action_list)
+                vistrail.add_action(action, 0L)
+                vistrail.update_id_scope()
+                vistrail.addTag("Imported workflow", action.id)
+
+                # FIXME might need different locator?                
+                controller = self.add_vistrail(vistrail, locator)
+        except VistrailsDBException, e:
+            import traceback
+            debug.critical(str(e), traceback.format_exc())
+            return None
+        except Exception, e:
+            # debug.critical('An error has occurred', str(e))
+            raise
+
+        controller.select_latest_version()
+        controller.set_changed(True)
+        return True
+
+    def save_vistrail(self, locator=None, controller=None, export=False):
+        if controller is None:
+            controller = self.get_current_controller()
+            if controller is None:
+                return False
+        if locator is None and controller is not None:
+            locator = controller.locator
+        elif isinstance(locator, basestring):
+            locator = BaseLocator.from_url(locator)
+
+        if not locator:
+            return False
+        old_locator = controller.locator
+
+        try:
+            controller.write_vistrail(locator, export=export)
+        except Exception, e:
+            import traceback
+            debug.critical('Failed to save vistrail: %s' % str(e),
+                           traceback.format_exc())
+            raise
+        if export:
+            return controller.locator
+
+        self.update_locator(old_locator, controller.locator)
+        # update collection
+        try:
+            thumb_cache = ThumbnailCache.getInstance()
+            controller.vistrail.thumbnails = controller.find_thumbnails(
+                tags_only=thumb_cache.conf.tagsOnly)
+            controller.vistrail.abstractions = controller.find_abstractions(
+                controller.vistrail, True)
+            controller.vistrail.mashups = controller._mashups
+
+            collection = Collection.getInstance()
+            url = locator.to_url()
+            entity = collection.updateVistrail(url, controller.vistrail)
+            # add to relevant workspace categories
+            collection.add_to_workspace(entity)
+            collection.commit()
+        except Exception, e:
+            import traceback
+            debug.critical('Failed to index vistrail', traceback.format_exc())
+        return controller.locator
+
+    def close_vistrail(self, locator=None, controller=None):
+        if controller is None:
+            controller = self.get_current_controller()
+            if controller is None:
+                return False
+        if locator is None and controller is not None:
+            locator = controller.locator
+        elif isinstance(locator, basestring):
+            locator = BaseLocator.from_url(locator)
+        
+        controller.close_vistrail(locator)
+        controller.cleanup()
+        self.remove_vistrail(locator)
 
 class VistrailsCoreApplication(VistrailsApplicationInterface):
     def __init__(self):
@@ -648,8 +735,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
 
     def add_vistrail(self, *objs):
         (vistrail, locator, abstraction_files, thumbnail_files, mashups) = objs
-        controller = VistrailController()
-        controller.set_vistrail(*objs)
+        controller = VistrailController(*objs)
         self._controllers[locator] = controller
         self._cur_controller = controller
         return self._cur_controller
