@@ -193,8 +193,9 @@ parameters from other instances")
     def is_running_gui(self):
         return True
 
-    def get_controller(self):
+    def get_current_controller(self):
         return self.builderWindow.get_current_controller()
+    get_controller = get_current_controller
 
     def get_vistrail(self):
         if self.get_controller():
@@ -210,11 +211,14 @@ parameters from other instances")
     def add_vistrail(self, *objs):
         return self.builderWindow.add_vistrail(*objs)
 
-    def remove_vistrail(self, locator):
-        pass
+    def remove_vistrail(self, locator=None):
+        return self.builderWindow.remove_vistrail(locator)
 
     def select_version(self, version):
         return self.builderWindow.select_version(version)
+
+    def update_locator(self, old_locator, new_locator):
+        pass
 
     def create_notification(self, notification_id, window=None, view=None):
         if view is not None:

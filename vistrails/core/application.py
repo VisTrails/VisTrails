@@ -52,6 +52,7 @@ import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
 from vistrails.core.utils.uxml import enter_named_element
+from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
@@ -549,6 +550,22 @@ after self.init()"""
         """
         raise NotImplementedError("Subclass must implement select_version")
 
+    def get_current_controller(self):
+        """get_current_controller returns the currently active controller, if
+        one exists, otherwise None.
+
+        """
+        raise NotImplementedError("Subclass must implement "
+                                  "get_current_controller")
+
+    def update_locator(self, old_locator, new_locator):
+        """update_locator updates the application state to ensure that any
+        vistrails referenced by old_locator are now referenced by
+        new_locator.
+
+        """
+        raise NotImplementedError("Subclass must implement update_locator")
+
     def convert_version(self, version):
         if isinstance(version, basestring):
             try:
@@ -574,7 +591,7 @@ after self.init()"""
                 loaded_objs = vistrails.core.db.io.load_vistrail(locator, False)
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
-                if not locator:
+                if locator.is_untitled():
                     return
                 controller.is_abstraction = is_abstraction
                 thumb_cache = ThumbnailCache.getInstance()
@@ -625,8 +642,9 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
     def is_running_gui(self):
         return False
 
-    def get_controller(self):
+    def get_current_controller(self):
         return self._cur_controller
+    get_controller = get_current_controller
 
     def add_vistrail(self, *objs):
         (vistrail, locator, abstraction_files, thumbnail_files, mashups) = objs
@@ -636,16 +654,22 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._cur_controller = controller
         return self._cur_controller
         
-    def remove_vistrail(self):
-        if self._cur_controller is not None:
-            loc = self._cur_controller.locator
-            del self.controllers[loc]
+    def remove_vistrail(self, locator=None):
+        if locator is None and self._cur_controller is not None:
+            locator = self._cur_controller.locator
+        del self._controllers[locator]
+        if len(self._controllers) > 0:
+            self._cur_controller = self._controllers.itervalues().next()
 
     def ensure_vistrail(self, locator):
         if locator in self._controllers:
-            self._cur_controller = self._controller[locator]
+            self._cur_controller = self._controllers[locator]
             return self._cur_controller
         return None
+
+    def update_locator(self, old_locator, new_locator):
+        self._controllers[new_locator] = self._controllers[old_locator]
+        del self._controllers[old_locator]
 
     def select_version(self, version):
         if self._cur_controller is not None:
