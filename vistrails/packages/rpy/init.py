@@ -57,8 +57,8 @@ sys.path = old_sys_path
 
 r_temp_files = []
 
-# # bckward compatibility
-# from core.modules.constant_configuration import StandardConstantWidget
+# # backward compatibility
+# from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 
 # def new_constant(name, py_conversion, default_value, validation,
 #                  widget_type=StandardConstantWidget, str_conversion=None,
