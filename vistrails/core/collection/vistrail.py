@@ -188,8 +188,7 @@ class VistrailEntity(Entity):
             firstVersion = vistrail.actionMap[1] \
                 if 1 in vistrail.actionMap else latestVersion
             create_time = firstVersion.date
-        url = vistrail.locator.to_url() \
-            if vistrail.locator else 'file://untitled'
+        url = vistrail.locator.to_url() if vistrail.locator else "untitled:"
         return (name, size, user, mod_time, create_time, url)
 
     def set_vistrail(self, vistrail):

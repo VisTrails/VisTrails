@@ -44,7 +44,7 @@ from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
 from vistrails.db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator, \
-    BaseLocator as _BaseLocator
+    BaseLocator as _BaseLocator, UntitledLocator as _UntitledLocator
 from vistrails.db.services.io import SaveBundle, test_db_connection
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBWorkflow
@@ -104,6 +104,16 @@ class CoreLocator(object):
                      ModuleRegistry.vtType: ModuleRegistry,
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
+
+class UntitledLocator(_UntitledLocator):
+    def load(self, klass=None):
+        from vistrails.core.vistrail.vistrail import Vistrail
+        if klass is None:
+            klass = Vistrail
+        obj = _UntitledLocator.load(self, klass.vtType)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
@@ -737,12 +747,6 @@ class FileLocator(CoreLocator):
         
         
     ##########################################################################
+
 def untitled_locator():
-    basename = 'untitled' + vistrails_default_file_type()
-    config = get_vistrails_configuration()
-    if config:
-        dot_vistrails = config.dotVistrails
-    else:
-        dot_vistrails = default_dot_vistrails()
-    fullname = os.path.join(dot_vistrails, basename)
-    return FileLocator(fullname)
+    return UntitledLocator()

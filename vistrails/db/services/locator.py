@@ -32,59 +32,76 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import cgi
+from datetime import datetime
+import hashlib
 import os.path
+from time import strptime
+import urllib
+import urlparse
+import uuid
+
 import vistrails.core.configuration
 import vistrails.core.system
 from vistrails.db.services import io
 from vistrails.db.services.io import SaveBundle
 from vistrails.db.domain import DBVistrail, DBWorkflow
-import urllib
-import urlparse
-import cgi
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
 from vistrails.core.system import get_elementtree_library, systemType
-import hashlib
-from time import strptime
-from datetime import datetime
 
 ElementTree = get_elementtree_library()
 
 class BaseLocator(object):
 
     def load(self):
-        pass # returns an object
+        raise NotImplementedError("load is not implemented")
 
     def save(self, obj, do_copy=True, version=None):
-        pass # saves an object in the given place
+        """Saves an object in the given place.
+        
+        """
+        raise NotImplementedError("save is not implemented")
 
     def save_as(self, obj, version=None):
         return self.save(obj, True, version) # calls save by default
 
     def close(self):
-        pass # closes locator
+        """Closes locator.
+        
+        """
+        pass
 
     def is_valid(self):
-        pass # Returns true if locator refers to a valid object
-
-    def save_temporary(self, obj):
-        pass # Saves a temporary file (useful for making crashes less horrible)
-
-    def clean_temporaries(self):
-        pass # Cleans up temporary files
+        """Returns true if locator refers to a valid object.
+        
+        """
+        raise NotImplementedError("is_valid is not implemented")
+        
+    def get_temporary(self):
+        return None
 
     def has_temporaries(self):
-        pass # True if temporaries are present
+        return self.get_temporary() is not None
 
     def serialize(self, dom, element):
-        pass #Serializes this locator to XML
+        """Serializes this locator to XML.
 
-    def to_xml(self, node=None): #ElementTree port od serialize
-        pass
-    
+        """
+        raise NotImplementedError("serialize is not implemented")
+
+    def to_xml(self, node=None): 
+        """ElementTree port of serialize.
+
+        """
+        raise NotImplementedError("to_xml is not implemented")
+
     @staticmethod
     def parse(element):
-        pass #Parse an XML object representing a locator and returns a Locator
+        """Parse an XML object representing a locator and returns a Locator.
+        
+        """
+        raise NotImplementedError("parse is not implemented")
     
     @staticmethod
     def from_url(url):
@@ -160,7 +177,180 @@ class BaseLocator(object):
     def __ne__(self, other):
         pass # Implement nonequality
 
-class XMLFileLocator(BaseLocator):
+    def __hash__(self):
+        return hash(self.name)
+    
+    def is_untitled(self):
+        return False
+
+class SaveTemporariesMixin(object):
+    """A mixin class that saves temporary copies of a file.  It requires
+    self.name to exist for proper functioning.
+
+    """
+
+    @staticmethod
+    def get_autosave_dir():
+        config = vistrails.core.configuration.get_vistrails_configuration()
+        if config:
+            dot_vistrails = config.dotVistrails
+        else:
+            dot_vistrails = vistrails.core.system.default_dot_vistrails()
+        auto_save_dir = os.path.join(dot_vistrails, "autosave")
+        if not os.path.exists(auto_save_dir):
+            # !!! we assume dot_vistrails exists !!!
+            os.mkdir(auto_save_dir)
+        if not os.path.isdir(auto_save_dir):
+            raise VistrailsDBException('Auto-save path "%s" is not a '
+                                       'directory' % auto_save_dir)
+        return auto_save_dir
+
+    def get_temp_basename(self):
+        return self.name
+
+    def save_temporary(self, obj):
+        fname = self._find_latest_temporary()
+        new_temp_fname = self._next_temporary(fname)
+        io.save_to_xml(obj, new_temp_fname)
+
+    def clean_temporaries(self):
+        """_remove_temporaries() -> None
+
+        Erases all temporary files.
+
+        """
+        def remove_it(fname):
+            os.unlink(fname)
+        self._iter_temporaries(remove_it)
+
+    def encode_name(self, filename):
+        """encode_name(filename) -> str
+        Encodes a file path using urllib.quoteplus
+
+        """
+        name = urllib.quote_plus(filename) + '_tmp_'
+        return os.path.join(self.get_autosave_dir(), name)
+
+    def _iter_temporaries(self, f):
+        """_iter_temporaries(f): calls f with each temporary file name, in
+        sequence.
+
+        """
+        latest = None
+        current = 0
+        while True:
+            fname = self.encode_name(self.get_temp_basename()) + str(current)
+            if os.path.isfile(fname):
+                f(fname)
+                current += 1
+            else:
+                break
+
+    def _find_latest_temporary(self):
+        """_find_latest_temporary(): String or None.
+
+        Returns the latest temporary file saved, if it exists. Returns
+        None otherwise.
+        
+        """
+        latest = [None]
+        def set_it(fname):
+            latest[0] = fname
+        self._iter_temporaries(set_it)
+        return latest[0]
+        
+    def _next_temporary(self, temporary):
+        """_find_latest_temporary(string or None): String
+
+        Returns the next suitable temporary file given the current
+        latest one.
+
+        """
+        if temporary == None:
+            return self.encode_name(self.get_temp_basename()) + '0'
+        else:
+            split = temporary.rfind('_')+1
+            base = temporary[:split]
+            number = int(temporary[split:])
+            return base + str(number+1)
+
+class UntitledLocator(BaseLocator, SaveTemporariesMixin):
+    UNTITLED_NAME = "Untitled"
+    UNTITLED_PREFIX = UNTITLED_NAME + "_"
+
+    def __init__(self, my_uuid=None):
+        if my_uuid is not None:
+            self._uuid = my_uuid
+        else:
+            self._uuid = uuid.uuid4()
+
+    def load(self, type):
+        fname = self.get_temporary()
+        if fname:
+            obj = io.open_from_xml(fname, type)
+        else:
+            obj = DBVistrail()
+        obj.locator = self
+        return obj
+
+    def is_valid(self):
+        return False
+
+    def get_temp_basename(self):
+        return UntitledLocator.UNTITLED_PREFIX + self._uuid.hex
+
+    def get_temporary(self):
+        return self._find_latest_temporary()
+
+    def _get_name(self):
+        return UntitledLocator.UNTITLED_NAME
+    name = property(_get_name)
+
+    def _get_short_name(self):
+        return self._get_name()
+    short_name = property(_get_short_name)
+
+    @staticmethod
+    def from_url(url):
+        if url.startswith('untitled:'):
+           return UntitledLocator(url[9:])
+        return None
+
+    def to_url(self):
+        url_tuple = ('untitled', '', self._uuid.hex, '', '')
+        return urlparse.urlunsplit(url_tuple)
+
+    def __hash__(self):
+        return self._uuid.int
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return (self._uuid == other._uuid)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def is_untitled(self):
+        return True
+    
+    @classmethod
+    def all_untitled_temporaries(cls):
+        autosave_dir = SaveTemporariesMixin.get_autosave_dir()
+        fnames = []
+        for fname in os.listdir(autosave_dir):
+            if fname.startswith(cls.UNTITLED_PREFIX) and \
+               os.path.isfile(os.path.join(autosave_dir, fname)):
+                fnames.append(fname)
+        locators = {}
+        for fname in fnames:
+            uuid_start = len(cls.UNTITLED_PREFIX)
+            my_uuid = uuid.UUID(fname[uuid_start:uuid_start+32])
+            if my_uuid not in locators:
+                locators[my_uuid] = cls(my_uuid)
+        return locators.values()
+
+class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     def __init__(self, filename, **kwargs):
         self._name = filename
         self._vnode = kwargs.get('version_node', None)
@@ -168,15 +358,10 @@ class XMLFileLocator(BaseLocator):
         self._mshptrail = kwargs.get('mashuptrail', None)
         self._mshpversion = kwargs.get('mashupVersion', None)
         self._parameterexploration = kwargs.get('parameterExploration', None)
-        config = vistrails.core.configuration.get_vistrails_configuration()
-        if config:
-            self._dot_vistrails = config.dotVistrails
-        else:
-            self._dot_vistrails = vistrails.core.system.default_dot_vistrails()
         self.kwargs = kwargs
 
     def load(self, type):
-        fname = self._find_latest_temporary()
+        fname = self.get_temporary()
         if fname:
             obj = io.open_from_xml(fname, type)
         else:
@@ -198,13 +383,11 @@ class XMLFileLocator(BaseLocator):
             return SaveBundle(save_bundle.bundle_type, obj)
         return obj
 
-    def save_temporary(self, obj):
-        fname = self._find_latest_temporary()
-        new_temp_fname = self._next_temporary(fname)
-        io.save_to_xml(obj, new_temp_fname)
-
     def is_valid(self):
         return os.path.isfile(self._name)
+
+    def get_temporary(self):
+        return self._find_latest_temporary()
 
     def _get_name(self):
         return str(self._name)
@@ -233,14 +416,6 @@ class XMLFileLocator(BaseLocator):
         args_str = BaseLocator.generate_args(self.kwargs)
         url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
         return urlparse.urlunsplit(url_tuple)
-
-    def encode_name(self, filename):
-        """encode_name(filename) -> str
-        Encodes a file path using urllib.quoteplus
-
-        """
-        name = urllib.quote_plus(filename) + '_tmp_'
-        return os.path.join(self._dot_vistrails, name)
 
     def serialize(self, dom, element):
         """serialize(dom, element) -> None
@@ -305,64 +480,6 @@ class XMLFileLocator(BaseLocator):
     def __str__(self):
         return '<%s vistrail_name=" %s/>' % (self.__class__.__name__, self._name)
 
-    ##########################################################################
-
-    def _iter_temporaries(self, f):
-        """_iter_temporaries(f): calls f with each temporary file name, in
-        sequence.
-
-        """
-        latest = None
-        current = 0
-        while True:
-            fname = self.encode_name(self._name) + str(current)
-            if os.path.isfile(fname):
-                f(fname)
-                current += 1
-            else:
-                break
-
-    def clean_temporaries(self):
-        """_remove_temporaries() -> None
-
-        Erases all temporary files.
-
-        """
-        def remove_it(fname):
-            os.unlink(fname)
-        self._iter_temporaries(remove_it)
-
-    def has_temporaries(self):
-        return self._find_latest_temporary() is not None
-
-    def _find_latest_temporary(self):
-        """_find_latest_temporary(): String or None.
-
-        Returns the latest temporary file saved, if it exists. Returns
-        None otherwise.
-        
-        """
-        latest = [None]
-        def set_it(fname):
-            latest[0] = fname
-        self._iter_temporaries(set_it)
-        return latest[0]
-        
-    def _next_temporary(self, temporary):
-        """_find_latest_temporary(string or None): String
-
-        Returns the next suitable temporary file given the current
-        latest one.
-
-        """
-        if temporary == None:
-            return self.encode_name(self._name) + '0'
-        else:
-            split = temporary.rfind('_')+1
-            base = temporary[:split]
-            number = int(temporary[split:])
-            return base + str(number+1)
-
     ###########################################################################
     # Operators
 
@@ -402,7 +519,7 @@ class ZIPFileLocator(XMLFileLocator):
         return urlparse.urlunsplit(url_tuple)
 
     def load(self, type):
-        fname = self._find_latest_temporary()
+        fname = self.get_temporary()
         if fname:
             from vistrails.db.domain import DBVistrail
             obj = io.open_from_xml(fname, type)
@@ -817,3 +934,4 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
 
     def __ne__(self, other):
         return not self.__eq__(other)
+

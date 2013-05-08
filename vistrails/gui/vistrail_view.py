@@ -38,7 +38,6 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
-from vistrails.core.db.locator import untitled_locator
 from vistrails.core.debug import critical
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.system import vistrails_default_file_type
@@ -887,7 +886,7 @@ class QVistrailView(QtGui.QWidget):
             locator = (self.controller.locator or
                        gui_get(self, Vistrail.vtType,
                                self.controller.locator))
-        if locator == untitled_locator():
+        if locator is not None and locator.is_untitled():
             locator = gui_get(self, Vistrail.vtType,
                               self.controller.locator)
         # if couldn't get one, ignore the request
@@ -954,7 +953,7 @@ class QVistrailView(QtGui.QWidget):
         else:
             locator = (self.controller.locator or
                       gui_get(self, Vistrail.vtType, self.controller.locator))
-        if locator == untitled_locator():
+        if locator is not None and locator.is_untitled():
             locator = gui_get(self, Vistrail.vtType,
                               self.controller.locator)
         if not locator:
@@ -974,7 +973,7 @@ class QVistrailView(QtGui.QWidget):
             locator = (self.controller.locator or
                        gui_get(self, Pipeline.vtType,
                                self.controller.locator))
-        if locator == untitled_locator():
+        if locator is not None and locator.is_untitled():
             locator = gui_get(self, Pipeline.vtType, self.controller.locator)
         if not locator:
             return False
@@ -990,7 +989,7 @@ class QVistrailView(QtGui.QWidget):
             locator = (self.controller.locator or
                        gui_get(self, Log.vtType,
                                self.controller.locator))
-        if locator == untitled_locator():
+        if locator is not None and locator.is_untitled():
             locator = gui_get(self, Log.vtType,
                               self.controller.locator)
         if not locator:
@@ -1007,7 +1006,7 @@ class QVistrailView(QtGui.QWidget):
             locator = (self.controller.locator or
                        gui_get(self, ModuleRegistry.vtType,
                                self.controller.locator))
-        if locator == untitled_locator():
+        if locator is not None and locator.is_untitled():
             locator = gui_get(self, ModuleRegistry.vtType,
                               self.controller.locator)
         if not locator:
@@ -1026,7 +1025,7 @@ class QVistrailView(QtGui.QWidget):
             locator = (self.controller.locator or
                        gui_get(self, OpmGraph.vtType,
                                self.controller.locator))
-        if locator == untitled_locator():
+        if locator is not None and locator.is_untitled():
             locator = gui_get(self, OpmGraph.vtType,
                               self.controller.locator)
         if not locator:
@@ -1045,7 +1044,7 @@ class QVistrailView(QtGui.QWidget):
             locator = (self.controller.locator or
                        gui_get(self, ProvDocument.vtType,
                                self.controller.locator))
-        if locator == untitled_locator():
+        if locator is not None and locator.is_untitled():
             locator = gui_get(self, ProvDocument.vtType,
                               self.controller.locator)
         if not locator:

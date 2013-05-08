@@ -43,7 +43,8 @@ from vistrails.core import keychain
 from vistrails.core import system
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
-from vistrails.core.db.locator import FileLocator, DBLocator, untitled_locator
+from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
+    UntitledLocator
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
@@ -562,7 +563,9 @@ after self.init()"""
 
     def open_vistrail(self, locator=None, version=None, is_abstraction=False):
         if isinstance(locator, basestring):
-            locator = FileLocator(fname)
+            locator = BaseLocator.from_url(locator)
+        elif locator is None:
+            locator = UntitledLocator()
 
         controller = self.ensure_vistrail(locator)
         if controller is None:
