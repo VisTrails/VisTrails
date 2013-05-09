@@ -109,10 +109,14 @@ class BaseLocator(object):
         # FIXME are ? or / in filenames problematic?
         if '://' in url:
             scheme, rest = url.split('://', 1)
+        elif url.startswith('untitled:'):
+            scheme = 'untitled'
         else:
             scheme = 'file'
             rest = url
-        if scheme == 'db':
+        if scheme == 'untitled':
+            return UntitledLocator.from_url(url)
+        elif scheme == 'db':
             return DBLocator.from_url(url)
         elif scheme == 'file':
             filename = urlparse.urlsplit('http://' + rest)[2]
@@ -141,7 +145,17 @@ class BaseLocator(object):
         if 'workflow_exec' in parsed_dict:
             args['workflow_exec'] = parsed_dict['workflow_exec'][0]
         if 'parameterExploration' in parsed_dict:
-            args['parameterExploration'] = parsed_dict['parameterExploration'][0]
+            args['parameterExploration'] = \
+                                        parsed_dict['parameterExploration'][0]
+        if 'mashuptrail' in parsed_dict:
+            args['mashuptrail'] = parsed_dict['mashuptrail'][0]
+        # should use mashupVersion, but also allow (and preserve) mashup
+        if 'mashupVersion' in parsed_dict:
+            args['mashupVersion'] = parsed_dict['mashupVersion'][0]
+        elif 'mashup' in parsed_dict:
+            args['mashup'] = parsed_dict['mashup'][0]
+        if 'workflow_exec' in parsed_dict:
+            args['workflow_exec'] = parsed_dict['workflow_exec'][0]
         return args
 
     @staticmethod
@@ -157,6 +171,14 @@ class BaseLocator(object):
             generate_dict['workflow'] = args['version_tag']
         if 'parameterExploration' in args and args['parameterExploration']:
             generate_dict['parameterExploration'] = args['parameterExploration']
+        if 'mashuptrail' in args and args['mashuptrail']:
+            generate_dict['mashuptrail'] = args['mashuptrail']
+        if 'mashupVersion' in args and args['mashupVersion']:
+            generate_dict['mashupVersion'] = args['mashupVersion']
+        elif 'mashup' in args and args['mashup']:
+            generate_dict['mashup'] = args['mashup']
+        if 'workflow_exec' in args and args['workflow_exec']:
+            generate_dict['workflow_exec'] = args['workflow_exec']
         return urllib.urlencode(generate_dict)
 
 
@@ -278,11 +300,20 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
     UNTITLED_NAME = "Untitled"
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
-    def __init__(self, my_uuid=None):
+    def __init__(self, my_uuid=None, **kwargs):
         if my_uuid is not None:
             self._uuid = my_uuid
         else:
             self._uuid = uuid.uuid4()
+        self._vnode = kwargs.get('version_node', None)
+        self._vtag = kwargs.get('version_tag', '')
+        self._mshptrail = kwargs.get('mashuptrail', None)
+        if 'mashupVersion' in kwargs:
+            self._mshpversion = kwargs.get('mashupVersion', None)
+        else:
+            self._mshpversion = kwargs.get('mashup', None)
+        self._parameterexploration = kwargs.get('parameterExploration', None)
+        self.kwargs = kwargs
 
     def load(self, type):
         fname = self.get_temporary()
@@ -312,12 +343,25 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
 
     @staticmethod
     def from_url(url):
-        if url.startswith('untitled:'):
-           return UntitledLocator(url[9:])
-        return None
+        if not url.startswith('untitled:'):
+            raise VistrailsDBException("URL does not start with untitled:")
+
+        rest = url[9:]
+        my_uuid = None
+        if len(rest) >= 32:
+            try:
+                my_uuid = uuid.UUID(rest[:32])
+                rest = rest[32:]
+            except ValueError:
+                pass
+        url = 'http://example.com/' + rest
+        (_, _, _, args_str, _) = urlparse.urlsplit(url)
+        kwargs = BaseLocator.parse_args(args_str)
+        return UntitledLocator(my_uuid, **kwargs)
 
     def to_url(self):
-        url_tuple = ('untitled', '', self._uuid.hex, '', '')
+        args_str = BaseLocator.generate_args(self.kwargs)
+        url_tuple = ('untitled', '', self._uuid.hex, args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
     def __hash__(self):
@@ -356,7 +400,10 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         self._vnode = kwargs.get('version_node', None)
         self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
-        self._mshpversion = kwargs.get('mashupVersion', None)
+        if 'mashupVersion' in kwargs:
+            self._mshpversion = kwargs.get('mashupVersion', None)
+        else:
+            self._mshpversion = kwargs.get('mashup', None)
         self._parameterexploration = kwargs.get('parameterExploration', None)
         self.kwargs = kwargs
 
@@ -624,7 +671,10 @@ class DBLocator(BaseLocator):
         self._vnode = self.kwargs.get('version_node', None)
         self._vtag = self.kwargs.get('version_tag', None)
         self._mshptrail = self.kwargs.get('mashuptrail', None)
-        self._mshpversion = self.kwargs.get('mashupVersion', None)
+        if 'mashupVersion' in self.kwargs:
+            self._mshpversion = self.kwargs.get('mashupVersion', None)
+        else:
+            self._mshpversion = self.kwargs.get('mashup', None)
         self._parameterexploration = self.kwargs.get('parameterExploration', None)
         
     def _get_host(self):
@@ -935,3 +985,61 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
+import unittest
+
+class TestLocators(unittest.TestCase):
+    if not hasattr(unittest.TestCase, 'assertIsInstance'):
+        def assertIsInstance(self, obj, cls, msg=None):
+            assert(isinstance(obj, cls))
+        def assertIsNone(self, obj):
+            self.assertEqual(obj, None)
+
+    def test_parse_untitled(self):
+        loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsInstance(loc, UntitledLocator)
+        self.assertEqual(loc.kwargs['version_node'], 42)
+        self.assertEqual(loc._uuid, 
+                         uuid.UUID('e78394a73b87429e952b71b858e03242'))
+        self.assertEqual(loc.to_url(), loc_str)
+
+    def test_untitled_no_uuid(self):
+        loc_str = "untitled:"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsInstance(loc, UntitledLocator)
+        # make sure it adds a uuid
+        self.assertEqual(len(loc.to_url()), 41)
+
+    def test_parse_zip_file(self):
+        loc_str = "file:///vistrails/tmp/test.vt?workflow=abc"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsInstance(loc, ZIPFileLocator)
+        self.assertEqual(loc.kwargs['version_tag'], "abc")
+        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.to_url(), loc_str)
+
+    def test_parse_xml_file(self):
+        loc_str = "file:///vistrails/tmp/test.xml"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsInstance(loc, XMLFileLocator)
+        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.to_url(), loc_str)
+        
+    def test_parse_db(self):
+        loc_str = "db://localhost:3306/vistrails?workflow=42"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsInstance(loc, DBLocator)
+        self.assertEqual(loc.kwargs['version_node'], 42)
+        self.assertEqual(loc._host, "localhost")
+        self.assertEqual(loc._port, 3306)
+        self.assertEqual(loc._db, "vistrails")
+        self.assertEqual(loc.to_url(), loc_str)
+
+    def test_parse_bad_url(self):
+        loc_str = "http://blah.com/"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsNone(loc)
+
+if __name__ == '__main__':
+    unittest.main()

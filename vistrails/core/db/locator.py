@@ -59,6 +59,8 @@ class BaseLocator(_BaseLocator):
             locator.__class__ = ZIPFileLocator
         elif locator.__class__ == _DBLocator:
             locator.__class__ = DBLocator
+        elif locator.__class__ == _UntitledLocator:
+            locator.__class__ = UntitledLocator
             
     @staticmethod
     def from_url(url):
