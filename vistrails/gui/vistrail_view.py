@@ -83,6 +83,7 @@ class QVistrailView(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
         self.is_executing = False
+        self.is_abstraction = False
         self.notifications = {}
         self.tabs = QMouseTabBar(self)
         self.tabs.setDocumentMode(True)
