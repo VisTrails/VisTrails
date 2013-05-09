@@ -1546,11 +1546,11 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         # DAK: changed these because of upgrades...
         # module_ids = [1, 2, 3]
         # connection_ids = [1, 2, 3]
-        module_ids = [4, 5, 6]
+        module_ids = [8, 10, 11]
         #connection_ids = [6, 8, 9]
         # TE: changed again because upgrades produced different id:s
         # also saved upgrade in test_abstraction.xml
-        connection_ids = [6, 7, 9]
+        connection_ids = [13,14,15]
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))
