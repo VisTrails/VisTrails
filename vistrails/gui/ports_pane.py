@@ -495,7 +495,7 @@ class PortsList(QtGui.QTreeWidget):
                 else:
                     visible_ports.discard(item.port_spec.name)
                 self.controller.flush_delayed_actions()
-                self.controller.current_pipeline_view.recreate_module(
+                self.controller.current_pipeline_scene.recreate_module(
                     self.controller.current_pipeline, self.module.id)
         if col == 2:
             if item.isExpanded():
@@ -541,7 +541,7 @@ class PortsList(QtGui.QTreeWidget):
             # make the scene display the fact that we have a parameter
             # by dimming the port
             # self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.update_module_functions(
+            self.controller.current_pipeline_scene.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
                                             
     def delete_method(self, subitem, port_name, real_id=None):
@@ -555,7 +555,7 @@ class PortsList(QtGui.QTreeWidget):
             # make the scene display the fact that we have lost the
             # parameter by undimming the port
             # self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.update_module_functions(
+            self.controller.current_pipeline_scene.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
 
         # how to delete items...x

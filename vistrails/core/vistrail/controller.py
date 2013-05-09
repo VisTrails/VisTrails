@@ -121,22 +121,14 @@ class CompareThumbnailsError(Exception):
             (self._msg, self._first, self._second)
 
 class VistrailController(object):
-    def __init__(self, vistrail=None, id_scope=None, auto_save=True):
-        self.vistrail = vistrail
-        self.id_scope = id_scope
-        self.current_session = -1
-        self.log = Log()
-        self._auto_save = auto_save
-        if vistrail is not None:
-            self.id_scope = vistrail.idScope
-            self.current_session = vistrail.idScope.getNewId('session')
-            vistrail.current_session = self.current_session
-            vistrail.log = self.log
-        self._current_pipeline = None
+    def __init__(self, vistrail=None, locator=None, abstractions=None, 
+                 thumbnails=None, mashups=None, id_scope=None, 
+                 set_log_on_vt=True, auto_save=True):
+        self.vistrail = None
         self.locator = None
+        self._auto_save = auto_save
         self.name = ''
         self.file_name = ''
-        self._current_version = -1
         self.is_abstraction = False
         self.changed = False
 
@@ -151,8 +143,8 @@ class VistrailController(object):
         # if self.search is True, vistrail is currently being searched
         self.search = None
         self.search_str = None
-        # If self.refine is True, search mismatches are hidden instead                              
-        # of ghosted                                                                                
+        # If self.refine is True, search mismatches are hidden instead
+        # of ghosted
         self.refine = False
         self.full_tree = False
 
@@ -174,6 +166,13 @@ class VistrailController(object):
         # theme used to estimate module size for layout
         self.layoutTheme = DefaultCoreTheme()
         
+        self.set_vistrail(vistrail, locator, 
+                          abstractions=abstractions, 
+                          thumbnails=thumbnails,
+                          mashups=mashups,
+                          id_scope=id_scope, 
+                          set_log_on_vt=set_log_on_vt)
+
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
         return self._current_version
@@ -203,8 +202,12 @@ class VistrailController(object):
         return self.locator
     
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None, set_log_on_vt=True):
+                     thumbnails=None, mashups=None, id_scope=None,
+                     set_log_on_vt=True):
         self.vistrail = vistrail
+        self.id_scope = id_scope
+        self.current_session = -1
+        self.log = Log()
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
@@ -222,7 +225,14 @@ class VistrailController(object):
         if self.locator != locator and self.locator is not None:
             self.locator.clean_temporaries()
         self.locator = locator
-        self.recompute_terse_graph()
+        if self.locator is not None:
+            self.set_file_name(locator.name)
+        else:
+            self.set_file_name('')
+        if self.locator and self.locator.has_temporaries():
+            self.set_changed(True)
+        if self.vistrail is not None:
+            self.recompute_terse_graph()
         
     def close_vistrail(self, locator):
         if not self.vistrail.is_abstraction:
@@ -230,7 +240,10 @@ class VistrailController(object):
         if locator is not None:
             locator.clean_temporaries()
             locator.close()
-            
+
+    def cleanup(self):
+        pass
+
     def set_id_scope(self, id_scope):
         self.id_scope = id_scope
 
@@ -920,8 +933,6 @@ class VistrailController(object):
 
     @vt_action
     def add_module_action(self, module):
-        if not self.current_pipeline:
-            raise Exception("No version is selected")
         action = vistrails.core.db.action.create_action([('add', module)])
         return action
 
@@ -3453,6 +3464,7 @@ class VistrailController(object):
             if not export:
                 if id(self.vistrail) != id(new_vistrail):
                     new_version = new_vistrail.db_currentVersion
+                    # FIXME have to figure out what to do here !!!
                     self.set_vistrail(new_vistrail, locator)
                     self.change_selected_version(new_version)
                     result = True
