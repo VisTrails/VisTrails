@@ -43,7 +43,8 @@ from vistrails.core import keychain
 from vistrails.core import system
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
-from vistrails.core.db.locator import FileLocator, DBLocator, untitled_locator
+from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
+    UntitledLocator
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
@@ -51,6 +52,7 @@ import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
 from vistrails.core.utils.uxml import enter_named_element
+from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
@@ -548,6 +550,22 @@ after self.init()"""
         """
         raise NotImplementedError("Subclass must implement select_version")
 
+    def get_current_controller(self):
+        """get_current_controller returns the currently active controller, if
+        one exists, otherwise None.
+
+        """
+        raise NotImplementedError("Subclass must implement "
+                                  "get_current_controller")
+
+    def update_locator(self, old_locator, new_locator):
+        """update_locator updates the application state to ensure that any
+        vistrails referenced by old_locator are now referenced by
+        new_locator.
+
+        """
+        raise NotImplementedError("Subclass must implement update_locator")
+
     def convert_version(self, version):
         if isinstance(version, basestring):
             try:
@@ -562,7 +580,9 @@ after self.init()"""
 
     def open_vistrail(self, locator=None, version=None, is_abstraction=False):
         if isinstance(locator, basestring):
-            locator = FileLocator(fname)
+            locator = BaseLocator.from_url(locator)
+        elif locator is None:
+            locator = UntitledLocator()
 
         controller = self.ensure_vistrail(locator)
         if controller is None:
@@ -571,7 +591,7 @@ after self.init()"""
                 loaded_objs = vistrails.core.db.io.load_vistrail(locator, False)
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
-                if not locator:
+                if locator.is_untitled():
                     return
                 controller.is_abstraction = is_abstraction
                 thumb_cache = ThumbnailCache.getInstance()
@@ -601,13 +621,101 @@ after self.init()"""
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
-        controller.set_changed(False)
+        return True
         
-    def close_vistrail(self, locator=None):
-        pass
-
     def open_workflow(self, locator):
-        pass
+        if isinstance(locator, basestring):
+            locator = BaseLocator.from_url(locator)
+
+        vistrail = Vistrail()
+        try:
+            if locator is None:
+                return False
+            if locator is not None:
+                workflow = locator.load(Pipeline)
+                action_list = []
+                for module in workflow.module_list:
+                    action_list.append(('add', module))
+                for connection in workflow.connection_list:
+                    action_list.append(('add', connection))
+                action = vistrails.core.db.action.create_action(action_list)
+                vistrail.add_action(action, 0L)
+                vistrail.update_id_scope()
+                vistrail.addTag("Imported workflow", action.id)
+
+                # FIXME might need different locator?                
+                controller = self.add_vistrail(vistrail, locator)
+        except VistrailsDBException, e:
+            import traceback
+            debug.critical(str(e), traceback.format_exc())
+            return None
+        except Exception, e:
+            # debug.critical('An error has occurred', str(e))
+            raise
+
+        controller.select_latest_version()
+        controller.set_changed(True)
+        return True
+
+    def save_vistrail(self, locator=None, controller=None, export=False):
+        if controller is None:
+            controller = self.get_current_controller()
+            if controller is None:
+                return False
+        if locator is None and controller is not None:
+            locator = controller.locator
+        elif isinstance(locator, basestring):
+            locator = BaseLocator.from_url(locator)
+
+        if not locator:
+            return False
+        old_locator = controller.locator
+
+        try:
+            controller.write_vistrail(locator, export=export)
+        except Exception, e:
+            import traceback
+            debug.critical('Failed to save vistrail: %s' % str(e),
+                           traceback.format_exc())
+            raise
+        if export:
+            return controller.locator
+
+        self.update_locator(old_locator, controller.locator)
+        # update collection
+        try:
+            thumb_cache = ThumbnailCache.getInstance()
+            controller.vistrail.thumbnails = controller.find_thumbnails(
+                tags_only=thumb_cache.conf.tagsOnly)
+            controller.vistrail.abstractions = controller.find_abstractions(
+                controller.vistrail, True)
+            controller.vistrail.mashups = controller._mashups
+
+            collection = Collection.getInstance()
+            url = locator.to_url()
+            entity = collection.updateVistrail(url, controller.vistrail)
+            # add to relevant workspace categories
+            collection.add_to_workspace(entity)
+            collection.commit()
+        except Exception, e:
+            import traceback
+            debug.critical('Failed to index vistrail', traceback.format_exc())
+        return controller.locator
+
+    def close_vistrail(self, locator=None, controller=None):
+        if controller is None:
+            controller = self.get_current_controller()
+            if controller is None:
+                return False
+        if locator is None and controller is not None:
+            locator = controller.locator
+        elif isinstance(locator, basestring):
+            locator = BaseLocator.from_url(locator)
+        
+        self.send_notification('controller_closed', controller)
+        controller.close_vistrail(locator)
+        controller.cleanup()
+        self.remove_vistrail(locator)
 
 class VistrailsCoreApplication(VistrailsApplicationInterface):
     def __init__(self):
@@ -622,27 +730,33 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
     def is_running_gui(self):
         return False
 
-    def get_controller(self):
+    def get_current_controller(self):
         return self._cur_controller
+    get_controller = get_current_controller
 
     def add_vistrail(self, *objs):
         (vistrail, locator, abstraction_files, thumbnail_files, mashups) = objs
-        controller = VistrailController()
-        controller.set_vistrail(*objs)
+        controller = VistrailController(*objs)
         self._controllers[locator] = controller
         self._cur_controller = controller
         return self._cur_controller
         
-    def remove_vistrail(self):
-        if self._cur_controller is not None:
-            loc = self._cur_controller.locator
-            del self.controllers[loc]
+    def remove_vistrail(self, locator=None):
+        if locator is None and self._cur_controller is not None:
+            locator = self._cur_controller.locator
+        del self._controllers[locator]
+        if len(self._controllers) > 0:
+            self._cur_controller = self._controllers.itervalues().next()
 
     def ensure_vistrail(self, locator):
         if locator in self._controllers:
-            self._cur_controller = self._controller[locator]
+            self._cur_controller = self._controllers[locator]
             return self._cur_controller
         return None
+
+    def update_locator(self, old_locator, new_locator):
+        self._controllers[new_locator] = self._controllers[old_locator]
+        del self._controllers[old_locator]
 
     def select_version(self, version):
         if self._cur_controller is not None:

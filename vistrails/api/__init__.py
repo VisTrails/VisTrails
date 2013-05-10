@@ -138,7 +138,7 @@ def add_module(x, y, identifier, name, namespace, controller=None):
     if controller.current_version==-1:
         controller.change_selected_version(0)
     result = controller.add_module(x, y, identifier, name, namespace)
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipelineScene()
     result = controller.current_pipeline.modules[result.id]
     return result
     
@@ -150,7 +150,7 @@ def add_module_from_descriptor(descriptor, x=0.0, y=0.0,
         controller.change_selected_version(0)
     result = controller.add_module_from_descriptor(descriptor, x, y, 
                                                    internal_version)
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipelineScene()
     result = controller.current_pipeline.modules[result.id]
     return result
     
@@ -160,7 +160,7 @@ def add_connection(output_id, output_port_spec, input_id, input_port_spec,
         controller = get_current_controller()
     result = controller.add_connection(output_id, output_port_spec,
                                        input_id, input_port_spec)
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipelineScene()
     result = controller.current_pipeline.connections[result.id]
     return result
 
@@ -168,7 +168,7 @@ def create_group(module_ids, connection_ids, controller=None):
     if controller is None:
         controller = get_current_controller()
     controller.create_group(module_ids, connection_ids)
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipelineScene()
 
 def get_modules_by_name(name, package=None, namespace=None, controller=None):
     if controller is None:
@@ -206,7 +206,7 @@ def change_parameter(module_id, function_name, param_list, function_id=-1L,
     module = controller.current_pipeline.modules[module_id]
     controller.update_function(module, function_name, param_list, function_id, 
                                alias_list)
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipelineScene()
 
 def change_parameter_by_id(module_id, function_id, old_param_id, new_value, 
                            controller=None):
@@ -225,7 +225,7 @@ def change_parameter_by_id(module_id, function_id, old_param_id, new_value,
     function = module.function_idx[function_id]
     pos = function.parameter_idx[old_param_id].pos
     controller.update_parameter(function, old_param_id, new_value)
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipelineScene()
     return function.params[pos].real_id
 
 def change_parameter_by_pos(module_id, function_pos, old_param_pos, new_value,
@@ -243,7 +243,7 @@ def change_parameter_by_pos(module_id, function_pos, old_param_pos, new_value,
     function = module.functions[function_pos]
     old_param_id = function.params[old_param_pos].real_id
     controller.update_parameter(function, old_param_id, new_value)
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipelineScene()
     return function.params[old_param_pos].real_id
 
 def add_port_spec(module_id, port_spec, controller=None):
@@ -252,7 +252,7 @@ def add_port_spec(module_id, port_spec, controller=None):
     # module = controller.current_pipeline.modules[module_id]
     controller.add_module_port(module_id, (port_spec.type, port_spec.name,
                                            port_spec.sigstring))
-    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    controller.updatePipleineScene()
 
 ##############################################################################
 

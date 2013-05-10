@@ -129,7 +129,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             ports_list.set_controller(controller)
         self.annotations.set_controller(controller)
 
-        scene = self.controller.current_pipeline_view
+        scene = self.controller.current_pipeline_scene
         selected_ids = scene.get_selected_module_ids() 
         modules = [self.controller.current_pipeline.modules[i] 
                    for i in selected_ids]
@@ -186,7 +186,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                                                self.module.id)
                 
 
-            scene = self.controller.current_pipeline_view
+            scene = self.controller.current_pipeline_scene
             scene.recreate_module(self.controller.current_pipeline, 
                                   self.module.id)
             

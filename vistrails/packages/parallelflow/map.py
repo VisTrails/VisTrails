@@ -70,8 +70,7 @@ def execute_wf(wf, output_ports):
     vistrail.addTag(tag, action.id)
 
     # Build a controller and execute
-    controller = VistrailController()
-    controller.set_vistrail(vistrail, None)
+    controller = VistrailController(vistrail, None)
     controller.change_selected_version(vistrail.get_version_number(tag))
     execution = controller.execute_current_workflow(
             custom_aliases=None,

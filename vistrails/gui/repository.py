@@ -429,8 +429,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
             # writing tmp vt and switching back to orginal vt
             locator = ZIPFileLocator(filename)
             controller = vistrails.api.get_current_controller()
-            tmp_controller = VistrailController()
-            tmp_controller.set_vistrail(controller.vistrail.do_copy(), locator)
+            tmp_controller = VistrailController(controller.vistrail.do_copy(), 
+                                                locator)
             tmp_controller.changed = True
             tmp_controller.write_vistrail(locator)
 
@@ -518,6 +518,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     (up_vistrail, abstractions, thumbnails, mashups) = \
                             load_vistrail(updated_locator)
 
+                    # FIXME need to figure out what to do with this !!!
                     controller.set_vistrail(up_vistrail,
                                             controller.vistrail.locator,
                                             abstractions, thumbnails, mashups)
