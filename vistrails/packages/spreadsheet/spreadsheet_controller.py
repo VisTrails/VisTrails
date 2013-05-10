@@ -172,6 +172,9 @@ class SpreadsheetController(object):
             window_menu_window=True,
             # Allows to close the application from the spreadsheet via Ctrl+Q
             window_quit_action=True,
+            # Uses the global Ctrl+N, Ctrl+O and Ctrl+S to create/open/save the
+            # spreadsheet (in .vss format)
+            global_kbd_shortcuts=True,
 
             # Creates a first empty sheet 'Sheet 1' when creating the window
             window_create_first_sheet=True,
