@@ -36,6 +36,7 @@ import cgi
 from datetime import datetime
 import hashlib
 import os.path
+import re
 from time import strptime
 import urllib
 import urlparse
@@ -444,8 +445,8 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         return os.path.splitext(os.path.basename(self._name))[0]
     short_name = property(_get_short_name)
 
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         if '://' in url:
             scheme, rest = url.split('://', 1)
         else:
@@ -455,9 +456,11 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         (_, _, path, args_str, _) = urlparse.urlsplit(url)
         # "/c:/path" needs to be "c:/path"
         if systemType in ['Windows', 'Microsoft']:
-            path = path[1:]
+            drive_regex = re.compile(r"[/\\]+[a-zA-Z]\:\\")
+            if drive_regex.match(path):
+                path = path[1:]
         kwargs = BaseLocator.parse_args(args_str)
-        return XMLFileLocator(path, **kwargs)
+        return cls(os.path.abspath(path), **kwargs)
 
     def to_url(self):
         args_str = BaseLocator.generate_args(self.kwargs)
@@ -544,26 +547,6 @@ class ZIPFileLocator(XMLFileLocator):
     def __init__(self, filename, **kwargs):
         XMLFileLocator.__init__(self, filename, **kwargs)
         self.tmp_dir = None
-
-    @staticmethod
-    def from_url(url):
-        if '://' in url:
-            scheme, rest = url.split('://', 1)
-        else:
-            scheme = 'file'
-            rest = url
-        url = 'http://' + rest
-        (_, _, path, args_str, _) = urlparse.urlsplit(url)
-        # "/c:/path" needs to be "c:/path"
-        if systemType in ['Windows', 'Microsoft']:
-            path = path[1:]
-        kwargs = BaseLocator.parse_args(args_str)
-        return ZIPFileLocator(path, **kwargs)
-
-    def to_url(self):
-        args_str = BaseLocator.generate_args(self.kwargs)
-        url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
-        return urlparse.urlunsplit(url_tuple)
 
     def load(self, type):
         fname = self.get_temporary()
@@ -1012,7 +995,11 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(len(loc.to_url()), 41)
 
     def test_parse_zip_file(self):
-        loc_str = "file:///vistrails/tmp/test.vt?workflow=abc"
+        fname = "/vistrails/tmp/test.vt"
+        path = os.path.abspath(fname)
+        if path.startswith("/"):
+            path = path[1:]
+        loc_str = "file:///%s?workflow=abc" % path
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
@@ -1020,12 +1007,34 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_xml_file(self):
-        loc_str = "file:///vistrails/tmp/test.xml"
+        fname = "/vistrails/tmp/test.xml"
+        path = os.path.abspath(fname)
+        if path.startswith("/"):
+            path = path[1:]
+        loc_str = "file:///%s" % path
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, XMLFileLocator)
         self.assertEqual(loc.short_name, "test")
         self.assertEqual(loc.to_url(), loc_str)
         
+    def test_win_xml_file(self):
+        import ntpath
+        global systemType
+        old_sys_type = systemType
+        old_path = os.path
+        systemType = 'Windows'
+        os.path = ntpath
+        try:
+            loc_str = "file:///C:\\vistrails\\tmp\\test.xml"
+            loc = BaseLocator.from_url(loc_str)
+            self.assertIsInstance(loc, XMLFileLocator)
+            self.assertEqual(loc.short_name, "test")
+            self.assertEqual(loc.to_url(), loc_str)
+        finally:
+            systemType = old_sys_type
+            os.path = old_path
+        
+
     def test_parse_db(self):
         loc_str = "db://localhost:3306/vistrails?workflow=42"
         loc = BaseLocator.from_url(loc_str)
