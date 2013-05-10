@@ -178,6 +178,10 @@ class SpreadsheetController(object):
             # Allows to create a new sheet from a sheet's toolbar
             tab_create_sheet=True,
             tab_create_sheet_action=None,
+            # Add the 'Open sheet' button on the toolbar
+            tab_open_sheet=True,
+            # Add the 'Save sheet' button on the toolbar
+            tab_save_sheet=True,
             # Allows to rename a sheet from the tab bar
             tab_rename_sheet=True,
             tab_begin_rename_action=None,

@@ -99,8 +99,10 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.sheetTab = parent
         if spreadsheet_controller.get_ss_hook('tab_create_sheet'):
             self.addAction(self.sheetTab.tabWidget.newSheetAction())
-        self.addAction(self.sheetTab.tabWidget.openAction())
-        self.addAction(self.sheetTab.tabWidget.saveAction())
+        if spreadsheet_controller.get_ss_hook('tab_open_sheet'):
+            self.addAction(self.sheetTab.tabWidget.openAction())
+        if spreadsheet_controller.get_ss_hook('tab_save_sheet'):
+            self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
