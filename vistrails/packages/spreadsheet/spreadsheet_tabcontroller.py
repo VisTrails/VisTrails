@@ -161,7 +161,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.newSheetActionVar = QtGui.QAction(icon, '&New sheet', self)
             self.newSheetActionVar.setToolTip('Create a new sheet')
             self.newSheetActionVar.setStatusTip('Create and show a new sheet')
-            self.newSheetActionVar.setShortcut(QtGui.QKeySequence('Ctrl+N'))
+            if spreadsheet_controller.get_ss_hook('global_kbd_shortcuts'):
+                self.newSheetActionVar.setShortcut(QtGui.QKeySequence('Ctrl+N'))
             self.connect(self.newSheetActionVar,
                          QtCore.SIGNAL('triggered()'),
                          self.newSheetActionTriggered)
@@ -230,7 +231,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.saveActionVar = QtGui.QAction(QtGui.QIcon(':/images/save.png'),
                                                '&Save', self)
             self.saveActionVar.setStatusTip('Save the current spreadsheet')
-            self.saveActionVar.setShortcut('Ctrl+S')
+            if spreadsheet_controller.get_ss_hook('global_kbd_shortcuts'):
+                self.saveActionVar.setShortcut('Ctrl+S')
             self.connect(self.saveActionVar,
                          QtCore.SIGNAL('triggered()'),
                          self.saveSpreadsheet)
@@ -260,7 +262,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.openActionVar = QtGui.QAction(QtGui.QIcon(':/images/open.png'),
                                                '&Open...', self)
             self.openActionVar.setStatusTip('Open a saved spreadsheet')
-            self.openActionVar.setShortcut('Ctrl+O')
+            if spreadsheet_controller.get_ss_hook('global_kbd_shortcuts'):
+                self.openActionVar.setShortcut('Ctrl+O')
             self.connect(self.openActionVar,
                          QtCore.SIGNAL('triggered()'),
                          self.openSpreadsheetAs)
