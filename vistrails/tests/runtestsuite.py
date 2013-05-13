@@ -112,13 +112,17 @@ parser.add_option("-V", "--verbose", action="store", type="int",
                   "higher means more verbose)")
 parser.add_option("-e", "--examples", action="store_true",
                   default=False,
-                  help="will run vistrails examples")
+                  help="run vistrails examples")
+parser.add_option("-i", "--images", action="store_true",
+                  default=False,
+                  help="perform image comparisons")
 
 (options, args) = parser.parse_args()
 # remove empty strings
 args = filter(len, args)
 verbose = options.verbose
 test_examples = options.examples
+test_images = options.images
 test_modules = None
 if len(args) > 0:
     test_modules = set(args)
@@ -176,7 +180,7 @@ for (p, subdirs, files) in os.walk(root_directory):
 
         if test_modules and not module in test_modules:
             continue
-        if module.startswith('vistrails.tests'):
+        if module.startswith('vistrails.tests.run'):
             continue
         if ('system' in module and not
             module.endswith('__init__')):
@@ -255,14 +259,19 @@ def compare_thumbnails(prev, next):
     return idiff.GetThresholdedError()
 
 def image_test_generator(vtfile, version):
+    from vistrails.core.db.locator import FileLocator
+    from vistrails.core.db.io import load_vistrail
+    import vistrails.core.console_mode
     def test(self):
         try:
             errs = []
             filename = os.path.join(EXAMPLES_PATH, vtfile)
-            locator = vistrails.core.db.locator.FileLocator(os.path.abspath(filename))
-            (v, abstractions, thumbnails, mashups) = vistrails.core.db.io.load_vistrail(locator)
-            errs = vistrails.core.console_mode.run([(locator, version)], update_vistrail=False,
-                        extra_info={'compare_thumbnails': compare_thumbnails})
+            locator = FileLocator(os.path.abspath(filename))
+            (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
+            errs = vistrails.core.console_mode.run(
+                    [(locator, version)],
+                    update_vistrail=False,
+                    extra_info={'compare_thumbnails': compare_thumbnails})
             if len(errs) > 0:
                 for err in errs:
                     print("   *** Error in %s:%s:%s -- %s" % err)
@@ -274,7 +283,7 @@ def image_test_generator(vtfile, version):
 class TestVistrailImages(unittest.TestCase):
     pass
 
-if not test_modules:
+if not test_modules or test_images:
     for vt, t in image_tests:
         for name, version in t:
             test_name = 'test_%s' % name
