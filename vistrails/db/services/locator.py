@@ -106,8 +106,6 @@ class BaseLocator(object):
     
     @staticmethod
     def from_url(url):
-        # FIXME works only with absolute paths right now...
-        # FIXME are ? or / in filenames problematic?
         if '://' in url:
             scheme, rest = url.split('://', 1)
         elif url.startswith('untitled:'):
@@ -120,10 +118,13 @@ class BaseLocator(object):
         elif scheme == 'db':
             return DBLocator.from_url(url)
         elif scheme == 'file':
-            filename = urlparse.urlsplit('http://' + rest)[2]
-            if filename.endswith('.vt'):
+            # Remove query parameters
+            rest = rest.rsplit('?', 1)[0]
+            # De-urlencode pathname
+            rest = urllib.unquote(rest)
+            if rest.endswith('.vt'):
                 return ZIPFileLocator.from_url(url)
-            elif filename.endswith('.xml'):
+            elif rest.endswith('.xml'):
                 return XMLFileLocator.from_url(url)
         return None
 
@@ -355,9 +356,12 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
                 rest = rest[32:]
             except ValueError:
                 pass
-        url = 'http://example.com/' + rest
-        (_, _, _, args_str, _) = urlparse.urlsplit(url)
-        kwargs = BaseLocator.parse_args(args_str)
+        if not rest:
+            kwargs = dict()
+        elif rest[0] == '?':
+            kwargs = BaseLocator.parse_args(rest[1:])
+        else:
+            raise ValueError
         return UntitledLocator(my_uuid, **kwargs)
 
     def to_url(self):
@@ -448,23 +452,35 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     @classmethod
     def from_url(cls, url):
         if '://' in url:
-            scheme, rest = url.split('://', 1)
+            scheme, path = url.split('://', 1)
+            if scheme != 'file':
+                raise ValueError
         else:
-            scheme = 'file'
-            rest = url
-        url = 'http://' + rest
-        (_, _, path, args_str, _) = urlparse.urlsplit(url)
+            path = url
+
+        # Split query parameters
+        splitted_url = path.rsplit('?', 1)
+        path = splitted_url[0]
+        if len(splitted_url) > 1:
+            args_str = splitted_url[1]
+            kwargs = BaseLocator.parse_args(args_str)
+        else:
+            kwargs = dict()
+
+        # De-urlencode pathname
+        path = urllib.unquote(path)
+
         # "/c:/path" needs to be "c:/path"
         if systemType in ['Windows', 'Microsoft']:
-            drive_regex = re.compile(r"[/\\]+[a-zA-Z]\:\\")
-            if drive_regex.match(path):
-                path = path[1:]
-        kwargs = BaseLocator.parse_args(args_str)
+            drive_regex = re.compile(r"[/\\]+([a-zA-Z]:[/\\].+)$")
+            match = drive_regex.match(path)
+            if match is not None:
+                path = match.group(1)
         return cls(os.path.abspath(path), **kwargs)
 
     def to_url(self):
         args_str = BaseLocator.generate_args(self.kwargs)
-        url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
+        url_tuple = ('file', '', urllib.quote(os.path.abspath(self._name), '/\\:'), args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
     def serialize(self, dom, element):
@@ -846,15 +862,29 @@ class DBLocator(BaseLocator):
     
     @staticmethod
     def from_url(url):
-        #FIXME may need some urllib.quote work here
-        scheme, rest = url.split('://', 1)
-        url = 'http://' + rest
-        (_, net_loc, db_name, args_str, _) = urlparse.urlsplit(url)
-        db_name = db_name[1:]
-        host, port = net_loc.split(':', 1)
-#        obj_type, obj_id = args_str.split('=', 1)
-        kwargs = BaseLocator.parse_args(args_str)
-        return DBLocator(host, port, db_name, None, '', **kwargs)
+        format = re.compile(
+                r"^"
+                "([a-zA-Z0-9_-]+)://"   # scheme
+                "(?:"
+                    "([^:@]+)"          # user name
+                    "(?:([^:@]+))?"     # password
+                "@)?"
+                "([^/]+)"               # net location
+                "/([^?]+)"              # database name
+                "(?:\?(.+))?"           # query arguments
+                "$")
+        match = format.match(url)
+        if match is None:
+            return ValueError
+        else:
+            scheme, user, passwd, net_loc, db_name, args_str = match.groups('')
+            if ':' in net_loc:
+                host, port = net_loc.rsplit(':', 1)
+            else:
+                host, port = net_loc, None
+            db_name = urllib.unquote(db_name)
+            kwargs = BaseLocator.parse_args(args_str)
+            return DBLocator(host, port, db_name, user, passwd, **kwargs)
     
     def to_url(self):
         # FIXME may need some urllib.quote work here 
@@ -863,7 +893,7 @@ class DBLocator(BaseLocator):
         net_loc = '%s:%s' % (self._host, self._port)
         args_str = BaseLocator.generate_args(self.kwargs)
         # query_str = '%s=%s' % (self._obj_type, self._obj_id)
-        url_tuple = ('db', net_loc, self._db, args_str, '')
+        url_tuple = ('db', net_loc, urllib.quote(self._db, ''), args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
     #ElementTree port
