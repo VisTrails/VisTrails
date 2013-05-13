@@ -1073,8 +1073,12 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(loc.to_url(), loc_str)
         
     def test_win_xml_file(self):
-        import ntpath
-        import nturl2path
+        try:
+            import ntpath
+            import nturl2path
+        except ImportError:
+            return self.skipTest("Do not have ntpath or nturl2path installed.")
+            
         global systemType
         old_sys_type = systemType
         old_path = os.path
