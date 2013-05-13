@@ -592,7 +592,7 @@ class FileLocator(CoreLocator):
         if str(type_) == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = str(child.text).strip(" \n\t")
+                    filename = child.text.encode('latin-1').strip()
                     return FileLocator(filename)
         return None
     

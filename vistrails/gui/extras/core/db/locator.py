@@ -86,8 +86,8 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
         if dialog.exec_() == QtGui.QDialog.Accepted:
             config = {'host': str(dialog.hostEdt.text()),
                       'port': int(dialog.portEdt.value()),
-                      'user': str(dialog.userEdt.text()),
-                      'passwd': str(dialog.passwdEdt.text()),
+                      'user': unicode(dialog.userEdt.text()),
+                      'passwd': unicode(dialog.passwdEdt.text()),
                       'db': str(dialog.databaseEdt.text())
                       }
             try:
@@ -145,7 +145,7 @@ def get_load_file_locator_from_gui(parent, obj_type):
         "VisTrails files (%s)\nOther files (*)" % suffixes)
     if fileName.isEmpty():
         return None
-    filename = os.path.abspath(str(fileName))
+    filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
     dirName = os.path.dirname(filename)
     setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
     setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
@@ -166,7 +166,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         QtGui.QFileDialog.DontConfirmOverwrite)
     if fileName.isEmpty():
         return None
-    f = str(fileName)
+    f = str(QtCore.QFile.encodeName(fileName))
 
     # check for proper suffix
     found_suffix = False
@@ -189,7 +189,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
                                 parent)
         if msg.exec_() == QtGui.QMessageBox.No:
             return None
-    dirName = os.path.dirname(str(f))
+    dirName = os.path.dirname(f)
     setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
     setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
