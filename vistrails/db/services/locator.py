@@ -105,26 +105,59 @@ class BaseLocator(object):
         raise NotImplementedError("parse is not implemented")
     
     @staticmethod
+    def convert_filename_to_url(filename):
+        exts = ["vt", "xml"]
+        q_mark = False
+        query_str_idx = None
+        for match in re.finditer("\.(%s)(\??)" % "|".join(exts), filename):
+            if match.group(2):
+                if q_mark:
+                    raise VistrailsDBException('Ambiguous URI with '
+                                               'multiple question '
+                                               'marks: "%s"' % url)
+                else:
+                    q_mark = True
+                    query_str_idx = match.end()
+        if q_mark:
+            args_str = filename[query_str_idx-1:]
+            filename = filename[:query_str_idx-1]
+        else:
+            args_str = ""
+
+        # on posix-like, this quotes things, on windows, this does
+        # magic to get backslashes converted, too
+        conv_url = urllib.pathname2url(filename)
+        if conv_url.startswith('///'):
+            # hack off the first two slashes, happens with windows...
+            conv_url = conv_url[2:]
+        return 'file://' + conv_url + args_str
+
+    @staticmethod
     def from_url(url):
+        """Assumes a valid URL if the scheme is specified.  For example,
+        'file:///C:/My%20Documents/test.vt'.  If only a filename is
+        specified, it converts the filename to a URL.
+
+        """
         if '://' in url:
-            scheme, rest = url.split('://', 1)
+            scheme = url.split('://', 1)[0]
         elif url.startswith('untitled:'):
             scheme = 'untitled'
         else:
             scheme = 'file'
-            rest = url
+            url = BaseLocator.convert_filename_to_url(url)
         if scheme == 'untitled':
             return UntitledLocator.from_url(url)
         elif scheme == 'db':
             return DBLocator.from_url(url)
         elif scheme == 'file':
-            # Remove query parameters
-            rest = rest.rsplit('?', 1)[0]
-            # De-urlencode pathname
-            rest = urllib.unquote(rest)
-            if rest.endswith('.vt'):
+            old_uses_query = urlparse.uses_query
+            urlparse.uses_query = urlparse.uses_query + ['file']
+            scheme, host, path, query, fragment = urlparse.urlsplit(url)
+            urlparse.uses_query = old_uses_query
+            if path.endswith(".vt"):
                 return ZIPFileLocator.from_url(url)
-            elif rest.endswith('.xml'):
+            elif path.endswith(".xml"):
                 return XMLFileLocator.from_url(url)
         return None
 
@@ -456,31 +489,23 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
             if scheme != 'file':
                 raise ValueError
         else:
-            path = url
+            url = BaseLocator.convert_filename_to_url(url)
 
-        # Split query parameters
-        splitted_url = path.rsplit('?', 1)
-        path = splitted_url[0]
-        if len(splitted_url) > 1:
-            args_str = splitted_url[1]
-            kwargs = BaseLocator.parse_args(args_str)
-        else:
-            kwargs = dict()
-
+        old_uses_query = urlparse.uses_query
+        urlparse.uses_query = urlparse.uses_query + ['file']
+        scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
+        urlparse.uses_query = old_uses_query
         # De-urlencode pathname
-        path = urllib.unquote(path)
+        path = urllib.url2pathname(path)
+        kwargs = BaseLocator.parse_args(args_str)
 
-        # "/c:/path" needs to be "c:/path"
-        if systemType in ['Windows', 'Microsoft']:
-            drive_regex = re.compile(r"[/\\]+([a-zA-Z]:[/\\].+)$")
-            match = drive_regex.match(path)
-            if match is not None:
-                path = match.group(1)
         return cls(os.path.abspath(path), **kwargs)
 
     def to_url(self):
         args_str = BaseLocator.generate_args(self.kwargs)
-        url_tuple = ('file', '', urllib.quote(os.path.abspath(self._name), '/\\:'), args_str, '')
+        url_tuple = ('file', '', 
+                     urllib.pathname2url(os.path.abspath(self._name)), 
+                     args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
     def serialize(self, dom, element):
@@ -1025,23 +1050,23 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(len(loc.to_url()), 41)
 
     def test_parse_zip_file(self):
-        fname = "/vistrails/tmp/test.vt"
-        path = os.path.abspath(fname)
-        if path.startswith("/"):
-            path = path[1:]
-        loc_str = "file:///%s?workflow=abc" % path
+        loc_str = "file:///vistrails/tmp/test.vt?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
         self.assertEqual(loc.short_name, "test")
         self.assertEqual(loc.to_url(), loc_str)
 
+    def test_parse_zip_file_no_scheme(self):
+        loc_str = "/vistrails/tmp/test.vt?workflow=abc"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsInstance(loc, ZIPFileLocator)
+        self.assertEqual(loc.kwargs['version_tag'], "abc")
+        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.to_url(), 'file://' + loc_str)
+
     def test_parse_xml_file(self):
-        fname = "/vistrails/tmp/test.xml"
-        path = os.path.abspath(fname)
-        if path.startswith("/"):
-            path = path[1:]
-        loc_str = "file:///%s" % path
+        loc_str = "file:///vistrails/tmp/test.xml"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, XMLFileLocator)
         self.assertEqual(loc.short_name, "test")
@@ -1049,21 +1074,29 @@ class TestLocators(unittest.TestCase):
         
     def test_win_xml_file(self):
         import ntpath
+        import nturl2path
         global systemType
         old_sys_type = systemType
         old_path = os.path
+        old_pathname2url = urllib.pathname2url
+        old_url2pathname = urllib.url2pathname
         systemType = 'Windows'
         os.path = ntpath
+        urllib.pathname2url = nturl2path.pathname2url
+        urllib.url2pathname = nturl2path.url2pathname
         try:
-            loc_str = "file:///C:\\vistrails\\tmp\\test.xml"
+            loc_str = "C:\\vt?dir\\tmp\\test.xml?workflow=3"
             loc = BaseLocator.from_url(loc_str)
             self.assertIsInstance(loc, XMLFileLocator)
             self.assertEqual(loc.short_name, "test")
-            self.assertEqual(loc.to_url(), loc_str)
+            self.assertEqual(loc.kwargs['version_node'], 3)
+            self.assertEqual(loc.to_url(), 
+                             "file:///C:/vt%3Fdir/tmp/test.xml?workflow=3")
         finally:
             systemType = old_sys_type
             os.path = old_path
-        
+            urllib.pathname2url = old_pathname2url
+            urllib.url2pathname = old_url2pathname
 
     def test_parse_db(self):
         loc_str = "db://localhost:3306/vistrails?workflow=42"
