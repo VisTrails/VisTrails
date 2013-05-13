@@ -42,8 +42,7 @@ import vistrails.core.modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
 import vistrails.core.db.action
-from vistrails.core.modules.basic_modules import Boolean, Color, File, List, \
-    String, Integer, Float
+from vistrails.core.modules.basic_modules import File, String, Boolean
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
@@ -76,214 +75,6 @@ def initialize(*args, **kwargs):
                       'SpreadsheetCell'):
         from .figure_cell import MplFigureCell
         _modules.append(MplFigureCell)
-
-
-###############################################################################
-
-# Define DAT plots
-try:
-    from dat.packages import Plot, DataPort, ConstantPort, Variable, \
-        FileVariableLoader, VariableOperation, OperationArgument, \
-        translate, derive_varname
-except ImportError:
-    pass # We are not running DAT; skip plot/variable/operation definition
-else:
-    from PyQt4 import QtGui
-
-    from .numpy import NumPyArray
-
-    _ = translate('packages.matplotlib')
-
-    # Builds a DAT variable from a data file
-    def build_variable(filename, dtype, shape=None):
-        var = Variable(type=List)
-        # We use the high-level interface to build the variable pipeline
-        mod = var.add_module(NumPyArray)
-        mod.add_function('file', File, filename)
-        mod.add_function('datatype', String, dtype)
-        if shape is not None:
-            mod.add_function('shape', List, repr(shape))
-        # We select the 'value' output port of the NumPyArray module as the
-        # port that will be connected to plots when this variable is used
-        var.select_output_port(mod, 'value')
-        return var
-
-    ########################################
-    # Defines plots from subworkflow files
-    #
-    _plots = [
-        Plot(name="Matplotlib bar diagram",
-             subworkflow='{package_dir}/dat-plots/bar.xml',
-             description=_("Build a bar diagram out of two lists"),
-             ports=[
-                 DataPort(name='left', type=List, optional=True),
-                 DataPort(name='height', type=List),
-                 ConstantPort(name='title', type=String, optional=True),
-                 ConstantPort(name='alpha', type=Float, optional=True),
-                 ConstantPort(name='facecolor', type=Color, optional=True),
-                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
-        Plot(name="Matplotlib box plot",
-             subworkflow='{package_dir}/dat-plots/boxplot.xml',
-             description=_("Build a box diagram out of a list of values"),
-             ports=[
-                 DataPort(name='values', type=List),
-                 ConstantPort(name='title', type=String, optional=True),
-                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
-        Plot(name="Matplotlib histogram",
-             subworkflow='{package_dir}/dat-plots/hist.xml',
-             description=_("Build a histogram out of a list"),
-             ports=[
-                 DataPort(name='x', type=List),
-                 ConstantPort(name='title', type=String, optional=True),
-                 ConstantPort(name='bins', type=Integer, optional=True),
-                 ConstantPort(name='alpha', type=Float, optional=True),
-                 ConstantPort(name='facecolor', type=Color, optional=True),
-                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
-        Plot(name="Matplotlib image",
-             subworkflow='{package_dir}/dat-plots/imshow.xml',
-             description=_("Shows a 2D MxN or MxNx3 matrix as an image"),
-             ports=[
-                 DataPort(name='matrix', type=List),
-                 ConstantPort(name='title', type=String, optional=True)]),
-        Plot(name="Matplotlib line plot",
-             subworkflow='{package_dir}/dat-plots/line.xml',
-             description=_("Build a plot out of two lists"),
-             ports=[
-                 DataPort(name='x', type=List, optional=True),
-                 DataPort(name='y', type=List),
-                 ConstantPort(name='title', type=String, optional=True),
-                 ConstantPort(name='marker', type=String, optional=True),
-                 ConstantPort(name='markercolor', type=Color, optional=True),
-                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
-        Plot(name="Matplotlib pie diagram",
-             subworkflow='{package_dir}/dat-plots/pie.xml',
-             description=_("Build a pie diagram out of a list of values"),
-             ports=[
-                 DataPort(name='x', type=List),
-                 ConstantPort(name='title', type=String, optional=True)]),
-        Plot(name="Matplotlib polar plot",
-             subworkflow='{package_dir}/dat-plots/polar.xml',
-             description=_("Build a plot out of two lists"),
-             ports=[
-                 DataPort(name='r', type=List),
-                 DataPort(name='theta', type=List),
-                 ConstantPort(name='title', type=String, optional=True),
-                 ConstantPort(name='marker', type=String, optional=True),
-                 ConstantPort(name='markercolor', type=Color, optional=True),
-                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
-    ]
-
-    ########################################
-    # Defines a variable loader
-    #
-    class BinaryArrayLoader(FileVariableLoader):
-        """Loads a NumPy array using numpy:fromfile().
-        """
-        FORMATS = [
-                ("%s (%s)" % (_("byte"), 'numpy.int8'),
-                 'int8'),
-                ("%s (%s)" % (_("unsigned byte"), 'numpy.uint8'),
-                 'uint8'),
-                ("%s (%s)" % (_("short"), 'numpy.int16'),
-                 'int16'),
-                ("%s (%s)" % (_("unsigned short"), 'numpy.uint16'),
-                 'uint16'),
-                ("%s (%s)" % (_("32-bit integer"), 'numpy.int32'),
-                 'int32'),
-                ("%s (%s)" % (_("32-bit unsigned integer"), 'numpy.uint32'),
-                 'uint32'),
-                ("%s (%s)" % (_("64-bit integer"), 'numpy.int64'),
-                 'int64'),
-                ("%s (%s)" % (_("64-bit unsigned integer"), 'numpy.uint64'),
-                 'uint64'),
-
-                ("%s (%s)" % (_("32-bit floating number"), 'numpy.float32'),
-                 'float32'),
-                ("%s (%s)" % (_("64-bit floating number"), 'numpy.float64'),
-                 'float64'),
-                ("%s (%s)" % (_("128-bit floating number"), 'numpy.float128'),
-                 'float128'),
-
-                ("%s (%s)" % (_("64-bit complex number"), 'numpy.complex64'),
-                 'complex64'),
-                ("%s (%s)" % (_("128-bit complex number"), 'numpy.complex128'),
-                 'complex128'),
-                ("%s (%s)" % (_("256-bit complex number"), 'numpy.complex256'),
-                 'complex128'),
-        ]
-
-        @classmethod
-        def can_load(cls, filename):
-            return (filename.lower().endswith('.dat') or
-                    filename.lower().endswith('.ima'))
-
-        def __init__(self, filename):
-            FileVariableLoader.__init__(self)
-            self.filename = filename
-            self._varname = derive_varname(filename, remove_ext=True,
-                                          remove_path=True, prefix="nparray_")
-
-            layout = QtGui.QFormLayout()
-
-            self._format_field = QtGui.QComboBox()
-            for label, dtype in BinaryArrayLoader.FORMATS:
-                self._format_field.addItem(label)
-            layout.addRow(_("Data &format:"), self._format_field)
-
-            self._shape = QtGui.QLineEdit()
-            layout.addRow(_("&Shape:"), self._shape)
-            shape_label = QtGui.QLabel(_("Comma-separated list of dimensions"))
-            label_font = shape_label.font()
-            label_font.setItalic(True)
-            shape_label.setFont(label_font)
-            layout.addRow('', shape_label)
-
-            self.setLayout(layout)
-
-        def load(self):
-            shape = str(self._shape.text())
-            if not shape:
-                shape = None
-            else:
-                shape = [int(d.strip()) for d in shape.split(',')]
-            return build_variable(
-                    self.filename,
-                    BinaryArrayLoader.FORMATS[
-                            self._format_field.currentIndex()][1],
-                    shape)
-
-        def get_default_variable_name(self):
-            return self._varname
-
-    def npy_load(self, filename):
-        return build_variable(filename, 'npy')
-    def npy_get_varname(filename):
-        return derive_varname(filename, remove_ext=True,
-                              remove_path=True, prefix="nparray_")
-    NPYArrayLoader = FileVariableLoader.simple(
-            extension='.npy',
-            load=npy_load,
-            get_varname=npy_get_varname)
-
-    _variable_loaders = {
-            BinaryArrayLoader: _("Numpy plain binary array"),
-            NPYArrayLoader: _("Numpy .NPY format"),
-    }
-
-    ########################################
-    # Defines variable operations
-    #
-    _variable_operations = [
-        VariableOperation(
-            '*',
-            subworkflow='{package_dir}/dat-operations/scale_array.xml',
-            args=[
-                OperationArgument('array', List),
-                OperationArgument('num', Float),
-            ],
-            return_type=List,
-            symmetric=True),
-    ]
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
@@ -496,3 +287,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     #     for op in action.operations:
     #         print "@+>:", op
     return action_list
+
+
+# DAT classes, included only if DAT can be imported
+try:
+    import dat.packages
+except ImportError:
+    pass # We are not running DAT
+else:
+    from .dat import *
