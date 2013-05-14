@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 import copy
+import locale
+import sys
 
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -134,11 +136,13 @@ class VistrailEntity(Entity):
         name = None
         if vistrail.locator:
             name = vistrail.locator.short_name
+            enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
+            name = name.decode(enc)
         if name is None:
             if vistrail.db_name:
                 name = vistrail.db_name
             else:
-                name = "untitled"
+                name = u"untitled"
             
         size = vistrail.get_version_count()
         if size < 1:

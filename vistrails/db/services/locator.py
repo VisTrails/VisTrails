@@ -153,8 +153,9 @@ class BaseLocator(object):
         elif scheme == 'file':
             old_uses_query = urlparse.uses_query
             urlparse.uses_query = urlparse.uses_query + ['file']
-            scheme, host, path, query, fragment = urlparse.urlsplit(url)
+            scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
             urlparse.uses_query = old_uses_query
+            path = urllib.url2pathname(path)
             if path.endswith(".vt"):
                 return ZIPFileLocator.from_url(url)
             elif path.endswith(".xml"):
@@ -496,7 +497,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
         urlparse.uses_query = old_uses_query
         # De-urlencode pathname
-        path = urllib.url2pathname(path)
+        path = urllib.url2pathname(str(path))
         kwargs = BaseLocator.parse_args(args_str)
 
         return cls(os.path.abspath(path), **kwargs)
@@ -547,7 +548,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
 
         node.set('type', 'file')
         childnode = ElementTree.SubElement(node,'name')
-        childnode.text = str(self._name)
+        childnode.text = self._name.decode('latin-1')
         return node
 
     @staticmethod
@@ -564,7 +565,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         if type == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = str(child.text).strip(" \n\t")
+                    filename = child.text.encode('latin-1').strip()
                     return XMLFileLocator(filename)
         return None
 
@@ -665,7 +666,7 @@ class ZIPFileLocator(XMLFileLocator):
         if type == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = str(child.text).strip(" \n\t")
+                    filename = child.text.encode('latin-1').strip()
                     return ZIPFileLocator(filename)
             return None
         return None
@@ -907,12 +908,11 @@ class DBLocator(BaseLocator):
                 host, port = net_loc.rsplit(':', 1)
             else:
                 host, port = net_loc, None
-            db_name = urllib.unquote(db_name)
+            db_name = urllib.unquote(str(db_name))
             kwargs = BaseLocator.parse_args(args_str)
             return DBLocator(host, port, db_name, user, passwd, **kwargs)
     
     def to_url(self):
-        # FIXME may need some urllib.quote work here 
         # FIXME may also want to allow database type to be encoded in 
         # scheme (ie mysql://host/db, sqlite3://path/to)
         net_loc = '%s:%s' % (self._host, self._port)
