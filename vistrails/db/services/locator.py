@@ -35,8 +35,10 @@
 import cgi
 from datetime import datetime, date
 import hashlib
+import locale
 import os.path
 import re
+import sys
 from time import strptime
 import urllib
 import urlparse
@@ -52,6 +54,35 @@ from vistrails.core import debug
 from vistrails.core.system import get_elementtree_library, systemType
 
 ElementTree = get_elementtree_library()
+
+
+_drive_regex = re.compile(r"/*([a-zA-Z]:/.+)$")
+def pathname2url(path):
+    """ Takes an absolute filename and turns it into a file:// URL.
+
+    While urllib.pathname2url seems like a good idea, it doesn't appear
+    to do anything sensible in practice on Windows.
+    """
+    if path.startswith('file://'):
+        path = urllib.unquote(path[7:])
+    if systemType in ('Windows', 'Microsoft'):
+        path = path.replace('\\', '/')
+        match = _drive_regex.match(path)
+        if match is not None:
+            path = '/%s' % match.group(1)
+    path = urllib.quote(path, safe='/:')
+    return path
+
+
+def url2pathname(urlpath):
+    """ Takes a file:// URL and turns it into a filename.
+    """
+    path = urllib.url2pathname(urlpath)
+    if systemType in ('Windows', 'Microsoft'):
+        path = path.replace('/', '\\')
+        path = path.lstrip('\\')
+    return path
+
 
 class BaseLocator(object):
 
@@ -106,6 +137,11 @@ class BaseLocator(object):
     
     @staticmethod
     def convert_filename_to_url(filename):
+        """ Converts a local filename to a file:// URL.
+
+        All file:// URLs are absolute, so abspath() will be used on the
+        argument.
+        """
         exts = ["vt", "xml"]
         q_mark = False
         query_str_idx = None
@@ -124,13 +160,8 @@ class BaseLocator(object):
         else:
             args_str = ""
 
-        # on posix-like, this quotes things, on windows, this does
-        # magic to get backslashes converted, too
-        conv_url = urllib.pathname2url(filename)
-        if conv_url.startswith('///'):
-            # hack off the first two slashes, happens with windows...
-            conv_url = conv_url[2:]
-        return 'file://' + conv_url + args_str
+        return 'file://%s%s' % (pathname2url(os.path.abspath(filename)),
+                                urllib.quote(args_str, safe='/?=&'))
 
     @staticmethod
     def from_url(url):
@@ -155,7 +186,7 @@ class BaseLocator(object):
             urlparse.uses_query = urlparse.uses_query + ['file']
             scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
             urlparse.uses_query = old_uses_query
-            path = urllib.url2pathname(path)
+            path = url2pathname(path)
             if path.endswith(".vt"):
                 return ZIPFileLocator.from_url(url)
             elif path.endswith(".xml"):
@@ -222,8 +253,16 @@ class BaseLocator(object):
         return None # Returns a name that will be displayed for the object
     name = property(_get_name)
 
+    def _get_short_filename(self):
+        """ Returns a short name that can be used to derive other filenames
+        """
+        return None
+    short_filename = property(_get_short_filename)
+
     def _get_short_name(self):
-        return None # Returns a short name that can be used for display
+        """ Returns a short name that can be used for display
+        """
+        return None
     short_name = property(_get_short_name)
 
     ###########################################################################
@@ -373,8 +412,12 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
         return UntitledLocator.UNTITLED_NAME
     name = property(_get_name)
 
-    def _get_short_name(self):
+    def _get_short_filename(self):
         return self._get_name()
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        return self._get_name().decode('ascii')
     short_name = property(_get_short_name)
 
     @staticmethod
@@ -479,8 +522,14 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         return str(self._name)
     name = property(_get_name)
 
-    def _get_short_name(self):
+    def _get_short_filename(self):
         return os.path.splitext(os.path.basename(self._name))[0]
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        name = self._get_short_filename()
+        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
+        return name.decode(enc)
     short_name = property(_get_short_name)
 
     @classmethod
@@ -497,15 +546,15 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
         urlparse.uses_query = old_uses_query
         # De-urlencode pathname
-        path = urllib.url2pathname(str(path))
+        path = url2pathname(str(path))
         kwargs = BaseLocator.parse_args(args_str)
 
         return cls(os.path.abspath(path), **kwargs)
 
     def to_url(self):
         args_str = BaseLocator.generate_args(self.kwargs)
-        url_tuple = ('file', '', 
-                     urllib.pathname2url(os.path.abspath(self._name)), 
+        url_tuple = ('file', '',
+                     pathname2url(os.path.abspath(self._name)),
                      args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
@@ -570,7 +619,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         return None
 
     def __str__(self):
-        return '<%s vistrail_name=" %s/>' % (self.__class__.__name__, self._name)
+        return '<%s vistrail_name="%s" />' % (self.__class__.__name__, self._name)
 
     ###########################################################################
     # Operators
@@ -731,8 +780,15 @@ class DBLocator(BaseLocator):
             str(self._name)
     name = property(_get_name)
 
-    def _get_short_name(self):
+    def _get_short_filename(self):
         return str(self._name)
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        name = self._name
+        if not isinstance(name, unicode):
+            name = name.decode('ascii')
+        return name
     short_name = property(_get_short_name)
 
     def hash(self):
@@ -1039,7 +1095,30 @@ class TestLocators(unittest.TestCase):
         path = path.replace(os.sep, '/')
         if path.startswith('/'):
             path = path[1:]
-        return "file:///%s" % path
+        return "file:///%s" % urllib.quote(path, '/:')
+
+    def test_convert_filename(self):
+        # Test both systemTypes
+        global systemType
+        old_systemType = systemType
+        # Don't use abspath, it would cause Linux tests to fail on Windows
+        # we are using abspaths anyway
+        old_abspath = os.path.abspath
+        os.path.abspath = lambda x: x
+        try:
+            systemType = 'Linux'
+            self.assertEqual(
+                    BaseLocator.convert_filename_to_url(
+                            '/a dir/test.vt?v=a\xE9&b'),
+                    'file:///a%20dir/test.vt?v=a%E9&b')
+            systemType = 'Windows'
+            self.assertEqual(
+                    BaseLocator.convert_filename_to_url(
+                            'C:\\a dir\\test.vt?v=a\xE9&b'),
+                    'file:///C:/a%20dir/test.vt?v=a%E9&b')
+        finally:
+            systemType = old_systemType
+            os.path.abspath = old_abspath
 
     def test_parse_untitled(self):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"
@@ -1058,32 +1137,53 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(len(loc.to_url()), 41)
 
     def test_parse_zip_file(self):
-        loc_str = self.path2url("/vistrails/tmp/test.vt") + "?workflow=abc"
+        loc_str = self.path2url(
+                "/vistrails/tmp/test_parse_zip_file \xE9 \xEA.vt")
+        loc_str += "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
-        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.short_filename, "test_parse_zip_file \xE9 \xEA")
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_zip_file_no_scheme(self):
-        loc_str = os.path.abspath("../tmp/test.vt") + "?workflow=abc"
+        loc_str = os.path.abspath(
+                "../tmp/test_parse_zip_file_no_scheme \xE9 \xEA.vt")
+        loc_str += "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
-        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.short_filename,
+                         "test_parse_zip_file_no_scheme \xE9 \xEA")
         loc_str = loc_str.replace(os.sep, '/')
         if loc_str[0] == '/':
             loc_str = loc_str[1:]
-        loc_str = "file:///%s" % loc_str
+        loc_str = "file:///%s" % urllib.quote(loc_str, '/:?=')
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_xml_file(self):
-        loc_str = self.path2url("/vistrails/tmp/test.xml")
+        loc_str = self.path2url(
+                "/vistrails/tmp/test_parse_xml_file \xE9 \xEA.xml")
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, XMLFileLocator)
-        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.short_filename, "test_parse_xml_file \xE9 \xEA")
         self.assertEqual(loc.to_url(), loc_str)
-        
+
+    def test_short_names(self):
+        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
+        if (enc.lower() not in ('mbcs', 'utf-8', 'utf8',
+                                'latin-1', 'iso-8859-1', 'iso-8859-15')):
+            self.skipTest("unusual encoding on this system: %r" % enc)
+        if enc.lower() in ('mbcs', 'latin-1', 'iso-8859-1', 'iso-8859-15'):
+            fname = "test_short_names \xE9 \xEA"
+        elif enc.lower() in ('utf8', 'utf-8'):
+            fname = "test_short_names \xC3\xA9 \xC3\xAA"
+        else:
+            self.skipTest("unusual encoding on this system: %r" % enc)
+        loc = BaseLocator.from_url("../%s.xml" % fname)
+        self.assertEqual(loc.short_filename, fname)
+        self.assertEqual(loc.short_name, u"test_short_names \xE9 \xEA")
+
     def test_win_xml_file(self):
         try:
             import ntpath
@@ -1101,13 +1201,14 @@ class TestLocators(unittest.TestCase):
         urllib.pathname2url = nturl2path.pathname2url
         urllib.url2pathname = nturl2path.url2pathname
         try:
-            loc_str = "C:\\vt?dir\\tmp\\test.xml?workflow=3"
+            loc_str = "C:\\vt?dir\\tmp\\test_win_xml_file.xml?workflow=3"
             loc = BaseLocator.from_url(loc_str)
             self.assertIsInstance(loc, XMLFileLocator)
-            self.assertEqual(loc.short_name, "test")
+            self.assertEqual(loc.short_filename, "test_win_xml_file")
             self.assertEqual(loc.kwargs['version_node'], 3)
-            self.assertEqual(loc.to_url(), 
-                             "file:///C:/vt%3Fdir/tmp/test.xml?workflow=3")
+            self.assertEqual(
+                    loc.to_url(),
+                    "file:///C:/vt%3Fdir/tmp/test_win_xml_file.xml?workflow=3")
         finally:
             systemType = old_sys_type
             os.path = old_path

@@ -136,8 +136,6 @@ class VistrailEntity(Entity):
         name = None
         if vistrail.locator:
             name = vistrail.locator.short_name
-            enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
-            name = name.decode(enc)
         if name is None:
             if vistrail.db_name:
                 name = vistrail.db_name
@@ -542,8 +540,3 @@ class VistrailEntity(Entity):
         for child in self.get_children():
             if child.match(search):
                 return True
-
-    def open(self):
-        locator = BaseLocator.from_url(self.url)
-        locator._name = self.name
-        vistrails.core.open_locator(locator)
