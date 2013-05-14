@@ -2,14 +2,14 @@ from __future__ import absolute_import # 'import dat' is not ambiguous
 
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core.modules.basic_modules import Color, File, List, String, \
-    Integer, Float
+from vistrails.core.modules.basic_modules import Boolean, Color, File, Float, \
+    Integer, List, String
 
 from dat.packages import Plot, DataPort, ConstantPort, Variable, \
     FileVariableLoader, VariableOperation, OperationArgument, \
     translate, derive_varname
 
-from .numpy import NumPyArray, CSVFile
+from .numpy import NumPyArray, CSVFile, ExtractColumn
 import sys
 
 
@@ -19,7 +19,7 @@ __all__ = ['_plots', '_variable_loaders', '_variable_operations']
 _ = translate('packages.matplotlib')
 
 # Builds a DAT variable from a data file
-def build_variable(filename, dtype, shape=None):
+def build_file_variable(filename, dtype, shape=None):
     var = Variable(type=List)
     # We use the high-level interface to build the variable pipeline
     mod = var.add_module(NumPyArray)
@@ -30,6 +30,26 @@ def build_variable(filename, dtype, shape=None):
     # We select the 'value' output port of the NumPyArray module as the
     # port that will be connected to plots when this variable is used
     var.select_output_port(mod, 'value')
+    return var
+
+def build_csv_variable(filename, delimiter, header_present, column, numeric):
+    var = Variable(type=List)
+
+    csvfile = var.add_module(CSVFile)
+    csvfile.add_function('file', File, filename)
+    if delimiter is not None:
+        csvfile.add_function('delimiter', String, delimiter)
+    csvfile.add_function('header_present', Boolean, header_present)
+
+    extract = var.add_module(ExtractColumn)
+    csvfile.connect_outputport_to('value', extract, 'csv')
+    if isinstance(column, (int, long)):
+        extract.add_function('column_index', Integer, column)
+    else:
+        extract.add_function('column_name', String, column)
+    extract.add_function('numeric', Boolean, numeric)
+
+    var.select_output_port(extract, 'value')
     return var
 
 ########################################
@@ -172,7 +192,7 @@ class BinaryArrayLoader(FileVariableLoader):
             shape = None
         else:
             shape = [int(d.strip()) for d in shape.split(',')]
-        return build_variable(
+        return build_file_variable(
                 self.filename,
                 BinaryArrayLoader.FORMATS[
                         self._format_field.currentIndex()][1],
@@ -183,7 +203,7 @@ class BinaryArrayLoader(FileVariableLoader):
 
 # Loads from a NPY array
 def npy_load(self, filename):
-    return build_variable(filename, 'npy')
+    return build_file_variable(filename, 'npy')
 def npy_get_varname(filename):
     return derive_varname(filename, remove_ext=True,
                           remove_path=True, prefix="nparray_")
@@ -205,6 +225,9 @@ class CSVLoader(FileVariableLoader):
         # Defaults
         self._delimiter = None
         self._header_present = True
+        self._column_names = None
+        self._selected_column = None
+        self._varname = derive_varname("csv_data")
 
         layout = QtGui.QVBoxLayout()
         options = QtGui.QFormLayout()
@@ -252,11 +275,17 @@ class CSVLoader(FileVariableLoader):
         self._range2.setSpecialValueText(_("end"))
         range_layout = QtGui.QHBoxLayout()
         range_layout.addWidget(self._range1)
+        range_layout.addStretch()
         range_layout.addWidget(QtGui.QLabel('-'))
+        range_layout.addStretch()
         range_layout.addWidget(self._range2)
         options.addRow(_("Range of rows to load:"), range_layout)
 
         self._table = QtGui.QTableWidget()
+        self._table.setSelectionBehavior(QtGui.QTableWidget.SelectColumns)
+        self._table.setSelectionMode(QtGui.QTableWidget.SingleSelection)
+        self.connect(self._table, QtCore.SIGNAL('itemSelectionChanged()'),
+                     self._selection_changed)
         layout.addWidget(self._table)
 
         self.setLayout(layout)
@@ -264,15 +293,15 @@ class CSVLoader(FileVariableLoader):
         self.read_file()
 
     def read_file(self):
-        column_count, column_names, self._delimiter = CSVFile.read_file(
+        column_count, self._column_names, self._delimiter = CSVFile.read_file(
                 self._filename,
                 self._delimiter,
                 self._header_present)
         self._delimiter_input.setText(self._delimiter)
         self._table.setColumnCount(column_count)
         self._table.setRowCount(3)
-        if column_names is not None:
-            for col, name in enumerate(column_names):
+        if self._column_names is not None:
+            for col, name in enumerate(self._column_names):
                 item = QtGui.QTableWidgetItem(name)
                 font = item.font()
                 font.setBold(True)
@@ -281,12 +310,45 @@ class CSVLoader(FileVariableLoader):
         with open(self._filename, 'rb') as fp:
             if self._header_present:
                 fp.readline()
-            for row in xrange(1 if column_names is not None else 0, 3):
+            for row in xrange(1 if self._column_names is not None else 0, 3):
                 line = fp.readline()
                 line = line.split(self._delimiter)
                 for col in xrange(min(column_count, len(line))):
                     item = QtGui.QTableWidgetItem(line[col])
                     self._table.setItem(row, col, item)
+
+        self._table.clearSelection()
+
+    def _selection_changed(self):
+        selected = self._table.selectedRanges()
+        if selected:
+            selected = selected[0]
+            self._selected_column = selected.leftColumn()
+            if self._column_names is not None:
+                column = derive_varname(
+                        self._column_names[self._selected_column])
+            else:
+                column = "col%d" % self._selected_column
+            self._varname = derive_varname(self._filename, remove_ext=True,
+                                           remove_path=True,
+                                           suffix='_%s' % column)
+            self.default_variable_name_changed(self._varname)
+        else:
+            self.default_variable_name_changed('csv_data')
+            self._selected_column = None
+
+    def load(self):
+        if self._selected_column is None:
+            QtGui.QMessageBox.warning(self, _("Error"), _("You must select a column to load"))
+            return
+        if self._header_present:
+            column = self._column_names[self._selected_column]
+        else:
+            column = self._selected_column
+        return build_csv_variable(self._filename, self._delimiter, self._header_present, column, self._numeric_checkbox.isChecked())
+
+    def get_default_variable_name(self):
+        return self._varname
 
 _variable_loaders = {
         BinaryArrayLoader: _("Numpy plain binary array"),
