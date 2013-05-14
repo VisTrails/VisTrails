@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 import cgi
-from datetime import datetime
+from datetime import datetime, date
 import hashlib
 import os.path
 import re
@@ -114,7 +114,7 @@ class BaseLocator(object):
                 if q_mark:
                     raise VistrailsDBException('Ambiguous URI with '
                                                'multiple question '
-                                               'marks: "%s"' % url)
+                                               'marks: "%s"' % filename)
                 else:
                     q_mark = True
                     query_str_idx = match.end()
@@ -1066,11 +1066,15 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_zip_file_no_scheme(self):
-        loc_str = self.path2url("/vistrails/tmp/test.vt") + "?workflow=abc"
+        loc_str = os.path.abspath("../tmp/test.vt") + "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
         self.assertEqual(loc.short_name, "test")
+        loc_str = loc_str.replace(os.sep, '/')
+        if loc_str[0] == '/':
+            loc_str = loc_str[1:]
+        loc_str = "file:///%s" % loc_str
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_xml_file(self):
