@@ -1033,6 +1033,14 @@ class TestLocators(unittest.TestCase):
         def assertIsNone(self, obj):
             self.assertEqual(obj, None)
 
+    @staticmethod
+    def path2url(fname):
+        path = os.path.abspath(fname)
+        path = path.replace(os.sep, '/')
+        if path.startswith('/'):
+            path = path[1:]
+        return "file:///%s" % path
+
     def test_parse_untitled(self):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"
         loc = BaseLocator.from_url(loc_str)
@@ -1050,7 +1058,7 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(len(loc.to_url()), 41)
 
     def test_parse_zip_file(self):
-        loc_str = "file:///vistrails/tmp/test.vt?workflow=abc"
+        loc_str = self.path2url("/vistrails/tmp/test.vt") + "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
@@ -1058,15 +1066,15 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_zip_file_no_scheme(self):
-        loc_str = "/vistrails/tmp/test.vt?workflow=abc"
+        loc_str = self.path2url("/vistrails/tmp/test.vt") + "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
         self.assertEqual(loc.short_name, "test")
-        self.assertEqual(loc.to_url(), 'file://' + loc_str)
+        self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_xml_file(self):
-        loc_str = "file:///vistrails/tmp/test.xml"
+        loc_str = self.path2url("/vistrails/tmp/test.xml")
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, XMLFileLocator)
         self.assertEqual(loc.short_name, "test")
