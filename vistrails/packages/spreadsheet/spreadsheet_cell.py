@@ -44,17 +44,21 @@ from __future__ import division
 
 import datetime
 import functools
+import itertools
 import os
 from PyQt4 import QtCore, QtGui
 import tempfile
 
 from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.output_modules import FileMode
 from vistrails.core.system import strftime
 
 from .analogy_api import SpreadsheetAnalogy
 from .spreadsheet_config import configuration
 from . import spreadsheet_controller
+from vistrails.core import system, debug
+
 import cell_rc
 import celltoolbar_rc
 
@@ -500,7 +504,7 @@ class QCellToolBarSelectedCell(QtGui.QAction):
 
 class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
     """
-    QCellToolBarRemoveCell is the action to clear the current cell
+    QCellToolBarRemoveCell is the action to clear the selected cells
 
     """
     def __init__(self, icon, parent=None):
@@ -511,9 +515,9 @@ class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
         """
         QCellToolBarSelectedCell.__init__(self,
                                           icon,
-                                          "&Clear the current cell",
+                                          "&Clear the selected cells",
                                           parent)
-        self.setStatusTip("Clear the current cell")
+        self.setStatusTip("Clear the selected cells")
 
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -521,13 +525,27 @@ class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
 
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        r = QtGui.QMessageBox.question(cellWidget, 'Clear cell',
-                                       'Are you sure to clear the cell?',
+        sheettab = self.toolBar.sheet
+        cells = []
+        for ran in sheettab.sheet.selectedRanges():
+            cells.extend(itertools.product(
+                    xrange(ran.topRow(), ran.bottomRow() + 1),
+                    xrange(ran.leftColumn(), ran.rightColumn() + 1)))
+        if not cells:
+            return
+        elif len(cells) == 1:
+            msg = "Are you sure you want to clear this cell?"
+        else:
+            msg = "Are you sure you want to clear these %d cells?" % len(cells)
+        r = QtGui.QMessageBox.question(cellWidget, 'Clear cells',
+                                       msg,
                                        QtGui.QMessageBox.Yes |
                                        QtGui.QMessageBox.No,
                                        QtGui.QMessageBox.No)
         if (r==QtGui.QMessageBox.Yes):
-            self.toolBar.sheet.deleteCell(self.toolBar.row, self.toolBar.col)
+            sheettab.sheet.clearSelection()
+            for row, col in cells:
+                sheettab.deleteCell(row, col)
 
 
 class QCellToolBarMergeCells(QtGui.QAction):
