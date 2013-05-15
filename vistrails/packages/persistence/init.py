@@ -218,24 +218,17 @@ class PersistentPath(Module):
             # can check updateUpstream
             if not hasattr(self, 'signature'):
                 raise ModuleError(self, 'Module has no signature')
+            ref_exists = False
             if not self.hasInputFromPort('ref'):
                 # create new reference with no name or tags
                 ref = PersistentRef()
                 ref.signature = self.signature
-                debug_print('searching for signature', self.signature)
-                sig_ref = db_access.search_by_signature(self.signature)
-                debug_print('sig_ref:', sig_ref)
-                if sig_ref:
-                    debug_print('setting persistent_ref')
-                    ref.id, ref.version, ref.name = sig_ref
-                    self.persistent_ref = ref
-                    #             else:
-                    #                 ref.id = uuid.uuid1()
             else:
                 # update single port
                 self.updateUpstreamPort('ref')
                 ref = self.getInputFromPort('ref')
                 if db_access.ref_exists(ref.id, ref.version):
+                    ref_exists = True
                     if ref.version is None:
                         ref.version = \
                             repo.get_current_repo().get_latest_version(ref.id)
@@ -243,6 +236,22 @@ class PersistentPath(Module):
                     if signature == self.signature:
                         # don't need to create a new version
                         self.persistent_ref = ref
+
+            # Note that ref_exists is True if the reference is a fixed
+            # reference; if it was assigned a new uuid, we can still
+            # reuse a reference with the same signature
+            if not ref_exists:
+                signature = self.signature
+                debug_print('searching for signature', signature)
+                sig_ref = db_access.search_by_signature(signature)
+                debug_print('sig_ref:', sig_ref)
+                if sig_ref:
+                    debug_print('setting persistent_ref')
+                    ref.id, ref.version, ref.name = sig_ref
+                    self.persistent_ref = ref
+                    #             else:
+                    #                 ref.id = uuid.uuid1()
+                
 
                 # copy as normal
                 # don't copy if equal

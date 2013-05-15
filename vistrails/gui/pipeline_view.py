@@ -1838,6 +1838,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
+        self.progress = None
 
         self.tmp_module_item = None
         self.tmp_input_conn = None
@@ -2473,8 +2474,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 assert len(data.items) == 1
-                if self.controller.current_version==-1:
-                    self.controller.change_selected_version(0)
                 self.add_module_event(event, data)
                 event.accept()
                 return
@@ -2681,8 +2680,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.controller and not self.read_only_mode:
-            if self.controller.current_version == -1:
-                self.controller.change_selected_version(0)
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text().toAscii())
             if text=='' or not text.startswith("<workflow"): return
@@ -2835,6 +2832,22 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
+    def cancel_progress(self):
+        """Checks if the user have canceled the execution and takes
+           appropriate action
+        """
+        if self.progress.wasCanceled():
+            r = QtGui.QMessageBox.question(self.parent(),
+                'Execution Paused',
+                'Are you sure you want to abort the execution?',
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                QtGui.QMessageBox.No)
+            if r==QtGui.QMessageBox.Yes:
+                raise Exception("Execution aborted by user")
+            else:
+                self.progress.reset()
+                self.progress.setValue(self.progress.new_value)
+        
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
@@ -2880,6 +2893,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
+        if self.progress:
+            self.cancel_progress()
+            self.progress.new_value = self.progress.value() + 1 
+            self.progress.setValue(self.progress.new_value)
+            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         
     def set_module_progress(self, moduleId, progress=0.0):
         """ set_module_computing(moduleId: int, progress: float) -> None
@@ -2891,6 +2909,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                                         '%d%% Completed' % int(progress*100),
                                                         progress))
         QtCore.QCoreApplication.processEvents()
+        if self.progress:
+            self.cancel_progress()
 
     def set_module_persistent(self, moduleId):
         QtGui.QApplication.postEvent(self,
@@ -3065,10 +3085,22 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         jobView.updating_now = True
 
         try:
+            modules = len(self.controller.current_pipeline.modules)
+            progress = ExecutionProgressDialog(modules)
+            self.scene().progress = progress
+            progress.show()
+            
             self.controller.execute_current_workflow()
+
+            progress.setValue(modules)
+            #progress.hide()
+            self.scene().progress = None
         except Exception, e:
-            debug.critical(str(e))
+            import traceback
+            debug.critical(str(e) or e.__class__.__name__,
+                           traceback.format_exc())
         finally:
+            self.scene().progress = None
             jobView.updating_now = False
             from vistrails.gui.vistrails_window import _app
             _app.notify('execution_updated')
@@ -3221,6 +3253,17 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             # We only do this once after a version_changed() call
             self.zoomToFit()
             self._view_fitted = True
+
+
+class ExecutionProgressDialog(QtGui.QProgressDialog):
+    def __init__(self, modules):
+        QtGui.QProgressDialog.__init__(self, 'Starting Workflow execution',
+                                       '&Cancel',
+                                       0, modules)
+        self.setWindowTitle('Executing')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self.new_value = 0
+
 
 ################################################################################
 # Testing
