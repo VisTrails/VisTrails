@@ -35,7 +35,15 @@ def get_client(ask=True):
     """
     from engine_manager import EngineManager
 
-    return EngineManager.ensure_controller(connect_only=not ask)
+    c = EngineManager.ensure_controller(connect_only=not ask)
+    if c is not None and ask and not c.ids:
+        EngineManager.start_engines(
+                prompt="A module requested an IPython cluster, but no engines "
+                       "are started. Do you want to start some?")
+    if c is not None and c.ids:
+        return c
+    else:
+        return None
 
 
 def direct_view(ask=True):
@@ -44,14 +52,8 @@ def direct_view(ask=True):
     This is equivalent to get_client()[:], with the difference that it will
     prompt the user to create new engines if none are started.
     """
-    from engine_manager import EngineManager
-
-    c = EngineManager.ensure_controller()
-    if ask and not c.ids:
-        EngineManager.start_engines(
-                prompt="A module requested an IPython cluster, but no engines "
-                       "are started. Do you want to start some?")
-    if c.ids:
+    c = get_client()
+    if c is not None:
         return c[:]
     else:
         return None
@@ -64,14 +66,8 @@ def load_balanced_view(ask=True):
     difference that it will prompt the user to create new engines if none are
     started.
     """
-    from engine_manager import EngineManager
-
-    c = EngineManager.ensure_controller()
-    if ask and not c.ids:
-        EngineManager.start_engines(
-                prompt="A module requested an IPython cluster, but no engines "
-                       "are started. Do you want to start some?")
-    if c.ids:
+    c = get_client()
+    if c is not None:
         return c.load_balanced_view()
     else:
         return None

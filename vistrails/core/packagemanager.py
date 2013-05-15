@@ -538,6 +538,15 @@ Returns true if given package identifier is present."""
                     del self._package_versions[package.identifier]
                 self.remove_old_identifiers(package.identifier)
                 failed.append(package)
+            except Exception, e:
+                debug.critical("Failed getting dependencies of package %s "
+                               "so it will be disabled" % package.name, str(e))
+                package.remove_own_dom_element()
+                self._dependency_graph.delete_vertex(package.identifier)
+                del self._package_versions[package.identifier][package.version]
+                if len(self._package_versions[package.identifier]) == 0:
+                    del self._package_versions[package.identifier]
+                failed.append(package)
 
         for pkg in failed:
             del self._package_list[pkg.codepath]

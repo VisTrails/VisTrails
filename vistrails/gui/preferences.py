@@ -298,8 +298,13 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
 
         dependency_graph = pm.dependency_graph()
-        new_deps = self._current_package.dependencies()
-
+        try:
+            new_deps = self._current_package.dependencies()
+        except Exception, e:
+            debug.critical("Failed getting dependencies of package %s, "
+                           "so it will not be enabled" % \
+                            self._current_package.name, str(e))
+            return
         from vistrails.core.modules.basic_modules import identifier as basic_modules_identifier
         if self._current_package.identifier != basic_modules_identifier:
             new_deps.append(basic_modules_identifier)
@@ -476,8 +481,13 @@ class QPackagesWidget(QtGui.QWidget):
             debug.critical('Cannot load package', str(e))
         else:
             self._name_label.setText(p.name)
-            deps = ', '.join(str(d) for d in p.dependencies()) or \
-                'No package dependencies.'
+            try:
+                deps = ', '.join(str(d) for d in p.dependencies()) or \
+                    'No package dependencies.'
+            except Exception, e:
+                debug.critical("Failed getting dependencies of package %s "
+                               "" % p.name, str(e))
+                deps = "ERROR: Failed getting dependencies"
             try:
                 pm = get_package_manager()
                 reverse_deps = \
