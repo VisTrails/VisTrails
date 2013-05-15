@@ -42,7 +42,7 @@ runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
-import doctest
+#import doctest
 import os
 import sys
 import traceback
@@ -112,13 +112,17 @@ parser.add_option("-V", "--verbose", action="store", type="int",
                   "higher means more verbose)")
 parser.add_option("-e", "--examples", action="store_true",
                   default=False,
-                  help="will run vistrails examples")
+                  help="run vistrails examples")
+parser.add_option("-i", "--images", action="store_true",
+                  default=False,
+                  help="perform image comparisons")
 
 (options, args) = parser.parse_args()
 # remove empty strings
 args = filter(len, args)
 verbose = options.verbose
 test_examples = options.examples
+test_images = options.images
 test_modules = None
 if len(args) > 0:
     test_modules = set(args)
@@ -163,17 +167,9 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         module = os.path.join("vistrails", p[len(root_directory)+1:],
                               filename[:-3])
-        if (module.startswith('vistrails.tests') or
-            module.startswith(os.sep) or
-            module.startswith('\\') or
+        if (module.startswith(os.sep) or
             ('#' in module)):
             continue
-        if ('system' in module and not
-            module.endswith('__init__')):
-            continue
-        if test_modules and not module in test_modules:
-            continue
-        msg = ("%s %s |" % (" " * (40 - len(module)), module))
 
         # use qualified import names with periods instead of
         # slashes to avoid duplicates in sys.modules
@@ -181,6 +177,17 @@ for (p, subdirs, files) in os.walk(root_directory):
         module = module.replace('\\','.')
         if module.endswith('__init__'):
             module = module[:-9]
+
+        if test_modules and not module in test_modules:
+            continue
+        if module.startswith('vistrails.tests.run'):
+            continue
+        if ('system' in module and not
+            module.endswith('__init__')):
+            continue
+
+        msg = ("%s %s |" % (" " * (40 - len(module)), module))
+
         m = None
         try:
             if '.' in module:
@@ -190,30 +197,33 @@ for (p, subdirs, files) in os.walk(root_directory):
         except vistrails.tests.NotModule:
             if verbose >= 1:
                 print "Skipping %s, not an importable module" % filename
+            continue
         except:
             print msg, "ERROR: Could not import module!"
             if verbose >= 1:
                 traceback.print_exc(file=sys.stdout)
             continue
 
-        if m is not None:
-            # Load the unittest TestCases
-            suite = test_loader.loadTestsFromModule(m)
+        # Load the unittest TestCases
+        suite = test_loader.loadTestsFromModule(m)
 
-            # Load the doctests
-            #try:
-            #    suite.addTests(doctest.DocTestSuite(m))
-            #except ValueError:
-            #    pass # No doctest is fine, we check that some tests exist later
-            # The doctests are currently opt-in; a load_tests method can be
-            # defined to build a DocTestSuite
+        # Load the doctests
+        #try:
+        #    suite.addTests(doctest.DocTestSuite(m))
+        #except ValueError:
+        #    pass # No doctest is fine, we check that some tests exist later
+        # The doctests are currently opt-in; a load_tests method can be
+        # defined to build a DocTestSuite
+        # This is because some modules have interpreter-formatted examples that
+        # are NOT doctests, and because mining the codebase for doctests is
+        # painfully slow
 
-            main_test_suite.addTests(suite)
+        main_test_suite.addTests(suite)
 
-            if suite.countTestCases() == 0 and verbose >= 1:
-                print msg, "WARNING: %s has no tests!" % filename
-            elif verbose >= 2:
-                print msg, "Ok: %s test cases." % len(suite.countTestCases())
+        if suite.countTestCases() == 0 and verbose >= 1:
+            print msg, "WARNING: %s has no tests!" % filename
+        elif verbose >= 2:
+            print msg, "Ok: %s test cases." % len(suite.countTestCases())
 
 sub_print("Imported modules. Running %d tests..." %
           main_test_suite.countTestCases(),
@@ -249,14 +259,19 @@ def compare_thumbnails(prev, next):
     return idiff.GetThresholdedError()
 
 def image_test_generator(vtfile, version):
+    from vistrails.core.db.locator import FileLocator
+    from vistrails.core.db.io import load_vistrail
+    import vistrails.core.console_mode
     def test(self):
         try:
             errs = []
             filename = os.path.join(EXAMPLES_PATH, vtfile)
-            locator = vistrails.core.db.locator.FileLocator(os.path.abspath(filename))
-            (v, abstractions, thumbnails, mashups) = vistrails.core.db.io.load_vistrail(locator)
-            errs = vistrails.core.console_mode.run([(locator, version)], update_vistrail=False,
-                        extra_info={'compare_thumbnails': compare_thumbnails})
+            locator = FileLocator(os.path.abspath(filename))
+            (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
+            errs = vistrails.core.console_mode.run(
+                    [(locator, version)],
+                    update_vistrail=False,
+                    extra_info={'compare_thumbnails': compare_thumbnails})
             if len(errs) > 0:
                 for err in errs:
                     print("   *** Error in %s:%s:%s -- %s" % err)
@@ -268,12 +283,13 @@ def image_test_generator(vtfile, version):
 class TestVistrailImages(unittest.TestCase):
     pass
 
-for vt, t in image_tests:
-    for name, version in t:
-        test_name = 'test_%s' % name
-        test = image_test_generator(vt, version)
-        setattr(TestVistrailImages, test_name, test)
-        main_test_suite.addTest(TestVistrailImages(test_name))
+if not test_modules or test_images:
+    for vt, t in image_tests:
+        for name, version in t:
+            test_name = 'test_%s' % name
+            test = image_test_generator(vt, version)
+            setattr(TestVistrailImages, test_name, test)
+            main_test_suite.addTest(TestVistrailImages(test_name))
 
 ############## RUN TEST SUITE ####################
 
