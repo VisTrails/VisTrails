@@ -47,6 +47,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.controller = None
         self.module = None
         self.pipeline_view = None # pipeline_view
+        self.read_only = False
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -122,6 +123,12 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(layout)
         self.setWindowTitle('Module Information')
+
+    def setReadOnly(self, read_only):
+        if read_only != self.read_only:
+            self.read_only = read_only
+            for widget in self.ports_lists + [self.annotations]:
+                widget.setReadOnly(read_only)
 
     def set_controller(self, controller):
         self.controller = controller

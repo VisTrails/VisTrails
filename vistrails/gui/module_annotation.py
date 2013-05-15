@@ -96,6 +96,7 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         
         """
         QtGui.QTableWidget.__init__(self, 1, 2, parent)
+        self.read_only = False
         self.setHorizontalHeaderLabels(QtCore.QStringList() << 'Key' << 'Value')
         self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
         self.horizontalHeader().setMovable(False)
@@ -112,6 +113,11 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
 
     def set_controller(self, controller):
         self.controller = controller
+
+    def setReadOnly(self, read_only):
+        if read_only != self.read_only:
+            self.read_only = read_only
+            self.setEnabled(not read_only and self.module is not None)
 
     def updateModule(self, module=None):
         """ updateModule() -> None
@@ -136,7 +142,7 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
                     item = QtGui.QTableWidgetItem(annotation.value)
                     self.setItem(curRow, 1, item)
                     curRow += 1
-            self.setEnabled(True)
+            self.setEnabled(not self.read_only)
         else:
             self.setRowCount(1)
             self.setEnabled(False)

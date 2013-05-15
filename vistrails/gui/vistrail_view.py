@@ -413,15 +413,13 @@ class QVistrailView(QtGui.QWidget):
             for m_id in items[0]:
                 module = pipelineView.current_pipeline.modules[m_id]
                 if module.is_group() or module.is_abstraction():
-                    newPipelineView = self.add_pipeline_view()
+                    newPipelineView = self.add_pipeline_view(True)
                     newPipelineView.controller.current_pipeline_view = \
                         newPipelineView.scene()
                     module.pipeline.ensure_connection_specs()
                     newPipelineView.scene().setupScene(module.pipeline)
                     newPipelineView.scene().current_pipeline = module.pipeline
-                    newPipelineView.scene().fitToView(newPipelineView, True)
-                    newPipelineView.setReadOnlyMode(True)
-            
+
     def create_view(self, klass, add_tab=True):
         view = klass(self)
         view.set_vistrail_view(self)
@@ -715,19 +713,20 @@ class QVistrailView(QtGui.QWidget):
             else:
                 _app.notify("controller_changed", self.controller)
             self.reset_version_view()
-            
-    def create_pipeline_view(self):
+
+    def create_pipeline_view(self, read_only=False):
         view = self.create_view(QPipelineView)
-        self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'), 
+        view.setReadOnlyMode(read_only)
+        self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'),
                      self.gen_module_selected(view))
         view.set_controller(self.controller)
         view.set_to_current()
         self.set_notification('module_done_configure', view.done_configure)
         #self.switch_to_tab(view.tab_idx)
         return view
-    
-    def add_pipeline_view(self):
-        view = self.create_pipeline_view()
+
+    def add_pipeline_view(self, read_only=False):
+        view = self.create_pipeline_view(read_only)
         self.switch_to_tab(view.tab_idx)
         return view
 
