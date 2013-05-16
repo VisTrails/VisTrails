@@ -8,7 +8,8 @@ from vistrails.core.modules.basic_modules import Boolean, File, Float, \
 from dat.packages import Variable, FileVariableLoader, VariableOperation, \
     OperationArgument, translate, derive_varname
 
-from init import NumPyArray, CSVFile, ExtractColumn
+from read.read_csv import CSVFile, ExtractColumn
+from read.read_numpy import NumPyArray
 
 
 __all__ = ['_variable_loaders', '_variable_operations']
