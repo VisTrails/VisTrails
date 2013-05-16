@@ -96,13 +96,13 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             # FIXME DAK: why is this always done?!? there is a flag for it...
             if is_running_gui():
                 controller.updatePipelineScene()
-                base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
+                base_fname = "%s_%s_pipeline.pdf" % (locator.short_filename, version)
                 filename = os.path.join(workflow_info, base_fname)
                 controller.current_pipeline_scene.saveToPDF(filename)
             else:
                 debug.critical("Cannot save pipeline figure when not "
                                "running in gui mode")
-            base_fname = "%s_%s_pipeline.xml" % (locator.short_name, version)
+            base_fname = "%s_%s_pipeline.xml" % (locator.short_filename, version)
             filename = os.path.join(workflow_info, base_fname)
             vistrails.core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
@@ -161,12 +161,12 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                     controller.updatePipelineScene()
                     if pdf:
                         base_fname = "%s_%s_pipeline.pdf" % \
-                                     (locator.short_name, version)
+                                     (locator.short_filename, version)
                         filename = os.path.join(workflow_info, base_fname)
                         controller.current_pipeline_scene.saveToPDF(filename)
                     else:
                         base_fname = "%s_%s_pipeline.png" % \
-                                     (locator.short_name, version)
+                                     (locator.short_filename, version)
                         filename = os.path.join(workflow_info, base_fname)
                         controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
@@ -200,11 +200,11 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                         version_view = QVersionTreeView()
                         version_view.scene().setupScene(controller)
                         if pdf:
-                            base_fname = "graph_%s.pdf" % locator.short_name
+                            base_fname = "graph_%s.pdf" % locator.short_filename
                             filename = os.path.join(tree_info, base_fname)
                             version_view.scene().saveToPDF(filename)
                         else:
-                            base_fname = "graph_%s.png" % locator.short_name
+                            base_fname = "graph_%s.png" % locator.short_filename
                             filename = os.path.join(tree_info, base_fname)
                             version_view.scene().saveToPNG(filename)
                         del version_view

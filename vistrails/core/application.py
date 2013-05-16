@@ -576,7 +576,7 @@ after self.init()"""
         return version
 
     def new_vistrail(self):
-        self.open_vistrail(None)
+        return self.open_vistrail(None)
 
     def open_vistrail(self, locator=None, version=None, is_abstraction=False):
         if isinstance(locator, basestring):
@@ -592,7 +592,7 @@ after self.init()"""
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
                 if locator.is_untitled():
-                    return
+                    return True
                 controller.is_abstraction = is_abstraction
                 thumb_cache = ThumbnailCache.getInstance()
                 controller.vistrail.thumbnails = controller.find_thumbnails(
