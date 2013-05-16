@@ -32,48 +32,28 @@
 ##
 ###############################################################################
 
-from __future__ import absolute_import # 'import .numpy' is not ambiguous
-
-import copy
-import time
-import urllib
-
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
-from vistrails.core import debug
 import vistrails.core.db.action
-from vistrails.core.modules.basic_modules import File, String, Boolean
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
+from vistrails.core.modules.basic_modules import Color, Float, Integer, List, String
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg', warn=False)
-    pylab = py_import('pylab', mpl_dict)
-    import matplotlib.transforms as mtransforms
-except Exception, e:
-    debug.critical("Exception: %s" % e)
-
-from .bases import _modules as _base_modules
-from .plots import _modules as _plot_modules
-from .artists import _modules as _artist_modules
-from .numpy import _modules as _numpy_modules
-from .identifiers import identifier
+from bases import _modules as _base_modules
+from plots import _modules as _plot_modules
+from artists import _modules as _artist_modules
+from identifiers import identifier
 
 ################################################################################
 
 #list of modules to be displaced on matplotlib.new package
-_modules = _base_modules + _plot_modules + _artist_modules + _numpy_modules
+_modules = _base_modules + _plot_modules + _artist_modules
 
 def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if reg.has_module('edu.utah.sci.vistrails.spreadsheet',
                       'SpreadsheetCell'):
-        from .figure_cell import MplFigureCell
+        from figure_cell import MplFigureCell
         _modules.append(MplFigureCell)
 
 
@@ -106,7 +86,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         return (functions, connections)
 
     def find_figure(m):
-        has_new_module = False
         for edge in pipeline.graph.iter_edges_from(m.id):
             to_m = pipeline.modules[edge[1]]
             if to_m.name == 'MplFigure':
@@ -291,8 +270,73 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
 # DAT classes, included only if DAT can be imported
 try:
-    import dat.packages
+    from dat.packages import Plot, DataPort, ConstantPort, translate
 except ImportError:
     pass # We are not running DAT
 else:
-    from .dat import *
+    _ = translate('packages.matplotlib')
+
+    ########################################
+    # Defines plots from subworkflow files
+    #
+    _plots = [
+        Plot(name="Matplotlib bar diagram",
+             subworkflow='{package_dir}/dat-plots/bar.xml',
+             description=_("Build a bar diagram out of two lists"),
+             ports=[
+                 DataPort(name='left', type=List, optional=True),
+                 DataPort(name='height', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='alpha', type=Float, optional=True),
+                 ConstantPort(name='facecolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib box plot",
+             subworkflow='{package_dir}/dat-plots/boxplot.xml',
+             description=_("Build a box diagram out of a list of values"),
+             ports=[
+                 DataPort(name='values', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib histogram",
+             subworkflow='{package_dir}/dat-plots/hist.xml',
+             description=_("Build a histogram out of a list"),
+             ports=[
+                 DataPort(name='x', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='bins', type=Integer, optional=True),
+                 ConstantPort(name='alpha', type=Float, optional=True),
+                 ConstantPort(name='facecolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib image",
+             subworkflow='{package_dir}/dat-plots/imshow.xml',
+             description=_("Shows a 2D MxN or MxNx3 matrix as an image"),
+             ports=[
+                 DataPort(name='matrix', type=List),
+                 ConstantPort(name='title', type=String, optional=True)]),
+        Plot(name="Matplotlib line plot",
+             subworkflow='{package_dir}/dat-plots/line.xml',
+             description=_("Build a plot out of two lists"),
+             ports=[
+                 DataPort(name='x', type=List, optional=True),
+                 DataPort(name='y', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='marker', type=String, optional=True),
+                 ConstantPort(name='markercolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+        Plot(name="Matplotlib pie diagram",
+             subworkflow='{package_dir}/dat-plots/pie.xml',
+             description=_("Build a pie diagram out of a list of values"),
+             ports=[
+                 DataPort(name='x', type=List),
+                 ConstantPort(name='title', type=String, optional=True)]),
+        Plot(name="Matplotlib polar plot",
+             subworkflow='{package_dir}/dat-plots/polar.xml',
+             description=_("Build a plot out of two lists"),
+             ports=[
+                 DataPort(name='r', type=List),
+                 DataPort(name='theta', type=List),
+                 ConstantPort(name='title', type=String, optional=True),
+                 ConstantPort(name='marker', type=String, optional=True),
+                 ConstantPort(name='markercolor', type=Color, optional=True),
+                 ConstantPort(name='edgecolor', type=Color, optional=True)]),
+    ]

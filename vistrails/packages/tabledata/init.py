@@ -1,5 +1,3 @@
-from __future__ import absolute_import # 'import numpy' is not ambiguous
-
 import csv
 from itertools import izip
 import numpy
@@ -73,7 +71,7 @@ class CSVFile(Module):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('value', '(org.vistrails.vistrails.matplotlib:CSVFile)')]
+            ('value', '(org.vistrails.vistrails.tabledata:CSVFile)')]
 
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
@@ -190,6 +188,18 @@ _modules = [NumPyArray, CSVFile, ExtractColumn]
 
 
 ###############################################################################
+# DAT stuff
+#
+
+try:
+    import dat.packages
+except ImportError:
+    pass # DAT is not available
+else:
+    from .dat_integration import *
+
+
+###############################################################################
 
 import unittest
 
@@ -279,7 +289,7 @@ class NumpyTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with mismatching columns.
         """
         from .identifiers import identifier
-        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.tests.utils import execute
 
         self.assertTrue(execute([
                 ('CSVFile', identifier, [
@@ -298,7 +308,7 @@ class NumpyTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with a nonexisting column.
         """
         from .identifiers import identifier
-        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.tests.utils import execute
 
         self.assertTrue(execute([
                 ('CSVFile', identifier, [

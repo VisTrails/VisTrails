@@ -1,22 +1,21 @@
-from __future__ import absolute_import # 'import dat' is not ambiguous
+import sys
 
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core.modules.basic_modules import Boolean, Color, File, Float, \
+from vistrails.core.modules.basic_modules import Boolean, File, Float, \
     Integer, List, String
 
-from dat.packages import Plot, DataPort, ConstantPort, Variable, \
-    FileVariableLoader, VariableOperation, OperationArgument, \
-    translate, derive_varname
+from dat.packages import Variable, FileVariableLoader, VariableOperation, \
+    OperationArgument, translate, derive_varname
 
-from .numpy import NumPyArray, CSVFile, ExtractColumn
-import sys
+from init import NumPyArray, CSVFile, ExtractColumn
 
 
-__all__ = ['_plots', '_variable_loaders', '_variable_operations']
+__all__ = ['_variable_loaders', '_variable_operations']
 
 
-_ = translate('packages.matplotlib')
+_ = translate('packages.tabledata')
+
 
 # Builds a DAT variable from a data file
 def build_file_variable(filename, dtype, shape=None):
@@ -52,70 +51,6 @@ def build_csv_variable(filename, delimiter, header_present, column, numeric):
     var.select_output_port(extract, 'value')
     return var
 
-########################################
-# Defines plots from subworkflow files
-#
-_plots = [
-    Plot(name="Matplotlib bar diagram",
-         subworkflow='{package_dir}/dat-plots/bar.xml',
-         description=_("Build a bar diagram out of two lists"),
-         ports=[
-             DataPort(name='left', type=List, optional=True),
-             DataPort(name='height', type=List),
-             ConstantPort(name='title', type=String, optional=True),
-             ConstantPort(name='alpha', type=Float, optional=True),
-             ConstantPort(name='facecolor', type=Color, optional=True),
-             ConstantPort(name='edgecolor', type=Color, optional=True)]),
-    Plot(name="Matplotlib box plot",
-         subworkflow='{package_dir}/dat-plots/boxplot.xml',
-         description=_("Build a box diagram out of a list of values"),
-         ports=[
-             DataPort(name='values', type=List),
-             ConstantPort(name='title', type=String, optional=True),
-             ConstantPort(name='edgecolor', type=Color, optional=True)]),
-    Plot(name="Matplotlib histogram",
-         subworkflow='{package_dir}/dat-plots/hist.xml',
-         description=_("Build a histogram out of a list"),
-         ports=[
-             DataPort(name='x', type=List),
-             ConstantPort(name='title', type=String, optional=True),
-             ConstantPort(name='bins', type=Integer, optional=True),
-             ConstantPort(name='alpha', type=Float, optional=True),
-             ConstantPort(name='facecolor', type=Color, optional=True),
-             ConstantPort(name='edgecolor', type=Color, optional=True)]),
-    Plot(name="Matplotlib image",
-         subworkflow='{package_dir}/dat-plots/imshow.xml',
-         description=_("Shows a 2D MxN or MxNx3 matrix as an image"),
-         ports=[
-             DataPort(name='matrix', type=List),
-             ConstantPort(name='title', type=String, optional=True)]),
-    Plot(name="Matplotlib line plot",
-         subworkflow='{package_dir}/dat-plots/line.xml',
-         description=_("Build a plot out of two lists"),
-         ports=[
-             DataPort(name='x', type=List, optional=True),
-             DataPort(name='y', type=List),
-             ConstantPort(name='title', type=String, optional=True),
-             ConstantPort(name='marker', type=String, optional=True),
-             ConstantPort(name='markercolor', type=Color, optional=True),
-             ConstantPort(name='edgecolor', type=Color, optional=True)]),
-    Plot(name="Matplotlib pie diagram",
-         subworkflow='{package_dir}/dat-plots/pie.xml',
-         description=_("Build a pie diagram out of a list of values"),
-         ports=[
-             DataPort(name='x', type=List),
-             ConstantPort(name='title', type=String, optional=True)]),
-    Plot(name="Matplotlib polar plot",
-         subworkflow='{package_dir}/dat-plots/polar.xml',
-         description=_("Build a plot out of two lists"),
-         ports=[
-             DataPort(name='r', type=List),
-             DataPort(name='theta', type=List),
-             ConstantPort(name='title', type=String, optional=True),
-             ConstantPort(name='marker', type=String, optional=True),
-             ConstantPort(name='markercolor', type=Color, optional=True),
-             ConstantPort(name='edgecolor', type=Color, optional=True)]),
-]
 
 ########################################
 # Defines variable loaders
@@ -201,6 +136,7 @@ class BinaryArrayLoader(FileVariableLoader):
     def get_default_variable_name(self):
         return self._varname
 
+
 # Loads from a NPY array
 def npy_load(self, filename):
     return build_file_variable(filename, 'npy')
@@ -211,6 +147,7 @@ NPYArrayLoader = FileVariableLoader.simple(
         extension='.npy',
         load=npy_load,
         get_varname=npy_get_varname)
+
 
 # Loads from a CSV file
 class CSVLoader(FileVariableLoader):
@@ -350,15 +287,18 @@ class CSVLoader(FileVariableLoader):
     def get_default_variable_name(self):
         return self._varname
 
+
 _variable_loaders = {
         BinaryArrayLoader: _("Numpy plain binary array"),
         NPYArrayLoader: _("Numpy .NPY format"),
         CSVLoader: _("CSV table")
 }
 
+
 ########################################
 # Defines variable operations
 #
+
 _variable_operations = [
     VariableOperation(
         '*',
