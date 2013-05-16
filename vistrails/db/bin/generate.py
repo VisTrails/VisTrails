@@ -150,17 +150,19 @@ def run_template(template_fname, objects, version, version_string, output_file,
     [prefix, suffix] = os.path.basename(template_fname).split('.', 1)
     (fd, p_fname) = tempfile.mkstemp(prefix=prefix, suffix=suffix)
     os.close(fd)
-    preprocess_template(template_fname, p_fname)
-    template = Template(filename=p_fname, module_directory='/tmp/mako')
+    try:
+        preprocess_template(template_fname, p_fname)
+        template = Template(filename=p_fname, module_directory='/tmp/mako')
 
-    f = open(output_file, 'w')
-    f.write(template.render(objs=objects,
-                            version=version,
-                            version_string=version_string))
-    f.close()
-    if indent:
-        indent_python(output_file)
-    os.remove(p_fname)
+        f = open(output_file, 'w')
+        f.write(template.render(objs=objects,
+                                version=version,
+                                version_string=version_string))
+        f.close()
+        if indent:
+            indent_python(output_file)
+    finally:
+        os.remove(p_fname)
 
 def usage(usageDict):
     usageStr = ''

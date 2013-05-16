@@ -3333,9 +3333,6 @@ class VistrailController(object):
                 if not os.path.exists(abs_fname):
                     # Write vistrail to disk if the file no longer
                     # exists (if temp file was deleted)
-                    if abs_save_dir is None:
-                        abs_save_dir = \
-                            tempfile.mkdtemp(prefix='vt_abs')
                     abs_fname = os.path.join(abs_save_dir, 
                                              abstraction.name + '.xml')
                     save_abstraction(abstraction.vistrail, abs_fname)
