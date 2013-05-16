@@ -279,7 +279,9 @@ String  = new_constant('String'  , staticmethod(str), "",
                        staticmethod(lambda x: type(x) == str),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'StringQueryWidget'),
-                       query_compute=string_compare)
+                       query_compute=string_compare,
+                       widget_type=('vistrails.gui.modules.constant_configuration',
+                                    'StringWidget'))
 
 ##############################################################################
 
