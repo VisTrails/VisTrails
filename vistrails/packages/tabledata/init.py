@@ -133,3 +133,15 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                                module_id,
                                                pipeline,
                                                module_remap)
+
+
+###############################################################################
+# DAT stuff
+#
+
+try:
+    import dat.packages
+except ImportError:
+    pass  # DAT is not available
+else:
+    from .dat_integration import *

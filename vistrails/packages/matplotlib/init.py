@@ -44,15 +44,16 @@ import vistrails.core.db.action
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
-from bases import _modules as _base_modules, MplFigureOutput
-from plots import _modules as _plot_modules
-from artists import _modules as _artist_modules
-from identifiers import identifier
+from .bases import _modules as _base_modules, MplFigureOutput
+from .plots import _modules as _plot_modules
+from .artists import _modules as _artist_modules
+from .identifiers import identifier
 
 ################################################################################
 
 #list of modules to be displaced on matplotlib.new package
 _modules = _base_modules + _plot_modules + _artist_modules
+
 
 def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
@@ -61,6 +62,7 @@ def initialize(*args, **kwargs):
         from figure_cell import MplFigureCell, MplFigureToSpreadsheet
         _modules.append(MplFigureCell)
         MplFigureOutput.register_output_mode(MplFigureToSpreadsheet)
+
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
@@ -294,3 +296,100 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         more_ops.append(('add', new_conn))
 
     return action_list
+
+
+# DAT classes, included only if DAT can be imported
+try:
+    from dat.packages import Plot, DataPort, ConstantPort, translate
+except ImportError:
+    pass  # We are not running DAT; skip plot/variable/operation definition
+else:
+    _ = translate('packages.matplotlib')
+
+    ########################################
+    # Defines plots from subworkflow files
+    #
+    _plots = [
+        Plot(name="Matplotlib bar diagram",
+             subworkflow='{package_dir}/dat-plots/bar.xml',
+             description=_("Build a bar diagram out of two lists"),
+             ports=[
+                 DataPort(name='left', type='basic:List',
+                          optional=True),
+                 DataPort(name='height', type='basic:List'),
+                 ConstantPort(name='title', type='basic:String',
+                              optional=True),
+                 ConstantPort(name='alpha', type='basic:Float',
+                              optional=True),
+                 ConstantPort(name='facecolor', type='basic:Color',
+                              optional=True),
+                 ConstantPort(name='edgecolor', type='basic:Color',
+                              optional=True)]),
+        Plot(name="Matplotlib box plot",
+             subworkflow='{package_dir}/dat-plots/boxplot.xml',
+             description=_("Build a box diagram out of a list of values"),
+             ports=[
+                 DataPort(name='values', type='basic:List'),
+                 ConstantPort(name='title', type='basic:String',
+                              optional=True),
+                 ConstantPort(name='edgecolor', type='basic:Color',
+                              optional=True)]),
+        Plot(name="Matplotlib histogram",
+             subworkflow='{package_dir}/dat-plots/hist.xml',
+             description=_("Build a histogram out of a list"),
+             ports=[
+                 DataPort(name='x', type='basic:List'),
+                 ConstantPort(name='title', type='basic:String',
+                              optional=True),
+                 ConstantPort(name='bins', type='basic:Integer',
+                              optional=True),
+                 ConstantPort(name='alpha', type='basic:Float',
+                              optional=True),
+                 ConstantPort(name='facecolor', type='basic:Color',
+                              optional=True),
+                 ConstantPort(name='edgecolor', type='basic:Color',
+                              optional=True)]),
+        Plot(name="Matplotlib image",
+             subworkflow='{package_dir}/dat-plots/imshow.xml',
+             description=_("Shows a 2D MxN or MxNx3 matrix as an image"),
+             ports=[
+                 DataPort(name='matrix', type='basic:List'),
+                 ConstantPort(name='title', type='basic:String',
+                              optional=True)]),
+        Plot(name="Matplotlib line plot",
+             subworkflow='{package_dir}/dat-plots/line.xml',
+             description=_("Build a plot out of two lists"),
+             ports=[
+                 DataPort(name='x', type='basic:List',
+                          optional=True),
+                 DataPort(name='y', type='basic:List'),
+                 ConstantPort(name='title', type='basic:String',
+                              optional=True),
+                 ConstantPort(name='marker', type='basic:String',
+                              optional=True),
+                 ConstantPort(name='markercolor', type='basic:Color',
+                              optional=True),
+                 ConstantPort(name='edgecolor', type='basic:Color',
+                              optional=True)]),
+        Plot(name="Matplotlib pie diagram",
+             subworkflow='{package_dir}/dat-plots/pie.xml',
+             description=_("Build a pie diagram out of a list of values"),
+             ports=[
+                 DataPort(name='x', type='basic:List'),
+                 ConstantPort(name='title', type='basic:String',
+                              optional=True)]),
+        Plot(name="Matplotlib polar plot",
+             subworkflow='{package_dir}/dat-plots/polar.xml',
+             description=_("Build a plot out of two lists"),
+             ports=[
+                 DataPort(name='r', type='basic:List'),
+                 DataPort(name='theta', type='basic:List'),
+                 ConstantPort(name='title', type='basic:String',
+                              optional=True),
+                 ConstantPort(name='marker', type='basic:String',
+                              optional=True),
+                 ConstantPort(name='markercolor', type='basic:Color',
+                              optional=True),
+                 ConstantPort(name='edgecolor', type='basic:Color',
+                              optional=True)]),
+    ]

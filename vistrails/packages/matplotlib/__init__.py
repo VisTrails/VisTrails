@@ -44,13 +44,22 @@ from __future__ import division
 
 from identifiers import *
 
+def _is_dat_available():
+    try:
+        import dat.packages
+        return True
+    except ImportError:
+        return False
+
 def package_dependencies():
     import vistrails.core.packagemanager
     manager = vistrails.core.packagemanager.get_package_manager()
+    deps = []
     if manager.has_package('org.vistrails.vistrails.spreadsheet'):
-        return ['org.vistrails.vistrails.spreadsheet']
-    else:
-        return []
+        deps += ['org.vistrails.vistrails.spreadsheet']
+    if _is_dat_available():
+        deps += ['org.vistrails.vistrails.control_flow']
+    return deps
 
 def package_requirements():
     from vistrails.core.requirements import require_python_module
