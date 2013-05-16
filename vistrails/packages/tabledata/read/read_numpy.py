@@ -59,7 +59,7 @@ class NumPyArray(Module):
         self.setResult('value', array)
 
 
-_modules = [NumPyArray]
+_modules = {'csv': [NumPyArray]}
 
 
 ###############################################################################

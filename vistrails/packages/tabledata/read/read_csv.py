@@ -15,7 +15,7 @@ class CSVFile(Module):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('value', '(org.vistrails.vistrails.tabledata:CSVFile)')]
+            ('value', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
 
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
@@ -128,7 +128,7 @@ class ExtractColumn(Module):
         self.setResult('value', result)
 
 
-_modules = [CSVFile, ExtractColumn]
+_modules = {'csv': [CSVFile, ExtractColumn]}
 
 
 ###############################################################################
