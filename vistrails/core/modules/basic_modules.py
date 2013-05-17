@@ -55,6 +55,7 @@ import re
 import shutil
 import zipfile
 import urllib
+import warnings
 
 try:
     import hashlib
@@ -271,8 +272,17 @@ Integer._settings = ModuleSettings(constant_widgets=[
     QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
     ParamExpWidgetConfig('%s:IntegerExploreWidget' % paramexp_config_path)])
 
-String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: isinstance(x, str)),
+@staticmethod
+def decode_string(value):
+    if isinstance(value, bytes):
+        warnings.warn("String module got a bytestring: assuming UTF-8")
+        return value.decode('utf-8')
+    elif isinstance(value, unicode):
+        return value
+    else:
+        raise TypeError
+String  = new_constant('String'  , decode_string, "",
+                       staticmethod(lambda x: isinstance(x, basestring)),
                        query_compute=string_compare)
 String._settings = ModuleSettings(configure_widget=
             "vistrails.gui.modules.string_configure:TextConfigurationWidget",
