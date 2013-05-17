@@ -79,6 +79,8 @@ def linux_ubuntu_install(package_name):
             if type(package) != str:
                 raise TypeError("Expected string or list of strings")
             cmd += ' ' + package
+    else:
+        raise TypeError("Expected string or list of strings")
 
     if qt:
         sucmd = guess_graphical_sudo() + " '" + cmd + "'"
@@ -107,6 +109,8 @@ def linux_fedora_install(package_name):
             if type(package) != str:
                 raise TypeError("Expected string or list of strings")
             cmd += ' ' + package
+    else:
+        raise TypeError("Expected string or list of strings")
 
     if qt:
         sucmd = guess_graphical_sudo() + " " + cmd
@@ -151,11 +155,8 @@ def show_question(which_files):
 
 
 def install(dependency_dictionary):
-    """Tries to import a python module. If unsuccessful, tries to install
-the appropriate bundle and then reimport. py_import tries to be smart
-about which system it runs on."""
+    """Tries to install a bundle after a py_import() failed.."""
 
-    # Ugly fix to avoid circular import
     distro = guess_system()
     if distro not in dependency_dictionary:
         return False
