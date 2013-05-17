@@ -60,7 +60,6 @@ class Hasher(object):
             u(p.namespace or "")
             u(p.strValue)
             u(p.name)
-            u(p.evaluatedStrValue)
             return hasher.digest()
 
     @staticmethod

@@ -324,8 +324,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             desc = getter(param.identifier, param.type, param.namespace)
             constant = desc.module()
             constant.id = module.id
-#             if param.evaluatedStrValue:
-#                 constant.setValue(param.evaluatedStrValue)
             if param.strValue != '':
                 constant.setValue(param.strValue)
             else:
