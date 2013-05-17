@@ -59,7 +59,7 @@ def TextEditor(parent=None):
 
 def NewTextEditor(parent):
     vistrails.core.requirements.require_python_module('PyQt4.Qsci')
-    from PyQt4.Qsci import QsciScintilla, QsciLexerPython
+    from PyQt4.Qsci import QsciScintilla
     class _TextEditor(QsciScintilla):
     
         def __init__(self, parent=None):
@@ -105,12 +105,6 @@ def NewTextEditor(parent):
             self.setTabWidth(4)
             self.setTabIndents(True)
         
-            ## Choose a lexer
-            lexer = QsciLexerPython()
-            lexer.setDefaultFont(font)
-            lexer.setFont(font)
-            self.setLexer(lexer)
-        
             # set autocompletion
             self.setAutoCompletionThreshold(2)
             self.setAutoCompletionSource(QsciScintilla.AcsDocument)
@@ -130,7 +124,8 @@ def NewTextEditor(parent):
             redirect to self.text()
             
             """
-            return self.text()
+            text = self.text()
+            return text.replace('\r', '\n')
     
 #        def focusOutEvent(self, event):
 #            if self.parent():
