@@ -42,23 +42,34 @@ import platform
 ##############################################################################
 
 def guess_graphical_sudo():
-    """Tries to guess what to call to run a shell with elevated
-privileges."""
+    """Tries to guess what to call to run a shell with elevated privileges.
+
+    Returns: (sudo, escape)
+    Where:
+      sudo is the command to be used to gain root privileges
+      escape is True if the rest of the line needs to be escaped
+    """
     if vistrails.core.system.executable_is_in_path('kdesu'):
-        return 'kdesu -c'
+        return 'kdesu -c', True
     elif vistrails.core.system.executable_is_in_path('gksu'):
-        return 'gksu'
+        return 'gksu', False
     elif (vistrails.core.system.executable_is_in_path('sudo') and
           vistrails.core.system.executable_is_in_path('zenity')):
         # This is a reasonably convoluted hack to only prompt for the password
         # if user has not recently entered it
         return ('((echo "" | sudo -v -S -p "") || ' +
                 '(zenity --entry --title "sudo password prompt" --text "Please enter your password '
-                'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -S -p ""')
+                'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -S -p ""',
+                False)
     else:
-        debug.warning("Could not find a graphical su-like command.")
-        debug.warning("Will use regular su")
-        return 'su -c'
+        debug.warning("Could not find a graphical sudo-like command.")
+
+        if vistrails.core.system.get_executable_path('sudo'):
+            debug.warning("Will use regular sudo")
+            return "sudo", False
+        else:
+            debug.warning("Will use regular su")
+            return "su -c", True
 
 ##############################################################################
 
