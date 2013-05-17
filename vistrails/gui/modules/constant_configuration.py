@@ -42,6 +42,7 @@ constants.
 from PyQt4 import QtCore, QtGui
 from vistrails.core.utils import any, expression
 from vistrails.core import system
+from vistrails.gui.theme import CurrentTheme
 
 ############################################################################
 
@@ -295,7 +296,7 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
         self._multiline = None
         self._default = ""
 
-        self._button = QtGui.QPushButton() # TODO : icon here
+        self._button = QtGui.QPushButton(CurrentTheme.MULTILINE_STRING_ICON, '')
         self._button.setSizePolicy(QtGui.QSizePolicy(
                 QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
         self._button.setCheckable(True)
