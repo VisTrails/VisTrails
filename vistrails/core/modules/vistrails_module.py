@@ -164,7 +164,7 @@ class ModuleErrors(Exception):
     """
     def __init__(self, module_errors):
         """ModuleErrors should be passed a list of ModuleError objects"""
-        Exception.__init__(self, str(tuple(me.msg for me in module_errors)))
+        Exception.__init__(self, unicode(tuple(me.msg for me in module_errors)))
         self.module_errors = module_errors
 
 class _InvalidOutput(object):
@@ -760,7 +760,7 @@ class Module(Serializable):
                     e.loop_iteration = i
                     suspended.append(e)
                 except Exception, e:
-                    raise ModuleError(module, str(e))
+                    raise ModuleError(module, unicode(e))
                 i += 1
                 yield True
 
@@ -807,7 +807,7 @@ class Module(Serializable):
                     try:
                         module.compute()
                     except Exception, e:
-                        raise ModuleError(module, str(e))
+                        raise ModuleError(module, unicode(e))
                     if suspended:
                         raise ModuleSuspended(
                                 self,
@@ -869,7 +869,7 @@ class Module(Serializable):
                     try:
                         module.compute()
                     except Exception, e:
-                        raise ModuleError(module, str(e))
+                        raise ModuleError(module, unicode(e))
                     if suspended:
                         raise ModuleSuspended(
                                 self,
@@ -1330,7 +1330,7 @@ class Module(Serializable):
         return None
 
     def __str__(self):
-        return "<<%s>>" % str(self.__class__)
+        return "<<%s>>" % unicode(self.__class__)
 
     def annotate(self, d):
 
@@ -1388,8 +1388,8 @@ class Module(Serializable):
             m = reg.get_module_by_name(ident, name, ns)
             return m()
         except:
-            msg = "Cannot get module named " + str(name) + \
-                  " with identifier " + str(ident) + " and namespace " + ns
+            msg = "Cannot get module named " + unicode(name) + \
+                  " with identifier " + unicode(ident) + " and namespace " + ns
             raise ModuleError(self, msg)
 
     def set_streaming(self, UserGenerator):
@@ -1478,8 +1478,8 @@ class Module(Serializable):
                     self.logging.update_progress(self, 1.0)
                     yield None
                 except Exception, e:
-                    me = ModuleError(self, "Error generating value: %s"% str(e),
-                                      errorTrace=str(e))
+                    me = ModuleError(self, "Error generating value: %s"% unicode(e),
+                                      errorTrace=unicode(e))
                     raise me
                 if value is None:
                     module.set_output(port, None)
@@ -1790,7 +1790,7 @@ class TestImplicitLooping(unittest.TestCase):
                 with capture_stdout() as c:
                     errs = run(w_list, update_vistrail=False)
                 for err in errs:
-                    self.fail(str(err))
+                    self.fail(unicode(err))
         except Exception, e:
             self.fail(debug.format_exception(e))
 

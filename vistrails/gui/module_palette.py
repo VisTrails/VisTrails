@@ -295,13 +295,13 @@ class QModuleTreeWidget(QSearchTreeWidget):
                     registry = get_module_registry()
                     package = registry.packages[identifier]
                     if package.has_contextMenuName():
-                        name = package.contextMenuName(str(item.text(0)))
+                        name = package.contextMenuName(unicode(item.text(0)))
                         if name:
                             act = QtGui.QAction(name, self)
                             act.setStatusTip(name)
                             def callMenu():
                                 if package.has_callContextMenu():
-                                    name = package.callContextMenu(str(item.text(0)))
+                                    name = package.callContextMenu(unicode(item.text(0)))
 
                             QtCore.QObject.connect(act,
                                                    QtCore.SIGNAL("triggered()"),
@@ -534,8 +534,8 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
     def takeChild(self, index):
         child = self.child(index)
         if hasattr(self, "namespaces"):
-            if str(child.text(0)) in self.namespaces:
-                del self.namespaces[str(child.text(0))]
+            if unicode(child.text(0)) in self.namespaces:
+                del self.namespaces[unicode(child.text(0))]
         QModuleTreeWidgetItem.takeChild(self, index)
         if self.childCount() < 1 and self.parent():
             self.parent().takeChild(self.parent().indexOfChild(self))

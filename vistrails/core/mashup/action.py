@@ -191,4 +191,4 @@ class TestAction(unittest.TestCase):
         
     def test_str(self):
         a1 = self.create_action()
-        str(a1)
+        unicode(a1)

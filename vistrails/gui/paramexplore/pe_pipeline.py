@@ -110,7 +110,7 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         font.setBold(True)
         painter.setFont(font)
         fm = QtGui.QFontMetrics(font)
-        size = fm.size(QtCore.Qt.TextSingleLine, str(id))
+        size = fm.size(QtCore.Qt.TextSingleLine, unicode(id))
         size = max(size.width(), size.height())
         
         x = rect.left()
@@ -127,5 +127,5 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         newRect = QtCore.QRect(x, y, size, size)
         painter.drawEllipse(newRect)
         painter.setPen(CurrentTheme.ANNOTATED_ID_PEN)
-        painter.drawText(newRect, QtCore.Qt.AlignCenter, str(id))
+        painter.drawText(newRect, QtCore.Qt.AlignCenter, unicode(id))
         painter.restore()

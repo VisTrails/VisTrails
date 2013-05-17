@@ -54,7 +54,7 @@ def convert_xml_to_sql(filename):
         print dbConnection.get_server_info()
         print dbConnection.get_host_info()
         print dbConnection.stat()
-        print str(dbConnection)
+        print unicode(dbConnection)
 
         io.save_vistrail_to_db(vistrail, dbConnection)
         io.close_db_connection(dbConnection)

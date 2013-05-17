@@ -100,12 +100,12 @@ class StandardSheetReference(object):
         """
         if self.isTabValid(tabWidget):
             if (self.sheetName!=None and
-                str(tabLabel)!=str(self.sheetName)):
+                unicode(tabLabel)!=unicode(self.sheetName)):
                 return
             if self.candidate!=None:
                 if (self.sheetName==None or
-                    (str(tabLabel)==str(self.sheetName))==
-                    (str(self.candidate[1])==str(self.sheetName))):
+                    (unicode(tabLabel)==unicode(self.sheetName))==
+                    (unicode(self.candidate[1])==unicode(self.sheetName))):
                     storedSheet = self.candidate[0].sheet
                     newSheet = tabWidget.sheet
                     if (newSheet.rowCount()<self.minimumRowCount and
@@ -291,7 +291,7 @@ class StandardSingleCellSheetReference(StandardSheetReference):
         if self.isTabValid(tabWidget):
             better = False
             if (self.sheetName!=None and
-                str(tabLabel)!=str(self.sheetName)):
+                unicode(tabLabel)!=unicode(self.sheetName)):
                 return
             if self.candidate!=None:
                 if self.candidate[2]==curIndex or tabIndex!=curIndex:

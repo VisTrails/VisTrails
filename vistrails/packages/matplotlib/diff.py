@@ -74,7 +74,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
                 elt.set("type", qualifier)
                 elt.set("attr", attr)
                 subelt = ET.Element("value")
-                subelt.text = str(out_val)
+                subelt.text = unicode(out_val)
                 elt.append(subelt)
                 root.append(elt)
         # only do this for input right now
@@ -130,7 +130,7 @@ def compute_diff(in_fname, out_fname, diff_fname):
                 elt.set("code_ref", out_spec.code_ref)
                 elt.set("attr", attr)
                 subelt = ET.Element("value")
-                subelt.text = str(out_val)
+                subelt.text = unicode(out_val)
                 elt.append(subelt)
                 root.append(elt)
 

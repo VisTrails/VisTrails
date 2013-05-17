@@ -201,7 +201,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             debug.debug("PNG bounding box %sx%s" % (b_rect.width(), b_rect.height()))
             pixmap = QtGui.QPixmap(QtCore.QSize(int(math.floor(b_rect.width())),
                                                 int(math.floor(b_rect.height()))))
-            debug.debug("PNG pixmap size: %s"%str(pixmap.size()))
+            debug.debug("PNG pixmap size: %s"%unicode(pixmap.size()))
             painter = QtGui.QPainter(pixmap)
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
             brush = self.backgroundBrush()
@@ -637,9 +637,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
 
             if not fileName:
                 return None
-            f = str(fileName)
+            f = unicode(fileName)
         else:
-            f = str(filename)
+            f = unicode(filename)
             
         self.scene().saveToPDF(f)
 

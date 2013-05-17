@@ -250,12 +250,12 @@ Would you like to create one?"
         dialog = QConnectionDBSetupWindow(**keywords)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             config = {'id': int(dialog.id),
-                      'name': str(dialog.nameEdt.text()),
-                      'host': str(dialog.hostEdt.text()),
+                      'name': unicode(dialog.nameEdt.text()),
+                      'host': unicode(dialog.hostEdt.text()),
                       'port': int(dialog.portEdt.value()),
-                      'user': str(dialog.userEdt.text()),
-                      'passwd': str(dialog.passwdEdt.text()),
-                      'db': str(dialog.databaseEdt.text())}
+                      'user': unicode(dialog.userEdt.text()),
+                      'passwd': unicode(dialog.passwdEdt.text()),
+                      'db': unicode(dialog.databaseEdt.text())}
             id = self.connectionList.setConnectionInfo(**config)
             self.connectionList.setCurrentId(id)
             return True
@@ -347,7 +347,7 @@ Would you like to create one?"
 
         if dlg.exec_() == QtGui.QDialog.Accepted:
             return (dlg.connectionList.getCurrentConnConfig(),
-                    str(dlg.saveasEdt.text()).strip(' \n\t'))
+                    unicode(dlg.saveasEdt.text()).strip(' \n\t'))
         else:
             return({},'')
         
@@ -417,7 +417,7 @@ class QDBConnectionList(QtGui.QListWidget):
         for (id, c) in self.__list.items():
             cItem = QDBConnectionListItem(CurrentTheme.DB_ICON,
                                           int(id),
-                                          str(c.name))
+                                          unicode(c.name))
             self.addItem(cItem)
         self.emit(QtCore.SIGNAL("reloadConnections"))
         
@@ -434,7 +434,7 @@ class QDBConnectionList(QtGui.QListWidget):
         """getConnectionInfo(id: int) -> dict
         Returns info of ExtConnection """
         conn = self.__list.get_connection(id)
-        key = str(conn.id) + "." + conn.name + "." + conn.host
+        key = unicode(conn.id) + "." + conn.name + "." + conn.host
         passwd = DBLocator.keyChain.get_key(key)
         if conn != None:
             config = {'id': conn.id,
@@ -512,7 +512,7 @@ class QDBConnectionList(QtGui.QListWidget):
                 conn.id = self.__list.get_fresh_id()
             self.__list.add_connection(conn)
         self.updateGUI()
-        key = str(conn.id) + "." + conn.name + "." + conn.host
+        key = unicode(conn.id) + "." + conn.name + "." + conn.host
         DBLocator.keyChain.set_key(key,passwd)
         return conn.id
             
@@ -602,12 +602,12 @@ class QDBObjectList(QtGui.QListWidget):
                 for (id,obj,date) in objs:
                     item = QDBObjectListItem(CurrentTheme.FILE_ICON,
                                              int(id),
-                                             str(obj),
-                                             str(date))
+                                             unicode(obj),
+                                             unicode(date))
                     self.addItem(item)
             except VistrailsDBException, e:
                 #show connection setup
-                if "Couldn't get list of vistrails objects" in str(e):
+                if "Couldn't get list of vistrails objects" in unicode(e):
                     debug.critical('An error has occurred', e)
                     raise e
                 config = parent.connectionList.getConnectionInfo(int(conn_id))
@@ -747,11 +747,11 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
 
     def testConnection(self):
         """testConnection() -> None """
-        config = {'host': str(self.hostEdt.text()),
+        config = {'host': unicode(self.hostEdt.text()),
                   'port': int(self.portEdt.value()),
-                  'user': str(self.userEdt.text()),
-                  'passwd': str(self.passwdEdt.text()),
-                  'db': str(self.databaseEdt.text())}
+                  'user': unicode(self.userEdt.text()),
+                  'passwd': unicode(self.passwdEdt.text()),
+                  'db': unicode(self.databaseEdt.text())}
         try:
             vistrails.db.services.io.test_db_connection(config)
             show_info('Vistrails',"Connection succeeded!")

@@ -131,7 +131,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
         timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
-        xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.peWidget.table.label.getCounts()), str(self.virtualCell.getConfiguration()[2]), timestamp, timestamp)
+        xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (unicode(self.peWidget.table.label.getCounts()), unicode(self.virtualCell.getConfiguration()[2]), timestamp, timestamp)
         for i in xrange(self.peWidget.table.layout().count()):
             pEditor = self.peWidget.table.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
@@ -149,7 +149,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                     if intType == 'Linear Interpolation':
                         xml += ' min="%s" max="%s"' % (interpolator.fromEdit.get_value(), interpolator.toEdit.get_value())
                     elif intType == 'List':
-                        xml += ' values="%s"' % escape(str(interpolator._str_values), escape_dict)
+                        xml += ' values="%s"' % escape(unicode(interpolator._str_values), escape_dict)
                     elif intType == 'User-defined Function':
                         xml += ' code="%s"' % escape(interpolator.function, escape_dict)
                     xml += '/>'
@@ -182,8 +182,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
             f_id = long(f.attributes['id'].value)
-            f_name = str(f.attributes['name'].value)
-            f_is_alias = (str(f.attributes['alias'].value) == 'True')
+            f_name = unicode(f.attributes['name'].value)
+            f_is_alias = (unicode(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
             for tidx in xrange(self.paramView.treeWidget.topLevelItemCount()):
@@ -204,18 +204,18 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                             p_dim = int(p.attributes['dim'].value)
                             paramWidget.setDimension(p_dim)
                             # Set Interpolator Type (dropdown list)
-                            p_intType = str(p.attributes['interp'].value)
+                            p_intType = unicode(p.attributes['interp'].value)
                             paramWidget.editor.selectInterpolator(p_intType)
                             # Set Interpolator Value(s)
                             interpolator = paramWidget.editor.stackedEditors.currentWidget()
                             if p_intType == 'Linear Interpolation':
                                 # Set min/max
-                                p_min = str(p.attributes['min'].value)
-                                p_max = str(p.attributes['max'].value)
+                                p_min = unicode(p.attributes['min'].value)
+                                p_max = unicode(p.attributes['max'].value)
                                 interpolator.fromEdit.setText(p_min)
                                 interpolator.toEdit.setText(p_max)
                             elif p_intType == 'List':
-                                p_values = str(p.attributes['values'].value)
+                                p_values = unicode(p.attributes['values'].value)
                                 # Set internal list structure
                                 interpolator._str_values = \
                                         literal_eval(p_values)
@@ -226,7 +226,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                                     interpolator.listValues.setText(p_values.replace("'", "").replace('"', ''))
                             elif p_intType == 'User-defined Function':
                                 # Set function code
-                                p_code = str(p.attributes['code'].value)
+                                p_code = unicode(p.attributes['code'].value)
                                 interpolator.function = p_code
 
     def showEvent(self, event):

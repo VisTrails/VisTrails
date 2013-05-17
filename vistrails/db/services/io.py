@@ -218,7 +218,7 @@ def test_db_connection(config):
         msg = "connection test failed (%d: %s)" % (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
     except TypeError, e:
-        msg = "connection test failed (%s)" %str(e)
+        msg = "connection test failed (%s)" %unicode(e)
         raise VistrailsDBException(msg)
 
 def ping_db_connection(db_connection):
@@ -537,7 +537,7 @@ def setup_db_tables(db_connection, version=None, old_version=None):
         f.close()
         c.close()
     except get_db_lib().Error, e:
-        raise VistrailsDBException("unable to create tables: " + str(e))
+        raise VistrailsDBException("unable to create tables: " + unicode(e))
 
 ##############################################################################
 # General I/O
@@ -667,7 +667,7 @@ def close_zip_xml(temp_dir):
                 os.rmdir(os.path.join(root, name))
         os.rmdir(temp_dir)
     except OSError, e:
-        raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, str(e)))
+        raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, unicode(e)))
 
 def serialize(object):
     daoList = getVersionDAO(currentVersion)
@@ -692,7 +692,7 @@ def open_vistrail_from_xml(filename):
         vistrail = translate_vistrail(vistrail, version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
-        if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
+        if unicode(e).startswith('VistrailsDBException: Cannot find DAO for'):
             raise VistrailsDBException(
                 "This vistrail was created by a newer version of VisTrails "
                 "and cannot be opened.")
@@ -798,7 +798,7 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             abstractions.append(fname)
     except Exception, e:
         import traceback
-        debug.critical('Could not load abstraction from database: %s' % str(e),
+        debug.critical('Could not load abstraction from database: %s' % unicode(e),
                                               traceback.format_exc())
     # open mashuptrails from db
     mashuptrails = []
@@ -808,7 +808,7 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             mashuptrails.append(mashup)
     except Exception, e:
         import traceback
-        debug.critical('Could not load mashuptrail from database: %s' % str(e),
+        debug.critical('Could not load mashuptrail from database: %s' % unicode(e),
                                               traceback.format_exc())
     thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType,
                                          vistrail_id, tmp_dir)
@@ -924,7 +924,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
                 except Exception, e:
                     saved_abstractions.pop()
                     debug.critical('copying %s -> %s failed: %s' % \
-                                       (obj, xml_fname, str(e)))
+                                       (obj, xml_fname, unicode(e)))
         else:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'abstraction list entry must be a filename')
@@ -946,7 +946,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             except IOError, e2:
                 saved_thumbnails.pop()
                 debug.warning('copying thumbnail %s -> %s failed: %s' % \
-                              (obj, png_fname, str(e2)))
+                              (obj, png_fname, unicode(e2)))
         else:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'thumbnail list entry must be a filename')
@@ -958,12 +958,12 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     for obj in save_bundle.mashups:
         #print "  ", obj
         try:
-            xml_fname = os.path.join(mashup_dir, str(obj.id))
+            xml_fname = os.path.join(mashup_dir, unicode(obj.id))
             save_mashuptrail_to_xml(obj, xml_fname)
             saved_mashups.append(obj)
         except Exception, e:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
-                                       'when saving mashup: %s'%str(e))
+                                       'when saving mashup: %s'%unicode(e))
 
     # call package hooks
     # it will fail if package manager has not been constructed yet
@@ -973,7 +973,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         for package in pm.enabled_package_list():
             package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
     except Exception, e:
-        debug.warning("Could not call package hooks", str(e))
+        debug.warning("Could not call package hooks", unicode(e))
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
 
@@ -1525,7 +1525,7 @@ def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
             abs = open_vistrail_from_xml(abs_name)
             abs.db_name = parse_abstraction_name(abs_name)
             id_key = '__abstraction_vistrail_id__'
-            id_value = str(vt_id)
+            id_value = unicode(vt_id)
             if abs.db_has_annotation_with_key(id_key):
                 annotation = abs.db_get_annotation_by_key(id_key)
                 annotation.db_value = id_value
@@ -1551,7 +1551,7 @@ def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
             db_connection.commit()
 
         except Exception, e:
-            debug.critical('Could not save abstraction to db: %s' % str(e))
+            debug.critical('Could not save abstraction to db: %s' % unicode(e))
 
 ##############################################################################
 # Thumbnail I/O
@@ -1645,7 +1645,7 @@ def save_thumbnails_to_db(absfnames, db_connection):
     check_file_names = [os.path.basename(absfname).replace("'", "''").replace("\\", "\\\\") for absfname in absfnames]
     # SQL syntax needs SOMETHING if list is empty - use filename that's illegal on all platforms
     check_file_names.append(':/')
-    sql_in_token = str(tuple(check_file_names))
+    sql_in_token = unicode(tuple(check_file_names))
     try:
         c = db_connection.cursor()
         c.execute(statement % sql_in_token)
@@ -1703,7 +1703,7 @@ def open_mashuptrail_from_xml(filename):
         mashuptrail.updateIdScope()
     except VistrailsDBException, e:
         msg = "There was a problem when reading mashups from the xml file: "
-        msg += str(e)
+        msg += unicode(e)
         raise VistrailsDBException(msg)
     return mashuptrail
 
@@ -1735,7 +1735,7 @@ def open_mashuptrail_from_db(db_connection, mashup_id, lock=False):
         mashuptrail.updateIdScope()
     except VistrailsDBException, e:
         msg = "There was a problem when reading mashups from the db file: "
-        msg += str(e)
+        msg += unicode(e)
         raise VistrailsDBException(msg)
     return mashuptrail
 
@@ -1756,7 +1756,7 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
     for mashuptrail in mashuptrails:
         try: 
             id_key = '__mashuptrail_vistrail_id__'
-            id_value = str(vt_id)
+            id_value = unicode(vt_id)
             if mashuptrail.db_has_annotation_with_key(id_key):
                 annotation = mashuptrail.db_get_annotation_by_key(id_key)
                 annotation.db_value = id_value
@@ -1781,7 +1781,7 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
             db_connection.commit()
 
         except Exception, e:
-            debug.critical('Could not save mashuptrail to db: %s' % str(e))
+            debug.critical('Could not save mashuptrail to db: %s' % unicode(e))
 
 def open_startup_from_xml(filename):
     tree = ElementTree.parse(filename)
@@ -1874,7 +1874,7 @@ def remove_temp_folder(temp_dir):
                 os.rmdir(os.path.join(root, name))
         os.rmdir(temp_dir)
     except OSError, e:
-        raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, str(e)))
+        raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, unicode(e)))
     
 ##############################################################################
 # Testing
@@ -1924,6 +1924,6 @@ class TestDBIO(unittest.TestCase):
                 if os.path.isfile(filename):
                     os.unlink(filename)
             except Exception, e:
-                self.fail(str(e))
+                self.fail(unicode(e))
         finally:
             os.rmdir(testdir)

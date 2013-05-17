@@ -247,7 +247,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
                 
             return visible
 
-        if str(name)=='':
+        if unicode(name)=='':
             testFunction = lambda x: (not hasattr(x, 'is_hidden') or
                                       not x.is_hidden)
             if not self._search_was_empty:
@@ -673,7 +673,7 @@ class QSearchBox(QtGui.QWidget):
         self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
 
     def resetToggle(self, text):
-        self.resetButton.setEnabled((str(text) != '') or 
+        self.resetButton.setEnabled((unicode(text) != '') or
                                     self.manualResetEnabled)
 
     def executeIncrementalSearch(self, text):
@@ -682,7 +682,7 @@ class QSearchBox(QtGui.QWidget):
         The text is changing, so update the search.
 
         """
-        self.resetButton.setEnabled((str(text)!='') or
+        self.resetButton.setEnabled((unicode(text)!='') or
                                     self.manualResetEnabled)
         self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
 
@@ -707,7 +707,7 @@ class QSearchBox(QtGui.QWidget):
                       self.searchEdit.currentText())
 
     def getCurrentText(self):
-        return str(self.searchEdit.currentText())
+        return unicode(self.searchEdit.currentText())
 
     def setManualResetEnabled(self, boolVal):
         self.manualResetEnabled = boolVal
@@ -896,7 +896,7 @@ class QPathChooserToolButton(QtGui.QToolButton):
 
     def setDataDirectory(self, path):
         if path:
-            absPath = os.path.abspath(str(QtCore.QFile.encodeName(path)))
+            absPath = os.path.abspath(unicode(QtCore.QFile.encodeName(path)))
             dirName = os.path.dirname(absPath)
             set_vistrails_data_directory(dirName)
             return absPath

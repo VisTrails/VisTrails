@@ -84,7 +84,7 @@ class PortTable(QtGui.QTableWidget):
 
     def handleDataChanged(self, topLeft, bottomRight):
         if topLeft.column()==0:
-            text = str(self.model().data(topLeft, QtCore.Qt.DisplayRole))
+            text = unicode(self.model().data(topLeft, QtCore.Qt.DisplayRole))
             changedGeometry = False
             if text!='' and topLeft.row()==self.rowCount()-1:
                 self.setRowCount(self.rowCount()+1)
@@ -453,7 +453,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
         except PortAlreadyExists, e:
-            debug.critical('Port Already Exists %s' % str(e))
+            debug.critical('Port Already Exists %s' % unicode(e))
             return False
         return True            
     

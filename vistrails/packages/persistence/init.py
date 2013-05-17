@@ -124,10 +124,10 @@ class PersistentRef(Constant):
 
     @staticmethod
     def translate_to_string(x):
-        rep = str((x.type, x.id, x.version, x.local_path,
+        rep = unicode((x.type, x.id, x.version, x.local_path,
                    x.local_read, x.local_writeback, x.versioned,
                    x.name, x.tags))
-        # rep = str(tuple(y[1] for y in sorted(x.settings.iteritems())))
+        # rep = unicode(tuple(y[1] for y in sorted(x.settings.iteritems())))
         # print 'to_string:', rep
         return rep
         
@@ -292,11 +292,11 @@ class PersistentPath(Module):
         elif self.has_input('ref'):
             ref = self.get_input('ref')
             if ref.id is None:
-                ref.id = str(uuid.uuid1())
+                ref.id = unicode(uuid.uuid1())
         else:
             # create a new reference
             ref = PersistentRef()
-            ref.id = str(uuid.uuid1())
+            ref.id = unicode(uuid.uuid1())
 
         if self.has_input('localPath'):
             ref.local_path = self.get_input('localPath').name
@@ -410,7 +410,7 @@ class PersistentPath(Module):
         if ref.local_path and ref.local_writeback:
             if path != ref.local_path:
                 self.copypath(path, ref.local_path)
-        if not str(ref.version):
+        if not unicode(ref.version):
             vistrails.core.debug.critical("Persistent version annotation not set correctly "
                            "for persistent_id=%s" % ref.id)
         # for all paths
@@ -521,8 +521,8 @@ def persistent_module_hasher(pipeline, module, chm):
     if ref and not read_local and db_access.ref_exists(ref.id, ref.version):
         if ref.version is None:
             ref.version = repo.get_current_repo().get_latest_version(ref.id)
-        return Hasher.compound_signature([current_hash, str(ref.id),
-                                          str(ref.version)])
+        return Hasher.compound_signature([current_hash, unicode(ref.id),
+                                          unicode(ref.version)])
     return current_hash
 
 _modules = [PersistentRef, PersistentPath, PersistentFile, PersistentDir,

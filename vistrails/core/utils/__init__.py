@@ -160,7 +160,7 @@ class VistrailsInternalError(Exception):
 
     """
     def __str__(self):
-        return "Vistrails Internal Error: " + str(self.message)
+        return "Vistrails Internal Error: " + unicode(self.message)
 
 class VersionTooLow(Exception):
     """VersionTooLow is raised when you're running an outdated version of
@@ -252,7 +252,7 @@ class InvalidPipeline(Exception):
     def __str__(self):
         return "Pipeline has errors. Please see the detailed message for more information.\n  " + \
             '\n  '.join(line for e in self._exception_set 
-                        for line in str(e).splitlines())
+                        for line in unicode(e).splitlines())
 
     def get_exception_set(self):
         return self._exception_set
@@ -417,7 +417,7 @@ class InstanceObject(object):
 
     def __str__(self):
         pre = "(%s " % self.__class__.__name__
-        items = [('%s: %s' % (k, str(v)))
+        items = [('%s: %s' % (k, unicode(v)))
                  for (k, v)
                  in sorted(self.__dict__.items())]
         items_str = ('\n' + (' ' * len(pre))).join(items)
@@ -432,11 +432,11 @@ class InstanceObject(object):
                 result += v.write_source(newprefix)
             else:
                 result += prefix
-                result += "." + str(k) + " = " 
+                result += "." + unicode(k) + " = "
                 if isinstance(v, basestring):
-                    result +=  "'" + str(v) + "'\n"
+                    result +=  "'" + unicode(v) + "'\n"
                 else:
-                    result += str(v) + "\n"
+                    result += unicode(v) + "\n"
         return result
 
 def append_to_dict_of_lists(dict, key, value):

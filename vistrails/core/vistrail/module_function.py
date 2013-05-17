@@ -193,7 +193,7 @@ class ModuleFunction(DBFunction):
                 (self.real_id,
                  self.pos,
                  self.name,
-                 [str(p) for p in self.params],
+                 [unicode(p) for p in self.params],
                  id(self)))
 
     def __eq__(self, other):
@@ -288,7 +288,7 @@ class TestModuleFunction(unittest.TestCase):
                            parameters=[ModuleParam(type='Float',
                                                    val='1.2')],
                            )
-        str(f)
+        unicode(f)
 
 if __name__ == '__main__':
     unittest.main()

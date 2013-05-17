@@ -283,7 +283,7 @@ class VistrailsStartup(DBStartup):
                 msg = ("Failed to create directory: '%s'."
                        "This could be an indication of a permissions problem."
                        "Make sure directory '%s' in writable." %
-                       (str(e), dir_name))
+                       (unicode(e), dir_name))
                 debug.critical(msg)
                 sys.exit(1)
         return False

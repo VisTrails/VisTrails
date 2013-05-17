@@ -67,7 +67,7 @@ def parse_docutils_table(elt):
                     rows = parse_docutils_tbody(subchild)
     print "== TABLE =="
     print "HEADER:", header
-    print "ROWS:", '\n'.join(str(r) for r in rows)
+    print "ROWS:", '\n'.join(unicode(r) for r in rows)
     return (header, rows)
 
 def parse_docutils_term(elt):
@@ -81,8 +81,8 @@ def parse_docutils_term(elt):
             elif term != "None": 
                 terms.append(term)
         elif child.__class__ == docutils.nodes.Text:
-            if str(child).strip() not in [',', '/']:
-                accepts += str(child)
+            if unicode(child).strip() not in [',', '/']:
+                accepts += unicode(child)
         else:
             accepts += parse_docutils_elt(child)[0]
     accepts = accepts.strip()
@@ -130,7 +130,7 @@ def parse_docutils_elt(elt, last_text=""):
     call_signatures = []
     for child in elt.children:
         if child.__class__ == docutils.nodes.Text:
-            ntext = ' '.join(s for s in str(child).split('\n'))
+            ntext = ' '.join(s for s in unicode(child).split('\n'))
             text += ntext
         elif child.__class__ == docutils.nodes.system_message:
             pass
@@ -510,8 +510,8 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                     elif old_port_spec.defaults != port_spec.defaults:
                         # keep it as the old spec is
                         print "*** Different defaults!" + \
-                            str(old_port_spec.defaults) + \
-                            " : " + str(port_spec.defaults)
+                            unicode(old_port_spec.defaults) + \
+                            " : " + unicode(port_spec.defaults)
                         assign_port_values(old_port_spec, [],
                                            old_port_spec.defaults[0])
                 else:
@@ -636,14 +636,14 @@ def parse_plots(plot_types, table_overrides):
 
         # for port_spec in port_specs.itervalues():
         #     if port_spec.defaults is not None:
-        #         port_spec.defaults = [str(v) for v in port_spec.defaults]
+        #         port_spec.defaults = [unicode(v) for v in port_spec.defaults]
         #     if port_spec.values is not None:
-        #         port_spec.values = [[str(v) for v in port_spec.values[0]]]
+        #         port_spec.values = [[unicode(v) for v in port_spec.values[0]]]
         #     for alt_ps in port_spec.alternate_specs:
         #         if alt_ps.defaults is not None:
-        #             alt_ps.defaults = [str(v) for v in alt_ps.defaults]
+        #             alt_ps.defaults = [unicode(v) for v in alt_ps.defaults]
         #         if alt_ps.values is not None:
-        #             alt_ps.values = [[str(v) for v in alt_ps.values[0]]]
+        #             alt_ps.values = [[unicode(v) for v in alt_ps.values[0]]]
                 
         module_specs.append(ModuleSpec(module_name, super_name,
                                        "matplotlib.pyplot.%s" % plot, 

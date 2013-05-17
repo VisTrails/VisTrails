@@ -365,7 +365,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         vLabels = []
         vIdx = self.verticalHeader().visualIndex
         for i in xrange(newCount):
-            vLabels.append(str(vIdx(i)+1))
+            vLabels.append(unicode(vIdx(i)+1))
         self.setVerticalHeaderLabels(vLabels)
         self.updateHeaderStatus()
 

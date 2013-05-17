@@ -24,7 +24,7 @@ class Machine(Module):
 
         self.queue = self.queue_cls(**kwargs) if inherits is None else self.queue_cls(inherits, **kwargs) 
 
-        QUEUE_REGISTER[str(self.signature)] = self.queue
+        QUEUE_REGISTER[unicode(self.signature)] = self.queue
 
         self.set_output("machine", self)
 

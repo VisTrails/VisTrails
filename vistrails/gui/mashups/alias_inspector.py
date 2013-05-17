@@ -223,7 +223,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
     def minvalChanged(self):
         if self.alias:
             old_minval = self.alias.component.minVal
-            new_minval = str(self.dw_minval_edit.text())
+            new_minval = unicode(self.dw_minval_edit.text())
             if old_minval == new_minval:
                 return
             self.alias.component.minVal = new_minval
@@ -233,7 +233,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
     def maxvalChanged(self):
         if self.alias:
             old_maxval = self.alias.component.maxVal
-            new_maxval = str(self.dw_maxval_edit.text())
+            new_maxval = unicode(self.dw_maxval_edit.text())
             if old_maxval == new_maxval:
                 return
             self.alias.component.maxVal = new_maxval
@@ -243,7 +243,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
     def stepsizeChanged(self):
         if self.alias:
             old_stepsize = self.alias.component.stepSize
-            new_stepsize = str(self.dw_stepsize_edit.text())
+            new_stepsize = unicode(self.dw_stepsize_edit.text())
             if old_stepsize == new_stepsize:
                 return
             self.alias.component.stepSize = new_stepsize
@@ -263,7 +263,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
     @pyqtSlot()
     def nameChanged(self):
         old_alias = self.alias.name
-        new_alias = str(self.name_edit.text())
+        new_alias = unicode(self.name_edit.text())
         if old_alias == new_alias:
             return
         if new_alias in self.table.aliases.keys():
@@ -307,7 +307,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         # show loop option for stepper
         self.dw_seq_toggle.setVisible(index == 1)
         if self.alias:
-            self.alias.component.widget = str(self.dw_combobox.currentText())
+            self.alias.component.widget = unicode(self.dw_combobox.currentText())
             self.aliasChanged.emit(self.alias)
             
     def set_int_validators(self):
@@ -519,7 +519,7 @@ class QValuesListEditor(QtGui.QWidget):
 
         #print "values_were_edited"
         new_text = self.listValues.text()
-        t = str(new_text)
+        t = unicode(new_text)
         if len(t) < 2:
             self._alias.component.valueList = []
             return
@@ -545,7 +545,7 @@ class QValuesListEditor(QtGui.QWidget):
             values = dialog.getList()
             #print values
             self._alias.component.valueList = copy.copy(values)
-            self._str_values = [str(v) for v in values]
+            self._str_values = [unicode(v) for v in values]
             values2 = values
             if self.type not in ['Float', 'Integer']:
                 values2 = ["'%s'" % v.replace("'", "\'")
@@ -655,7 +655,7 @@ class QListEditDialog(QtGui.QDialog):
         for i in xrange(self.table.rowCount()):
             logicalIndex = self.table.verticalHeader().logicalIndex(i)
             value = self.table.cellWidget(logicalIndex, 0).contents()            
-            result.append(str(value))
+            result.append(unicode(value))
         return result
 
     def rowMoved(self, row, old, new):
@@ -666,7 +666,7 @@ class QListEditDialog(QtGui.QDialog):
         vHeader = self.table.verticalHeader()
         labels = []        
         for i in xrange(self.table.rowCount()):
-            labels.append(str(vHeader.visualIndex(i)+1))
+            labels.append(unicode(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 
     def addRow(self, text=''):

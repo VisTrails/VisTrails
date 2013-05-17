@@ -481,7 +481,7 @@ class StandardWidgetSheetTabInterface(object):
         be located at (row, col) of this sheet
         
         """
-        sheetName = str(self.tabWidget.tabText(self.tabWidget.indexOf(self)))
+        sheetName = unicode(self.tabWidget.tabText(self.tabWidget.indexOf(self)))
         # Note that we must increment row/col by 1 to match how the
         # CellReference module expects them
         return assignPipelineCellLocations(inPipeline, sheetName,
@@ -549,7 +549,7 @@ class StandardWidgetSheetTabInterface(object):
                 if widget:
                     widget.grabWindowPixmap().save(dirPath+'/'+
                                                    chr(c+ord('a'))+
-                                                   str(r+1)+
+                                                   unicode(r+1)+
                                                    '.'+format)
 
     def setSpan(self, row, col, rowSpan, colSpan):

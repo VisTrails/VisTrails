@@ -167,4 +167,4 @@ class TestModuleParam(unittest.TestCase):
         self.assertNotEqual(p, q)
 
     def test_str(self):
-        str(self.create_param())
+        unicode(self.create_param())

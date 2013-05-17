@@ -80,8 +80,8 @@ class ActionAnnotation(DBActionAnnotation):
         """
         rep = ("<actionAnnotation id=%s action_id=%s key=%s value=%s "
                "date=%s user=%s</annotation>")
-        return  rep % (str(self.id), str(self.action_id), str(self.key), 
-                       str(self.value), str(self.date), str(self.user))
+        return  rep % (unicode(self.id), unicode(self.action_id), unicode(self.key),
+                       unicode(self.value), unicode(self.date), unicode(self.user))
 
     def __eq__(self, other):
         """ __eq__(other: ActionAnnotation) -> boolean
@@ -141,4 +141,4 @@ class TestActionAnnotation(unittest.TestCase):
 
     def test_str(self):
         a1 = self.create_annotation()
-        str(a1)
+        unicode(a1)

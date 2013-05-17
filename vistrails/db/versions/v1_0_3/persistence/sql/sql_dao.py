@@ -47,7 +47,7 @@ class SQLDAO:
     def convertFromDB(self, value, type, db_type):
         if value is not None:
             if type == 'str':
-                return str(value)
+                return unicode(value)
             elif type == 'long':
                 return long(value)
             elif type == 'float':
@@ -58,12 +58,12 @@ class SQLDAO:
                 if db_type == 'date':
                     return value
                 else:
-                    return date(*time_strptime(str(value), '%Y-%m-%d')[0:3])
+                    return date(*time_strptime(unicode(value), '%Y-%m-%d')[0:3])
             elif type == 'datetime':
                 if db_type == 'datetime':
                     return value
                 else:
-                    return datetime(*time_strptime(str(value),
+                    return datetime(*time_strptime(unicode(value),
                                                    '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
@@ -75,7 +75,7 @@ class SQLDAO:
     def convertToDB(self, value, type, db_type):
         if value is not None:
             if type == 'str':
-                value = str(value)
+                value = unicode(value)
                 if db_type.startswith('varchar'):
                     try:
                         length = int(db_type[8:-1])
@@ -94,18 +94,18 @@ class SQLDAO:
                             value = value[:length]
                     except Exception, e:
                         pass
-                # return "'" + str(value).replace("'", "''") + "'"
+                # return "'" + unicode(value).replace("'", "''") + "'"
                 return value
             elif type == 'long':
-                return str(value)
+                return unicode(value)
             elif type == 'float':
                 # necessary to avoid conversion warnings in MySQL
                 if db_type.startswith('DECIMAL'):
                     try:
-                        value="%%.%sf"%str(db_type[8:-1].split(',')[1])%value
+                        value="%%.%sf"%unicode(db_type[8:-1].split(',')[1])%value
                     except Exception, e:
                         pass
-                return str(value)
+                return unicode(value)
             elif type == 'int':
                 # note: on 64-bit machines int:s are 64-bit
                 MIN_INT = -2147483648
@@ -117,13 +117,13 @@ class SQLDAO:
                     if int(value) > MAX_INT:
                         self.convertWarning(value, MAX_INT, type, db_type)
                         value = MAX_INT
-                return str(value)
+                return unicode(value)
             elif type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
                 return strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
-                return str(value)
+                return unicode(value)
 
         return None
 

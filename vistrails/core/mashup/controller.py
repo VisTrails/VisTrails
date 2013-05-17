@@ -73,7 +73,7 @@ class MashupController(object):
         if self.vtPipeline and self.vtController:
             mashup_id = self.mshptrail.id
             mashup_version = self.currentVersion
-            reason = "mashup::%s::%s"%(str(mashup_id), mashup_version)
+            reason = "mashup::%s::%s"%(unicode(mashup_id), mashup_version)
             result = self.vtController.execute_current_workflow(custom_params=params,
                                                               reason=reason)
             self.originalController.set_changed(True)
@@ -308,7 +308,7 @@ class MashupController(object):
                     name = "ROOT"
                 count_str = ""
                 if count > 0:
-                    count_str = " + " + str(count)
+                    count_str = " + " + unicode(count)
                 return name + count_str
             version = action_map[version].parent_id
             count += 1

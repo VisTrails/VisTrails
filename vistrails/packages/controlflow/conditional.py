@@ -133,7 +133,7 @@ class TestIf(unittest.TestCase):
                     ('If', 'org.vistrails.vistrails.control_flow', [
                         ('FalseOutputPorts', [('List', "['value']")]),
                         ('TrueOutputPorts', [('List', "['value']")]),
-                        ('Condition', [('Boolean', str(val))]),
+                        ('Condition', [('Boolean', unicode(val))]),
                     ]),
                     ('Integer', 'org.vistrails.vistrails.basic', [
                         ('value', [('Integer', '42')]),

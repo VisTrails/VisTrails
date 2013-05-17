@@ -207,8 +207,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
         s = QtGui.QFileDialog.getOpenFileName(
                     self, "Choose a file",
                     "", "Vistrail files (*.vt *.xml)");
-        if str(s):
-            locator = FileLocator(str(s))
+        if unicode(s):
+            locator = FileLocator(unicode(s))
             url = locator.to_url()
             entity = self.collection.updateVistrail(url)
             # add to relevant workspace categories
@@ -219,8 +219,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
         s = QtGui.QFileDialog.getExistingDirectory(
                     self, "Choose a directory",
                     "", QtGui.QFileDialog.ShowDirsOnly);
-        if str(s):
-            self.update_from_directory(str(s))
+        if unicode(s):
+            self.update_from_directory(unicode(s))
         
     def update_from_directory(self, s):
         filenames = glob.glob(os.path.join(s, '*.vt,*.xml'))
@@ -247,7 +247,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def add_workspace(self):
         text, ok = QtGui.QInputDialog.getText(self, 'Create workspace',
                       'Enter new workspace name:')
-        workspace = str(text).strip()
+        workspace = unicode(text).strip()
         if ok and workspace != '':
             self.collection.currentWorkspace = workspace
             if workspace not in self.collection.workspaces:
@@ -445,7 +445,7 @@ class QExplorerWidget(QCollectionWidget):
 
 class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
-        l = list(str(x) for x in entity.save())
+        l = list(unicode(x) for x in entity.save())
         l.pop(0) # remove identifier
         type = l.pop(0)
         desc = l.pop(5)
@@ -476,7 +476,7 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         if sort_col in set([4]):
             return int(self.text(sort_col)) < int(other.text(sort_col))
         elif sort_col in set([2,3]):
-            return datetime(*time_strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
+            return datetime(*time_strptime(unicode(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(unicode(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
         return QtGui.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):
@@ -613,7 +613,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def workspace_changed(self, workspace):
         if not self.updatingWorkspaceList:
-            self.browser.setup_widget(str(workspace))
+            self.browser.setup_widget(unicode(workspace))
     
     def reset_search(self):
         self.browser.reset_search()
@@ -855,7 +855,7 @@ class QVistrailList(QtGui.QTreeWidget):
                     version = widget_item.parent().entity.name
             if not version:
                 # assume execution
-                version = str(widget_item.parent().text(0))
+                version = unicode(widget_item.parent().text(0))
             if isinstance(version, str):
                 try:
                     version = \

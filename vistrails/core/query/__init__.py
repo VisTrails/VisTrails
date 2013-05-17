@@ -148,10 +148,10 @@ def extract_text(escaped_html_str):
     try:
         from PyQt4 import QtGui
     except ImportError:
-        return str(notes)
+        return unicode(notes)
     else:
         fragment = QtGui.QTextDocumentFragment.fromHtml(notes)
-        return str(fragment.toPlainText())
+        return unicode(fragment.toPlainText())
 
 # The queries are old and are preserved for reference.  Some code is
 # quite old (references to vis_application, for example).

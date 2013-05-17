@@ -180,7 +180,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     QtGui.QTableWidgetItem(', '.join(self._unrunnable_wfs[wf]))
             details.setTextAlignment(QtCore.Qt.AlignCenter)
 
-            wf_item = QtGui.QTableWidgetItem(str(wf))
+            wf_item = QtGui.QTableWidgetItem(unicode(wf))
             wf_item.setTextAlignment(QtCore.Qt.AlignCenter)
 
             if count >= self._unrunnable_table.rowCount():
@@ -669,7 +669,7 @@ class QRepositoryLoginPopup(QtGui.QDialog):
             # add association between VisTrails user and web repository user
             if self.saveLogin.checkState():
                 if not (self.config.check('webRepositoryUser') and self.config.webRepositoryUser == self.loginUser.text()):
-                    self.config.webRepositoryUser = str(self.loginUser.text())
+                    self.config.webRepositoryUser = unicode(self.loginUser.text())
                     pers_config = get_vistrails_persistent_configuration()
                     pers_config.webRepositoryUser = self.config.webRepositoryUser
                     get_vistrails_application().save_configuration()

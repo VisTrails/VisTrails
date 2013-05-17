@@ -683,7 +683,7 @@ class Graph(object):
               for vto, edgeid in lto]
         al.sort()
         return ("digraph G {\n"
-                + ";".join([str(s) for s in vs])
+                + ";".join([unicode(s) for s in vs])
                 + ";\n"
                 + "\n".join(["%s -> %s [label=\"%s\"];" % s for s in al])
                 + "\n}")

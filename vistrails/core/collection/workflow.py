@@ -52,7 +52,7 @@ class WorkflowEntity(Entity):
         self.workflow = workflow
         if self.workflow is not None:
             self.name = workflow.name \
-            if workflow.name else "Version #" + str(workflow.id)
+            if workflow.name else "Version #" + unicode(workflow.id)
             self.user = 'testing'
             self.mod_time = self.now()
             self.create_time = self.now()

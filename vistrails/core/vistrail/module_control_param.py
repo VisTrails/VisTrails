@@ -83,7 +83,7 @@ class ModuleControlParam(DBControlParameter):
 
         """
         rep = "<controlParameter id=%s name=%s value=%s</controlParameter>"
-        return  rep % (str(self.id), str(self.name), str(self.value))
+        return  rep % (unicode(self.id), unicode(self.name), unicode(self.value))
 
     def __eq__(self, other):
         """ __eq__(other: ModuleControlParam) -> boolean
@@ -140,4 +140,4 @@ class TestModuleControlParam(unittest.TestCase):
 
     def test_str(self):
         a1 = self.create_control_parameter()
-        str(a1)
+        unicode(a1)

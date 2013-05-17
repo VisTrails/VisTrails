@@ -115,7 +115,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.interval.editTextChanged.connect(self.set_refresh)
         self.interval.setValidator(QNumberValidator())
         conf = configuration.get_vistrails_configuration()
-        self.interval.setEditText(str(conf.jobCheckInterval))
+        self.interval.setEditText(unicode(conf.jobCheckInterval))
         buttonsLayout.addWidget(self.interval)
 
         self.autorun = QtGui.QCheckBox("Automatic re-execution")
@@ -157,10 +157,10 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         configuration and restarts the timer.
         """
         self.updating_now = True
-        refresh = str(refresh) if refresh else '0'
+        refresh = unicode(refresh) if refresh else '0'
         if refresh in dict(refresh_states):
             refresh = dict(refresh_states)[refresh]
-            self.interval.setEditText(str(refresh))
+            self.interval.setEditText(unicode(refresh))
         else:
             refresh = int(refresh)
         if refresh:

@@ -58,7 +58,7 @@ def translateVistrail(_vistrail):
     def update_operations(old_obj, trans_dict):
         def update_abstractionRef(old_obj, trans_dict):
             def get_internal_version(old_obj, trans_dict):
-                return str(old_obj.db_version)
+                return unicode(old_obj.db_version)
             def get_version(old_obj, trans_dict):
                 return ''
             new_dict = {'DBAbstraction':

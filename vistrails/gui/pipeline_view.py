@@ -2941,7 +2941,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             module.toggle_watched()
 
     def print_error(self, id):
-        toolTip = str(self.modules[id].toolTip())
+        toolTip = unicode(self.modules[id].toolTip())
         errorTrace = self.modules[id].errorTrace
         if not toolTip and not errorTrace:
             return
@@ -2997,7 +2997,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                         self.controller.delete_annotation('__desc__', id)
                         self.recreate_module(self.controller.current_pipeline, id)
                 else:
-                    self.controller.add_annotation(('__desc__', str(text)), id)
+                    self.controller.add_annotation(('__desc__', unicode(text)), id)
                     self.recreate_module(self.controller.current_pipeline, id)
 
     ##########################################################################
@@ -3313,7 +3313,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         clipboard = QtGui.QApplication.clipboard()
         clipboard_text = clipboard.text()
         return bool(clipboard_text) #and \
-        #    str(clipboard_text).startswith("<workflow")
+        #    unicode(clipboard_text).startswith("<workflow")
 
     def pipeline_non_empty(self, pipeline):
         return pipeline is not None and len(pipeline.modules) > 0

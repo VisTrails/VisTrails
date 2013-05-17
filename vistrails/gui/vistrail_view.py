@@ -1105,7 +1105,7 @@ class QVistrailView(QtGui.QWidget):
 
         """
         for mashuptrail in self.controller._mashups:
-            if str(mashuptrail.id) == mashuptrail_id:
+            if unicode(mashuptrail.id) == mashuptrail_id:
                 try:
                     mashupVersion = int(mashupVersion)
                 except ValueError:

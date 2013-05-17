@@ -120,31 +120,31 @@ def assignPipelineCellLocations(pipeline, sheetName,
         sheetReference = create_module(id_scope, spreadsheet_pkg,
                                        "SheetReference")
         sheetNameFunction = create_function(id_scope, sheetReference, 
-                                            "SheetName", [str(sheetName)])
+                                            "SheetName", [unicode(sheetName)])
             # ["%s %d" % (sheetPrefix, sheet)])
 
         sheetReference.add_function(sheetNameFunction)
 
         if minRowCount is not None:
             minRowFunction = create_function(id_scope, sheetReference, 
-                                             "MinRowCount", [str(minRowCount)])
-                                                   # [str(rowCount*vRCount)])
+                                             "MinRowCount", [unicode(minRowCount)])
+                                                   # [unicode(rowCount*vRCount)])
             sheetReference.add_function(minRowFunction)
         if minColCount is not None:
             minColFunction = create_function(id_scope, sheetReference, 
                                              "MinColumnCount", 
-                                             [str(minColCount)])
-                                                   # [str(colCount*vCCount)])
+                                             [unicode(minColCount)])
+                                                   # [unicode(colCount*vCCount)])
             sheetReference.add_function(minColFunction)
 
         # Add a cell location module with a specific row and column
         cellLocation = create_module(id_scope, spreadsheet_pkg,
                                      "CellLocation")
-        rowFunction = create_function(id_scope, cellLocation, "Row", [str(row)])
-                                                 # [str(row*vRCount+vRow+1)])
+        rowFunction = create_function(id_scope, cellLocation, "Row", [unicode(row)])
+                                                 # [unicode(row*vRCount+vRow+1)])
         colFunction = create_function(id_scope, cellLocation, "Column", 
-                                      [str(col)])
-                                                 # [str(col*vCCount+vCol+1)])
+                                      [unicode(col)])
+                                                 # [unicode(col*vCCount+vCol+1)])
 
         cellLocation.add_function(rowFunction)
         cellLocation.add_function(colFunction)

@@ -162,7 +162,7 @@ class DBVistrail(_DBVistrail):
         tagKeys.sort()
         m = hashlib.md5()
         for k in tagKeys:
-            m.update(str(k))
+            m.update(unicode(k))
             m.update(self.db_get_tag_by_id(k).db_name)
         return m.hexdigest()
 
@@ -187,7 +187,7 @@ class DBVistrail(_DBVistrail):
         action_annotations = {}
         for id, annotations in [[action.db_id, action.db_annotations] for action in self.db_actions]:
             for annotation in annotations:
-                index = (str(id), annotation.db_key)
+                index = (unicode(id), annotation.db_key)
                 if index not in action_annotations:
                     action_annotations[index] = []
                 if annotation.db_value not in action_annotations[index]:

@@ -281,7 +281,7 @@ class TestPort(unittest.TestCase):
 
     def testPort(self):
         x = Port()
-        a = str(x)
+        a = unicode(x)
 
     def test_registry_port_subtype(self):
         """Test registry isPortSubType"""

@@ -177,7 +177,7 @@ def joboperation_compute(self):
 
         self.set_output("job", job)
         self.set_output("result", ret)
-        self.set_output("string", str(ret))
+        self.set_output("string", unicode(ret))
     self.set_output("operation", self)
 
 _modules+=[(JobOperation,{'abstract':True})]
@@ -196,7 +196,7 @@ for name in operations.iterkeys():
             dct['_output_ports'].append( ('result', type_conversion[t]) )
 
         #  TODO: Multiple types yet to be implemented
-        ## append = "" if len(operations_types[name]) == 1 else capiltalise(str(t))
+        ## append = "" if len(operations_types[name]) == 1 else capiltalise(unicode(t))
         namespace = categories['low_level']
 
         descriptive_name = remove_underscore(" ",name)

@@ -332,7 +332,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         """
         self.setPlainText(self.label)
         self.setEditable(False)
-        if (len(str(self.label)) > 0):
+        if (len(unicode(self.label)) > 0):
             self.setTextWidth(-1)
         else:
             self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
@@ -360,15 +360,15 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         """
         if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             self.updatingTag = True
-            if (self.label == str(self.toPlainText()) or
-                not self.scene().controller.update_current_tag(str(self.toPlainText()))):
+            if (self.label == unicode(self.toPlainText()) or
+                not self.scene().controller.update_current_tag(unicode(self.toPlainText()))):
                 self.reset()
             self.updatingTag = False
             event.ignore()
             self.clearFocus()
             return
         qt_super(QGraphicsVersionTextItem, self).keyPressEvent(event)
-        if (len(str(self.toPlainText())) > 0):
+        if (len(unicode(self.toPlainText())) > 0):
             self.setTextWidth(-1)
         self.updatePos()
         self.parentItem().updateWidthFromLabel()
@@ -381,8 +381,8 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
         if not self.updatingTag and self.label != self.toPlainText():
             self.updatingTag = True
-            if (self.label == str(self.toPlainText()) or 
-                not self.scene().controller.update_current_tag(str(self.toPlainText()))):
+            if (self.label == unicode(self.toPlainText()) or
+                not self.scene().controller.update_current_tag(unicode(self.toPlainText()))):
                 self.reset()
             self.updatingTag = False
 
@@ -703,7 +703,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
     def perform_analogy(self):
         sender = self.scene().sender()
-        analogy_name = str(sender.text())
+        analogy_name = unicode(sender.text())
         # selectedItems = self.scene().selectedItems()
         controller = self.scene().controller
         print "calling perform analogy", analogy_name, self.id

@@ -250,11 +250,11 @@ class Group(DBGroup, Module):
 
         """
         rep = '<group id="%s">'
-        rep += str(self.location)
-        rep += str(self.functions)
-        rep += str(self.annotations)
+        rep += unicode(self.location)
+        rep += unicode(self.functions)
+        rep += unicode(self.annotations)
         rep += '</group>'
-        return  rep % str(self.id)
+        return  rep % unicode(self.id)
 
     def __eq__(self, other):
         """ __eq__(other: GroupModule) -> boolean

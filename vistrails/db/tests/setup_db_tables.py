@@ -53,11 +53,11 @@ def setup_tables(host, port, user, passwd, db):
 if __name__ == '__main__':
     args = sys.argv
     if len(args) > 4:
-        host = str(args[1])
+        host = unicode(args[1])
         port = 3306
-        user = str(args[2])
-        passwd = str(args[3])
-        db = str(args[4])
+        user = unicode(args[2])
+        passwd = unicode(args[3])
+        db = unicode(args[4])
         setup_tables(host, port, user, passwd, db)
     else:
         print "Usage: %s host user passwd db" % args[0]

@@ -128,7 +128,7 @@ def translateVistrail(_vistrail):
         if vars:
             new_id = id_scope.getNewId(DBAnnotation.vtType)
             annotation = DBAnnotation(id=new_id, key='__vistrail_vars__', 
-                                      value=str(vars))
+                                      value=unicode(vars))
             new_annotations.append(annotation)
 
         return new_annotations

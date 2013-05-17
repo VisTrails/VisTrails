@@ -376,7 +376,7 @@ class QQueryBox(QtGui.QWidget):
         executeSearch(text: QString) -> None
 
         """
-        s = str(text)
+        s = unicode(text)
         if self.controller:
             self.controller.run_search(s)
             # try:

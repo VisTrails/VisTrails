@@ -366,7 +366,7 @@ class AmbiguousResolution(ModuleRegistryException):
     def __str__(self):
         return ("Ambiguous resolution of module %s.  Could resolve to:\n%s" % \
                     (self._module_name, 
-                     ',\n'.join(str(m) for m in self.matches)))
+                     ',\n'.join(unicode(m) for m in self.matches)))
 
 class MissingPort(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type):
@@ -474,7 +474,7 @@ class InvalidPortSpec(ModuleRegistryException):
         return ('%s port "%s" from module %s in package %s '
                 'has bad specification\n  %s' % \
             (self._port_type, self._port_name, self._module_name,
-             self._package_name, str(self._exc)))
+             self._package_name, unicode(self._exc)))
 
 class MissingBaseClass(Exception):
     def __init__(self, base):
@@ -1310,13 +1310,13 @@ class ModuleRegistry(DBRegistry):
             del controller
             vistrail.set_annotation('__abstraction_descriptor_info__', 
                                     (identifier, name, namespace, 
-                                     package_version, str(version)))
+                                     package_version, unicode(version)))
             vt_save_dir = tempfile.mkdtemp(prefix='vt_upgrade_abs')
             vt_fname = os.path.join(vt_save_dir, os.path.basename(vt_fname))
             
             
             # need to create new namespace for upgraded version
-            new_namespace = str(uuid.uuid1())
+            new_namespace = unicode(uuid.uuid1())
             annotation_key = get_next_abs_annotation_key(vistrail)
             vistrail.set_annotation(annotation_key, new_namespace)
 
@@ -1338,7 +1338,7 @@ class ModuleRegistry(DBRegistry):
             kwargs['ghost_namespace'] = namespace
             is_upgraded_abstraction = True
                                     
-        module.internal_version = str(module.internal_version)
+        module.internal_version = unicode(module.internal_version)
         kwargs['version'] = module.internal_version
         descriptor = None
         if kwargs:
@@ -1347,7 +1347,7 @@ class ModuleRegistry(DBRegistry):
             descriptor = self.add_module(module)
         if is_upgraded_abstraction:
             descriptor_info = (identifier, name, namespace,  
-                               package_version, str(version))
+                               package_version, unicode(version))
             # print 'adding to upgrades:', descriptor_info
             # print '  ', descriptor.package, descriptor.name, descriptor.namespace, descriptor.version, descriptor.package_version
             if identifier != abstraction_pkg:
@@ -1356,7 +1356,7 @@ class ModuleRegistry(DBRegistry):
                                "Please check with the package developer for "
                                "a new version." % (info_exc._module_name,
                                                    info_exc._package_name))
-            package.add_abs_upgrade(descriptor, name, namespace, str(version))
+            package.add_abs_upgrade(descriptor, name, namespace, unicode(version))
             self.auto_add_ports(descriptor.module)
         return descriptor
 
@@ -1795,7 +1795,7 @@ class ModuleRegistry(DBRegistry):
         elif port.type in PortSpec.port_type_map.inverse:
             port_type = PortSpec.port_type_map.inverse[port.type]
         else:
-            raise TypeError('Port type "%s" invalid' % str(port.type))
+            raise TypeError('Port type "%s" invalid' % unicode(port.type))
         if port_type != port_spec.type:
             return False
         if port.name != port_spec.name:

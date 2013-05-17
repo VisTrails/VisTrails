@@ -120,7 +120,7 @@ class PEFunction(DBPEFunction):
                  self.module_id,
                  self.port_name,
                  self.is_alias,
-                 [str(p) for p in self.params],
+                 [unicode(p) for p in self.params],
                  id(self)))
 
     def __eq__(self, other):
@@ -194,7 +194,7 @@ class TestModuleFunction(unittest.TestCase):
         self.assertNotEqual(f, g)
 
     def test_str(self):
-        str(self.create_function())
+        unicode(self.create_function())
 
 if __name__ == '__main__':
     unittest.main()

@@ -266,7 +266,7 @@ class VistrailEntity(Entity):
                 if self.vistrail.has_tag(version_id):
                     tag_str = self.vistrail.get_tag(version_id)
                 else:
-                    tag_str = str(version_id)
+                    tag_str = unicode(version_id)
                 debug.critical("Failed to construct pipeline '%s'" % tag_str,
                                traceback.format_exc())
                 workflow = self.vistrail.getPipeline(0)

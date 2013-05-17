@@ -182,7 +182,7 @@ class QIntegerLineEdit(QtGui.QLineEdit, BasePEWidget):
         QtGui.QLineEdit.__init__(self, param_info.value, parent)
         self.setValidator(QtGui.QIntValidator(self))
     def get_value(self):
-        return int(str(self.text()))
+        return int(unicode(self.text()))
     def set_value(self, str_value):
         self.setText(str_value)
         
@@ -191,7 +191,7 @@ class QFloatLineEdit(QtGui.QLineEdit, BasePEWidget):
         QtGui.QLineEdit.__init__(self, param_info.value, parent)
         self.setValidator(QtGui.QDoubleValidator(self))
     def get_value(self):
-        return float(str(self.text()))
+        return float(unicode(self.text()))
     def set_value(self, str_value):
         self.setText(str_value)
 ##############################################################################
@@ -339,7 +339,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         For example, this will break horribly if the user manually edits
         a list of strings with commas in them."""
 
-        t = str(new_text)
+        t = unicode(new_text)
         if len(t) < 2:
             self._str_values = []
             return
@@ -388,7 +388,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         dialog = QListEditDialog(self.type, self._str_values, None)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             values = dialog.getList()
-            self._str_values = [str(v) for v in values]
+            self._str_values = [unicode(v) for v in values]
             if self.type == 'String':
                 values = ["'%s'" % v.replace("'", "\'")
                           for v in values]
@@ -496,7 +496,7 @@ class QListEditDialog(QtGui.QDialog):
         for i in xrange(self.table.rowCount()):
             logicalIndex = self.table.verticalHeader().logicalIndex(i)
             value = self.table.item(logicalIndex, 0).text()            
-            result.append(str(value))
+            result.append(unicode(value))
         return result
 
     def rowMoved(self, row, old, new):
@@ -507,7 +507,7 @@ class QListEditDialog(QtGui.QDialog):
         vHeader = self.table.verticalHeader()
         labels = []        
         for i in xrange(self.table.rowCount()):
-            labels.append(str(vHeader.visualIndex(i)+1))
+            labels.append(unicode(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 
     def addRow(self, text=None):
@@ -706,7 +706,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         if r is None:
             return '{ERROR}'
         else:
-            return '{%s}' % ','.join([str(v) for v in r])
+            return '{%s}' % ','.join([unicode(v) for v in r])
 
     def editFunction(self):
         """ editFunction() -> None
@@ -715,7 +715,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         """
         dialog = QUserFunctionDialog(self.function)        
         if dialog.exec_()==QtGui.QDialog.Accepted:
-            self.function = str(dialog.editor.toPlainText())
+            self.function = unicode(dialog.editor.toPlainText())
             self.listValues.setText(self.getValuesString())
         dialog.deleteLater()
 

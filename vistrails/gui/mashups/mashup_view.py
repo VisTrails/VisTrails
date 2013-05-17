@@ -295,7 +295,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                                                             "Enter a new tag:",
                                                             text="")
                     if ok and text:
-                        tag = str(text)
+                        tag = unicode(text)
                         if self.mshpController.updateCurrentTag(tag):
                             tag_exists = False
         

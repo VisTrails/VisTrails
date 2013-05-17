@@ -200,7 +200,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
         try:
             int(completed)
         except ValueError:
-            completed = completed_dict.get(str(completed).lower(), -1)
+            completed = completed_dict.get(unicode(completed).lower(), -1)
         where_part += " AND w.completed=%s" % completed
     if thumbs:
         select_part += ', t.image_bytes'
@@ -226,7 +226,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
             AND %s.module_name=%s """ % (alias, alias,
               db.escape(module.lower(), get_db_lib().converters.conversions) )
         if mCompleted is not None:
-            mCompleted = completed_dict.get(str(mCompleted).lower(), -1)
+            mCompleted = completed_dict.get(unicode(mCompleted).lower(), -1)
             where_part += """ AND %s.completed=%s""" % (alias, mCompleted)
             
     command = ' '.join([select_part, from_part, where_part, limit_part]) + ';'

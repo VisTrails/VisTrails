@@ -76,9 +76,9 @@ def translateVistrail(_vistrail):
     def update_prune(old_obj, translate_dict):
         if old_obj.db_id in prune_annotations:
             (_, prune_val, _, _) = prune_annotations[old_obj.db_id]
-            if prune_val == str(True):
+            if prune_val == unicode(True):
                 return 1
-            elif prune_val == str(False):
+            elif prune_val == unicode(False):
                 return 0
         return None
 

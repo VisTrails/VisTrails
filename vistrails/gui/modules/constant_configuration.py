@@ -163,7 +163,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetBase):
         except Exception, e:
             # Color background yellow and add tooltip
             self.setStyleSheet("border:2px dashed #efef00;")
-            self.setToolTip("Invalid value: %s" % str(e))
+            self.setToolTip("Invalid value: %s" % unicode(e))
         else:
             self.setStyleSheet("")
             self.setToolTip("")

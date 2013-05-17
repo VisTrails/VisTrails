@@ -192,18 +192,18 @@ class QObjectInspector(QtGui.QTreeWidget):
         dict_item.setText(1, "")
         for k in m.__dict__.keys():
             d_val = QDebugModuleItem(dict_item)
-            d_val.setText(0, str(k))
-            d_val.setText(1, str(m.__dict__[k]))
+            d_val.setText(0, unicode(k))
+            d_val.setText(1, unicode(m.__dict__[k]))
 
 
     def create_port_item(self, port_name, port_value, display_vals=False,
                          parent=None):
         p_item = QDebugModuleItem(parent)
-        p_item.setText(0, str(port_name))
+        p_item.setText(0, unicode(port_name))
         if display_vals:
-            p_item.setText(1, str(port_value))
+            p_item.setText(1, unicode(port_value))
         else:
-            typestr = str(port_val.__class__)
+            typestr = unicode(port_val.__class__)
             typestr = typestr.split('.')
             typestr = typestr[len(typestr)-1]
             typestr = typestr[0:len(typestr)-2]

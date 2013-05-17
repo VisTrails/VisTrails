@@ -101,17 +101,17 @@ class VtlFileCreator(NotCacheable, Module):
         node = ElementTree.Element('vtlink')
         
         if isinstance(locator, DBLocator):
-            node.set('host', str(locator.host))
-            node.set('port', str(locator.port))
-            node.set('database', str(locator.db))
-            node.set('vtid', str(locator.obj_id))
+            node.set('host', unicode(locator.host))
+            node.set('port', unicode(locator.port))
+            node.set('database', unicode(locator.db))
+            node.set('vtid', unicode(locator.obj_id))
         elif locator is not None:
-            node.set('filename', str(locator.name))
+            node.set('filename', unicode(locator.name))
             
-        node.set('version', str(version))    
-        node.set('execute', str(execute))
-        node.set('forceDB', str(forceDB))
-        node.set('showSpreadsheetOnly', str(showSpreadsheetOnly))
+        node.set('version', unicode(version))
+        node.set('execute', unicode(execute))
+        node.set('forceDB', unicode(forceDB))
+        node.set('showSpreadsheetOnly', unicode(showSpreadsheetOnly))
             
         if embedWorkflow == True:
             vistrail = Vistrail()
@@ -124,7 +124,7 @@ class VtlFileCreator(NotCacheable, Module):
             vistrail.add_action(action, 0L)
             vistrail.addTag("Imported workflow", action.id)
             if not forceDB:
-                node.set('version', str(action.id))
+                node.set('version', unicode(action.id))
             if not vistrail.db_version:
                 vistrail.db_version = currentVersion
             pipxmlstr = io.serialize(vistrail)

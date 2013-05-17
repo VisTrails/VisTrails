@@ -249,7 +249,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
                                                   out_type,
                                                   graph_str)
         
-        source_dir = os.path.dirname(str(self.source_edit.text()))
+        source_dir = os.path.dirname(unicode(self.source_edit.text()))
         path_to_figure = os.path.join(source_dir, 'vistrails_images',
                                       figure_name)
 
@@ -319,11 +319,11 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             self.figure_type.setCurrentIndex(0)
             
         if 'version' in opt_dict:
-            self.figure_version.setText(str(opt_dict['version']))
+            self.figure_version.setText(unicode(opt_dict['version']))
         else:
             self.figure_version.setText("")
         if 'tag' in opt_dict:
-            self.figure_tag.setEditText(str(opt_dict['tag'])[1:-1])
+            self.figure_tag.setEditText(unicode(opt_dict['tag'])[1:-1])
         else:
             self.figure_tag.setEditText("")
         
@@ -335,8 +335,8 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             # set using basedir of tex file
             fname = opt_dict['filename']
             if not os.path.isabs(fname):
-                source_dir = os.path.dirname(str(self.source_edit.text()))
-                #print 'source_dir:', str(self.source_edit.text()), source_dir
+                source_dir = os.path.dirname(unicode(self.source_edit.text()))
+                #print 'source_dir:', unicode(self.source_edit.text()), source_dir
                 fname = os.path.join(source_dir, fname)
             
             locator = FileLocator(fname)
@@ -365,14 +365,14 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         elif self.figure_type.currentIndex() == 2:
             opt_dict['showtree'] = None
 
-        version_text = str(self.figure_version.text())
+        version_text = unicode(self.figure_version.text())
         if version_text:
             opt_dict['version'] = version_text
-        tag_text = str(self.figure_tag.currentText())
+        tag_text = unicode(self.figure_tag.currentText())
         if self.figure_smart.isChecked() and tag_text:
             opt_dict['tag'] = '{%s}' % tag_text
 
-        graphicx_text = str(self.graphicx_edit.text())
+        graphicx_text = unicode(self.graphicx_edit.text())
         if graphicx_text:
             opt_dict['_args'] = graphicx_text
 
@@ -383,7 +383,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             opt_dict['db'] = locator.db
             opt_dict['vtid'] = locator.obj_id
         else:
-            fname = str(self.source_edit.text())
+            fname = unicode(self.source_edit.text())
             if os.path.dirname(fname) == os.path.dirname(locator.name):
                 # do relative
                 # FIXME do relative via a checkbox!
@@ -646,7 +646,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     def setEmbedText(self):
         #check options
         options = {}
-        options['content'] = str(self.cbcontent.currentText())
+        options['content'] = unicode(self.cbcontent.currentText())
         options['pdf'] = self.chbPdf.isChecked()
         options['smartTag'] = self.chbSmartTag.isChecked()
         options['buildalways'] = not self.chbCache.isChecked()
@@ -655,12 +655,12 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         options['execute'] = self.chbExecute.isChecked()
         options['showspreadsheetonly'] = self.chbSpreadsheet.isChecked()
         
-        if str(self.cbtype.currentText()) == "Wiki":
+        if unicode(self.cbtype.currentText()) == "Wiki":
             text = self.buildWikiTag(options)
-        elif str(self.cbtype.currentText()) == "Latex":
+        elif unicode(self.cbtype.currentText()) == "Latex":
             options['getvtl'] = self.chbLatexVTL.isChecked()
             text = self.buildLatexCommand(options)
-        elif str(self.cbtype.currentText()) == "Shared Memory":
+        elif unicode(self.cbtype.currentText()) == "Shared Memory":
             text = self.pptag
         self.embededt.setPlainText(text)
             
@@ -763,7 +763,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
             index = -1
         if index > 0:
             self.cbtype.setCurrentIndex(index)
-        text = str(self.cbtype.currentText())
+        text = unicode(self.cbtype.currentText())
         self.chbLatexVTL.setVisible(text == 'Latex')
         self.chbPdf.setEnabled(text == 'Latex')
             

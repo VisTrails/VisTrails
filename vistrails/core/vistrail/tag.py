@@ -75,7 +75,7 @@ class Tag(DBTag):
 
         """
         rep = "<tag name=%s time=%s />"
-        return  rep % (str(self.name), str(self.time))
+        return  rep % (unicode(self.name), unicode(self.time))
 
     def __eq__(self, other):
         """ __eq__(other: Annotation) -> boolean

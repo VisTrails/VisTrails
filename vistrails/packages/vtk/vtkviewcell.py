@@ -264,9 +264,9 @@ class QVTKViewWidget(QCellWidget):
                     system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),
                                           self.mRenWin.GetGenericWindowId())
                     self.mRenWin.Finalize()
-                self.mRenWin.SetWindowInfo(str(int(self.winId())))
+                self.mRenWin.SetWindowInfo(unicode(int(self.winId())))
             else:
-                self.mRenWin.SetWindowInfo(str(int(self.winId())))                
+                self.mRenWin.SetWindowInfo(unicode(int(self.winId())))
             if self.isVisible():
                 self.mRenWin.Start()
 
@@ -288,7 +288,7 @@ class QVTKViewWidget(QCellWidget):
         else:
             if e.type()==QtCore.QEvent.ParentChange:
                 if self.mRenWin:
-                    self.mRenWin.SetWindowInfo(str(int(self.winId())))
+                    self.mRenWin.SetWindowInfo(unicode(int(self.winId())))
                     if self.isVisible():
                         self.mRenWin.Start()
         
@@ -948,7 +948,7 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
             def convert_to_str(arglist):
                 new_arglist = []
                 for arg in arglist:
-                    new_arglist.append(str(arg))
+                    new_arglist.append(unicode(arg))
                 return new_arglist
             functions = [('SetPosition', convert_to_str(cpos)),
                          ('SetFocalPoint', convert_to_str(cfol)),

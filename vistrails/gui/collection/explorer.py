@@ -141,12 +141,12 @@ def showConnConfig(connectionList, *args, **keywords):
     dialog = QConnectionDBSetupWindow(**keywords)
     if dialog.exec_() == QtGui.QDialog.Accepted:
         config = {'id': int(dialog.id),
-                  'name': str(dialog.nameEdt.text()),
-                  'host': str(dialog.hostEdt.text()),
+                  'name': unicode(dialog.nameEdt.text()),
+                  'host': unicode(dialog.hostEdt.text()),
                   'port': int(dialog.portEdt.value()),
-                  'user': str(dialog.userEdt.text()),
-                  'passwd': str(dialog.passwdEdt.text()),
-                  'db': str(dialog.databaseEdt.text())}
+                  'user': unicode(dialog.userEdt.text()),
+                  'passwd': unicode(dialog.passwdEdt.text()),
+                  'db': unicode(dialog.databaseEdt.text())}
         id = connectionList.setConnectionInfo(**config)
         connectionList.setCurrentId(id)
         return True
@@ -157,7 +157,7 @@ def getConnectionInfo(connectionList, id):
     """getConnectionInfo(connectionList: QDBConnectionList, id: int) -> dict
     Returns info of ExtConnection """
     conn = connectionList.get_connection(id)
-    key = str(conn.id) + "." + conn.name + "." + conn.host
+    key = unicode(conn.id) + "." + conn.name + "." + conn.host
     passwd = DBLocator.keyChain.get_key(key)
     if conn != None:
         config = {'id': conn.id,
@@ -326,28 +326,28 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         self.offset = 0
         self.vistrail = None
         if self.vistrailEditCheckBox.isChecked():
-            self.vistrail = str(self.vistrailEdit.text()).strip()
+            self.vistrail = unicode(self.vistrailEdit.text()).strip()
         self.version = None
         if self.versionEditCheckBox.isChecked():
-            self.version = str(self.versionEdit.text()).strip()
+            self.version = unicode(self.versionEdit.text()).strip()
         self.fromTime = None
         if self.fromTimeEditCheckBox.isChecked():
-            self.fromTime = str(
+            self.fromTime = unicode(
                 self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
         self.toTime = None
         if self.toTimeEditCheckBox.isChecked():
-            self.toTime = str(
+            self.toTime = unicode(
                 self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
         self.user = None
         if self.userEditCheckBox.isChecked():
-            self.user = str(self.userEdit.text()).strip()
+            self.user = unicode(self.userEdit.text()).strip()
         self.completed = None
         if self.completedEditCheckBox.isChecked():
-            self.completed = str(self.completedEdit.currentText()).strip()
+            self.completed = unicode(self.completedEdit.currentText()).strip()
         self.modules = []
         if self.moduleEditCheckBox.isChecked():
             # create list of [moduleType, completed] pairs
-            modules = str(self.moduleEdit.text()).strip()
+            modules = unicode(self.moduleEdit.text()).strip()
             for k in [i.strip() for i in modules.split(',')]:
                 v = k.split(':')
                 if len(v)>1:
@@ -465,9 +465,9 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         (v_name, v_id, log_id, v_version, version_name, e_id,
          ts_start, ts_end, user, completed, thumb) = wf_exec
         version = version_name if version_name else v_version
-        completed = {'-1':'Error', '0':'No', '1':'Yes'}.get(str(completed), 'Unknown')
-        labels = (str(v_name), str(version),
-                  str(ts_start), str(ts_end), str(completed))
+        completed = {'-1':'Error', '0':'No', '1':'Yes'}.get(unicode(completed), 'Unknown')
+        labels = (unicode(v_name), unicode(version),
+                  unicode(ts_start), unicode(ts_end), unicode(completed))
         QtGui.QTreeWidgetItem.__init__(self, labels)
         self.wf_exec = wf_exec
         self.setToolTip(0, 'vistrail:%s version:%s log:%s wf_exec:%s user:%s' %
@@ -602,25 +602,25 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         self.offset = 0
         self.vistrail = None
         if self.vistrailEditCheckBox.isChecked():
-            self.vistrail = str(self.vistrailEdit.text()).strip()
+            self.vistrail = unicode(self.vistrailEdit.text()).strip()
         self.version = None
         if self.versionEditCheckBox.isChecked():
-            self.version = str(self.versionEdit.text()).strip()
+            self.version = unicode(self.versionEdit.text()).strip()
         self.fromTime = None
         if self.fromTimeEditCheckBox.isChecked():
-            self.fromTime = str(
+            self.fromTime = unicode(
                 self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
         self.toTime = None
         if self.toTimeEditCheckBox.isChecked():
-            self.toTime = str(
+            self.toTime = unicode(
                 self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
         self.user = None
         if self.userEditCheckBox.isChecked():
-            self.user = str(self.userEdit.text()).strip()
+            self.user = unicode(self.userEdit.text()).strip()
         self.modules = []
         if self.moduleEditCheckBox.isChecked():
             # create list of [moduleType, connected to previous] pairs
-            groups = str(self.moduleEdit.text()).strip()
+            groups = unicode(self.moduleEdit.text()).strip()
             groups = [i.strip() for i in groups.split(',')]
             for group in [i.split('->') for i in groups]:
                 if len(group):
@@ -737,7 +737,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
     def __init__(self, workflow, parent=None):
         (v_name, v_id, v_version, version_name, time, user, thumb) = workflow
         version = version_name if version_name else v_version
-        labels = (str(v_name), str(version), str(time), str(user))
+        labels = (unicode(v_name), unicode(version), unicode(time), unicode(user))
         QtGui.QTreeWidgetItem.__init__(self, labels)
         self.workflow = workflow
         self.setToolTip(0, 'vistrail:%s version:%s' % (v_id, v_version))

@@ -156,27 +156,27 @@ def createParameterExploration(action_id, xmlString, vistrail):
                         continue
             if p_pos is None:
                 break
-            p_intType = str(p.attributes['interp'].value)
+            p_intType = unicode(p.attributes['interp'].value)
             if p_intType in ['Linear Interpolation']:
-                p_min = str(p.attributes['min'].value)
-                p_max = str(p.attributes['max'].value)
+                p_min = unicode(p.attributes['min'].value)
+                p_max = unicode(p.attributes['max'].value)
                 value = "[%s, %s]" % (p_min, p_max)
             if p_intType in ['RGB Interpolation', 'HSV Interpolation']:
-                p_min = str(p.attributes['min'].value)
-                p_max = str(p.attributes['max'].value)
+                p_min = unicode(p.attributes['min'].value)
+                p_max = unicode(p.attributes['max'].value)
                 value = '["%s", "%s"]' % (p_min, p_max)
             elif p_intType == 'List':
-                value = str(p.attributes['values'].value)
+                value = unicode(p.attributes['values'].value)
             elif p_intType == 'User-defined Function':
                 # Set function code
-                value = str(p.attributes['code'].value)
+                value = unicode(p.attributes['code'].value)
             param = DBPEParameter(id=vistrail.idScope.getNewId(DBPEParameter.vtType),
                                   pos=p_pos,
                                   interpolator=p_intType,
                                   value=value,
                                   dimension=int(p.attributes['dim'].value))
             parameters.append(param)
-        f_is_alias = (str(f.attributes['alias'].value) == 'True')
+        f_is_alias = (unicode(f.attributes['alias'].value) == 'True')
         function = DBPEFunction(id=vistrail.idScope.getNewId(DBPEFunction.vtType),
                                 module_id=module_id,
                                 port_name=f_name,
@@ -185,9 +185,9 @@ def createParameterExploration(action_id, xmlString, vistrail):
         functions.append(function)
     pe = DBParameterExploration(id=vistrail.idScope.getNewId(DBParameterExploration.vtType),
                                 action_id=action_id,
-                                dims=str(xmlDoc.attributes['dims'].value),
-                                layout=str(xmlDoc.attributes['layout'].value),
-                                date=str(xmlDoc.attributes['date'].value),
+                                dims=unicode(xmlDoc.attributes['dims'].value),
+                                layout=unicode(xmlDoc.attributes['layout'].value),
+                                date=unicode(xmlDoc.attributes['date'].value),
                                 functions = functions)
     return pe
 

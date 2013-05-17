@@ -95,7 +95,7 @@ class QPipelineEditor(QtGui.QWidget):
                                                'Vistrail (*.vt)')
         if not fn.isNull():
             self.filenameLabel.setText('Vistrail: %s' % fn)
-            self.vistrail = vistrails.api.get_vistrail_from_file(str(fn))
+            self.vistrail = vistrails.api.get_vistrail_from_file(unicode(fn))
             for item in self.vistrail.get_tagMap().items():
                 self.versions.append(item)
             self.pipelineList.clear()
@@ -111,7 +111,7 @@ class QPipelineEditor(QtGui.QWidget):
             self.aliasTable.setRowCount(0)
         else:
             versionName = self.pipelineList.currentItem().text()
-            pipeline = self.vistrail.getPipelineVersionName(str(versionName))
+            pipeline = self.vistrail.getPipelineVersionName(unicode(versionName))
             aliases = pipeline.aliases.keys()
             self.aliasTable.setRowCount(len(aliases))
             row = 0
@@ -128,8 +128,8 @@ class QPipelineEditor(QtGui.QWidget):
         """
         aliases = {}
         for r in xrange(self.aliasTable.rowCount()):
-            name = str(self.aliasTable.item(r, 0).text())
-            value = str(self.aliasTable.item(r, 1).text())
+            name = unicode(self.aliasTable.item(r, 0).text())
+            value = unicode(self.aliasTable.item(r, 1).text())
             aliases[name] = value
 
         versionNumber = self.versions[self.pipelineList.currentIndex().row()][0]

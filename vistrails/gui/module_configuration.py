@@ -158,7 +158,7 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.hasChanges = self.confWidget.widget.state_changed
         # self.setWindowModified seems not to work here
         # self.setWindowModified(self.hasChanges)
-        title = str(self.windowTitle())
+        title = unicode(self.windowTitle())
         if self.hasChanges:
             if not title.endswith("*"):
                 self.setWindowTitle(title + "*")

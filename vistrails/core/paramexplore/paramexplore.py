@@ -173,14 +173,14 @@ class ParameterExploration(DBParameterExploration):
                                                      count).get_values()
                 elif param.interpolator == 'RGB Interpolation':
                     i_range = literal_eval(text)
-                    p_min = str(i_range[0])
-                    p_max =str(i_range[1])
+                    p_min = unicode(i_range[0])
+                    p_max =unicode(i_range[1])
                     values = RGBColorInterpolator(p_min, p_max,
                                                      count).get_values()
                 elif param.interpolator == 'HSV Interpolation':
                     i_range = literal_eval(text)
-                    p_min = str(i_range[0])
-                    p_max =str(i_range[1])
+                    p_min = unicode(i_range[0])
+                    p_max =unicode(i_range[1])
                     values = HSVColorInterpolator(p_min, p_max,
                                                      count).get_values()
                 elif param.interpolator == 'List':

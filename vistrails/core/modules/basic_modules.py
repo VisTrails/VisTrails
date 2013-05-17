@@ -133,7 +133,7 @@ class Constant(Module):
 
     @staticmethod
     def translate_to_string(v):
-        return str(v)
+        return unicode(v)
 
     @staticmethod
     def get_widget_class():
@@ -209,7 +209,7 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     return m
 
 def bool_conv(x):
-    s = str(x).upper()
+    s = unicode(x).upper()
     if s == 'TRUE':
         return True
     if s == 'FALSE':
@@ -307,7 +307,7 @@ class Path(Constant):
 
     @staticmethod
     def translate_to_string(x):
-        return str(x.name)
+        return unicode(x.name)
 
     @staticmethod
     def validate(v):
@@ -350,7 +350,7 @@ def path_parameter_hasher(p):
         return h
     hasher = sha_hash()
     hasher.update(h)
-    hasher.update(str(t))
+    hasher.update(unicode(t))
     return hasher.digest()
 
 class File(Path):
@@ -988,7 +988,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     _output_pors = [OPort('self', 'Module')]
 
     def compute(self):
-        s = urllib.unquote(str(self.get_input('source')))
+        s = urllib.unquote(unicode(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################

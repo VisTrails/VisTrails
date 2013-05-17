@@ -353,7 +353,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
                                                   default)
         if not ok:
             return
-        result = str(result)
+        result = unicode(result)
         try:
             self.controller.add_analogy(result, version_a, version_b)
         except VistrailsInternalError:
@@ -930,7 +930,7 @@ class QVisualDiff(QtGui.QMainWindow):
                                                   default)
         if not ok:
             return
-        result = str(result)
+        result = unicode(result)
         try:
             self.controller.add_analogy(result, self.v1, self.v2)
         except VistrailsInternalError:

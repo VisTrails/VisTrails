@@ -177,9 +177,9 @@ class Workflow(object):
         self.vistrail = vistrail
         self.version = version
         self.name = name
-        self.id = id if id else str(uuid1())
+        self.id = id if id else unicode(uuid1())
         self.user = getpass.getuser()
-        self.start = start if start else str(datetime.datetime.now())
+        self.start = start if start else unicode(datetime.datetime.now())
         self.modules = modules if modules else {}
         # parent modules are stored as temporary exceptions
         self.parents = {}
@@ -246,7 +246,7 @@ class Job(object):
         self.id = id
         self.parameters = parameters
         self.name = name
-        self.start = start if start else str(datetime.datetime.now())
+        self.start = start if start else unicode(datetime.datetime.now())
         self.finished = finished
         self.updated = True
 

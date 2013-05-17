@@ -118,10 +118,10 @@ class Mashup(DBMashup):
 #            v.toXml(child_)
 #        
 #        layoutnode = ElementTree.SubElement(node,'layout')
-#        layoutnode.text = str(self.layout)
+#        layoutnode.text = unicode(self.layout)
 #        
 #        geomnode = ElementTree.SubElement(node,'geometry')
-#        geomnode.text = str(self.geometry)
+#        geomnode.text = unicode(self.geometry)
 #        
 #        return node
 #
@@ -151,9 +151,9 @@ class Mashup(DBMashup):
 #                alias = Alias.fromXml(child)
 #                alias_list.append(alias)
 #            if child.tag == "layout":
-#                layout = str(child.text).strip(" \n\t")
+#                layout = unicode(child.text).strip(" \n\t")
 #            if child.tag == "geometry":
-#                geometry = str(child.text).strip(" \n\t")
+#                geometry = unicode(child.text).strip(" \n\t")
 #        return Mashup(id=id, name=name, vtid=vtid, version=version, 
 #                               alias_list=alias_list, t=type, has_seq=seq,
 #                               layout=layout, geometry=geometry)
@@ -320,5 +320,5 @@ class TestMashup(unittest.TestCase):
         
     def test_str(self):
         m1 = self.create_mashup()
-        str(m1)
+        unicode(m1)
     

@@ -239,7 +239,7 @@ class MashupsManager(object):
                 self.setWindowTitle('VisTrails - Mashup')
                 dlgLayout = QtGui.QVBoxLayout()
                 str_label = "VisTrails found mashup(s) already created in parent %s."
-                label = QtGui.QLabel(str_label%str(version_name))
+                label = QtGui.QLabel(str_label%unicode(version_name))
                 label.setWordWrap(True)
                 gb = QtGui.QGroupBox("What would you like to do?")
                 gblayout = QtGui.QVBoxLayout()
@@ -310,7 +310,7 @@ class MashupsManager(object):
                     tags.sort()
                     i = 0
                     for tag in tags:
-                        item = QMashupListPanelItem(str(tag),
+                        item = QMashupListPanelItem(unicode(tag),
                                                     tagMap[tag],
                                                     self.mashupsList)
                         if i == 0 and not item_selected:
@@ -370,19 +370,19 @@ class MashupsManager(object):
             node = ElementTree.Element('vtlink')
         
             if isinstance(locator, DBLocator):
-                node.set('host', str(locator.host))
-                node.set('port', str(locator.port))
-                node.set('database', str(locator.db))
-                node.set('vtid', str(locator.obj_id))
+                node.set('host', unicode(locator.host))
+                node.set('port', unicode(locator.port))
+                node.set('database', unicode(locator.db))
+                node.set('vtid', unicode(locator.obj_id))
             else:
-                node.set('filename', str(locator.name))
+                node.set('filename', unicode(locator.name))
                 
-            node.set('version', str(version))    
+            node.set('version', unicode(version))
             node.set('execute', "True")
             node.set('forceDB', "False")
             node.set('showSpreadsheetOnly', "True")
-            node.set('mashuptrail', str(mashuptrail.id))
-            node.set('mashupVersion', str(mashupversion))
+            node.set('mashuptrail', unicode(mashuptrail.id))
+            node.set('mashupVersion', unicode(mashupversion))
                 
             if etype in [0,1]:
                 if etype == 1: #minimal
@@ -398,7 +398,7 @@ class MashupsManager(object):
                     if tag is None:
                         tag = "Imported workflow"
                     vistrail.addTag(tag, action.id)
-                    node.set('version', str(action.id))
+                    node.set('version', unicode(action.id))
                     id_scope = IdScope(1L)
                     newmashuptrail = Mashuptrail(
                                      MashupsManager.getNewMashuptrailId(), 
@@ -419,8 +419,8 @@ class MashupsManager(object):
                     newvtcontroller = BaseVistrailController(vistrail, None)
                     MashupsManager.addMashuptrailtoVistrailController(newvtcontroller,
                                                                       newmashuptrail)
-                    node.set('mashuptrail', str(newmashuptrail.id))
-                    node.set('mashupVersion', str(newmashuptrail.currentVersion))
+                    node.set('mashuptrail', unicode(newmashuptrail.id))
+                    node.set('mashupVersion', unicode(newmashuptrail.currentVersion))
                 else:
                     vistrail = vtcontroller.vistrail
                     newvtcontroller = MashupsManager.copyBaseVistrailController(vtcontroller)

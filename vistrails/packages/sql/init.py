@@ -155,7 +155,7 @@ class SQLSource(Module):
         connection = self.get_input('connection')
         inputs = dict((k, self.get_input(k)) for k in self.inputPorts.iterkeys()
                   if k not in ('source', 'connection', 'cacheResults'))
-        s = urllib.unquote(str(self.get_input('source')))
+        s = urllib.unquote(unicode(self.get_input('source')))
 
         try:
             transaction = connection.begin()

@@ -243,7 +243,7 @@ class Connection(DBConnection):
 
         """
         rep = "<connection id='%s'>%s%s</connection>"
-        return  rep % (str(self.id), str(self.source), str(self.destination))
+        return  rep % (unicode(self.id), unicode(self.source), unicode(self.destination))
 
     def __ne__(self, other):
         return not self.__eq__(other)

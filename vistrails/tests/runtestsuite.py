@@ -432,7 +432,7 @@ def image_test_generator(vtfile, version):
             if len(errs) > 0:
                 for err in errs:
                     print("   *** Error in %s:%s:%s -- %s" % err)
-                    self.fail(str(err))
+                    self.fail(unicode(err))
         except Exception, e:
             self.fail(debug.format_exception(e))
     return test
@@ -452,7 +452,7 @@ if test_images:
 
 class TestResult(unittest.TextTestResult):
     def addSkip(self, test, reason):
-        self.stream.writeln("skipped '{0}': {1}".format(str(test), reason))
+        self.stream.writeln("skipped '{0}': {1}".format(unicode(test), reason))
         super(TestResult, self).addSkip(test, reason)
 
 runner = unittest.TextTestRunner(

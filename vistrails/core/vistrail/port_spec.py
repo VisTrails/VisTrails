@@ -417,8 +417,8 @@ class PortSpec(DBPortSpec):
 
         """
         rep = "<portSpec id=%s name=%s type=%s signature=%s depth=%s />"
-        return  rep % (str(self.id), str(self.name), 
-                       str(self.type), str(self.sigstring), str(self.depth))
+        return  rep % (unicode(self.id), unicode(self.name),
+                       unicode(self.type), unicode(self.sigstring), unicode(self.depth))
 
     def __eq__(self, other):
         """ __eq__(other: PortSpec) -> boolean

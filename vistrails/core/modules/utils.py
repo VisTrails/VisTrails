@@ -227,7 +227,7 @@ class UnorderedList(object):
         return 'ul(%s)' % ', '.join(repr(e) for e in self._set)
 
     def __repr__(self):
-        return str(self)
+        return unicode(self)
 
 
 class TestModulesDict(unittest.TestCase):

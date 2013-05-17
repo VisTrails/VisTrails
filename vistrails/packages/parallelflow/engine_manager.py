@@ -330,10 +330,10 @@ class EngineManager(object):
                     QtGui.QLabel("running" if st_ctrl else "no"))
             form.addRow(
                     "Engines started from VisTrails:",
-                    QtGui.QLabel(str(st_engines)))
+                    QtGui.QLabel(unicode(st_engines)))
             form.addRow(
                     "Total engines in cluster:",
-                    QtGui.QLabel(str(nb_engines)
+                    QtGui.QLabel(unicode(nb_engines)
                                  if nb_engines is not None
                                  else "(unknown)"))
             layout.addLayout(form)
@@ -351,8 +351,8 @@ class EngineManager(object):
                     tree.setFirstItemColumnSpanned(node, True)
                     for ip_id, pid, system in info:
                         node.addChild(QtGui.QTreeWidgetItem([
-                                str(ip_id),
-                                str(pid),
+                                unicode(ip_id),
+                                unicode(pid),
                                 system]))
                 for i in xrange(tree.columnCount()):
                     tree.resizeColumnToContents(i)

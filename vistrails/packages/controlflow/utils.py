@@ -242,7 +242,7 @@ class TestUtils(unittest.TestCase):
             with intercept_result(Or, 'Result') as or_results:
                 self.assertFalse(execute([
                         ('List', 'org.vistrails.vistrails.basic', [
-                            ('value', [('List', str(l))]),
+                            ('value', [('List', unicode(l))]),
                         ]),
                         ('And', 'org.vistrails.vistrails.control_flow', []),
                         ('Or', 'org.vistrails.vistrails.control_flow', []),

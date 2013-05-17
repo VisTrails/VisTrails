@@ -271,7 +271,7 @@ class ImageViewerZoomLabel(QtGui.QLabel):
         """ updateValue(value: int)
         Updates the label with the new percentage value
         """
-        self.setText(str(value)+"%")
+        self.setText(unicode(value)+"%")
                 
 class ImageViewerRotateAction(QtGui.QAction):
     """

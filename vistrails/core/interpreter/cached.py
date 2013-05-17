@@ -130,8 +130,8 @@ class ViewUpdatingLogController(object):
         i = "%s" % self.remap_id(obj.id)
         iteration = self.log.get_iteration_from_module(obj)
         if iteration is not None:
-            name = name + '/' + str(iteration)
-            i = i + '/' + str(iteration)
+            name = name + '/' + unicode(iteration)
+            i = i + '/' + unicode(iteration)
         # add to parent list for computing the module tree later
         error.name = name
         # if signature is not set we use the module identifier

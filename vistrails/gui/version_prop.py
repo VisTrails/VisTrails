@@ -257,7 +257,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         if self.controller:
             name = self.controller.vistrail.getVersionName(self.versionNumber)
-            currentText = str(self.tagEdit.text())
+            currentText = unicode(self.tagEdit.text())
             if name != currentText:    
                 self.controller.update_current_tag(currentText)
 
@@ -332,7 +332,7 @@ class QVersionNotes(QtGui.QTextEdit):
 
     def commit_changes(self):
         if self.controller and self.document().isModified():
-            self.controller.update_notes(str(self.toHtml()))
+            self.controller.update_notes(unicode(self.toHtml()))
 
     def reset_changes(self):
         """ reset_changes() -> None
@@ -804,13 +804,13 @@ class QVersionMashups(QtGui.QWidget):
         
     def createMashupsMenu(self, tagMap):
         tags = tagMap.keys()
-        self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+        self.mashupsButton.setText("Mashups (%s)"%unicode(len(tags)))
         #latestversion = mtrail.getLatestVersion()
         mashupsMenu = QtGui.QMenu(self)
         if len(tags) > 0:
             tags.sort()
             for tag in tags:
-                action = QtGui.QAction(str(tag), self, 
+                action = QtGui.QAction(unicode(tag), self,
                                        triggered=self.mashupSelected)
                 action.setData(tagMap[tag])
                 mashupsMenu.addAction(action)
@@ -843,12 +843,12 @@ class QVersionMashups(QtGui.QWidget):
                     tagMap = self.mtrail.getTagMap()
                     self.mashupsButton.setMenu(self.createMashupsMenu(tagMap))
 #                    tags = tagMap.keys()
-#                    self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+#                    self.mashupsButton.setText("Mashups (%s)"%unicode(len(tags)))
 #                    #latestversion = mtrail.getLatestVersion()
 #                    if len(tags) > 0:
 #                        tags.sort()
 #                        for tag in tags:
-#                            item = QMashupListPanelItem(str(tag),
+#                            item = QMashupListPanelItem(unicode(tag),
 #                                                        tagMap[tag],
 #                                                        self.mashupsList)
 #                        self.mashupsButton.setEnabled(True)

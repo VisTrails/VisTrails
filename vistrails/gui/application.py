@@ -646,7 +646,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     not (o.windowFlags() & QtCore.Qt.Popup)):
                 o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
-            self.input = [str(event.file())]
+            self.input = [unicode(event.file())]
             self.process_interactive_input()
         return QtGui.QApplication.eventFilter(self,o,event)
     
@@ -672,7 +672,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 # redirect stdout
                 old_stdout = sys.stdout
                 sys.stdout = StringIO.StringIO()
-                result = self.parse_input_args_from_other_instance(str(byte_array))
+                result = self.parse_input_args_from_other_instance(unicode(byte_array))
                 output = sys.stdout.getvalue()
                 sys.stdout.close()
                 sys.stdout = old_stdout
@@ -712,7 +712,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                            local_socket.errorString())
             return False
         byte_array = local_socket.readAll()
-        result = str(byte_array)
+        result = unicode(byte_array)
         print "Other instance processed input (%s)" % result
         if not result.startswith('Command Completed'):
             debug.critical(result)

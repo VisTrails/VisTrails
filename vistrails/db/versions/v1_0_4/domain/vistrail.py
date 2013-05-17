@@ -177,10 +177,10 @@ class DBVistrail(_DBVistrail):
             value = max(v.db_id for v in self.db_actions)
         if self.db_has_annotation_with_key(action_key):
             annotation = self.db_get_annotation_by_key(action_key)
-            annotation.db_value = str(value)
+            annotation.db_value = unicode(value)
         else:
             annotation=DBAnnotation(self.idScope.getNewId(DBAnnotation.vtType), 
-                                    action_key, str(value))
+                                    action_key, unicode(value))
             self.db_add_annotation(annotation)
 
     def hashAnnotations(self):
@@ -194,17 +194,17 @@ class DBVistrail(_DBVistrail):
         keys.sort()
         m = hashlib.md5()
         for k in keys:
-            m.update(str(k))
+            m.update(unicode(k))
             annotations[k].sort()
             for v in annotations[k]:
-                m.update(str(v))
+                m.update(unicode(v))
         return m.hexdigest()
 
     def hashActionAnnotations(self):
         action_annotations = {}
         for action_id, key, value in [[aa.db_action_id, aa.db_key, 
                          aa.db_value] for aa in self.db_actionAnnotations]:
-            index = (str(action_id), key)
+            index = (unicode(action_id), key)
             if index not in action_annotations:
                 action_annotations[index] = []
             if value not in action_annotations[index]:
@@ -216,5 +216,5 @@ class DBVistrail(_DBVistrail):
             m.update(k[0] + k[1])
             action_annotations[k].sort()
             for v in action_annotations[k]:
-                m.update(str(v))
+                m.update(unicode(v))
         return m.hexdigest()

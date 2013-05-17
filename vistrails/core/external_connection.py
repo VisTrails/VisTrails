@@ -72,7 +72,7 @@ class ExtConnection(object):
 
     @staticmethod
     def parse(element):
-        type = str(element.getAttribute('type'))
+        type = unicode(element.getAttribute('type'))
         return ExtConnection.parseDispatch[type](element)
 
 class DBConnection(ExtConnection):
@@ -95,15 +95,15 @@ class DBConnection(ExtConnection):
         Convert this object to an XML representation.
         """
         conn = dom.createElement('connection')
-        conn.setAttribute('id', str(self.id))
-        conn.setAttribute('name', str(self.name))
-        conn.setAttribute('host', str(self.host))
-        conn.setAttribute('port',str(self.port))
-        conn.setAttribute('user', str(self.user))
-        conn.setAttribute('passwd', str(self.passwd))
-        conn.setAttribute('database', str(self.database))
-        conn.setAttribute('type', str(self.type))
-        conn.setAttribute('dbtype', str(self.dbtype))
+        conn.setAttribute('id', unicode(self.id))
+        conn.setAttribute('name', unicode(self.name))
+        conn.setAttribute('host', unicode(self.host))
+        conn.setAttribute('port',unicode(self.port))
+        conn.setAttribute('user', unicode(self.user))
+        conn.setAttribute('passwd', unicode(self.passwd))
+        conn.setAttribute('database', unicode(self.database))
+        conn.setAttribute('type', unicode(self.type))
+        conn.setAttribute('dbtype', unicode(self.dbtype))
         element.appendChild(conn)
 
     def __str__(self):
@@ -128,13 +128,13 @@ class DBConnection(ExtConnection):
         conn = DBConnection()
         conn.type = ConnectionType.DB
         conn.id = int(element.getAttribute('id'))
-        conn.name = str(element.getAttribute('name'))
-        conn.host = str(element.getAttribute('host'))
+        conn.name = unicode(element.getAttribute('name'))
+        conn.host = unicode(element.getAttribute('host'))
         conn.port = int(element.getAttribute('port'))
-        conn.user = str(element.getAttribute('user'))
-        conn.passwd = str(element.getAttribute('passwd'))
-        conn.database = str(element.getAttribute('database'))
-        conn.dbtype = str(element.getAttribute('dbtype'))
+        conn.user = unicode(element.getAttribute('user'))
+        conn.passwd = unicode(element.getAttribute('passwd'))
+        conn.database = unicode(element.getAttribute('database'))
+        conn.dbtype = unicode(element.getAttribute('dbtype'))
         return conn
 
     def __eq__(self, other):
@@ -168,7 +168,7 @@ class DBConnection(ExtConnection):
     def __ne__(self, other):
         return not (self == other)
 
-ExtConnection.parseDispatch[str(ConnectionType.DB)] = DBConnection.parse
+ExtConnection.parseDispatch[unicode(ConnectionType.DB)] = DBConnection.parse
 
 class ExtConnectionList(XMLWrapper):
     """Class to store and manage a list of connections.

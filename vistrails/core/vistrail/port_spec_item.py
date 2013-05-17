@@ -72,7 +72,7 @@ class PortSpecItem(DBPortSpecItem):
         if "values" in kwargs:
             if (kwargs["values"] is not None and
                     not isinstance(kwargs["values"], basestring)):
-                kwargs["values"] = str(kwargs["values"])
+                kwargs["values"] = unicode(kwargs["values"])
         if 'id' not in kwargs:
             kwargs['id'] = -1
 
@@ -190,7 +190,7 @@ class PortSpecItem(DBPortSpecItem):
     def _set_values(self, values):
         if not isinstance(values, basestring):
             self._values = values
-            self.db_values = str(values)
+            self.db_values = unicode(values)
         else:
             self.db_values = values
             self._values = literal_eval(values)

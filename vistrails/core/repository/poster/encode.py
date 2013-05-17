@@ -74,7 +74,7 @@ except ImportError:
     def gen_boundary():
         """Returns a random string to use as the boundary for a message"""
         bits = random.getrandbits(160)
-        return sha.new(str(bits)).hexdigest()
+        return sha.new(unicode(bits)).hexdigest()
 
 import urllib, re, os, mimetypes
 
@@ -90,12 +90,12 @@ def encode_and_quote(data):
 
 def _strify(s):
     """If s is a unicode string, encode it to UTF-8 and return the results,
-    otherwise return str(s), or None if s is None"""
+    otherwise return unicode(s), or None if s is None"""
     if s is None:
         return None
     if isinstance(s, unicode):
         return s.encode("utf-8")
-    return str(s)
+    return unicode(s)
 
 class MultipartParam(object):
     """Represents a single parameter in a multipart/form-data request
@@ -140,7 +140,7 @@ class MultipartParam(object):
                 # Encode with XML entities
                 self.filename = filename.encode("ascii", "xmlcharrefreplace")
             else:
-                self.filename = str(filename)
+                self.filename = unicode(filename)
             self.filename = self.filename.encode("string_escape").\
                     replace('"', '\\"')
         self.filetype = _strify(filetype)
@@ -363,7 +363,7 @@ def get_headers(params, boundary):
     headers = {}
     boundary = urllib.quote_plus(boundary)
     headers['Content-Type'] = "multipart/form-data; boundary=%s" % boundary
-    headers['Content-Length'] = str(get_body_size(params, boundary))
+    headers['Content-Length'] = unicode(get_body_size(params, boundary))
     return headers
 
 class multipart_yielder(object):

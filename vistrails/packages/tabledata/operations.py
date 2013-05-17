@@ -125,9 +125,9 @@ class JoinTables(Table):
                     ('right_column_idx', 'basic:Integer'),
                     ('right_column_name', 'basic:String'),
                     ('case_sensitive', 'basic:Boolean',
-                     {"optional": True, "defaults": str(["False"])}),
+                     {"optional": True, "defaults": unicode(["False"])}),
                     ('always_prefix', 'basic:Boolean',
-                     {"optional": True, "defaults": str(["False"])})]
+                     {"optional": True, "defaults": unicode(["False"])})]
     _output_ports = [('value', Table)]
 
     def compute(self):

@@ -463,7 +463,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         for (pkg_id, d) in _app._package_menu_items.iteritems():
             self._package_menu_items[pkg_id] = {}
             for pkg_name,items in d['items']:
-                pkg_menu = self.qmenus['packages'].addMenu(str(pkg_name))
+                pkg_menu = self.qmenus['packages'].addMenu(unicode(pkg_name))
                 self._package_menu_items[pkg_id]['menu'] = pkg_menu
                 self._package_menu_items[pkg_id]['items'] = (pkg_name, items)
                 for item in items:
@@ -2071,7 +2071,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         # this can be added later
         def update_menu(d, packagesMenu):
             if pkg_id not in d:
-                pkg_menu = packagesMenu.addMenu(str(pkg_name))
+                pkg_menu = packagesMenu.addMenu(unicode(pkg_name))
                 d[pkg_id] = {}
                 d[pkg_id]['menu'] = pkg_menu
                 d[pkg_id]['items'] = []
@@ -2556,7 +2556,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 QtGui.QLineEdit.Normal,
                                                 name)
         if ok and text:
-            return str(text).strip().rstrip()
+            return unicode(text).strip().rstrip()
         if not ok:
             return None
         return ""

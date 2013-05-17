@@ -244,7 +244,7 @@ class SourceViewerWidget(SourceWidget):
             item = QtGui.QTableWidgetItem(short_name)
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
             table.setItem(row, 1, item)
-            item = QtGui.QTableWidgetItem(str(p.depth))
+            item = QtGui.QTableWidgetItem(unicode(p.depth))
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
             table.setItem(row, 2, item)
             table.setRowCount(table.rowCount()+1)
@@ -367,7 +367,7 @@ class SourceConfigurationWidget(SourceWidget):
         
         if (self.codeEditor is not None and modified):
             try:
-                code = str(self.codeEditor.toPlainText())
+                code = unicode(self.codeEditor.toPlainText())
             except UnicodeEncodeError, e:
                 debug.critical('Source Code Editor does not support non-ascii characters', e)
                 return False

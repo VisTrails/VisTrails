@@ -170,7 +170,7 @@ class InterpolateDiscreteParam(object):
             convert = {'int':'Integer', 'str':'String',
                        'float':'Float', 'double':'Float'}
             p.type = convert[type(v).__name__]
-            p.strValue = str(v)
+            p.strValue = unicode(v)
             f.params.append(p)
         m.functions.append(f)
 

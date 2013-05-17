@@ -182,11 +182,11 @@ class Abstraction(DBAbstraction, Module):
 #             '<actions>%s</actions>' + \
 #             '<tags>%s</tags>' + \
 #             '</abstraction>'
-#         return  rep % (str(self.id), str(self.name), 
-#                        [str(a) for a in self.action_list],
-#                        [str(t) for t in self.tag_list])
+#         return  rep % (unicode(self.id), unicode(self.name),
+#                        [unicode(a) for a in self.action_list],
+#                        [unicode(t) for t in self.tag_list])
         rep = '<abstraction id="%s" name="%s"/>'
-        return rep % (str(self.id), str(self.name))
+        return rep % (unicode(self.id), unicode(self.name))
 
     def __eq__(self, other):
         """ __eq__(other: Abstraction) -> boolean

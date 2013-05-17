@@ -120,9 +120,9 @@ class AddOp(DBAdd):
         """
         
         rep = ("<add id=%s what=%s objectId=%s parentObjId=%s" + \
-               " parentObjType=%s>") % (str(self.id), str(self.what), str(self.objectId),
-                                        str(self.parentObjId), str(self.parentObjType))
-        rep += str(self.data) + "</add>"
+               " parentObjType=%s>") % (unicode(self.id), unicode(self.what), unicode(self.objectId),
+                                        unicode(self.parentObjId), unicode(self.parentObjType))
+        rep += unicode(self.data) + "</add>"
         return rep
 
     # FIXME expand this
@@ -229,10 +229,10 @@ class ChangeOp(DBChange):
 
         """
         rep = "<change id=%s what=%s oldId=%s newId=%s parentObjId=%s" + \
-            " parentObjType=%s>" + str(self.data) + "</change>"
-        return rep % (str(self.id), str(self.what), str(self.oldObjId),
-                      str(self.newObjId), str(self.parentObjId), 
-                      str(self.parentObjType))
+            " parentObjType=%s>" + unicode(self.data) + "</change>"
+        return rep % (unicode(self.id), unicode(self.what), unicode(self.oldObjId),
+                      unicode(self.newObjId), unicode(self.parentObjId),
+                      unicode(self.parentObjType))
 
     # FIXME expand this
     def __eq__(self, other):
@@ -321,8 +321,8 @@ class DeleteOp(DBDelete):
         """
         rep = "<delete id=%s what=%s objectId=%s parentObjId=%s" + \
             " parentObjType=%s/>"
-        return rep % (str(self.id), str(self.what), str(self.objectId),
-                      str(self.parentObjId), str(self.parentObjType))
+        return rep % (unicode(self.id), unicode(self.what), unicode(self.objectId),
+                      unicode(self.parentObjId), unicode(self.parentObjType))
 
     # FIXME expand this
     def __eq__(self, other):

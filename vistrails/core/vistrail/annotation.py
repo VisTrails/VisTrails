@@ -76,7 +76,7 @@ class Annotation(DBAnnotation):
 
         """
         rep = "<annotation id=%s key=%s value=%s</annotation>"
-        return  rep % (str(self.id), str(self.key), str(self.value))
+        return  rep % (unicode(self.id), unicode(self.key), unicode(self.value))
 
     def __eq__(self, other):
         """ __eq__(other: Annotation) -> boolean
@@ -133,4 +133,4 @@ class TestAnnotation(unittest.TestCase):
 
     def test_str(self):
         a1 = self.create_annotation()
-        str(a1)
+        unicode(a1)

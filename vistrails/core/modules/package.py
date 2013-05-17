@@ -425,7 +425,7 @@ class Package(DBPackage):
                 # FIXME !!! Want to differentiate between .init not
                 # existing and an error with an import in the .init
                 # file !!!
-                if str(e) != 'No module named init':
+                if unicode(e) != 'No module named init':
                     raise
                 else:
                     self._init_module = self._module

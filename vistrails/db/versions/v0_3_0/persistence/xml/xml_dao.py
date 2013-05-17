@@ -53,7 +53,7 @@ class XMLDAO:
     def convertFromStr(self, value, type):
         if value is not None:
             if type == 'str':
-                return str(value)
+                return unicode(value)
             elif value.strip() != '':
                 if type == 'long':
                     return long(value)
@@ -74,5 +74,5 @@ class XMLDAO:
             elif type == 'datetime':
                 return strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
-                return str(value)
+                return unicode(value)
         return ''

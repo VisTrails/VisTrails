@@ -109,7 +109,7 @@ def initialize(*args, **kwargs):
                 if abstraction is not None:
                     options = {'namespace': abstraction.uuid,
                                'hide_namespace': True,
-                               'version': str(abstraction.internal_version)}
+                               'version': unicode(abstraction.internal_version)}
                     reg.auto_add_module((abstraction, options))
                     reg.auto_add_ports(abstraction)
                     # print "Added subworkflow", abs_name, abstraction.uuid

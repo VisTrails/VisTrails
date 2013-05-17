@@ -84,16 +84,16 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                                           passwd, database, create)
         config = None
         if dialog.exec_() == QtGui.QDialog.Accepted:
-            config = {'host': str(dialog.hostEdt.text()),
+            config = {'host': unicode(dialog.hostEdt.text()),
                       'port': int(dialog.portEdt.value()),
                       'user': unicode(dialog.userEdt.text()),
                       'passwd': unicode(dialog.passwdEdt.text()),
-                      'db': str(dialog.databaseEdt.text())
+                      'db': unicode(dialog.databaseEdt.text())
                       }
             try:
                 vistrails.db.services.io.test_db_connection(config)
                 config['succeeded'] = True
-                config['name'] = str(dialog.nameEdt.text())
+                config['name'] = unicode(dialog.nameEdt.text())
                 config['id'] = dialog.id
             except VistrailsDBException, e:
                 debug.critical('VisTrails DB Exception',  e)
@@ -145,7 +145,7 @@ def get_load_file_locator_from_gui(parent, obj_type):
         "VisTrails files (%s)\nOther files (*)" % suffixes)
     if not fileName:
         return None
-    filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
+    filename = os.path.abspath(unicode(QtCore.QFile.encodeName(fileName)))
     dirName = os.path.dirname(filename)
     setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
     setattr(get_vistrails_configuration(), 'fileDir', dirName)
@@ -165,7 +165,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         options=QtGui.QFileDialog.DontConfirmOverwrite)
     if not fileName:
         return None
-    f = str(QtCore.QFile.encodeName(fileName))
+    f = unicode(QtCore.QFile.encodeName(fileName))
 
     # check for proper suffix
     found_suffix = False

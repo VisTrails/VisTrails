@@ -181,7 +181,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def __debugSignal(self, *args):
         """ Receives debug signal """
-        debug(str(args))
+        debug(unicode(args))
 
     def updateMessageBox(self, item):
         self.currentItem = item

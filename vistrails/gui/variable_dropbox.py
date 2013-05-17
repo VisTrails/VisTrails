@@ -120,7 +120,7 @@ class QVariableDropBox(QtGui.QScrollArea):
                                                                 'Enter the variable name',
                                                                 QtGui.QLineEdit.Normal,
                                                                 '')
-                        var_name = str(text).strip()
+                        var_name = unicode(text).strip()
                         while ok and self.controller.check_vistrail_variable(var_name):
                             msg =" This variable name is already being used.\
  Please enter a different variable name "
@@ -129,9 +129,9 @@ class QVariableDropBox(QtGui.QScrollArea):
                                                                     msg,
                                                                     QtGui.QLineEdit.Normal,
                                                                     text)
-                            var_name = str(text).strip()
+                            var_name = unicode(text).strip()
                         if ok:
-                            self.vWidget.addVariable(str(uuid.uuid1()), var_name, item.descriptor)
+                            self.vWidget.addVariable(unicode(uuid.uuid1()), var_name, item.descriptor)
                             self.scrollContentsBy(0, self.viewport().height())
                         self.unlockUpdate()
                 #self.emit(QtCore.SIGNAL("paramsAreaChanged"))
@@ -371,7 +371,7 @@ class QVariableInputForm(QtGui.QGroupBox):
             descriptor = inputWidget.descriptor
             var = VistrailVariable(inputWidget.var_name, inputWidget.var_uuid,
                                    descriptor.identifier, descriptor.name,
-                                   descriptor.namespace, str(self.widget.contents()))
+                                   descriptor.namespace, unicode(self.widget.contents()))
             variableBox.controller.set_vistrail_variable(inputWidget.var_name, var)
             variableBox.unlockUpdate()
 
@@ -493,7 +493,7 @@ class QHoverVariableLabel(QtGui.QLabel):
                                                     'Enter the new variable name',
                                                     QtGui.QLineEdit.Normal,
                                                     orig_var_name)
-            var_name = str(text).strip()
+            var_name = unicode(text).strip()
             while ok and self.parent().parent().check_variable(var_name):
                 msg =" This variable name is already being used.\
  Please enter a different variable name "
@@ -502,7 +502,7 @@ class QHoverVariableLabel(QtGui.QLabel):
                                                         msg,
                                                         QtGui.QLineEdit.Normal,
                                                         text)
-                var_name = str(text).strip()
+                var_name = unicode(text).strip()
             if ok and var_name != orig_var_name:
                 self.setText(var_name)
                 inputWidget.renameVariable(var_name)

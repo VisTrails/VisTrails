@@ -189,7 +189,7 @@ class BaseLocator(object):
         elif scheme == 'file':
             old_uses_query = urlparse.uses_query
             urlparse.uses_query = urlparse.uses_query + ['file']
-            scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
+            scheme, host, path, query, fragment = urlparse.urlsplit(unicode(url))
             urlparse.uses_query = old_uses_query
             path = url2pathname(path)
             if path.endswith(".vt"):
@@ -337,7 +337,7 @@ class SaveTemporariesMixin(object):
         latest = None
         current = 0
         while True:
-            fname = self.encode_name(self.get_temp_basename()) + str(current)
+            fname = self.encode_name(self.get_temp_basename()) + unicode(current)
             if os.path.isfile(fname):
                 f(fname)
                 current += 1
@@ -370,7 +370,7 @@ class SaveTemporariesMixin(object):
             split = temporary.rfind('_')+1
             base = temporary[:split]
             number = int(temporary[split:])
-            return base + str(number+1)
+            return base + unicode(number+1)
 
 class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
@@ -520,7 +520,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
         return self._find_latest_temporary()
 
     def _get_name(self):
-        return str(self._name)
+        return unicode(self._name)
     name = property(_get_name)
 
     def _get_short_filename(self):
@@ -547,7 +547,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
         scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
         urlparse.uses_query = old_uses_query
         # De-urlencode pathname
-        path = url2pathname(str(path))
+        path = url2pathname(unicode(path))
         kwargs = BaseLocator.parse_args(args_str)
 
         return cls(os.path.abspath(path), **kwargs)
@@ -567,7 +567,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
         locator = dom.createElement('locator')
         locator.setAttribute('type', 'file')
         node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
+        filename = dom.createTextNode(unicode(self._name))
         node.appendChild(filename)
         locator.appendChild(node)
         element.appendChild(locator)
@@ -579,10 +579,10 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
         XMLFileLocator object.
 
         """
-        if str(element.getAttribute('type')) == 'file':
+        if unicode(element.getAttribute('type')) == 'file':
             for n in element.childNodes:
                 if n.localName == "name":
-                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    filename = unicode(n.firstChild.nodeValue).strip(" \n\t")
                     return XMLFileLocator(filename)
             return None
         else:
@@ -611,7 +611,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
 
         #read attributes
         data = node.get('type', '')
-        type = str(data)
+        type = unicode(data)
         if type == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
@@ -692,10 +692,10 @@ class ZIPFileLocator(XMLFileLocator):
         ZIPFileLocator object.
 
         """
-        if str(element.getAttribute('type')) == 'file':
+        if unicode(element.getAttribute('type')) == 'file':
             for n in element.childNodes:
                 if n.localName == "name":
-                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    filename = unicode(n.firstChild.nodeValue).strip(" \n\t")
                     return ZIPFileLocator(filename)
             return None
         else:
@@ -712,7 +712,7 @@ class ZIPFileLocator(XMLFileLocator):
 
         #read attributes
         data = node.get('type', '')
-        type = str(data)
+        type = unicode(data)
         if type == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
@@ -777,12 +777,12 @@ class DBLocator(BaseLocator):
     connection_id = property(_get_connection_id)
     
     def _get_name(self):
-        return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
-            str(self._name)
+        return self._host + ':' + unicode(self._port) + ':' + self._db + ':' + \
+            unicode(self._name)
     name = property(_get_name)
 
     def _get_short_filename(self):
-        return str(self._name)
+        return unicode(self._name)
     short_filename = property(_get_short_filename)
 
     def _get_short_name(self):
@@ -899,7 +899,7 @@ class DBLocator(BaseLocator):
         ts = io.get_db_object_modification_time(self.get_connection(),
                                                 self.obj_id,
                                                 obj_type)
-        ts = datetime(*time_strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
+        ts = datetime(*time_strptime(unicode(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
         return ts
         
     def serialize(self, dom, element):
@@ -909,12 +909,12 @@ class DBLocator(BaseLocator):
         """
         locator = dom.createElement('locator')
         locator.setAttribute('type', 'db')
-        locator.setAttribute('host', str(self._host))
-        locator.setAttribute('port', str(self._port))
-        locator.setAttribute('db', str(self._db))
-        locator.setAttribute('vt_id', str(self._obj_id))
+        locator.setAttribute('host', unicode(self._host))
+        locator.setAttribute('port', unicode(self._port))
+        locator.setAttribute('db', unicode(self._db))
+        locator.setAttribute('vt_id', unicode(self._obj_id))
         node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
+        filename = dom.createTextNode(unicode(self._name))
         node.appendChild(filename)
         locator.appendChild(node)
         element.appendChild(locator)
@@ -926,16 +926,16 @@ class DBLocator(BaseLocator):
         DBFileLocator object.
 
         """
-        if str(element.getAttribute('type')) == 'db':
-            host = str(element.getAttribute('host'))
+        if unicode(element.getAttribute('type')) == 'db':
+            host = unicode(element.getAttribute('host'))
             port = int(element.getAttribute('port'))
-            database = str(element.getAttribute('db'))
-            vt_id = str(element.getAttribute('vt_id'))
+            database = unicode(element.getAttribute('db'))
+            vt_id = unicode(element.getAttribute('vt_id'))
             user = ""
             passwd = ""
             for n in element.childNodes:
                 if n.localName == "name":
-                    name = str(n.firstChild.nodeValue).strip(" \n\t")
+                    name = unicode(n.firstChild.nodeValue).strip(" \n\t")
                     #print host, port, database, name, vt_id
                     return DBLocator(host, port, database,
                                      user, passwd, name, vt_id, None)
@@ -965,7 +965,7 @@ class DBLocator(BaseLocator):
                 host, port = net_loc.rsplit(':', 1)
             else:
                 host, port = net_loc, None
-            db_name = urllib.unquote(str(db_name))
+            db_name = urllib.unquote(unicode(db_name))
             kwargs = BaseLocator.parse_args(args_str)
             return DBLocator(host, port, db_name, user, passwd, **kwargs)
     
@@ -987,14 +987,14 @@ class DBLocator(BaseLocator):
             node = ElementTree.Element('locator')
 
         node.set('type', 'db')
-        node.set('host', str(self._host))
-        node.set('port', str(self._port))
-        node.set('db', str(self._db))
-        node.set('vt_id', str(self._obj_id))
-        node.set('user', str(self._user))
+        node.set('host', unicode(self._host))
+        node.set('port', unicode(self._port))
+        node.set('db', unicode(self._db))
+        node.set('vt_id', unicode(self._obj_id))
+        node.set('user', unicode(self._user))
         if include_name:
             childnode = ElementTree.SubElement(node,'name')
-            childnode.text = str(self._name)
+            childnode.text = unicode(self._name)
         return node
 
     @staticmethod
@@ -1005,7 +1005,7 @@ class DBLocator(BaseLocator):
         
         def convert_from_str(value,type):
             def bool_conv(x):
-                s = str(x).upper()
+                s = unicode(x).upper()
                 if s == 'TRUE':
                     return True
                 if s == 'FALSE':
@@ -1013,7 +1013,7 @@ class DBLocator(BaseLocator):
 
             if value is not None:
                 if type == 'str':
-                    return str(value)
+                    return unicode(value)
                 elif value.strip() != '':
                     if type == 'long':
                         return long(value)
@@ -1052,7 +1052,7 @@ class DBLocator(BaseLocator):
             if include_name:
                 for child in node.getchildren():
                     if child.tag == 'name':
-                        name = str(child.text).strip(" \n\t")
+                        name = unicode(child.text).strip(" \n\t")
             return DBLocator(host, port, database,
                              user, passwd, name, obj_id=vt_id, obj_type='vistrail')
         else:

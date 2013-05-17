@@ -68,7 +68,7 @@ def translateVistrail(_vistrail):
         new_actions = []
         for action in old_obj.db_actions:
             if action.db_prune == 1:
-                prune_annotations.append((action.db_id, str(True), None))
+                prune_annotations.append((action.db_id, unicode(True), None))
             new_actions.append(DBAction.update_version(action, translate_dict))
         return new_actions
 

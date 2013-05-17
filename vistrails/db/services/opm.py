@@ -49,7 +49,7 @@ from vistrails.db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
 from vistrails.db.services.vistrail import materializeWorkflow
 
 def create_process(item_exec, account, id_scope):
-    return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
+    return DBOpmProcess(id='p' + unicode(id_scope.getNewId(DBOpmProcess.vtType)),
                         value=DBOpmProcessValue(item_exec),
                         accounts=[DBOpmAccountId(id=account.db_id)])
 
@@ -59,7 +59,7 @@ def create_process_manual(p_str, account, id_scope):
                              module_id=-1,
                              completed=1,
                              )
-    return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
+    return DBOpmProcess(id='p' + unicode(id_scope.getNewId(DBOpmProcess.vtType)),
                         value=DBOpmProcessValue(item_exec),
                         accounts=[DBOpmAccountId(id=account.db_id)])
 
@@ -72,7 +72,7 @@ def create_artifact_from_filename(filename, account, id_scope):
                           name="file",
                           pos=0,
                           parameters=[parameter])
-    return DBOpmArtifact(id='a' + str(id_scope.getNewId(DBOpmArtifact.vtType)),
+    return DBOpmArtifact(id='a' + unicode(id_scope.getNewId(DBOpmArtifact.vtType)),
                          value=DBOpmArtifactValue(function),
                          accounts=[DBOpmAccountId(id=account.db_id)])
 
@@ -88,17 +88,17 @@ def create_artifact_from_db_tuple(db_tuple, account, id_scope):
                           name="dbEntry",
                           pos=0,
                           parameters=parameters)
-    return DBOpmArtifact(id='a' + str(id_scope.getNewId(DBOpmArtifact.vtType)),
+    return DBOpmArtifact(id='a' + unicode(id_scope.getNewId(DBOpmArtifact.vtType)),
                          value=DBOpmArtifactValue(function),
                          accounts=[DBOpmAccountId(id=account.db_id)])
 
 def create_artifact_from_function(function, account, id_scope):
-    return DBOpmArtifact(id='a' + str(id_scope.getNewId(DBOpmArtifact.vtType)),
+    return DBOpmArtifact(id='a' + unicode(id_scope.getNewId(DBOpmArtifact.vtType)),
                          value=DBOpmArtifactValue(function),
                          accounts=[DBOpmAccountId(id=account.db_id)])
 
 def create_artifact_from_port_spec(port_spec, account, id_scope):
-    return DBOpmArtifact(id='a' + str(id_scope.getNewId(DBOpmArtifact.vtType)),
+    return DBOpmArtifact(id='a' + unicode(id_scope.getNewId(DBOpmArtifact.vtType)),
                          value=DBOpmArtifactValue(port_spec),
                          accounts=[DBOpmAccountId(id=account.db_id)])
 
@@ -122,8 +122,8 @@ def create_was_triggered_by(process1, process2, account, id_scope):
 
 def create_account(depth, id_scope):
     account_id = id_scope.getNewId(DBOpmAccount.vtType)
-    account = DBOpmAccount(id='acct' + str(account_id),
-                           value=str(depth))
+    account = DBOpmAccount(id='acct' + unicode(account_id),
+                           value=unicode(depth))
     return account
 
 def create_opm(workflow, version, log, reg):
@@ -453,7 +453,7 @@ def create_opm(workflow, version, log, reg):
         # process generated_tables annotations:
         for annotation in item_exec.db_annotations:
             def process_db_tuple(db_tuple):
-                db_tuple = (str(db_tuple[0]),) + db_tuple[1:]
+                db_tuple = (unicode(db_tuple[0]),) + db_tuple[1:]
                 if db_tuple not in db_artifacts:
                     artifact = create_artifact_from_db_tuple(db_tuple,
                                                              account,
@@ -656,8 +656,8 @@ def create_opm(workflow, version, log, reg):
                              upstream_artifacts, downstream_artifacts)
                 
     account_id = id_scope.getNewId(DBOpmAccount.vtType)
-    account = DBOpmAccount(id='acct' + str(account_id),
-                           value=str(0))
+    account = DBOpmAccount(id='acct' + unicode(account_id),
+                           value=unicode(0))
     accounts.append(account)
     depth_accounts[0] = account
     process_workflow(workflow, log, account, {}, {}, 0, True) 
@@ -688,7 +688,7 @@ def create_opm(workflow, version, log, reg):
             if can_update:
                 min_depth = int(obj.db_accounts[0].db_id[4:])
                 for i in xrange(min_depth+1, max_depth+1):
-                    obj.db_add_account(DBOpmAccountId(id='acct' + str(i)))
+                    obj.db_add_account(DBOpmAccountId(id='acct' + unicode(i)))
         return new_p_ids
 
     # FIXME: also exclude group dependencies (used, wasGeneratedBy)...
@@ -700,8 +700,8 @@ def create_opm(workflow, version, log, reg):
     overlaps = []
     for i in xrange(max_depth+1):
         for j in xrange(i+1, max_depth+1):
-            ids = [DBOpmAccountId(id='acct' + str(i)),
-                   DBOpmAccountId(id='acct' + str(j))]
+            ids = [DBOpmAccountId(id='acct' + unicode(i)),
+                   DBOpmAccountId(id='acct' + unicode(j))]
             overlaps.append(DBOpmOverlaps(opm_account_ids=ids))
 
     opm_graph = DBOpmGraph(accounts=DBOpmAccounts(accounts=accounts,

@@ -56,7 +56,7 @@ class vtkBaseInspector(Module):
             elif isinstance(t, type):
                 return t
             else:
-                assert False, ("Unknown type " + str(type(t)))
+                assert False, ("Unknown type " + unicode(type(t)))
 
         registry.add_module(cls, **kwargs)
         try:

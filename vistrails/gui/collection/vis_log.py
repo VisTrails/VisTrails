@@ -135,7 +135,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
 
         self.setText(1, execution.ts_start.strftime(
                     '%H:%M %d/%m').replace(' 0', ' ').replace('/0', '/'))
-        self.setData(1, QtCore.Qt.UserRole, str(execution.ts_start))
+        self.setData(1, QtCore.Qt.UserRole, unicode(execution.ts_start))
         #self.setText(2, '%s' % execution.ts_end) end is hidden
         pixmap = QtGui.QPixmap(10,10)
         pixmap.fill(brush.color())
@@ -365,7 +365,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             text += 'Cached: %s\n' % ("Yes" if execution.cached else 'No')
         if hasattr(execution, 'completed'):
             text += 'Completed: %s\n' % {'0':'No', '1':'Yes'}.get(
-                                        str(execution.completed), 'No')
+                                        unicode(execution.completed), 'No')
         if hasattr(execution, 'error') and execution.error:
             text += 'Error: %s\n' % execution.error
         annotations = execution.db_annotations \
@@ -484,7 +484,7 @@ class QLogView(QPipelineView):
             return False
         try:
             workflow_execs = [e for e in self.log 
-                                if e.id == int(str(exec_id))]
+                                if e.id == int(unicode(exec_id))]
         except ValueError:
             return False
         if len(workflow_execs):
@@ -496,7 +496,7 @@ class QLogView(QPipelineView):
         if not self.log:
             return False
         workflow_execs = [e for e in self.log
-                          if str(e.ts_start) == str(exec_date)]
+                          if unicode(e.ts_start) == unicode(exec_date)]
         if len(workflow_execs):
             self.notify_app(workflow_execs[0].item, workflow_execs[0])
             return True

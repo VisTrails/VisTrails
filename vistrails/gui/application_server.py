@@ -104,10 +104,10 @@ class StoppableXMLRPCServer(SimpleXMLRPCServer):
 
     def verify_request(self, request, client_address):
         if client_address[0] in accessList:
-            self.logger.info("Request from %s allowed!"%str(client_address))
+            self.logger.info("Request from %s allowed!"%unicode(client_address))
             return 1
         else:
-            self.logger.info("Request from %s denied!"%str(client_address))
+            self.logger.info("Request from %s denied!"%unicode(client_address))
             return 0
 
 ################################################################################
@@ -144,7 +144,7 @@ class RequestHandler(object):
                     self.server_logger.info("Instantiated client for %s" % uri)
                 except Exception, e:
                     self.server_logger.error("Error when instantiating proxy %s" % uri)
-                    self.server_logger.error(str(e))
+                    self.server_logger.error(unicode(e))
     #utils
     def memory_usage(self):
         """memory_usage() -> dict
@@ -221,7 +221,7 @@ class RequestHandler(object):
                 return (result, 1)
             else:
                 result = "Pipeline was not materialized"
-                self.server_logger.error(str(result))
+                self.server_logger.error(unicode(result))
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
@@ -230,9 +230,9 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            result = str(e)
+            result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
         return (result, 0)
@@ -275,9 +275,9 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            result = str(e)
+            result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
         return (result, 0)
@@ -316,11 +316,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_server_packages(self, codepath=None, status=None):
         """get_server_packages()-> dict
@@ -376,7 +376,7 @@ class RequestHandler(object):
                         message = "Successfully enabled package '%s'" % codepath
                     except Exception, e:
                         message = "Could not enable package '%s': %s %s" % \
-                                         (codepath, str(e), traceback.format_exc())
+                                         (codepath, unicode(e), traceback.format_exc())
                 else:
                     # Try to disable package
                     if codepath in ["basic_modules", 'abstraction']:
@@ -390,7 +390,7 @@ class RequestHandler(object):
                             message = "Successfully disabled package '%s'" % codepath
                         except Exception, e:
                             message = "Could not disable package '%s': %s %s" % \
-                                      (codepath, str(e), traceback.format_exc())
+                                      (codepath, unicode(e), traceback.format_exc())
             packages = []
             enabled_pkgs = sorted(pkg_manager.enabled_package_list())
             enabled_pkg_dict = dict([(pkg.codepath, pkg) for
@@ -417,16 +417,16 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def add_vt_to_db(self, host, port, db_name, user, vt_filepath, filename,
                      repository_vt_id, repository_creator, is_local=True):
         """add_vt_to_db(host:str, port:int, db_name:str, user:str,
-                        vt_filepath:str(or datastream), filename:str,
+                        vt_filepath:unicode(or datastream), filename:str,
                         repository_vt_id:int, repository_creator:str) -> 
                         (return_status, int)
         This will add a vistrail in vt_filepath to the the database. If running
@@ -472,11 +472,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def merge_vt(self, host, port, db_name, user, new_vt_filepath,
                  old_db_vt_id, is_local=True):
@@ -526,11 +526,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def remove_vt_from_db(self, host, port, db_name, user, vt_id):
         """remove_vt_from_db(host:str, port:int, db_name:str, user:str,
@@ -549,10 +549,10 @@ class RequestHandler(object):
             vistrails.db.services.io.close_db_connection(conn)
             return (1, 1)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             if conn:
                 vistrails.db.services.io.close_db_connection(conn)
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_runnable_workflows(self, host, port, db_name, vt_id):
         try:
@@ -621,10 +621,10 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
-            return (str(e), 0)
+            self.server_logger.error(unicode(e))
+            return (unicode(e), 0)
 
     #webgl
     def run_from_db_webgl(self, host, port, db_name, vt_id, path_to_figures,
@@ -669,7 +669,7 @@ class RequestHandler(object):
         if workflow:
             # if doesnt have VTKWebView and vtkRenderer
             if ("vtkRenderer" not in [x.name for x in workflow.module_list]):
-                return (str("Doesn't have vtkRenderer"), 1)
+                return (unicode("Doesn't have vtkRenderer"), 1)
 
             # if already have VTKWebView, execute it
             if ("VTKWebView" not in [x.name for x in workflow.module_list]):
@@ -706,7 +706,7 @@ class RequestHandler(object):
             (results, x) = c.execute_current_workflow()
             if len(results[0].errors.values()) > 0:
                 print "> ERROR: ", results[0].errors
-                return (-1, str(results[0].errors.values()[0]))
+                return (-1, unicode(results[0].errors.values()[0]))
             else: return (1, 1)
 
         return ("Doesnt have working workflow.", 1)
@@ -745,8 +745,8 @@ class RequestHandler(object):
                     self.server_logger.info("returning %s"% result)
                     return result
                 except Exception, e:
-                    self.server_logger.error(str(e))
-                    return (str(e), 0)
+                    self.server_logger.error(unicode(e))
+                    return (unicode(e), 0)
 
             if extra_info is None:
                 extra_info = {}
@@ -784,7 +784,7 @@ class RequestHandler(object):
                             #making sure the filenames are generated in order
                             mask = '%s'
                             if isinstance(maxval, (int, long)):
-                                mask = '%0' + str(len(v._component._maxVal)) + 'd'
+                                mask = '%0' + unicode(len(v._component._maxVal)) + 'd'
 
                             while val <= maxval:
                                 s_alias = "%s=%s$&$" % (k,val)
@@ -805,17 +805,17 @@ class RequestHandler(object):
                                     self.server_logger.info("Memory usage: %s"% self.memory_usage())
                                     interpreter.cached.CachedInterpreter.flush()
                                 except Exception, e:
-                                    self.server_logger.error(str(e))
-                                    return (str(e), 0)
+                                    self.server_logger.error(unicode(e))
+                                    return (unicode(e), 0)
                                 ok = True
                                 for r in results:
                                     (objs, errors, _) = (r.objects, r.errors, r.executed)
                                     for e in errors.itervalues():
-                                        self.server_logger.error("Module failed: %s"% str(e))
+                                        self.server_logger.error("Module failed: %s"% unicode(e))
                                     for i in objs.iterkeys():
                                         if errors.has_key(long(i)):
                                             ok = False
-                                            result += str(errors[i])
+                                            result += unicode(errors[i])
                                 if ok:
                                     self.server_logger.info("renaming files")
                                     for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
@@ -850,17 +850,17 @@ class RequestHandler(object):
                                                     s_alias,
                                                     extra_info=extra_info)
                         except Exception, e:
-                            self.server_logger.error(str(e))
-                            return (str(e), 0)
+                            self.server_logger.error(unicode(e))
+                            return (unicode(e), 0)
                         ok = True
                         for r in results:
                             (objs, errors, _) = (r.objects, r.errors, r.executed)
                             for e in errors.itervalues():
-                                self.server_logger.error(str(e))
+                                self.server_logger.error(unicode(e))
                             for i in objs.iterkeys():
                                 if errors.has_key(long(i)):
                                     ok = False
-                                    result += str(errors[i])
+                                    result += unicode(errors[i])
 
                     self.server_logger.info( "success?  %s"% ok)
 
@@ -908,10 +908,10 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
-            return (str(e), 0)
+            self.server_logger.error(unicode(e))
+            return (unicode(e), 0)
 
     #vistrails
     def run_from_db(self, host, port, db_name, vt_id, path_to_figures,
@@ -924,7 +924,7 @@ class RequestHandler(object):
 
         self.server_logger.info("path_exists_and_not_empty? %s" % self.path_exists_and_not_empty(path_to_figures))
         self.server_logger.info("build_always? %s" % build_always)
-        self.server_logger.info(str(self.proxies_queue))
+        self.server_logger.info(unicode(self.proxies_queue))
 
         if not is_local:
             # use same hashing as on crowdlabs webserver
@@ -953,10 +953,10 @@ class RequestHandler(object):
                                "Error message: %s\n") % (err.url, err.headers,
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
-                    return (str(err), 0)
+                    return (unicode(err), 0)
             except Exception, e:
-                self.server_logger.error(str(e))
-                return (str(e), 0)
+                self.server_logger.error(unicode(e))
+                return (unicode(e), 0)
 
         extra_info = {}
         extra_info['pathDumpCells'] = path_to_figures
@@ -999,9 +999,9 @@ class RequestHandler(object):
                                                           reason="Server Pipeline Execution")
                 except Exception, e:
                     self.server_logger.error("workflow execution failed:")
-                    self.server_logger.error(str(e))
+                    self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
-                    return (str(e), 0)
+                    return (unicode(e), 0)
                 ok = True
 
                 for r in results:
@@ -1010,11 +1010,11 @@ class RequestHandler(object):
                     for i in objs.iterkeys():
                         if errors.has_key(i):
                             ok = False
-                            result += str(errors[i])
+                            result += unicode(errors[i])
             except Exception, e:
-                self.server_logger.error(str(e))
+                self.server_logger.error(unicode(e))
                 self.server_logger.error(traceback.format_exc())
-                return (str(e), 0)
+                return (unicode(e), 0)
 
         if ok:
             if is_local:
@@ -1048,11 +1048,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_wf_datasets(self, host, port, db_name, vt_id, version):
         self.server_logger.info("Request: get_wf_datasets(%s,%s,%s,%s,%s)" % \
@@ -1089,9 +1089,9 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            result = str(e)
+            result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
         return (result, 0)
@@ -1124,11 +1124,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
 
     def get_vt_xml(self, host, port, db_name, vt_id):
@@ -1155,11 +1155,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_wf_xml(self, host, port, db_name, vt_id, version):
         self.server_logger.info("Request: get_wf_xml(%s,%s,%s,%s,%s)" % \
@@ -1191,9 +1191,9 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            result = str(e)
+            result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
         return (result, 0)
@@ -1230,11 +1230,11 @@ class RequestHandler(object):
                                "Error message: %s\n") % (err.url, err.headers,
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
-                    return (str(err), 0)
+                    return (unicode(err), 0)
                 except Exception, e:
-                    self.server_logger.error(str(e))
+                    self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
-                    return (str(e), 0)
+                    return (unicode(e), 0)
 
             if not os.path.exists(filepath):
                 os.mkdir(filepath)
@@ -1276,11 +1276,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error("Error when saving pdf: %s" % str(e))
+            self.server_logger.error("Error when saving pdf: %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_wf_graph_png(self, host, port, db_name, vt_id, version, is_local=True):
         """get_wf_graph_png(host:str, port:int, db_name:str, vt_id:int,
@@ -1315,11 +1315,11 @@ class RequestHandler(object):
                                "Error message: %s\n") % (err.url, err.headers,
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
-                    return (str(err), 0)
+                    return (unicode(err), 0)
                 except Exception, e:
-                    self.server_logger.error(str(e))
+                    self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
-                    return (str(e), 0)
+                    return (unicode(e), 0)
             #if it gets here, this means that we will execute on this instance
             if not os.path.exists(filepath):
                 os.mkdir(filepath)
@@ -1358,11 +1358,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error("Error when saving png %s" % str(e))
+            self.server_logger.error("Error when saving png %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def _is_image_stale(self, filename, host, port, db_name, vt_id):
         statinfo = os.stat(filename)
@@ -1415,11 +1415,11 @@ class RequestHandler(object):
                                "Error message: %s\n") % (err.url, err.headers,
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
-                    return (str(err), 0)
+                    return (unicode(err), 0)
                 except Exception, e:
-                    self.server_logger.error(str(e))
+                    self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
-                    return (str(e), 0)
+                    return (unicode(e), 0)
 
             #if it gets here, this means that we will execute on this instance
             if (not os.path.exists(filepath) or
@@ -1466,11 +1466,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error("Error when saving png: %s" % str(e))
+            self.server_logger.error("Error when saving png: %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_vt_graph_pdf(self, host, port, db_name, vt_id, is_local=True):
         """get_vt_graph_pdf(host:str, port: str, db_name: str, vt_id:str) -> str
@@ -1504,11 +1504,11 @@ class RequestHandler(object):
                                "Error message: %s\n") % (err.url, err.headers,
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
-                    return (str(err), 0)
+                    return (unicode(err), 0)
                 except Exception, e:
-                    self.server_logger.error(str(e))
+                    self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
-                    return (str(e), 0)
+                    return (unicode(e), 0)
 
 
             #if it gets here, this means that we will execute on this instance
@@ -1556,11 +1556,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error("Error when saving pdf: %s" % str(e))
+            self.server_logger.error("Error when saving pdf: %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
         
     def get_vt_zip(self, host, port, db_name, vt_id):
         """get_vt_zip(host:str, port: str, db_name: str, vt_id:str) -> str
@@ -1601,11 +1601,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_wf_vt_zip(self, host, port, db_name, vt_id, version):
         """get_wf_vt_zip(host:str, port:str, db_name:str, vt_id:str,
@@ -1655,11 +1655,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.info(str(e))
+            self.server_logger.info(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_db_vt_list(self, host, port, db_name):
         self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)" % \
@@ -1672,7 +1672,7 @@ class RequestHandler(object):
         config['passwd'] = db_read_pass
         try:
             rows = io.get_db_vistrail_list(config)
-            self.server_logger.info("returning %s" % str(rows))
+            self.server_logger.info("returning %s" % unicode(rows))
             return (rows, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
@@ -1682,10 +1682,10 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
-            return (str(e), 0)
+            self.server_logger.error(unicode(e))
+            return (unicode(e), 0)
 
     def get_db_vt_list_xml(self, host, port, db_name):
         self.server_logger.info("Request: get_db_vistrail_list(%s,%s,%s)" % \
@@ -1711,11 +1711,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
     def get_vt_tagged_versions(self, host, port, db_name, vt_id, is_local=True):
         self.server_logger.info("Request: get_vt_tagged_versions(%s,%s,%s,%s,%s)" % \
@@ -1765,11 +1765,11 @@ class RequestHandler(object):
                        "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
-            return (str(err), 0)
+            return (unicode(err), 0)
         except Exception, e:
-            self.server_logger.error(str(e))
+            self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
-            return (str(e), 0)
+            return (unicode(e), 0)
 
 ################################################################################
 # Some Medley code
@@ -1777,7 +1777,7 @@ class XMLObject(object):
     @staticmethod
     def convert_from_str(value, type):
         def bool_conv(x):
-            s = str(x).upper()
+            s = unicode(x).upper()
             if s == 'TRUE':
                 return True
             if s == 'FALSE':
@@ -1785,7 +1785,7 @@ class XMLObject(object):
 
         if value is not None:
             if type == 'str':
-                return str(value)
+                return unicode(value)
             elif value.strip() != '':
                 if type == 'long':
                     return long(value)
@@ -1809,7 +1809,7 @@ class XMLObject(object):
             elif type == 'datetime':
                 return system.strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
-                return str(value)
+                return unicode(value)
         return ''
 
     @staticmethod
@@ -2278,7 +2278,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             port += 1   # each instance needs one port space for now
                         #later we might need 2 (normal requests and status requests)
             virt_disp += 1
-            args = [script_file,":%s"%virt_disp,host,str(port),'0', '0']
+            args = [script_file,":%s"%virt_disp,host,unicode(port),'0', '0']
             try:
                 p = subprocess.Popen(args)
                 time.sleep(20)
@@ -2286,7 +2286,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             except Exception, e:
                 self.server_logger.error(("Couldn't start the instance on display:"
                                           "%s port: %s") % (virtual_display, port))
-                self.server_logger.error(str(e))
+                self.server_logger.error(unicode(e))
 
     def stop_other_instances(self):
         script = os.path.join(system.vistrails_root_directory(), "stop_vistrails_server.py")
@@ -2297,7 +2297,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                 time.sleep(15)
             except Exception, e:
                 self.server_logger.error("Couldn't stop instance: %s" % o)
-                self.server_logger.error(str(e))
+                self.server_logger.error(unicode(e))
 
     def run_server(self):
         """run_server() -> None

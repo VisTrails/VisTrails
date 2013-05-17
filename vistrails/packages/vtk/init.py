@@ -133,7 +133,7 @@ def resolve_overloaded_name(name, ix, signatures):
     if len(signatures) == 1:
         return name
     else:
-        return name + '_' + str(ix+1)
+        return name + '_' + unicode(ix+1)
 
 def typeMap(name, package=None):
     """ typeMap(name: str) -> Module
@@ -458,7 +458,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 continue
             if len(getter[0]) != 1:
                 debug("Can't handle getter %s (%s) of class %s: More than a "
-                    "single output" % (order+1, name, str(klass)))
+                    "single output" % (order+1, name, unicode(klass)))
                 continue
             class_ = typeMap(getter[0][0])
             if is_class_allowed(class_):
@@ -758,7 +758,7 @@ def addGetPorts(module, get_list):
             class_ = typeMap(getter[0][0])
             if is_class_allowed(class_):
                 if len(signatures) > 1:
-                    n = name + "_" + str(ix+1)
+                    n = name + "_" + unicode(ix+1)
                 else:
                     n = name
                 registry.add_output_port(module, n, class_, True,

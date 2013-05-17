@@ -49,7 +49,7 @@ def eval_xml_value(node):
     
     key_name = node.nodeName
     type_ = getattr(__builtin__, key_name)
-    str_value = str(node.attributes['value'].value)
+    str_value = unicode(node.attributes['value'].value)
 
     # Tricky case bool('False') == True
     if type_ == bool:
@@ -74,7 +74,7 @@ def quote_xml_value(dom, value):
     """
 
     el = dom.createElement(type(value).__name__)
-    el.setAttribute('value', str(value))
+    el.setAttribute('value', unicode(value))
     return el
 
 def named_elements(element, elname):

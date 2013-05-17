@@ -110,7 +110,7 @@ def run_install_command(graphical, cmd, args, as_root=True):
             print line,
             lines.append(line)
     except IOError, e:
-        print "Ignoring IOError:", str(e)
+        print "Ignoring IOError:", unicode(e)
     result = p.wait()
 
     if result != 0:

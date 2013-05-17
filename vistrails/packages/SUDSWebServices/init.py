@@ -273,7 +273,7 @@ class Service(object):
             if e is not None:
                 p = self.makeDictType(e)
                 if p is not None and p != {}:
-                    d[str(o)] = self.makeDictType(e)
+                    d[unicode(o)] = self.makeDictType(e)
         return d
             
     def backUpCache(self):
@@ -313,7 +313,7 @@ class Service(object):
             debug.critical("File not found in SUDS cache: '%s'" % name)
             self.wsdlHash = '0'
             return
-        self.wsdlHash = str(int(hashlib.md5(str(wsdl.root)).hexdigest(), 16))
+        self.wsdlHash = unicode(int(hashlib.md5(unicode(wsdl.root)).hexdigest(), 16))
 
         package_id = reg.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
@@ -330,7 +330,7 @@ class Service(object):
         reg.add_package(package)
         reg.signals.emit_new_package(self.signature)
 
-        self.module = new_module(Module, str(self.signature))
+        self.module = new_module(Module, unicode(self.signature))
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,
                                        'abstract':True})
@@ -362,7 +362,7 @@ class Service(object):
         self.package = package
         reg.add_package(package)
         reg.signals.emit_new_package(self.signature)
-        self.module = new_module(Module, str(self.signature))
+        self.module = new_module(Module, unicode(self.signature))
         reg.add_module(self.module, **{'package':self.signature,
                                        'package_version':self.wsdlHash,
                                        'abstract':True})
@@ -405,7 +405,7 @@ class Service(object):
         """ Return dict with methods in service
         """
         def isKnownType(qtype):
-            return not qtype or str(qtype[1]) in wsdlSchemas or \
+            return not qtype or unicode(qtype[1]) in wsdlSchemas or \
             qtype[0].startswith('Array') or qtype in self.wstypes
 
         def getChildTypes(type):
@@ -417,7 +417,7 @@ class Service(object):
                     return [(c[0].name, c[0].type) for c in schema.elements[type].children()]
             elif type in schema.types:
                 return [(c[0].name, c[0].type) for c in schema.types[type].children()]
-            debug.critical("Could not resolve type in WSDL:" + str(type))
+            debug.critical("Could not resolve type in WSDL:" + unicode(type))
             return []
 
         def setMethod(m):
@@ -428,10 +428,10 @@ class Service(object):
             for param in m[1]:
                 name = param[0]
                 qtype = (param[1].resolve().name, param[1].resolve().namespace()[1])
-                qtype = (str(qtype[0]), str(qtype[1]))
+                qtype = (unicode(qtype[0]), unicode(qtype[1]))
                 if qtype is None:
                     qtype = param[1].element
-                    qtype = (str(qtype[0]), str(qtype[1]))
+                    qtype = (unicode(qtype[0]), unicode(qtype[1]))
                 if qtype is not None:
                     if qtype[0].startswith('Array'):
                         qtype = ('Array', 'http://www.w3.org/2001/XMLSchema')
@@ -487,7 +487,7 @@ class Service(object):
                     if obj not in p.enum:
                         raise ModuleError(self,
                                  "'%s' is not one of the valid enums: %s" %
-                                 (obj, str(p.enum)) )
+                                 (obj, unicode(p.enum)) )
                     self.set_output(self.wstype.qname[0], obj)
                     self.set_output('value', obj)
                     return
@@ -531,7 +531,7 @@ from the WSDL spec at:
    %s
 It is a WSDL type with signature:
    %s(%s)"""%(self.address, t.qname[0], parts)
-            M = new_module(self.module, str(t.qname[0]),{"compute":compute,
+            M = new_module(self.module, unicode(t.qname[0]),{"compute":compute,
                                                          "wstype":t,
                                                          "service":self,
                                                          "__doc__":d})
@@ -549,7 +549,7 @@ It is a WSDL type with signature:
             elif t in self.typeClasses:
                 c = self.typeClasses[t]
             else:
-                debug.critical("Cannot find module for type: " + str(t))
+                debug.critical("Cannot find module for type: " + unicode(t))
                 continue
             # add self ports
             reg.add_input_port(self.typeClasses[t], t[0], c)
@@ -566,7 +566,7 @@ It is a WSDL type with signature:
                 elif ptype in self.typeClasses:
                     c = self.typeClasses[ptype]
                 else:
-                    debug.critical("Cannot find module for type: " + str(ptype))
+                    debug.critical("Cannot find module for type: " + unicode(ptype))
                     continue
                 # add as both input and output port
                 reg.add_input_port(self.typeClasses[t], p, c,
@@ -588,7 +588,7 @@ It is a WSDL type with signature:
                 params = {}
                 mname = self.wsmethod.qname[0]
                 for name in self.wsmethod.inputs:
-                    name = str(name)
+                    name = unicode(name)
                     if self.has_input(name):
                         params[name] = self.get_input(name)
                         if params[name].__class__.__name__ == 'UberClass':
@@ -598,10 +598,10 @@ It is a WSDL type with signature:
                     #import logging
                     #logging.basicConfig(level=logging.INFO)
                     #logging.getLogger('suds.client').setLevel(logging.DEBUG)
-                    #print "params:", str(params)[:400]
+                    #print "params:", unicode(params)[:400]
                     #self.service.service.set_options(retxml = True)
                     #result = getattr(self.service.service.service, mname)(**params)
-                    #print "result:", str(result)[:400]
+                    #print "result:", unicode(result)[:400]
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
@@ -620,7 +620,7 @@ It is a WSDL type with signature:
                             self.set_output(name, result)
                     elif result.__class__.__name__ == 'Text':
                         # only text returned so we assume each output wants all of it
-                        self.set_output(name, str(result.trim()))
+                        self.set_output(name, unicode(result.trim()))
                     elif result.__class__.__name__ == qtype[0]:
                         # the return value is this type
                         self.set_output(name, result)
@@ -645,7 +645,7 @@ Outputs:
    (%s)
 """%(self.address, m.qname[0], inputs, outputs)
 
-            M = new_module(self.module, str(m.qname[0]), {"compute":compute,
+            M = new_module(self.module, unicode(m.qname[0]), {"compute":compute,
                                                           "wsmethod":m,
                                                           "service":self,
                                                            "__doc__":d})
@@ -844,7 +844,7 @@ def callContextMenu(signature):
         from PyQt4 import QtGui 
         wsdl, ret = QtGui.QInputDialog.getText(None, 'Add Web Service',
                                            'Enter the location of the WSDL:')
-        wsdl = str(wsdl)
+        wsdl = unicode(wsdl)
         if not wsdl:
             return
         if not wsdl.startswith('http://'):

@@ -223,18 +223,18 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
         signal to update vistrail
         
         """
-        text = str(editor.text())
+        text = unicode(editor.text())
         row = index.row()
         col = index.column()
         keyItem = self.table.item(row, 0)
         if keyItem:
-            key = str(keyItem.text())
+            key = unicode(keyItem.text())
         else:
             key = ''
             
         valueItem = self.table.item(row, 1)
         if valueItem:
-            value = str(valueItem.text())
+            value = unicode(valueItem.text())
         else:
             value = ''
             

@@ -83,7 +83,7 @@ class ModuleSpec(object):
         if self.output_type is not None:
             elt.set("output_type", self.output_type)
         subelt = ET.Element("docstring")
-        subelt.text = str(self.docstring)
+        subelt.text = unicode(self.docstring)
         elt.append(subelt)
         for port_spec in self.port_specs:
             subelt = port_spec.to_xml()
@@ -213,10 +213,10 @@ class PortSpec(object):
             if default_val != attr_val:
                 if is_subelt:
                     subelt = ET.Element(attr)
-                    subelt.text = str(getattr(self, attr))
+                    subelt.text = unicode(getattr(self, attr))
                     elt.append(subelt)
                 else:
-                    elt.set(attr, str(attr_val))
+                    elt.set(attr, unicode(attr_val))
         return elt
 
     @classmethod
@@ -344,11 +344,11 @@ class InputPortSpec(PortSpec):
     def get_port_attr_dict(self):
         attrs = {}
         if self.values:
-            attrs["values"] = str(self.values)
+            attrs["values"] = unicode(self.values)
         if self.entry_types:
-            attrs["entry_types"] = str(self.entry_types)
+            attrs["entry_types"] = unicode(self.entry_types)
         if self.defaults:
-            attrs["defaults"] = str(self.defaults)
+            attrs["defaults"] = unicode(self.defaults)
         if self.docstring:
             attrs["docstring"] = self.docstring
         if not self.required and not self.show_port:
@@ -356,7 +356,7 @@ class InputPortSpec(PortSpec):
         return attrs
 
     def get_port_attrs(self):
-        return str(self.get_port_attr_dict())
+        return unicode(self.get_port_attr_dict())
 
     def has_alternate_versions(self):
         return len(self.alternate_specs) > 0
@@ -429,7 +429,7 @@ class OutputPortSpec(PortSpec):
         attrs = {}
         if self.docstring:
             attrs["docstring"] = self.docstring
-        return str(attrs)
+        return unicode(attrs)
              
 
 # class OutputPortSpec(object):
@@ -464,12 +464,12 @@ class OutputPortSpec(PortSpec):
 #         if self.property_key is None:
 #             elt.set("property_key", "__none__")
 #         else:
-#             elt.set("property_key", str(self.property_key))
-#         elt.set("plural", str(self.plural))
+#             elt.set("property_key", unicode(self.property_key))
+#         elt.set("plural", unicode(self.plural))
 #         elt.set("compute_parent", self.compute_parent)
                 
 #         subelt = ET.Element("docstring")
-#         subelt.text = str(self.docstring)
+#         subelt.text = unicode(self.docstring)
 #         elt.append(subelt)
 #         return elt
 
@@ -544,24 +544,24 @@ class OutputPortSpec(PortSpec):
 #         if elt is None:
 #             elt = ET.Element("inputPortSpec")
 #         PortSpec.to_xml(self, elt)
-#         elt.set("in_kwargs", str(self.in_kwargs))
-#         elt.set("in_args", str(self.in_args))
-#         elt.set("constructor_arg", str(self.constructor_arg))
+#         elt.set("in_kwargs", unicode(self.in_kwargs))
+#         elt.set("in_args", unicode(self.in_args))
+#         elt.set("constructor_arg", unicode(self.constructor_arg))
 #         if self.entry_types is not None:
 #             subelt = ET.Element("entry_types")
-#             subelt.text = str(self.entry_types)
+#             subelt.text = unicode(self.entry_types)
 #             elt.append(subelt)
 #         if self.values is not None:
 #             subelt = ET.Element("values")
-#             subelt.text = str(self.values)
+#             subelt.text = unicode(self.values)
 #             elt.append(subelt)
 #         if self.translations is not None:
 #             subelt = ET.Element("translations")
-#             subelt.text = str(self.translations)
+#             subelt.text = unicode(self.translations)
 #             elt.append(subelt)
 #         if self.defaults is not None:
 #             subelt = ET.Element("defaults")
-#             subelt.text = str(self.defaults)
+#             subelt.text = unicode(self.defaults)
 #             elt.append(subelt)
 #         for spec in self.alternate_specs:
 #             # print "FOUND ALT:", spec.name, spec.alternate_specs, spec
@@ -574,18 +574,18 @@ class OutputPortSpec(PortSpec):
 #         #             izip(self.entry_types, self.values, self.defaults,
 #         #                  self.translations):
 #         #         subelt = ET.Element("entry")
-#         #         subelt.set("type", str(entry_type))
+#         #         subelt.set("type", unicode(entry_type))
 #         #         valueselt = ET.Element("values")
-#         #         valueselt.text = str(value)
+#         #         valueselt.text = unicode(value)
 #         #         subelt.append(valueselt)
 #         #         transelt = ET.Element("translation")
-#         #         transelt.text = str(translation)
+#         #         transelt.text = unicode(translation)
 #         #         subelt.append(transelt)
 #         #         defaultelt = ET.Element("default")
 #         #         if isinstance(default, basestring):
 #         #             defaultelt.text = "'%s'" % default
 #         #         else:
-#         #             defaultelt.text = str(default)
+#         #             defaultelt.text = unicode(default)
 #         #         subelt.append(defaultelt)
 #         #         elt.append(subelt)
 #         docelt = ET.Element("docstring")

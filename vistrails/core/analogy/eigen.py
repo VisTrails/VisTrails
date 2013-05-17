@@ -265,8 +265,8 @@ class EigenBase(object):
             else:
                 d = 0
             fmt = ("%" +
-                   str(d + digits + 1) + 
-                   "." + str(digits) + "f ")
+                   unicode(d + digits + 1) +
+                   "." + unicode(digits) + "f ")
             print (fmt % v[j]),
         print "]"
 

@@ -47,7 +47,7 @@ import traceback
 def format_exception(e):
     """Formats an exception as a single-line (no traceback).
 
-    Use this instead of str() which might drop the exception type.
+    Use this instead of unicode() which might drop the exception type.
     """
     return traceback._format_final_exc_line(type(e).__name__, e)
 
@@ -300,7 +300,7 @@ class DebugPrint(object):
         source = inspect.getsourcefile(caller)
         line = caller.f_lineno
         if source and line:
-            return source + ", line " + str(line) + "\n" + msg
+            return source + ", line " + unicode(line) + "\n" + msg
         else:
             return "(File info not available)\n" + msg
 

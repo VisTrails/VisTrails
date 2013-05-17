@@ -213,7 +213,7 @@ class DAOList(dict):
             raise VistrailsDBException("Cannot delete entity of type '%s'" \
                                            % type)
 
-        id_str = str(obj_id)
+        id_str = unicode(obj_id)
         for (dao_type, dao) in self['sql'].iteritems():
             if dao_type not in root_set:
                 db_cmd = \

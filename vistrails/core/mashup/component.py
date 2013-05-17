@@ -321,5 +321,5 @@ class TestComponent(unittest.TestCase):
         
     def test_str(self):
         c1 = self.create_component()
-        str(c1)
+        unicode(c1)
         

@@ -115,7 +115,7 @@ class QCellWidget(QtGui.QWidget):
         current = datetime.datetime.now()
         tmpDir = tempfile.gettempdir()
         fn = ( "hist_" + strftime(current, "%Y_%m_%d__%H_%M_%S") +
-               "_" + str(current.microsecond)+".png")
+               "_" + unicode(current.microsecond)+".png")
         fn = os.path.join(tmpDir, fn)
         if self.saveToPNG(fn):
             self._historyImages.append(fn)
@@ -959,10 +959,10 @@ class QPipelineInfo(QtGui.QFrame):
         
         """
         if info!=None and info[0]['locator']!=None:
-            self.edits[0].setText(str(info[0]['locator'].name))
+            self.edits[0].setText(unicode(info[0]['locator'].name))
             self.edits[1].setText('(Pipeline: %d, Module: %d)'
                                   % (info[0]['version'], info[0]['moduleId']))
-            self.edits[2].setText(str(info[0]['reason']))
+            self.edits[2].setText(unicode(info[0]['reason']))
         else:
             for edit in self.edits:
                 edit.setText('N/A')

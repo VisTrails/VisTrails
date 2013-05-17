@@ -78,8 +78,8 @@ class VistrailVariable(DBVistrailVariable):
         """
         rep = "<vistrailvariable name=%s uuid=%s package=%s module=%s \
 namespace=%s value=%s</vistrailvariable>"
-        return  rep % (str(self.name), str(self.uuid), str(self.package),
-                       str(self.module), str(self.namespace), str(self.value))
+        return  rep % (unicode(self.name), unicode(self.uuid), unicode(self.package),
+                       unicode(self.module), unicode(self.namespace), unicode(self.value))
 
     def __eq__(self, other):
         """ __eq__(other: VistrailVariable) -> boolean
@@ -132,4 +132,4 @@ class TestVistrailVariable(unittest.TestCase):
 
     def test_str(self):
         a1 = self.create_vv()
-        str(a1)
+        unicode(a1)

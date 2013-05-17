@@ -232,21 +232,21 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
         actions = []
         actionDict = {}
         for action in vt.db_actions:
-            unique = action._db_user + str(action._db_date)
+            unique = action._db_user + unicode(action._db_date)
             copy_no = 0
-            while (unique + str(copy_no)) in actionDict:
+            while (unique + unicode(copy_no)) in actionDict:
                 copy_no += 1
-            unique = unique + str(copy_no)
+            unique = unique + unicode(copy_no)
             actions.append(unique)
             actionDict[unique] = action
         actionNexts = []
         actionDictNext = {}
         for action in next_vt.db_actions:
-            unique = action._db_user + str(action._db_date)
+            unique = action._db_user + unicode(action._db_date)
             copy_no = 0
-            while (unique + str(copy_no)) in actionDictNext:
+            while (unique + unicode(copy_no)) in actionDictNext:
                 copy_no += 1
-            unique = unique + str(copy_no)
+            unique = unique + unicode(copy_no)
             actionNexts.append(unique)
             actionDictNext[unique] = action
 
@@ -390,7 +390,7 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
             if new_annotation.db_key == '__upgrade__':
                 value = int(new_annotation.db_value)
                 if ('action', value) in id_remap:
-                    new_annotation.db_value = str(id_remap[('action', value)])
+                    new_annotation.db_value = unicode(id_remap[('action', value)])
                 annotation = new_annotation.do_copy(True, vt.idScope, id_remap)
                 vt.db_add_actionAnnotation(annotation)
             elif new_annotation.db_action_id <= checkinId and \
@@ -453,8 +453,8 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
                         value = ("#### conflicting versions! ####<br/>" + 
                                  "## Other version at %s by %s:%s<br/>" +
                                  "## Your version at %s by %s:%s") % \
-                          (str(old_annotation.db_date), old_annotation.db_user,
-                          old_annotation.db_value, str(new_annotation.db_date),
+                          (unicode(old_annotation.db_date), old_annotation.db_user,
+                          old_annotation.db_value, unicode(new_annotation.db_date),
                           new_annotation.db_user, new_annotation.db_value)
                         if interactive:
                             if skip == 1:

@@ -105,9 +105,9 @@ if __name__ == '__main__':
     all_files, tags = find_files(fname, version)
     for version, filenames in all_files.iteritems():
         if version in tags:
-            print str(version) + ' (' + tags[version] + '):'
+            print unicode(version) + ' (' + tags[version] + '):'
         else:
-            print str(version) + ':'
+            print unicode(version) + ':'
         for fname in filenames:
             print ' ', fname
                     

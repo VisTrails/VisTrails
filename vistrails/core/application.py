@@ -211,8 +211,8 @@ class VistrailsApplicationInterface(object):
             data = info.split(":")
             if len(data) >= 2:
                 if use_filename:
-                    if os.path.isfile(str(data[0])):
-                        name = str(data[0])
+                    if os.path.isfile(unicode(data[0])):
+                        name = unicode(data[0])
                     else:
                         # maybe we are running on Windows and a full path
                         # was passed as the filename so it has a : separating
@@ -223,7 +223,7 @@ class VistrailsApplicationInterface(object):
                                 data.pop(0)
                                 data[0] = name
                 elif not use_filename:
-                    name = str(data[0])
+                    name = unicode(data[0])
                 # will try to convert version to int
                 # if it fails, it's a tag name
                 try:
@@ -232,12 +232,12 @@ class VistrailsApplicationInterface(object):
                     rest = ":".join(data[1:])
                     version = int(rest)
                 except ValueError:
-                    version = str(rest)
+                    version = unicode(rest)
             elif len(data) == 1:
-                if use_filename and os.path.isfile(str(data[0])):
-                    name = str(data[0])
+                if use_filename and os.path.isfile(unicode(data[0])):
+                    name = unicode(data[0])
                 elif not use_filename:
-                    name = str(data[0])
+                    name = unicode(data[0])
         return (name, version)
     
     def process_interactive_input(self):

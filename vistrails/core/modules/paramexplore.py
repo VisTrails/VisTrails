@@ -242,8 +242,8 @@ class TestColorInterpolation(unittest.TestCase):
         for b, e, expected in tests:
             b = hsv2rgb(b)
             e = hsv2rgb(e)
-            interp = HSVColorInterpolator(','.join(str(c) for c in b),
-                                          ','.join(str(c) for c in e),
+            interp = HSVColorInterpolator(','.join(unicode(c) for c in b),
+                                          ','.join(unicode(c) for c in e),
                                           6)
             for i, color in enumerate(interp.get_values()):
                 color = [float(e) for e in color.split(',')]

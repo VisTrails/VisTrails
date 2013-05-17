@@ -67,20 +67,20 @@ def trace_method_options(method,
             _output_file.write(method.__name__ +  ".enter")
             if with_args:
                 _output_file.write(" (args: ")
-                _output_file.write(str([str(arg) for arg in args]))
+                _output_file.write(unicode([unicode(arg) for arg in args]))
                 _output_file.write(")")
             if with_kwargs:
                 _output_file.write(" (kwargs: ")
-                kwarglist = [(k, str(v)) for (k,v) in kwargs.iteritems()]
+                kwarglist = [(k, unicode(v)) for (k,v) in kwargs.iteritems()]
                 kwarglist.sort()
-                _output_file.write(str(kwarglist))
+                _output_file.write(unicode(kwarglist))
                 _output_file.write(")")
             _output_file.write('\n')
             result = method(self, *args, **kwargs)
             _indent()
             _output_file.write(method.__name__ + ".exit")
             if with_return:
-                _output_file.write(" (return: %s)" % str(result))
+                _output_file.write(" (return: %s)" % unicode(result))
             _output_file.write('\n')
         finally:
             __current_method_name.pop()

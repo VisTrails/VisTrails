@@ -249,7 +249,7 @@ class QParamExpProperties(QtGui.QWidget):
         
         """
         if self.pe:
-            currentText = str(self.tagEdit.text())
+            currentText = unicode(self.tagEdit.text())
             if self.pe.name != currentText and \
                not self.controller.vistrail.has_named_paramexp(currentText):
                 #print "will update current tag", currentText

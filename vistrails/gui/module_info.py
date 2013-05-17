@@ -202,7 +202,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             old_text = ''
             if self.module.has_annotation_with_key('__desc__'):
                 old_text = self.module.get_annotation_by_key('__desc__').value
-            new_text = str(self.name_edit.text()).strip()
+            new_text = unicode(self.name_edit.text()).strip()
             if not new_text:
                 if old_text:
                     self.controller.delete_annotation('__desc__', 

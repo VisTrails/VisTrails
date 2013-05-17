@@ -152,7 +152,7 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
         if not fileName:
             return
 
-        self.shell.saveSession(str(fileName))
+        self.shell.saveSession(unicode(fileName))
 
     def visibility_changed(self, visible):
         QVistrailsPaletteInterface.visibility_changed(self, visible)
@@ -317,7 +317,7 @@ class vistrails_module(object):
         else:
             vistrails.api.change_parameter(self._module.id,
                                  port_spec.name,
-                                 [str(x) for x in args])
+                                 [unicode(x) for x in args])
 
 class QShell(QtGui.QTextEdit):
     """This class embeds a python interperter in a QTextEdit Widget
@@ -648,10 +648,10 @@ class QShell(QtGui.QTextEdit):
         text  = e.text()
         key   = e.key()
 
-        # NB: Sometimes len(str(text)) > 1!
+        # NB: Sometimes len(unicode(text)) > 1!
         if len(text) and all(ord(x) >= 32 and
                              ord(x) < 127
-                             for x in str(text)):
+                             for x in unicode(text)):
         # exit select mode and jump to end of text
             cursor = self.textCursor()
             if self.selectMode or cursor.hasSelection():
@@ -811,7 +811,7 @@ class QShell(QtGui.QTextEdit):
     def saveSession(self, fileName):
         """saveSession(fileName: str) -> None 
         Write its contents to a file """
-        output = open(str(fileName), 'w')
+        output = open(unicode(fileName), 'w')
         output.write(self.toPlainText())
         output.close()
 

@@ -138,7 +138,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         palette = self.get_palette()
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
-        xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.table.label.getCounts()), str(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
+        xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (unicode(self.table.label.getCounts()), unicode(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
         for i in xrange(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
@@ -157,7 +157,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                    'HSV Interpolation']:
                         xml += ' min="%s" max="%s"' % (interpolator.fromEdit.get_value(), interpolator.toEdit.get_value())
                     elif intType == 'List':
-                        xml += ' values="%s"' % escape(str(interpolator._str_values), escape_dict)
+                        xml += ' values="%s"' % escape(unicode(interpolator._str_values), escape_dict)
                     elif intType == 'User-defined Function':
                         xml += ' code="%s"' % escape(interpolator.function, escape_dict)
                     xml += '/>'
@@ -199,7 +199,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                         value = '["%s", "%s"]' % (interpolator.fromEdit.get_value(),
                                                   interpolator.toEdit.get_value())
                     elif intType == 'List':
-                        value = '%s' % escape(str(interpolator._str_values), escape_dict)
+                        value = '%s' % escape(unicode(interpolator._str_values), escape_dict)
                     elif intType == 'User-defined Function':
                         value ='%s' % escape(interpolator.function, escape_dict)
                     # Write parameter tag
@@ -210,7 +210,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     dimension=paramWidget.getDimension())
                     function.addParameter(param)
                 functions.append(function)
-        pe = ParameterExploration(dims=str(self.table.label.getCounts()),
+        pe = ParameterExploration(dims=unicode(self.table.label.getCounts()),
                       layout=repr(palette.virtual_cell.getConfiguration()[2]),
                       date=current_time(),
                       user=getuser(),
@@ -268,8 +268,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     i_range = literal_eval('%s' % unescape(
                                                            p.value,
                                                            unescape_dict))
-                                    p_min = str(i_range[0])
-                                    p_max =str(i_range[1])
+                                    p_min = unicode(i_range[0])
+                                    p_max =unicode(i_range[1])
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
                                 except Exception:
@@ -289,7 +289,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                             elif p.interpolator == 'User-defined Function':
                                 # Set function code
                                 interpolator.function = '%s' % unescape(
-                                                  str(p.value), unescape_dict)
+                                                  unicode(p.value), unescape_dict)
 
     def setParameterExplorationOld(self, xmlString):
         """ setParameterExploration(xmlString: string) -> None
@@ -319,8 +319,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
             f_id = long(f.attributes['id'].value)
-            f_name = str(f.attributes['name'].value)
-            f_is_alias = (str(f.attributes['alias'].value) == 'True')
+            f_name = unicode(f.attributes['name'].value)
+            f_is_alias = (unicode(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
             for tidx in xrange(paramView.treeWidget.topLevelItemCount()):
@@ -341,7 +341,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                             p_dim = int(p.attributes['dim'].value)
                             paramWidget.setDimension(p_dim)
                             # Set Interpolator Type (dropdown list)
-                            p_intType = str(p.attributes['interp'].value)
+                            p_intType = unicode(p.attributes['interp'].value)
                             paramWidget.editor.selectInterpolator(p_intType)
                             # Set Interpolator Value(s)
                             interpolator = paramWidget.editor.stackedEditors.currentWidget()
@@ -349,14 +349,14 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                              'HSV Interpolation']:
                                 try:
                                     # Set min/max
-                                    p_min = str(p.attributes['min'].value)
-                                    p_max = str(p.attributes['max'].value)
+                                    p_min = unicode(p.attributes['min'].value)
+                                    p_max = unicode(p.attributes['max'].value)
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
                                 except Exception:
                                     pass
                             elif p_intType == 'List':
-                                p_values = str(p.attributes['values'].value)
+                                p_values = unicode(p.attributes['values'].value)
                                 # Set internal list structure
                                 interpolator._str_values = literal_eval(p_values)
                                 # Update UI list
@@ -366,7 +366,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     interpolator.listValues.setText(p_values.replace("'", "").replace('"', ''))
                             elif p_intType == 'User-defined Function':
                                 # Set function code
-                                p_code = str(p.attributes['code'].value)
+                                p_code = unicode(p.attributes['code'].value)
                                 interpolator.function = p_code
 
     def get_palette(self):

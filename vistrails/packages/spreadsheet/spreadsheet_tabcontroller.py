@@ -661,11 +661,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             fileName = self.spreadsheetFileName
         if fileName:
             indexFile = open(fileName, 'w')
-            indexFile.write(str(len(self.tabWidgets))+'\n')
+            indexFile.write(unicode(len(self.tabWidgets))+'\n')
             for t in self.tabWidgets:
                 dim = t.getDimension()
                 sheet = spreadsheetRegistry.getSheetByType(type(t))
-                indexFile.write('%s\n'%str((str(t.windowTitle()),
+                indexFile.write('%s\n'%unicode((unicode(t.windowTitle()),
                                             sheet,
                                             dim[0], dim[1])))
                 for r in xrange(dim[0]):
@@ -679,13 +679,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                           serialize_locator(newinfo0['controller'].locator)
                             newinfo0['controller'] = None
                             indexFile.write('%s\n'
-                                            %str((r, c,
+                                            %unicode((r, c,
                                                   newinfo0,
                                                   info[1], info[2])))
                 indexFile.write('---\n')
-            indexFile.write(str(len(self.executedPipelines[0]))+'\n')
+            indexFile.write(unicode(len(self.executedPipelines[0]))+'\n')
             for vistrail in self.executedPipelines[0]:
-                indexFile.write('%s\n'%str((serialize_locator(vistrail[0].locator),
+                indexFile.write('%s\n'%unicode((serialize_locator(vistrail[0].locator),
                                             vistrail[1])))
             self.changeSpreadsheetFileName(fileName)
             indexFile.close()
@@ -724,9 +724,9 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             version = root.getAttribute('version')
             if version == '1.0':
                 for element in named_elements(root, 'locator'):
-                    if str(element.getAttribute('type')) == 'file':
+                    if unicode(element.getAttribute('type')) == 'file':
                         locator = FileLocator.parse(element)
-                    elif str(element.getAttribute('type')) == 'db':
+                    elif unicode(element.getAttribute('type')) == 'db':
                         locator = DBLocator.parse(element)
             return locator
         locators = {}

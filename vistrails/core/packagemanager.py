@@ -659,7 +659,7 @@ class PackageManager(object):
                     if report_missing_dependencies:
                         debug.critical("Package <codepath %s> is missing a "
                                        "requirement and will be disabled" %
-                                       pkg.codepath, str(e))
+                                       pkg.codepath, unicode(e))
                     self.late_disable_package(pkg.codepath)
                 except Package.InitializationFailed, e:
                     debug.critical("Initialization of package <codepath %s> "

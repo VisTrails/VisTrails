@@ -93,7 +93,7 @@ class resolve_tags(QtGui.QWidget):
         userLabel.setText("User: " + self.a.db_user)
         vbox1.addWidget(userLabel)
         timeLabel = QtGui.QLabel(self)
-        timeLabel.setText("Time: " + str(self.a.db_date))
+        timeLabel.setText("Time: " + unicode(self.a.db_date))
         vbox1.addWidget(timeLabel)
 
         vbox2 = QtGui.QVBoxLayout()
@@ -103,7 +103,7 @@ class resolve_tags(QtGui.QWidget):
         userLabel.setText("User: " + self.b.db_user)
         vbox2.addWidget(userLabel)
         timeLabel = QtGui.QLabel(self)
-        timeLabel.setText("Time: " + str(self.b.db_date))
+        timeLabel.setText("Time: " + unicode(self.b.db_date))
         vbox2.addWidget(timeLabel)
 
         buttons = QtGui.QHBoxLayout()
@@ -133,7 +133,7 @@ class resolve_tags(QtGui.QWidget):
         self.close()
     def setResolved(self):
         self.value = CHOICE_RESOLVED
-        self.text = str(self.tedit.text())
+        self.text = unicode(self.tedit.text())
         self.close()
     def setOwn(self):
         self.value = CHOICE_OWN
@@ -193,7 +193,7 @@ class resolve_notes(QtGui.QWidget):
         self.close()
     def setResolved(self):
         self.value = CHOICE_RESOLVED
-        self.text = str(self.tedit.toHtml())
+        self.text = unicode(self.tedit.toHtml())
         self.close()
     def setOwn(self):
         self.value = CHOICE_OWN
@@ -241,7 +241,7 @@ class resolve_thumbs(QtGui.QWidget):
         userLabel.setText("User: " + self.a.db_user)
         other.addWidget(userLabel)
         timeLabel = QtGui.QLabel(self)
-        timeLabel.setText("Time: " + str(self.a.db_date))
+        timeLabel.setText("Time: " + unicode(self.a.db_date))
         other.addWidget(timeLabel)
 
         own = QtGui.QVBoxLayout()
@@ -258,7 +258,7 @@ class resolve_thumbs(QtGui.QWidget):
         userLabel.setText("User: " + self.b.db_user)
         own.addWidget(userLabel)
         timeLabel = QtGui.QLabel(self)
-        timeLabel.setText("Time: " + str(self.b.db_date))
+        timeLabel.setText("Time: " + unicode(self.b.db_date))
         own.addWidget(timeLabel)
 
         buttons = QtGui.QHBoxLayout()

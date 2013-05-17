@@ -124,9 +124,9 @@ if __name__ == '__main__':
         for version, exec_list in execs.iteritems():
             for (exec_time, cache_fname) in exec_list:
                 if version in tags:
-                    print ' ', str(version) + ' (' + tags[version] + '):', \
+                    print ' ', unicode(version) + ' (' + tags[version] + '):', \
                         exec_time
                     print '   ', cache_fname
                 else:
-                    print ' ', str(version) + ':', exec_time
+                    print ' ', unicode(version) + ':', exec_time
                     print '   ', cache_fname

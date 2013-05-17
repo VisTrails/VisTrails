@@ -242,7 +242,7 @@ def float_param_options_method_dict(optionName, portName):
         o = self.create_output_file()
         optionValue = self.get_input(portName)
         i = self.input_file_description()
-        self.run(i, optionName, str(optionValue), o.name)
+        self.run(i, optionName, unicode(optionValue), o.name)
         self.set_output("output", o)
 
     return {'compute': compute}

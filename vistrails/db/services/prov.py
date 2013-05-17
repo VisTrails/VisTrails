@@ -54,7 +54,7 @@ def create_prov_document(entities, activities, agents, connections, usages,
                           prov_associations=associations)
 
 def create_prov_entity_from_workflow(id_scope, workflow):
-    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+    return DBProvEntity(id='e' + unicode(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=workflow.db_id,
                         prov_type='prov:Plan',
                         prov_label=workflow._db_name,
@@ -77,7 +77,7 @@ def create_prov_entity_from_module(id_scope, module, is_part_of):
             desc = db_annotation._db_value
             break
     
-    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+    return DBProvEntity(id='e' + unicode(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=module._db_id,
                         prov_type='prov:Plan',
                         prov_label=module.db_name,
@@ -103,7 +103,7 @@ def create_prov_entity_from_group(id_scope, group, is_part_of):
             desc = db_annotation._db_value
             break
     
-    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+    return DBProvEntity(id='e' + unicode(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=group.db_id,
                         prov_type='prov:Plan',
                         prov_label=group.db_name,
@@ -126,7 +126,7 @@ def create_prov_entity_from_abstraction(id_scope, abstraction, is_part_of):
             desc = db_annotation._db_value
             break
     
-    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+    return DBProvEntity(id='e' + unicode(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=abstraction.db_id,
                         prov_type='prov:Plan',
                         prov_label=abstraction.db_name,
@@ -145,8 +145,8 @@ def create_prov_entity_from_function(id_scope, function):
     types = []
     aliases = []
     for parameter in function._db_parameters:
-        values.append(str(parameter._db_val))
-        types.append(str(parameter._db_type))
+        values.append(unicode(parameter._db_val))
+        types.append(unicode(parameter._db_type))
         if parameter._db_alias:
             aliases.append(parameter._db_alias)
         else:
@@ -164,7 +164,7 @@ def create_prov_entity_from_function(id_scope, function):
         type = '(' + ','.join(types) + ')'
         alias = '(' + ','.join(aliases) + ')'
     
-    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+    return DBProvEntity(id='e' + unicode(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=function.db_id,
                         prov_type='vt:data',
                         prov_label=function.db_name,
@@ -179,7 +179,7 @@ def create_prov_entity_from_function(id_scope, function):
                         is_part_of=None)
     
 def create_prov_entity_for_data(id_scope, conn):
-    return DBProvEntity(id='e' + str(id_scope.getNewId(DBProvEntity.vtType)),
+    return DBProvEntity(id='e' + unicode(id_scope.getNewId(DBProvEntity.vtType)),
                         vt_id=conn.db_id,
                         prov_type='vt:data',
                         prov_label=None,
@@ -194,7 +194,7 @@ def create_prov_entity_for_data(id_scope, conn):
                         is_part_of=None)
     
 def create_vt_connection(id_scope, source, dest, mapping):
-    return DBVtConnection(id='c' + str(id_scope.getNewId(DBVtConnection.vtType)),
+    return DBVtConnection(id='c' + unicode(id_scope.getNewId(DBVtConnection.vtType)),
                           vt_source=mapping[source._db_moduleId]._db_id,
                           vt_dest=mapping[dest._db_moduleId]._db_id,
                           vt_source_port=source.db_name,
@@ -203,7 +203,7 @@ def create_vt_connection(id_scope, source, dest, mapping):
                           vt_dest_signature=dest._db_signature)
     
 def create_prov_agent_from_user(id_scope, user):
-    return DBProvAgent(id='ag' + str(id_scope.getNewId(DBProvAgent.vtType)),
+    return DBProvAgent(id='ag' + unicode(id_scope.getNewId(DBProvAgent.vtType)),
                        vt_id=None,
                        prov_type='prov:Person',
                        prov_label=user,
@@ -213,7 +213,7 @@ def create_prov_agent_from_user(id_scope, user):
                        vt_machine_ram=None)
     
 def create_prov_agent_from_machine(id_scope, machine):
-    return DBProvAgent(id='ag' + str(id_scope.getNewId(DBProvAgent.vtType)),
+    return DBProvAgent(id='ag' + unicode(id_scope.getNewId(DBProvAgent.vtType)),
                        vt_id=machine.db_id,
                        prov_type='vt:machine',
                        prov_label=machine.db_name,
@@ -233,7 +233,7 @@ def create_prov_association(prov_activity, prov_agent, prov_entity):
                              prov_role=None)
     
 def create_prov_activity_from_wf_exec(id_scope, wf_exec):
-    return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
+    return DBProvActivity(id='a' + unicode(id_scope.getNewId(DBProvActivity.vtType)),
                           vt_id=wf_exec._db_id,
                           startTime=wf_exec._db_ts_start,
                           endTime=wf_exec._db_ts_end,
@@ -253,7 +253,7 @@ def create_prov_activity_from_exec(id_scope, module_exec, machine_id, is_part_of
     else:
         # something is wrong...
         pass
-    return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
+    return DBProvActivity(id='a' + unicode(id_scope.getNewId(DBProvActivity.vtType)),
                           vt_id=module_exec._db_id,
                           startTime=module_exec._db_ts_start,
                           endTime=module_exec._db_ts_end,

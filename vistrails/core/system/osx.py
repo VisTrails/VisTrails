@@ -97,7 +97,7 @@ class OSXSystemProfiler(object):
 
         command = ['system_profiler', '-xml']
         if category is not None:
-            command.append(str(category))
+            command.append(unicode(category))
         if detail is not None:
             command.extend(['-detailLevel', '%d' % detail])
         p = subprocess.Popen(command, stdout=subprocess.PIPE)

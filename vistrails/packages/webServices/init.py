@@ -121,17 +121,17 @@ def webServiceTypesDict(WBobj):
         for child in obj.ports:
             namechild = child[0]
             typechild = child[1]
-            nameattrib = str(namechild)
+            nameattrib = unicode(namechild)
             nameattrib = nameattrib[0].upper() + nameattrib[1:]
             sentence = "visobj" + "." + nameattrib
             visdata = eval(sentence)
             if visdata != None:
                 try:
-                    Type = wsdlTypesDict[str(typechild)]
+                    Type = wsdlTypesDict[unicode(typechild)]
                     setattr(libobj,nameattrib,visdata)
                 except KeyError:
                     #Check if the port is an Enumeration Constant
-                    keyvalue = WBobj.namespace.replace('|Types','') + "." + str(child[1])
+                    keyvalue = WBobj.namespace.replace('|Types','') + "." + unicode(child[1])
                     childType = complexsdict[keyvalue]
                     if childType.typeobj == 'Enumeration':
                         visobjchild = getattr(visobj,nameattrib)
@@ -144,7 +144,7 @@ def webServiceTypesDict(WBobj):
                         unwrapRequestobj(self,libobjchild,visobjchild)
         if obj.hasAttributes:                
             for attributes in obj.attributes:
-                nameattrib = str(attributes[0])
+                nameattrib = unicode(attributes[0])
                 nameattribute = nameattrib[0].upper() + nameattrib[1:]
                 sentence = "visobj" + "." + nameattribute
                 visdata = eval(sentence)
@@ -156,7 +156,7 @@ def webServiceTypesDict(WBobj):
         reg = vistrails.core.modules.module_registry.get_module_registry()
         #Check if it is an enumeration
         if WBobj.typeobj == 'Enumeration':
-            nameport = str(WBobj.ports[0][0])
+            nameport = unicode(WBobj.ports[0][0])
             if self.has_input(nameport):
                 inputport = self.get_input(nameport)
                 self.holder = inputport
@@ -165,7 +165,7 @@ def webServiceTypesDict(WBobj):
         else:
             #Check if it is a request type
             modbyname = reg.get_module_by_name(identifier = identifier, name = WBobj.name, namespace = WBobj.namespace)
-            porttype = str(modbyname.server._wsdl.portTypes.keys()[0][0][1])
+            porttype = unicode(modbyname.server._wsdl.portTypes.keys()[0][0][1])
             listoperations = modbyname.server._wsdl.portTypes[porttype].operations.values()
             isrequest = False
             requestname = ''
@@ -173,7 +173,7 @@ def webServiceTypesDict(WBobj):
             for element in listoperations:
                 parts = modbyname.server._wsdl.messages[element.input.getMessage().name].parts.values()
                 for part in parts:
-                    if str(part.element[1]).strip() == modname.strip():
+                    if unicode(part.element[1]).strip() == modname.strip():
                         requestname = element.input.getMessage().name
                         isrequest = True
                         break
@@ -186,12 +186,12 @@ def webServiceTypesDict(WBobj):
                     print "sys.exc_value: ", sys.exc_value
                 #Set the values of the input ports in the resquest object
                 for types in WBobj.ports:
-                    nameport = str(types[0])
+                    nameport = unicode(types[0])
                     if self.has_input(nameport):
                         #We need to distinguish between simple and complex types.
                         inputport = self.get_input(nameport)
                         try:
-                            Type = str(types[1])
+                            Type = unicode(types[1])
                             if isArray(Type):
                                 Type = 'Array'
                             Type = wsdlTypesDict[Type]
@@ -202,7 +202,7 @@ def webServiceTypesDict(WBobj):
                                 namemethod = nameport
                                 setattr(req, namemethod,inputport)
                         except KeyError:
-                            keyvalue = WBobj.namespace.replace('|Types','') + "." + str(types[1])
+                            keyvalue = WBobj.namespace.replace('|Types','') + "." + unicode(types[1])
                             #Check if the port is an Enumeration Constant
                             complexsdict = webServicesmodulesDict[WBobj.namespace]
                             childType = complexsdict[keyvalue]
@@ -217,36 +217,36 @@ def webServiceTypesDict(WBobj):
                                 getattr(req, namemethod)(libobj)
                 if WBobj.hasAttributes:
                     for types in WBobj.attributes:
-                        nameport = str(types[0])
+                        nameport = unicode(types[0])
                         if self.has_input(nameport):
                             inputport = self.get_input(nameport)
-                            Type = wsdlTypesDict[str(types[1])]
+                            Type = wsdlTypesDict[unicode(types[1])]
                             nameattrib = "attribute_typecode_dict[" + nameport + "].pname"
                             setattr(req, nameattrib,inputport)
 
                 #Set the value in the response output port
-                nameport = str(WBobj.name)
+                nameport = unicode(WBobj.name)
                 #This step is to warranty that the name are not going to repeat    
                 for ports in WBobj.ports:
-                     if str(WBobj.name.strip()) == str(ports[0].strip()):
+                     if unicode(WBobj.name.strip()) == unicode(ports[0].strip()):
                          nameport = WBobj.vistrailsname
                          break
                 if WBobj.hasAttributes:
                     for attributes in WBobj.attributes:
-                        if str(WBobj.name.strip()) == str(attributes[0].strip()):
+                        if unicode(WBobj.name.strip()) == unicode(attributes[0].strip()):
                             nameport = WBobj.vistrailsname
                             break
                 self.set_output(nameport,req)
                 self.set_output('self',req)
             else:
-                nameport = str(WBobj.name)
+                nameport = unicode(WBobj.name)
                 for ports in WBobj.ports:
-                    if str(WBobj.name.strip()) == str(ports[0].strip()):
+                    if unicode(WBobj.name.strip()) == unicode(ports[0].strip()):
                         nameport = WBobj.vistrailsname
                         break
                 if WBobj.hasAttributes:
                     for attributes in WBobj.attributes:
-                        if str(WBobj.name.strip()) == str(attributes[0].strip()):
+                        if unicode(WBobj.name.strip()) == unicode(attributes[0].strip()):
                             nameport = WBobj.vistrailsname
                             break
                 if self.has_input(nameport):
@@ -283,8 +283,8 @@ def webServiceTypesDict(WBobj):
                     #Set the values in the input ports
                     #Input modules
                     for types in WBobj.ports:
-                        nameport = str(types[0])
-                        nameattrib = str(nameport)
+                        nameport = unicode(types[0])
+                        nameattrib = unicode(nameport)
                         nameattrib = nameattrib[0].upper() + nameattrib[1:]
                         if self.has_input(nameport):
                             inputport = self.get_input(nameport)
@@ -293,8 +293,8 @@ def webServiceTypesDict(WBobj):
                             setattr(self,nameattrib,None)
                     if WBobj.hasAttributes:
                         for types in WBobj.attributes:
-                            nameport = str(types[0])
-                            nameattrib = str(nameport)
+                            nameport = unicode(types[0])
+                            nameattrib = unicode(nameport)
                             nameattrib = nameattrib[0].upper() + nameattrib[1:]
                             if self.has_input(nameport):
                                 inputport = self.get_input(nameport)
@@ -302,15 +302,15 @@ def webServiceTypesDict(WBobj):
                             else:
                                 setattr(self,nameattrib,None)
                     #Set the value in the response output port
-                    nameport = str(WBobj.name)
+                    nameport = unicode(WBobj.name)
                     #This step is to warranty that the name are not going to repeat    
                     for ports in WBobj.ports:
-                        if str(WBobj.name.strip()) == str(ports[0].strip()):
+                        if unicode(WBobj.name.strip()) == unicode(ports[0].strip()):
                             nameport = WBobj.vistrailsname
                             break
                     if WBobj.hasAttributes:
                         for attributes in WBobj.attributes:
-                            if str(WBobj.name.strip()) == str(attributes[0].strip()):
+                            if unicode(WBobj.name.strip()) == unicode(attributes[0].strip()):
                                 nameport = WBobj.vistrailsname
                                 break
                     self.set_output(nameport,self)
@@ -338,23 +338,23 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         #Find the children for the vistrail type and set the attributes
         dictkey =  self.webservice + "|Types"        
         complexsdict = webServicesmodulesDict[dictkey]
-        dictkey = self.webservice + "." + str(ptype)
+        dictkey = self.webservice + "." + unicode(ptype)
         obj = complexsdict[dictkey]
         for child in obj.ports:
             namechild = child[0]
             typechild = child[1]    
             try:
-                Type = wsdlTypesDict[str(typechild)]
-                namemethod = "get_element_" + str(namechild)
+                Type = wsdlTypesDict[unicode(typechild)]
+                namemethod = "get_element_" + unicode(namechild)
                 try:
                     ans = getattr(resp, namemethod)()
                 except:
                     #Some times when there is no complex type in the wsdl
                     #the get and set methods are not generated
-                    namemethod = str(namechild)
+                    namemethod = unicode(namechild)
                     sentence = "resp" + "." + namemethod
                     ans = eval(sentence)
-                nameattrib = str(namechild)
+                nameattrib = unicode(namechild)
                 nameattrib = nameattrib[0].upper() + nameattrib[1:]
                 setattr(visobj,nameattrib,ans)
 
@@ -364,7 +364,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                     try:
                         resp = getattr(resp, namemethod)()
                     except:
-                        namemethod = str(namechild)
+                        namemethod = unicode(namechild)
                         sentence = "resp" + "." + namemethod
                         resp = eval(sentence)
 
@@ -374,7 +374,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                         ptype = element.typecode.type[1]
                         dictkey = self.webservice + "|Types" 
                         complexsdict = webServicesmodulesDict[dictkey]
-                        dictkey = self.webservice + "." + str(ptype)
+                        dictkey = self.webservice + "." + unicode(ptype)
                         obj = complexsdict[dictkey]
                         visclass = reg.get_module_by_name(identifier=identifier,
                                                           name=obj.name,
@@ -382,11 +382,11 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                         vischildobj = visclass()
                         wrapResponseobj(self,element,vischildobj)
                         objlist.append(vischildobj)
-                    nameattrib = str(namechild)
+                    nameattrib = unicode(namechild)
                     nameattrib = nameattrib[0].upper() + nameattrib[1:]
                     setattr(visobj,nameattrib,objlist)  
                 else:
-                    ptype = str(typechild)
+                    ptype = unicode(typechild)
                     dictkey = self.webservice + "|Types"
                     complexsdict = webServicesmodulesDict[dictkey]
                     dictkey = self.webservice + "." + ptype
@@ -395,7 +395,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                                                            name=obj.name,
                                                            namespace = obj.namespace)
                     vischildobj = vischildclass()
-                    nameattrib = str(namechild)
+                    nameattrib = unicode(namechild)
                     nameattrib = nameattrib[0].upper() + nameattrib[1:]
                     #Set the attribute in the vistrail object (Same as in
                     # schema but with the first letter uppercase)
@@ -424,14 +424,14 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         port = getattr(loc, portname)()
         try:
             #This part is for the primitive or simple types methods parameters
-            Type = str(inparams[0].type[1])
+            Type = unicode(inparams[0].type[1])
             if isArray(Type):
                 Type = 'Array'
             Type = wsdlTypesDict[Type]
             porttype = server._wsdl.portTypes.keys()[0][0][1]
             listoperations = server._wsdl.portTypes[porttype].operations.values()
             for element in listoperations: #list of operations instances
-                if str(element.name) == str(name):
+                if unicode(element.name) == unicode(name):
                     #get the request method name
                     reqname = element.input.getMessage().name
             try:
@@ -452,7 +452,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 resp = getattr(port,name)(req)
             except:
                 print "sys.exc_value: ", sys.exc_value
-                raise ModuleError(self, str(sys.exc_value))
+                raise ModuleError(self, unicode(sys.exc_value))
             namemethod = "get_element_" + outparams[0].name
 
             try:
@@ -464,16 +464,16 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
             self.set_output(outparams[0].name,result)
         except KeyError:
             #This part is for the complex types methods parameters
-            inparam = str(inparams[0].name)
+            inparam = unicode(inparams[0].name)
             if self.has_input(inparam):
                 request = self.get_input(inparam)
                 try:
                     resp = getattr(port,name)(request)
                 except:
                     print "sys.exc_value: ", sys.exc_value
-                    raise ModuleError(self, str(sys.exc_value))
+                    raise ModuleError(self, unicode(sys.exc_value))
                 #Wrap the ZSI attributes into the vistrails module attributes
-                nameclass = str(outparams[0].type[1])
+                nameclass = unicode(outparams[0].type[1])
                 dictkey = self.webservice + "|Types"
                 complexsdict = webServicesmodulesDict[dictkey]
                 dictkey = self.webservice + "." + nameclass
@@ -506,7 +506,7 @@ def processArray(complexschema,w):
         return
     
     for child in contentschema:
-        nametype = str(child.attributes['http://schemas.xmlsoap.org/wsdl/']['arrayType'])
+        nametype = unicode(child.attributes['http://schemas.xmlsoap.org/wsdl/']['arrayType'])
         index = nametype.find(':')
         nametype = nametype[index+1:]
         #verify if is an array of complex types
@@ -514,10 +514,10 @@ def processArray(complexschema,w):
         if index != -1:
             Type = nametype[0:index]
         try:
-            Type = wsdlTypesDict[str(Type)]
+            Type = wsdlTypesDict[unicode(Type)]
         except KeyError:
             try:
-                complex1 = schema.types[str(Type)]
+                complex1 = schema.types[unicode(Type)]
                 processType(complex1,w)
             except KeyError:    
                 pass
@@ -538,10 +538,10 @@ def generatename(name):
 def processType(complexschema,w):
     
     contentschema = ''
-    modulename = str(complexschema.attributes['name'])
+    modulename = unicode(complexschema.attributes['name'])
     #print "processType: %s,%s"%(modulename,w)
     try:
-        moduletype = str(complexschema.attributes['type'][1])
+        moduletype = unicode(complexschema.attributes['type'][1])
     except KeyError:
         moduletype = ''
     modulekey = w + "." + modulename
@@ -571,7 +571,7 @@ def processType(complexschema,w):
                 objModule = WBModule(modulename)
                 objModule.typeobj = 'ComplexType'
                 objModule.isExtension = True
-                objModule.ExtensionBase = str(complexschema.content.content.attributes['base'][1])
+                objModule.ExtensionBase = unicode(complexschema.content.content.attributes['base'][1])
                 contentschema = complexschema.content.content.content.content
         except AttributeError:
             contentschema = complexschema.content.content
@@ -597,17 +597,17 @@ def processType(complexschema,w):
                 processArray(child,w)
             objModule.ports.append((nametype,Type))
             try:
-                Type = wsdlTypesDict[str(Type)]
+                Type = wsdlTypesDict[unicode(Type)]
             except KeyError:
                 try:
-                    complex1 = schema.types[str(Type)]
+                    complex1 = schema.types[unicode(Type)]
                     processType(complex1,w)
                 except KeyError:    
                     pass
         except AttributeError:
             pass
 
-    objModule.webservice = str(w)
+    objModule.webservice = unicode(w)
     complexsdict [modulekey] = objModule
 
 def addExtensionsModules(w, server, extensionbase):
@@ -620,18 +620,18 @@ def addExtensionsModules(w, server, extensionbase):
         extensionobj = complexsdict[dictkey]
     except KeyError:
         for schematypes in server._wsdl.types.keys():
-            schema = server._wsdl.types[str(schematypes)]
+            schema = server._wsdl.types[unicode(schematypes)]
             if len(schema.types.keys()) != 0:
                 try:
-                    extensionbasestr = str(extensionbase)
+                    extensionbasestr = unicode(extensionbase)
                     complex1 = schema.types[extensionbasestr]
                     processType(complex1,w)
                 except KeyError:
                     pass        
             if len(schema.elements.keys()) != 0:
                 try:
-                    extensionbasestr = str(extensionbase)
-                    complex1 = schema.elements[str(extensionbasestr)]
+                    extensionbasestr = unicode(extensionbase)
+                    complex1 = schema.elements[unicode(extensionbasestr)]
                     processType(complex1,w)
                 except KeyError:
                     pass
@@ -661,7 +661,7 @@ def addTypesModules(w,modclient,server):
     webservicesmodulesDict dictionary. """
     def addObj(obj, namespace):
         if hasattr(obj,"superClass"):
-            SuperType = str(obj.superClass)
+            SuperType = unicode(obj.superClass)
         else:
             SuperType = ''
         #print "Adding obj ", obj.name, " ", SuperType
@@ -670,7 +670,7 @@ def addTypesModules(w,modclient,server):
                 if isArray(SuperType):
                     SuperType = 'Array'
                 SuperType = wsdlTypesDict[SuperType]
-                mt = new_module(SuperType,str(obj.name), webServiceTypesDict(obj))
+                mt = new_module(SuperType,unicode(obj.name), webServiceTypesDict(obj))
                 mt.name = obj.name
                 mt.webservice = w
                 mt.modclient = modclient
@@ -691,7 +691,7 @@ def addTypesModules(w,modclient,server):
                         SuperType = reg.get_module_by_name(identifier =identifier,
                                                        name=typeObj.name,
                                                        namespace = typeObj.namespace)
-                        mt = new_module(SuperType,str(obj.name), webServiceTypesDict(obj))
+                        mt = new_module(SuperType,unicode(obj.name), webServiceTypesDict(obj))
                         mt.name = obj.name
                         mt.webservice = w
                         mt.modclient = modclient
@@ -707,7 +707,7 @@ def addTypesModules(w,modclient,server):
                 except KeyError:
                     pass
         else:
-            mt = new_module(WebService,str(obj.name), webServiceTypesDict(obj))
+            mt = new_module(WebService,unicode(obj.name), webServiceTypesDict(obj))
             mt.name = obj.name
             mt.webservice = w
             mt.modclient = modclient
@@ -733,7 +733,7 @@ def addTypesModules(w,modclient,server):
         else:
             
             addObj(obj,namespace)
-            #mt = new_module(WebService,str(obj.name), webServiceTypesDict(obj))
+            #mt = new_module(WebService,unicode(obj.name), webServiceTypesDict(obj))
             #mt.name = obj.name
             #mt.webservice = w
             #mt.modclient = modclient
@@ -755,8 +755,8 @@ def addMethodsModules(w,modclient,server):
     for dictkey in keys:
         obj = complexsdict[dictkey]
         obj.namespace = namespace  
-        mt = new_module(WebService,str(obj.name),
-                        webServiceParamsMethodDict(str(obj.name), server,
+        mt = new_module(WebService,unicode(obj.name),
+                        webServiceParamsMethodDict(unicode(obj.name), server,
                                                    obj.ports[0], obj.ports[1]))
         mt.name = obj.name
         mt.webservice = w
@@ -787,7 +787,7 @@ def addPortsToTypes(w):
                     #This step is to warranty that the name are not going
                     #to repeat
                     #print " > ", ports
-                    if str(portname.strip()) == str(ports[0].strip()):
+                    if unicode(portname.strip()) == unicode(ports[0].strip()):
                         obj.vistrailsname = generatename(portname)
                         portname = obj.vistrailsname
                         break    
@@ -795,7 +795,7 @@ def addPortsToTypes(w):
                     for attributes in obj.attributes:
                         #This step is to warranty that the name are not
                         #going to repeat
-                        if str(portname.strip()) == str(attributes[0].strip()):
+                        if unicode(portname.strip()) == unicode(attributes[0].strip()):
                             obj.vistrailsname = generatename(portname)
                             portname = obj.vistrailsname
                             break
@@ -811,18 +811,18 @@ def addPortsToTypes(w):
                 #Add ports according to the input and output parameters
                 for ports in obj.ports:
                     try:
-                        Type = wsdlTypesDict[str(ports[1])]
+                        Type = wsdlTypesDict[unicode(ports[1])]
                     except KeyError:
-                        portname = str(ports[1])
+                        portname = unicode(ports[1])
                         namespace = w + '|Types'
                         Type = reg.get_module_by_name(identifier = identifier, name =portname, namespace = namespace)
-                    reg.add_input_port(objtype,str(ports[0]),(Type, ''))
-                    reg.add_output_port(objtype,str(ports[0]),(Type, ''))
+                    reg.add_input_port(objtype,unicode(ports[0]),(Type, ''))
+                    reg.add_output_port(objtype,unicode(ports[0]),(Type, ''))
             if obj.hasAttributes == True:
                 for attributes in obj.attributes:
-                    Type = wsdlTypesDict[str(attributes[1])]
-                    reg.add_input_port(objtype,str(attributes[0]),(Type, ''))
-                    reg.add_output_port(objtype,str(attributes[0]),(Type, ''))
+                    Type = wsdlTypesDict[unicode(attributes[1])]
+                    reg.add_input_port(objtype,unicode(attributes[0]),(Type, ''))
+                    reg.add_output_port(objtype,unicode(attributes[0]),(Type, ''))
 
 def addPortsToMethods(w):
     """ Add input and output ports to the VisTrails complex type modules. """
@@ -837,15 +837,15 @@ def addPortsToMethods(w):
         #Add input ports
         for port in obj.ports[0]:
             try:
-                nameport = str(port.name)
-                Type = str(port.type[1])
+                nameport = unicode(port.name)
+                Type = unicode(port.type[1])
                 if isArray(Type):
                     Type = 'Array'
                 Type = wsdlTypesDict[Type]
                 reg.add_input_port(objtype,nameport,(Type, ''))
             except KeyError:
                 try:
-                    modname = str(port.type[1])
+                    modname = unicode(port.type[1])
                     dictkey = w + "|Types"
                     typedict = webServicesmodulesDict[dictkey]
                     dictkey = w + "." + modname
@@ -853,21 +853,21 @@ def addPortsToMethods(w):
                     Type = reg.get_module_by_name(identifier=identifier,
                                                   name=typeObj.name,
                                                   namespace=typeObj.namespace)
-                    reg.add_input_port(objtype,str(port.name),(Type, ''))
+                    reg.add_input_port(objtype,unicode(port.name),(Type, ''))
                 except KeyError:
                     pass
         #Add output ports        
         for port in obj.ports[1]:
             try:
-                nameport = str(port.name)
-                Type = str(port.type[1])
+                nameport = unicode(port.name)
+                Type = unicode(port.type[1])
                 if isArray(Type):
                     Type = 'Array'
                 Type = wsdlTypesDict[Type]
                 reg.add_output_port(objtype,nameport,(Type, ''))
             except KeyError:
                 try:
-                    modname = str(port.type[1])
+                    modname = unicode(port.type[1])
                     dictkey = w + "|Types"
                     typedict = webServicesmodulesDict[dictkey]
                     dictkey = w + "." + modname
@@ -875,7 +875,7 @@ def addPortsToMethods(w):
                     Type = reg.get_module_by_name(identifier=identifier,
                                                   name=typeObj.name,
                                                   namespace=typeObj.namespace)
-                    reg.add_output_port(objtype,str(port.name),(Type, ''))
+                    reg.add_output_port(objtype,unicode(port.name),(Type, ''))
                 except KeyError:
                     pass        
 
@@ -973,7 +973,7 @@ be loaded again." % w
         except Exception, e:
             # we will not show this every time. Just in the end
             # so we can show a single message for everybody
-            not_loaded.append((w,str(e)))
+            not_loaded.append((w,unicode(e)))
             result = False
             continue
 
@@ -996,7 +996,7 @@ be loaded again." % w
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
         except Exception, e:
-            msg =  "Couldn't load generated stub file: %s"%str(e)
+            msg =  "Couldn't load generated stub file: %s"%unicode(e)
             not_loaded.append((w,msg))
             result = False
             continue
@@ -1061,7 +1061,7 @@ be loaded again: %s"% w
             except Exception, e:
                 ok += 1
                 failed = True
-                msg = str(e)
+                msg = unicode(e)
 
         if failed:
             not_loaded.append((w,msg))
@@ -1132,7 +1132,7 @@ be loaded again: %s"% w
             fd.write(content)
             fd.close()
         except Exception, e:
-            msg = "Couldn't generate stub file: %s"% str(e)
+            msg = "Couldn't generate stub file: %s"% unicode(e)
             not_loaded.append((w,msg))
             result = False
             continue
@@ -1142,19 +1142,19 @@ be loaded again: %s"% w
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
         except Exception, e:
-            msg = "Problem importing the generated stub files: %s", str(e)
+            msg = "Problem importing the generated stub files: %s", unicode(e)
             not_loaded.append((w,msg))
             result = False
             continue
 
         #Set up the dictionary with all the complex types modules and their ports.
         for schematypes in server._wsdl.types.keys():
-            schema = server._wsdl.types[str(schematypes)]
+            schema = server._wsdl.types[unicode(schematypes)]
             if len(schema.types.keys()) != 0:
                 for schematype in schema.types.keys():
                     try:
-                        complex1 = schema.types[str(schematype)]
-                        modulename = str(complex1.attributes['name'])
+                        complex1 = schema.types[unicode(schematype)]
+                        modulename = unicode(complex1.attributes['name'])
                         try:
                             dictkey = w + "." + modulename
                             typeObj = complexsdict[dictkey]
@@ -1162,7 +1162,7 @@ be loaded again: %s"% w
                             #Check if it is an array.  Arrays are python
                             #lists, not complex types though they can
                             #contain complex types elements.
-                            Type = str(schematype)
+                            Type = unicode(schematype)
                             if isArray(Type):
                                 processArray(complex1,w)
                             else:
@@ -1172,8 +1172,8 @@ be loaded again: %s"% w
             if len(schema.elements.keys()) != 0:
                 for schematype in schema.elements.keys():
                     try:
-                        complex1 = schema.elements[str(schematype)]
-                        modulename = str(complex1.attributes['name'])
+                        complex1 = schema.elements[unicode(schematype)]
+                        modulename = unicode(complex1.attributes['name'])
                         try:
                             dictkey = w + "." + modulename
                             typeObj = complexsdict[dictkey]
@@ -1181,7 +1181,7 @@ be loaded again: %s"% w
                             #Check if it is an array.  Arrays are python
                             #lists, not complex types, though they can
                             #contain complex types elements.
-                            Type = str(schematype)
+                            Type = unicode(schematype)
                             if isArray(Type):
                                 processArray(complex1,w)
                             else:
@@ -1213,8 +1213,8 @@ be loaded again: %s"% w
             callInfo = methods[0].callinfo
             inparams = callInfo.inparams
             outparams = callInfo.outparams
-            mt = new_module(WebService,str(kw), 
-                            webServiceParamsMethodDict(str(kw),server,
+            mt = new_module(WebService,unicode(kw),
+                            webServiceParamsMethodDict(unicode(kw),server,
                                                        inparams,
                                                        outparams))
             mt.webservice = w
@@ -1234,15 +1234,15 @@ be loaded again: %s"% w
             #Add the input (ports) parameters to the methods
             for p in inparams:
                 try:
-                    nameport = str(p.name)
-                    Type = str(p.type[1])
+                    nameport = unicode(p.name)
+                    Type = unicode(p.type[1])
                     if isArray(Type):
                         Type = 'Array'
                     Type = wsdlTypesDict[Type]
                     reg.add_input_port(mt,nameport,(Type, ''))
                 except KeyError:
                     try:
-                        modname = str(p.type[1])
+                        modname = unicode(p.type[1])
                         dictkey = w + "|Types"
                         typedict = webServicesmodulesDict[dictkey]
                         dictkey = w + "." + modname
@@ -1250,21 +1250,21 @@ be loaded again: %s"% w
                         Type = reg.get_module_by_name(identifier =identifier,
                                                       name=typeObj.name,
                                                       namespace = typeObj.namespace)
-                        reg.add_input_port(mt,str(p.name),(Type, ''))
+                        reg.add_input_port(mt,unicode(p.name),(Type, ''))
                     except KeyError:
                         pass
             #Add the output (ports) parameters to the methods
             for p in outparams:
                 try:
-                    nameport = str(p.name)
-                    Type = str(p.type[1])
+                    nameport = unicode(p.name)
+                    Type = unicode(p.type[1])
                     if isArray(Type):
                         Type = 'Array'
                     Type = wsdlTypesDict[Type]
                     reg.add_output_port(mt,nameport,(Type, ''))
                 except KeyError:
                     try:
-                        modname = str(p.type[1])
+                        modname = unicode(p.type[1])
                         dictkey = w + "|Types"
                         typedict = webServicesmodulesDict[dictkey]
                         dictkey = w + "." + modname
@@ -1272,10 +1272,10 @@ be loaded again: %s"% w
                         Type = reg.get_module_by_name(identifier=identifier,
                                                       name=typeObj.name,
                                                       namespace = typeObj.namespace)
-                        reg.add_output_port(mt,str(p.name),(Type, ''))
+                        reg.add_output_port(mt,unicode(p.name),(Type, ''))
                     except KeyError:
                         pass
-            modulekey = w + "." + str(kw)
+            modulekey = w + "." + unicode(kw)
             complexsdict[modulekey] = objModule
         dictkey = w + "|Methods"
         webServicesmodulesDict[dictkey] = complexsdict        
@@ -1289,7 +1289,7 @@ be loaded again: %s"% w
         cPickle.dump(webServicesmodulesDict,ouf)
         ouf.close()
     except Exception, e:
-        msg = "Error generating web services configuration file %s"%str(e)
+        msg = "Error generating web services configuration file %s"%unicode(e)
         raise RuntimeError(msg)
 
     return(result,not_loaded)
@@ -1321,7 +1321,7 @@ def verify_wsdl(wsdlList):
         try:
             wsdl = load(location)
         except Exception, e:
-            msg = "Couldn't load wsdl from the web: %s."%str(e)
+            msg = "Couldn't load wsdl from the web: %s."%unicode(e)
             error_list.append((w,msg))
             continue
         directoryname = urllib.quote_plus(w)

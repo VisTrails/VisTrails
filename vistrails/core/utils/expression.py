@@ -45,7 +45,7 @@ def evaluate_expressions(expressions):
     """
 
     # FIXME: eval should pretty much never be used
-    (base, exps) = parse_expression(str(expressions))
+    (base, exps) = parse_expression(unicode(expressions))
     for e in exps:
         try:
             base = base[:e[0]] + unicode(literal_eval(e[1])) + base[e[0]:]

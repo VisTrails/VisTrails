@@ -58,7 +58,7 @@ def bool_conv(st):
     elif st == 'False':
         return False
     else:
-        raise TypeError('Bogus value for bool_conv ' + str(st))
+        raise TypeError('Bogus value for bool_conv ' + unicode(st))
 
 class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
 
@@ -85,7 +85,7 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
             self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
                           QtCore.Qt.ItemIsEditable)
         else:
-            lst.extend([str(obj), type(obj).__name__])
+            lst.extend([unicode(obj), type(obj).__name__])
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
                           QtCore.Qt.ItemIsEditable)
@@ -115,7 +115,7 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """
         # We only allow users to edit the  second column
         if index.column()==1:
-            dataType = str(index.sibling(index.row(), 2).data())
+            dataType = unicode(index.sibling(index.row(), 2).data())
             
             # Create the editor based on dataType
             if dataType=='int':
@@ -636,7 +636,7 @@ class QThumbnailConfiguration(QtGui.QWidget):
         """ thumbs_cache_changed(v: int) -> None
         
         """
-        value = str(self._thumbs_cache_directory_edt.text())
+        value = unicode(self._thumbs_cache_directory_edt.text())
         old_folder = self._configuration.thumbs.cacheDirectory
         if os.path.exists(value):
             self._configuration.thumbs.cacheDirectory = value

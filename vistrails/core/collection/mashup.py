@@ -53,7 +53,7 @@ class MashupEntity(Entity):
         self.mashup = mashup
         if self.mashup is not None:
             self.name = mashup.name \
-            if mashup.name else "Version #" + str(mashup.id)
+            if mashup.name else "Version #" + unicode(mashup.id)
             self.user = 'testing'
             self.mod_time = self.now()
             self.create_time = self.now()

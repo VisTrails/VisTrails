@@ -95,7 +95,7 @@ class QPythonCalc(QtGui.QWidget):
         result = literal_eval(self.value1Edit.text() +
                               self.opCombo.currentText() +
                               self.value2Edit.text())
-        self.resultLabel.setText(str(result))
+        self.resultLabel.setText(unicode(result))
 
     def createModule(self):
         """ createModule() -> None
@@ -107,11 +107,11 @@ class QPythonCalc(QtGui.QWidget):
         pythoncalc = "org.vistrails.vistrails.pythoncalc"
         module = vistrails.api.add_module(0, 0, pythoncalc, 'PythonCalc', '')
         vistrails.api.get_current_controller().update_function(module, 'value1',
-                                                     [str(self.value1Edit.text())])
+                                                     [unicode(self.value1Edit.text())])
         vistrails.api.get_current_controller().update_function(module, 'value2',
-                                                     [str(self.value2Edit.text())])
+                                                     [unicode(self.value2Edit.text())])
         vistrails.api.get_current_controller().update_function(module, 'op',
-                                                     [str(self.opCombo.currentText())])
+                                                     [unicode(self.opCombo.currentText())])
         vistrails.api.switch_to_pipeline_view()
 
 def initialize(*args, **keywords):

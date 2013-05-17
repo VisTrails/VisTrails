@@ -375,7 +375,7 @@ class DBLocator(_DBLocator, CoreLocator):
         conn = self.__list.get_connection(id)
         if conn != None:
             succeeded = False
-            key = str(conn.id) + "." + conn.name + "." + conn.host
+            key = unicode(conn.id) + "." + conn.name + "." + conn.host
             passwd = DBLocator.keyChain.get_key(key)
             config = {'host': conn.host,
                       'port': conn.port,
@@ -431,7 +431,7 @@ class DBLocator(_DBLocator, CoreLocator):
             if conn.id == -1:
                 conn.id = self.__list.get_fresh_id()
             self.__list.add_connection(conn)
-        key = str(conn.id) + "." + conn.name + "." + conn.host
+        key = unicode(conn.id) + "." + conn.name + "." + conn.host
         DBLocator.keyChain.set_key(key,passwd)
         return conn.id
     
@@ -575,10 +575,10 @@ class FileLocator(CoreLocator):
         XMLFileLocator or a ZIPFileLocator object.
 
         """
-        if str(element.getAttribute('type')) == 'file':
+        if unicode(element.getAttribute('type')) == 'file':
             for n in element.childNodes:
                 if n.localName == "name":
-                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    filename = unicode(n.firstChild.nodeValue).strip(" \n\t")
                     return FileLocator(filename)
             return None
         else:
@@ -593,7 +593,7 @@ class FileLocator(CoreLocator):
         if node.tag != 'locator':
             return None
         type_ = node.get('type', '')
-        if str(type_) == 'file':
+        if unicode(type_) == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
                     filename = child.text.encode('latin-1').strip()
@@ -608,7 +608,7 @@ class FileLocator(CoreLocator):
         vistrails from the database on the web. """
         def convert_from_str(value,type):
             def bool_conv(x):
-                s = str(x).upper()
+                s = unicode(x).upper()
                 if s == 'TRUE':
                     return True
                 if s == 'FALSE':
@@ -616,7 +616,7 @@ class FileLocator(CoreLocator):
             
             if value is not None:
                 if type == 'str':
-                    return str(value)
+                    return unicode(value)
                 elif value.strip() != '':
                     if type == 'long':
                         return long(value)

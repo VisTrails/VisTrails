@@ -103,7 +103,7 @@ class BaseInterpreter(object):
 #                        for f1 in reversed(pipeline.modules[mid].functions):
 #                            if f1.getSignature()==fsig:
 #                                p = f1.params[pidx]
-#                                aliases[palias] = (p.type, expression.parse_expression(str(p.strValue)))
+#                                aliases[palias] = (p.type, expression.parse_expression(unicode(p.strValue)))
 #                                break
 #        return aliases
 
@@ -146,7 +146,7 @@ class BaseInterpreter(object):
         import datetime
         for e in exps:
             base = (
-                    base[:e[0]] + str(eval(
+                    base[:e[0]] + unicode(eval(
                         e[1],
                         {'datetime': locals()['datetime']},
                         aliases)) +
@@ -188,7 +188,7 @@ class BaseInterpreter(object):
             try:
                 info = pipeline.aliases[alias]
                 param = pipeline.db_get_object(info[0],info[1])
-                param.strValue = str(aliases[alias])
+                param.strValue = unicode(aliases[alias])
             except KeyError:
                 pass
                     
@@ -206,7 +206,7 @@ class BaseInterpreter(object):
             for (vttype, oId, strval) in customParams:
                 try:
                     param = pipeline.db_get_object(vttype,oId)
-                    param.strValue = str(strval)
+                    param.strValue = unicode(strval)
                 except Exception, e:
                     debug.debug("Problem when updating params", e)
 

@@ -105,7 +105,7 @@ class IECellWidget(QCellWidget):
     def dumpToFile(self, filename):
         if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
             if self.urlSrc is not None:
-                shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
+                shutil.copyfile(unicode(self.urlSrc.toLocalFile()), filename)
         else:
             super(IECellWidget, self).dumpToFile(filename)
 

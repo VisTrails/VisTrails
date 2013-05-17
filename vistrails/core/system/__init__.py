@@ -313,7 +313,7 @@ def get_latest_vistrails_version():
         get_latest_version = urllib2.urlopen(request)
         version = get_latest_version.read().strip()
     except urllib2.HTTPError, err:
-        debug.warning("Unable to check for updates: %s" % str(err))
+        debug.warning("Unable to check for updates: %s" % unicode(err))
         return version
 
     return version

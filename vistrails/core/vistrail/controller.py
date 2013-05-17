@@ -528,7 +528,7 @@ class VistrailController(object):
             # HACK to populate upgrade information
             if (action.has_annotation_with_key(desc_key) and
                 action.get_annotation_by_key(desc_key).value == 'Upgrade'):
-                self.vistrail.set_upgrade(start_version, str(action.id))
+                self.vistrail.set_upgrade(start_version, unicode(action.id))
             if should_migrate_tags:
                 self.migrate_tags(start_version, action.id)
             self.current_version = action.id
@@ -756,11 +756,11 @@ class VistrailController(object):
         params = []
         for i in xrange(len(port_spec.descriptors())):
             if i < len(values) and values[i] is not None:
-                value = str(values[i])
+                value = unicode(values[i])
             else:
                 value = None
             if i < len(aliases):
-                alias = str(aliases[i])
+                alias = unicode(aliases[i])
             else:
                 alias = ''
             if i < len(query_methods):
@@ -1557,7 +1557,7 @@ class VistrailController(object):
     def check_subpipeline_port_names(self):
         def create_name(base_name, names):
             if base_name in names:
-                port_name = base_name + '_' + str(names[base_name])
+                port_name = base_name + '_' + unicode(names[base_name])
                 names[base_name] += 1
             else:
                 port_name = base_name
@@ -1665,7 +1665,7 @@ class VistrailController(object):
         out_names = {}
         def create_name(base_name, names):
             if base_name in names:
-                port_name = base_name + '_' + str(names[base_name])
+                port_name = base_name + '_' + unicode(names[base_name])
                 names[base_name] += 1
             else:
                 port_name = base_name
@@ -1954,7 +1954,7 @@ class VistrailController(object):
             self.set_changed(True)
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                           new_version, new_pipeline)
-            module_version = str(new_version)
+            module_version = unicode(new_version)
 
         all_namespaces = get_all_abs_namespaces(abs_vistrail)
 
@@ -1981,14 +1981,14 @@ class VistrailController(object):
                                             name, 
                                             ns,
                                             abstraction_ver, 
-                                            str(module_version)):
+                                            unicode(module_version)):
                 # don't add something twice
                 continue
             new_desc = reg.auto_add_module((abstraction, 
                                             {'package': abstraction_pkg,
                                              'package_version': abstraction_ver,
                                              'namespace': ns,
-                                             'version': str(module_version),
+                                             'version': unicode(module_version),
                                              'hide_namespace': True,
                                              'hide_descriptor': hide_descriptor,
                                              }))
@@ -2029,7 +2029,7 @@ class VistrailController(object):
         abstraction_uuid = get_cur_abs_namespace(abs_vistrail)
         if abstraction_uuid is None:
             # No current uuid exists - generate one
-            abstraction_uuid = str(uuid.uuid1())
+            abstraction_uuid = unicode(uuid.uuid1())
             abs_vistrail.set_annotation('__abstraction_uuid__', abstraction_uuid)
         origin_uuid = abs_vistrail.get_annotation('__abstraction_origin_uuid__')
         if origin_uuid is None:
@@ -2040,9 +2040,9 @@ class VistrailController(object):
             origin_uuid = origin_uuid.value
             
         if module_version is None:
-            module_version = str(abs_vistrail.get_latest_version())
+            module_version = unicode(abs_vistrail.get_latest_version())
         elif isinstance(module_version, (int, long)):
-            module_version = str(module_version)
+            module_version = unicode(module_version)
         # If an upgraded version has already been created, we want to use that rather than loading the old version.
         # This step also avoid duplication of abstraction upgrades.  Otherwise, when we try to add the old version
         # to the registry, it raises an InvalidPipeline exception and automatically tries to handle it by creating
@@ -2050,7 +2050,7 @@ class VistrailController(object):
         upgrade_version = abs_vistrail.get_upgrade(long(module_version))
         if upgrade_version is not None:
             old_version = module_version
-            module_version = str(upgrade_version)
+            module_version = unicode(upgrade_version)
         
         desc = self.get_abstraction_desc(abstraction_pkg, abs_name, 
                                          abstraction_uuid, module_version)
@@ -2109,7 +2109,7 @@ class VistrailController(object):
         # '__abstraction_uuid__' and no origin, so we have to handle
         # cases where a uuid is set, but hasn't been set as the origin
         # yet).
-        new_uuid = str(uuid.uuid1())
+        new_uuid = unicode(uuid.uuid1())
         if vistrail.get_annotation('__abstraction_origin_uuid__') is None:
             # No origin uuid exists
             current_uuid = vistrail.get_annotation('__abstraction_uuid__')
@@ -2123,10 +2123,10 @@ class VistrailController(object):
                 # generate a new current uuid
                 vistrail.set_annotation('__abstraction_origin_uuid__', 
                                         current_uuid.value)
-                # vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
+                # vistrail.set_annotation('__abstraction_uuid__', unicode(uuid.uuid1()))
         # else:
         #     # Origin uuid exists - just generate a new current uuid
-        #     vistrail.set_annotation('__abstraction_uuid__', str(uuid.uuid1()))
+        #     vistrail.set_annotation('__abstraction_uuid__', unicode(uuid.uuid1()))
         annotation_key = get_next_abs_annotation_key(vistrail)
         vistrail.set_annotation(annotation_key, new_uuid)
 
@@ -2171,7 +2171,7 @@ class VistrailController(object):
         abs_namespace = get_cur_abs_namespace(abs_vistrail)
         lookup = {(abs_name, abs_namespace): abs_fname}
         descriptor_info = invalid_module.descriptor_info
-        newest_version = str(abs_vistrail.get_latest_version())
+        newest_version = unicode(abs_vistrail.get_latest_version())
         #print '&&& check_abstraction', abs_namespace, newest_version
         d = self.check_abstraction((descriptor_info[0],
                                     descriptor_info[1],
@@ -2260,7 +2260,7 @@ class VistrailController(object):
                            module_version=None):
         # copy from a local namespace to local.abstractions
         reg = vistrails.core.modules.module_registry.get_module_registry()
-        descriptor = self.get_abstraction_desc(package, name, namespace, str(module_version))
+        descriptor = self.get_abstraction_desc(package, name, namespace, unicode(module_version))
         if descriptor is None:
             # if not self.abstraction_exists(name):
             raise VistrailsInternalError("Abstraction %s|%s (package: %s) not on registry" %\
@@ -2285,7 +2285,7 @@ class VistrailController(object):
         #    descriptor.module.vt_fname = abs_fname
         #else:
         new_desc = self.add_abstraction_to_registry(imported_vistrail, abs_fname, new_name,
-                                                    None, str(module_version))
+                                                    None, unicode(module_version))
         reg.show_module(new_desc)
 
     def export_abstraction(self, new_name, pkg_name, dir, package, name, namespace, 
@@ -2375,7 +2375,7 @@ class VistrailController(object):
                                           descriptor_tuple[4])
                 descriptor_tuple = (new_desc.package, new_desc.name, 
                                     new_desc.namespace, new_desc.package_version,
-                                    str(new_desc.version))
+                                    unicode(new_desc.version))
                 return self.check_abstraction(descriptor_tuple, lookup)
             else:
                 raise
@@ -2395,7 +2395,7 @@ class VistrailController(object):
                                            if k[1] != None])
                 descriptor_tuple = (new_desc.package, new_desc.name, 
                                     new_desc.namespace, new_desc.package_version,
-                                    str(new_desc.version))
+                                    unicode(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
         return None
         
@@ -2414,7 +2414,7 @@ class VistrailController(object):
         # abstraction.vistrail until the module is loaded.
         abstractions = self.find_abstractions(vistrail)
         for descriptor_info, abstraction_list in abstractions.iteritems():
-            # print 'checking for abstraction "' + str(abstraction.name) + '"'
+            # print 'checking for abstraction "' + unicode(abstraction.name) + '"'
             try:
                 descriptor = self.check_abstraction(descriptor_info,
                                                     lookup)
@@ -2573,7 +2573,7 @@ class VistrailController(object):
             # FIXME should use registry to determine parameter types
             # and then call the translate_to_string method on each
             # parameter
-            param_values = [str(x) for x in param_values]
+            param_values = [unicode(x) for x in param_values]
             module = self.current_pipeline.modules[m_id]
             # FIXME remove this code when aliases move
             old_id = -1
@@ -3037,7 +3037,7 @@ class VistrailController(object):
         def process_missing_packages(exception_set):
             for err in exception_set:
                 err._was_handled = False
-                # print '--- trying to fix', str(err)
+                # print '--- trying to fix', unicode(err)
                 # FIXME need to get module_id from these exceptions
                 # when possible!  need to integrate
                 # report_missing_module and handle_module_upgrade
@@ -3118,7 +3118,7 @@ class VistrailController(object):
             for err in exception_set:
                 if err._was_handled:
                     continue
-                # print '+++ trying to fix', str(err)
+                # print '+++ trying to fix', unicode(err)
                 if isinstance(err, InvalidPipeline):
                     id_scope = IdScope(1, {Group.vtType: Module.vtType,
                                            Abstraction.vtType: Module.vtType})
@@ -3328,7 +3328,7 @@ class VistrailController(object):
             else:
                 vistrail.add_action(upgrade_action, new_version, 
                                     self.current_session)
-                vistrail.set_upgrade(new_version, str(upgrade_action.id))
+                vistrail.set_upgrade(new_version, unicode(upgrade_action.id))
                 if get_vistrails_configuration().check("migrateTags"):
                     self.migrate_tags(new_version, upgrade_action.id, vistrail)
                 new_version = upgrade_action.id
@@ -3587,7 +3587,7 @@ class VistrailController(object):
                             err._module_name, err._package_name)
                     debug.critical(msg)
                 else:
-                    debug.critical(str(err))                
+                    debug.critical(unicode(err))
 
             if report_all_errors:
                 for err in e._exception_set:
@@ -3681,7 +3681,7 @@ class VistrailController(object):
             if is_abstraction and self.changed:
                 # first update any names if necessary
                 self.check_subpipeline_port_names()
-                new_namespace = str(uuid.uuid1())
+                new_namespace = unicode(uuid.uuid1())
                 annotation_key = get_next_abs_annotation_key(self.vistrail)
                 self.vistrail.set_annotation(annotation_key, new_namespace)
             save_bundle = SaveBundle(self.vistrail.vtType)

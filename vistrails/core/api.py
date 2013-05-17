@@ -180,7 +180,7 @@ class Module(object):
         else:
             vt_api.change_parameter(self,
                                     port_spec.name,
-                                    [str(x) for x in args])
+                                    [unicode(x) for x in args])
 
 class Package(object):
     def __init__(self, identifier, version=''):

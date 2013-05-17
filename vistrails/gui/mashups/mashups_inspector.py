@@ -244,7 +244,7 @@ class QMashupProp(QtGui.QWidget):
         """
         if self.controller:
             name = self.controller.mshptrail.getTagForActionId(self.versionNumber)
-            currentText = str(self.tagEdit.text())
+            currentText = unicode(self.tagEdit.text())
             if name != currentText:    
                 #print "will update current tag", currentText
                 self.controller.updateCurrentTag(currentText)
@@ -276,7 +276,7 @@ class QMashupProp(QtGui.QWidget):
                            vistrails.core.system.vistrails_file_directory(),
                            "VisTrail link files (*.vtl)")
                 if fileName:
-                    filename = str(fileName)
+                    filename = unicode(fileName)
                     res = MashupsManager.exportMashup(filename, 
                                                       self.controller.originalController, 
                                                       self.controller.mshptrail,
@@ -323,7 +323,7 @@ class QMashupsListPanel(QtGui.QWidget):
             if len(tags) > 0:
                 tags.sort()
                 for tag in tags:
-                    item = QMashupListPanelItem(str(tag),
+                    item = QMashupListPanelItem(unicode(tag),
                                                 self.tagMap[tag],
                                                 self.mashupsList)
                     if tag == currentTag:

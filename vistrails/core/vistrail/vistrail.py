@@ -258,7 +258,7 @@ class Vistrail(DBVistrail):
                     name = "ROOT"
                 count_str = ""
                 if count > 0:
-                    count_str = " + " + str(count)
+                    count_str = " + " + unicode(count)
                 return name + count_str
             version = action_map[version].parent
             count += 1
@@ -836,11 +836,11 @@ class Vistrail(DBVistrail):
         return None
     def set_prune(self, action_id, value):
         if isinstance(value, bool):
-            value = str(value)
+            value = unicode(value)
         return self.set_action_annotation(action_id, Vistrail.PRUNE_ANNOTATION,
                                           value)
     def is_pruned(self, action_id):
-        return self.get_prune(action_id) == str(True)
+        return self.get_prune(action_id) == unicode(True)
 
     def has_upgrade(self, action_id):
         return self.has_action_annotation(action_id, 
@@ -1090,7 +1090,7 @@ class Vistrail(DBVistrail):
                     self.set_tag(version, '')
             current_graph = self.getVersionGraph()
             current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
-            self.set_prune(version, str(True))
+            self.set_prune(version, unicode(True))
 
             # self.prunedVersions.add(version)
 
@@ -1100,7 +1100,7 @@ class Vistrail(DBVistrail):
 
         """
         if version != 0:
-            self.set_prune(version, str(True))
+            self.set_prune(version, unicode(True))
 
     def showVersion(self, version):
         """ showVersion(version: int) -> None
@@ -1108,7 +1108,7 @@ class Vistrail(DBVistrail):
 
         """
         if version != 0:
-            self.set_prune(version, str(False))
+            self.set_prune(version, unicode(False))
 
     def expandVersion(self, version):
         """ expandVersion(version: int) -> None

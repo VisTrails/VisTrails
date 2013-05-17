@@ -256,7 +256,7 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         value_list = []
         for _, c in sorted(self.cols.iteritems()):
             if c in value_dict:
-                value_list.append(str(value_dict[c]))
+                value_list.append(unicode(value_dict[c]))
             else:
                 value_list.append(None)
         if id not in self.id_lists:
@@ -371,7 +371,7 @@ class PersistentRefView(QtGui.QTreeView):
             id_list = \
                 self.my_model.id_lists[self.my_model.id_lists_keys[index.row()]]
             id = id_list[0][self.my_model.idxs['id']]
-        return str(id)
+        return unicode(id)
 
     def get_version(self):
         sf_index = self.selectionModel().selectedRows()[0]
@@ -381,7 +381,7 @@ class PersistentRefView(QtGui.QTreeView):
             id_list = \
                 self.my_model.id_lists[self.my_model.id_lists_keys[paridx]]
             version = id_list[index.row()][self.my_model.idxs['version']]
-            return str(version)        
+            return unicode(version)
         return None
         
     def get_info(self):
@@ -397,16 +397,16 @@ class PersistentRefView(QtGui.QTreeView):
                 id_list = \
                     self.my_model.id_lists[self.my_model.id_lists_keys[paridx]]
                 info = id_list[index.row()]
-                version = str(info[self.my_model.idxs['version']])
+                version = unicode(info[self.my_model.idxs['version']])
             else:
                 id_list = self.my_model.id_lists[ \
                     self.my_model.id_lists_keys[index.row()]]
                 info = id_list[0]
                 version = None
-            info_list.append((str(info[self.my_model.idxs['id']]),
+            info_list.append((unicode(info[self.my_model.idxs['id']]),
                               version,
-                              str(info[self.my_model.idxs['name']]),
-                              str(info[self.my_model.idxs['tags']])))
+                              unicode(info[self.my_model.idxs['name']]),
+                              unicode(info[self.my_model.idxs['tags']])))
         return info_list
 
 class PersistentRefDialog(QtGui.QDialog):
@@ -609,7 +609,7 @@ class PathChooserLayout(QtGui.QHBoxLayout):
             self.emit(QtCore.SIGNAL('pathnameChanged()'))
 
     def get_path(self):
-        return str(self.pathname_edit.text())
+        return unicode(self.pathname_edit.text())
 
     def set_path(self, pathname):
         if pathname:
@@ -833,7 +833,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
 
     def new_file_changed(self):
         self.stateChange()
-        new_file = str(self.new_file.get_path())
+        new_file = unicode(self.new_file.get_path())
         if new_file:
             base_name = os.path.basename(new_file)
         self.name_edit.setText(base_name)
@@ -952,20 +952,20 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
                 ref.id = self.existing_ref.id
                 ref.version = self.existing_ref.version
             else:
-                ref.id = str(uuid.uuid1())
+                ref.id = unicode(uuid.uuid1())
                 ref.version = None
             # endif
-            ref.name = str(self.name_edit.text())
-            ref.tags = str(self.tags_edit.text())
+            ref.name = unicode(self.name_edit.text())
+            ref.tags = unicode(self.tags_edit.text())
         elif self.managed_existing.isChecked():
             (ref.id, ref.version, ref.name, ref.tags) = \
                 self.ref_widget.get_info()
         if self.keep_local.isChecked():
             functions.append(('localPath', [self.local_path.get_path()]))
             functions.append(('readLocal', 
-                              [str(self.r_priority_local.isChecked())]))
+                              [unicode(self.r_priority_local.isChecked())]))
             functions.append(('writeLocal',
-                              [str(self.write_managed_checkbox.isChecked())]))
+                              [unicode(self.write_managed_checkbox.isChecked())]))
 #             ref.local_path = self.local_path.get_path()
 #             ref.local_read = self.r_priority_local.isChecked()
 #             ref.local_writeback = self.write_managed_checkbox.isChecked()

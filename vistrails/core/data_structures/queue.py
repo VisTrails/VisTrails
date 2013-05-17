@@ -142,7 +142,7 @@ class Queue(object):
         Format the queue for serialization and return a string
 
         """
-        return str(self.__buffer)
+        return unicode(self.__buffer)
 
 ################################################################################
 
