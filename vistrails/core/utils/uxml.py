@@ -49,7 +49,7 @@ def eval_xml_value(node):
     
     key_name = node.nodeName
     type_ = getattr(__builtin__, key_name)
-    str_value = unicode(node.attributes['value'].value)
+    str_value = node.attributes['value'].value
 
     # Tricky case bool('False') == True
     if type_ == bool:
@@ -59,6 +59,8 @@ def eval_xml_value(node):
             return False
         else:
             raise ValueError("eval_xml_value: Bogus bool value '%s'" % str_value)
+    elif type_ == bytes:
+        return str_value.encode('latin-1')
     return type_(str_value)
 
 def quote_xml_value(dom, value):
@@ -68,12 +70,16 @@ def quote_xml_value(dom, value):
        eval_xml_value(quote_xml_value(dom, value)) == value
 
        <str value='foo'/> <- 'foo'
+       <unicode value='bar'/> <- u'bar'
        <int value='3'/> <- 3
        <float value='3.141592'> <- 3.141592
        <bool value='False'> <- False
     """
 
     el = dom.createElement(type(value).__name__)
+    if isinstance(value, bytes):
+        # Converts bytes to characters with the same codepoint
+        value = value.decode('latin-1')
     el.setAttribute('value', unicode(value))
     return el
 
