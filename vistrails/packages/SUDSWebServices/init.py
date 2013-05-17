@@ -49,7 +49,8 @@ from vistrails.core import debug
 
 from vistrails.core.bundles import py_import
 try:
-    mpl_dict = {'linux-ubuntu': 'python-suds',
+    mpl_dict = {'linux-debian': 'python-suds',
+                'linux-ubuntu': 'python-suds',
                 'linux-fedora': 'python-suds'}
     suds = py_import('suds', mpl_dict)
 except Exception, e:

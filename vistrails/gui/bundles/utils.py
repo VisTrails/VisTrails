@@ -96,9 +96,12 @@ def _guess_suse():
 _system_guesser.add_test(_guess_suse, 'linux-suse')
 
 def _guess_ubuntu():
-#    return os.path.isfile('/etc/apt/apt.conf.d/01ubuntu')
-     return platform.linux_distribution()[0]=='Ubuntu'
+    return platform.linux_distribution()[0]=='Ubuntu'
 _system_guesser.add_test(_guess_ubuntu, 'linux-ubuntu')
+
+def _guess_debian():
+    return platform.linux_distribution()[0].lower() == 'debian'
+_system_guesser.add_test(_guess_debian, 'linux-debian')
 
 def _guess_fedora():
     return os.path.isfile('/etc/fedora-release')
@@ -112,6 +115,6 @@ will be a string describing the system. This is more discriminating than
 Linux/OSX/Windows: We'll try to figure out whether you're running SuSE, Debian,
 Ubuntu, RedHat, fink, darwinports, etc.
 
-Currently, we only support SuSE, Ubuntu and Fedora. However, we only have
-actual bundle installing for Ubuntu and Fedora."""
+Currently, we only support SuSE, Debian, Ubuntu and Fedora. However, we only
+have actual bundle installing for Debian, Ubuntu and Fedora."""
     return _system_guesser.guess_system()
