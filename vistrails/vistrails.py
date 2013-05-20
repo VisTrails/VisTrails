@@ -81,7 +81,7 @@ def enable_user_base():
     if platform.system()!='Darwin': return
     import site
     if hasattr(site, "USER_BASE"): return
-    import mac_site
+    from core.system import mac_site
     site.USER_BASE = mac_site.getuserbase()
     site.USER_SITE = mac_site.getusersitepackages()
 
