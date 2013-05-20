@@ -181,3 +181,8 @@ to generate the tarball:
 $ python make-vistrails-src-release.py
 It will checkout the hash code defined in the file and rename the
 tarball apropriately.
+
+== Update "Check For Updates" ==
+
+If this is a new stable version, log in to vistrails.org and update the version number in:
+/srv/wiki/vistrails/downloads/dist/release_version.txt
