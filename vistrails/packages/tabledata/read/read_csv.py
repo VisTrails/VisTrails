@@ -134,6 +134,8 @@ _modules = {'csv': [CSVFile, ExtractColumn]}
 ###############################################################################
 
 import unittest
+from vistrails.tests.utils import execute, intercept_result
+from ..identifiers import identifier
 
 
 class CSVTestCase(unittest.TestCase):
@@ -148,16 +150,13 @@ class CSVTestCase(unittest.TestCase):
     def test_csv_numeric(self):
         """Uses CSVFile and ExtractColumn to load a numeric array.
         """
-        from ..identifiers import identifier
-        from vistrails.tests.utils import execute, intercept_result
-
         with intercept_result(ExtractColumn, 'value') as results:
             with intercept_result(CSVFile, 'column_count') as columns:
                 self.assertFalse(execute([
-                        ('CSVFile', identifier, [
+                        ('read|csv|CSVFile', identifier, [
                             ('file', [('File', self._test_dir + '/test.csv')]),
                         ]),
-                        ('ExtractColumn', identifier, [
+                        ('read|csv|ExtractColumn', identifier, [
                             ('column_index', [('Integer', '1')]),
                             ('column_name', [('String', 'col 2')]),
                         ]),
@@ -172,14 +171,11 @@ class CSVTestCase(unittest.TestCase):
     def test_csv_mismatch(self):
         """Uses CSVFile and ExtractColumn with mismatching columns.
         """
-        from ..identifiers import identifier
-        from vistrails.tests.utils import execute
-
         self.assertTrue(execute([
-                ('CSVFile', identifier, [
+                ('read|csv|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
-                ('ExtractColumn', identifier, [
+                ('read|csv|ExtractColumn', identifier, [
                     ('column_index', [('Integer', '0')]), # index is wrong
                     ('column_name', [('String', 'col 2')]),
                 ]),
@@ -191,14 +187,11 @@ class CSVTestCase(unittest.TestCase):
     def test_csv_missing(self):
         """Uses CSVFile and ExtractColumn with a nonexisting column.
         """
-        from ..identifiers import identifier
-        from vistrails.tests.utils import execute
-
         self.assertTrue(execute([
-                ('CSVFile', identifier, [
+                ('read|csv|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
-                ('ExtractColumn', identifier, [
+                ('read|csv|ExtractColumn', identifier, [
                     ('column_name', [('String', 'col not here')]),
                 ]),
             ],
@@ -209,16 +202,13 @@ class CSVTestCase(unittest.TestCase):
     def test_csv_nonnumeric(self):
         """Uses CSVFile and ExtractColumn to load strings.
         """
-        from ..identifiers import identifier
-        from vistrails.tests.utils import execute, intercept_result
-
         with intercept_result(ExtractColumn, 'value') as results:
             self.assertFalse(execute([
-                    ('CSVFile', identifier, [
+                    ('read|csv|CSVFile', identifier, [
                         ('file', [('File', self._test_dir + '/test.csv')]),
                         ('header_present', [('Boolean', 'False')]),
                     ]),
-                    ('ExtractColumn', identifier, [
+                    ('read|csv|ExtractColumn', identifier, [
                         ('column_index', [('Integer', '2')]),
                         ('numeric', [('Boolean', 'False')]),
                     ]),

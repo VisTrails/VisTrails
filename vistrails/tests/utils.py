@@ -94,7 +94,14 @@ def execute(modules, connections=[], add_port_specs=[]):
                                               val=param_val))
             function_list.append(ModuleFunction(name=func_name,
                                                 parameters=param_list))
+        name = name.rsplit('|', 1)
+        if len(name) == 2:
+            namespace, name = name
+        else:
+            namespace = None
+            name, = name
         module = Module(name=name,
+                        namespace=namespace,
                         package=identifier,
                         version=pkg.version,
                         id=i,

@@ -59,7 +59,7 @@ class NumPyArray(Module):
         self.setResult('value', array)
 
 
-_modules = {'csv': [NumPyArray]}
+_modules = {'numpy': [NumPyArray]}
 
 
 ###############################################################################
@@ -84,7 +84,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('NumPyArray', identifier, [
+                    ('read|numpy|NumPyArray', identifier, [
                         ('datatype', [('String', 'float32')]),
                         ('shape', [('List', '[2, 3]')]),
                         ('file', [('File', self._test_dir + '/random.dat')]),
@@ -102,7 +102,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('NumPyArray', identifier, [
+                    ('read|numpy|NumPyArray', identifier, [
                         ('datatype', [('String', 'npy')]),
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
@@ -118,7 +118,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('NumPyArray', identifier, [
+                    ('read|numpy|NumPyArray', identifier, [
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
                 ]))
