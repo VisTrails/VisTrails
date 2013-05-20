@@ -66,23 +66,22 @@ import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
 from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
-    translate_object, translate_vistrail, translate_workflow, translate_log, \
-    translate_registry
+    translate_vistrail, translate_workflow, translate_log, translate_registry
 
 import unittest
 import vistrails.core.system
-import os
 
 ElementTree = get_elementtree_library()
-
 
 
 _db_lib = None
 def get_db_lib():
     global _db_lib
     if _db_lib is None:
-        # FIXME use core.bundles.py_import here
-        import MySQLdb
+        MySQLdb = py_import('MySQLdb', {
+                'linux-debian': 'python-mysqldb',
+                'linux-ubuntu': 'python-mysqldb',
+                'linux-fedora': 'MySQL-python'})
         # import sqlite3
         _db_lib = MySQLdb
     return _db_lib
@@ -90,11 +89,6 @@ def set_db_lib(lib):
     global _db_lib
     _db_lib = lib
 
-# load MySQLdb early if it exists, o/w don't error out
-try:
-    get_db_lib()
-except ImportError:
-    pass
 
 class SaveBundle(object):
     """Transient bundle of objects to be saved or loaded.

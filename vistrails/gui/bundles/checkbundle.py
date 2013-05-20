@@ -34,9 +34,9 @@
 ###############################################################################
 
 """Module with utilities to inspect bundles, if possible."""
-from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
+from vistrails.gui.bundles.utils import guess_system
 import vistrails.gui.bundles.checkbundle # this is on purpose
-import os
+import sys
 
 ##############################################################################
 
@@ -47,14 +47,14 @@ def linux_ubuntu_check(package_name):
     depcache = apt_pkg.GetDepCache(cache)
 
     def get_single_package(name):
-        if type(package) != str:
+        if type(name) != str:
             raise TypeError("Expected string")
         cache = apt_pkg.GetCache()
         depcache = apt_pkg.GetDepCache(cache)
         records = apt_pkg.GetPkgRecords(cache)
         sourcelist = apt_pkg.GetPkgSourceList()
-        pkg = apt.package.Package(cache, depcache, records,
-                                  sourcelist, None, cache[sys.argv[1]])
+        pkg = apt_pkg.package.Package(cache, depcache, records,
+                                      sourcelist, None, cache[sys.argv[1]])
         return pkg
 
     if type(package_name) == str:
@@ -70,7 +70,7 @@ def get_version(dependency_dictionary):
     if not dependency_dictionary.has_key(distro):
         return None
     else:
-        callable_ = getattr(core.bundles.checkbundle,
+        callable_ = getattr(vistrails.gui.bundles.checkbundle,
                             distro.replace('-', '_') + '_get_version')
         
         return callable_(dependency_dictionary[distro])

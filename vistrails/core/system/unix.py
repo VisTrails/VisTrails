@@ -102,7 +102,12 @@ def execute_cmdline(lst, output):
     return result
 
 def get_executable_path(executable_name):
-    #FIXME
+    paths = os.environ['PATH']
+    paths = paths.split(os.pathsep)
+    for prefix in paths:
+        path = os.path.join(prefix, executable_name)
+        if os.path.exists(path):
+            return path
     return None
 
 def execute_piped_cmdlines(cmd_list_list):

@@ -42,93 +42,97 @@ def execute_wf(wf, output_ports):
     # Save the workflow in a temporary file
     temp_wf_fd, temp_wf = tempfile.mkstemp()
 
-    f = open(temp_wf, 'w')
-    f.write(wf)
-    f.close()
-    os.close(temp_wf_fd)
+    try:
+        f = open(temp_wf, 'w')
+        f.write(wf)
+        f.close()
+        os.close(temp_wf_fd)
 
-    # Clean the cache
-    interpreter = get_default_interpreter()
-    interpreter.flush()
+        # Clean the cache
+        interpreter = get_default_interpreter()
+        interpreter.flush()
 
-    # Load the Pipeline from the temporary file
-    vistrail = Vistrail()
-    locator = XMLFileLocator(temp_wf)
-    workflow = locator.load(Pipeline)
+        # Load the Pipeline from the temporary file
+        vistrail = Vistrail()
+        locator = XMLFileLocator(temp_wf)
+        workflow = locator.load(Pipeline)
 
-    # Build a Vistrail from this single Pipeline
-    action_list = []
-    for module in workflow.module_list:
-        action_list.append(('add', module))
-    for connection in workflow.connection_list:
-        action_list.append(('add', connection))
-    action = vistrails.core.db.action.create_action(action_list)
+        # Build a Vistrail from this single Pipeline
+        action_list = []
+        for module in workflow.module_list:
+            action_list.append(('add', module))
+        for connection in workflow.connection_list:
+            action_list.append(('add', connection))
+        action = vistrails.core.db.action.create_action(action_list)
 
-    vistrail.add_action(action, 0L)
-    vistrail.update_id_scope()
-    tag = 'parallel flow'
-    vistrail.addTag(tag, action.id)
+        vistrail.add_action(action, 0L)
+        vistrail.update_id_scope()
+        tag = 'parallel flow'
+        vistrail.addTag(tag, action.id)
 
-    # Build a controller and execute
-    controller = VistrailController(vistrail, None)
-    controller.change_selected_version(vistrail.get_version_number(tag))
-    execution = controller.execute_current_workflow(
-            custom_aliases=None,
-            custom_params=None,
-            extra_info=None,
-            reason='API Pipeline Execution')
+        # Build a controller and execute
+        controller = VistrailController()
+        controller.set_vistrail(vistrail, None)
+        controller.change_selected_version(vistrail.get_version_number(tag))
+        execution = controller.execute_current_workflow(
+                custom_aliases=None,
+                custom_params=None,
+                extra_info=None,
+                reason='API Pipeline Execution')
 
-    # Build a list of errors
-    errors = []
-    pipeline = vistrail.getPipeline(tag)
-    execution_errors = execution[0][0].errors
-    if execution_errors:
-        for key in execution_errors:
-            module = pipeline.modules[key]
-            msg = '%s: %s' %(module.name, execution_errors[key])
-            errors.append(msg)
+        # Build a list of errors
+        errors = []
+        pipeline = vistrail.getPipeline(tag)
+        execution_errors = execution[0][0].errors
+        if execution_errors:
+            for key in execution_errors:
+                module = pipeline.modules[key]
+                msg = '%s: %s' %(module.name, execution_errors[key])
+                errors.append(msg)
 
-    # Get the execution log from the controller
-    module_log = controller.log.workflow_execs[0].item_execs[0]
-    machine = controller.log.machine_list[0]
-    xml_log = serialize(module_log)
-    machine_log = serialize(machine)
+        # Get the execution log from the controller
+        module_log = controller.log.workflow_execs[0].item_execs[0]
+        machine = controller.log.machine_list[0]
+        xml_log = serialize(module_log)
+        machine_log = serialize(machine)
 
-    # Get the requested output values
-    module_outputs = []
-    annotations = module_log.annotations
-    for annotation in annotations:
-        if annotation.key == 'output':
-            module_outputs = annotation.value
-            break
-
-    # Store the output values in the order they were requested
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-    ports = []
-    outputs = []
-    serializable = []
-    for port in output_ports:
-        for output in module_outputs:
-            if output[0] == port:
-                # checking if output port needs to be serialized
-                base_classes = inspect.getmro(type(output[1]))
-                if Module in base_classes:
-                    ports.append(output[0])
-                    outputs.append(output[1].serialize())
-                    serializable.append(reg.get_descriptor(type(output[1])).sigstring)
-                else:
-                    ports.append(output[0])
-                    outputs.append(output[1])
-                    serializable.append(None)
+        # Get the requested output values
+        module_outputs = []
+        annotations = module_log.annotations
+        for annotation in annotations:
+            if annotation.key == 'output':
+                module_outputs = annotation.value
                 break
 
-    # Return the dictionary, that will be sent back to the client
-    return dict(errors=errors,
-                ports=ports,
-                outputs=outputs,
-                serializable=serializable,
-                xml_log=xml_log,
-                machine_log=machine_log)
+        # Store the output values in the order they were requested
+        reg = vistrails.core.modules.module_registry.get_module_registry()
+        ports = []
+        outputs = []
+        serializable = []
+        for port in output_ports:
+            for output in module_outputs:
+                if output[0] == port:
+                    # checking if output port needs to be serialized
+                    base_classes = inspect.getmro(type(output[1]))
+                    if Module in base_classes:
+                        ports.append(output[0])
+                        outputs.append(output[1].serialize())
+                        serializable.append(reg.get_descriptor(type(output[1])).sigstring)
+                    else:
+                        ports.append(output[0])
+                        outputs.append(output[1])
+                        serializable.append(None)
+                    break
+
+        # Return the dictionary, that will be sent back to the client
+        return dict(errors=errors,
+                    ports=ports,
+                    outputs=outputs,
+                    serializable=serializable,
+                    xml_log=xml_log,
+                    machine_log=machine_log)
+    finally:
+        os.unlink(temp_wf)
 
 ################################################################################
 # Map Operator

@@ -351,32 +351,34 @@ by startup.py. This should only be called after init()."""
                 debug.warning("Old-style initialization hooks. Will try to set things correctly.")
                 (fd, name) = tempfile.mkstemp()
                 os.close(fd)
-                shutil.copyfile(self.temp_configuration.dotVistrails, name)
                 try:
-                    os.unlink(self.temp_configuration.dotVistrails)
-                except:
-                    debug.critical("""Failed to remove old initialization file.
-                    This could be an indication of a permissions problem.
-                    Make sure file '%s' is writable."""
-                    % self.temp_configuration.dotVistrails)
-                    sys.exit(1)
-                self.create_default_directory()
-                try:
-                    destiny = os.path.join(self.temp_configuration.dotVistrails,
-                                           'startup.py')
-                    shutil.copyfile(name, destiny)
-                except:
-                    debug.critical("""Failed to copy old initialization file to
-                    newly-created initialization directory. This must have been
-                    a race condition. Please remove '%s' and
-                    restart VisTrails."""
-                    % self.temp_configuration.dotVistrails)
-                    sys.exit(1)
-                debug.critical("Successful move!")
-                try:
-                    os.unlink(name)
-                except:
-                    debug.warning("Failed to erase temporary file.")
+                    shutil.copyfile(self.temp_configuration.dotVistrails, name)
+                    try:
+                        os.unlink(self.temp_configuration.dotVistrails)
+                    except:
+                        debug.critical("""Failed to remove old initialization file.
+                        This could be an indication of a permissions problem.
+                        Make sure file '%s' is writable."""
+                        % self.temp_configuration.dotVistrails)
+                        sys.exit(1)
+                    self.create_default_directory()
+                    try:
+                        destiny = os.path.join(self.temp_configuration.dotVistrails,
+                                               'startup.py')
+                        shutil.copyfile(name, destiny)
+                    except:
+                        debug.critical("""Failed to copy old initialization file to
+                        newly-created initialization directory. This must have been
+                        a race condition. Please remove '%s' and
+                        restart VisTrails."""
+                        % self.temp_configuration.dotVistrails)
+                        sys.exit(1)
+                    debug.critical("Successful move!")
+                finally:
+                    try:
+                        os.unlink(name)
+                    except:
+                        debug.warning("Failed to erase temporary file.")
 
             if os.path.isdir(self.temp_configuration.dotVistrails):
                 if self.temp_configuration.check('userPackageDirectory'):

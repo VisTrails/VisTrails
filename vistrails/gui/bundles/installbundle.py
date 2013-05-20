@@ -36,7 +36,7 @@
 """Module with utilities to try and install a bundle if possible."""
 from vistrails.core import get_vistrails_application
 from vistrails.core import debug
-import vistrails.core.system
+from vistrails.core.system import get_executable_path, vistrails_root_directory
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 import os
@@ -62,15 +62,20 @@ def hide_splash_if_necessary():
         except:
             pass
 
-def linux_ubuntu_install(package_name):
+def linux_debian_install(package_name):
     qt = has_qt()
+    try:
+        import apt
+        import apt_pkg
+    except ImportError:
+        qt = False
     hide_splash_if_necessary()
-        
+
     if qt:
-        cmd = vistrails.core.system.vistrails_root_directory()
-        cmd += '/gui/bundles/linux_ubuntu_install.py'
+        cmd = vistrails_root_directory()
+        cmd += '/gui/bundles/linux_debian_install.py'
     else:
-        cmd = 'apt-get install -y'
+        cmd = '%s install -y' % ('aptitude' if get_executable_path('aptitude') else 'apt-get')
 
     if type(package_name) == str:
         cmd += ' ' + package_name
@@ -79,23 +84,36 @@ def linux_ubuntu_install(package_name):
             if type(package) != str:
                 raise TypeError("Expected string or list of strings")
             cmd += ' ' + package
+    else:
+        raise TypeError("Expected string or list of strings")
 
     if qt:
-        sucmd = guess_graphical_sudo() + " '" + cmd + "'"
+        sucmd, escape = guess_graphical_sudo()
     else:
         debug.warning("VisTrails wants to install package(s) '%s'" %
                       package_name)
-        sucmd = "sudo " + cmd
+        if get_executable_path('sudo'):
+            sucmd, escape = "sudo", False
+        else:
+            sucmd, escape = "su -c", True
 
+    if escape:
+        sucmd = '%s "%s"' % (sucmd, cmd.replace('\\', '\\\\').replace('"', '\\"'))
+    else:
+        sucmd = '%s %s' % (sucmd, cmd)
+
+    print "about to run: %s" % sucmd
     result = os.system(sucmd)
 
     return (result == 0) # 0 indicates success
+
+linux_ubuntu_install = linux_debian_install
 
 def linux_fedora_install(package_name):
     qt = has_qt()
     hide_splash_if_necessary()
     if qt:
-        cmd = vistrails.core.system.vistrails_root_directory()
+        cmd = vistrails_root_directory()
         cmd += '/gui/bundles/linux_fedora_install.py'
     else:
         cmd = 'yum -y install'
@@ -107,6 +125,8 @@ def linux_fedora_install(package_name):
             if type(package) != str:
                 raise TypeError("Expected string or list of strings")
             cmd += ' ' + package
+    else:
+        raise TypeError("Expected string or list of strings")
 
     if qt:
         sucmd = guess_graphical_sudo() + " " + cmd
@@ -151,11 +171,8 @@ def show_question(which_files):
 
 
 def install(dependency_dictionary):
-    """Tries to import a python module. If unsuccessful, tries to install
-the appropriate bundle and then reimport. py_import tries to be smart
-about which system it runs on."""
+    """Tries to install a bundle after a py_import() failed.."""
 
-    # Ugly fix to avoid circular import
     distro = guess_system()
     if distro not in dependency_dictionary:
         return False

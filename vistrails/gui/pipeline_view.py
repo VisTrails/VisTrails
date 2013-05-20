@@ -48,13 +48,7 @@ QPipelineView
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
-from vistrails.core.db.action import create_action
-from vistrails.core.layout.workflow_layout import WorkflowLayout, \
-    Pipeline as LayoutPipeline
 from vistrails.core.system import systemType
-from vistrails.core.utils import profile
-from vistrails.core.vistrail.annotation import Annotation
-from vistrails.gui.modules.module_configure import DefaultModuleConfigurationWidget
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -62,16 +56,14 @@ from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
-from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
-from vistrails.gui.module_annotation import QModuleAnnotation
+from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
-from vistrails.gui.module_documentation import QModuleDocumentation
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
@@ -1840,6 +1832,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
+        self.progress = None
 
         self.tmp_module_item = None
         self.tmp_input_conn = None
@@ -2833,6 +2826,22 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
+    def cancel_progress(self):
+        """Checks if the user have canceled the execution and takes
+           appropriate action
+        """
+        if self.progress.wasCanceled():
+            r = QtGui.QMessageBox.question(self.parent(),
+                'Execution Paused',
+                'Are you sure you want to abort the execution?',
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                QtGui.QMessageBox.No)
+            if r==QtGui.QMessageBox.Yes:
+                raise Exception("Execution aborted by user")
+            else:
+                self.progress.reset()
+                self.progress.setValue(self.progress.new_value)
+        
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
@@ -2878,6 +2887,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
+        if self.progress:
+            self.cancel_progress()
+            self.progress.new_value = self.progress.value() + 1 
+            self.progress.setValue(self.progress.new_value)
+            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         
     def set_module_progress(self, moduleId, progress=0.0):
         """ set_module_computing(moduleId: int, progress: float) -> None
@@ -2889,6 +2903,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                                         '%d%% Completed' % int(progress*100),
                                                         progress))
         QtCore.QCoreApplication.processEvents()
+        if self.progress:
+            self.cancel_progress()
 
     def set_module_persistent(self, moduleId):
         QtGui.QApplication.postEvent(self,
@@ -3062,12 +3078,22 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         jobView.updating_now = True
 
         try:
+            modules = len(self.controller.current_pipeline.modules)
+            progress = ExecutionProgressDialog(modules)
+            self.scene().progress = progress
+            progress.show()
+            
             self.controller.execute_current_workflow()
+
+            progress.setValue(modules)
+            #progress.hide()
+            self.scene().progress = None
         except Exception, e:
             import traceback
             debug.critical(str(e) or e.__class__.__name__,
                            traceback.format_exc())
         finally:
+            self.scene().progress = None
             jobView.updating_now = False
             from vistrails.gui.vistrails_window import _app
             _app.notify('execution_updated')
@@ -3196,9 +3222,11 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
                                                   currentScene)
                 dialog.exec_()
             else:
-                show_info('No Modules Selected', 
-                          'You must select at least one module to use the '
-                          'Control Flow Assistant.')
+                QtGui.QMessageBox.warning(
+                        self,
+                        'No modules selected',
+                        'You must select at least one module to use the '
+                        'Control Flow Assistant')
                 
     def done_configure(self, mid):
         self.scene().perform_configure_done_actions(mid)
@@ -3206,6 +3234,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def paintModuleToPixmap(self, module_item):
         m = self.matrix()
         return module_item.paintToPixmap(m.m11(), m.m22())
+
+class ExecutionProgressDialog(QtGui.QProgressDialog):
+    def __init__(self, modules):
+        QtGui.QProgressDialog.__init__(self, 'Starting Workflow execution',
+                                       '&Cancel',
+                                       0, modules)
+        self.setWindowTitle('Executing')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self.new_value = 0
 
 ################################################################################
 # Testing
