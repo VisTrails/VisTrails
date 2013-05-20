@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 import copy
+import locale
+import sys
 
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -138,7 +140,7 @@ class VistrailEntity(Entity):
             if vistrail.db_name:
                 name = vistrail.db_name
             else:
-                name = "untitled"
+                name = u"untitled"
             
         size = vistrail.get_version_count()
         if size < 1:
@@ -538,8 +540,3 @@ class VistrailEntity(Entity):
         for child in self.get_children():
             if child.match(search):
                 return True
-
-    def open(self):
-        locator = BaseLocator.from_url(self.url)
-        locator._name = self.name
-        vistrails.core.open_locator(locator)
