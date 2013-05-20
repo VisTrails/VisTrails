@@ -244,3 +244,175 @@ class StringsToMatplotlib(Module):
 
 
 _modules = {'dates': [TimestampsToDates, StringsToDates, StringsToMatplotlib]}
+
+
+###############################################################################
+
+import unittest
+from vistrails.tests.utils import execute, intercept_result
+from ..identifiers import identifier
+
+
+class TestTimestampToDates(unittest.TestCase):
+    def test_timestamps(self):
+        """Test conversion to datetime objects.
+        """
+        timestamps = [1369041900, 1369042260, 1357153500]
+        with intercept_result(TimestampsToDates, 'dates') as results:
+            self.assertFalse(execute([
+                    ('convert|dates|TimestampsToDates', identifier, [
+                        ('timestamps', [('List', repr(timestamps))]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        self.assertTrue(all(d.tzinfo is utc for d in results))
+        fmt = '%Y-%m-%d %H:%M:%S %Z %z'
+        self.assertEqual(
+                [d.strftime(fmt) for d in results],
+                ['2013-05-20 09:25:00 UTC +0000',
+                 '2013-05-20 09:31:00 UTC +0000',
+                 '2013-01-02 19:05:00 UTC +0000'])
+        try:
+            import pytz
+        except ImportError:
+            pass
+        else:
+            self.assertEqual(
+                    [d.astimezone(pytz.timezone('US/Eastern')).strftime(fmt)
+                     for d in results],
+                    ['2013-05-20 05:25:00 EDT -0400',
+                     '2013-05-20 05:31:00 EDT -0400',
+                     '2013-01-02 14:05:00 EST -0500'])
+
+
+class TestStringsToDates(unittest.TestCase):
+    def test_naive(self):
+        """Test reading non-timezone-aware dates.
+        """
+        dates = ['2013-05-20 9:25', '2013-05-20 09:31', '2013-01-02 19:05']
+        in_fmt = '%Y-%m-%d %H:%M'
+        with intercept_result(StringsToDates, 'dates') as results:
+            self.assertFalse(execute([
+                    ('convert|dates|StringsToDates', identifier, [
+                        ('strings', [('List', repr(dates))]),
+                        ('format', [('String', in_fmt)]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        self.assertTrue(all(d.tzinfo is None for d in results))
+        fmt = '%Y-%m-%d %H:%M:%S %Z %z'
+        self.assertEqual(
+                [d.strftime(fmt) for d in results],
+                ['2013-05-20 09:25:00  ',
+                 '2013-05-20 09:31:00  ',
+                 '2013-01-02 19:05:00  '])
+
+    def test_dateutil(self):
+        """Test reading non-timezone-aware dates without providing the format.
+
+        dateutil is required for this one.
+        """
+        try:
+            import dateutil
+        except ImportError:
+            self.skipTest("dateutil is not available")
+
+        dates = ['2013-05-20 9:25',
+                 'Thu Sep 25 10:36:28 2003',
+                 '2003 10:36:28 CET 25 Sep Thu'] # Timezone will be ignored
+        with intercept_result(StringsToDates, 'dates') as results:
+            self.assertFalse(execute([
+                    ('convert|dates|StringsToDates', identifier, [
+                        ('strings', [('List', repr(dates))]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        fmt = '%Y-%m-%d %H:%M:%S %Z %z'
+        self.assertEqual(
+                [d.strftime(fmt) for d in results],
+                ['2013-05-20 09:25:00  ',
+                 '2003-09-25 10:36:28  ',
+                 '2003-09-25 10:36:28  '])
+
+    def test_timezone(self):
+        """Test reading timezone-aware dates by supplying an offset.
+        """
+        dates = ['2013-05-20 9:25', '2013-05-20 09:31', '2013-01-02 19:05']
+        in_fmt = '%Y-%m-%d %H:%M'
+        with intercept_result(StringsToDates, 'dates') as results:
+            self.assertFalse(execute([
+                    ('convert|dates|StringsToDates', identifier, [
+                        ('strings', [('List', repr(dates))]),
+                        ('format', [('String', in_fmt)]),
+                        ('timezone', [('String', '-0500')])
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        self.assertTrue(all(d.tzinfo is not None for d in results))
+        fmt = '%Y-%m-%d %H:%M:%S %z'
+        self.assertEqual(
+                [d.strftime(fmt) for d in results],
+                ['2013-05-20 09:25:00 -0500',
+                 '2013-05-20 09:31:00 -0500',
+                 '2013-01-02 19:05:00 -0500'])
+
+    def test_timezone_pytz(self):
+        """Test reading timezone-aware dates through pytz.
+        """
+        try:
+            import pytz
+        except ImportError:
+            self.skipTest("pytz is not available")
+
+        dates = ['2013-01-20 9:25', '2013-01-20 09:31', '2013-06-02 19:05']
+        in_fmt = '%Y-%m-%d %H:%M'
+        with intercept_result(StringsToDates, 'dates') as results:
+            self.assertFalse(execute([
+                    ('convert|dates|StringsToDates', identifier, [
+                        ('strings', [('List', repr(dates))]),
+                        ('format', [('String', in_fmt)]),
+                        ('timezone', [('String', 'America/New_York')])
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        self.assertTrue(all(d.tzinfo is not None for d in results))
+        fmt = '%Y-%m-%d %H:%M:%S %Z %z'
+        self.assertEqual(
+                [d.strftime(fmt) for d in results],
+                ['2013-01-20 09:25:00 EST -0500',
+                 '2013-01-20 09:31:00 EST -0500',
+                 '2013-06-02 19:05:00 EDT -0400']) # FIXME: fails for some reason!
+
+
+class TestStringsToMatplotlib(unittest.TestCase):
+    def test_timezone(self):
+        """Test reading timezone-aware dates by supplying an offset.
+        """
+        try:
+            import matplotlib
+        except ImportError:
+            self.skipTest("matplotlib is not available")
+
+        from matplotlib.dates import date2num
+
+        dates = ['2013-05-20 9:25', '2013-05-20 09:31', '2013-01-02 18:05']
+        in_fmt = '%Y-%m-%d %H:%M'
+        with intercept_result(StringsToMatplotlib, 'dates') as results:
+            self.assertFalse(execute([
+                    ('convert|dates|StringsToMatplotlib', identifier, [
+                        ('strings', [('List', repr(dates))]),
+                        ('format', [('String', in_fmt)]),
+                        ('timezone', [('String', '-0500')])
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        self.assertEqual(list(results), list(date2num([
+                datetime.datetime(2013, 5, 20, 14, 25, 0),
+                datetime.datetime(2013, 5, 20, 14, 31, 0),
+                datetime.datetime(2013, 1, 2, 23, 5, 0)])))
