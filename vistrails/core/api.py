@@ -248,17 +248,27 @@ class Package(object):
 
 class VisTrailsAPI(object):
 
-    # !!! Do not pass controller unless you know what you are doing !!!
-    def __init__(self, controller=None):
+    # !!! Do not pass controller or app unless you know what you are doing !!!
+    def __init__(self, controller=None, app=None):
         self._controller = controller
+        self._app = app
         self._packages = None
         self._old_log = None
+
+    def _get_app(self):
+        if self._app is not None:
+            return self._app
+        return vistrails.core.application.get_vistrails_application()
+    app = property(_get_app)
+
+    # !!! Do not call set_app unless you know what you are doing !!!
+    def set_app(self, app):
+        self._app = app
 
     def _get_controller(self):
         if self._controller is not None:
             return self._controller
-        app = vistrails.core.application.get_vistrails_application()
-        controller = app.get_controller()
+        controller = self.app.get_controller()
         if controller is None:
             raise Exception("You must have a vistrail open before calling "
                             "this API method.")
@@ -271,7 +281,7 @@ class VisTrailsAPI(object):
 
     def add_module(self, identifier, name, namespace='', internal_version=-1):
         m = self.controller.add_module(identifier, name, namespace, 
-                                        internal_version=internal_version)
+                                       internal_version=internal_version)
         # have to go back since there is a copy when the action is performed
         module = self.controller.current_pipeline.modules[m.id]
         return Module.create_module(module)
@@ -290,6 +300,55 @@ class VisTrailsAPI(object):
         self.controller.add_module_port(module._module.id,
                                          (port_spec.type, port_spec.name,
                                           port_spec.sigstring))
+
+    def add_and_connect_module(self,
+                               identifier,
+                               name,
+                               port,
+                               module_b,
+                               port_b,
+                               is_source=False,
+                               auto_layout=True,
+                               **kwargs):
+        """Adds a module and connects in single action. Returns new module.
+
+        identifier - package identifier for new module
+        name - name of new module
+        module_b - existing module to connect new module to
+        port - port on new module to connect
+        port_b - port on existing module to connect
+        is_source - whether or not new module is source of connection
+        auto_layout - layout pipeline
+        **kwargs - additional arguments to create module
+        """
+
+        module = self.controller.create_module(identifier, name, **kwargs)
+
+        if is_source:
+            source, source_port = module, port
+            target, target_port = module_b._module, port_b
+        else:
+            target, target_port = module, port
+            source, source_port = module_b._module, port_b
+
+        create_conn = self.controller.create_connection
+        conn = create_conn(source, source_port, target, target_port)
+
+        if auto_layout:
+            layout = self.controller.layout_modules_ops
+            layout_ops = layout([], True, [module], [conn], None, True)
+        else:
+            layout_ops = []
+
+        ops = [('add', module), ('add', conn)] + layout_ops
+        action = vistrails.core.db.action.create_action(ops)
+        self.controller.add_new_action(action)
+        version = self.controller.perform_action(action)
+        self.controller.change_selected_version(version)
+
+        # have to go back since there is a copy when the action is performed
+        m = self.controller.current_pipeline.modules[module.id]
+        return Module.create_module(m)
 
     def change_parameter(self, module, function_name, param_list):
         self.controller.update_function(module._module, function_name,
@@ -347,45 +406,25 @@ class VisTrailsAPI(object):
             version = self._convert_version(version)
         self.controller.vistrail.set_tag(version, tag)
 
-    def save_vistrail(self, fname, version=None):
-        locator = FileLocator(fname)
-        self.controller.write_vistrail(locator, version)
+    def save_vistrail(self, locator_str):
+        return self.app.save_vistrail(locator_str)
 
     def new_vistrail(self):
-        self.load_vistrail(None)
+        return bool(self.app.new_vistrail())
 
-    def load_vistrail(self, fname=None):
-        if fname is None:
-            locator = copy.copy(untitled_locator())
-        else:
-            locator = FileLocator(fname)
-        (vistrail, abstraction_files, thumbnail_files, mashups) = \
-            vistrails.core.db.io.load_vistrail(locator, False)
-        self.controller.set_vistrail(vistrail, locator, abstraction_files,
-                                      thumbnail_files, mashups)
-        self.controller.select_latest_version()
-        
-    def load_workflow(self, fname):
-        locator = FileLocator(fname)
-        workflow = locator.load(Pipeline)
-        action_list = []
-        for module in workflow.module_list:
-            action_list.append(('add', module))
-        for connection in workflow.connection_list:
-            action_list.append(('add', connection))
-        action = vistrails.core.db.action.create_action(action_list)
-        vistrail = Vistrail()
-        vistrail.add_action(action, 0L)
-        vistrail.update_id_scope()
-        vistrail.addTag("Imported workflow", action.id)
-        self.controller.set_vistrail(vistrail, None)
-        self.controller.select_latest_version()
+    def load_vistrail(self, locator_str):
+        return bool(self.app.open_vistrail(locator_str))
+    open_vistrail = load_vistrail
+
+    def load_workflow(self, locator_str):
+        self.app.open_workflow(locator_str)
+    open_workflow = load_workflow
 
     def select_version(self, version):
-        self.controller.change_selected_version(self._convert_version(version))
+        self.app.select_version(version)
 
     def close_vistrail(self):
-        self.controller.close_vistrail(self.controller.get_locator())
+        self.app.close_vistrail()
 
     def get_current_workflow(self):
         return self.controller.current_pipeline
@@ -402,7 +441,10 @@ class VisTrailsAPI(object):
         wf_execs.extend(self.controller.log.workflow_execs)
         return wf_execs
 
+import os
 import unittest
+from vistrails.core.system import temporary_directory
+
 class TestAPI(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
         def assertIsInstance(self, obj, cls, msg=None):
@@ -410,13 +452,11 @@ class TestAPI(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        app = vistrails.core.application.get_vistrails_application()
-        app.new_vistrail()
+        get_api().new_vistrail()
 
     @classmethod
     def tearDownClass(cls):
-        app = vistrails.core.application.get_vistrails_application()
-        app.close_vistrail()
+        get_api().close_vistrail()
 
     def setUp(self):
         get_api().controller.change_selected_version(0)
@@ -508,6 +548,18 @@ class TestAPI(unittest.TestCase):
         s1 = basic.String("abc")
         s2 = basic.String("def")
         self.check_parameters()
+
+    def test_write_and_read_vistrail(self):
+        self.assertTrue(get_api().new_vistrail())
+        basic = self.get_basic_package()
+        s1, s2 = self.create_modules(basic)
+        fname = os.path.join(temporary_directory(), "test_write_read.vt")
+        self.assertTrue(get_api().save_vistrail(fname))
+        self.assertTrue(os.path.exists(fname))
+        get_api().close_vistrail()
+        self.assertTrue(get_api().open_vistrail(fname))
+        self.assertEqual(get_api().controller.current_version, 4)
+        get_api().close_vistrail()
 
 if __name__ == '__main__':
     vistrails.core.application.init()
