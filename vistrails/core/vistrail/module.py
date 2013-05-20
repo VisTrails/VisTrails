@@ -409,6 +409,7 @@ class Module(DBModule):
 class TestModule(unittest.TestCase):
 
     def create_module(self, id_scope=None):
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         from vistrails.db.domain import IdScope
         if id_scope is None:
             id_scope = IdScope()
@@ -421,7 +422,7 @@ class TestModule(unittest.TestCase):
                                     parameters=params)]
         module = Module(id=id_scope.getNewId(Module.vtType),
                         name='Float',
-                        package='edu.utah.sci.vistrails.basic',
+                        package=basic_pkg,
                         functions=functions)
         return module
 
@@ -469,15 +470,15 @@ class TestModule(unittest.TestCase):
 
     def testSummonModule(self):
         """Check that summon creates a correct module"""
-        
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+
         x = Module()
         x.name = "String"
-        x.package = 'edu.utah.sci.vistrails.basic'
+        x.package = basic_pkg
         try:
             registry = get_module_registry()
             c = x.summon()
-            m = registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                                'String').module
+            m = registry.get_descriptor_by_name(basic_pkg, 'String').module
             assert type(c) == m
         except NoSummon:
             msg = "Expected to get a String object, got a NoSummon exception"

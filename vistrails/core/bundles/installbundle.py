@@ -33,12 +33,9 @@
 ##
 ###############################################################################
 from vistrails.core import is_running_gui
-import vistrails.gui
 
 def install(dependency_dictionary):
-    """Tries to import a python module. If unsuccessful, tries to install
-the appropriate bundle and then reimport. py_import tries to be smart
-about which system it runs on."""
+    """Tries to install a bundle after a py_import() failed.."""
  
     if not is_running_gui():
         return False

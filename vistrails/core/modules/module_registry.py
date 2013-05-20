@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 import __builtin__
-from itertools import izip
+from itertools import izip, chain
 import copy
 import os
 import tempfile
@@ -50,7 +50,8 @@ import vistrails.core.modules.utils
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
      all, profile, versions_increasing, InvalidPipeline
-from vistrails.core.system import vistrails_root_directory, vistrails_version
+from vistrails.core.system import vistrails_root_directory, vistrails_version, \
+    get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 import vistrails.core.cache.hasher
@@ -513,7 +514,7 @@ class ModuleRegistry(DBRegistry):
             # _constant_hasher_map stores callables for custom parameter
             # hashers
             self._constant_hasher_map = {}
-            basic_pkg = vistrails.core.modules.basic_modules.identifier
+            basic_pkg = get_vistrails_basic_pkg_id()
             if basic_pkg in self.packages:
                 self._default_package = self.packages[basic_pkg]
                 self._current_package = self._default_package
@@ -532,13 +533,14 @@ class ModuleRegistry(DBRegistry):
         self.package_versions = self.db_packages_identifier_index
         self.packages = {}
         self._module_key_map = {}
-        for (key, _), pkg in self.package_versions.iteritems():
-            if key in self.packages:
-                old_pkg = self.packages[key]
-                if versions_increasing(old_pkg.version, pkg.version):
+        for pkg in self.package_versions.itervalues():
+            for key in chain(pkg.old_identifiers, [pkg.identifier]):
+                if key in self.packages:
+                    old_pkg = self.packages[key]
+                    if versions_increasing(old_pkg.version, pkg.version):
+                        self.packages[key] = pkg
+                else:
                     self.packages[key] = pkg
-            else:
-                self.packages[key] = pkg
             for descriptor in pkg.descriptor_list:
                 self.descriptors_by_id[descriptor.id] = descriptor
                 k = (descriptor.identifier, descriptor.name, 
@@ -621,13 +623,13 @@ class ModuleRegistry(DBRegistry):
         package.delete_descriptor(desc)
     def add_package(self, package):
         DBRegistry.db_add_package(self, package)
-        key = package.identifier
-        if key in self.packages:
-            old_pkg = self.packages[key]
-            if versions_increasing(old_pkg.version, package.version):
+        for key in chain(package.old_identifiers, [package.identifier]):
+            if key in self.packages:
+                old_pkg = self.packages[key]
+                if versions_increasing(old_pkg.version, package.version):
+                    self.packages[key] = package
+            else:
                 self.packages[key] = package
-        else:
-            self.packages[key] = package
 
     def delete_package(self, package):
         DBRegistry.db_delete_package(self, package)
@@ -636,16 +638,19 @@ class ModuleRegistry(DBRegistry):
         self.setup_indices()
 
     def create_default_package(self):
+        basic_pkg = get_vistrails_basic_pkg_id()
         default_codepath = os.path.join(vistrails_root_directory(), 
                                         "core", "modules", "basic_modules.py")
         self._default_package = \
             Package(id=self.idScope.getNewId(Package.vtType),
                     codepath=default_codepath,
                     load_configuration=False,
-                    identifier='edu.utah.sci.vistrails.basic',
+                    identifier=basic_pkg,
                     name='Basic Modules',
                     version=vistrails_version(),
                     description="Basic modules for VisTrails")
+        # FIXME need to serialize old_identifiers!
+        self._default_package.old_identifiers = ['edu.utah.sci.vistrails.basic']
         self.add_package(self._default_package)
         return self._default_package
 
@@ -1190,8 +1195,8 @@ class ModuleRegistry(DBRegistry):
 
         if constantSignatureCallable:
             try:
-                c = self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                                'Constant').module
+                basic_pkg = get_vistrails_basic_pkg_id()
+                c = self.get_descriptor_by_name(basic_pkg, 'Constant').module
             except ModuleRegistryException:
                 msg = "Constant not found - can't set constantSignatureCallable"
                 raise VistrailsInternalError(msg)
@@ -1650,9 +1655,9 @@ class ModuleRegistry(DBRegistry):
             return None
         
     def is_method(self, port_spec):
+        basic_pkg = get_vistrails_basic_pkg_id()
         constant_desc = \
-            self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                        'Constant')
+            self.get_descriptor_by_name(basic_pkg, 'Constant')
         return port_spec.type == 'input' and \
             all(self.is_descriptor_subclass(d, constant_desc) 
                 for d in port_spec.descriptors())
@@ -1716,9 +1721,8 @@ class ModuleRegistry(DBRegistry):
         
         """
         variantType = vistrails.core.modules.basic_modules.Variant
-        variant_desc = \
-            self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                        'Variant')
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
         sub_descs = []
@@ -1879,7 +1883,7 @@ class ModuleRegistry(DBRegistry):
         return d1_list[d1_idx+1]
 
     def is_abstraction(self, descriptor):
-        basic_pkg = vistrails.core.modules.basic_modules.identifier
+        basic_pkg = get_vistrails_basic_pkg_id()
         try:
             abstraction_desc = self.get_descriptor_by_name(basic_pkg, 
                                                        'SubWorkflow')

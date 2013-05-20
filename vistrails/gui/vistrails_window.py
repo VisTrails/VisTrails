@@ -43,7 +43,7 @@ from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
 from vistrails.core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
-    untitled_locator
+    UntitledLocator
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.interpreter.cached import CachedInterpreter
 from vistrails.core.modules.module_registry import ModuleRegistry, \
@@ -115,7 +115,9 @@ class QBaseViewWindow(QtGui.QMainWindow):
         return self.get_current_tab().scene()
     
     def get_current_controller(self):
-        return self.view.vistrail_view.get_controller()
+        if self.get_current_view() is None:
+            return None
+        return self.get_current_view().get_controller()
     
     def process_list(self, action_list, parent, qactions, qmenus):
         for data in action_list:
@@ -1322,9 +1324,16 @@ class QVistrailsWindow(QVistrailViewWindow):
         #print 'calling create_first_vistrail'
         if self.get_current_view():
             return None
-        if not self.dbDefault and untitled_locator().has_temporaries():
-            if not FileLocator().prompt_autosave(self):
-                untitled_locator().clean_temporaries()
+        if not self.dbDefault:
+            untitled_temps = UntitledLocator.all_untitled_temporaries()
+            if len(untitled_temps) > 0:
+                if FileLocator.prompt_autosave(self):
+                    for locator in untitled_temps:
+                        self.open_vistrail(locator)
+                    return None
+                else:
+                    for locator in untitled_temps:
+                        locator.clean_temporaries()
         self._first_view = self.new_vistrail(True)
         return self._first_view
 
@@ -1419,10 +1428,14 @@ class QVistrailsWindow(QVistrailViewWindow):
         #     if not self.closeVistrail():
         #         return None
         self._first_view = None
-        if recover_files and untitled_locator().has_temporaries():
-            locator = copy.copy(untitled_locator())
-        else:
-            locator = None
+
+        locator = None
+        if recover_files:
+            untitled_temps = UntitledLocator.all_untitled_temporaries()
+            if len(untitled_temps) > 0:
+                # FIXME how do we choose which one? -- really should open all
+                locator = untitled_temps[0]
+
         # try:
         #     (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
         # except ModuleRegistryException, e:
@@ -1503,6 +1516,37 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return view
         return None
 
+    def add_vistrail(self, *objs):
+        view = self.create_view(*objs)
+        # view.is_abstraction = is_abstraction
+        self.view_changed(view)
+        self.reset_toolbar_for_view(view)
+        self.qactions['history'].trigger()
+        return view.controller
+
+    def remove_vistrail(self, locator):
+        for view in self.vistrail_to_widget.itervalues():
+            if view.controller.locator == locator:
+                from vistrails.gui.job_monitor import QJobView
+                jobView = QJobView.instance()
+                jobView.delete_job(view.controller, all=True)
+
+                view.closeDetachedViews()
+                self.remove_view(view)
+                if view == self._first_view:
+                    self._first_view = None
+                elif not self.stack.count() and not self._is_quitting:
+                    self.create_first_vistrail()
+                view = self.get_current_view()
+                self.change_view(view)
+
+    def select_version(self, version):
+        view = self.get_current_view()
+        if view is not None:
+            view.version_selected(version, True, double_click=True)
+            return True
+        return False
+
     def open_vistrail(self, locator, version=None, is_abstraction=False):
         """open_vistrail(locator: Locator, version = None: int or str,
                          is_abstraction: bool) -> BaseView
@@ -1512,102 +1556,16 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         self.close_first_vistrail_if_necessary()
-
-        view = self.ensureVistrail(locator)
-        if view:
-            if version is not None:
-                if type(version) == type(""):
-                    try:
-                        version = view.vistrail.get_version_number(version)
-                    except:
-                        version = None
-                if version is not None:
-                    view.version_selected(version, True, double_click=True)
-            self.view_changed(view)
-            return view
-        try:
-            (vistrail, abstraction_files, thumbnail_files, mashups) = \
-                                        load_vistrail(locator, is_abstraction)
-
-            # we need to send all the elements above to create_view so they are 
-            # sent to the controller.
-            view = self.create_view(vistrail, locator, abstraction_files, 
-                                    thumbnail_files, mashups)
-            view.is_abstraction = is_abstraction
-            self.view_changed(view)
-            self.reset_toolbar_for_view(view)
-            self.qactions['history'].trigger()
-            try:
-                version = int(version)
-            except ValueError:
-                # version is a tag name
-                try:
-                    version = vistrail.get_tag_str(version).action_id
-                except KeyError:
-                    # tag does not exist
-                    debug.critical("A workflow named '%s' does not exist" % version)
-                    version = None
-            except TypeError:
-                #version is None
-                pass
-            if version is None:
-                view.controller.select_latest_version()
-                version = view.controller.current_version
-                view.version_view.vistrailChanged()
-            view.version_selected(version, True, double_click=True)
-            view.controller.set_changed(False)
-            # self.window_changed(window)
-            # result = self.set_vistrail_view(vistrail, locator, 
-            #                                 abstraction_files, thumbnail_files,
-            #                                 version)
-            # return result
-        # except ModuleRegistryException, e:
-        #     debug.critical("Module registry error for %s" %
-        #                    str(e.__class__.__name__), str(e))
-        except VistrailsDBException, e:
-            import traceback
-            debug.critical(str(e), traceback.format_exc())
-            return None
-        except Exception, e:
-            # debug.critical('An error has occurred', str(e))
-            #print "An error has occurred", str(e)
-            raise
-        # update collection
-        try:
-            if not locator:
-                return view
-            thumb_cache = ThumbnailCache.getInstance()
-            view.controller.vistrail.thumbnails = \
-                view.controller.find_thumbnails(
-                    tags_only=thumb_cache.conf.tagsOnly)
-            view.controller.vistrail.abstractions = \
-                view.controller.find_abstractions(view.controller.vistrail, 
-                                                  True)
-            view.controller.vistrail.mashups = view.controller._mashups
-            collection = Collection.getInstance()
-            url = locator.to_url()
-            # create index if not exist
-#            entity = collection.fromUrl(url)
-#            if entity:
-                # find parent vistrail
-#                while entity.parent:
-#                    entity = entity.parent
-#            else:
-            entity = collection.updateVistrail(url, view.controller.vistrail)
-            # add to relevant workspace categories
-            if not is_abstraction:
-                collection.add_to_workspace(entity)
-            collection.commit()
-            # update workspace (view creation used the old entities)
-            from vistrails.gui.collection.workspace import QWorkspaceWindow
-            QWorkspaceWindow.instance().remove_vt_window(view)
-            QWorkspaceWindow.instance().add_vt_window(view)
-            self.notify('view_created', view.controller, view)
-            return view
-        except Exception, e:
-            import traceback
-            debug.critical('Failed to index vistrail', traceback.format_exc())
-
+        
+        get_vistrails_application().open_vistrail(locator, version, 
+                                                  is_abstraction)
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        view = self.get_current_view()
+        view.is_abstraction = view.controller.is_abstraction
+        QWorkspaceWindow.instance().remove_vt_window(view)
+        QWorkspaceWindow.instance().add_vt_window(view)
+        self.notify('view_created', view.controller, view)
+        return view
 
     def open_vistrail_from_locator(self, locator_class):
         """ open_vistrail(locator_class) -> BaseView
@@ -1673,6 +1631,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         else:
             ok = True
         if ok:
+            if locator:
+                if locator.has_temporaries():
+                    if not locator.prompt_autosave(self):
+                        locator.clean_temporaries()
             view = self.open_vistrail(locator, version, is_abstraction)
             if mashuptrail is not None and mashupVersion is not None:
                 view.open_mashup_from_mashuptrail_id(mashuptrail, mashupVersion)
@@ -1736,38 +1698,11 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         self.import_workflow(DBLocator)
 
-    def open_workflow(self, locator, version=None):
+    def open_workflow(self, locator):
         self.close_first_vistrail_if_necessary()
 
-        vistrail = Vistrail()
-        try:
-            if locator is not None:
-                workflow = locator.load(Pipeline)
-                action_list = []
-                for module in workflow.module_list:
-                    action_list.append(('add', module))
-                for connection in workflow.connection_list:
-                    action_list.append(('add', connection))
-                action = vistrails.core.db.action.create_action(action_list)
-                vistrail.add_action(action, 0L)
-                vistrail.update_id_scope()
-                vistrail.addTag("Imported workflow", action.id)
-                # FIXME might need different locator?
-        except ModuleRegistryException, e:
-            msg = ('Cannot find module "%s" in package "%s". '
-                    'Make sure package is ' 
-                   'enabled in the Preferences dialog.' % \
-                       (e._name, e._identifier))
-            debug.critical(msg)
-        except Exception, e:
-            debug.critical('An error has occurred', str(e))
-            raise
+        get_vistrails_application().open_workflow(locator)
 
-        view = self.create_view(vistrail, None)
-        self.view_changed(view)
-        view.controller.set_changed(True)
-        view.version_selected(vistrail.get_latest_version(), \
-                              True)
         self.qactions['pipeline'].trigger()
     
     def close_vistrail(self, current_view=None, quiet=False):
@@ -1776,9 +1711,6 @@ class QVistrailsWindow(QVistrailViewWindow):
             current_view = self.get_current_view()
         if current_view:
             locator = current_view.controller.locator
-            from vistrails.gui.job_monitor import QJobView
-            jobView = QJobView.instance()
-            jobView.delete_job(current_view.controller, all=True)
 
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
@@ -1810,18 +1742,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return False
         elif res == 2:
             return False
-        if current_view is not None:
-            self.notify('controller_closed', current_view.controller)
-            current_view.closeDetachedViews()
-            current_view.controller.close_vistrail(locator)
-            current_view.controller.cleanup()
-            self.remove_view(current_view)
-        if current_view == self._first_view:
-            self._first_view = None
-        elif not self.stack.count() and not self._is_quitting:
-            self.create_first_vistrail()
-        view = self.get_current_view()
-        self.change_view(view)
+        
+        if locator is not None:
+            get_vistrails_application().close_vistrail(locator)
         return True
 
     def close_all_vistrails(self, quiet=False):
@@ -1923,6 +1846,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             return self.stack.currentWidget()
         
     def get_current_controller(self):
+        if self.get_current_view() is None:
+            return None
         return self.get_current_view().get_controller()
 
     def get_current_tab(self):
@@ -2456,6 +2381,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         vistrail.locator = None
         vistrail.set_defaults()
         view = self.create_view(vistrail, None)
+        # FIXME need to figure out what to do with this !!!
         view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
         view.controller.set_changed(True)
         self.view_changed(view)

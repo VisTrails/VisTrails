@@ -119,6 +119,14 @@ __fileDir = os.path.realpath(os.path.join(__rootDir,
 
 __defaultFileType = '.vt'
 
+__defaultPkgPrefix = 'org.vistrails.vistrails'
+
+def get_vistrails_default_pkg_prefix():
+    return __defaultPkgPrefix
+
+def get_vistrails_basic_pkg_id():
+    return "%s.basic" % get_vistrails_default_pkg_prefix()
+
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None 
     Sets vistrails data directory taking into account environment variables

@@ -70,8 +70,8 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(auto_save=update_vistrail)
-        controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
+        controller = VistrailController(v, locator, abstractions, thumbnails, 
+                                        mashups, auto_save=update_vistrail)
         if type(workflow) == type("str"):
             version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
@@ -93,18 +93,16 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                     aliases[key] = value
                     
         if workflow_info is not None and controller.current_pipeline is not None:
+            # FIXME DAK: why is this always done?!? there is a flag for it...
             if is_running_gui():
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                pipeline_view.scene().setupScene(controller.current_pipeline)
-                base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
+                controller.updatePipelineScene()
+                base_fname = "%s_%s_pipeline.pdf" % (locator.short_filename, version)
                 filename = os.path.join(workflow_info, base_fname)
-                pipeline_view.scene().saveToPDF(filename)
-                del pipeline_view
+                controller.current_pipeline_scene.saveToPDF(filename)
             else:
                 debug.critical("Cannot save pipeline figure when not "
                                "running in gui mode")
-            base_fname = "%s_%s_pipeline.xml" % (locator.short_name, version)
+            base_fname = "%s_%s_pipeline.xml" % (locator.short_filename, version)
             filename = os.path.join(workflow_info, base_fname)
             vistrails.core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
@@ -145,7 +143,8 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
         for locator, workflow in w_list:
             try:
                 (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-                controller = GUIVistrailController()
+                controller = GUIVistrailController(v, locator, abstractions, 
+                                                   thumbnails, mashups)
                 if type(workflow) == type("str"):
                     version = v.get_version_number(workflow)
                 elif type(workflow) in [ type(1), long]:
@@ -159,21 +158,17 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
             
                 if (workflow_info is not None and 
                     controller.current_pipeline is not None):
-                    from vistrails.gui.pipeline_view import QPipelineView
-                    pipeline_view = QPipelineView()
-                    controller.current_pipeline_view = pipeline_view.scene()
-                    controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
-                    pipeline_view.scene().setupScene(controller.current_pipeline)
+                    controller.updatePipelineScene()
                     if pdf:
-                        base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
+                        base_fname = "%s_%s_pipeline.pdf" % \
+                                     (locator.short_filename, version)
                         filename = os.path.join(workflow_info, base_fname)
-                        pipeline_view.scene().saveToPDF(filename)
+                        controller.current_pipeline_scene.saveToPDF(filename)
                     else:
-                        base_fname = "%s_%s_pipeline.png" % (locator.short_name, version)
+                        base_fname = "%s_%s_pipeline.png" % \
+                                     (locator.short_filename, version)
                         filename = os.path.join(workflow_info, base_fname)
-                        pipeline_view.scene().saveToPNG(filename)
-                    del pipeline_view
+                        controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
             except Exception, e:
                 result.append((False, str(e)))
@@ -198,22 +193,18 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
         for locator in vt_list:
             try:
                 (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-                controller = GUIVistrailController()
+                controller = GUIVistrailController(v, locator, abstractions, 
+                                                   thumbnails, mashups)
                 if tree_info is not None:
                         from vistrails.gui.version_view import QVersionTreeView
                         version_view = QVersionTreeView()
-                        from vistrails.gui.pipeline_view import QPipelineView
-                        pipeline_view = QPipelineView()
-                        controller.current_pipeline_view = pipeline_view.scene()
-                        controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
                         version_view.scene().setupScene(controller)
                         if pdf:
-                            base_fname = "graph_%s.pdf" % locator.short_name
+                            base_fname = "graph_%s.pdf" % locator.short_filename
                             filename = os.path.join(tree_info, base_fname)
                             version_view.scene().saveToPDF(filename)
                         else:
-                            base_fname = "graph_%s.png" % locator.short_name
+                            base_fname = "graph_%s.png" % locator.short_filename
                             filename = os.path.join(tree_info, base_fname)
                             version_view.scene().saveToPNG(filename)
                         del version_view
@@ -259,11 +250,8 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
              GUIVistrailController
         try:
             (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-            controller = GUIVistrailController()
-            from vistrails.gui.pipeline_view import QPipelineView
-            pipeline_view = QPipelineView()
-            controller.current_pipeline_view = pipeline_view.scene()
-            controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
+            controller = GUIVistrailController(v, locator, abstractions, 
+                                               thumbnails, mashups)
             try:
                 pe_id = int(pe_id)
                 pe = controller.vistrail.get_paramexp(pe_id)
@@ -300,17 +288,19 @@ def cleanup():
 
 class TestConsoleMode(unittest.TestCase):
 
-    def setUp(self, *args, **kwargs):
+    @classmethod
+    def setUpClass(cls):
         manager = vistrails.core.packagemanager.get_package_manager()
-        if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
+        if manager.has_package('org.vistrails.vistrails.console_mode_test'):
             return
 
         d = {'console_mode_test': 'vistrails.tests.resources.'}
         manager.late_enable_package('console_mode_test',d)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         manager = vistrails.core.packagemanager.get_package_manager()
-        if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
+        if manager.has_package('org.vistrails.vistrails.console_mode_test'):
             manager.late_disable_package('console_mode_test')
             
     def test1(self):
@@ -345,8 +335,8 @@ class TestConsoleMode(unittest.TestCase):
         function.add_parameters(params)
         module = Module(id=id_scope.getNewId(Module.vtType),
                            name='TestTupleExecution',
-                           package='edu.utah.sci.vistrails.console_mode_test',
-                           version='0.9.0')
+                           package='org.vistrails.vistrails.console_mode_test',
+                           version='0.9.1')
         module.add_function(function)
         
         p.add_module(module)

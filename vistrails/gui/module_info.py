@@ -47,6 +47,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.controller = None
         self.module = None
         self.pipeline_view = None # pipeline_view
+        self.read_only = False
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -123,13 +124,19 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.setLayout(layout)
         self.setWindowTitle('Module Information')
 
+    def setReadOnly(self, read_only):
+        if read_only != self.read_only:
+            self.read_only = read_only
+            for widget in self.ports_lists + [self.annotations]:
+                widget.setReadOnly(read_only)
+
     def set_controller(self, controller):
         self.controller = controller
         for ports_list in self.ports_lists:
             ports_list.set_controller(controller)
         self.annotations.set_controller(controller)
 
-        scene = self.controller.current_pipeline_view
+        scene = self.controller.current_pipeline_scene
         selected_ids = scene.get_selected_module_ids() 
         modules = [self.controller.current_pipeline.modules[i] 
                    for i in selected_ids]
@@ -186,7 +193,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                                                self.module.id)
                 
 
-            scene = self.controller.current_pipeline_view
+            scene = self.controller.current_pipeline_scene
             scene.recreate_module(self.controller.current_pipeline, 
                                   self.module.id)
             

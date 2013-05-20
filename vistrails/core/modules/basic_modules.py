@@ -62,9 +62,10 @@ except ImportError:
 
 ###############################################################################
 
-version = '1.6'
+version = '2.1'
 name = 'Basic Modules'
-identifier = 'edu.utah.sci.vistrails.basic'
+identifier = 'org.vistrails.vistrails.basic'
+old_identifiers = ['edu.utah.sci.vistrails.basic']
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -148,7 +149,7 @@ class Constant(Module):
             return (value_a != value_b)
         return False
 
-def new_constant(name, py_conversion, default_value, validation,
+def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
                  str_conversion=None, base_class=Constant,
                  compute=None, query_widget_type=None,
@@ -180,11 +181,27 @@ def new_constant(name, py_conversion, default_value, validation,
             base_class.__init__(self)
         return __init__
 
-    d = {'__init__': create_init(base_class),
-         'validate': validation,
-         'translate_to_python': py_conversion,
-         'default_value': default_value,
-         }
+    d = {'__init__': create_init(base_class)}
+
+    if py_conversion is not None:
+        d["translate_to_python"] = py_conversion
+    elif base_class == Constant:
+        raise Exception("Must specify translate_to_python for constant")
+    else:
+        d["translate_to_python"] = staticmethod(base_class.translate_to_python)
+    if validation is not None:
+        d["validate"] = validation
+    elif base_class == Constant:
+        raise Exception("Must specify validation for constant")
+    else:
+        d["validate"] = staticmethod(base_class.validate)
+    if default_value is not None:
+        d["default_value"] = default_value
+    elif base_class == Constant:
+        d["default_value"] = None
+    else:
+        d["default_value"] = base_class.default_value
+
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
     if compute is not None:
@@ -1212,3 +1229,158 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               module_remap)
+
+
+###############################################################################
+
+import unittest
+
+class TestConcatenateString(unittest.TestCase):
+    @staticmethod
+    def concatenate(**kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(ConcatenateString, 'value') as results:
+            errors = execute([
+                    ('ConcatenateString', 'org.vistrails.vistrails.basic', [
+                        (name, [('String', value)])
+                        for name, value in kwargs.iteritems()
+                    ]),
+                ])
+            if errors:
+                return None
+        return results
+
+    def test_concatenate(self):
+        """Concatenates strings"""
+        self.assertEqual(self.concatenate(
+                str1="hello ", str2="world"),
+                ["hello world"])
+        self.assertEqual(self.concatenate(
+                str3="hello world"),
+                ["hello world"])
+        self.assertEqual(self.concatenate(
+                str2="hello ", str4="world"),
+                ["hello world"])
+        self.assertEqual(self.concatenate(
+                str1="hello", str3=" ", str4="world"),
+                ["hello world"])
+
+    def test_empty(self):
+        """Runs ConcatenateString with no input"""
+        self.assertEqual(self.concatenate(), [""])
+
+
+class TestList(unittest.TestCase):
+    @staticmethod
+    def build_list(value=None, head=None, tail=None):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(List, 'value') as results:
+            functions = []
+            def add(n, v, t):
+                if v is not None:
+                    for e in v:
+                        functions.append(
+                                (n, [(t, e)])
+                            )
+            add('value', value, 'List')
+            add('head', head, 'String')
+            add('tail', tail, 'List')
+
+            errors = execute([
+                    ('List', 'org.vistrails.vistrails.basic', functions),
+                ])
+            if errors:
+                return None
+        # List is a Constant, so the interpreter will set the result 'value'
+        # from the 'value' input port automatically
+        # Ignore these first results
+        return results[-1]
+
+    def test_simple(self):
+        """Tests the default ports of the List module"""
+        self.assertEqual(self.build_list(
+                value=['["a", "b", "c"]']),
+                ["a", "b", "c"])
+        self.assertEqual(self.build_list(
+                head=["d"],
+                value=['["a", "b", "c"]']),
+                ["d", "a", "b", "c"])
+        self.assertEqual(self.build_list(
+                head=["d"],
+                value=['["a", "b", "c"]'],
+                tail=['["e", "f"]']),
+                ["d", "a", "b", "c", "e", "f"])
+        self.assertEqual(self.build_list(
+                value=['[]'],
+                tail=['[]']),
+                [])
+
+    def test_multiple(self):
+        """Tests setting multiple values on a port"""
+        # Multiple values on 'head'
+        self.assertEqual(self.build_list(
+                head=["a", "b"]),
+                ["a", "b"])
+        self.assertEqual(self.build_list(
+                head=["a", "b"],
+                value=['["c", "d"]']),
+                ["a", "b", "c", "d"])
+
+        # Multiple values on 'value'
+        res = self.build_list(value=['["a", "b"]', '["c", "d"]'])
+        self.assertIn(res, [["a", "b"], ["c", "d"]])
+
+    def test_items(self):
+        """Tests the multiple 'itemN' ports"""
+        from vistrails.tests.utils import execute, intercept_result
+        def list_with_items(nb_items, **kwargs):
+            with intercept_result(List, 'value') as results:
+                errors = execute([
+                        ('List', 'org.vistrails.vistrails.basic', [
+                            (k, [('String', v)])
+                            for k, v in kwargs.iteritems()
+                        ]),
+                    ],
+                    add_port_specs=[
+                        (0, 'input', 'item%d' % i,
+                         '(org.vistrails.vistrails.basic:Module)')
+                        for i in xrange(nb_items)
+                    ])
+                if errors:
+                    return None
+            return results[-1]
+
+        self.assertEqual(
+                list_with_items(2, head="one", item0="two", item1="three"),
+                ["one", "two", "three"])
+
+        # All 'itemN' ports have to be set
+        self.assertIsNone(
+                list_with_items(3, head="one", item0="two", item2="three"))
+
+
+class TestPythonSource(unittest.TestCase):
+    def test_simple(self):
+        """A simple PythonSource returning a string"""
+        import urllib2
+        from vistrails.tests.utils import execute, intercept_result
+        source = 'customout = "nb is %d" % customin'
+        source = urllib2.quote(source)
+        with intercept_result(PythonSource, 'customout') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', source)]),
+                        ('customin', [('Integer', '42')])
+                    ]),
+                    ('String', 'org.vistrails.vistrails.basic', []),
+                ],
+                [
+                    (0, 'customout', 1, 'value'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'customin',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'customout',
+                     'org.vistrails.vistrails.basic:String'),
+                ]))
+        self.assertEqual(results[-1], "nb is 42")

@@ -421,16 +421,14 @@ class QRepositoryPushWidget(QtGui.QWidget):
         self.update_push_information()
         try:
             # create temp file
-            self.directory = tempfile.mkdtemp(prefix='vt_tmp')
-            (fd, filename) = tempfile.mkstemp(suffix='.vt', prefix='vt_tmp',
-                                              dir=self.directory)
+            (fd, filename) = tempfile.mkstemp(suffix='.vt', prefix='vt_tmp')
             os.close(fd)
 
             # writing tmp vt and switching back to orginal vt
             locator = ZIPFileLocator(filename)
             controller = vistrails.api.get_current_controller()
-            tmp_controller = VistrailController()
-            tmp_controller.set_vistrail(controller.vistrail.do_copy(), locator)
+            tmp_controller = VistrailController(controller.vistrail.do_copy(), 
+                                                locator)
             tmp_controller.changed = True
             tmp_controller.write_vistrail(locator)
 
@@ -501,10 +499,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     updated_file = result.read()
 
                     # create temp file of updated vistrail
-                    self.directory = tempfile.mkdtemp(prefix='vt_tmp')
                     (fd, updated_filename) = tempfile.mkstemp(suffix='.vtl',
-                                                              prefix='vtl_tmp',
-                                                              dir=self.directory)
+                                                              prefix='vtl_tmp')
                     os.close(fd)
                     updated_vt = open(updated_filename, 'w')
                     updated_vt.write(updated_file)
@@ -518,6 +514,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     (up_vistrail, abstractions, thumbnails, mashups) = \
                             load_vistrail(updated_locator)
 
+                    # FIXME need to figure out what to do with this !!!
                     controller.set_vistrail(up_vistrail,
                                             controller.vistrail.locator,
                                             abstractions, thumbnails, mashups)
@@ -528,7 +525,6 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
                     os.remove(updated_filename)
                     os.remove(updated_filename[:-1])
-                    os.rmdir(self.directory)
 
                     self._repository_status['details'] = \
                             "Update to repository was successful"

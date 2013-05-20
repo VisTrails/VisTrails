@@ -36,18 +36,26 @@
 software system for 3D computer graphics, image processing, and
 visualization used by thousands of researchers and developers around
 the world. http://www.vtk.org"""
+
+from identifiers import *
 import vistrails.core
-identifier = 'edu.utah.sci.vistrails.vtk'
-name = 'VTK'
-version = '0.9.3'
+
+def _is_dat_available():
+    try:
+        import dat.packages
+        return True
+    except ImportError:
+        return False
 
 def package_dependencies():
     import vistrails.core.packagemanager
     manager = vistrails.core.packagemanager.get_package_manager()
-    if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-        return ['edu.utah.sci.vistrails.spreadsheet']
-    else:
-        return []
+    deps = []
+    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
+        deps += ['org.vistrails.vistrails.spreadsheet']
+    if _is_dat_available():
+        deps += ['org.vistrails.vistrails.control_flow']
+    return deps
 
 def package_requirements():
     import vistrails.core.requirements

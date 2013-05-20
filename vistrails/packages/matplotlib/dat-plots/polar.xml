@@ -1,0 +1,1068 @@
+<vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2013-03-22 14:34:31" id="1" prevId="0" session="2" user="Remi">
+    <annotation id="0" key="__description__" value="Paste" />
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0" name="MplPolar" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="0" x="10.1080001653" y="31.2723967444" />
+    </add>
+    <add id="2" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="MplFigure" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="3" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="26.00157001" y="-44.7896875128" />
+    </add>
+    <add id="4" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="MplFigureCell" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="5" objectId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="2" x="-5.78556967949" y="-120.85177177" />
+    </add>
+    <add id="6" objectId="3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="7" objectId="1" parentObjId="3" parentObjType="module" what="portSpec">
+      <portSpec id="1" maxConns="-1" minConns="0" name="theta" optional="0" sortKey="1" type="output">
+        <portSpecItem default="" entryType="" id="-1" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="8" objectId="0" parentObjId="3" parentObjType="module" what="portSpec">
+      <portSpec id="0" maxConns="-1" minConns="0" name="r" optional="0" sortKey="0" type="output">
+        <portSpecItem default="" entryType="" id="-1" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="None" />
+      </portSpec>
+    </add>
+    <add id="9" objectId="0" parentObjId="3" parentObjType="module" what="function">
+      <function id="0" name="source" pos="0" />
+    </add>
+    <add id="10" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="theta%20%3D%20%5B0.0%2C%201.0%2C%202.0%2C%201.5%2C%203.0%2C%204.0%2C%205.0%2C%205.0%2C%205.5%2C%200.0%5D%0Ar%20%3D%20%5B0.0%2C%203.0%2C%202.0%2C%201.0%2C%202.0%2C%202.0%2C%200.5%2C%202.0%2C%202.0%2C%200.0%5D" />
+    </add>
+    <add id="11" objectId="3" parentObjId="3" parentObjType="module" what="location">
+      <location id="3" x="7.8374901874" y="99.3876960791" />
+    </add>
+    <add id="12" objectId="0" parentObjId="" parentObjType="" what="connection">
+      <connection id="0" />
+    </add>
+    <add id="13" objectId="1" parentObjId="0" parentObjType="connection" what="port">
+      <port id="1" moduleId="1" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="destination" />
+    </add>
+    <add id="14" objectId="0" parentObjId="0" parentObjType="connection" what="port">
+      <port id="0" moduleId="0" moduleName="MplPolar" name="self" signature="(org.vistrails.vistrails.matplotlib:MplPolar)" type="source" />
+    </add>
+    <add id="15" objectId="1" parentObjId="" parentObjType="" what="connection">
+      <connection id="1" />
+    </add>
+    <add id="16" objectId="3" parentObjId="1" parentObjType="connection" what="port">
+      <port id="3" moduleId="2" moduleName="MplFigureCell" name="figure" signature="(org.vistrails.vistrails.matplotlib:MplFigure)" type="destination" />
+    </add>
+    <add id="17" objectId="2" parentObjId="1" parentObjType="connection" what="port">
+      <port id="2" moduleId="1" moduleName="MplFigure" name="self" signature="(org.vistrails.vistrails.matplotlib:MplFigure)" type="source" />
+    </add>
+    <add id="18" objectId="2" parentObjId="" parentObjType="" what="connection">
+      <connection id="2" />
+    </add>
+    <add id="19" objectId="5" parentObjId="2" parentObjType="connection" what="port">
+      <port id="5" moduleId="0" moduleName="MplPolar" name="r" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="20" objectId="4" parentObjId="2" parentObjType="connection" what="port">
+      <port id="4" moduleId="3" moduleName="PythonSource" name="r" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="21" objectId="3" parentObjId="" parentObjType="" what="connection">
+      <connection id="3" />
+    </add>
+    <add id="22" objectId="7" parentObjId="3" parentObjType="connection" what="port">
+      <port id="7" moduleId="0" moduleName="MplPolar" name="theta" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="23" objectId="6" parentObjId="3" parentObjType="connection" what="port">
+      <port id="6" moduleId="3" moduleName="PythonSource" name="theta" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:34:39" id="2" prevId="1" session="2" user="Remi">
+    <delete id="24" objectId="5" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="25" objectId="4" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="26" objectId="2" parentObjId="" parentObjType="" what="connection" />
+    <delete id="27" objectId="7" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="28" objectId="6" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="29" objectId="3" parentObjId="" parentObjType="" what="connection" />
+    <delete id="30" objectId="3" parentObjId="3" parentObjType="module" what="location" />
+    <delete id="31" objectId="0" parentObjId="0" parentObjType="function" what="parameter" />
+    <delete id="32" objectId="0" parentObjId="3" parentObjType="module" what="function" />
+    <delete id="33" objectId="1" parentObjId="3" parentObjType="module" what="portSpec" />
+    <delete id="34" objectId="0" parentObjId="3" parentObjType="module" what="portSpec" />
+    <delete id="35" objectId="3" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-03-22 14:34:46" id="3" prevId="2" session="2" user="Remi">
+    <add id="36" objectId="4" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="4" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="37" objectId="4" parentObjId="4" parentObjType="module" what="location">
+      <location id="4" x="-151.055900621" y="135.950310559" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:34:46" id="4" prevId="3" session="2" user="Remi">
+    <add id="38" objectId="4" parentObjId="" parentObjType="" what="connection">
+      <connection id="4" />
+    </add>
+    <add id="39" objectId="8" parentObjId="4" parentObjType="connection" what="port">
+      <port id="8" moduleId="4" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="40" objectId="9" parentObjId="4" parentObjType="connection" what="port">
+      <port id="9" moduleId="0" moduleName="MplPolar" name="r" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:34:49" id="5" prevId="4" session="2" user="Remi">
+    <add id="41" objectId="5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="42" objectId="5" parentObjId="5" parentObjType="module" what="location">
+      <location id="5" x="-165.366459627" y="128.795031056" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:34:50" id="6" prevId="5" session="2" user="Remi">
+    <add id="43" objectId="5" parentObjId="" parentObjType="" what="connection">
+      <connection id="5" />
+    </add>
+    <add id="44" objectId="10" parentObjId="5" parentObjType="connection" what="port">
+      <port id="10" moduleId="5" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="45" objectId="11" parentObjId="5" parentObjType="connection" what="port">
+      <port id="11" moduleId="0" moduleName="MplPolar" name="theta" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:34:54" id="7" prevId="6" session="2" user="Remi">
+    <change id="46" newObjId="6" oldObjId="5" parentObjId="5" parentObjType="module" what="location">
+      <location id="6" x="3.1801242236" y="135.155279503" />
+    </change>
+  </action>
+  <action date="2013-03-22 14:34:54" id="8" prevId="7" session="2" user="Remi">
+    <add id="47" objectId="1" parentObjId="4" parentObjType="module" what="function">
+      <function id="1" name="spec" pos="0" />
+    </add>
+    <add id="48" objectId="1" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:List" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:34:55" id="9" prevId="8" session="2" user="Remi">
+    <add id="49" objectId="2" parentObjId="4" parentObjType="module" what="function">
+      <function id="2" name="optional" pos="1" />
+    </add>
+    <add id="50" objectId="2" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:34:56" id="10" prevId="9" session="2" user="Remi">
+    <change id="51" newObjId="3" oldObjId="2" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
+    </change>
+  </action>
+  <action date="2013-03-22 14:35:02" id="11" prevId="10" session="2" user="Remi">
+    <add id="52" objectId="3" parentObjId="4" parentObjType="module" what="function">
+      <function id="3" name="name" pos="2" />
+    </add>
+    <add id="53" objectId="4" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="r" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:35:04" id="12" prevId="11" session="2" user="Remi">
+    <add id="54" objectId="4" parentObjId="5" parentObjType="module" what="function">
+      <function id="4" name="optional" pos="0" />
+    </add>
+    <add id="55" objectId="5" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:35:04" id="13" prevId="12" session="2" user="Remi">
+    <change id="56" newObjId="6" oldObjId="5" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
+    </change>
+  </action>
+  <action date="2013-03-22 14:35:07" id="14" prevId="13" session="2" user="Remi">
+    <add id="57" objectId="5" parentObjId="5" parentObjType="module" what="function">
+      <function id="5" name="spec" pos="1" />
+    </add>
+    <add id="58" objectId="7" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:List" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:35:10" id="15" prevId="14" session="2" user="Remi">
+    <add id="59" objectId="6" parentObjId="5" parentObjType="module" what="function">
+      <function id="6" name="name" pos="2" />
+    </add>
+    <add id="60" objectId="8" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="theta" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:35:28" id="16" prevId="15" session="2" user="Remi">
+    <add id="61" objectId="6" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="6" name="MplLine2DProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="62" objectId="7" parentObjId="6" parentObjType="module" what="location">
+      <location id="7" x="-93.0186335404" y="121.639751553" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:35:28" id="17" prevId="16" session="2" user="Remi">
+    <add id="63" objectId="6" parentObjId="" parentObjType="" what="connection">
+      <connection id="6" />
+    </add>
+    <add id="64" objectId="12" parentObjId="6" parentObjType="connection" what="port">
+      <port id="12" moduleId="6" moduleName="MplLine2DProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplLine2DProperties)" type="source" />
+    </add>
+    <add id="65" objectId="13" parentObjId="6" parentObjType="connection" what="port">
+      <port id="13" moduleId="0" moduleName="MplPolar" name="lineProperties" signature="(org.vistrails.vistrails.matplotlib:MplLine2DProperties)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:35:34" id="18" prevId="17" session="2" user="Remi">
+    <change id="66" newObjId="8" oldObjId="7" parentObjId="6" parentObjType="module" what="location">
+      <location id="8" x="235.329192547" y="129.590062112" />
+    </change>
+  </action>
+  <action date="2013-03-22 14:35:50" id="19" prevId="18" session="2" user="Remi">
+    <add id="67" objectId="7" parentObjId="6" parentObjType="module" what="function">
+      <function id="7" name="drawstyle" pos="0" />
+    </add>
+    <add id="68" objectId="9" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="default" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:36:09" id="20" prevId="19" session="2" user="Remi">
+    <add id="69" objectId="7" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="7" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="70" objectId="9" parentObjId="7" parentObjType="module" what="location">
+      <location id="9" x="71.5527950311" y="205.118012422" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:36:09" id="21" prevId="20" session="2" user="Remi">
+    <add id="71" objectId="7" parentObjId="" parentObjType="" what="connection">
+      <connection id="7" />
+    </add>
+    <add id="72" objectId="14" parentObjId="7" parentObjType="connection" what="port">
+      <port id="14" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="73" objectId="15" parentObjId="7" parentObjType="connection" what="port">
+      <port id="15" moduleId="6" moduleName="MplLine2DProperties" name="color" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:36:13" id="22" prevId="21" session="2" user="Remi">
+    <add id="74" objectId="8" parentObjId="7" parentObjType="module" what="function">
+      <function id="8" name="spec" pos="0" />
+    </add>
+    <add id="75" objectId="10" parentObjId="8" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Color" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:36:16" id="23" prevId="22" session="2" user="Remi">
+    <add id="76" objectId="9" parentObjId="7" parentObjType="module" what="function">
+      <function id="9" name="name" pos="1" />
+    </add>
+    <add id="77" objectId="11" parentObjId="9" parentObjType="function" what="parameter">
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="linecolor" />
+    </add>
+  </action>
+  <action date="2013-03-22 14:36:17" id="24" prevId="23" session="2" user="Remi">
+    <add id="78" objectId="10" parentObjId="7" parentObjType="module" what="function">
+      <function id="10" name="optional" pos="2" />
+    </add>
+    <add id="79" objectId="12" parentObjId="10" parentObjType="function" what="parameter">
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:29:33" id="25" prevId="24" session="5" user="Remi">
+    <annotation id="1" key="__description__" value="Paste" />
+    <add id="80" objectId="8" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="8" name="MplLine2DProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="81" objectId="13" parentObjId="8" parentObjType="module" what="function">
+      <function id="13" name="linestyle" pos="3" />
+    </add>
+    <add id="82" objectId="15" parentObjId="13" parentObjType="function" what="parameter">
+      <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="solid" />
+    </add>
+    <add id="83" objectId="12" parentObjId="8" parentObjType="module" what="function">
+      <function id="12" name="marker" pos="2" />
+    </add>
+    <add id="84" objectId="14" parentObjId="12" parentObjType="function" what="parameter">
+      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="circle" />
+    </add>
+    <add id="85" objectId="11" parentObjId="8" parentObjType="module" what="function">
+      <function id="11" name="markersize" pos="0" />
+    </add>
+    <add id="86" objectId="13" parentObjId="11" parentObjType="function" what="parameter">
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Float" val="6.5" />
+    </add>
+    <add id="87" objectId="10" parentObjId="8" parentObjType="module" what="location">
+      <location id="10" x="445.80867222" y="384.965145714" />
+    </add>
+    <add id="88" objectId="9" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="9" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="89" objectId="16" parentObjId="9" parentObjType="module" what="function">
+      <function id="16" name="spec" pos="2" />
+    </add>
+    <add id="90" objectId="18" parentObjId="16" parentObjType="function" what="parameter">
+      <parameter alias="" id="18" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Color" />
+    </add>
+    <add id="91" objectId="15" parentObjId="9" parentObjType="module" what="function">
+      <function id="15" name="optional" pos="1" />
+    </add>
+    <add id="92" objectId="17" parentObjId="15" parentObjType="function" what="parameter">
+      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="93" objectId="14" parentObjId="9" parentObjType="module" what="function">
+      <function id="14" name="name" pos="0" />
+    </add>
+    <add id="94" objectId="16" parentObjId="14" parentObjType="function" what="parameter">
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="edgecolor" />
+    </add>
+    <add id="95" objectId="11" parentObjId="9" parentObjType="module" what="location">
+      <location id="11" x="508.221813697" y="513.560761423" />
+    </add>
+    <add id="96" objectId="10" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="10" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="97" objectId="19" parentObjId="10" parentObjType="module" what="function">
+      <function id="19" name="name" pos="2" />
+    </add>
+    <add id="98" objectId="21" parentObjId="19" parentObjType="function" what="parameter">
+      <parameter alias="" id="21" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="markercolor" />
+    </add>
+    <add id="99" objectId="18" parentObjId="10" parentObjType="module" what="function">
+      <function id="18" name="optional" pos="1" />
+    </add>
+    <add id="100" objectId="20" parentObjId="18" parentObjType="function" what="parameter">
+      <parameter alias="" id="20" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="101" objectId="17" parentObjId="10" parentObjType="module" what="function">
+      <function id="17" name="spec" pos="0" />
+    </add>
+    <add id="102" objectId="19" parentObjId="17" parentObjType="function" what="parameter">
+      <parameter alias="" id="19" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Color" />
+    </add>
+    <add id="103" objectId="12" parentObjId="10" parentObjType="module" what="location">
+      <location id="12" x="354.94194284" y="513.393504283" />
+    </add>
+    <add id="104" objectId="11" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="11" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="105" objectId="22" parentObjId="11" parentObjType="module" what="function">
+      <function id="22" name="optional" pos="2" />
+    </add>
+    <add id="106" objectId="24" parentObjId="22" parentObjType="function" what="parameter">
+      <parameter alias="" id="24" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="False" />
+    </add>
+    <add id="107" objectId="21" parentObjId="11" parentObjType="module" what="function">
+      <function id="21" name="name" pos="1" />
+    </add>
+    <add id="108" objectId="23" parentObjId="21" parentObjType="function" what="parameter">
+      <parameter alias="" id="23" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="markers" />
+    </add>
+    <add id="109" objectId="20" parentObjId="11" parentObjType="module" what="function">
+      <function id="20" name="spec" pos="0" />
+    </add>
+    <add id="110" objectId="22" parentObjId="20" parentObjType="function" what="parameter">
+      <parameter alias="" id="22" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Boolean" />
+    </add>
+    <add id="111" objectId="13" parentObjId="11" parentObjType="module" what="location">
+      <location id="13" x="208.91860965" y="377.602966106" />
+    </add>
+    <add id="112" objectId="12" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="12" name="If" namespace="" package="edu.utah.sci.vistrails.control_flow" version="0.2.0" />
+    </add>
+    <add id="113" objectId="24" parentObjId="12" parentObjType="module" what="function">
+      <function id="24" name="TrueOutputPorts" pos="1" />
+    </add>
+    <add id="114" objectId="26" parentObjId="24" parentObjType="function" what="parameter">
+      <parameter alias="" id="26" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['value']" />
+    </add>
+    <add id="115" objectId="23" parentObjId="12" parentObjType="module" what="function">
+      <function id="23" name="FalseOutputPorts" pos="0" />
+    </add>
+    <add id="116" objectId="25" parentObjId="23" parentObjType="function" what="parameter">
+      <parameter alias="" id="25" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['value']" />
+    </add>
+    <add id="117" objectId="14" parentObjId="12" parentObjType="module" what="location">
+      <location id="14" x="510.670283418" y="249.742087391" />
+    </add>
+    <add id="118" objectId="13" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="13" name="MplLine2DProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="119" objectId="25" parentObjId="13" parentObjType="module" what="function">
+      <function id="25" name="linestyle" pos="3" />
+    </add>
+    <add id="120" objectId="27" parentObjId="25" parentObjType="function" what="parameter">
+      <parameter alias="" id="27" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="solid" />
+    </add>
+    <add id="121" objectId="15" parentObjId="13" parentObjType="module" what="location">
+      <location id="15" x="734.000618241" y="392.946271552" />
+    </add>
+    <add id="122" objectId="8" parentObjId="" parentObjType="" what="connection">
+      <connection id="8" />
+    </add>
+    <add id="123" objectId="17" parentObjId="8" parentObjType="connection" what="port">
+      <port id="17" moduleId="8" moduleName="MplLine2DProperties" name="color" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+    <add id="124" objectId="16" parentObjId="8" parentObjType="connection" what="port">
+      <port id="16" moduleId="9" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="125" objectId="9" parentObjId="" parentObjType="" what="connection">
+      <connection id="9" />
+    </add>
+    <add id="126" objectId="19" parentObjId="9" parentObjType="connection" what="port">
+      <port id="19" moduleId="8" moduleName="MplLine2DProperties" name="markerfacecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+    <add id="127" objectId="18" parentObjId="9" parentObjType="connection" what="port">
+      <port id="18" moduleId="10" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="128" objectId="10" parentObjId="" parentObjType="" what="connection">
+      <connection id="10" />
+    </add>
+    <add id="129" objectId="21" parentObjId="10" parentObjType="connection" what="port">
+      <port id="21" moduleId="12" moduleName="If" name="Condition" signature="(org.vistrails.vistrails.basic:Boolean)" type="destination" />
+    </add>
+    <add id="130" objectId="20" parentObjId="10" parentObjType="connection" what="port">
+      <port id="20" moduleId="11" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="131" objectId="11" parentObjId="" parentObjType="" what="connection">
+      <connection id="11" />
+    </add>
+    <add id="132" objectId="23" parentObjId="11" parentObjType="connection" what="port">
+      <port id="23" moduleId="12" moduleName="If" name="TruePort" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="133" objectId="22" parentObjId="11" parentObjType="connection" what="port">
+      <port id="22" moduleId="8" moduleName="MplLine2DProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplLine2DProperties)" type="source" />
+    </add>
+    <add id="134" objectId="12" parentObjId="" parentObjType="" what="connection">
+      <connection id="12" />
+    </add>
+    <add id="135" objectId="25" parentObjId="12" parentObjType="connection" what="port">
+      <port id="25" moduleId="12" moduleName="If" name="FalsePort" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="136" objectId="24" parentObjId="12" parentObjType="connection" what="port">
+      <port id="24" moduleId="13" moduleName="MplLine2DProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplLine2DProperties)" type="source" />
+    </add>
+    <add id="137" objectId="13" parentObjId="" parentObjType="" what="connection">
+      <connection id="13" />
+    </add>
+    <add id="138" objectId="27" parentObjId="13" parentObjType="connection" what="port">
+      <port id="27" moduleId="13" moduleName="MplLine2DProperties" name="color" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+    <add id="139" objectId="26" parentObjId="13" parentObjType="connection" what="port">
+      <port id="26" moduleId="9" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:29:50" id="26" prevId="25" session="5" user="Remi">
+    <delete id="140" objectId="12" parentObjId="6" parentObjType="connection" what="port" />
+    <delete id="141" objectId="13" parentObjId="6" parentObjType="connection" what="port" />
+    <delete id="142" objectId="6" parentObjId="" parentObjType="" what="connection" />
+    <delete id="143" objectId="14" parentObjId="7" parentObjType="connection" what="port" />
+    <delete id="144" objectId="15" parentObjId="7" parentObjType="connection" what="port" />
+    <delete id="145" objectId="7" parentObjId="" parentObjType="" what="connection" />
+    <delete id="146" objectId="9" parentObjId="7" parentObjType="module" what="location" />
+    <delete id="147" objectId="10" parentObjId="8" parentObjType="function" what="parameter" />
+    <delete id="148" objectId="8" parentObjId="7" parentObjType="module" what="function" />
+    <delete id="149" objectId="11" parentObjId="9" parentObjType="function" what="parameter" />
+    <delete id="150" objectId="9" parentObjId="7" parentObjType="module" what="function" />
+    <delete id="151" objectId="12" parentObjId="10" parentObjType="function" what="parameter" />
+    <delete id="152" objectId="10" parentObjId="7" parentObjType="module" what="function" />
+    <delete id="153" objectId="7" parentObjId="" parentObjType="" what="module" />
+    <delete id="154" objectId="8" parentObjId="6" parentObjType="module" what="location" />
+    <delete id="155" objectId="9" parentObjId="7" parentObjType="function" what="parameter" />
+    <delete id="156" objectId="7" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="157" objectId="6" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-03-25 12:29:52" id="27" prevId="26" session="5" user="Remi">
+    <add id="158" objectId="14" parentObjId="" parentObjType="" what="connection">
+      <connection id="14" />
+    </add>
+    <add id="159" objectId="28" parentObjId="14" parentObjType="connection" what="port">
+      <port id="28" moduleId="12" moduleName="If" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="160" objectId="29" parentObjId="14" parentObjType="connection" what="port">
+      <port id="29" moduleId="0" moduleName="MplPolar" name="lineProperties" signature="(org.vistrails.vistrails.matplotlib:MplLine2DProperties)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:31:07" id="28" prevId="27" session="5" user="Remi">
+    <change id="161" newObjId="16" oldObjId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="16" x="-232.773539473" y="-92.2776730296" />
+    </change>
+    <change id="162" newObjId="17" oldObjId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="17" x="-237.71964387" y="-207.568962714" />
+    </change>
+    <change id="163" newObjId="18" oldObjId="10" parentObjId="8" parentObjType="module" what="location">
+      <location id="18" x="116.145700299" y="274.848077849" />
+    </change>
+    <change id="164" newObjId="19" oldObjId="11" parentObjId="9" parentObjType="module" what="location">
+      <location id="19" x="178.558841776" y="403.443693558" />
+    </change>
+    <change id="165" newObjId="20" oldObjId="12" parentObjId="10" parentObjType="module" what="location">
+      <location id="20" x="25.2789709188" y="403.276436418" />
+    </change>
+    <change id="166" newObjId="21" oldObjId="13" parentObjId="11" parentObjType="module" what="location">
+      <location id="21" x="-120.744362271" y="267.485898241" />
+    </change>
+    <change id="167" newObjId="22" oldObjId="14" parentObjId="12" parentObjType="module" what="location">
+      <location id="22" x="181.007311497" y="139.625019526" />
+    </change>
+    <change id="168" newObjId="23" oldObjId="15" parentObjId="13" parentObjType="module" what="location">
+      <location id="23" x="404.33764632" y="282.829203687" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:31:07" id="29" prevId="28" session="5" user="Remi">
+    <annotation id="2" key="__description__" value="Paste" />
+    <add id="169" objectId="14" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="14" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="170" objectId="28" parentObjId="14" parentObjType="module" what="function">
+      <function id="28" name="name" pos="2" />
+    </add>
+    <add id="171" objectId="30" parentObjId="28" parentObjType="function" what="parameter">
+      <parameter alias="" id="30" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="title" />
+    </add>
+    <add id="172" objectId="27" parentObjId="14" parentObjType="module" what="function">
+      <function id="27" name="spec" pos="1" />
+    </add>
+    <add id="173" objectId="29" parentObjId="27" parentObjType="function" what="parameter">
+      <parameter alias="" id="29" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:String" />
+    </add>
+    <add id="174" objectId="26" parentObjId="14" parentObjType="module" what="function">
+      <function id="26" name="optional" pos="0" />
+    </add>
+    <add id="175" objectId="28" parentObjId="26" parentObjType="function" what="parameter">
+      <parameter alias="" id="28" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="176" objectId="24" parentObjId="14" parentObjType="module" what="location">
+      <location id="24" x="-195.659126693" y="205.380662751" />
+    </add>
+    <add id="177" objectId="15" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="15" name="MplAxesProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="178" objectId="25" parentObjId="15" parentObjType="module" what="location">
+      <location id="25" x="-181.936612198" y="-9.35106178091" />
+    </add>
+    <add id="179" objectId="16" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="16" name="MplTextProperties" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.1" />
+    </add>
+    <add id="180" objectId="26" parentObjId="16" parentObjType="module" what="location">
+      <location id="26" x="-181.936612198" y="95.0923971988" />
+    </add>
+    <add id="181" objectId="15" parentObjId="" parentObjType="" what="connection">
+      <connection id="15" />
+    </add>
+    <add id="182" objectId="31" parentObjId="15" parentObjType="connection" what="port">
+      <port id="31" moduleId="15" moduleName="MplAxesProperties" name="titleProperties" signature="(org.vistrails.vistrails.matplotlib:MplTextProperties)" type="destination" />
+    </add>
+    <add id="183" objectId="30" parentObjId="15" parentObjType="connection" what="port">
+      <port id="30" moduleId="16" moduleName="MplTextProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplTextProperties)" type="source" />
+    </add>
+    <add id="184" objectId="16" parentObjId="" parentObjType="" what="connection">
+      <connection id="16" />
+    </add>
+    <add id="185" objectId="33" parentObjId="16" parentObjType="connection" what="port">
+      <port id="33" moduleId="16" moduleName="MplTextProperties" name="text" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+    </add>
+    <add id="186" objectId="32" parentObjId="16" parentObjType="connection" what="port">
+      <port id="32" moduleId="14" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:31:10" id="30" prevId="29" session="5" user="Remi">
+    <change id="187" newObjId="27" oldObjId="24" parentObjId="14" parentObjType="module" what="location">
+      <location id="27" x="-418.64618912" y="250.803953245" />
+    </change>
+    <change id="188" newObjId="28" oldObjId="25" parentObjId="15" parentObjType="module" what="location">
+      <location id="28" x="-404.923674625" y="36.0722287134" />
+    </change>
+    <change id="189" newObjId="29" oldObjId="26" parentObjId="16" parentObjType="module" what="location">
+      <location id="29" x="-404.923674625" y="140.515687693" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:31:10" id="31" prevId="30" session="5" user="Remi">
+    <add id="190" objectId="17" parentObjId="" parentObjType="" what="connection">
+      <connection id="17" />
+    </add>
+    <add id="191" objectId="34" parentObjId="17" parentObjType="connection" what="port">
+      <port id="34" moduleId="15" moduleName="MplAxesProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplAxesProperties)" type="source" />
+    </add>
+    <add id="192" objectId="35" parentObjId="17" parentObjType="connection" what="port">
+      <port id="35" moduleId="1" moduleName="MplFigure" name="axesProperties" signature="(org.vistrails.vistrails.matplotlib:MplAxesProperties)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:39:05" id="32" prevId="31" session="8" user="Remi">
+    <annotation id="3" key="__description__" value="Paste" />
+    <add id="193" objectId="17" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="17" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="194" objectId="31" parentObjId="17" parentObjType="module" what="function">
+      <function id="31" name="spec" pos="2" />
+    </add>
+    <add id="195" objectId="33" parentObjId="31" parentObjType="function" what="parameter">
+      <parameter alias="" id="33" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Color" />
+    </add>
+    <add id="196" objectId="30" parentObjId="17" parentObjType="module" what="function">
+      <function id="30" name="optional" pos="1" />
+    </add>
+    <add id="197" objectId="32" parentObjId="30" parentObjType="function" what="parameter">
+      <parameter alias="" id="32" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="198" objectId="29" parentObjId="17" parentObjType="module" what="function">
+      <function id="29" name="name" pos="0" />
+    </add>
+    <add id="199" objectId="31" parentObjId="29" parentObjType="function" what="parameter">
+      <parameter alias="" id="31" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="edgecolor" />
+    </add>
+    <add id="200" objectId="30" parentObjId="17" parentObjType="module" what="location">
+      <location id="30" x="104.472507124" y="143.614357891" />
+    </add>
+    <add id="201" objectId="18" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="18" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="202" objectId="34" parentObjId="18" parentObjType="module" what="function">
+      <function id="34" name="name" pos="2" />
+    </add>
+    <add id="203" objectId="36" parentObjId="34" parentObjType="function" what="parameter">
+      <parameter alias="" id="36" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="markercolor" />
+    </add>
+    <add id="204" objectId="33" parentObjId="18" parentObjType="module" what="function">
+      <function id="33" name="optional" pos="1" />
+    </add>
+    <add id="205" objectId="35" parentObjId="33" parentObjType="function" what="parameter">
+      <parameter alias="" id="35" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="206" objectId="32" parentObjId="18" parentObjType="module" what="function">
+      <function id="32" name="spec" pos="0" />
+    </add>
+    <add id="207" objectId="34" parentObjId="32" parentObjType="function" what="parameter">
+      <parameter alias="" id="34" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:Color" />
+    </add>
+    <add id="208" objectId="31" parentObjId="18" parentObjType="module" what="location">
+      <location id="31" x="-182.095964954" y="101.037091272" />
+    </add>
+    <add id="209" objectId="19" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="19" name="Default" namespace="" package="edu.utah.sci.vistrails.control_flow" version="0.2.0" />
+    </add>
+    <add id="210" objectId="32" parentObjId="19" parentObjType="module" what="location">
+      <location id="32" x="112.885205628" y="24.0722903331" />
+    </add>
+    <add id="211" objectId="20" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="20" name="Color" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="212" objectId="35" parentObjId="20" parentObjType="module" what="function">
+      <function id="35" name="value" pos="0" />
+    </add>
+    <add id="213" objectId="37" parentObjId="35" parentObjType="function" what="parameter">
+      <parameter alias="" id="37" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.0,0.043137254902,0.678431372549" />
+    </add>
+    <add id="214" objectId="33" parentObjId="20" parentObjType="module" what="location">
+      <location id="33" x="238.184244248" y="139.732941368" />
+    </add>
+    <add id="215" objectId="21" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="21" name="Default" namespace="" package="edu.utah.sci.vistrails.control_flow" version="0.2.0" />
+    </add>
+    <add id="216" objectId="34" parentObjId="21" parentObjType="module" what="location">
+      <location id="34" x="-118.350322249" y="10.945382637" />
+    </add>
+    <add id="217" objectId="22" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="22" name="Color" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="218" objectId="36" parentObjId="22" parentObjType="module" what="function">
+      <function id="36" name="value" pos="0" />
+    </add>
+    <add id="219" objectId="38" parentObjId="36" parentObjType="function" what="parameter">
+      <parameter alias="" id="38" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.0666666666667,0.462745098039,0.0" />
+    </add>
+    <add id="220" objectId="35" parentObjId="22" parentObjType="module" what="location">
+      <location id="35" x="-31.4222445864" y="104.391266802" />
+    </add>
+    <add id="221" objectId="18" parentObjId="" parentObjType="" what="connection">
+      <connection id="18" />
+    </add>
+    <add id="222" objectId="37" parentObjId="18" parentObjType="connection" what="port">
+      <port id="37" moduleId="21" moduleName="Default" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+    <add id="223" objectId="36" parentObjId="18" parentObjType="connection" what="port">
+      <port id="36" moduleId="22" moduleName="Color" name="value" signature="(org.vistrails.vistrails.basic:Color)" type="source" />
+    </add>
+    <add id="224" objectId="19" parentObjId="" parentObjType="" what="connection">
+      <connection id="19" />
+    </add>
+    <add id="225" objectId="39" parentObjId="19" parentObjType="connection" what="port">
+      <port id="39" moduleId="21" moduleName="Default" name="Input" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+    <add id="226" objectId="38" parentObjId="19" parentObjType="connection" what="port">
+      <port id="38" moduleId="18" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="227" objectId="20" parentObjId="" parentObjType="" what="connection">
+      <connection id="20" />
+    </add>
+    <add id="228" objectId="41" parentObjId="20" parentObjType="connection" what="port">
+      <port id="41" moduleId="20" moduleName="Color" name="value" signature="(org.vistrails.vistrails.basic:Color)" type="source" />
+    </add>
+    <add id="229" objectId="40" parentObjId="20" parentObjType="connection" what="port">
+      <port id="40" moduleId="19" moduleName="Default" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+    <add id="230" objectId="21" parentObjId="" parentObjType="" what="connection">
+      <connection id="21" />
+    </add>
+    <add id="231" objectId="43" parentObjId="21" parentObjType="connection" what="port">
+      <port id="43" moduleId="19" moduleName="Default" name="Input" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+    <add id="232" objectId="42" parentObjId="21" parentObjType="connection" what="port">
+      <port id="42" moduleId="17" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:39:14" id="33" prevId="32" session="8" user="Remi">
+    <change id="233" newObjId="36" oldObjId="30" parentObjId="17" parentObjType="module" what="location">
+      <location id="36" x="-187.73627205" y="586.171222615" />
+    </change>
+    <change id="234" newObjId="37" oldObjId="31" parentObjId="18" parentObjType="module" what="location">
+      <location id="37" x="-474.304744127" y="543.593955995" />
+    </change>
+    <change id="235" newObjId="38" oldObjId="32" parentObjId="19" parentObjType="module" what="location">
+      <location id="38" x="-179.323573546" y="466.629155056" />
+    </change>
+    <change id="236" newObjId="39" oldObjId="33" parentObjId="20" parentObjType="module" what="location">
+      <location id="39" x="-54.0245349255" y="582.289806091" />
+    </change>
+    <change id="237" newObjId="40" oldObjId="34" parentObjId="21" parentObjType="module" what="location">
+      <location id="40" x="-410.559101422" y="453.50224736" />
+    </change>
+    <change id="238" newObjId="41" oldObjId="35" parentObjId="22" parentObjType="module" what="location">
+      <location id="41" x="-323.63102376" y="546.948131525" />
+    </change>
+  </action>
+  <action date="2013-03-25 12:39:14" id="34" prevId="33" session="8" user="Remi">
+    <add id="239" objectId="22" parentObjId="" parentObjType="" what="connection">
+      <connection id="22" />
+    </add>
+    <add id="240" objectId="44" parentObjId="22" parentObjType="connection" what="port">
+      <port id="44" moduleId="21" moduleName="Default" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="241" objectId="45" parentObjId="22" parentObjType="connection" what="port">
+      <port id="45" moduleId="8" moduleName="MplLine2DProperties" name="markerfacecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:39:18" id="35" prevId="34" session="8" user="Remi">
+    <add id="242" objectId="23" parentObjId="" parentObjType="" what="connection">
+      <connection id="23" />
+    </add>
+    <add id="243" objectId="46" parentObjId="23" parentObjType="connection" what="port">
+      <port id="46" moduleId="19" moduleName="Default" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="244" objectId="47" parentObjId="23" parentObjType="connection" what="port">
+      <port id="47" moduleId="8" moduleName="MplLine2DProperties" name="color" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:39:20" id="36" prevId="35" session="8" user="Remi">
+    <add id="245" objectId="24" parentObjId="" parentObjType="" what="connection">
+      <connection id="24" />
+    </add>
+    <add id="246" objectId="48" parentObjId="24" parentObjType="connection" what="port">
+      <port id="48" moduleId="19" moduleName="Default" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="247" objectId="49" parentObjId="24" parentObjType="connection" what="port">
+      <port id="49" moduleId="13" moduleName="MplLine2DProperties" name="color" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-03-25 12:39:21" id="37" prevId="36" session="8" user="Remi">
+    <delete id="248" objectId="17" parentObjId="8" parentObjType="connection" what="port" />
+    <delete id="249" objectId="16" parentObjId="8" parentObjType="connection" what="port" />
+    <delete id="250" objectId="8" parentObjId="" parentObjType="" what="connection" />
+    <delete id="251" objectId="19" parentObjId="9" parentObjType="connection" what="port" />
+    <delete id="252" objectId="18" parentObjId="9" parentObjType="connection" what="port" />
+    <delete id="253" objectId="9" parentObjId="" parentObjType="" what="connection" />
+    <delete id="254" objectId="27" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="255" objectId="26" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="256" objectId="13" parentObjId="" parentObjType="" what="connection" />
+    <delete id="257" objectId="20" parentObjId="10" parentObjType="module" what="location" />
+    <delete id="258" objectId="19" parentObjId="17" parentObjType="function" what="parameter" />
+    <delete id="259" objectId="17" parentObjId="10" parentObjType="module" what="function" />
+    <delete id="260" objectId="20" parentObjId="18" parentObjType="function" what="parameter" />
+    <delete id="261" objectId="18" parentObjId="10" parentObjType="module" what="function" />
+    <delete id="262" objectId="21" parentObjId="19" parentObjType="function" what="parameter" />
+    <delete id="263" objectId="19" parentObjId="10" parentObjType="module" what="function" />
+    <delete id="264" objectId="10" parentObjId="" parentObjType="" what="module" />
+    <delete id="265" objectId="19" parentObjId="9" parentObjType="module" what="location" />
+    <delete id="266" objectId="16" parentObjId="14" parentObjType="function" what="parameter" />
+    <delete id="267" objectId="14" parentObjId="9" parentObjType="module" what="function" />
+    <delete id="268" objectId="17" parentObjId="15" parentObjType="function" what="parameter" />
+    <delete id="269" objectId="15" parentObjId="9" parentObjType="module" what="function" />
+    <delete id="270" objectId="18" parentObjId="16" parentObjType="function" what="parameter" />
+    <delete id="271" objectId="16" parentObjId="9" parentObjType="module" what="function" />
+    <delete id="272" objectId="9" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-03-25 13:59:25" id="38" prevId="37" session="11" user="Remi">
+    <change id="273" newObjId="39" oldObjId="25" parentObjId="23" parentObjType="function" what="parameter">
+      <parameter alias="" id="39" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['self']" />
+    </change>
+  </action>
+  <action date="2013-03-25 13:59:26" id="39" prevId="38" session="11" user="Remi">
+    <change id="274" newObjId="40" oldObjId="26" parentObjId="24" parentObjType="function" what="parameter">
+      <parameter alias="" id="40" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['self']" />
+    </change>
+  </action>
+  <action date="2013-04-09 16:25:05" id="40" prevId="39" session="14" user="Remi">
+    <add id="275" objectId="25" parentObjId="" parentObjType="" what="connection">
+      <connection id="25" />
+    </add>
+    <add id="276" objectId="50" parentObjId="25" parentObjType="connection" what="port">
+      <port id="50" moduleId="22" moduleName="Color" name="value" signature="(org.vistrails.vistrails.basic:Color)" type="source" />
+    </add>
+    <add id="277" objectId="51" parentObjId="25" parentObjType="connection" what="port">
+      <port id="51" moduleId="18" moduleName="InputPort" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:25:12" id="41" prevId="40" session="14" user="Remi">
+    <add id="278" objectId="26" parentObjId="" parentObjType="" what="connection">
+      <connection id="26" />
+    </add>
+    <add id="279" objectId="52" parentObjId="26" parentObjType="connection" what="port">
+      <port id="52" moduleId="18" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="280" objectId="53" parentObjId="26" parentObjType="connection" what="port">
+      <port id="53" moduleId="8" moduleName="MplLine2DProperties" name="markerfacecolor" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:25:13" id="42" prevId="41" session="14" user="Remi">
+    <delete id="281" objectId="37" parentObjId="18" parentObjType="connection" what="port" />
+    <delete id="282" objectId="36" parentObjId="18" parentObjType="connection" what="port" />
+    <delete id="283" objectId="18" parentObjId="" parentObjType="" what="connection" />
+    <delete id="284" objectId="39" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="285" objectId="38" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="286" objectId="19" parentObjId="" parentObjType="" what="connection" />
+    <delete id="287" objectId="44" parentObjId="22" parentObjType="connection" what="port" />
+    <delete id="288" objectId="45" parentObjId="22" parentObjType="connection" what="port" />
+    <delete id="289" objectId="22" parentObjId="" parentObjType="" what="connection" />
+    <delete id="290" objectId="40" parentObjId="21" parentObjType="module" what="location" />
+    <delete id="291" objectId="21" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-09 16:25:17" id="43" prevId="42" session="14" user="Remi">
+    <change id="292" newObjId="42" oldObjId="37" parentObjId="18" parentObjType="module" what="location">
+      <location id="42" x="-343.363389659" y="446.811215736" />
+    </change>
+  </action>
+  <action date="2013-04-09 16:25:17" id="44" prevId="43" session="14" user="Remi">
+    <add id="293" objectId="27" parentObjId="" parentObjType="" what="connection">
+      <connection id="27" />
+    </add>
+    <add id="294" objectId="54" parentObjId="27" parentObjType="connection" what="port">
+      <port id="54" moduleId="20" moduleName="Color" name="value" signature="(org.vistrails.vistrails.basic:Color)" type="source" />
+    </add>
+    <add id="295" objectId="55" parentObjId="27" parentObjType="connection" what="port">
+      <port id="55" moduleId="17" moduleName="InputPort" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:25:22" id="45" prevId="44" session="14" user="Remi">
+    <add id="296" objectId="28" parentObjId="" parentObjType="" what="connection">
+      <connection id="28" />
+    </add>
+    <add id="297" objectId="56" parentObjId="28" parentObjType="connection" what="port">
+      <port id="56" moduleId="17" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="298" objectId="57" parentObjId="28" parentObjType="connection" what="port">
+      <port id="57" moduleId="8" moduleName="MplLine2DProperties" name="color" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:25:25" id="46" prevId="45" session="14" user="Remi">
+    <add id="299" objectId="29" parentObjId="" parentObjType="" what="connection">
+      <connection id="29" />
+    </add>
+    <add id="300" objectId="58" parentObjId="29" parentObjType="connection" what="port">
+      <port id="58" moduleId="17" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="301" objectId="59" parentObjId="29" parentObjType="connection" what="port">
+      <port id="59" moduleId="13" moduleName="MplLine2DProperties" name="color" signature="(org.vistrails.vistrails.basic:Color)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-09 16:25:26" id="47" prevId="46" session="14" user="Remi">
+    <delete id="302" objectId="48" parentObjId="24" parentObjType="connection" what="port" />
+    <delete id="303" objectId="49" parentObjId="24" parentObjType="connection" what="port" />
+    <delete id="304" objectId="24" parentObjId="" parentObjType="" what="connection" />
+    <delete id="305" objectId="41" parentObjId="20" parentObjType="connection" what="port" />
+    <delete id="306" objectId="40" parentObjId="20" parentObjType="connection" what="port" />
+    <delete id="307" objectId="20" parentObjId="" parentObjType="" what="connection" />
+    <delete id="308" objectId="43" parentObjId="21" parentObjType="connection" what="port" />
+    <delete id="309" objectId="42" parentObjId="21" parentObjType="connection" what="port" />
+    <delete id="310" objectId="21" parentObjId="" parentObjType="" what="connection" />
+    <delete id="311" objectId="46" parentObjId="23" parentObjType="connection" what="port" />
+    <delete id="312" objectId="47" parentObjId="23" parentObjType="connection" what="port" />
+    <delete id="313" objectId="23" parentObjId="" parentObjType="" what="connection" />
+    <delete id="314" objectId="38" parentObjId="19" parentObjType="module" what="location" />
+    <delete id="315" objectId="19" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-17 16:17:26" id="48" prevId="47" session="17" user="Remi">
+    <change id="316" newObjId="43" oldObjId="36" parentObjId="17" parentObjType="module" what="location">
+      <location id="43" x="269.239384201" y="407.43477642" />
+    </change>
+    <change id="317" newObjId="44" oldObjId="42" parentObjId="18" parentObjType="module" what="location">
+      <location id="44" x="23.322721607" y="400.745121356" />
+    </change>
+    <change id="318" newObjId="45" oldObjId="39" parentObjId="20" parentObjType="module" what="location">
+      <location id="45" x="255.539619309" y="517.797273959" />
+    </change>
+    <change id="319" newObjId="46" oldObjId="41" parentObjId="22" parentObjType="module" what="location">
+      <location id="46" x="43.055087506" y="500.882037145" />
+    </change>
+  </action>
+  <action date="2013-04-17 16:17:26" id="49" prevId="48" session="17" user="Remi">
+    <delete id="320" objectId="21" parentObjId="10" parentObjType="connection" what="port" />
+    <delete id="321" objectId="20" parentObjId="10" parentObjType="connection" what="port" />
+    <delete id="322" objectId="10" parentObjId="" parentObjType="" what="connection" />
+    <delete id="323" objectId="21" parentObjId="11" parentObjType="module" what="location" />
+    <delete id="324" objectId="22" parentObjId="20" parentObjType="function" what="parameter" />
+    <delete id="325" objectId="20" parentObjId="11" parentObjType="module" what="function" />
+    <delete id="326" objectId="23" parentObjId="21" parentObjType="function" what="parameter" />
+    <delete id="327" objectId="21" parentObjId="11" parentObjType="module" what="function" />
+    <delete id="328" objectId="24" parentObjId="22" parentObjType="function" what="parameter" />
+    <delete id="329" objectId="22" parentObjId="11" parentObjType="module" what="function" />
+    <delete id="330" objectId="11" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-17 16:17:28" id="50" prevId="49" session="17" user="Remi">
+    <delete id="331" objectId="25" parentObjId="12" parentObjType="connection" what="port" />
+    <delete id="332" objectId="24" parentObjId="12" parentObjType="connection" what="port" />
+    <delete id="333" objectId="12" parentObjId="" parentObjType="" what="connection" />
+    <delete id="334" objectId="58" parentObjId="29" parentObjType="connection" what="port" />
+    <delete id="335" objectId="59" parentObjId="29" parentObjType="connection" what="port" />
+    <delete id="336" objectId="29" parentObjId="" parentObjType="" what="connection" />
+    <delete id="337" objectId="23" parentObjId="13" parentObjType="module" what="location" />
+    <delete id="338" objectId="27" parentObjId="25" parentObjType="function" what="parameter" />
+    <delete id="339" objectId="25" parentObjId="13" parentObjType="module" what="function" />
+    <delete id="340" objectId="13" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-17 16:17:31" id="51" prevId="50" session="17" user="Remi">
+    <delete id="341" objectId="23" parentObjId="11" parentObjType="connection" what="port" />
+    <delete id="342" objectId="22" parentObjId="11" parentObjType="connection" what="port" />
+    <delete id="343" objectId="11" parentObjId="" parentObjType="" what="connection" />
+    <delete id="344" objectId="28" parentObjId="14" parentObjType="connection" what="port" />
+    <delete id="345" objectId="29" parentObjId="14" parentObjType="connection" what="port" />
+    <delete id="346" objectId="14" parentObjId="" parentObjType="" what="connection" />
+    <delete id="347" objectId="22" parentObjId="12" parentObjType="module" what="location" />
+    <delete id="348" objectId="39" parentObjId="23" parentObjType="function" what="parameter" />
+    <delete id="349" objectId="23" parentObjId="12" parentObjType="module" what="function" />
+    <delete id="350" objectId="40" parentObjId="24" parentObjType="function" what="parameter" />
+    <delete id="351" objectId="24" parentObjId="12" parentObjType="module" what="function" />
+    <delete id="352" objectId="12" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-04-17 16:17:34" id="52" prevId="51" session="17" user="Remi">
+    <add id="353" objectId="30" parentObjId="" parentObjType="" what="connection">
+      <connection id="30" />
+    </add>
+    <add id="354" objectId="60" parentObjId="30" parentObjType="connection" what="port">
+      <port id="60" moduleId="8" moduleName="MplLine2DProperties" name="self" signature="(org.vistrails.vistrails.matplotlib:MplLine2DProperties)" type="source" />
+    </add>
+    <add id="355" objectId="61" parentObjId="30" parentObjType="connection" what="port">
+      <port id="61" moduleId="0" moduleName="MplPolar" name="lineProperties" signature="(org.vistrails.vistrails.matplotlib:MplLine2DProperties)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-04-17 16:19:03" id="53" prevId="52" session="17" user="Remi">
+    <change id="356" newObjId="47" oldObjId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="47" x="198.057665236" y="-36.9054229382" />
+    </change>
+    <change id="357" newObjId="48" oldObjId="16" parentObjId="1" parentObjType="module" what="location">
+      <location id="48" x="504.283970609" y="-178.881930464" />
+    </change>
+    <change id="358" newObjId="49" oldObjId="17" parentObjId="2" parentObjType="module" what="location">
+      <location id="49" x="499.337866212" y="-294.173220149" />
+    </change>
+    <change id="359" newObjId="50" oldObjId="4" parentObjId="4" parentObjType="module" what="location">
+      <location id="50" x="-53.8388874171" y="81.1552667532" />
+    </change>
+    <change id="360" newObjId="51" oldObjId="6" parentObjId="5" parentObjType="module" what="location">
+      <location id="51" x="100.397137428" y="80.3602356972" />
+    </change>
+    <change id="361" newObjId="52" oldObjId="18" parentObjId="8" parentObjType="module" what="location">
+      <location id="52" x="245.990342599" y="216.566295915" />
+    </change>
+    <change id="362" newObjId="53" oldObjId="27" parentObjId="14" parentObjType="module" what="location">
+      <location id="53" x="744.062033035" y="339.250854455" />
+    </change>
+    <change id="363" newObjId="54" oldObjId="28" parentObjId="15" parentObjType="module" what="location">
+      <location id="54" x="757.78454753" y="124.519129923" />
+    </change>
+    <change id="364" newObjId="55" oldObjId="29" parentObjId="16" parentObjType="module" what="location">
+      <location id="55" x="757.78454753" y="228.962588903" />
+    </change>
+    <change id="365" newObjId="56" oldObjId="43" parentObjId="17" parentObjType="module" what="location">
+      <location id="56" x="399.084026501" y="349.152994486" />
+    </change>
+    <change id="366" newObjId="57" oldObjId="44" parentObjId="18" parentObjType="module" what="location">
+      <location id="57" x="202.659661538" y="349.533667655" />
+    </change>
+    <change id="367" newObjId="58" oldObjId="45" parentObjId="20" parentObjType="module" what="location">
+      <location id="58" x="383.61667955" y="459.515492025" />
+    </change>
+    <change id="368" newObjId="59" oldObjId="46" parentObjId="22" parentObjType="module" what="location">
+      <location id="59" x="222.392027437" y="449.670583444" />
+    </change>
+  </action>
+  <action date="2013-04-17 16:19:06" id="54" prevId="53" session="17" user="Remi">
+    <delete id="369" objectId="14" parentObjId="12" parentObjType="function" what="parameter" />
+    <delete id="370" objectId="12" parentObjId="8" parentObjType="module" what="function" />
+  </action>
+  <action date="2013-04-17 16:19:12" id="55" prevId="54" session="17" user="Remi">
+    <annotation id="4" key="__description__" value="Paste" />
+    <add id="371" objectId="23" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="23" name="String" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="372" objectId="37" parentObjId="23" parentObjType="module" what="function">
+      <function id="37" name="value" pos="0" />
+    </add>
+    <add id="373" objectId="41" parentObjId="37" parentObjType="function" what="parameter">
+      <parameter alias="" id="41" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="nothing" />
+    </add>
+    <add id="374" objectId="60" parentObjId="23" parentObjType="module" what="location">
+      <location id="60" x="441.74233795" y="168.640299856" />
+    </add>
+    <add id="375" objectId="24" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="24" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="376" objectId="40" parentObjId="24" parentObjType="module" what="function">
+      <function id="40" name="spec" pos="2" />
+    </add>
+    <add id="377" objectId="44" parentObjId="40" parentObjType="function" what="parameter">
+      <parameter alias="" id="44" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="org.vistrails.vistrails.basic:String" />
+    </add>
+    <add id="378" objectId="39" parentObjId="24" parentObjType="module" what="function">
+      <function id="39" name="optional" pos="1" />
+    </add>
+    <add id="379" objectId="43" parentObjId="39" parentObjType="function" what="parameter">
+      <parameter alias="" id="43" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Boolean" val="True" />
+    </add>
+    <add id="380" objectId="38" parentObjId="24" parentObjType="module" what="function">
+      <function id="38" name="name" pos="0" />
+    </add>
+    <add id="381" objectId="42" parentObjId="38" parentObjType="function" what="parameter">
+      <parameter alias="" id="42" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="marker" />
+    </add>
+    <add id="382" objectId="61" parentObjId="24" parentObjType="module" what="location">
+      <location id="61" x="459.724511759" y="57.6102036008" />
+    </add>
+    <add id="383" objectId="31" parentObjId="" parentObjType="" what="connection">
+      <connection id="31" />
+    </add>
+    <add id="384" objectId="63" parentObjId="31" parentObjType="connection" what="port">
+      <port id="63" moduleId="24" moduleName="InputPort" name="Default" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+    <add id="385" objectId="62" parentObjId="31" parentObjType="connection" what="port">
+      <port id="62" moduleId="23" moduleName="String" name="value" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+  </action>
+  <action date="2013-04-17 16:19:17" id="56" prevId="55" session="17" user="Remi">
+    <change id="386" newObjId="62" oldObjId="60" parentObjId="23" parentObjType="module" what="location">
+      <location id="62" x="-7.22350484582" y="465.594085642" />
+    </change>
+    <change id="387" newObjId="63" oldObjId="61" parentObjId="24" parentObjType="module" what="location">
+      <location id="63" x="10.7586689623" y="354.563989387" />
+    </change>
+  </action>
+  <action date="2013-04-17 16:19:17" id="57" prevId="56" session="17" user="Remi">
+    <add id="388" objectId="32" parentObjId="" parentObjType="" what="connection">
+      <connection id="32" />
+    </add>
+    <add id="389" objectId="64" parentObjId="32" parentObjType="connection" what="port">
+      <port id="64" moduleId="24" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="390" objectId="65" parentObjId="32" parentObjType="connection" what="port">
+      <port id="65" moduleId="8" moduleName="MplLine2DProperties" name="marker" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+</vistrail>

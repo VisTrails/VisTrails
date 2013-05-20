@@ -189,10 +189,10 @@ class Action(DBAction):
 ################################################################################
 # Unit tests
 
-
 class TestAction(unittest.TestCase):
     
     def create_action(self, id_scope=None):
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         from vistrails.core.vistrail.action import Action
         from vistrails.core.vistrail.module import Module
         from vistrails.core.vistrail.module_function import ModuleFunction
@@ -211,7 +211,7 @@ class TestAction(unittest.TestCase):
                                   parameters=[param])
         m = Module(id=id_scope.getNewId(Module.vtType),
                    name='Float',
-                   package='edu.utah.sci.vistrails.basic',
+                   package=basic_pkg,
                    functions=[function])
 
         add_op = AddOp(id=id_scope.getNewId('operation'),

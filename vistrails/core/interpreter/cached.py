@@ -38,8 +38,9 @@ from vistrails.core.common import *
 from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.db.io
 from vistrails.core.log.controller import DummyLogController
-from vistrails.core.modules.vistrails_module import ModuleConnector, ModuleError, \
-    ModuleBreakpoint, ModuleErrors
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.vistrails_module import ModuleConnector, \
+    ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -146,7 +147,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         def create_null():
             """Creates a Null value"""
             getter = modules.module_registry.registry.get_descriptor_by_name
-            descriptor = getter('edu.utah.sci.vistrails.basic', 'Null')
+            descriptor = getter(basic_pkg, 'Null')
             return descriptor.module()
         
         def create_constant(param, module):
@@ -772,8 +773,8 @@ class TestCachedInterpreter(unittest.TestCase):
         (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
         
         # the controller will take care of upgrades
-        controller = VistrailController()
-        controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
+        controller = VistrailController(v, locator, abstractions, thumbnails, 
+                                        mashups)
         p1 = v.getPipeline('int chain')
         n = v.get_version_number('int chain')
         controller.change_selected_version(n)

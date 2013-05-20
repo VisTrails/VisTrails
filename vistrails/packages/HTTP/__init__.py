@@ -40,6 +40,7 @@ downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
 
-identifier = 'edu.utah.sci.vistrails.http'
+identifier = 'org.vistrails.vistrails.http'
 name = 'HTTP'
-version = '0.9.0'
+version = '0.9.1'
+old_identifiers = ['edu.utah.sci.vistrails.http']

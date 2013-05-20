@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 name = "R"
-identifier = "edu.utah.sci.vistrails.rpy"
-version = "0.1.0"
+identifier = "org.vistrails.vistrails.rpy"
+version = "0.1.2"
+old_identifiers = ["edu.utah.sci.vistrails.rpy"]
 

@@ -43,7 +43,7 @@ from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.param_explore import ActionBasedParameterExploration
-from vistrails.core.system import current_time
+from vistrails.core.system import current_time, get_vistrails_default_pkg_prefix
 from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
@@ -264,7 +264,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         """
         registry = get_module_registry()
         actions = self.peWidget.table.collectParameterActions()
-
+        spreadsheet_pkg = '%s.spreadsheet' % get_vistrails_default_pkg_prefix()
         # Set the annotation to persist the parameter exploration
         # TODO: For now, we just replace the existing exploration - Later we should append them.
         xmlString = "<paramexps>\n" + self.getParameterExploration() + "\n</paramexps>"
@@ -277,8 +277,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                 self.controller.current_pipeline, actions)
             
             dim = [max(1, len(a)) for a in actions]
-            if (registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
-                registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
+            if (registry.has_module(spreadsheet_pkg, 'CellLocation') and
+                registry.has_module(spreadsheet_pkg, 'SheetReference')):
                 modifiedPipelines = self.virtualCell.positionPipelines(
                     'PE#%d %s' % (QParameterExplorationTab.explorationId,
                                   self.controller.name),
@@ -321,7 +321,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                         QtCore.QCoreApplication.processEvents()
                 kwargs = {'locator': self.controller.locator,
                           'current_version': self.controller.current_version,
-                          'view': self.controller.current_pipeline_view,
+                          'view': self.controller.current_pipeline_scene,
                           'module_executed_hook': [moduleExecuted],
                           'reason': 'Parameter Exploration',
                           'actions': performedActions[pi],

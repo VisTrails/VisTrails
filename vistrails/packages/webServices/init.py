@@ -42,26 +42,25 @@ import httplib
 import urllib
 import time
 
-from ZSI.ServiceProxy import ServiceProxy
-from ZSI.generate.wsdl2python import WriteServiceModule
-from ZSI.wstools import WSDLTools
-
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.core.modules.basic_modules import Constant
 import enumeration_widget
 
 import platform
 import cPickle
 
-ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
+ZSI = py_import('ZSI', {'linux-debian': 'python-zsi',
+                        'linux-ubuntu': 'python-zsi',
                         'linux-fedora': 'python-ZSI'})
 
-
+from ZSI.ServiceProxy import ServiceProxy
+from ZSI.generate.wsdl2python import WriteServiceModule
+from ZSI.wstools import WSDLTools
 
 
 package_directory = None
@@ -1355,8 +1354,8 @@ def verify_wsdl(wsdlList):
         if remoteHeader != None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
-            httpfile = reg.get_descriptor_by_name('edu.utah.sci.vistrails.http',
-                                                  'HTTPFile').module()
+            httpfile = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.http', 'HTTPFile').module()
             try:
                 isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:
