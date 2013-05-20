@@ -35,36 +35,36 @@
 ################################################################################
 # VTK Package for VisTrails
 ################################################################################
-from vistrails.core.bundles import py_import
 
-from vistrails.core.utils import all, any, VistrailsInternalError, InstanceObject
+from vistrails.core.bundles import py_import
 from vistrails.core.debug import debug
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
-     Variant, Color, Boolean, identifier as basic_pkg
+     Color, identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import new_module, ModuleError
 from vistrails.core.system import get_vistrails_default_pkg_prefix
+from identifiers import identifier as vtk_pkg_identifier
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.utils import all, any, InstanceObject
 from vistrails.core.vistrail.connection import Connection
+
+from hasher import vtk_hasher
+from itertools import izip
+import os.path
+import re
+import warnings
+
+vtk = py_import('vtk', {'linux-debian': 'python-vtk',
+                        'linux-ubuntu': 'python-vtk',
+                        'linux-fedora': 'vtk-python'})
+
 from base_module import vtkBaseModule
 from class_tree import ClassTree
-from identifiers import identifier as vtk_pkg_identifier
-from vtk_parser import VTKMethodParser
-import re
-import os.path
-from itertools import izip
-import tf_widget
-import offscreen
 import fix_classes
 import inspectors
-from hasher import vtk_hasher
-import operator
-import re
-import sys
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-
-import warnings
-vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
-                        'linux-fedora': 'vtk-python'})
+import offscreen
+import tf_widget
+from vtk_parser import VTKMethodParser
 
 
 #TODO: Change the Core > Module > Registry > Add Input : To support vector as type.
@@ -1129,35 +1129,6 @@ def createAllModules(g):
                     continue
                 createModule(vtkObjectBase, child)
 
-
-##############################################################################
-# Convenience methods
-
-def extract_vtk_instance(vistrails_obj):
-    """extract_vtk_instance(vistrails_obj) -> vtk_object
-
-    takes an instance of a VisTrails module that is a subclass
-    of the vtkObjectBase module and returns the corresponding
-    instance."""
-    global identifier
-    vtkObjectBase = registry.get_descriptor_by_name(identifier,
-                                                    'vtkObjectBase').module
-    assert isinstance(vistrails_obj, vtkObjectBase)
-    return vistrails_obj.vtkInstance
-
-def wrap_vtk_instance(vtk_obj):
-    """wrap_vtk_instance(vtk_object) -> VisTrails module
-
-    takes a vtk instance and returns a corresponding
-    wrapped instance of a VisTrails module"""
-    global identifier
-
-    assert isinstance(vtk_obj, vtk.vtkObjectBase)
-    m = registry.get_descriptor_by_name(identifier,
-                                        vtk_obj.GetClassName())
-    result = m.module()
-    result.vtkInstance = vtk_obj
-    return result
 
 ################################################################################
 

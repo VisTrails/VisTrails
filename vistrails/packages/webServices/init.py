@@ -42,10 +42,6 @@ import httplib
 import urllib
 import time
 
-from ZSI.ServiceProxy import ServiceProxy
-from ZSI.generate.wsdl2python import WriteServiceModule
-from ZSI.wstools import WSDLTools
-
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
@@ -58,10 +54,13 @@ import enumeration_widget
 import platform
 import cPickle
 
-ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
+ZSI = py_import('ZSI', {'linux-debian': 'python-zsi',
+                        'linux-ubuntu': 'python-zsi',
                         'linux-fedora': 'python-ZSI'})
 
-
+from ZSI.ServiceProxy import ServiceProxy
+from ZSI.generate.wsdl2python import WriteServiceModule
+from ZSI.wstools import WSDLTools
 
 
 package_directory = None

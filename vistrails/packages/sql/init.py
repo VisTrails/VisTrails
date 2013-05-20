@@ -43,11 +43,15 @@ from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core.utils import PortAlreadyExists
 from vistrails.gui.theme import CurrentTheme
 
-MySQLdb = py_import('MySQLdb', {'linux-ubuntu':'python-mysqldb',
-                                'linux-fedora':'MySQL-python'})
+MySQLdb = py_import('MySQLdb', {
+        'linux-debian': 'python-mysqldb',
+        'linux-ubuntu': 'python-mysqldb',
+        'linux-fedora': 'MySQL-python'})
 
-psycopg2 = py_import('psycopg2', {'linux-ubuntu':'python-psycopg2',
-                                  'linux-fedora':'python-psycopg2'})
+psycopg2 = py_import('psycopg2', {
+        'linux-debian':'python-psycopg2',
+        'linux-ubuntu':'python-psycopg2',
+        'linux-fedora':'python-psycopg2'})
 
 
 class QPasswordEntry(QtGui.QDialog):

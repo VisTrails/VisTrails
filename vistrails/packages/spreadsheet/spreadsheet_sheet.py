@@ -52,6 +52,8 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
     allows resizing and stretching at the same time
     
     """
+    minimumSize = 50
+
     def __init__(self, orientation, parent=None):
         """ StandardWidgetHeaderView(orientation: QtCore.Qt.Align...,
                                      parent: QWidget)
@@ -69,7 +71,6 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         if orientation==QtCore.Qt.Vertical:
             self.setDefaultAlignment(QtCore.Qt.AlignHCenter |
                                      QtCore.Qt.AlignVCenter)
-        self.minimumSize = 50
 
     def setFitToViewport(self, fit=True):
         """ setFitToViewport(fit: boolean) -> None        
@@ -77,43 +78,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         to the whole viewport
 
         """
-        if self.fitToViewport!=fit:
-            self.fitToViewport = fit
-            if fit:
-                self.connect(self, QtCore.SIGNAL("sectionResized(int,int,int)"),
-                             self.fixSize)
-            else:
-                self.disconnect(self,
-                                QtCore.SIGNAL("sectionResized(int,int,int)"),
-                                self.fixSize)
-
-    def fixSize(self, logicalIndex, oldSize, newSize):
-        """ fixSize(logicalIndex: int, oldSize: int, newSize: int) -> None        
-        This slot capture sectionResized signal and makes sure all the
-        sections are stretched right. 
-        
-        """
-        if newSize<self.minimumSize:
-            self.resizeSection(logicalIndex, self.minimumSize)
-            return
-
-        if self.orientation()==QtCore.Qt.Horizontal:
-            diff = self.length()-self.maximumViewportSize().width()
-        else:
-            diff = self.length()-self.maximumViewportSize().height()
-        if diff>0:
-            self.setFitToViewport(False)
-            for i in reversed(xrange(self.count()-1-logicalIndex)):
-                realIndex = i+logicalIndex+1
-                oldS = self.sectionSize(realIndex)
-                newS = max(oldS-diff, self.minimumSize)
-                if newS!=oldS:
-                    self.resizeSection(realIndex, newS)
-                diff = diff - (oldS-newS)
-                if diff==0: break
-            newSize = max(newSize-diff, oldSize)
-            self.resizeSection(logicalIndex, newSize)
-            self.setFitToViewport(True)
+        self.fitToViewport = fit
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -352,7 +317,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     def setFitToWindow(self, fit=True):
         """ setFitToWindow(fit: boolean) -> None
         Force to fit all cells into the visible area. Set fit=False
-        for the scroll mode where hidden cell can be view by scrolling
+        for the scroll mode where hidden cell can be viewed by scrolling
         the scrollbars.
         
         """
@@ -363,11 +328,11 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             if not fit:
                 width = self.columnWidth(self.columnCount()-1)
                 height = self.rowHeight(self.rowCount()-1)
-            self.horizontalHeader().setStretchLastSection(fit)
-            self.verticalHeader().setStretchLastSection(fit)            
-            if not fit:
+
                 self.setColumnWidth(self.columnCount()-1, width)
                 self.setRowHeight(self.rowCount()-1, height)
+            self.horizontalHeader().setStretchLastSection(fit)
+            self.verticalHeader().setStretchLastSection(fit)
             self.stretchCells()
 
     def showEvent(self, event):
@@ -392,12 +357,50 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             
     def resizeEvent(self, e):
         """ resizeEvent(e: QResizeEvent) -> None
-        ResizeEvent will make sure all columns/rows stretched right
-        when the table get resized
-        
+        Resizes each row/column keeping the size ratios between them
+
         """
+        if self.fitToWindow:
+            for min_size, getter, setter, count, final_size in [
+                    (self.horizontalHeader().minimumSize,
+                     self.columnWidth, self.setColumnWidth, self.columnCount(),
+                     e.size().width()),
+                    (self.verticalHeader().minimumSize,
+                     self.rowHeight, self.setRowHeight, self.rowCount(),
+                     e.size().height())]:
+                # Computes the total size of the columns
+                initial_size = 0
+                for i in xrange(count):
+                    size = getter(i)
+                    if size < min_size:
+                        initial_size += min_size
+                    else:
+                        initial_size += size
+
+                if initial_size == 0:
+                    continue
+
+                # Computes the resize ratio
+                ratio = float(final_size)/initial_size
+
+                i_total = 0
+                f_total = 0
+                for i in xrange(count - 1):
+                    initial = getter(i)
+                    if initial < min_size:
+                        initial = min_size
+                    final = int((initial + i_total) * ratio - f_total)
+                    if final < min_size:
+                        final = min_size
+                    setter(i, final)
+                    i_total += initial
+                    f_total += final
+                final = final_size - f_total
+                if final < min_size:
+                    final = min_size
+                setter(count - 1, final)
+
         QtGui.QTableWidget.resizeEvent(self, e)
-        self.stretchCells()
 
     def showHelpers(self, show, row, col):
         """ showHelpers(show: boolean, row: int, col: int) -> None        

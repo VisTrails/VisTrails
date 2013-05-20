@@ -1241,7 +1241,7 @@ class TestConcatenateString(unittest.TestCase):
         from vistrails.tests.utils import execute, intercept_result
         with intercept_result(ConcatenateString, 'value') as results:
             errors = execute([
-                    ('ConcatenateString', 'edu.utah.sci.vistrails.basic', [
+                    ('ConcatenateString', 'org.vistrails.vistrails.basic', [
                         (name, [('String', value)])
                         for name, value in kwargs.iteritems()
                     ]),
@@ -1287,7 +1287,7 @@ class TestList(unittest.TestCase):
             add('tail', tail, 'List')
 
             errors = execute([
-                    ('List', 'edu.utah.sci.vistrails.basic', functions),
+                    ('List', 'org.vistrails.vistrails.basic', functions),
                 ])
             if errors:
                 return None
@@ -1336,14 +1336,14 @@ class TestList(unittest.TestCase):
         def list_with_items(nb_items, **kwargs):
             with intercept_result(List, 'value') as results:
                 errors = execute([
-                        ('List', 'edu.utah.sci.vistrails.basic', [
+                        ('List', 'org.vistrails.vistrails.basic', [
                             (k, [('String', v)])
                             for k, v in kwargs.iteritems()
                         ]),
                     ],
                     add_port_specs=[
                         (0, 'input', 'item%d' % i,
-                         '(edu.utah.sci.vistrails.basic:Module)')
+                         '(org.vistrails.vistrails.basic:Module)')
                         for i in xrange(nb_items)
                     ])
                 if errors:
@@ -1368,19 +1368,19 @@ class TestPythonSource(unittest.TestCase):
         source = urllib2.quote(source)
         with intercept_result(PythonSource, 'customout') as results:
             self.assertFalse(execute([
-                    ('PythonSource', 'edu.utah.sci.vistrails.basic', [
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
                         ('source', [('String', source)]),
                         ('customin', [('Integer', '42')])
                     ]),
-                    ('String', 'edu.utah.sci.vistrails.basic', []),
+                    ('String', 'org.vistrails.vistrails.basic', []),
                 ],
                 [
                     (0, 'customout', 1, 'value'),
                 ],
                 add_port_specs=[
                     (0, 'input', 'customin',
-                     'edu.utah.sci.vistrails.basic:Integer'),
+                     'org.vistrails.vistrails.basic:Integer'),
                     (0, 'output', 'customout',
-                     'edu.utah.sci.vistrails.basic:String'),
+                     'org.vistrails.vistrails.basic:String'),
                 ]))
         self.assertEqual(results[-1], "nb is 42")

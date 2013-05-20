@@ -344,6 +344,9 @@ class PortsList(QtGui.QTreeWidget):
         self.port_spec_items = {}
         self.entry_klass = ParameterEntry
 
+    def setReadOnly(self, read_only):
+        self.setEnabled(not read_only)
+
     def set_entry_klass(self, entry_klass):
         self.entry_klass = entry_klass
         self.update_module(self.module)

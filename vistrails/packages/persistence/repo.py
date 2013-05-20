@@ -57,7 +57,7 @@ class GitRepo(object):
             self.repo = Repo(path)
         except NotGitRepository:
             # repo does not exist
-            self.repo = Repo.init(path, True)
+            self.repo = Repo.init(path, not os.path.exists(path))
     
         self.temp_persist_files = []
 

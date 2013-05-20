@@ -157,13 +157,15 @@ class HTTPPackageRepository(PackageRepository):
             elif file_type == 'F':
                 fd, name = tempfile.mkstemp()
                 os.close(fd)
-                fout = file(name, 'w')
-                fin = urllib2.urlopen(self._path + '/' + codepath + '/' + l)
-                fout.write(fin.read()) # There should be a better way to do this
-                fin.close()
-                fout.close()
-                self.copy_file(codepath, l, name)
-                os.unlink(name)
+                try:
+                    fout = file(name, 'w')
+                    fin = urllib2.urlopen(self._path + '/' + codepath + '/' + l)
+                    fout.write(fin.read()) # There should be a better way to do this
+                    fin.close()
+                    fout.close()
+                    self.copy_file(codepath, l, name)
+                finally:
+                    os.unlink(name)
 
 ##############################################################################
 

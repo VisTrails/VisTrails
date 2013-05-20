@@ -402,10 +402,13 @@ class RequestHandler(object):
                 (fd, fname) = tempfile.mkstemp(prefix='vt_tmp',
                                               suffix='.vt')
                 os.close(fd)
-                vt_file = open(fname, "wb")
-                vt_file.write(vt_filepath.data)
-                vt_file.close()
-                locator = ZIPFileLocator(fname).load()
+                try:
+                    vt_file = open(fname, "wb")
+                    vt_file.write(vt_filepath.data)
+                    vt_file.close()
+                    locator = ZIPFileLocator(fname).load()
+                finally:
+                    os.unlink(fname)
 
             # set some crowdlabs id info
             if repository_vt_id != -1:
@@ -444,19 +447,20 @@ class RequestHandler(object):
                                 (host, port, db_name, user, new_vt_filepath,
                                  old_db_vt_id, is_local))
         try:
+            tmp_file = None
             if is_local:
                 new_locator = ZIPFileLocator(new_vt_filepath)
             else:
                 # vt_filepath contains vt file datastream
                 # write to tmp file, read into FileLocator
                 # TODO: can we just read the file stream directly in?
-                (fd, fname) = tempfile.mkstemp(prefix='vt_tmp',
+                (fd, tmp_file) = tempfile.mkstemp(prefix='vt_tmp',
                                               suffix='.vt')
                 os.close(fd)
-                vt_file = open(fname, "wb")
+                vt_file = open(tmp_file, "wb")
                 vt_file.write(new_vt_filepath.data)
                 vt_file.close()
-                new_locator = ZIPFileLocator(fname)
+                new_locator = ZIPFileLocator(tmp_file)
 
             new_bundle = new_locator.load()
             new_locator.save(new_bundle)
@@ -466,6 +470,8 @@ class RequestHandler(object):
             vistrails.db.services.vistrail.merge(old_db_bundle, new_bundle, 'vistrails')
             old_db_locator.save(old_db_bundle)
             new_locator.save(old_db_bundle)
+            if tmp_file is not None:
+                os.unlink(tmp_file)
             return (1, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
@@ -1433,11 +1439,13 @@ class RequestHandler(object):
             (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
                                           suffix='.vt')
             os.close(fd)
-            fileLocator = FileLocator(name)
-            fileLocator.save(save_bundle)
-            contents = open(name).read()
-            result = base64.b64encode(contents)
-            os.unlink(name)
+            try:
+                fileLocator = FileLocator(name)
+                fileLocator.save(save_bundle)
+                contents = open(name).read()
+                result = base64.b64encode(contents)
+            finally:
+                os.unlink(name)
             return (result, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"

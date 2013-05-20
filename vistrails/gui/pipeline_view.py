@@ -48,13 +48,7 @@ QPipelineView
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
-from vistrails.core.db.action import create_action
-from vistrails.core.layout.workflow_layout import WorkflowLayout, \
-    Pipeline as LayoutPipeline
 from vistrails.core.system import systemType
-from vistrails.core.utils import profile
-from vistrails.core.vistrail.annotation import Annotation
-from vistrails.gui.modules.module_configure import DefaultModuleConfigurationWidget
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -62,16 +56,14 @@ from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
-from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
-from vistrails.gui.module_annotation import QModuleAnnotation
+from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
-from vistrails.gui.module_documentation import QModuleDocumentation
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
@@ -3232,9 +3224,11 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
                                                   currentScene)
                 dialog.exec_()
             else:
-                show_info('No Modules Selected', 
-                          'You must select at least one module to use the '
-                          'Control Flow Assistant.')
+                QtGui.QMessageBox.warning(
+                        self,
+                        'No modules selected',
+                        'You must select at least one module to use the '
+                        'Control Flow Assistant')
                 
     def done_configure(self, mid):
         self.scene().perform_configure_done_actions(mid)
