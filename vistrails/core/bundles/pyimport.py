@@ -42,7 +42,7 @@ from vistrails.core import debug
 
 ##############################################################################
 
-class PyImportException(Exception):
+class PyImportException(ImportError):
     def __init__(self, py_module_name, traceback_str):
         self.py_module_name = py_module_name
         self.traceback_str = traceback_str
