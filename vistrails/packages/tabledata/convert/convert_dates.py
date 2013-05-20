@@ -6,6 +6,19 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.bundles import py_import
 
 
+class UTC(datetime.tzinfo):
+    def utcoffset(self, dt):
+        return datetime.timedelta(0)
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
+
+utc = UTC()
+
+
 class FixedOffset(datetime.tzinfo):
     def __init__(self, offset, name):
         self.offset = offset
@@ -97,33 +110,43 @@ def make_timezone(s):
 class TimestampsToDates(Module):
     """
     Converts a List or numpy array of timestamps into datetime objects.
+
+    A UNIX timestamp represents the number of seconds since Jan 1 1970 0:00,
+    UTC. It represents a specific point in time that is not dependent on a
+    timezone.
+    The returned datetime objects are in the UTC timezone.
     """
     _input_ports = [
-            ('timestamps', '(org.vistrails.vistrails.basic:List)'),
-            ('timezone', '(org.vistrails.vistrails.basic:String)',
-             {'optional': True, 'defaults': "['']"})]
+            ('timestamps', '(org.vistrails.vistrails.basic:List)')]
     _output_ports = [
             ('dates', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
-        tz = self.getInputFromPort('timezone')
-        if tz:
-            try:
-                tz = make_timezone(tz)
-            except ValueError, e:
-                raise ModuleError(self, e.message)
-        else:
-            tz = None
-
         timestamps = self.getInputFromPort('timestamps')
 
-        result = [datetime.datetime.fromtimestamp(t, tz) for t in timestamps]
+        result = [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
         self.setResult('dates', result)
 
 
 class StringsToDates(Module):
     """
     Converts a List of dates (as strings) into datetime objects.
+
+    If no format is given, the dateutil.parser module will be used to guess
+    what each string refers to; else, it is passed to strptime() to read each
+    date. For example: '%Y-%m-%d %H:%M:%S'.
+    The 'timezone' parameter indicates which timezone these dates are expressed
+    in. It can be either:
+      * 'local', in which case each date is interpreted as being in whatever
+        timezone the system is set to use;
+      * an offset in hours/minutes from UTC, for instance '-0400' for DST
+        (eastern America time, when daylight saving is in effect). Note that in
+        this case, the same offset is used for every date, without regard for
+        daylight saving (if a date falls in winter, '-0500' will not be used
+        instead).
+      * if pytz is available, anything else will be passed to pytz.timezone(),
+        so you would be able to use strings such as 'US/Eastern' or
+        'Europe/Amsterdam'.
     """
     _input_ports = [
             ('strings', '(org.vistrails.vistrails.basic:List)'),
