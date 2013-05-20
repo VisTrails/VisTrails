@@ -79,7 +79,10 @@ def make_timezone(s):
             return FixedOffset(offset, name)
 
         try:
-            import pytz
+            pytz = py_import('pytz', {
+                    'linux-debian': 'python-tz',
+                    'linux-ubuntu': 'python-tz',
+                    'linux-fedora': 'pytz'})
         except ImportError:
             raise ValueError("can't understand timezone %r (maybe you should "
                              "install pytz?)" % s)
@@ -132,13 +135,21 @@ class StringsToDates(Module):
             ('dates', '(org.vistrails.vistrails.basic:List)')]
 
     @staticmethod
-    def convert_to_dates(strings, format, tz):
-        if not format:
+    def convert_to_dates(strings, fmt, tz):
+        if not fmt:
+            try:
+                py_import('dateutil', {
+                    'linux-debian': 'python-dateutil',
+                    'linux-ubuntu': 'python-dateutil',
+                    'linux-fedora': 'python-dateutil'})
+            except ImportError:
+                raise ValueError("can't read dates without a format without "
+                                 "the dateutil package")
             from dateutil import parser
             result = [parser.parse(s, ignoretz=tz is not None)
                       for s in strings]
         else:
-            result = [datetime.datetime.strptime(s, format) for s in strings]
+            result = [datetime.datetime.strptime(s, fmt) for s in strings]
 
         if tz:
             result = [dt.replace(tzinfo=tz) for dt in result]
@@ -156,9 +167,12 @@ class StringsToDates(Module):
             tz = None
 
         strings = self.getInputFromPort('strings')
-        format = self.getInputFromPort('format')
+        fmt = self.getInputFromPort('format')
 
-        result = self.convert_to_dates(strings, format, tz)
+        try:
+            result = self.convert_to_dates(strings, fmt, tz)
+        except ValueError, e:
+            raise ModuleError(self, e.message)
         self.setResult('dates', result)
 
 
@@ -178,7 +192,9 @@ class StringsToMatplotlib(Module):
     def compute(self):
         try:
             py_import('matplotlib', {
-                    })
+                    'linux-debian': 'python-matplotlib',
+                    'linux-ubuntu': 'python-matplotlib',
+                    'linux-fedora': 'python-matplotlib'})
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
         else:
@@ -194,9 +210,12 @@ class StringsToMatplotlib(Module):
             tz = None
 
         strings = self.getInputFromPort('strings')
-        format = self.getInputFromPort('format')
+        fmt = self.getInputFromPort('format')
 
-        result = StringsToDates(strings, format, tz)
+        try:
+            result = StringsToDates.convert_to_dates(strings, fmt, tz)
+        except ValueError, e:
+            raise ModuleError(self, e.message)
         result = date2num(result)
         self.setResult('dates', result)
 
