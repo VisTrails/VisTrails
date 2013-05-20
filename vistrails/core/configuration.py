@@ -155,7 +155,7 @@ class ConfigurationObject(InstanceObject):
             key_name = str(key.attributes['name'].value)
             value = [x for x in
                      elements_filter(key, lambda node: node.nodeName in
-                                    ['bool', 'str', 'int', 'float', 'configuration'])][0]
+                                    ['unicode', 'bool', 'str', 'int', 'float', 'configuration'])][0]
             value_type = value.nodeName
             if value_type == 'configuration':
                 if hasattr(self,key_name):

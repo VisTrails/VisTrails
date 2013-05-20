@@ -52,6 +52,8 @@ from vistrails.core.vistrail import connection
 import vistrails.db.services.action
 import copy
 
+from identifiers import identifier as spreadsheet_pkg
+
 # FIXME broke this as Actions have been changed around
 #
 # from core.vistrail.action import AddModuleAction, AddConnectionAction, \
@@ -65,8 +67,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
 
     reg = get_module_registry()
     spreadsheet_cell_desc = \
-        reg.get_descriptor_by_name('edu.utah.sci.vistrails.spreadsheet', \
-                                       'SpreadsheetCell')
+        reg.get_descriptor_by_name(spreadsheet_pkg, 'SpreadsheetCell')
 
     create_module = VistrailController.create_module_static
     create_function = VistrailController.create_function_static
@@ -116,8 +117,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
         pipeline.tmp_id.__class__.getNewId = getNewId
 
         # Add a sheet reference with a specific name
-        sheetReference = create_module(id_scope,
-                                       "edu.utah.sci.vistrails.spreadsheet",
+        sheetReference = create_module(id_scope, spreadsheet_pkg,
                                        "SheetReference")
         sheetNameFunction = create_function(id_scope, sheetReference, 
                                             "SheetName", [str(sheetName)])
@@ -138,8 +138,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
             sheetReference.add_function(minColFunction)
 
         # Add a cell location module with a specific row and column
-        cellLocation = create_module(id_scope, 
-                                     "edu.utah.sci.vistrails.spreadsheet",
+        cellLocation = create_module(id_scope, spreadsheet_pkg,
                                      "CellLocation")
         rowFunction = create_function(id_scope, cellLocation, "Row", [str(row)])
                                                  # [str(row*vRCount+vRow+1)])

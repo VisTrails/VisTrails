@@ -47,7 +47,7 @@ import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.core.modules.basic_modules import Constant
 import enumeration_widget
 
@@ -1354,8 +1354,8 @@ def verify_wsdl(wsdlList):
         if remoteHeader != None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
-            httpfile = reg.get_descriptor_by_name('edu.utah.sci.vistrails.http',
-                                                  'HTTPFile').module()
+            httpfile = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.http', 'HTTPFile').module()
             try:
                 isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:

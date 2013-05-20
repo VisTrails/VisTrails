@@ -523,6 +523,7 @@ def create_prov(workflow, version, log):
                                 associations=associations)
     
 def add_group_portSpecs_index(workflow):
+    basic_pkg = get_vistrails_basic_pkg_id()
     def process_group(group):
         def get_port_name(module):
             port_name = None
@@ -533,8 +534,7 @@ def add_group_portSpecs_index(workflow):
         g_workflow = group.db_workflow
         group.db_portSpecs_name_index = {}
         for module in g_workflow.db_modules:
-            if module.db_name == 'InputPort' and \
-                    module.db_package == 'edu.utah.sci.vistrails.basic':
+            if module.db_name == 'InputPort' and module.db_package == basic_pkg:
                 port_name = get_port_name(module)
                 # FIXME add sigstring to DBPortSpec
                 group.db_portSpecs_name_index[(port_name, 'input')] = \
@@ -542,15 +542,14 @@ def add_group_portSpecs_index(workflow):
                                name=port_name,
                                type='input')
             elif module.db_name == 'OutputPort' and \
-                    module.db_package == 'edu.utah.sci.vistrails.basic':
+                    module.db_package == basic_pkg:
                 port_name = get_port_name(module)
                 # FIXME add sigstring to DBPortSpec
                 group.db_portSpecs_name_index[(port_name, 'output')] = \
                     DBPortSpec(id=-1,
                                name=port_name,
                                type='output')
-            elif module.db_name == 'Group' and \
-                    module.db_package == 'edu.utah.sci.vistrails.basic':
+            elif module.db_name == 'Group' and module.db_package == basic_pkg:
                 process_group(module)
 
     for module in workflow.db_modules:

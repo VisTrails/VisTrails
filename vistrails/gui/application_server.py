@@ -1112,17 +1112,11 @@ class RequestHandler(object):
                                     connection_id=None)
 
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, 
-                                        thumbnails, mashups)
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 controller.change_selected_version(version)
-                p = controller.current_pipeline
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPDF(filename)
-                del pipeline_view
+                controller.updatePipelineScene()
+                controller.current_pipeline_scene.saveToPDF(filename)
             else:
                 self.server_logger.info("found cached pdf: %s" % filename)
 
@@ -1200,17 +1194,11 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 controller.change_selected_version(version)
-                p = controller.current_pipeline
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPNG(filename)
-                del pipeline_view
+                controller.updatePipelineScene()
+                controller.current_pipeline_scene.saveToPNG(filename)
             else:
                 self.server_logger.info("found cached image: %s" % filename)
             if is_local:
@@ -1310,18 +1298,13 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPNG(filename)
                 del version_view
-                del pipeline_view
             else:
                 self.server_logger.info("Found cached image: %s" % filename)
             if is_local:
@@ -1403,18 +1386,13 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPDF(filename)
                 del version_view
-                del pipeline_view
             else:
                 self.server_logger.info("Found cached pdf: %s" % filename)
             if is_local:

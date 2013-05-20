@@ -1,6 +1,5 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,25 +32,7 @@
 ##
 ###############################################################################
 
-from PyQt4 import QtCore, QtGui
-
-from common_widgets import QToolWindowInterface
-
-class PaletteContainer(QtGui.QTabWidget, QToolWindowInterface):
-    def __init__(self, parent=None):
-        QtGui.QTabWidget.__init__(self, parent)
-        self.setDocumentMode(True)
-        self.setTabPosition(QtGui.QTabWidget.North)
-        self.palettes = {}
-
-    def add_palette(self, palette):
-        # palette.setContentsMargins(0,5,0,0)
-        self.addTab(palette, palette.windowTitle())
-        self.palettes[palette.__class__] = palette
-        if len(self.palettes) <= 1:
-            self.tabBar().hide()
-        else:
-            self.tabBar().show()
-
-    def set_top_widget(self, klass):
-        self.setCurrentWidget(self.palettes[klass])
+identifier = 'org.vistrails.vistrails.vtk'
+old_identifiers = ['edu.utah.sci.vistrails.vtk']
+name = 'VTK'
+version = '0.9.4'

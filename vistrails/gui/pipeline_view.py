@@ -51,7 +51,7 @@ from vistrails.core import debug
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
@@ -1650,7 +1650,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                       self.module.visible_input_ports,
                                       self.nextInputPortPos,
                                       operator.add,
-                                      '(edu.utah.sci.vistrails.basic:Variant)')
+                                      '(%s:Variant)' % \
+                                          get_vistrails_basic_pkg_id())
         return item
 
     def getOutputPortItem(self, port, do_create=False):
@@ -1662,7 +1663,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                       self.module.visible_output_ports,
                                       self.nextOutputPortPos,
                                       operator.sub,
-                                      '(edu.utah.sci.vistrails.basic:Module)')
+                                      '(%s:Module)' % \
+                                          get_vistrails_basic_pkg_id())
         return item
 
     def addConnectionItem(self, item):
@@ -3192,16 +3194,8 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             # controller.current_pipeline_view = self.scene()
 
     def set_to_current(self):
-        QModuleInfo.instance().setReadOnly(self.scene().read_only_mode)
-        if self.controller.current_pipeline_view is not None:
-            self.disconnect(self.controller,
-                            QtCore.SIGNAL('versionWasChanged'),
-                            self.controller.current_pipeline_view.parent().version_changed)
-        self.controller.current_pipeline_view = self.scene()
-        self.connect(self.controller,
-                     QtCore.SIGNAL('versionWasChanged'),
-                     self.version_changed)
-        
+        self.controller.set_pipeline_view(self)
+
     def get_long_title(self):
         pip_name = self.controller.get_pipeline_name()
         vt_name = self.controller.name
@@ -3283,17 +3277,17 @@ class TestPipelineView(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_group(self):
         vistrails.api.new_vistrail()
-        m1 = vistrails.api.add_module(0, 0,    'edu.utah.sci.vistrails.basic', 'File', '')
-        m2 = vistrails.api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
-        m3 = vistrails.api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
+        basic_pkg = get_vistrails_basic_pkg_id()
+        m1 = vistrails.api.add_module(0, 0,    basic_pkg, 'File', '')
+        m2 = vistrails.api.add_module(0, -100, basic_pkg, 'File', '')
+        m3 = vistrails.api.add_module(0, -100, basic_pkg, 'File', '')
         r = vistrails.api.get_module_registry()
-        src = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
-                              'value_as_string', 'output')
-        dst = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
-                              'name', 'input')
-#         src = r.module_source_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+        src = r.get_port_spec(basic_pkg, 'File', None, 'value_as_string', 
+                              'output')
+        dst = r.get_port_spec(basic_pkg, 'File', None, 'name', 'input')
+#         src = r.module_source_ports(True, basic_pkg, 'File', '')[1]
 #         assert src.name == 'value_as_string'
-#         dst = r.module_destination_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+#         dst = r.module_destination_ports(True, basic_pkg, 'File', '')[1]
 #         assert dst.name == 'name'
         vistrails.api.add_connection(m1.id, src, m2.id, dst)
         vistrails.api.add_connection(m2.id, src, m3.id, dst)

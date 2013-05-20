@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,13 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+"""Matplotlib package for VisTrails.
 
-# *** MOVED *** to gui.modules.port_configure
-import traceback
-from vistrails.core import debug
+This package wrap Matplotlib to provide a plotting tool for
+VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
-from vistrails.gui.modules.port_configure import *
-debug.warning("The use of core.modules.port_configure is deprecated.  "
-              "Please use gui.modules.port_configure.",
-              ''.join(traceback.format_stack()))
+"""
 
+identifier = 'org.vistrails.vistrails.matplotlib'
+name = 'matplotlib'
+version = '1.0.1'
+old_identifiers = ['edu.utah.sci.vistrails.matplotlib',
+                   'org.vistrails.matplotlib.new']

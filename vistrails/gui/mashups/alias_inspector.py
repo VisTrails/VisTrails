@@ -50,6 +50,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.modules import get_widget_class
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.gui.theme import CurrentTheme
@@ -404,7 +405,7 @@ Please type a unique name. """ % new_alias)
         v = controller.vtController.vistrail
         p = v.db_get_object(alias.component.vttype, alias.component.vtid)
         if p.identifier == '':
-            idn = 'edu.utah.sci.vistrails.basic'
+            idn = get_vistrails_basic_pkg_id()
         else:
             idn = p.identifier
         reg = get_module_registry()

@@ -32,31 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-""" This file describe the module methods box that user can drop
-methods from method palette into it
 
-"""
-from PyQt4 import QtCore, QtGui
-from vistrails.gui.method_dropbox import QMethodDropBox
-from vistrails.gui.common_widgets import QToolWindowInterface
-
-################################################################################
-
-class QModuleMethods(QMethodDropBox, QToolWindowInterface):
-    """
-    QModuleMethods is showing methods of a single module, it also
-    support drop actions of method items from the method palette
-    
-    """
-    def __init__(self, parent=None):
-        """ QModuleMethods(parent: QWidget) -> QModuleMethods
-        Initialize widget constraints
-        
-        """
-        QMethodDropBox.__init__(self, parent)
-        self.setWindowTitle('Set Methods')
-
-    def sizeHint(self):
-        """ sizeHint() -> None
-        """
-        return QtCore.QSize(self.size().width(), 300)
+identifier = 'org.vistrails.vistrails.spreadsheet'
+name = 'VisTrails Spreadsheet'
+version = '0.9.2'
+old_identifiers = ['edu.utah.sci.vistrails.spreadsheet']

@@ -62,9 +62,10 @@ except ImportError:
 
 ###############################################################################
 
-version = '1.6'
+version = '2.1'
 name = 'Basic Modules'
-identifier = 'edu.utah.sci.vistrails.basic'
+identifier = 'org.vistrails.vistrails.basic'
+old_identifiers = ['edu.utah.sci.vistrails.basic']
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -148,7 +149,7 @@ class Constant(Module):
             return (value_a != value_b)
         return False
 
-def new_constant(name, py_conversion, default_value, validation,
+def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
                  str_conversion=None, base_class=Constant,
                  compute=None, query_widget_type=None,
@@ -180,11 +181,27 @@ def new_constant(name, py_conversion, default_value, validation,
             base_class.__init__(self)
         return __init__
 
-    d = {'__init__': create_init(base_class),
-         'validate': validation,
-         'translate_to_python': py_conversion,
-         'default_value': default_value,
-         }
+    d = {'__init__': create_init(base_class)}
+
+    if py_conversion is not None:
+        d["translate_to_python"] = py_conversion
+    elif base_class == Constant:
+        raise Exception("Must specify translate_to_python for constant")
+    else:
+        d["translate_to_python"] = staticmethod(base_class.translate_to_python)
+    if validation is not None:
+        d["validate"] = validation
+    elif base_class == Constant:
+        raise Exception("Must specify validation for constant")
+    else:
+        d["validate"] = staticmethod(base_class.validate)
+    if default_value is not None:
+        d["default_value"] = default_value
+    elif base_class == Constant:
+        d["default_value"] = None
+    else:
+        d["default_value"] = base_class.default_value
+
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
     if compute is not None:
@@ -1224,7 +1241,7 @@ class TestConcatenateString(unittest.TestCase):
         from vistrails.tests.utils import execute, intercept_result
         with intercept_result(ConcatenateString, 'value') as results:
             errors = execute([
-                    ('ConcatenateString', 'edu.utah.sci.vistrails.basic', [
+                    ('ConcatenateString', 'org.vistrails.vistrails.basic', [
                         (name, [('String', value)])
                         for name, value in kwargs.iteritems()
                     ]),
@@ -1270,7 +1287,7 @@ class TestList(unittest.TestCase):
             add('tail', tail, 'List')
 
             errors = execute([
-                    ('List', 'edu.utah.sci.vistrails.basic', functions),
+                    ('List', 'org.vistrails.vistrails.basic', functions),
                 ])
             if errors:
                 return None
@@ -1319,14 +1336,14 @@ class TestList(unittest.TestCase):
         def list_with_items(nb_items, **kwargs):
             with intercept_result(List, 'value') as results:
                 errors = execute([
-                        ('List', 'edu.utah.sci.vistrails.basic', [
+                        ('List', 'org.vistrails.vistrails.basic', [
                             (k, [('String', v)])
                             for k, v in kwargs.iteritems()
                         ]),
                     ],
                     add_port_specs=[
                         (0, 'input', 'item%d' % i,
-                         '(edu.utah.sci.vistrails.basic:Module)')
+                         '(org.vistrails.vistrails.basic:Module)')
                         for i in xrange(nb_items)
                     ])
                 if errors:
@@ -1351,19 +1368,19 @@ class TestPythonSource(unittest.TestCase):
         source = urllib2.quote(source)
         with intercept_result(PythonSource, 'customout') as results:
             self.assertFalse(execute([
-                    ('PythonSource', 'edu.utah.sci.vistrails.basic', [
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
                         ('source', [('String', source)]),
                         ('customin', [('Integer', '42')])
                     ]),
-                    ('String', 'edu.utah.sci.vistrails.basic', []),
+                    ('String', 'org.vistrails.vistrails.basic', []),
                 ],
                 [
                     (0, 'customout', 1, 'value'),
                 ],
                 add_port_specs=[
                     (0, 'input', 'customin',
-                     'edu.utah.sci.vistrails.basic:Integer'),
+                     'org.vistrails.vistrails.basic:Integer'),
                     (0, 'output', 'customout',
-                     'edu.utah.sci.vistrails.basic:String'),
+                     'org.vistrails.vistrails.basic:String'),
                 ]))
         self.assertEqual(results[-1], "nb is 42")

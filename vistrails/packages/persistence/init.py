@@ -134,10 +134,8 @@ class PersistentRef(Constant):
     def validate(x):
         return type(x) == PersistentRef
 
-    _input_ports = [('value', 
-                     '(edu.utah.sci.vistrails.persistence:PersistentRef)')]
-    _output_ports = [('value', 
-                     '(edu.utah.sci.vistrails.persistence:PersistentRef)')]
+    _input_ports = [('value', '(PersistentRef)')]
+    _output_ports = [('value', '(PersistentRef)')]
 
 class PersistentPath(Module):
     def __init__(self):
@@ -385,20 +383,17 @@ class PersistentPath(Module):
                        'persistent_version': ref.version})
         self.set_result(path)
 
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Path)'),
-                    ('ref', 
-                     '(edu.utah.sci.vistrails.persistence:PersistentRef)'),
-                    ('localPath', '(edu.utah.sci.vistrails.basic:Path)'),
-                    ('readLocal', '(edu.utah.sci.vistrails.basic:Boolean)', \
-                         True),
-                    ('writeLocal','(edu.utah.sci.vistrails.basic:Boolean)', \
-                         True)]
-    _output_ports = [('value', '(edu.utah.sci.vistrails.basic:Path)')]
+    _input_ports = [('value', '(basic:Path)'),
+                    ('ref', '(PersistentRef)'),
+                    ('localPath', '(basic:Path)'),
+                    ('readLocal', '(basic:Boolean)', True),
+                    ('writeLocal','(basic:Boolean)', True)]
+    _output_ports = [('value', '(basic:Path)')]
 
 class PersistentFile(PersistentPath):
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)'),
-                    ('localPath', '(edu.utah.sci.vistrails.basic:File)')]
-    _output_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
+    _input_ports = [('value', '(basic:File)'),
+                    ('localPath', '(basic:File)')]
+    _output_ports = [('value', '(basic:File)')]
 
     def updateUpstream(self, is_input=None):
         PersistentPath.updateUpstream(self, is_input, 'blob')
@@ -414,9 +409,9 @@ class PersistentFile(PersistentPath):
         self.setResult("value", persistent_path)
 
 class PersistentDir(PersistentPath):
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)'),
-                    ('localPath', '(edu.utah.sci.vistrails.basic:Directory)')]
-    _output_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)')]
+    _input_ports = [('value', '(basic:Directory)'),
+                    ('localPath', '(basic:Directory)')]
+    _output_ports = [('value', '(basic:Directory)')]
 
     def updateUpstream(self, is_input=None):
         PersistentPath.updateUpstream(self, is_input, 'tree')
@@ -431,25 +426,8 @@ class PersistentDir(PersistentPath):
         persistent_path.upToDate = True
         self.setResult("value", persistent_path)
 
-# class PersistentFile(PersistentPath):
-#     _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
-#     _output_ports = [('value', '(edu.utah.sci.vistrails.basic:File)')]
-
-#     def updateUpstream(self, is_input=None):
-#         PersistentPath.updateUpstream(self, is_input, 'blob')
-
-#     def compute(self, is_input=None):
-#         PersistentPath.compute(self, is_input, 'blob')
-
-#     def set_result(self, path):
-#         persistent_path = File()
-#         persistent_path.name = path
-#         persistent_path.setResult('value', self)
-#         persistent_path.upToDate = True
-#         self.setResult("value", persistent_path)
-
 class PersistentInputDir(PersistentDir):
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)', True)]
+    _input_ports = [('value', '(basic:Directory)', True)]
 
     def updateUpstream(self):
         PersistentDir.updateUpstream(self, True)
@@ -465,8 +443,7 @@ class PersistentIntermediateDir(PersistentDir):
         PersistentDir.compute(self, False)
     
 class PersistentOutputDir(PersistentDir):
-    _output_ports = [('value', '(edu.utah.sci.vistrails.basic:Directory)', 
-                      True)]
+    _output_ports = [('value', '(basic:Directory)', True)]
 
     def updateUpstream(self):
         PersistentDir.updateUpstream(self, False)
@@ -475,7 +452,7 @@ class PersistentOutputDir(PersistentDir):
         PersistentDir.compute(self, False)
 
 class PersistentInputFile(PersistentFile):
-    _input_ports = [('value', '(edu.utah.sci.vistrails.basic:File)', True)]
+    _input_ports = [('value', '(basic:File)', True)]
 
     def updateUpstream(self):
         PersistentFile.updateUpstream(self, True)
@@ -491,7 +468,7 @@ class PersistentIntermediateFile(PersistentFile):
         PersistentFile.compute(self, False)
     
 class PersistentOutputFile(PersistentFile):
-    _output_ports = [('value', '(edu.utah.sci.vistrails.basic:File)', True)]
+    _output_ports = [('value', '(basic:File)', True)]
 
     def updateUpstream(self):
         PersistentFile.updateUpstream(self, False)

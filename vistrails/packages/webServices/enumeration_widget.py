@@ -37,9 +37,9 @@
 # Enumeration Widget for Web Services
 from PyQt4 import QtCore, QtGui
 import vistrails.core.modules
-from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
+    StandardConstantWidget
 from vistrails.core.modules.basic_modules import Constant, Module
-from vistrails.core.modules.constant_configuration import StandardConstantWidget
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import new_module
 import vistrails.packages.webServices

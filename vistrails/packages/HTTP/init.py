@@ -422,6 +422,13 @@ def initialize(*args, **keywords):
 
 class TestHTTPFile(unittest.TestCase):
     
+    
+    @classmethod
+    def setUpClass(cls):
+        global identifier
+        if identifier not in globals():
+            identifier = 'org.vistrails.vistrails.http'
+
     def testParseURL(self):
         foo = HTTPFile()
         foo._parse_url('http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip')
