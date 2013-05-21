@@ -84,9 +84,11 @@ def parse_docutils_term(elt):
     accepts = ""
     for child in elt.children:
         if child.__class__ == docutils.nodes.emphasis:
-            term = parse_docutils_elt(child)[0]
-            if term.strip() != "None":
-                terms.append(term.strip())
+            term = parse_docutils_elt(child)[0].strip()
+            if term in ('True', 'False'):
+                accepts += term
+            elif term != "None":
+                terms.append(term)
         elif child.__class__ == docutils.nodes.Text:
             accepts += str(child)
         else:
