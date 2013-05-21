@@ -996,5 +996,10 @@ def get_docutils(plot):
     print call_sigs
     
 if __name__ == '__main__':
-    run()
+    if len(sys.argv) <= 1:
+        run()
+    elif len(sys.argv) == 2:
+        run(sys.argv[1])
+    else:
+        raise TypeError("usage: python parse.py [all|artists|plots]")
     # get_docutils("axhline")
