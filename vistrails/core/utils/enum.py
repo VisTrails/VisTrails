@@ -98,7 +98,8 @@ def enum(className, enumValues, doc = None):
                     '__className': className,
                     '__eq__': __eq__,
                     '__ne__': __ne__,
-                    '__doc__': doc})
+                    '__doc__': doc,
+                    '__hash__': lambda self: self.__v})
     for (v, x) in izip(enumValues, xrange(len(enumValues))):
         setattr(the_enum, v, the_enum(x))
     return the_enum
