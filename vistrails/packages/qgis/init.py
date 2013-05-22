@@ -152,7 +152,7 @@ class QGISCellWidget(QCellWidget):
     def grabWindowPixmap(self):
         """ grabWindowPixmap() -> QPixmap
         Widget special grabbing function
- 	       
+        
         """
         # return QtGui.QPixmap.grabWidget(self.figManager.canvas)
         return None

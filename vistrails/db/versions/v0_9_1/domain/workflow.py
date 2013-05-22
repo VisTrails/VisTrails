@@ -42,8 +42,8 @@ import copy
 class DBWorkflow(_DBWorkflow):
 
     def __init__(self, *args, **kwargs):
-	_DBWorkflow.__init__(self, *args, **kwargs)
-	self.objects = {}
+        _DBWorkflow.__init__(self, *args, **kwargs)
+        self.objects = {}
         self.tmp_id = IdScope(1,
                               {DBAbstractionRef.vtType: DBModule.vtType,
                                DBGroup.vtType: DBModule.vtType})
@@ -75,7 +75,7 @@ class DBWorkflow(_DBWorkflow):
         del self.objects[(obj_type, object.getPrimaryKey())]
 
     def capitalizeOne(self, str):
-	return str[0].upper() + str[1:]
+        return str[0].upper() + str[1:]
 
     def db_print_objects(self):
         for k,v in self.objects.iteritems():
@@ -106,14 +106,14 @@ class DBWorkflow(_DBWorkflow):
             obj_type = 'module'
         else:
             obj_type = object.vtType
-	funname = 'db_add_' + obj_type
-	obj_copy = copy.copy(object)
-	getattr(parent_obj, funname)(obj_copy)
-	self.add_to_index(obj_copy)
+        funname = 'db_add_' + obj_type
+        obj_copy = copy.copy(object)
+        getattr(parent_obj, funname)(obj_copy)
+        self.add_to_index(obj_copy)
 
     def db_change_object(self, old_id, object, parent_obj_type=None, 
                          parent_obj_id=None, parent_obj=None):
-	if parent_obj is None:
+        if parent_obj is None:
             if parent_obj_type is None or parent_obj_id is None:
                 parent_obj = self
             else:
@@ -147,12 +147,12 @@ class DBWorkflow(_DBWorkflow):
                     raise Exception(msg)
         if obj_type == 'abstractionRef' or obj_type == 'group':
             obj_type = 'module'
-	funname = 'db_get_' + obj_type
+        funname = 'db_get_' + obj_type
         if hasattr(parent_obj, funname):
             object = getattr(parent_obj, funname)(obj_id)
         else:
             attr_name = 'db_' + obj_type
             object = getattr(parent_obj, attr_name)
-	funname = 'db_delete_' + obj_type
-	getattr(parent_obj, funname)(object)
-	self.delete_from_index(object)
+        funname = 'db_delete_' + obj_type
+        getattr(parent_obj, funname)(object)
+        self.delete_from_index(object)

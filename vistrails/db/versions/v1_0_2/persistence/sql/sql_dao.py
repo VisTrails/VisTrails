@@ -165,8 +165,8 @@ class SQLDAO:
         comma = ''
         values = []
         for column, value in columnMap.iteritems():
-# 	    if value is None:
-# 		value = 'NULL'
+#            if value is None:
+#                value = 'NULL'
             setStr += '%s%s = %%s' % (comma, column)
             comma = ', '
             values.append(value)

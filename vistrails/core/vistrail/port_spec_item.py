@@ -90,7 +90,7 @@ class PortSpecItem(DBPortSpecItem):
     def convert(_portSpecItem):
         if _portSpecItem.__class__ == PortSpecItem:
             return
-	_portSpecItem.__class__ = PortSpecItem
+        _portSpecItem.__class__ = PortSpecItem
         _portSpecItem.set_defaults()
 
     id = DBPortSpecItem.db_id

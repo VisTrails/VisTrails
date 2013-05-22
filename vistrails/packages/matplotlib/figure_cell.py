@@ -205,7 +205,7 @@ class MplFigureCellWidget(QCellWidget):
     def grabWindowPixmap(self):
         """ grabWindowPixmap() -> QPixmap
         Widget special grabbing function
- 	       
+        
         """
         # pylab.figure(self.figNumber)
         # figManager = pylab.get_current_fig_manager()

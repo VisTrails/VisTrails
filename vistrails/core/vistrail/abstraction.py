@@ -94,8 +94,8 @@ class Abstraction(DBAbstraction, Module):
         _abstraction.__class__ = Abstraction
         if _abstraction.db_location:
             Location.convert(_abstraction.db_location)
-	for _function in _abstraction.db_functions:
-	    ModuleFunction.convert(_function)
+        for _function in _abstraction.db_functions:
+            ModuleFunction.convert(_function)
         for _annotation in _abstraction.db_get_annotations():
             Annotation.convert(_annotation)
         _abstraction.set_defaults()

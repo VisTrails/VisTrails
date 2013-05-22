@@ -26,7 +26,7 @@ APP = ['../../vistrails/run.py']
 OPTIONS = {'argv_emulation': True,
            'iconfile': 'vistrails/resources/vistrails_icon.icns',
            'includes': 'sip,pylab,xml,netCDF3,netCDF4_utils,netcdftime,\
-			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, shelve,itk, itkBase, itkConfig, itkLazy, itkTypes, itkExtras',
+            libxml2,libxslt, Cookie, BaseHTTPServer, multifile, shelve,itk, itkBase, itkConfig, itkLazy, itkTypes, itkExtras',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,ZSI,api',
            'plist': plist,
            }

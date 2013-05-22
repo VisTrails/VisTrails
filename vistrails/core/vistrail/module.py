@@ -133,13 +133,13 @@ class Module(DBModule):
     def convert(_module):
         if _module.__class__ == Module:
             return
-	_module.__class__ = Module
+        _module.__class__ = Module
         for _port_spec in _module.db_portSpecs:
             PortSpec.convert(_port_spec)
         if _module.db_location:
             Location.convert(_module.db_location)
-	for _function in _module.db_functions:
-	    ModuleFunction.convert(_function)
+        for _function in _module.db_functions:
+            ModuleFunction.convert(_function)
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
         _module.set_defaults()
@@ -169,7 +169,7 @@ class Module(DBModule):
         self.db_functions.sort(key=lambda x: x.db_pos)
         return self.db_functions
     def _set_functions(self, functions):
-	# want to convert functions to hash...?
+        # want to convert functions to hash...?
         self.db_functions = functions
     functions = property(_get_functions, _set_functions)
     def add_function(self, function):

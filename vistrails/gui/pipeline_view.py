@@ -626,13 +626,13 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
         self.setBreakpointAct.setStatusTip("Set Breakpoint")
         QtCore.QObject.connect(self.setBreakpointAct,
-			       QtCore.SIGNAL("triggered()"),
-			       self.set_breakpoint)
+                               QtCore.SIGNAL("triggered()"),
+                               self.set_breakpoint)
         self.setWatchedAct = QtGui.QAction("Watch Module", self.scene())
         self.setWatchedAct.setStatusTip("Watch Module")
         QtCore.QObject.connect(self.setWatchedAct,
-			       QtCore.SIGNAL("triggered()"),
-			       self.set_watched)
+                               QtCore.SIGNAL("triggered()"),
+                               self.set_watched)
         self.setErrorAct = QtGui.QAction("Show Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
