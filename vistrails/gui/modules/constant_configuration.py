@@ -296,7 +296,8 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
         self._multiline = None
         self._default = ""
 
-        self._button = QtGui.QPushButton(CurrentTheme.MULTILINE_STRING_ICON, '')
+        self._button = QtGui.QToolButton()
+        self._button.setIcon(CurrentTheme.MULTILINE_STRING_ICON)
         self._button.setSizePolicy(QtGui.QSizePolicy(
                 QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
         self._button.setCheckable(True)
