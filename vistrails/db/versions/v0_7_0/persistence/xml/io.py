@@ -47,7 +47,7 @@ def parse_xml_file(filename):
         raise VistrailsDBException(msg)
 
 def write_xml_file(filename, dom, prettyprint=True):
-    output = file(filename, 'w')
+    output = open(filename, 'w')
     if prettyprint:
         dom.writexml(output, '','  ','\n')
     else:

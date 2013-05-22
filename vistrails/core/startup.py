@@ -128,7 +128,7 @@ class VistrailsStartup(object):
 
     def write_startup_dom(self, dom):
         filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
-        f = file(filename, 'w')
+        f = open(filename, 'w')
         f.write(dom.toxml())
                 
     def load_configuration(self):
@@ -207,7 +207,7 @@ by startup.py. This should only be called after init()."""
         def create_user_packages_init(userpackagesname):
             try:
                 name = os.path.join(userpackagesname, '__init__.py')
-                f = file(name, 'w')
+                f = open(name, 'w')
                 f.write('pass\n')
                 f.close()
             except:
@@ -410,7 +410,7 @@ by startup.py. This should only be called after init()."""
                     create_thumbnails_dir(thumbnails)
                 try:
                     
-                    dotVistrails = file(startup)
+                    dotVistrails = open(startup)
                     g = {}
                     localsDir = {'configuration': self.temp_configuration,
                                  'addStartupHook': addStartupHook,

@@ -1014,7 +1014,7 @@ it avoids moving the entire file contents to/from memory."""
                        self._output_filename))
 # zipfile cannot handle big files
 #            import zipfile
-#             output_file = file(self._output_filename, 'w')
+#             output_file = open(self._output_filename, 'w')
 #             zip_file = zipfile.ZipFile(self._archive)
 #             contents = zip_file.read(self._filename_in_archive)
 #             output_file.write(contents)

@@ -100,7 +100,7 @@ _system_guesser = System_guesser()
 
 def _guess_suse():
     try:
-        tokens = file('/etc/SuSE-release').readline()[-1].split()
+        tokens = open('/etc/SuSE-release').readline()[-1].split()
         return tokens[0] == 'SUSE'
     except:
         return False
