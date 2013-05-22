@@ -70,8 +70,8 @@ def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action
     if vistrail.db_has_action_with_id(version):
         workflow = DBWorkflow()
-        #	    for action in getActionChain(vistrail, version):
-        #		oldPerformAction(action, workflow)
+        #for action in getActionChain(vistrail, version):
+        #    oldPerformAction(action, workflow)
         performActions(getActionChain(vistrail, version), 
                             workflow)
         workflow.db_id = version

@@ -79,8 +79,8 @@ def parse_db_cmd_line(argv, more_options={}):
         options[optKeys[idx]] = False
 
     try:
-	(optlist, args) = getopt.getopt(argv[1:], optStr)
-	for opt in optlist:
+        (optlist, args) = getopt.getopt(argv[1:], optStr)
+        for opt in optlist:
             if opt[1] is not None and opt[1] != '':
                 options[opt[0][1:]] = opt[1]
             else:

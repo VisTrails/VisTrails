@@ -50,12 +50,12 @@ if __name__ == '__main__':
     cmds = []
     for port in PORTS:
         filename = os.path.join(LOG_DIR,
-	                        "pid.%s.vistrails"%port)
-	f = open(filename)
-	pid = f.read()
-	f.close()
-	cmd = "kill -9 %s"%pid
-	cmds.append(cmd)
+                                "pid.%s.vistrails"%port)
+        f = open(filename)
+        pid = f.read()
+        f.close()
+        cmd = "kill -9 %s"%pid
+        cmds.append(cmd)
 
     start_cmd = "nohup " + os.path.join(VISTRAILS_SCRIPTS_DIR,SCRIPT)
     cmds.append(start_cmd)
