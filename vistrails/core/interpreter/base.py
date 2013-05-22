@@ -85,7 +85,7 @@ class BaseInterpreter(object):
             result += [astList[1]]
         else:
             for e in astList:
-                if type(e) is ListType:
+                if isinstance(e, list):
                     result += self.get_name_dependencies(e)
         return result
 

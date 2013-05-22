@@ -57,7 +57,6 @@ from vistrails.core.vistrail.plugin_data import PluginData
 from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
-from types import ListType
 import vistrails.core.vistrail.action
 from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
 
