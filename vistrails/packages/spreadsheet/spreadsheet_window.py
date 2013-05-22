@@ -546,6 +546,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                     if dump_as_pdf == True:
                         file_extension = '.pdf'
                             
+                    # add cell location by default
+                    if not extra_info.has_key('nameDumpCells'):
+                        base_fname = base_fname + "_%d_%d" % (row, col)
                     # make a unique filename
                     filename = base_fname + file_extension
                     counter = 2

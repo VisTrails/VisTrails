@@ -41,8 +41,9 @@ from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 import os
 
+
 ##############################################################################
-    
+
 def has_qt():
     try:
         import PyQt4.QtGui
@@ -53,6 +54,7 @@ def has_qt():
     except ImportError:
         return False
 
+
 def hide_splash_if_necessary():
     qt = has_qt()
     # HACK, otherwise splashscreen stays in front of windows
@@ -61,6 +63,39 @@ def hide_splash_if_necessary():
             get_vistrails_application().splashScreen.hide()
         except:
             pass
+
+
+def run_install_command_as_root(graphical, cmd, args):
+    if type(args) == str:
+        cmd += ' ' + args
+    elif type(args) == list:
+        for package in args:
+            if type(package) != str:
+                raise TypeError("Expected string or list of strings")
+            cmd += ' ' + package
+    else:
+        raise TypeError("Expected string or list of strings")
+
+    if graphical:
+        sucmd, escape = guess_graphical_sudo()
+    else:
+        debug.warning("VisTrails wants to install package(s) %r" %
+                      args)
+        if get_executable_path('sudo'):
+            sucmd, escape = "sudo", False
+        else:
+            sucmd, escape = "su -c", True
+
+    if escape:
+        sucmd = '%s "%s"' % (sucmd, cmd.replace('\\', '\\\\').replace('"', '\\"'))
+    else:
+        sucmd = '%s %s' % (sucmd, cmd)
+
+    print "about to run: %s" % sucmd
+    result = os.system(sucmd)
+
+    return result == 0 # 0 indicates success
+
 
 def linux_debian_install(package_name):
     qt = has_qt()
@@ -77,68 +112,23 @@ def linux_debian_install(package_name):
     else:
         cmd = '%s install -y' % ('aptitude' if get_executable_path('aptitude') else 'apt-get')
 
-    if type(package_name) == str:
-        cmd += ' ' + package_name
-    elif type(package_name) == list:
-        for package in package_name:
-            if type(package) != str:
-                raise TypeError("Expected string or list of strings")
-            cmd += ' ' + package
-    else:
-        raise TypeError("Expected string or list of strings")
-
-    if qt:
-        sucmd, escape = guess_graphical_sudo()
-    else:
-        debug.warning("VisTrails wants to install package(s) '%s'" %
-                      package_name)
-        if get_executable_path('sudo'):
-            sucmd, escape = "sudo", False
-        else:
-            sucmd, escape = "su -c", True
-
-    if escape:
-        sucmd = '%s "%s"' % (sucmd, cmd.replace('\\', '\\\\').replace('"', '\\"'))
-    else:
-        sucmd = '%s %s' % (sucmd, cmd)
-
-    print "about to run: %s" % sucmd
-    result = os.system(sucmd)
-
-    return (result == 0) # 0 indicates success
+    return run_install_command_as_root(qt, cmd, package_name)
 
 linux_ubuntu_install = linux_debian_install
+
 
 def linux_fedora_install(package_name):
     qt = has_qt()
     hide_splash_if_necessary()
+
     if qt:
         cmd = vistrails_root_directory()
         cmd += '/gui/bundles/linux_fedora_install.py'
     else:
         cmd = 'yum -y install'
 
-    if type(package_name) == str:
-        cmd += ' ' + package_name
-    elif type(package_name) == list:
-        for package in package_name:
-            if type(package) != str:
-                raise TypeError("Expected string or list of strings")
-            cmd += ' ' + package
-    else:
-        raise TypeError("Expected string or list of strings")
+    return run_install_command_as_root(qt, cmd, package_name)
 
-    if qt:
-        sucmd = guess_graphical_sudo() + " " + cmd
-    else:
-        debug.warning(("VisTrails wants to install package(s) '%s' through "
-                       "_sudo_. Make sure you are a sudoer.") % package_name)
-        sucmd = "sudo " + cmd
-
-    debug.warning("EXECUTING: sucmd")
-    result = os.system(sucmd)
-    debug.warning("RETURN VALUE: %s" % result)
-    return (result == 0)
 
 def show_question(which_files):
     qt = has_qt()
