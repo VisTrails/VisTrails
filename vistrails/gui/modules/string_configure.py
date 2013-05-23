@@ -58,6 +58,8 @@ def NewTextEditor(parent):
             font = CurrentTheme.PYTHON_SOURCE_EDITOR_FONT
             self.setFont(font)
             fm = QtGui.QFontMetrics(font)
+            # enable unicode
+            self.setUtf8(True)
         
             ## Line numbers
             # conventionally, margin 0 is for line numbers
