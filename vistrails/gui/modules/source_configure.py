@@ -114,7 +114,7 @@ class SourceWidget(PortTableConfigurationWidget):
             if self.sourceEncode:
                 code = urllib.unquote(code)
             self.codeEditor.setPlainText(code)
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.codeEditor.document().setModified(False)
         else:
             self.codeEditor.setModified(False)
@@ -134,7 +134,7 @@ class SourceWidget(PortTableConfigurationWidget):
         
         self.cursorLabel = QtGui.QLabel()
         self.layout().addWidget(self.cursorLabel)
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.connect(self.codeEditor,
                          QtCore.SIGNAL('cursorPositionChanged()'),
                          self.updateCursorLabel)
@@ -145,7 +145,7 @@ class SourceWidget(PortTableConfigurationWidget):
         self.updateCursorLabel()
             
     def updateCursorLabel(self, x=0, y=0):
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             cursor = self.codeEditor.textCursor()
             x = cursor.blockNumber()
             y = cursor.columnNumber()
@@ -346,7 +346,7 @@ class SourceConfigurationWidget(SourceWidget):
 
         functions = []
         modified = False
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             modified = self.codeEditor.document().isModified()
         else:
             modified = self.codeEditor.isModified()

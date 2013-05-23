@@ -1057,7 +1057,9 @@ def initialize(*args, **kwargs):
     reg.add_module(Boolean)
     reg.add_module(Float)
     reg.add_module(Integer)
-    reg.add_module(String)
+    reg.add_module(String,
+                   configureWidgetType=("vistrails.gui.modules.string_configure",
+                                        "TextConfigurationWidget"))
     
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
