@@ -277,13 +277,21 @@ class CSVLoader(FileVariableLoader):
 
     def load(self):
         if self._selected_column is None:
-            QtGui.QMessageBox.warning(self, _("Error"), _("You must select a column to load"))
+            QtGui.QMessageBox.warning(
+                    self,
+                    _("Error"),
+                    _("You must select a column to load"))
             return
         if self._header_present:
             column = self._column_names[self._selected_column]
         else:
             column = self._selected_column
-        return build_csv_variable(self._filename, self._delimiter, self._header_present, column, self._numeric_checkbox.isChecked())
+        return build_csv_variable(
+                self._filename,
+                self._delimiter,
+                self._header_present,
+                column,
+                self._numeric_checkbox.isChecked())
 
     def get_default_variable_name(self):
         return self._varname

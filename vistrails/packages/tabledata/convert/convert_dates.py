@@ -121,10 +121,14 @@ class TimestampsToDates(Module):
     _output_ports = [
             ('dates', '(org.vistrails.vistrails.basic:List)')]
 
+    @staticmethod
+    def convert_to_dates(timestamps):
+        return [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
+
     def compute(self):
         timestamps = self.getInputFromPort('timestamps')
 
-        result = [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
+        result = self.convert_to_dates(timestamps)
         self.setResult('dates', result)
 
 
