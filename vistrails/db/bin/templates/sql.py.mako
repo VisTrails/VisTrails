@@ -36,7 +36,7 @@
 """generated automatically by auto_dao.py"""
 
 from sql_dao import SQLDAO
-from db.versions.${version_string}.domain import *
+from vistrails.db.versions.${version_string}.domain import *
 
 % for obj in objs:
 class ${obj.getClassName()}SQLDAOBase(SQLDAO):

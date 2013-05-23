@@ -309,7 +309,7 @@ def main(argv=None):
             domainFile = os.path.join(baseDirs['domain'], '__init__.py')
             f = open(domainFile, 'w')
             f.write(COPYRIGHT_NOTICE)
-            f.write('from db.versions.%s.domain import *\n' % \
+            f.write('from vistrails.db.versions.%s.domain import *\n' % \
                         versionName)
             f.close()
 
@@ -374,7 +374,7 @@ def main(argv=None):
         domainFile = os.path.join(baseDirs['persistence'], '__init__.py')
         f = open(domainFile, 'w')
         f.write(COPYRIGHT_NOTICE)
-        f.write('from db.versions.%s.persistence import *\n' % \
+        f.write('from vistrails.db.versions.%s.persistence import *\n' % \
                     versionName)
         f.close()
             
