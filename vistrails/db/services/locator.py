@@ -124,6 +124,8 @@ class BaseLocator(object):
                 return ZIPFileLocator.from_url(url)
             elif filename.endswith('.xml'):
                 return XMLFileLocator.from_url(url)
+            else:
+                return DirectoryLocator.from_url(url)
         return None
 
     @staticmethod
@@ -393,6 +395,71 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
             if my_uuid not in locators:
                 locators[my_uuid] = cls(my_uuid)
         return locators.values()
+
+class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
+    def __init__(self, dirname, **kwargs):
+        self._name = dirname
+        self._vnode = kwargs.get('version_node', None)
+        self._vtag = kwargs.get('version_tag', '')
+        self._mshptrail = kwargs.get('mashuptrail', None)
+        if 'mashupVersion' in kwargs:
+            self._mshpversion = kwargs.get('mashupVersion', None)
+        else:
+            self._mshpversion = kwargs.get('mashup', None)
+        self._parameterexploration = kwargs.get('parameterExploration', None)
+        self.kwargs = kwargs
+    
+    def load(self, type):
+        raise Exception("Need to implement!")
+
+    def save(self, obj, do_copy=True, version=None):
+        raise Exception("Need to implement!")
+
+    def is_valid(self):
+        return os.path.isdir(self._name)
+
+    def get_temporary(self):
+        return self._find_latest_temporary()
+
+    def _get_name(self):
+        return str(self._name)
+    name = property(_get_name)
+
+    def _get_short_filename(self):
+        return os.path.basename(self._name)
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        name = self._get_short_filename()
+        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
+        return name.decode(enc)
+    short_name = property(_get_short_name)
+
+    @classmethod
+    def from_url(cls, url):
+        if '://' in url:
+            scheme, path = url.split('://', 1)
+            if scheme != 'file':
+                raise ValueError
+        else:
+            url = BaseLocator.convert_filename_to_url(url)
+
+        old_uses_query = urlparse.uses_query
+        urlparse.uses_query = urlparse.uses_query + ['file']
+        scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
+        urlparse.uses_query = old_uses_query
+        # De-urlencode pathname
+        path = url2pathname(str(path))
+        kwargs = BaseLocator.parse_args(args_str)
+
+        return cls(os.path.abspath(path), **kwargs)
+
+    def to_url(self):
+        args_str = BaseLocator.generate_args(self.kwargs)
+        url_tuple = ('file', '',
+                     pathname2url(os.path.abspath(self._name)),
+                     args_str, '')
+        return urlparse.urlunsplit(url_tuple)
 
 class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     def __init__(self, filename, **kwargs):
