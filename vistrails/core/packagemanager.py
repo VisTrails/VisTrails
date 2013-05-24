@@ -470,15 +470,13 @@ Returns true if given package identifier is present."""
 
         failed = []
         # import the modules
-        existing_paths = set(sys.modules.iterkeys())
         for package in self._package_list.itervalues():
             # print '+ initializing', package.codepath, id(package)
             if package.initialized():
                 # print '- already initialized'
                 continue
             try:
-                package.load(prefix_dictionary.get(package.codepath, None),
-                             existing_paths)
+                package.load(prefix_dictionary.get(package.codepath, None))
             except Package.LoadFailed, e:
                 debug.critical("Package %s failed to load and will be "
                                "disabled" % package.name, str(e))
@@ -572,8 +570,6 @@ Returns true if given package identifier is present."""
 #                     pkg.remove_own_dom_element()
 #                     failed.append(package)
                 else:
-                    pkg.remove_py_deps(existing_paths)
-                    existing_paths.update(pkg.get_py_deps())
                     self.add_menu_items(pkg)
                     app = get_vistrails_application()
                     app.send_notification("package_added", pkg.codepath)

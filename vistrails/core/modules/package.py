@@ -243,16 +243,12 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
     
-    def _override_import(self, existing_paths=None, 
+    def _override_import(self,
                          force_no_unload_pkg_list=[], 
                          force_unload_pkg_list=[], 
                          force_sys_unload=False):
         self._real_import = __builtin__.__import__
         self._imported_paths = set()
-        if existing_paths is not None:
-            self._existing_paths = existing_paths
-        else:
-            self._existing_paths = set(sys.modules.iterkeys())
         self._warn_vistrails_prefix = False
         self._force_no_unload = force_no_unload_pkg_list
         self._force_unload = force_unload_pkg_list
@@ -290,7 +286,7 @@ class Package(DBPackage):
                               pkg_fname, re.IGNORECASE))
 
         def checked_add_package(qual_name, pkg):
-            if qual_name not in self._existing_paths and \
+            if qual_name not in sys.modules and \
                 not in_package_list(qual_name, self._force_no_unload) and \
                 (not self._force_sys_unload or not is_sys_pkg(pkg)
                  or in_package_list(qual_name, self._force_unload)) and \
@@ -338,7 +334,7 @@ class Package(DBPackage):
     def remove_py_deps(self, deps):
         self.py_dependencies.difference_update(deps)
 
-    def load(self, prefix=None, existing_paths=None):
+    def load(self, prefix=None):
         """load(module=None). Loads package's module. If module is not None,
         then uses that as the module instead of 'import'ing it.
 
@@ -370,7 +366,7 @@ class Package(DBPackage):
         # override __import__ so that we can track what needs to
         # be unloaded, try imports, and then stop overriding,
         # updating the set of python dependencies
-        self._override_import(existing_paths)
+        self._override_import()
         try:
             if self.prefix is not None:
                 r = not import_from(self.prefix)
@@ -401,7 +397,7 @@ class Package(DBPackage):
 
         self.set_properties()
 
-    def initialize(self, existing_paths=None):
+    def initialize(self):
         if hasattr(self._module, "_force_no_unload_pkg_list"):
             force_no_unload = self._module._force_no_unload_pkg_list
         else:
@@ -417,7 +413,7 @@ class Package(DBPackage):
         # override __import__ so that we can track what needs to
         # be unloaded, try imports, and then stop overriding,
         # updating the set of python dependencies
-        self._override_import(existing_paths, force_no_unload, force_unload, 
+        self._override_import(force_no_unload, force_unload,
                               force_sys_unload)
         try:
             name = self.prefix + self.codepath + '.init'
