@@ -44,7 +44,7 @@ from vistrails.core import debug
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import ConfigurationObject, get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
-from vistrails.core.utils import versions_increasing
+from vistrails.core.utils import versions_increasing, VistrailsInternalError
 from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 
 from vistrails.db.domain import DBPackage
