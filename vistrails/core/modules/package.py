@@ -271,12 +271,13 @@ class Package(DBPackage):
                     self._lib_python_regex.search(pkg_fname))
 
         def checked_add_package(qual_name, pkg):
-            if (qual_name not in sys.modules and
-                    not in_package_list(qual_name, self._force_no_unload) and
+            if (not in_package_list(qual_name, self._force_no_unload) and
                     (not self._force_sys_unload or not is_sys_pkg(pkg)
                      or in_package_list(qual_name, self._force_unload)) and
                      not qual_name.endswith('_rc')):
                 self.py_dependencies.add(qual_name)
+
+        in_sys_modules = name in sys.modules
 
         try:
             res = orig_import(name, globals, locals, fromlist, level)
@@ -299,20 +300,22 @@ class Package(DBPackage):
             else:
                 raise
         mod = res
-        if not fromlist or len(fromlist) < 1:
-            checked_add_package(mod.__name__, mod)
-            for comp in name.split('.')[1:]:
-                try:
-                    mod = getattr(mod, comp)
-                    checked_add_package(mod.__name__, mod)
-                except AttributeError:
-                    break
-        else:
-            res_name = mod.__name__
-            checked_add_package(mod.__name__, mod)
-            for from_name in fromlist:
-                qual_name = res_name + '.' + from_name
-                checked_add_package(qual_name, mod)
+
+        if not in_sys_modules:
+            if not fromlist or len(fromlist) < 1:
+                checked_add_package(mod.__name__, mod)
+                for comp in name.split('.')[1:]:
+                    try:
+                        mod = getattr(mod, comp)
+                        checked_add_package(mod.__name__, mod)
+                    except AttributeError:
+                        break
+            else:
+                res_name = mod.__name__
+                checked_add_package(mod.__name__, mod)
+                for from_name in fromlist:
+                    qual_name = res_name + '.' + from_name
+                    checked_add_package(qual_name, mod)
 
         return res
 
