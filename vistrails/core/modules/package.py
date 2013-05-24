@@ -116,6 +116,9 @@ class Package(DBPackage):
 
         DBPackage.__init__(self, *args, **kwargs)
         self.set_defaults()
+        self._force_no_unload = None
+        self._force_unload = None
+        self._force_sys_unload = None
     
     def __copy__(self):
         Package.do_copy(self)
@@ -244,24 +247,6 @@ class Package(DBPackage):
     # Methods
     
     def _override_import(self):
-        if self._module is not None:
-            if hasattr(self._module, "_force_no_unload_pkg_list"):
-                self._force_no_unload = self._module._force_no_unload_pkg_list
-            else:
-                self._force_no_unload = []
-            if hasattr(self._module, "_force_unload_pkg_list"):
-                self._force_unload = self._module._force_unload_pkg_list
-            else:
-                self._force_unload = []
-            if hasattr(self._module, "_force_sys_unload"):
-                self._force_sys_unload = self._module._force_sys_unload
-            else:
-                self._force_sys_unload = False
-        else:
-            self._force_no_unload = None
-            self._force_unload = None
-            self._force_sys_unload = None
-
         self._real_import = __builtin__.__import__
         self._imported_paths = set()
         self._warn_vistrails_prefix = False
@@ -278,6 +263,8 @@ class Package(DBPackage):
         #     print 'running import', name, fromlist
 
         def in_package_list(pkg_name, pkg_list):
+            if pkg_list is None:
+                return False
             for pkg in pkg_list:
                 if pkg_name == pkg or pkg_name.startswith(pkg + '.'):
                     return True
@@ -363,13 +350,26 @@ class Package(DBPackage):
             # print 'running import_from'
             try:
                 # print p_path + self.codepath
-                module = __import__(p_path+self.codepath,
+                __import__(p_path+self.codepath,
                                     globals(),
                                     locals(), []),
-                self._module = sys.modules[p_path + self.codepath]
+                self._module = module = sys.modules[p_path + self.codepath]
                 self._imported_paths.add(p_path + self.codepath)
                 self._package_type = self.Base
                 self.prefix = p_path
+
+                if hasattr(module, "_force_no_unload_pkg_list"):
+                    self._force_no_unload = module._force_no_unload_pkg_list
+                else:
+                    self._force_no_unload = []
+                if hasattr(module, "_force_unload_pkg_list"):
+                    self._force_unload = module._force_unload_pkg_list
+                else:
+                    self._force_unload = []
+                if hasattr(module, "_force_sys_unload"):
+                    self._force_sys_unload = module._force_sys_unload
+                else:
+                    self._force_sys_unload = False
             except ImportError, e:
                 errors.append(traceback.format_exc())
                 return False
