@@ -367,11 +367,11 @@ class Package(DBPackage):
                 return False
             return True
 
+        # override __import__ so that we can track what needs to
+        # be unloaded, try imports, and then stop overriding,
+        # updating the set of python dependencies
+        self._override_import(existing_paths)
         try:
-            # override __import__ so that we can track what needs to
-            # be unloaded, try imports, and then stop overriding,
-            # updating the set of python dependencies
-            self._override_import(existing_paths)
             if self.prefix is not None:
                 r = not import_from(self.prefix)
             elif prefix is not None:
@@ -414,6 +414,9 @@ class Package(DBPackage):
             force_sys_unload = self._module._force_sys_unload
         else:
             force_sys_unload = False
+        # override __import__ so that we can track what needs to
+        # be unloaded, try imports, and then stop overriding,
+        # updating the set of python dependencies
         self._override_import(existing_paths, force_no_unload, force_unload, 
                               force_sys_unload)
         try:
@@ -444,9 +447,6 @@ class Package(DBPackage):
             
             self.check_requirements()
             if hasattr(self._init_module, 'initialize'):
-                # override __import__ so that we can track what needs to
-                # be unloaded, try imports, and then stop overriding,
-                # updating the set of python dependencies
                 self._init_module.initialize()
         except Exception:
             self.py_dependencies.update(self._reset_import())            
