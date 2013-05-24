@@ -243,16 +243,28 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
     
-    def _override_import(self,
-                         force_no_unload_pkg_list=[], 
-                         force_unload_pkg_list=[], 
-                         force_sys_unload=False):
+    def _override_import(self):
+        if self._module is not None:
+            if hasattr(self._module, "_force_no_unload_pkg_list"):
+                self._force_no_unload = self._module._force_no_unload_pkg_list
+            else:
+                self._force_no_unload = []
+            if hasattr(self._module, "_force_unload_pkg_list"):
+                self._force_unload = self._module._force_unload_pkg_list
+            else:
+                self._force_unload = []
+            if hasattr(self._module, "_force_sys_unload"):
+                self._force_sys_unload = self._module._force_sys_unload
+            else:
+                self._force_sys_unload = False
+        else:
+            self._force_no_unload = None
+            self._force_unload = None
+            self._force_sys_unload = None
+
         self._real_import = __builtin__.__import__
         self._imported_paths = set()
         self._warn_vistrails_prefix = False
-        self._force_no_unload = force_no_unload_pkg_list
-        self._force_unload = force_unload_pkg_list
-        self._force_sys_unload = force_sys_unload
         __builtin__.__import__ = self._import
         
     def _reset_import(self):
@@ -398,23 +410,10 @@ class Package(DBPackage):
         self.set_properties()
 
     def initialize(self):
-        if hasattr(self._module, "_force_no_unload_pkg_list"):
-            force_no_unload = self._module._force_no_unload_pkg_list
-        else:
-            force_no_unload = []
-        if hasattr(self._module, "_force_unload_pkg_list"):
-            force_unload = self._module._force_unload_pkg_list
-        else:
-            force_unload = []
-        if hasattr(self._module, "_force_sys_unload"):
-            force_sys_unload = self._module._force_sys_unload
-        else:
-            force_sys_unload = False
         # override __import__ so that we can track what needs to
         # be unloaded, try imports, and then stop overriding,
         # updating the set of python dependencies
-        self._override_import(force_no_unload, force_unload,
-                              force_sys_unload)
+        self._override_import()
         try:
             name = self.prefix + self.codepath + '.init'
             try:
