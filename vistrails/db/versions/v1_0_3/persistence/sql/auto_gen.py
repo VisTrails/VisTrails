@@ -34,6 +34,7 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
+
 from sql_dao import SQLDAO
 from vistrails.db.versions.v1_0_3.domain import *
 

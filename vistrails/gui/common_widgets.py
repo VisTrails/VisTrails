@@ -491,7 +491,7 @@ class MultiLineWidget(StandardConstantWidget):
     def keyPressEvent(self, event):
         """ keyPressEvent(event) -> None       
         If this is a string line edit, we can use Ctrl+Enter to enter
-        the file name 	       
+        the file name
 
         """
         k = event.key()

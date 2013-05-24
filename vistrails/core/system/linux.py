@@ -49,7 +49,7 @@ def parse_meminfo():
     Parses /proc/meminfo and returns appropriate dictionary. Only available on
     Linux."""
     result = {}
-    for line in file('/proc/meminfo'):
+    for line in open('/proc/meminfo'):
         (key, value) = line.split(':')
         value = value[:-1]
         if value.endswith(' kB'):

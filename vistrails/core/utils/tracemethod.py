@@ -135,7 +135,7 @@ class TestTraceMethod(unittest.TestCase):
         (fd, name) = tempfile.mkstemp()
         os.close(fd)
         try:
-            _output_file = file(name, 'w')
+            _output_file = open(name, 'w')
 
             x = test_fun(10)
             self.assertEquals(x, 15)
@@ -143,7 +143,7 @@ class TestTraceMethod(unittest.TestCase):
             _output_file.close()
             _output_file = sys.stderr
 
-            output = "".join(file(name, 'r').readlines())
+            output = "".join(open(name, 'r').readlines())
             self.assertEquals(output,
                               'test_fun.enter\n' +
                               'test_fun.exit\n')
@@ -154,7 +154,7 @@ class TestTraceMethod(unittest.TestCase):
         global _output_file
         (fd, name) = tempfile.mkstemp()
         os.close(fd)
-        _output_file = file(name, 'w')
+        _output_file = open(name, 'w')
 
         x = test_fun_2(10)
         self.assertEquals(x, 18)
@@ -162,7 +162,7 @@ class TestTraceMethod(unittest.TestCase):
         _output_file.close()
         _output_file = sys.stderr
 
-        output = "".join(file(name, 'r').readlines())
+        output = "".join(open(name, 'r').readlines())
         self.assertEquals(output,
                           'test_fun_2.enter\n' +
                           'test_fun_2.1\n' +

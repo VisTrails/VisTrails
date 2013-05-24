@@ -37,7 +37,6 @@ from vistrails.core.requirements import MissingRequirement
 
 import sys
 import os.path
-import types
 import httplib
 import urllib
 import time
@@ -338,7 +337,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
     reg = vistrails.core.modules.module_registry.get_module_registry()
 
     def wrapResponseobj(self,resp,visobj):
-        if type(resp)==types.ListType:
+        if isinstance(resp, list):
             ptype = resp[0].typecode.type[1]
         else:
             if resp.typecode.type[1] == None:
@@ -370,7 +369,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 setattr(visobj,nameattrib,ans)
 
             except KeyError:
-                if type(resp) != types.ListType:
+                if not isinstance(resp, list):
                     namemethod = "get_element_" + namechild
                     try:
                         resp = getattr(resp, namemethod)()
@@ -379,7 +378,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                         sentence = "resp" + "." + namemethod
                         resp = eval(sentence)
 
-                if type(resp) == types.ListType:
+                if isinstance(resp, list):
                     objlist = []
                     for element in resp:
                         ptype = element.typecode.type[1]

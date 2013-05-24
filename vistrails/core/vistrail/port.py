@@ -98,7 +98,7 @@ class Port(DBPort):
         if 'signature' not in kwargs:
             kwargs['signature'] = ""
 
-	DBPort.__init__(self, *args, **kwargs)
+        DBPort.__init__(self, *args, **kwargs)
 
         self.set_defaults()
 

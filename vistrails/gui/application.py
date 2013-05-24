@@ -533,7 +533,7 @@ parameters from other instances")
             if self.local_server:
                 self.local_server.close()
         if system.systemType in ['Darwin']:
-			self.removeEventFilter(self)
+            self.removeEventFilter(self)
         VistrailsApplicationInterface.finishSession(self)
    
     def eventFilter(self, o, event):

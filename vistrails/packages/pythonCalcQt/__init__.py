@@ -48,4 +48,4 @@ version = '0.0.2'
 old_identifiers = ['edu.utah.sci.vistrails.pythoncalcqt']
 
 def package_dependencies():
-    return [org.vistrails.vistrails.pythoncalc']
+    return ['org.vistrails.vistrails.pythoncalc']

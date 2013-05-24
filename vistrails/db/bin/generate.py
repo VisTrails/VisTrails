@@ -237,8 +237,8 @@ def main(argv=None):
         options[optKeys[idx]] = False
 
     try:
-	(optlist, args) = getopt.getopt(sys.argv[1:], optStr)
-	for opt in optlist:
+        (optlist, args) = getopt.getopt(sys.argv[1:], optStr)
+        for opt in optlist:
             if opt[1] is not None and opt[1] != '':
                 options[opt[0][1:]] = opt[1]
             else:
@@ -250,7 +250,7 @@ def main(argv=None):
     if options['b']:
         baseDir = options['b']
     else:
-	baseDir = BASE_DIR
+        baseDir = BASE_DIR
     baseDirs = dirStructure(baseDir)
 
     if not options['v']:
@@ -296,11 +296,11 @@ def main(argv=None):
         print "using existing specs from version directory..."
 
     if options['p'] or options['a']:
-	# generate python domain objects
-	print "generating python domain objects..."
-	if objects is None:
-	    parser = AutoGenParser()
-	    objects = parser.parse(versionDirs['specs'])
+        # generate python domain objects
+        print "generating python domain objects..."
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
         run_template('templates/domain.py.mako', objects, version, versionName,
                      os.path.join(versionDirs['domain'], 'auto_gen.py'),
                      True)
@@ -309,18 +309,18 @@ def main(argv=None):
             domainFile = os.path.join(baseDirs['domain'], '__init__.py')
             f = open(domainFile, 'w')
             f.write(COPYRIGHT_NOTICE)
-            f.write('from db.versions.%s.domain import *\n' % \
+            f.write('from vistrails.db.versions.%s.domain import *\n' % \
                         versionName)
             f.close()
 
     if options['x'] or options['a']:
-	# generate xml schema and dao objects
-	print "generating xml schema and dao objects..."
-	if objects is None:
-	    parser = AutoGenParser()
-	    objects = parser.parse(versionDirs['specs'])
+        # generate xml schema and dao objects
+        print "generating xml schema and dao objects..."
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
         xml_objects = xml_gen_objects.convert(objects)
-	
+        
         run_template('templates/xml_schema.xsd.mako', 
                      xml_gen_objects.convert_schema_order(xml_objects, 
                                                           'vistrail'),
@@ -347,11 +347,11 @@ def main(argv=None):
                      True)
 
     if options['s'] or options['a']:
-	# generate sql schema and dao objects
-	print "generating sql schema and dao objects..."
-	if objects is None:
-	    parser = AutoGenParser()
-	    objects = parser.parse(versionDirs['specs'])
+        # generate sql schema and dao objects
+        print "generating sql schema and dao objects..."
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
         sql_objects = sql_gen_objects.convert(objects)
 
         run_template('templates/sql_schema.sql.mako', sql_objects, 
@@ -365,7 +365,7 @@ def main(argv=None):
                                   'vistrails_drop.sql'),
                      False)
         
-	run_template('templates/sql.py.mako', sql_objects,
+        run_template('templates/sql.py.mako', sql_objects,
                      version, versionName,
                      os.path.join(versionDirs['sqlPersistence'], 'auto_gen.py'),
                      True)
@@ -374,7 +374,7 @@ def main(argv=None):
         domainFile = os.path.join(baseDirs['persistence'], '__init__.py')
         f = open(domainFile, 'w')
         f.write(COPYRIGHT_NOTICE)
-        f.write('from db.versions.%s.persistence import *\n' % \
+        f.write('from vistrails.db.versions.%s.persistence import *\n' % \
                     versionName)
         f.close()
             

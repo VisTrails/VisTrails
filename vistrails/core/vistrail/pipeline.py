@@ -57,7 +57,6 @@ from vistrails.core.vistrail.plugin_data import PluginData
 from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
-from types import ListType
 import vistrails.core.vistrail.action
 from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
 
@@ -114,7 +113,7 @@ class Pipeline(DBWorkflow):
         """
         self.clear()
 
-	DBWorkflow.__init__(self, *args, **kwargs)
+        DBWorkflow.__init__(self, *args, **kwargs)
         if self.id is None:
             self.id = 0
         if self.name is None:
@@ -190,15 +189,15 @@ class Pipeline(DBWorkflow):
         if _workflow.__class__ == Pipeline:
             return
         # do clear plus get the modules and connections
-	_workflow.__class__ = Pipeline
-	for _module in _workflow.db_modules:
+        _workflow.__class__ = Pipeline
+        for _module in _workflow.db_modules:
             if _module.vtType == Module.vtType:
                 Module.convert(_module)
             elif _module.vtType == Abstraction.vtType:
                 Abstraction.convert(_module)
             elif _module.vtType == Group.vtType:
                 Group.convert(_module)
-	for _connection in _workflow.db_connections:
+        for _connection in _workflow.db_connections:
             Connection.convert(_connection)
         for _plugin_data in _workflow.db_plugin_datas:
             PluginData.convert(_plugin_data)
@@ -882,7 +881,7 @@ class Pipeline(DBWorkflow):
             result.add_module(copy.copy(self.modules[module_id]))
         for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
             result.add_connection(copy.copy(self.connections[conn_id]))
-		# I haven't finished this yet. -cscheid
+                # I haven't finished this yet. -cscheid
         raise Exception("Incomplete implementation!")
         return result
 

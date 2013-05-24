@@ -38,19 +38,19 @@ from time import strptime
 
 class XMLDAO:
     def __init__(self):
-	pass
+        pass
 
     def hasAttribute(self, node, attr):
         return node.hasAttribute(attr)
 
     def getAttribute(self, node, attr):
-	try:
+        try:
             attribute = node.attributes.get(attr)
             if attribute is not None:
                 return attribute.value
-	except KeyError:
-	    pass
-	return None
+        except KeyError:
+            pass
+        return None
 
     def convertFromStr(self, value, type):
         if value is not None:
@@ -76,11 +76,11 @@ class XMLDAO:
         return None
 
     def convertToStr(self, value, type):
-	if value is not None:
-	    if type == 'date':
-		return value.isoformat()
-	    elif type == 'datetime':
-		return value.strftime('%Y-%m-%d %H:%M:%S')
-	    else:
-		return str(value)
-	return ''
+        if value is not None:
+            if type == 'date':
+                return value.isoformat()
+            elif type == 'datetime':
+                return value.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                return str(value)
+        return ''

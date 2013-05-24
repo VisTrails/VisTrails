@@ -40,7 +40,7 @@ from id_scope import IdScope
 
 class DBAbstraction(_DBAbstraction):
     def __init__(self, *args, **kwargs):
-	_DBAbstraction.__init__(self, *args, **kwargs)
+        _DBAbstraction.__init__(self, *args, **kwargs)
         self.idScope = IdScope(remap={DBAbstractionRef.vtType: DBModule.vtType})
         self.idScope.setBeginId('action', 1)
 

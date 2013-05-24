@@ -161,7 +161,7 @@ def testHook():
 #     slots = {}
 #     sig_count = 1
 #     slot_count = 1
-#     f = file('/tmp/connections.txt', 'w')
+#     f = open('/tmp/connections.txt', 'w')
 #     f.write('digraph {\n')
 #     for (k, v) in connections.iteritems():
 #         print k, v
@@ -180,13 +180,13 @@ def testHook():
 #         for rec, sigslotlist in recs.iteritems():
 #             f.write('%s -> %s [label = "%s"];\n' % (k, rec, ";".join(sigslotlist)))
 # #     if not entry in connections:
-# #         f = file('/tmp/connections.txt', 'a')
+# #         f = open('/tmp/connections.txt', 'a')
 # #         f.write("%s %s %s\n" % emi)
 # #         f.close()
 # #     connections.add(entry)
 #     f.write('}\n')
 #     f.close()
-#     f = file('/tmp/signalslotnames.txt', 'w')
+#     f = open('/tmp/signalslotnames.txt', 'w')
 #     sigs = [(v, k) for (k, v) in signals.items()]
 #     sigs.sort()
 #     sls = [(v, k) for (k, v) in slots.items()]
