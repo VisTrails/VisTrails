@@ -243,9 +243,13 @@ class Package(DBPackage):
 
     ##########################################################################
     # Methods
-    
-    def import_override(self, orig_import, name,
-                        globals=None, locals=None, fromlist=None, level=-1):
+
+    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/',
+                                   re.IGNORECASE)
+    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/',
+                                   re.IGNORECASE)
+    def import_override(self, orig_import,
+                        name, globals, locals, fromlist, level):
         def in_package_list(pkg_name, pkg_list):
             if pkg_list is None:
                 return False
@@ -263,17 +267,15 @@ class Package(DBPackage):
                 return True
             if os.sep != '/':
                 pkg_fname = pkg_fname.replace(os.sep, '/')
-            return (re.search(r'python[0-9.]+[a-z]?/lib/', 
-                              pkg_fname, re.IGNORECASE) or
-                    re.search(r'lib/python[0-9.]+[a-z]?/', 
-                              pkg_fname, re.IGNORECASE))
+            return (self._python_lib_regex.search(pkg_fname) or
+                    self._lib_python_regex.search(pkg_fname))
 
         def checked_add_package(qual_name, pkg):
-            if qual_name not in sys.modules and \
-                not in_package_list(qual_name, self._force_no_unload) and \
-                (not self._force_sys_unload or not is_sys_pkg(pkg)
-                 or in_package_list(qual_name, self._force_unload)) and \
-                 not qual_name.endswith('_rc'):
+            if (qual_name not in sys.modules and
+                    not in_package_list(qual_name, self._force_no_unload) and
+                    (not self._force_sys_unload or not is_sys_pkg(pkg)
+                     or in_package_list(qual_name, self._force_unload)) and
+                     not qual_name.endswith('_rc')):
                 self.py_dependencies.add(qual_name)
 
         try:
@@ -311,7 +313,7 @@ class Package(DBPackage):
             for from_name in fromlist:
                 qual_name = res_name + '.' + from_name
                 checked_add_package(qual_name, mod)
-                    
+
         return res
 
     def get_py_deps(self):

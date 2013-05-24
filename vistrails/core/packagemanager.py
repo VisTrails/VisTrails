@@ -37,6 +37,7 @@
 with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
 import copy
+import inspect
 import os
 import sys
 
@@ -182,6 +183,29 @@ class PackageManager(object):
             self._abstraction_pkg.name = 'My SubWorkflows'
             self._abstraction_pkg.version = '1.6'
             self._registry.add_package(self._abstraction_pkg)
+
+        # Setup a global __import__ hook that calls Package#import_override()
+        # for all imports executed from that package
+        import __builtin__
+        self._orig_import = __builtin__.__import__
+        __builtin__.__import__ = self._import_override
+
+    def _import_override(self,
+                         name, globals={}, locals={}, fromlist=[], level=-1):
+        # Get the caller module, using globals (like the original __import
+        # does)
+        try:
+            module = globals['__name__']
+        except KeyError:
+            # Another method of getting the caller module, using the stack
+            caller = inspect.currentframe().f_back
+            module = inspect.getmodule(caller).__name__
+        for pkg in self._package_list.itervalues():
+            if pkg.prefix and module.startswith(pkg.prefix + pkg.codepath):
+                return pkg.import_override(
+                        self._orig_import,
+                        name, globals, locals, fromlist, level)
+        return self._orig_import(name, globals, locals, fromlist, level)
 
     def finalize_packages(self):
         """Finalizes all installed packages. Call this only prior to
