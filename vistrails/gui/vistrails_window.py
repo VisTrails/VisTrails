@@ -849,6 +849,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.stack = QtGui.QStackedWidget()
         self.vistrail_to_widget = {}
         self.setCentralWidget(self.stack)        
+        self.auto_view = True
 
         self._previous_vt_view = None
         self._focus_owner = None
@@ -1529,7 +1530,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.remove_view(view)
                 if view == self._first_view:
                     self._first_view = None
-                elif not self.stack.count() and not self._is_quitting:
+                elif not self.stack.count() and not self._is_quitting and \
+                     self.auto_view:
                     self.create_first_vistrail()
                 view = self.get_current_view()
                 self.change_view(view)
