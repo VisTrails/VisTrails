@@ -144,7 +144,9 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
             try:
                 (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
                 controller = GUIVistrailController(v, locator, abstractions, 
-                                                   thumbnails, mashups)
+                                                   thumbnails, mashups,
+                                                   auto_save=False)
+                version = None
                 if type(workflow) == type("str"):
                     version = v.get_version_number(workflow)
                 elif type(workflow) in [ type(1), long]:
@@ -154,7 +156,6 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                 else:
                     msg = "Invalid version tag or number: %s" % workflow
                     raise VistrailsInternalError(msg)
-                controller.change_selected_version(version)
             
                 if (workflow_info is not None and 
                     controller.current_pipeline is not None):
