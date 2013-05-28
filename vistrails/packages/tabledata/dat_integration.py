@@ -1,3 +1,5 @@
+import datetime
+import numpy
 import sys
 
 from PyQt4 import QtCore, QtGui
@@ -6,8 +8,11 @@ from vistrails.core.modules.basic_modules import Boolean, File, Float, \
     Integer, List, String
 
 from dat.packages import Variable, FileVariableLoader, VariableOperation, \
-    OperationArgument, translate, derive_varname
+    OperationArgument, OperationWizard, translate, derive_varname, \
+    get_variable_value
 
+from convert.convert_dates import TimestampsToDates, StringsToDates, \
+    DatesToMatplotlib, TimestampsToMatplotlib, StringsToMatplotlib
 from read.read_csv import CSVFile, ExtractColumn
 from read.read_numpy import NumPyArray
 
@@ -308,6 +313,177 @@ _variable_loaders = {
 # Defines variable operations
 #
 
+class DateConversionWizard(OperationWizard):
+    TIMESTAMP = 0
+    MATPLOTLIB = 1
+    DATESTRING = 2
+    DATETIME = 3
+
+    item_string = [
+            _("UNIX timestamps"),
+            _("Matplotlib format (days)"),
+            _("Date as a string"),
+            _("Datetime object"),
+        ]
+
+    output_formats = [
+            [DATETIME, MATPLOTLIB],
+            [],
+            [DATETIME, MATPLOTLIB],
+            [MATPLOTLIB],
+        ]
+
+    def __init__(self, parent):
+        self._sample = None
+        OperationWizard.__init__(self, parent,
+                                 variables=OperationWizard.VAR_SELECT)
+
+    def create_ui(self):
+        layout = QtGui.QVBoxLayout()
+        grid = QtGui.QGridLayout()
+
+        grid.addWidget(QtGui.QLabel(_("Input format")), 0, 0)
+        self._input_format = QtGui.QComboBox()
+        self.connect(
+                self._input_format,
+                QtCore.SIGNAL('currentIndexChanged(int)'),
+                self._input_fmt_changed)
+        grid.addWidget(self._input_format, 1, 0)
+        self._input_sample = QtGui.QTableWidget(0, 1)
+        self._input_sample.setEnabled(False)
+        self._input_sample.horizontalHeader().hide()
+        grid.addWidget(self._input_sample, 2, 0)
+
+        grid.addWidget(QtGui.QLabel(_("Output format")), 0, 1)
+        self._output_format = QtGui.QComboBox()
+        self.connect(
+                self._output_format,
+                QtCore.SIGNAL('currentIndexChanged(int)'),
+                self._output_fmt_changed)
+        grid.addWidget(self._output_format, 1, 1)
+        self._output_sample = QtGui.QTableWidget(0, 1)
+        self._output_sample.setEnabled(False)
+        self._output_sample.horizontalHeader().hide()
+        grid.addWidget(self._output_sample, 2, 1)
+
+        layout.addLayout(grid)
+
+        params = QtGui.QFormLayout()
+        self._format = QtGui.QLineEdit()
+        self._format.setPlaceholderText('%Y-%m-%d %H:%M:%S')
+        params.addRow(_("Date format:"), self._format)
+        self._timezone = QtGui.QLineEdit()
+        self._timezone.setPlaceholderText('UTC')
+        params.addRow(_("Timezone:"), self._timezone)
+
+        layout.addLayout(params)
+
+        return layout
+
+    def _input_fmt_changed(self, idx):
+        fmt, success = self._input_format.itemData(idx).toInt()
+
+        self._output_format.clear()
+        for i, ofmt in enumerate(self.output_formats[fmt]):
+            self._output_format.addItem(self.item_string[ofmt], ofmt)
+        self._output_fmt_changed(self._output_format.currentIndex())
+
+    def _output_fmt_changed(self, idx):
+        self._output_sample.clear()
+        if idx == -1 or self._sample is None:
+            return
+
+        ifmt, success = self._input_format.itemData(
+                self._input_format.currentIndex()).toInt()
+        ofmt, success = self._output_format.itemData(idx).toInt()
+
+        if ifmt == self.TIMESTAMP and ofmt == self.DATETIME:
+            output = TimestampsToDates.convert(self._sample)
+        elif ifmt == self.TIMESTAMP and ofmt == self.MATPLOTLIB:
+            output = TimestampsToMatplotlib.convert(self._sample)
+        elif ifmt == self.DATESTRING and ofmt == self.DATETIME:
+            output = StringsToDates.convert(
+                    self._sample,
+                    unicode(self._format.text()),
+                    unicode(self._timezone.text()))
+        elif ifmt == self.DATESTRING and ofmt == self.MATPLOTLIB:
+            output = StringsToMatplotlib.convert(
+                    self._sample,
+                    unicode(self._format.text()),
+                    unicode(self._timezone.text()))
+        elif ifmt == self.DATETIME and ofmt == self.MATPLOTLIB:
+            output = DatesToMatplotlib.convert(self._sample)
+        else:
+            assert False
+
+        self._output_sample.setRowCount(len(output))
+        for row, v in enumerate(output):
+            item = QtGui.QTableWidgetItem(unicode(v))
+            self._output_sample.setItem(row, 0, item)
+
+    def make_operation(self, target_var_name):
+        return '4 * 4' # TODO
+
+    def variable_filter(self, variable):
+        # Only show List variables on the right
+        return variable.type.module is List
+
+    def set_input_formats(self, *args, **kwargs):
+        # Keyword-only
+        default = kwargs.pop('default', None)
+        if kwargs:
+            raise TypeError("Unexpected keyword ar")
+
+        self._input_format.setEnabled(True)
+        self._input_format.clear()
+        default_index = -1
+        for i, fmt in enumerate(args):
+            self._input_format.addItem(self.item_string[fmt], fmt)
+            if default == fmt:
+                default_index = i
+        if default_index != -1:
+            self._input_format.setCurrentIndex(default_index)
+
+    def set_error(self, message):
+        self._input_format.clear()
+        self._input_format.setEnabled(False)
+        super(DateConversionWizard, self).set_error(message)
+
+    def variable_selected(self, variable):
+        try:
+            value = get_variable_value(variable)
+        except ValueError, e:
+            self.set_error(_("Error while getting the variable's value:\n"
+                              "%s" % e.message))
+            return
+
+        if not isinstance(value, (numpy.ndarray, list)):
+            self.set_error(_("Input variable did not return a list"))
+            return
+
+        cols = min(len(value), 5)
+        self._sample = value[:cols]
+
+        self._input_sample.clear()
+        self._input_sample.setRowCount(cols)
+        for row, v in enumerate(self._sample):
+            item = QtGui.QTableWidgetItem(unicode(v))
+            self._input_sample.setItem(row, 0, item)
+
+        if isinstance(value, numpy.ndarray):
+            self.set_input_formats(self.TIMESTAMP, self.MATPLOTLIB,
+                                   default=self.TIMESTAMP)
+        else: # isinstance(value, list)
+            if not value:
+                self.set_error(_("This variable is an empty list"))
+                return
+            first_item = value[0]
+            if isinstance(first_item, basestring):
+                self.set_input_formats(self.TIMESTAMP)
+            elif isinstance(first_item, datetime.datetime):
+                self.set_input_formats(self.DATETIME)
+
+
 _variable_operations = [
     VariableOperation(
         '*',
@@ -318,4 +494,8 @@ _variable_operations = [
         ],
         return_type=List,
         symmetric=True),
+    VariableOperation(
+        'convert_dates',
+        return_type=List,
+        wizard=DateConversionWizard)
 ]
