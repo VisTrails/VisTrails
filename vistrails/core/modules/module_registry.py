@@ -1734,12 +1734,50 @@ class ModuleRegistry(DBRegistry):
             return False
         return self.are_specs_matched(sub, super)
 
+    def get_converter(self, sub_descs, super_descs):
+        key = (tuple(sub_descs), tuple(super_descs))
+
+        # Get the result from the cache
+        try:
+            return self._conversions[key]
+        except KeyError:
+            pass
+
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        # Compute the result
+        for converter in self._converters:
+            if converter.module is (
+                    vistrails.core.modules.vistrails_module.Converter):
+                continue
+
+            in_port = converter.get_port_spec('in_value', 'input')
+            if not check_types(sub_descs, in_port.descriptors()):
+                continue
+            out_port = converter.get_port_spec('out_value', 'output')
+            if not check_types(out_port.descriptors(), super_descs):
+                continue
+
+            self._conversions[key] = converter
+            return converter
+
+        # Store in the cache that there was no result
+        self._conversions[key] = None
+        return None
+
     def are_specs_matched(self, sub, super, allow_conversion=False):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
         """
-        variantType = vistrails.core.modules.basic_modules.Variant
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         # sometimes sub is coming None
@@ -1773,32 +1811,9 @@ class ModuleRegistry(DBRegistry):
             return True
 
         if allow_conversion:
-            key = (tuple(sub_descs), tuple(super_descs))
-            # Get the result from the cache
-            try:
-                converter = self._conversions[key]
-                return converter is not None
-            except KeyError:
-                pass
-
-            # Compute the result
-            for converter in self._converters:
-                if converter.module is (
-                        vistrails.core.modules.vistrails_module.Converter):
-                    continue
-
-                in_port = converter.get_port_spec('in_value', 'input')
-                if not check_types(sub_descs, in_port.descriptors()):
-                    continue
-                out_port = converter.get_port_spec('out_value', 'output')
-                if not check_types(out_port.descriptors(), super_descs):
-                    continue
-
-                self._conversions[key] = converter
+            converter = self.get_converter(sub_descs, super_descs)
+            if converter is not None:
                 return True
-
-            # Store in the cache that there was no result
-            self._conversions[key] = None
 
         return False
 

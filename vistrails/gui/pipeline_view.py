@@ -334,7 +334,6 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         """
         if self.tmp_connection_item:
             if self.tmp_connection_item.snapPortItem is not None:
-                # TODO-convert : automatically add Convert module
                 self.scene().addConnectionFromTmp(self.tmp_connection_item,
                                                   self.parentItem().module,
                                                   self.port.type == "output")
@@ -2378,12 +2377,21 @@ class QPipelineScene(QInteractiveGraphicsScene):
         else:
             src_module_id = src_port_item.parentItem().id
             dst_module_id = module.id
-        
-        conn = self.controller.add_connection(src_module_id,
-                                              src_port_item.port,
-                                              dst_module_id,
-                                              dst_port_item.port)
-        self.addConnection(conn)
+
+        reg = get_module_registry()
+
+        if reg.ports_can_connect(src_port_item.port, dst_port_item.port):
+            # Direct connection
+            conn = self.controller.add_connection(src_module_id,
+                                                  src_port_item.port,
+                                                  dst_module_id,
+                                                  dst_port_item.port)
+            self.addConnection(conn)
+        else:
+            # Add a converter module
+            converter = reg.get_converter(src_port_item.port.descriptors(),
+                                          dst_port_item.port.descriptors())
+            # TODO-convert : add the converter module to the pipeline
 
     def addConnectionFromTmp(self, tmp_connection_item, module, start_is_src):
         self.createConnectionFromTmp(tmp_connection_item, module, start_is_src)
