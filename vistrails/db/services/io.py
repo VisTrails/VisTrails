@@ -1042,7 +1042,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     for id, name in tagMap.iteritems():
         if id not in workflowIds:
             #print "creating workflow", vistrail.db_id, id, name,
-            workflow = vistrail.getPipeline(id)
+            workflow = vistrails.db.services.vistrail.materializeWorkflow(vistrail, id)
             workflow.db_id = None
             workflow.db_vistrail_id = vistrail.db_id
             workflow.db_parent_id = id
