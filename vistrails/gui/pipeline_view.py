@@ -48,6 +48,7 @@ QPipelineView
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
+from vistrails.core.db.action import create_action
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
@@ -2391,7 +2392,34 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # Add a converter module
             converter = reg.get_converter(src_port_item.port.descriptors(),
                                           dst_port_item.port.descriptors())
-            # TODO-convert : add the converter module to the pipeline
+
+            src_pos = src_port_item.getPosition()
+            dst_pos = dst_port_item.getPosition()
+            mod_x = (src_pos.x() + dst_pos.x())/2.0
+            mod_y = (src_pos.y() + dst_pos.y())/2.0
+            mod = self.controller.create_module_from_descriptor(
+                    converter,
+                    x=mod_x,
+                    y=-mod_y)
+            conn1 = self.controller.create_connection(
+                    self.controller.current_pipeline.modules[src_module_id],
+                    src_port_item.port,
+                    mod,
+                    'in_value')
+            conn2 = self.controller.create_connection(
+                    mod, 'out_value',
+                    self.controller.current_pipeline.modules[dst_module_id],
+                    dst_port_item.port)
+            operations = [('add', mod), ('add', conn1), ('add', conn2)]
+
+            action = create_action(operations)
+            self.controller.add_new_action(action)
+            self.controller.perform_action(action)
+
+            graphics_mod = self.addModule(mod)
+            graphics_mod.update()
+            self.addConnection(conn1)
+            self.addConnection(conn2)
 
     def addConnectionFromTmp(self, tmp_connection_item, module, start_is_src):
         self.createConnectionFromTmp(tmp_connection_item, module, start_is_src)
