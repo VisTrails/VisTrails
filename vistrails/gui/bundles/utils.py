@@ -49,7 +49,11 @@ def guess_graphical_sudo():
       sudo is the command to be used to gain root privileges
       escape is True if the rest of the line needs to be escaped
     """
-    if vistrails.core.system.executable_is_in_path('kdesu'):
+    # sudo needs -E so that the Xauthority file is found and root can connect
+    # to the user's X server
+    if vistrails.core.system.executable_is_in_path('kdesudo'):
+        return 'kdesudo', True
+    elif vistrails.core.system.executable_is_in_path('kdesu'):
         return 'kdesu -c', True
     elif vistrails.core.system.executable_is_in_path('gksu'):
         return 'gksu', False
@@ -59,17 +63,17 @@ def guess_graphical_sudo():
         # if user has not recently entered it
         return ('((echo "" | sudo -v -S -p "") || ' +
                 '(zenity --entry --title "sudo password prompt" --text "Please enter your password '
-                'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -S -p ""',
+                'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -E -S -p ""',
                 False)
     else:
         debug.warning("Could not find a graphical sudo-like command.")
 
         if vistrails.core.system.get_executable_path('sudo'):
             debug.warning("Will use regular sudo")
-            return "sudo", False
+            return "sudo -E", False
         else:
             debug.warning("Will use regular su")
-            return "su -c", True
+            return "su --preserve-environment -c", True
 
 ##############################################################################
 
