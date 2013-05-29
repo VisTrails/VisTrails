@@ -38,7 +38,7 @@ import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
-     NotCacheable, ModuleError
+     Converter, NotCacheable, ModuleError
 from vistrails.core.system import vistrails_version
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -1067,6 +1067,10 @@ def initialize(*args, **kwargs):
     # !!! is_root should only be set for Module !!!
     reg.add_module(Module, is_root=True)
     reg.add_output_port(Module, "self", Module, optional=True)
+
+    reg.add_module(Converter, abstract=True)
+    reg.add_input_port(Converter, 'in_value', Module)
+    reg.add_output_port(Converter, 'out_value', Module)
 
     reg.add_module(Constant)
 
