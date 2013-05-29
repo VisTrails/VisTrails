@@ -121,10 +121,14 @@ class TimestampsToDates(Module):
     _output_ports = [
             ('dates', '(org.vistrails.vistrails.basic:List)')]
 
+    @staticmethod
+    def convert(timestamps):
+        return [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
+
     def compute(self):
         timestamps = self.getInputFromPort('timestamps')
 
-        result = [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
+        result = self.convert(timestamps)
         self.setResult('dates', result)
 
 
@@ -158,7 +162,15 @@ class StringsToDates(Module):
             ('dates', '(org.vistrails.vistrails.basic:List)')]
 
     @staticmethod
-    def convert_to_dates(strings, fmt, tz):
+    def convert(strings, fmt, tz):
+        if tz:
+            try:
+                tz = make_timezone(tz)
+            except ValueError, e:
+                raise ModuleError(self, e.message)
+        else:
+            tz = None
+
         if not fmt:
             try:
                 py_import('dateutil', {
@@ -181,21 +193,69 @@ class StringsToDates(Module):
 
     def compute(self):
         tz = self.getInputFromPort('timezone')
-        if tz:
-            try:
-                tz = make_timezone(tz)
-            except ValueError, e:
-                raise ModuleError(self, e.message)
-        else:
-            tz = None
 
         strings = self.getInputFromPort('strings')
         fmt = self.getInputFromPort('format')
 
         try:
-            result = self.convert_to_dates(strings, fmt, tz)
+            result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
+        self.setResult('dates', result)
+
+
+class DatesToMatplotlib(Module):
+    """
+    Converts a List of Python's datetime objects to an array for matplotlib.
+    """
+    _input_ports = [('datetimes', '(org.vistrails.vistrails.basic:List)')]
+    _output_ports = [('dates', '(org.vistrails.vistrails.basic:List)')]
+
+    @staticmethod
+    def convert(datetimes):
+        from matplotlib.dates import date2num
+        return date2num(datetimes)
+
+    def compute(self):
+        try:
+            py_import('matplotlib', {
+                    'linux-debian': 'python-matplotlib',
+                    'linux-ubuntu': 'python-matplotlib',
+                    'linux-fedora': 'python-matplotlib'})
+        except ImportError:
+            raise ModuleError(self, "matplotlib is not available")
+
+        datetimes = self.getInputFromPort('datetimes')
+        result = self.convert(datetimes)
+        self.setResult('dates', result)
+
+
+class TimestampsToMatplotlib(Module):
+    """
+    Converts a List or numpy array of timestamps into an array for matplotlib.
+    """
+    _input_ports = [
+            ('timestamps', '(org.vistrails.vistrails.basic:List)')]
+    _output_ports = [
+            ('dates', '(org.vistrails.vistrails.basic:List)')]
+
+    @staticmethod
+    def convert(timestamps):
+        from matplotlib.dates import date2num
+        result = TimestampsToDates.convert(timestamps)
+        return date2num(result)
+
+    def compute(self):
+        try:
+            py_import('matplotlib', {
+                    'linux-debian': 'python-matplotlib',
+                    'linux-ubuntu': 'python-matplotlib',
+                    'linux-fedora': 'python-matplotlib'})
+        except ImportError:
+            raise ModuleError(self, "matplotlib is not available")
+
+        timestamps = self.getInputFromPort('timestamps')
+        result = self.convert(timestamps)
         self.setResult('dates', result)
 
 
@@ -212,6 +272,12 @@ class StringsToMatplotlib(Module):
     _output_ports = [
             ('dates', '(org.vistrails.vistrails.basic:List)')]
 
+    @staticmethod
+    def convert(strings, fmt, tz):
+        from matplotlib.dates import date2num
+        datetimes = StringsToDates.convert(strings, fmt, tz)
+        return date2num(datetimes)
+
     def compute(self):
         try:
             py_import('matplotlib', {
@@ -220,30 +286,22 @@ class StringsToMatplotlib(Module):
                     'linux-fedora': 'python-matplotlib'})
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
-        else:
-            from matplotlib.dates import date2num
 
         tz = self.getInputFromPort('timezone')
-        if tz:
-            try:
-                tz = make_timezone(tz)
-            except ValueError, e:
-                raise ModuleError(self, e.message)
-        else:
-            tz = None
 
         strings = self.getInputFromPort('strings')
         fmt = self.getInputFromPort('format')
 
         try:
-            result = StringsToDates.convert_to_dates(strings, fmt, tz)
+            result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
-        result = date2num(result)
         self.setResult('dates', result)
 
 
-_modules = {'dates': [TimestampsToDates, StringsToDates, StringsToMatplotlib]}
+_modules = {'dates': [
+        TimestampsToDates, StringsToDates,
+        DatesToMatplotlib, TimestampsToMatplotlib, StringsToMatplotlib]}
 
 
 ###############################################################################
@@ -387,6 +445,75 @@ class TestStringsToDates(unittest.TestCase):
                 ['2013-01-20 09:25:00 EST -0500',
                  '2013-01-20 09:31:00 EST -0500',
                  '2013-06-02 19:05:00 EDT -0400']) # FIXME: fails for some reason!
+
+
+class TestDatesToMatplotlib(unittest.TestCase):
+    def test_simple(self):
+        """Test converting datetime objects into matplotlib's format.
+
+        This uses a PythonSource module to emit the datetime objects.
+        """
+        try:
+            import matplotlib
+        except ImportError:
+            self.skipTest("matplotlib is not available")
+
+        from matplotlib.dates import date2num
+
+        import urllib2
+        source = (""
+        "import datetime\n"
+        "from vistrails.packages.tabledata.convert.convert_dates import \\\n"
+        "    make_timezone\n"
+        "datetimes = [\n"
+        "        datetime.datetime(2013, 5, 29, 11, 18, 33),\n"
+        "        datetime.datetime(2013, 5, 29, 8, 11, 47,\n"
+        "                          tzinfo=make_timezone('-0700'))]\n")
+        source = urllib2.quote(source)
+
+        with intercept_result(DatesToMatplotlib, 'dates') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', source)]),
+                    ]),
+                    ('convert|dates|DatesToMatplotlib', identifier, []),
+                ],
+                [
+                    (0, 'datetimes', 1, 'datetimes')
+                ],
+                add_port_specs=[
+                    (0, 'output', 'datetimes',
+                     'org.vistrails.vistrails.basic:List'),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        self.assertEqual(list(results), list(date2num([
+                datetime.datetime(2013, 5, 29, 11, 18, 33),
+                datetime.datetime(2013, 5, 29, 15, 11, 47)])))
+
+
+class TestTimestampsToMatplotlib(unittest.TestCase):
+    def test_simple(self):
+        """Test converting timestamps into matplotlib's format.
+        """
+        try:
+            import matplotlib
+        except ImportError:
+            self.skipTest("matplotlib is not available")
+
+        from matplotlib.dates import date2num
+
+        with intercept_result(TimestampsToMatplotlib, 'dates') as results:
+            self.assertFalse(execute([
+                    ('convert|dates|TimestampsToMatplotlib', identifier, [
+                        ('timestamps', [('List', '[1324842375, 1369842877]')]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        results = results[0]
+        self.assertEqual(list(results), list(date2num([
+                datetime.datetime.utcfromtimestamp(1324842375),
+                datetime.datetime.utcfromtimestamp(1369842877)])))
 
 
 class TestStringsToMatplotlib(unittest.TestCase):
