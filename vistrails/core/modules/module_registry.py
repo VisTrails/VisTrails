@@ -501,7 +501,8 @@ class ModuleRegistry(DBRegistry):
             kwargs['root_descriptor_id'] = -1
         DBRegistry.__init__(self, *args, **kwargs)
 
-        self._conversions = None
+        self._conversions = dict()
+        self._converters = set()
 
         self.set_defaults()
 
@@ -969,7 +970,8 @@ class ModuleRegistry(DBRegistry):
         # invalidate the map of converters
         if issubclass(module,
                 vistrails.core.modules.vistrails_module.Converter):
-            self._conversions = None
+            self._conversions = dict()
+            self._converters.add(descriptor)
 
         if module is not None:
             self._module_key_map[module] = (identifier, name, namespace,
@@ -1578,7 +1580,8 @@ class ModuleRegistry(DBRegistry):
         converter_desc = self.get_descriptor(
                 vistrails.core.modules.vistrails_module.Converter)
         if self.is_descriptor_subclass(descriptor, converter_desc):
-            self._conversions = None
+            self._conversions = dict()
+            self._converters.remove(descriptor)
 
         self.signals.emit_deleted_module(descriptor)
         if self.is_abstraction(descriptor):
@@ -1769,8 +1772,33 @@ class ModuleRegistry(DBRegistry):
         if check_types(sub_descs, super_descs):
             return True
 
-        # TODO-convert : use descriptors here, and cache in _conversions
-        # connection: sub_desc -> super_desc
+        if allow_conversion:
+            key = (tuple(sub_descs), tuple(super_descs))
+            # Get the result from the cache
+            try:
+                converter = self._conversions[key]
+                return converter is not None
+            except KeyError:
+                pass
+
+            # Compute the result
+            for converter in self._converters:
+                if converter.module is (
+                        vistrails.core.modules.vistrails_module.Converter):
+                    continue
+
+                in_port = converter.get_port_spec('in_value', 'input')
+                if not check_types(sub_descs, in_port.descriptors()):
+                    continue
+                out_port = converter.get_port_spec('out_value', 'output')
+                if not check_types(out_port.descriptors(), super_descs):
+                    continue
+
+                self._conversions[key] = converter
+                return True
+
+            # Store in the cache that there was no result
+            self._conversions[key] = None
 
         return False
 
