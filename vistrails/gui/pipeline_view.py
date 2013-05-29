@@ -334,6 +334,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         """
         if self.tmp_connection_item:
             if self.tmp_connection_item.snapPortItem is not None:
+                # TODO-convert : automatically add Convert module
                 self.scene().addConnectionFromTmp(self.tmp_connection_item,
                                                   self.parentItem().module,
                                                   self.port.type == "output")
@@ -362,13 +363,15 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                 if self.port.type == 'output':
                     portMatch = self.scene().findPortMatch(
                         [self], snapModule.inputPorts.values(),
-                        fixed_out_pos=event.scenePos())
+                        fixed_out_pos=event.scenePos(),
+                        allow_conversion=True)
                     if portMatch[1] is not None:
                         snapPort = portMatch[1]
                 elif self.port.type == 'input':
                     portMatch = self.scene().findPortMatch(
                         snapModule.outputPorts.values(), [self],
-                        fixed_in_pos=event.scenePos())
+                        fixed_in_pos=event.scenePos(),
+                        allow_conversion=True)
                     if portMatch[0] is not None:
                         snapPort = portMatch[0]
             self.tmp_connection_item.setSnapPort(snapPort)
@@ -2188,7 +2191,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         return near_ports
 
     def findPortMatch(self, output_ports, input_ports, x_trans=0, 
-                      fixed_out_pos=None, fixed_in_pos=None):
+                      fixed_out_pos=None, fixed_in_pos=None,
+                      allow_conversion=False):
         """findPortMatch(output_ports:  list(QAbstractGraphicsPortItem),
                          input_ports:   list(QAbstractGraphicsPortItem),
                          x_trans:       int,
@@ -2207,7 +2211,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         min_dis = None
         for o_item in output_ports:
             for i_item in input_ports:
-                if reg.ports_can_connect(o_item.port, i_item.port):
+                if reg.ports_can_connect(o_item.port, i_item.port,
+                                         allow_conversion=allow_conversion):
                     if fixed_out_pos is not None:
                         out_pos = fixed_out_pos
                     else:

@@ -501,6 +501,8 @@ class ModuleRegistry(DBRegistry):
             kwargs['root_descriptor_id'] = -1
         DBRegistry.__init__(self, *args, **kwargs)
 
+        self._conversions = None
+
         self.set_defaults()
 
     def __copy__(self):
@@ -963,6 +965,11 @@ class ModuleRegistry(DBRegistry):
                                       version=version
                                       )
         self.add_descriptor(descriptor, package)
+
+        # invalidate the map of converters
+        if issubclass(module,
+                vistrails.core.modules.vistrails_module.Converter):
+            self._conversions = None
 
         if module is not None:
             self._module_key_map[module] = (identifier, name, namespace,
@@ -1566,6 +1573,13 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor_by_name(identifier, module_name, 
                                                  namespace)
         assert len(descriptor.children) == 0
+
+        # invalidate the map of converters
+        converter_desc = self.get_descriptor(
+                vistrails.core.modules.vistrails_module.Converter)
+        if self.is_descriptor_subclass(descriptor, converter_desc):
+            self._conversions = None
+
         self.signals.emit_deleted_module(descriptor)
         if self.is_abstraction(descriptor):
             self.signals.emit_deleted_abstraction(descriptor)
@@ -1695,13 +1709,15 @@ class ModuleRegistry(DBRegistry):
             return True
         return self.are_specs_matched(port, port_spec)
 
-    def ports_can_connect(self, sourceModulePort, destinationModulePort):
+    def ports_can_connect(self, sourceModulePort, destinationModulePort,
+                          allow_conversion=False):
         """ports_can_connect(sourceModulePort,destinationModulePort) ->
         Boolean returns true if there could exist a connection
         connecting these two ports."""
         if sourceModulePort.type == destinationModulePort.type:
             return False
-        return self.are_specs_matched(sourceModulePort, destinationModulePort)
+        return self.are_specs_matched(sourceModulePort, destinationModulePort,
+                                      allow_conversion=allow_conversion)
 
     def is_port_sub_type(self, sub, super):
         """ is_port_sub_type(sub: Port, super: Port) -> bool        
@@ -1715,7 +1731,7 @@ class ModuleRegistry(DBRegistry):
             return False
         return self.are_specs_matched(sub, super)
 
-    def are_specs_matched(self, sub, super):
+    def are_specs_matched(self, sub, super, allow_conversion=False):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
@@ -1741,13 +1757,22 @@ class ModuleRegistry(DBRegistry):
             return True
         if len(sub_descs) != len(super_descs):
             return False
-        
-        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-            if (sub_desc == variant_desc or super_desc == variant_desc):
-                continue
-            if not self.is_descriptor_subclass(sub_desc, super_desc):
-                return False
-        return True
+
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        if check_types(sub_descs, super_descs):
+            return True
+
+        # TODO-convert : use descriptors here, and cache in _conversions
+        # connection: sub_desc -> super_desc
+
+        return False
 
     def get_module_hierarchy(self, descriptor):
         """get_module_hierarchy(descriptor) -> [klass].
