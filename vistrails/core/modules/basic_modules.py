@@ -1045,6 +1045,20 @@ class Unzip(Module):
         self.setResult("file", output)
 
 ##############################################################################
+
+class Round(Converter):
+    """Turns a Float into an Integer.
+    """
+    def compute(self):
+        fl = self.getInputFromPort('in_value')
+        floor = self.getInputFromPort('floor')
+        if floor:
+            integ = int(fl)         # just strip the decimals
+        else:
+            integ = int(fl + 0.5)   # nearest
+        self.setResult('out_value', integ)
+
+##############################################################################
     
 class Variant(Module):
     """
@@ -1173,6 +1187,12 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Unzip, 'file', File)
 
     reg.add_module(Variant)
+
+    reg.add_module(Round)
+    reg.add_input_port(Round, 'in_value', Float)
+    reg.add_output_port(Round, 'out_value', Integer)
+    reg.add_input_port(Round, 'floor', Boolean, optional=True,
+                       defaults="(True,)")
 
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
@@ -1389,3 +1409,28 @@ class TestPythonSource(unittest.TestCase):
                      'org.vistrails.vistrails.basic:String'),
                 ]))
         self.assertEqual(results[-1], "nb is 42")
+
+
+class TestNumericConversions(unittest.TestCase):
+    def test_full(self):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(Round, 'out_value') as results:
+            self.assertFalse(execute([
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '5')])
+                    ]),
+                    ('Float', 'org.vistrails.vistrails.basic', []),
+                    ('PythonCalc', 'org.vistrails.vistrails.pythoncalc', [
+                        ('value2', [('Float', '2.7')]),
+                        ('op', [('String', '+')]),
+                    ]),
+                    ('Round', 'org.vistrails.vistrails.basic', [
+                        ('floor', [('Boolean', 'True')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 1, 'value'),
+                    (1, 'value', 2, 'value1'),
+                    (2, 'value', 3, 'in_value'),
+                ]))
+        self.assertEqual(results, [7])
