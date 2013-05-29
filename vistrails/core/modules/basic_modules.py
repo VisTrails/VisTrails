@@ -286,7 +286,7 @@ Float   = new_constant('Float'   , staticmethod(float), 0.0,
                        param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'FloatExploreWidget')])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
-                       staticmethod(lambda x: type(x) == int),
+                       staticmethod(lambda x: isinstance(x, (int, long))),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
