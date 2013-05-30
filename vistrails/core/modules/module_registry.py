@@ -1759,10 +1759,14 @@ class ModuleRegistry(DBRegistry):
                     vistrails.core.modules.vistrails_module.Converter):
                 continue
 
-            in_port = converter.get_port_spec('in_value', 'input')
+            in_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'in_value', 'input')
             if not check_types(sub_descs, in_port.descriptors()):
                 continue
-            out_port = converter.get_port_spec('out_value', 'output')
+            out_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'out_value', 'output')
             if not check_types(out_port.descriptors(), super_descs):
                 continue
 
