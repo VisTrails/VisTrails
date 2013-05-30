@@ -1774,36 +1774,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self._needs_state_updated = True
         return QtGui.QGraphicsItem.itemChange(self, change, value)
 
-    def getClosestPort(self, pos, port, port_dict, port_order_f):
-        result = None
-        min_dis = None
-        registry = get_module_registry()
-        for (other_port, other_item) in port_dict.iteritems():
-            if (registry.ports_can_connect(*port_order_f([port, other_port])) \
-                    and other_item.isVisible()):
-                vector = (pos - other_item.getPosition())
-                dis = vector.x()*vector.x() + vector.y()*vector.y()
-                if result is None or dis < min_dis:
-                    min_dis = dis
-                    result = other_item
-        return result
-
-    def getDestPort(self, pos, srcPort):
-        """ getDestPort(self, pos: QPointF, srcPort: Port) -> QGraphicsPortItem
-        Look for the destination port match 'port' and closest to pos
-        
-        """
-        return self.getClosestPort(pos, srcPort, self.inputPorts, 
-                                   lambda x: x)
-
-    def getSourcePort(self, pos, dstPort):
-        """ getSourcePort(self, pos: QPointF, dstPort: Port)
-                          -> QGraphicsPortItem
-        Look for the source port match 'port' and closest to pos
-        
-        """
-        return self.getClosestPort(pos, dstPort, self.outputPorts, reversed)
-
 ##############################################################################
 # QPipelineScene
 
