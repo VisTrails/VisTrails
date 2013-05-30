@@ -1064,10 +1064,10 @@ def initialize(*args, **kwargs):
     reg = get_module_registry()
 
     # !!! is_root should only be set for Module !!!
-    reg.add_module(Module, is_root=True)
+    reg.add_module(Module, is_root=True, abstract=True)
     reg.add_output_port(Module, "self", Module, optional=True)
 
-    reg.add_module(Constant)
+    reg.add_module(Constant, abstract=True)
 
     reg.add_module(Boolean)
     reg.add_module(Float)
