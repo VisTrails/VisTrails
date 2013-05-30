@@ -48,20 +48,22 @@ from order import ExecuteInOrder
 #################################################################################
 ## An useful register function for control modules
 
-def registerControl(module):
+def registerControl(module, **kwargs):
     """This function is used to register the control modules. In this way, all of
     them will have the same style and shape."""
     
     reg = get_module_registry()
-    reg.add_module(module, moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
-                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+    reg.add_module(module,
+                   moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],
+                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)],
+                   **kwargs)
 
 #################################################################################
 
 def initialize(*args,**keywords):
     reg = get_module_registry()
 
-    registerControl(Fold)
+    registerControl(Fold, abstract=True)
     registerControl(Map)
     registerControl(Filter)
     registerControl(Sum)
