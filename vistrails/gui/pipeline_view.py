@@ -359,27 +359,32 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.tmp_connection_item.setCurrentPos(event.scenePos())
             snapPort = None
             snapModule = self.scene().findModuleUnder(event.scenePos())
+            converters = []
             if snapModule and snapModule != self.parentItem():
                 if self.port.type == 'output':
                     portMatch = self.scene().findPortMatch(
                         [self], snapModule.inputPorts.values(),
                         fixed_out_pos=event.scenePos(),
-                        allow_conversion=True)
+                        allow_conversion=True, out_converters=converters)
                     if portMatch[1] is not None:
                         snapPort = portMatch[1]
                 elif self.port.type == 'input':
                     portMatch = self.scene().findPortMatch(
                         snapModule.outputPorts.values(), [self],
                         fixed_in_pos=event.scenePos(),
-                        allow_conversion=True)
+                        allow_conversion=True, out_converters=converters)
                     if portMatch[0] is not None:
                         snapPort = portMatch[0]
             self.tmp_connection_item.setSnapPort(snapPort)
             if snapPort:
                 tooltip = self.tmp_connection_item.snapPortItem.toolTip()
+                if converters:
+                    tooltip = ('<strong>conversion required</strong><br/>\n'
+                               '%s' % tooltip)
                 QtGui.QToolTip.showText(event.screenPos(), tooltip)
             else:
                 QtGui.QToolTip.hideText()
+            self.tmp_connection_item.setConverting(snapPort and converters)
         QtGui.QAbstractGraphicsShapeItem.mouseMoveEvent(self, event)
         
     def findSnappedPort(self, pos):
@@ -765,6 +770,12 @@ class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
     def hide(self):
         self.disconnect(True)
         QtGui.QGraphicsLineItem.hide(self)
+
+    def setConverting(self, converting):
+        if converting:
+            self.setPen(CurrentTheme.CONNECTION_SELECTED_CONVERTING_PEN)
+        else:
+            self.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
 
 ##############################################################################
 # QGraphicsConnectionItem
