@@ -1167,7 +1167,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
 
-    reg.add_module(Variant)
+    reg.add_module(Variant, abstract=True)
 
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
