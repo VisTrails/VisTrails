@@ -39,7 +39,7 @@ from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 import copy
 
 from fold import Fold
-from utils import Map, Filter, AreaFilter, SimilarityFilter
+from utils import Map, Filter, Sum, And, Or
 from conditional import If, Default
 from products import Dot, Cross
 from order import ExecuteInOrder
@@ -64,8 +64,9 @@ def initialize(*args,**keywords):
     registerControl(Fold)
     registerControl(Map)
     registerControl(Filter)
-    registerControl(AreaFilter)
-    registerControl(SimilarityFilter)
+    registerControl(Sum)
+    registerControl(And)
+    registerControl(Or)
     registerControl(If)
     registerControl(Default)
 
@@ -123,8 +124,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                    'Cross': (Cross, {}),
                    'Map': (Map, {}),
                    'Filter': (Filter, {}),
-                   'AreaFilter': (AreaFilter, {}),
-                   'SimilarityFilter': (SimilarityFilter, {}),
+                   'Sum': (Sum, {}),
+                   'And': (And, {}),
+                   'Or': (Or, {}),
                    }
                    
 
