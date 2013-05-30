@@ -1774,6 +1774,54 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self._needs_state_updated = True
         return QtGui.QGraphicsItem.itemChange(self, change, value)
 
+def choose_converter(converters, parent=None):
+    """Chooses a converter among a list.
+    """
+    if len(converters) == 1:
+        return converters[0]
+
+    class ConverterItem(QtGui.QListWidgetItem):
+        def __init__(self, converter):
+            QtGui.QListWidgetItem.__init__(self, converter.name)
+            self.converter = converter
+
+    dialog = QtGui.QDialog(parent)
+    dialog.setWindowTitle("Automatic conversion")
+    layout = QtGui.QVBoxLayout()
+
+    label = QtGui.QLabel(
+            "You are connecting two incompatible ports, however there are "
+            "matching Converter modules. Please choose which Converter should "
+            "be inserted on this connection:")
+    label.setWordWrap(True)
+    layout.addWidget(label)
+    list_widget = QtGui.QListWidget()
+    list_widget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    for converter in sorted(converters, key=lambda c: c.name):
+        list_widget.addItem(ConverterItem(converter))
+    layout.addWidget(list_widget)
+
+    buttons = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel,
+            QtCore.Qt.Horizontal)
+    QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
+                           dialog, QtCore.SLOT('accept()'))
+    QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
+                           dialog, QtCore.SLOT('reject()'))
+    layout.addWidget(buttons)
+
+    ok = buttons.button(QtGui.QDialogButtonBox.Ok)
+    ok.setEnabled(False)
+    QtCore.QObject.connect(
+            list_widget, QtCore.SIGNAL('itemSelectionChanged()'),
+            lambda: ok.setEnabled(True))
+
+    dialog.setLayout(layout)
+    if dialog.exec_() == QtGui.QDialog.Accepted:
+        return list_widget.selectedItems()[0].converter
+    else:
+        return None
+
 ##############################################################################
 # QPipelineScene
 
@@ -2162,7 +2210,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
 
     def findPortMatch(self, output_ports, input_ports, x_trans=0, 
                       fixed_out_pos=None, fixed_in_pos=None,
-                      allow_conversion=False):
+                      allow_conversion=False, out_converters=None):
         """findPortMatch(output_ports:  list(QAbstractGraphicsPortItem),
                          input_ports:   list(QAbstractGraphicsPortItem),
                          x_trans:       int,
@@ -2174,15 +2222,23 @@ class QPipelineScene(QInteractiveGraphicsScene):
         input_ports where the ports are compatible and the distance
         between these ports is minimal with respect to compatible
         ports
+
+        If allow_conversion is True, we also search for ports that are not
+        directly matched but can be connected if a Converter module is used. In
+        this case, we extend the optional 'out_converters' list with the
+        possible Converters' ModuleDescriptors.
         """
 
         reg = get_module_registry()
         result = (None, None)
         min_dis = None
+        selected_convs = None
         for o_item in output_ports:
             for i_item in input_ports:
+                convs = []
                 if reg.ports_can_connect(o_item.port, i_item.port,
-                                         allow_conversion=allow_conversion):
+                                         allow_conversion=True,
+                                         out_converters=convs):
                     if fixed_out_pos is not None:
                         out_pos = fixed_out_pos
                     else:
@@ -2197,6 +2253,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     if result[0] is None or dis < min_dis:
                         min_dis = dis
                         result = (o_item, i_item)
+                        selected_convs = convs
+        if selected_convs and out_converters is not None:
+            out_converters.extend(selected_convs)
         return result
 
     def updateTmpConnection(self, pos, tmp_connection_item, tmp_module_ports, 
@@ -2360,8 +2419,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.addConnection(conn)
         else:
             # Add a converter module
-            converter = reg.get_converter(src_port_item.port.descriptors(),
-                                          dst_port_item.port.descriptors())
+            converters = reg.get_converters(src_port_item.port.descriptors(),
+                                            dst_port_item.port.descriptors())
+            converter = choose_converter(converters)
+            if converter is None:
+                return
 
             src_pos = src_port_item.getPosition()
             dst_pos = dst_port_item.getPosition()

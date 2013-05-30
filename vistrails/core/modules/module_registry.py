@@ -1713,14 +1713,15 @@ class ModuleRegistry(DBRegistry):
         return self.are_specs_matched(port, port_spec)
 
     def ports_can_connect(self, sourceModulePort, destinationModulePort,
-                          allow_conversion=False):
+                          allow_conversion=False, out_converters=None):
         """ports_can_connect(sourceModulePort,destinationModulePort) ->
         Boolean returns true if there could exist a connection
         connecting these two ports."""
         if sourceModulePort.type == destinationModulePort.type:
             return False
         return self.are_specs_matched(sourceModulePort, destinationModulePort,
-                                      allow_conversion=allow_conversion)
+                                      allow_conversion=allow_conversion,
+                                      out_converters=out_converters)
 
     def is_port_sub_type(self, sub, super):
         """ is_port_sub_type(sub: Port, super: Port) -> bool        
@@ -1734,7 +1735,7 @@ class ModuleRegistry(DBRegistry):
             return False
         return self.are_specs_matched(sub, super)
 
-    def get_converter(self, sub_descs, super_descs):
+    def get_converters(self, sub_descs, super_descs):
         key = (tuple(sub_descs), tuple(super_descs))
 
         # Get the result from the cache
@@ -1753,6 +1754,8 @@ class ModuleRegistry(DBRegistry):
                     return False
             return True
 
+        converters = []
+
         # Compute the result
         for converter in self._converters:
             if converter.module is (
@@ -1770,14 +1773,14 @@ class ModuleRegistry(DBRegistry):
             if not check_types(out_port.descriptors(), super_descs):
                 continue
 
-            self._conversions[key] = converter
-            return converter
+            converters.append(converter)
 
         # Store in the cache that there was no result
-        self._conversions[key] = None
-        return None
+        self._conversions[key] = converters
+        return converters
 
-    def are_specs_matched(self, sub, super, allow_conversion=False):
+    def are_specs_matched(self, sub, super, allow_conversion=False,
+                          out_converters=None):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
@@ -1815,8 +1818,10 @@ class ModuleRegistry(DBRegistry):
             return True
 
         if allow_conversion:
-            converter = self.get_converter(sub_descs, super_descs)
-            if converter is not None:
+            converters = self.get_converters(sub_descs, super_descs)
+            if converters:
+                if out_converters is not None:
+                    out_converters.extend(converters)
                 return True
 
         return False
