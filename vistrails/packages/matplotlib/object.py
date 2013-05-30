@@ -1,11 +1,11 @@
 from vistrails.core.modules.vistrails_module import Module
 
 class MplObject(Module):
-    _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",
+    _input_ports = [("subfigRow", "(org.vistrails.vistrails.spreadsheet:Integer)",
                      {"defaults": ["1"]}),
-                    ("subfigCol", "(edu.utah.sci.vistrails.basic:Integer)",
+                    ("subfigCol", "(org.vistrails.vistrails.spreadsheet:Integer)",
                      {"defaults": ["1"]})]
-    _output_ports = [("self", "(org.vistrails.matplotlib:MplObject)")]
+    _output_ports = [("self", "(org.vistrails.vistrails.matplotlib:MplObject)")]
 
     def __init__(self):
         Module.__init__(self)
