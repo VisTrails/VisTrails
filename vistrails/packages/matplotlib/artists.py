@@ -12,7 +12,7 @@ def translate_color(c):
     return c.tuple
 
 def translate_MplLine2DProperties_marker(val):
-    translate_dict = {'caretright': 5, 'star': '*', 'point': '.', 'tickdown': 3, 'triangle_right': '>', 'tickup': 2, 'hexagon1': 'h', 'hline': '_', 'vline': '|', 'mathtext': '$...$', 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'caretdown': 7, 'tri_down': '1', 'tickright': 1, 'tri_right': '4', 'thin_diamond': 'd', 'diamond': 'D', 'octagon': '8', 'tickleft': 0, 'square': 's', 'tri_up': '2', 'plus': '+', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'hexagon2': 'H', 'caretup': 6, 'circle': 'o', 'pixel': ',', 'triangle_left': '<'}
+    translate_dict = {'caretright': 5, 'star': '*', 'point': '.', 'mathtext': '$...$', 'triangle_right': '>', 'tickup': 2, 'hexagon1': 'h', 'plus': '+', 'hline': '_', 'vline': '|', 'tickdown': 3, 'nothing': ' ', 'caretup': 6, 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'tickleft': 0, 'tickright': 1, 'tri_down': '1', 'thin_diamond': 'd', 'diamond': 'D', 'caretdown': 7, 'hexagon2': 'H', 'tri_up': '2', 'square': 's', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'octagon': '8', 'tri_right': '4', 'circle': 'o', 'pixel': ',', 'triangle_left': '<'}
     return translate_dict[val]
 def translate_MplLine2DProperties_linestyle(val):
     translate_dict = {'solid': '-', 'dashed': '--', 'dash_dot': '-.', 'dotted': ':', 'draw nothing': ''}
@@ -2335,6 +2335,8 @@ class MplTextProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Set the line spacing as a multiple of the font size. Default is 1.2.'}),
               ("family", "basic:String",
                 {'entry_types': "['enum']", 'docstring': 'Set the font family.  May be either a single string, or a list of strings in decreasing priority.  Each string may be either a real font name or a generic font class name.  If the latter, the specific font names will be looked up in the :file:`matplotlibrc` file.', 'values': "[['FONTNAME', 'serif', 'sans-serif', 'cursive', 'fantasy', 'monospace']]", 'optional': True}),
+              ("x", "basic:Float",
+                {'optional': True, 'docstring': 'Set the x position of the text'}),
               ("color", "basic:Color",
                 {'optional': True, 'docstring': 'Set the foreground color of the text'}),
               ("text", "basic:String",
@@ -2351,8 +2353,6 @@ class MplTextProperties(MplArtistProperties):
                 {'entry_types': "['enum']", 'docstring': 'Set the font stretch (horizontal condensation or expansion).', 'values': "[['a numeric value in range 0-1000', 'ultra-condensed', 'extra-condensed', 'condensed', 'semi-condensed', 'normal', 'semi-expanded', 'expanded', 'extra-expanded', 'ultra-expanded']]", 'optional': True}),
               ("fontproperties", "basic:String",
                 {'optional': True, 'docstring': 'Set the font properties that control the text.  fp must be a :class:`matplotlib.font_manager.FontProperties` object.'}),
-              ("x", "basic:Float",
-                {'optional': True, 'docstring': 'Set the x position of the text'}),
               ("horizontalalignment", "basic:String",
                 {'entry_types': "['enum']", 'docstring': 'Set the horizontal alignment to one of', 'values': "[['center', 'right', 'left']]", 'optional': True}),
               ("bbox", "basic:String",
@@ -2390,6 +2390,8 @@ class MplTextProperties(MplArtistProperties):
             self.props['linespacing'] = self.getInputFromPort('linespacing')
         if self.hasInputFromPort('family'):
             self.props['family'] = self.getInputFromPort('family')
+        if self.hasInputFromPort('x'):
+            self.props['x'] = self.getInputFromPort('x')
         if self.hasInputFromPort('color'):
             self.props['color'] = self.getInputFromPort('color')
             self.props['color'] = translate_color(self.props['color'])
@@ -2407,8 +2409,6 @@ class MplTextProperties(MplArtistProperties):
             self.props['stretch'] = self.getInputFromPort('stretch')
         if self.hasInputFromPort('fontproperties'):
             self.props['fontproperties'] = self.getInputFromPort('fontproperties')
-        if self.hasInputFromPort('x'):
-            self.props['x'] = self.getInputFromPort('x')
         if self.hasInputFromPort('horizontalalignment'):
             self.props['horizontalalignment'] = self.getInputFromPort('horizontalalignment')
         if self.hasInputFromPort('bbox'):
@@ -3174,23 +3174,23 @@ class MplLegendProperties(MplArtistProperties):
     """
     _input_ports = [
               ("fancybox", "basic:String",
-                {'optional': True, 'docstring': 'if True, draw a frame with a round fancybox. If None, use rc'}),
+                {'optional': True}),
               ("handlelength", "basic:String",
-                {'optional': True, 'docstring': 'the length of the legend handles'}),
+                {'optional': True}),
               ("labels", "basic:String",
                 {'optional': True}),
               ("labelspacing", "basic:String",
-                {'optional': True, 'docstring': 'the vertical space between the legend entries'}),
+                {'optional': True}),
               ("columnspacing", "basic:String",
-                {'optional': True, 'docstring': 'the spacing between columns'}),
+                {'optional': True}),
               ("handletextpad", "basic:String",
-                {'optional': True, 'docstring': 'the pad between the legend handle and text'}),
+                {'optional': True}),
               ("ncol", "basic:Integer",
-                {'optional': True, 'docstring': 'number of columns', 'defaults': "['1']"}),
+                {'optional': True, 'defaults': "['1']"}),
               ("borderaxespad", "basic:String",
-                {'optional': True, 'docstring': 'the pad between the axes and legend border'}),
+                {'optional': True}),
               ("loc", "basic:String",
-                {'optional': True, 'docstring': 'a location code'}),
+                {'optional': True}),
               ("bbox_to_anchor", "basic:String",
                 {'optional': True, 'docstring': 'set the bbox that the legend will be anchored.\n\nbbox can be a BboxBase instance, a tuple of [left, bottom, width, height] in the given transform (normalized axes coordinate if None), or a tuple of [left, bottom] where the width and height will be assumed to be zero.'}),
               ("title", "basic:String",
@@ -3198,15 +3198,15 @@ class MplLegendProperties(MplArtistProperties):
               ("handletextsep", "basic:String",
                 {'optional': True}),
               ("numpoints", "basic:String",
-                {'optional': True, 'docstring': 'the number of points in the legend for line'}),
+                {'optional': True}),
               ("prop", "basic:String",
-                {'optional': True, 'docstring': 'the font property'}),
+                {'optional': True}),
               ("handles", "basic:String",
                 {'optional': True}),
               ("pad", "basic:String",
                 {'optional': True}),
               ("borderpad", "basic:String",
-                {'optional': True, 'docstring': 'the fractional whitespace inside the legend border'}),
+                {'optional': True}),
               ("parent", "basic:String",
                 {'optional': True}),
               ("axespad", "basic:String",
@@ -3216,21 +3216,21 @@ class MplLegendProperties(MplArtistProperties):
               ("frame_on", "basic:Boolean",
                 {'optional': True, 'docstring': 'Set whether the legend box patch is drawn'}),
               ("scatterpoints", "basic:Integer",
-                {'optional': True, 'docstring': 'the number of points in the legend for scatter plot', 'defaults': "['3']"}),
+                {'optional': True, 'defaults': "['3']"}),
               ("fontsize", "basic:String",
-                {'optional': True, 'docstring': 'the font size (used only if prop is not specified)'}),
+                {'optional': True}),
               ("shadow", "basic:String",
-                {'optional': True, 'docstring': 'if True, draw a shadow behind legend'}),
+                {'optional': True}),
               ("handler_map", "basic:String",
                 {'optional': True}),
               ("handleheight", "basic:String",
-                {'optional': True, 'docstring': 'the length of the legend handles'}),
-              ("scatteryoffsets", "basic:List",
-                {'optional': True, 'docstring': 'a list of yoffsets for scatter symbols in legend'}),
+                {'optional': True}),
+              ("scatteryoffsets", "basic:String",
+                {'optional': True}),
               ("markerscale", "basic:String",
-                {'optional': True, 'docstring': 'the relative size of legend markers vs. original'}),
+                {'optional': True}),
               ("frameon", "basic:String",
-                {'optional': True, 'docstring': 'if True, draw a frame around the legend. If None, use rc'}),
+                {'optional': True}),
               ("mode", "basic:String",
                 {'optional': True}),
               ("handlelen", "basic:String",
@@ -3238,7 +3238,7 @@ class MplLegendProperties(MplArtistProperties):
               ("default_handler_map", "basic:String",
                 {'optional': True, 'docstring': 'A class method to set the default handler map.'}),
               ("bbox_transform", "basic:String",
-                {'optional': True, 'docstring': 'the transform for the bbox. transAxes if None.'}),
+                {'optional': True}),
         ]
 
     # no output ports except self

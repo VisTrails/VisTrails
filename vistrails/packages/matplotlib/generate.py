@@ -1,5 +1,5 @@
 from mako.template import Template
-import tempfile
+import sys
 from specs import SpecList
 
 def generate_from_specs(fname, out_fname, template_fname):
@@ -21,4 +21,9 @@ def run(which="all"):
                             "artists_template.py.mako")
     
 if __name__ == '__main__':
-    run()
+    if len(sys.argv) <= 1:
+        run()
+    elif len(sys.argv) == 2:
+        run(sys.argv[1])
+    else:
+        raise TypeError("usage: python parse.py [all|artists|plots]")

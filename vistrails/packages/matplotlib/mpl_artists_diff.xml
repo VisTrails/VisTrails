@@ -17,7 +17,7 @@
     </value>
   </addPortSpec>
   <changePortSpec attr="translations" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
-    <value>{'caretright': 5, 'star': '*', 'point': '.', 'mathtext': '$...$', 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'plus': '+', 'hline': '_', 'vline': '|', 'tickdown': 3, 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'tickleft': 0, 'tickright': 1, 'tri_down': '1', 'thin_diamond': 'd', 'caretup': 6, 'diamond': 'D', 'caretdown': 7, 'hexagon2': 'H', 'tri_up': '2', 'square': 's', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'octagon': '8', 'tri_right': '4', 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
+    <value>{'caretright': 5, 'star': '*', 'point': '.', 'tickdown': 3, 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'hline': '_', 'vline': '|', 'mathtext': '$...$', 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'caretdown': 7, 'tri_down': '1', 'tickright': 1, 'tri_right': '4', 'thin_diamond': 'd', 'diamond': 'D', 'octagon': '8', 'tickleft': 0, 'square': 's', 'tri_up': '2', 'plus': '+', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'hexagon2': 'H', 'caretup': 6, 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
   </changePortSpec>
   <changePortSpec attr="entry_types" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
     <value>['enum']</value>
