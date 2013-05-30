@@ -26,12 +26,16 @@ import copy
 import inspect
 from itertools import izip
 import os
+import re
+import sys
 import tempfile
+
+from IPython.parallel.error import CompositeError
 
 from .api import get_client
 
 
-################################################################################
+###############################################################################
 # This function is sent to the engines which execute it
 #
 # It receives the workflow, and the list of targeted output ports
@@ -134,7 +138,14 @@ def execute_wf(wf, output_ports):
     finally:
         os.unlink(temp_wf)
 
-################################################################################
+###############################################################################
+
+_ansi_code = re.compile(r'%s(?:(?:\[[^A-Za-z]*[A-Za-z])|[^\[])' % '\x1B')
+
+def strip_ansi_codes(s):
+    return _ansi_code.sub('', s)
+
+###############################################################################
 # Map Operator
 #
 class Map(Module, NotCacheable):
@@ -165,6 +176,15 @@ class Map(Module, NotCacheable):
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput:
                         self.removeInputConnector(port_name, connector)
+
+    @staticmethod
+    def print_compositeerror(e):
+        sys.stderr.write("Got %d exceptions from IPython engines:\n" %
+                         len(e.elist))
+        for e_type, e_msg, formatted_tb, infos in e.elist:
+            sys.stderr.write("Error from engine %d (%r):\n" % (
+                             infos['engine_id'], infos['engine_uuid']))
+            sys.stderr.write("%s\n" % strip_ansi_codes(formatted_tb))
 
     def updateFunctionPort(self):
         """
@@ -276,14 +296,14 @@ class Map(Module, NotCacheable):
         try:
             rc = get_client()
             engines = rc.ids
-            if not engines:
-                raise ModuleError(
-                        self,
-                        "Exception while loading IPython: No IPython engines "
-                        "detected!")
         except Exception, error:
-            msg = "Exception while loading IPython: '%s'" %str(error)
-            raise ModuleError(self, msg)
+            raise ModuleError(self, "Exception while loading IPython: "
+                              "%s" % error)
+        if not engines:
+            raise ModuleError(
+                    self,
+                    "Exception while loading IPython: No IPython engines "
+                    "detected!")
 
         # initializes each engine
         # importing modules and initializing the VisTrails application
@@ -314,8 +334,14 @@ class Map(Module, NotCacheable):
                 from vistrails.core.interpreter.default import get_default_interpreter
 
             # initializing a VisTrails application
-            init_view.execute('app = vistrails.core.application.init(args=[])',
-                          block=True)
+            try:
+                init_view.execute('app = vistrails.core.application.init(args=[])',
+                                  block=True)
+            except CompositeError, e:
+                self.print_compositeerror(e)
+                raise ModuleError(self, "Error running imports on IPython "
+                                  "engines (see terminal):\n"
+                                  "%s" % ', '.join([ce[0] for ce in e.elist]))
 
             init_view['init'] = True
 
@@ -327,9 +353,11 @@ class Map(Module, NotCacheable):
         try:
             ldview = rc.load_balanced_view()
             map_result = ldview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
-        except Exception, error:
-            msg = "Exception while executing in the IPython engines: '%s'" %str(error)
-            raise ModuleError(self, msg)
+        except CompositeError, e:
+            self.print_compositeerror(e)
+            raise ModuleError(self, "Error initializing application on "
+                              "IPython engines:\n"
+                              "%r" % e.elist)
 
         # verifying errors
         errors = []
@@ -355,8 +383,7 @@ class Map(Module, NotCacheable):
 
         if diff != []:
             ports = ', '.join(diff)
-            raise ModuleError(self,
-                              'Output ports not found: %s' %ports)
+            raise ModuleError(self, 'Output ports not found: %s' % ports)
 
         import vistrails.core.modules.module_registry
         reg = vistrails.core.modules.module_registry.get_module_registry()
@@ -513,7 +540,7 @@ class Map(Module, NotCacheable):
 
         self.setResult('Result', self.result)
 
-#################################################################################
+###############################################################################
 
 class NewConstant(Constant):
     """
@@ -536,7 +563,7 @@ def create_module(value, signature):
     Creates a module for value, in order to do the type checking.
     """
 
-    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, Tuple, File, List
+    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, File, List
 
     if type(value)==bool:
         v_module = Boolean()
