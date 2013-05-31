@@ -290,7 +290,8 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
     def __init__(self, param, parent=None):
         QtGui.QWidget.__init__(self)
         self.setLayout(QtGui.QHBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setMargin(5)
+        self.layout().setSpacing(5)
 
         self._widget = None
         self._multiline = None
@@ -298,6 +299,9 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
 
         self._button = QtGui.QToolButton()
         self._button.setIcon(CurrentTheme.MULTILINE_STRING_ICON)
+        self._button.setIconSize(QtCore.QSize(12, 12))
+        self._button.setToolTip("Toggle multi-line editor")
+        self._button.setAutoRaise(True)
         self._button.setSizePolicy(QtGui.QSizePolicy(
                 QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
         self._button.setCheckable(True)
