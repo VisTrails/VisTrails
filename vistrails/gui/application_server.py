@@ -1396,13 +1396,13 @@ class RequestHandler(object):
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
                 controller = VistrailController()
+                from gui.pipeline_view import QPipelineView
+                pipeline_view = QPipelineView()
+                controller.current_pipeline_view = pipeline_view.scene()
                 controller.set_vistrail(v, locator, abstractions, thumbnails,
                                         mashups)
                 from gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPDF(filename)
                 del version_view
