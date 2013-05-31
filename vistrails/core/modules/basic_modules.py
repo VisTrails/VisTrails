@@ -777,6 +777,16 @@ class ConcatenateString(Module):
         self.setResult("value", result)
 
 ##############################################################################
+
+class Not(Module):
+    """Not inverts a Boolean.
+    """
+
+    def compute(self):
+        value = self.getInputFromPort('input')
+        self.setResult('value', not value)
+
+##############################################################################
 # List
 
 class List(Constant):
@@ -1145,6 +1155,10 @@ def initialize(*args, **kwargs):
         reg.add_input_port(ConcatenateString, port, String)
     reg.add_output_port(ConcatenateString, "value", String)
 
+    reg.add_module(Not)
+    reg.add_input_port(Not, 'input', Boolean)
+    reg.add_output_port(Not, 'value', Boolean)
+
     reg.add_module(Dictionary)
     reg.add_input_port(Dictionary, "addPair", [Module, Module])
     reg.add_input_port(Dictionary, "addPairs", List)
@@ -1268,6 +1282,35 @@ class TestConcatenateString(unittest.TestCase):
     def test_empty(self):
         """Runs ConcatenateString with no input"""
         self.assertEqual(self.concatenate(), [""])
+
+
+class TestNot(unittest.TestCase):
+    def run_pipeline(self, functions):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(Not, 'value') as results:
+            errors = execute([
+                    ('Not', 'org.vistrails.vistrails.basic',
+                     functions),
+                ])
+        return errors, results
+
+    def test_true(self):
+        errors, results = self.run_pipeline([
+                ('input', [('Boolean', 'True')])])
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 1)
+        self.assertIs(results[0], False)
+
+    def test_false(self):
+        errors, results = self.run_pipeline([
+                ('input', [('Boolean', 'False')])])
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 1)
+        self.assertIs(results[0], True)
+
+    def test_notset(self):
+        errors, results = self.run_pipeline([])
+        self.assertTrue(errors)
 
 
 class TestList(unittest.TestCase):
