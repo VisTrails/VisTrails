@@ -729,12 +729,7 @@ class Tuple(Module):
                         for p in self.input_ports_order])
         self.values = values
         self.setResult("value", values)
-        
-class TestTuple(Module):
-    def compute(self):
-        pair = self.getInputFromPort('tuple')
-        print pair
-        
+
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
     reverses the actions of Tuple.
@@ -1139,9 +1134,6 @@ def initialize(*args, **kwargs):
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "TupleConfigurationWidget"))
     reg.add_output_port(Tuple, 'self', Tuple)
-
-    reg.add_module(TestTuple)
-    reg.add_input_port(TestTuple, 'tuple', [Integer, String])
 
     reg.add_module(Untuple, 
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
