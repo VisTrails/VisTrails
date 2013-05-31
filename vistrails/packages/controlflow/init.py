@@ -36,9 +36,8 @@ from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import Boolean, String, Variant, List
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-import copy
 
-from fold import Fold
+from fold import Fold, FoldWithModule
 from utils import Map, Filter, Sum, And, Or
 from conditional import If, Default
 from products import Dot, Cross
@@ -51,7 +50,7 @@ from order import ExecuteInOrder
 def registerControl(module, **kwargs):
     """This function is used to register the control modules. In this way, all of
     them will have the same style and shape."""
-    
+
     reg = get_module_registry()
     reg.add_module(module,
                    moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],
@@ -64,6 +63,7 @@ def initialize(*args,**keywords):
     reg = get_module_registry()
 
     registerControl(Fold, abstract=True)
+    registerControl(FoldWithModule, abstract=True)
     registerControl(Map)
     registerControl(Filter)
     registerControl(Sum)
@@ -72,17 +72,12 @@ def initialize(*args,**keywords):
     registerControl(If)
     registerControl(Default)
 
-    reg.add_input_port(Fold, 'FunctionPort', (Module, ""))
     reg.add_input_port(Fold, 'InputList', (List, ""))
-    reg.add_input_port(Fold, 'InputPort', (List, ""))
-    reg.add_input_port(Fold, 'OutputPort', (String, ""))
     reg.add_output_port(Fold, 'Result', (Variant, ""))
 
-##    reg.add_module(Sum)
-##
-##    reg.add_module(And)
-##
-##    reg.add_module(Or)
+    reg.add_input_port(FoldWithModule, 'FunctionPort', (Module, ""))
+    reg.add_input_port(FoldWithModule, 'InputPort', (List, ""))
+    reg.add_input_port(FoldWithModule, 'OutputPort', (String, ""))
 
     reg.add_input_port(If, 'Condition', (Boolean, ""))
     reg.add_input_port(If, 'TruePort', (Module, ""))
@@ -112,51 +107,51 @@ def initialize(*args,**keywords):
     reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-   reg = get_module_registry()
+    reg = get_module_registry()
 
-   # format is {<old module name>: (<new_module_klass>, <remap_dictionary>}}
-   # where remap_dictionary is {<remap_type>: <name_changes>}
-   # and <name_changes> is a map from <old_name> to <new_name> or 
-   # <remap_function>
-       
-   module_remap = {'ListOfElements': (List, {}),
-                   'Fold': (Fold, {}),
-                   'If': (If, {}),
-                   'Dot': (Dot, {}),
-                   'Cross': (Cross, {}),
-                   'Map': (Map, {}),
-                   'Filter': (Filter, {}),
-                   'Sum': (Sum, {}),
-                   'And': (And, {}),
-                   'Or': (Or, {}),
-                   }
-                   
+    # format is {<old module name>: (<new_module_klass>, <remap_dictionary>}}
+    # where remap_dictionary is {<remap_type>: <name_changes>}
+    # and <name_changes> is a map from <old_name> to <new_name> or
+    # <remap_function>
 
-   old_module = pipeline.modules[module_id]
-   if old_module.name in module_remap:
-       remap = module_remap[old_module.name]
-       new_descriptor = reg.get_descriptor(remap[0])
-       try:
-           function_remap = remap[1].get('function_remap', {})
-           src_port_remap = remap[1].get('src_port_remap', {})
-           dst_port_remap = remap[1].get('dst_port_remap', {})
-           annotation_remap = remap[1].get('annotation_remap', {})
-           action_list = \
-               UpgradeWorkflowHandler.replace_module(controller, pipeline,
-                                                     module_id, new_descriptor,
-                                                     function_remap,
-                                                     src_port_remap,
-                                                     dst_port_remap,
-                                                     annotation_remap)
-       except Exception, e:
-           import traceback
-           traceback.print_exc()
-           raise
+    module_remap = {'ListOfElements': (List, {}),
+                    'Fold': (Fold, {}),
+                    'FoldWithModule': (FoldWithModule, {}),
+                    'If': (If, {}),
+                    'Dot': (Dot, {}),
+                    'Cross': (Cross, {}),
+                    'Map': (Map, {}),
+                    'Filter': (Filter, {}),
+                    'Sum': (Sum, {}),
+                    'And': (And, {}),
+                    'Or': (Or, {}),
+                    }
 
-       return action_list
+    old_module = pipeline.modules[module_id]
+    if old_module.name in module_remap:
+        remap = module_remap[old_module.name]
+        new_descriptor = reg.get_descriptor(remap[0])
+        try:
+            function_remap = remap[1].get('function_remap', {})
+            src_port_remap = remap[1].get('src_port_remap', {})
+            dst_port_remap = remap[1].get('dst_port_remap', {})
+            annotation_remap = remap[1].get('annotation_remap', {})
+            action_list = UpgradeWorkflowHandler.replace_module(
+                    controller, pipeline,
+                    module_id, new_descriptor,
+                    function_remap,
+                    src_port_remap,
+                    dst_port_remap,
+                    annotation_remap)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            raise
 
-   # otherwise, just try to automatic upgrade
-   # attempt_automatic_upgrade
-   return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
-                                                           pipeline,
-                                                           module_id)
+        return action_list
+
+    # otherwise, just try to automatic upgrade
+    # attempt_automatic_upgrade
+    return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller,
+                                                            pipeline,
+                                                            module_id)

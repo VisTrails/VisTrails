@@ -35,7 +35,6 @@
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError
 from vistrails.core.modules.basic_modules import NotCacheable
-from vistrails.core.utils import VistrailsInternalError
 import copy
 
 #################################################################################
@@ -49,7 +48,7 @@ class If(Module, NotCacheable):
 
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
-      
+
         # everything is the same except that we don't update anything
         # upstream of TruePort or FalsePort
         excluded_ports = set(['TruePort', 'FalsePort', 'TrueOutputPorts',

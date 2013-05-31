@@ -33,12 +33,12 @@
 ##
 ###############################################################################
 from vistrails.core.modules.vistrails_module import ModuleError
-from fold import Fold
+from fold import Fold, FoldWithModule
 
 #################################################################################
 ## Some useful loop structures
 
-class Map(Fold):
+class Map(FoldWithModule):
     """A Map module, that just appends the results in a list."""
 
     def setInitialValue(self):
@@ -52,7 +52,7 @@ class Map(Fold):
         self.partialResult.append(self.elementResult)
 
 
-class Filter(Fold):
+class Filter(FoldWithModule):
     """A Filter module, that returns in a list only the results that satisfy a
     condition."""
 
