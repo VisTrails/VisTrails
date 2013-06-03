@@ -1727,7 +1727,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             res = 1
         
         if res == 0:
-            if locator is None:
+            if locator is None or locator.is_untitled():
                 class_ = FileLocator()
             else:
                 class_ = type(locator)

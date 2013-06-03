@@ -878,8 +878,12 @@ class QVistrailView(QtGui.QWidget):
 
         """
         locator = self.controller.locator
-        if locator_class is None and locator is not None:
-            locator_class = type(locator)
+        if locator_class is None:
+            if locator is not None:
+                locator_class = type(locator)
+            else:
+                debug.critical('Failed to save vistrail, unknown '
+                               'locator class.')
 
         #print "CALLED SAVE VISTRAIL", locator_class
 
