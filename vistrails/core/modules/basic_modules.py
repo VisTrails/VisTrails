@@ -1058,6 +1058,16 @@ class Round(Converter):
             integ = int(fl + 0.5)   # nearest
         self.setResult('out_value', integ)
 
+
+class TupleToList(Converter):
+    """Turns a Tuple into a List.
+    """
+    def compute(self):
+        tu = self.getInputFromPort('in_value')
+        if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
+            raise ModuleError(self, "Input is not a tuple")
+        self.setResult('out_value', list(tu.values))
+
 ##############################################################################
     
 class Variant(Module):
@@ -1193,6 +1203,10 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Round, 'out_value', Integer)
     reg.add_input_port(Round, 'floor', Boolean, optional=True,
                        defaults="(True,)")
+
+    reg.add_module(TupleToList)
+    reg.add_input_port(TupleToList, 'in_value', Tuple)
+    reg.add_output_port(TupleToList, 'out_value', List)
 
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
