@@ -195,8 +195,9 @@ class CSVLoader(FileVariableLoader):
                 QtGui.QSizePolicy.Fixed,
                 self._delimiter_input.sizePolicy().verticalPolicy())
         def delimiter_cb(text):
-            self._delimiter = str(text)
-            self.read_file()
+            if len(text) == 1:
+                self._delimiter = str(text)
+                self.read_file()
         self.connect(
                 self._delimiter_input,
                 QtCore.SIGNAL('textChanged(QString)'),
