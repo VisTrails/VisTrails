@@ -2815,7 +2815,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                                     QtGui.QLineEdit.Normal,
                                                     currentLabel)
             if ok:
-                if text.isEmpty():
+                if not text:
                     if module.has_annotation_with_key('__desc__'):
                         self.controller.delete_annotation('__desc__', id)
                         self.recreate_module(self.controller.current_pipeline, id)
@@ -3154,7 +3154,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def clipboard_non_empty(self):
         clipboard = QtGui.QApplication.clipboard()
         clipboard_text = clipboard.text()
-        return not clipboard_text.isEmpty() #and \
+        return not clipboard_text #and \
         #    str(clipboard_text).startswith("<workflow")
 
     def pipeline_non_empty(self, pipeline):

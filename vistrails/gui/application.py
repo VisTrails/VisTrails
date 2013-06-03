@@ -589,7 +589,7 @@ parameters from other instances")
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.debug("Writing failed: %s" %
-                            local_socket.errorString().toLatin1())
+                            local_socket.errorString())
                 return
             local_socket.disconnectFromServer()
     
@@ -601,18 +601,18 @@ parameters from other instances")
             local_socket.connectToServer(self._unique_key)
             if not local_socket.waitForConnected(self.timeout):
                 debug.critical("Connection failed: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             self.shared_memory.lock()
             local_socket.write(message)
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.critical("Writing failed: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             byte_array = local_socket.readAll()
             result = str(byte_array)
