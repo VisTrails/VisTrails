@@ -42,7 +42,7 @@ from .api import get_client
 #
 # It returns the corresponding computed outputs and the execution log
 #
-def execute_wf(wf, output_ports):
+def execute_wf(wf, output_port):
     # Save the workflow in a temporary file
     temp_wf_fd, temp_wf = tempfile.mkstemp()
 
@@ -110,28 +110,28 @@ def execute_wf(wf, output_ports):
 
         # Store the output values in the order they were requested
         reg = vistrails.core.modules.module_registry.get_module_registry()
-        ports = []
-        outputs = []
-        serializable = []
-        for port in output_ports:
-            for output in module_outputs:
-                if output[0] == port:
-                    # checking if output port needs to be serialized
-                    base_classes = inspect.getmro(type(output[1]))
-                    if Module in base_classes:
-                        ports.append(output[0])
-                        outputs.append(output[1].serialize())
-                        serializable.append(reg.get_descriptor(type(output[1])).sigstring)
-                    else:
-                        ports.append(output[0])
-                        outputs.append(output[1])
-                        serializable.append(None)
-                    break
+        output = None
+        serializable = None
+        found = False
+        for m_output in module_outputs:
+            if m_output[0] == output_port:
+                # checking if output port needs to be serialized
+                base_classes = inspect.getmro(type(m_output[1]))
+                if Module in base_classes:
+                    output = m_output[1].serialize()
+                    serializable = reg.get_descriptor(type(m_output[1])).sigstring
+                else:
+                    output = m_output[1]
+                    serializable = None
+                found = True
+                break
+
+        if not found:
+            errors.append("Output port not found: %s" % output_port)
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
-                    ports=ports,
-                    outputs=outputs,
+                    output=output,
                     serializable=serializable,
                     xml_log=xml_log,
                     machine_log=machine_log)
@@ -372,36 +372,20 @@ class Map(Module, NotCacheable):
         # setting success color
         module.logging.signalSuccess(module)
 
-        # getting the value of the output ports
-        # here, we get the first map execution to check the name of the output
-        # ports, as they are the same among the map executions
-        first_map_execution = map_result[0]
-        output_ports = first_map_execution['ports']
-
-        # checking if the value of some output port was not obtained
-        diff = list(set(nameOutput) - set(output_ports))
-
-        if diff != []:
-            ports = ', '.join(diff)
-            raise ModuleError(self, 'Output ports not found: %s' % ports)
-
         import vistrails.core.modules.module_registry
         reg = vistrails.core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
-            execution_output = []
             serializable = map_execution['serializable']
-            for i in range(len(map_execution['outputs'])):
-                output = None
-                if not serializable[i]:
-                    output = map_execution['outputs'][i]
-                else:
-                    d_tuple = vistrails.core.modules.utils.parse_descriptor_string(serializable[i])
-                    d = reg.get_descriptor_by_name(*d_tuple)
-                    module_klass = d.module
-                    output = module_klass().deserialize(map_execution['outputs'][i])
-                execution_output.append(output)
-            self.result.append(execution_output)
+            output = None
+            if not serializable:
+                output = map_execution['output']
+            else:
+                d_tuple = vistrails.core.modules.utils.parse_descriptor_string(serializable)
+                d = reg.get_descriptor_by_name(*d_tuple)
+                module_klass = d.module
+                output = module_klass().deserialize(map_execution['output'])
+            self.result.append(output)
 
         # including execution logs
         for engine in range(len(map_result)):
@@ -437,7 +421,7 @@ class Map(Module, NotCacheable):
                         exec_.item_execs[i].machine_id = machine.id
                         vt_type = exec_.item_execs[i].vtType
                         if (vt_type == 'abstraction') or (vt_type == 'group'):
-                            add_machine_resursive(exec_.item_execs[i])
+                            add_machine_recursive(exec_.item_execs[i])
 
             exec_.machine_id = machine.id
             if (vtType == 'abstraction') or (vtType == 'group'):
