@@ -320,7 +320,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         Return the default search tree
 
         """
-        self.treeWidget.searchItemName(QtCore.QString(''))
+        self.treeWidget.searchItemName('')
 
     def createTreeWidget(self):
         """ createTreeWidget() -> QSearchTreeWidget

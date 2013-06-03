@@ -327,7 +327,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Parameters
         ----------
 
-        - notes : 'QtCore.QString'
+        - notes : 'string'
         
         """
         self.flush_delayed_actions()

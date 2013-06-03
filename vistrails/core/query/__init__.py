@@ -149,8 +149,7 @@ def extract_text(escaped_html_str):
     notes = xml.sax.saxutils.unescape(escaped_html_str)
     if is_running_gui():
         from PyQt4 import QtGui
-        from PyQt4.QtCore import QString
-        fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
+        fragment = QtGui.QTextDocumentFragment.fromHtml(notes)
         return str(fragment.toPlainText())
     else:
         return str(notes)

@@ -129,14 +129,14 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         if section in self.cols:
-            return QtCore.QVariant(self.headers[self.cols[section]])
-        return QtCore.QVariant()
+            return self.headers[self.cols[section]]
+        return None
     
     def data(self, index, role):
         if not index.isValid() or role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         # if index.parent().isValid():
         #     print 'data', index.row(), index.column(), index.parent().row()
         if index.parent().isValid():
@@ -151,19 +151,19 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
             # want to have the earliest created date and latest modified date
             if index.column() == self.idxs['date_created']:
                 dates = [l[index.column()] for l in id_list]
-                return QtCore.QVariant(min(dates))
+                return min(dates)
             if index.column() == self.idxs['date_modified']:
                 dates = [l[index.column()] for l in id_list]
-                return QtCore.QVariant(max(dates))
+                return max(dates)
             if index.column() == self.idxs['version'] or \
                     index.column() == self.idxs['signature'] or \
                     index.column() == self.idxs['content_hash'] or \
                     index.column() == self.idxs['user']:
-                return QtCore.QVariant()
+                return None
 
         if index.column() < len(data):
-            return QtCore.QVariant(data[index.column()])
-        return QtCore.QVariant()
+            return data[index.column()]
+        return None
     
     def parent(self, index):
         # print 'calling parent() method'

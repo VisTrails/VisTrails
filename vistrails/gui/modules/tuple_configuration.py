@@ -82,7 +82,7 @@ class PortTable(QtGui.QTableWidget):
 
     def handleDataChanged(self, topLeft, bottomRight):
         if topLeft.column()==0:
-            text = str(self.model().data(topLeft, QtCore.Qt.DisplayRole).toString())
+            text = str(self.model().data(topLeft, QtCore.Qt.DisplayRole))
             changedGeometry = False
             if text!='' and topLeft.row()==self.rowCount()-1:
                 self.setRowCount(self.rowCount()+1)
@@ -108,13 +108,13 @@ class PortTable(QtGui.QTableWidget):
             siglist = sigstring.split(':')
             short_name = "%s (%s)" % (siglist[1], siglist[0])
             model.setData(model.index(self.rowCount()-1, 1),
-                          QtCore.QVariant(sigstring),
+                          sigstring,
                           QtCore.Qt.UserRole)
             model.setData(model.index(self.rowCount()-1, 1),
-                          QtCore.QVariant(short_name),
+                          short_name,
                           QtCore.Qt.DisplayRole)
             model.setData(model.index(self.rowCount()-1, 0),
-                          QtCore.QVariant(p.name),
+                          p.name,
                           QtCore.Qt.DisplayRole)
             self.setRowCount(self.rowCount()+1)
         self.connect(self.model(),
@@ -126,9 +126,9 @@ class PortTable(QtGui.QTableWidget):
         for i in xrange(self.rowCount()):
             model = self.model()
             name = str(model.data(model.index(i, 0), 
-                                  QtCore.Qt.DisplayRole).toString())
+                                  QtCore.Qt.DisplayRole))
             sigstring = str(model.data(model.index(i, 1), 
-                                       QtCore.Qt.UserRole).toString())
+                                       QtCore.Qt.UserRole))
             if name != '' and sigstring != '':
                 ports.append((name, '(' + sigstring + ')', i))
         return ports
@@ -148,7 +148,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
             combo.setInsertPolicy(QtGui.QComboBox.NoInsert)
             def validateInput():
                 invalid = (combo.currentIndex() == -1 or
-                           combo.itemData(combo.currentIndex()) == QtCore.QVariant(''))
+                           combo.itemData(combo.currentIndex()) == '')
                 if invalid and validateInput.lastGoodIndex != -1:
                     combo.setCurrentIndex(validateInput.lastGoodIndex)
                 elif invalid:
@@ -164,7 +164,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                 get_vistrails_basic_pkg_id(), 'Variant')
             for _, pkg in sorted(registry.packages.iteritems()):
                 pkg_item = QtGui.QStandardItem("----- %s -----" % pkg.name)
-                pkg_item.setData(QtCore.QVariant(''), QtCore.Qt.UserRole)
+                pkg_item.setData('', QtCore.Qt.UserRole)
                 pkg_item.setFlags(pkg_item.flags() & ~(
                         QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable))
                 font = pkg_item.font()
@@ -176,7 +176,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                         variant_index = combo.count()
                     combo.addItem("%s (%s)" % (descriptor.name,
                                                descriptor.identifier),
-                                  QtCore.QVariant(descriptor.sigstring))
+                                  descriptor.sigstring)
 
             combo.setCurrentIndex(variant_index)
             validateInput.lastGoodIndex = variant_index
@@ -195,7 +195,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
         if index.column()==1:
             model.setData(index, editor.itemData(editor.currentIndex()), 
                           QtCore.Qt.UserRole)
-            model.setData(index, QtCore.QVariant(editor.currentText()), 
+            model.setData(index, editor.currentText(), 
                           QtCore.Qt.DisplayRole)
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
@@ -374,7 +374,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         # Then add a PortTable to our configuration widget
         self.portTable = PortTable(self)
         self.portTable.setHorizontalHeaderLabels(
-            QtCore.QStringList() << 'Input Port Name' << 'Type')
+            ['Input Port Name', 'Type'])
         
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
@@ -483,7 +483,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         # Then add a PortTable to our configuration widget
         self.portTable = PortTable(self)
         self.portTable.setHorizontalHeaderLabels(
-            QtCore.QStringList() << 'Output Port Name' << 'Type')
+            ['Output Port Name', 'Type'])
         
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports

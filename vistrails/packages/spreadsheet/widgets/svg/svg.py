@@ -176,9 +176,9 @@ class SVGSaveAction(QtGui.QAction):
                                                "SVG (*.svg);;PDF files (*.pdf)")
         if not fn:
             return
-        if fn.endsWith(QtCore.QString("svg"), QtCore.Qt.CaseInsensitive):
+        if fn.endsWith("svg", QtCore.Qt.CaseInsensitive):
             cellWidget.dumpToFile(str(fn))
-        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+        elif fn.endsWith("pdf", QtCore.Qt.CaseInsensitive):
             cellWidget.saveToPDF(str(fn))
         
 class SVGToolBar(QCellToolBar):

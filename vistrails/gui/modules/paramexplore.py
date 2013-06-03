@@ -123,7 +123,7 @@ class QParameterEditor(QtGui.QWidget):
         stacked widget
         
         """
-        widgetIdx = action.data().toInt()[0]
+        widgetIdx = action.data()[0]
         if widgetIdx<self.stackedEditors.count():
             self.stackedEditors.setCurrentIndex(widgetIdx)
 
@@ -157,7 +157,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
         
-        self.setText(QtCore.QString(QtCore.QChar(0x25bc))) # Down triangle
+        self.setText(QtCore.QChar(0x25bc)) # Down triangle
 
         self.actionGroup = QtGui.QActionGroup(self)
 
@@ -169,7 +169,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         aId = 0
         for action in self.actionGroup.actions():
             action.setCheckable(True)
-            action.setData(QtCore.QVariant(aId))
+            action.setData(aId)
             aId += 1
 
         menu = QtGui.QMenu(self)
@@ -440,7 +440,7 @@ class QListEditDialog(QtGui.QDialog):
         vLayout.addWidget(label)
 
         self.table = QtGui.QTableWidget(0, 1, parent)
-        self.table.setHorizontalHeaderLabels(QtCore.QStringList('Values'))
+        self.table.setHorizontalHeaderLabels(['Values'])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setMovable(True)
         self.table.verticalHeader().setResizeMode(
@@ -519,9 +519,9 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         vHeader = self.table.verticalHeader()
-        labels = QtCore.QStringList()        
+        labels = []        
         for i in xrange(self.table.rowCount()):
-            labels << str(vHeader.visualIndex(i)+1)
+            labels.append(str(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 
     def addRow(self, text=None):
@@ -577,7 +577,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Set the editor to reflects data at index
         
         """
-        editor.setText(index.data().toString())
+        editor.setText(index.data())
         editor.selectAll()
 
     def updateEditorGeometry(self, editor, option, index):
@@ -596,7 +596,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        model.setData(index, QtCore.QVariant(editor.text()))        
+        model.setData(index, editor.text())
         self.editor = None
 
     def finishEditing(self):

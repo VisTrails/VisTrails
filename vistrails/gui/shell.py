@@ -459,7 +459,7 @@ class QShell(QtGui.QTextEdit):
         self.interpreter = InteractiveInterpreter(locals)
  
         # last line + last incomplete lines
-        self.line    = QtCore.QString()
+        self.line    = ''
         self.lines   = []
         # the cursor position in the last line
         self.point   = 0
@@ -568,7 +568,7 @@ class QShell(QtGui.QTextEdit):
         # self.set_controller()
         should_scroll = self.scroll_bar_at_bottom()
         self.pointer = 0
-        self.history.append(QtCore.QString(self.line))
+        self.history.append(self.line)
         self.lines.append(str(self.line))
         source = '\n'.join(self.lines)
         self.write('\n')

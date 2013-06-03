@@ -396,12 +396,12 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             return None
         
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: value) -> value
         Do not allow port to be selected
 
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
-            return QtCore.QVariant(False)
+        if change==QtGui.QGraphicsItem.ItemSelectedChange and value:
+            return False
         return QtGui.QAbstractGraphicsShapeItem.itemChange(self, change, value)
 
 ##############################################################################
@@ -904,7 +904,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         return path
 
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: value) -> value
         If modules are selected, only allow connections between 
         selected modules 
 
@@ -925,13 +925,13 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
                 # modules to be deselected
                 if (self.connectingModules[0].isSelected() and
                     self.connectingModules[1].isSelected()):
-                    if not value.toBool():
-                        return QtCore.QVariant(True)
+                    if not value:
+                        return True
                 # Don't allow a connection to be selected if
                 # it is not between selected modules
                 else:
-                    if value.toBool():
-                        return QtCore.QVariant(False)
+                    if value:
+                        return False
         self.useSelectionRules = True
         return QtGui.QGraphicsPathItem.itemChange(self, change, value)    
 
@@ -1692,7 +1692,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 yield (item, True)
 
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: value) -> value
         Capture move event to also move the connections.  Also unselect any
         connections between unselected modules
         
@@ -1701,7 +1701,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if change==QtGui.QGraphicsItem.ItemPositionChange and \
                 self.handlePositionChanges:
             oldPos = self.pos()
-            newPos = value.toPointF()
+            newPos = value
             dis = newPos - oldPos
             for connectionItem, s in self.dependingConnectionItemsWithDir():
                 # If both modules are selected, both of them will
@@ -1745,7 +1745,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             for item in self.dependingConnectionItems().itervalues():
                 # Select any connections between self and other selected modules
                 (srcModule, dstModule) = item.connectingModules
-                if value.toBool():
+                if value:
                     if (srcModule==self and dstModule.isSelected() or
                         dstModule==self and srcModule.isSelected()):
                         # Because we are setting a state variable in the

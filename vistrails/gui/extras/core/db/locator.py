@@ -200,8 +200,8 @@ def get_autosave_prompt(parent):
     
     """
     result = QtGui.QMessageBox.question(parent, 
-                                        QtCore.QString("AutoSave"),
-                                        QtCore.QString("Autosave data has been found.\nDo you want to open autosave data?"),
+                                        "AutoSave",
+                                        "Autosave data has been found.\nDo you want to open autosave data?",
                                         QtGui.QMessageBox.Open,
                                         QtGui.QMessageBox.Ignore)
     return result == QtGui.QMessageBox.Open

@@ -188,7 +188,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
         package_item = \
-            QPackageTreeWidgetItem(None, QtCore.QStringList(package_name))
+            QPackageTreeWidgetItem(None, [package_name])
         self.packages[package_identifier] = weakref.ref(package_item)
         if prepend:
             self.treeWidget.insertTopLevelItem(0, package_item)
@@ -222,7 +222,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
                     package_item.get_namespace(namespace.split('|'))
 
             item = QModuleTreeWidgetItem(descriptor, parent_item,
-                                         QtCore.QStringList(descriptor.name))
+                                         [descriptor.name])
             if descriptor.is_hidden:
                 item.setHidden(True)
         if recurse:
@@ -400,7 +400,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                     r.height())
             text = option.fontMetrics.elidedText(
                 model.data(index,
-                           QtCore.Qt.DisplayRole).toString(),
+                           QtCore.Qt.DisplayRole),
                 QtCore.Qt.ElideMiddle,
                 textrect.width())
             style.drawItemText(painter,
@@ -432,7 +432,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         """ QModuleTreeWidgetItem(descriptor: ModuleDescriptor
                                     (or None for top-level),
                                   parent: QTreeWidgetItem
-                                  labelList: QStringList)
+                                  labelList: string)
                                   -> QModuleTreeWidget                                  
         Create a new tree widget item with a specific parent and
         labels
@@ -518,8 +518,7 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
         if namespace_item in self.namespaces and self.namespaces[namespace_item]():
             item = self.namespaces[namespace_item]()
         else:
-            item = QNamespaceTreeWidgetItem(self,
-                                            QtCore.QStringList(namespace_item))
+            item = QNamespaceTreeWidgetItem(self, [namespace_item])
             self.namespaces[namespace_item] = weakref.ref(item)
         return item.get_namespace(namespace_items)
 

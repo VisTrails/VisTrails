@@ -271,10 +271,10 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         Update vertical labels when the number of row changed
         
         """
-        vLabels = QtCore.QStringList()
+        vLabels = []
         vIdx = self.verticalHeader().visualIndex
         for i in xrange(newCount):
-            vLabels << str(vIdx(i)+1)
+            vLabels.append(str(vIdx(i)+1))
         self.setVerticalHeaderLabels(vLabels)
         self.updateHeaderStatus()
 
@@ -290,10 +290,10 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         Update horizontal labels when the number of column changed
         
         """
-        hLabels = QtCore.QStringList()
+        hLabels = []
         vIdx = self.horizontalHeader().visualIndex
         for i in xrange(newCount):
-            hLabels << chr(vIdx(i)+ord('A'))
+            hLabels.append(chr(vIdx(i)+ord('A')))
         self.setHorizontalHeaderLabels(hLabels)
         self.updateHeaderStatus()
         

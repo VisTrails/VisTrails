@@ -115,7 +115,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         # use current version
         self.figure_type = QtGui.QComboBox()
         self.figure_type.setEditable(False)
-        # items = QtCore.QStringList()
+        # items = []
         # items << "Workflow Results" << "Workflow Graph" << "History Tree Graph";
         self.figure_type.addItems(["Workflow Results", "Workflow Graph",
                                    "Version Tree"])
@@ -453,15 +453,13 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         label1 = QtGui.QLabel("Embed:")
         self.cbcontent = QtGui.QComboBox()
         self.cbcontent.setEditable(False)
-        items = QtCore.QStringList()
-        items << "Workflow Results" << "Workflow Graph" << "History Tree Graph";
+        items = ["Workflow Results", "Workflow Graph", "History Tree Graph"];
         self.cbcontent.addItems(items)
         label2 = QtGui.QLabel("In:")
         
         self.cbtype = QtGui.QComboBox()
         self.cbtype.setEditable(False)
-        items = QtCore.QStringList()
-        items << "Wiki" << "Latex" << "Shared Memory";
+        items = ["Wiki", "Latex", "Shared Memory"];
         self.cbtype.addItems(items)
         
         self.controller = None
@@ -749,13 +747,16 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     def updateCbtype(self, type):
         currentText = self.cbtype.currentText()
         self.cbtype.clear()
-        items = QtCore.QStringList()
+        items = []
         if type == 'db':
-            items << "Wiki" << "Latex" << "Shared Memory";
+            items = ["Wiki", "Latex", "Shared Memory"]
         elif type == 'file':
-            items << "Latex";
+            items = ["Latex"]
         self.cbtype.addItems(items)
-        index = items.indexOf(currentText)
+        try:
+            index = items.index(currentText)
+        except ValueError:
+            index = -1
         if index > 0:
             self.cbtype.setCurrentIndex(index)
         text = str(self.cbtype.currentText())

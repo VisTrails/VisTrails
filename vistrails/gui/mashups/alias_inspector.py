@@ -333,7 +333,7 @@ Please type a unique name. """ % new_alias)
             wtype = self.alias.component.widget
             if wtype == 'text':
                 wtype = "combobox"
-            index = self.dw_combobox.findText(QtCore.QString(wtype))
+            index = self.dw_combobox.findText(wtype)
             if index < 0:
                 index = 0
             self.dw_combobox.setCurrentIndex(index)
@@ -563,7 +563,7 @@ class QListEditDialog(QtGui.QDialog):
         vLayout.addWidget(label)
 
         self.table = QtGui.QTableWidget(0, 1, parent)
-        self.table.setHorizontalHeaderLabels(QtCore.QStringList('Values'))
+        self.table.setHorizontalHeaderLabels(['Values'])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setMovable(True)
         
@@ -642,9 +642,9 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         vHeader = self.table.verticalHeader()
-        labels = QtCore.QStringList()        
+        labels = []        
         for i in xrange(self.table.rowCount()):
-            labels << str(vHeader.visualIndex(i)+1)
+            labels.append(str(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 
     def addRow(self, text=''):
@@ -726,7 +726,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        model.setData(index, QtCore.QVariant(editor.contents()))        
+        model.setData(index, editor.contents())        
         self.editor = None
 
     def finishEditing(self):

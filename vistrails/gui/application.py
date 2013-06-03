@@ -569,7 +569,7 @@ parameters from other instances")
             local_socket = self.local_server.nextPendingConnection()
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return
             byte_array = local_socket.readAll()
             self.temp_db_options = None

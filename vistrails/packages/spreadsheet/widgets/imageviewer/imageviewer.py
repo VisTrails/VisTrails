@@ -212,9 +212,9 @@ class ImageViewerSaveAction(QtGui.QAction):
                                                "Images (*.png);;PDF files (*.pdf)")
         if not fn:
             return
-        if fn.endsWith(QtCore.QString("png"), QtCore.Qt.CaseInsensitive):
+        if fn.endsWith("png", QtCore.Qt.CaseInsensitive):
             cellWidget.label.pixmap().toImage().save(fn, "png")
-        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+        elif fn.endsWith("pdf", QtCore.Qt.CaseInsensitive):
             cellWidget.saveToPDF(str(fn))
         
 
