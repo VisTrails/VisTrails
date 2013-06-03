@@ -390,7 +390,37 @@ class EngineManager(object):
                "controller running" if ctrl else "no controller",
                engines))
 
-        if engines > 0:
+        hub_shutdown = False
+
+        if ctrl:
+            if qt_available:
+                res = QtGui.QMessageBox.question(
+                        None,
+                        "Shutdown controller",
+                        "The controller is still running. Do you want to stop "
+                        "it?",
+                        QtGui.QMessageBox.Yes,
+                        QtGui.QMessageBox.No)
+                res = res != QtGui.QMessageBox.No
+            else:
+                res = True
+            if res:
+                if self._client is not None:
+                    self._client.shutdown(
+                            targets='all',
+                            restart=False,
+                            hub=True,
+                            block=False)
+                    hub_shutdown = True
+                    print "parallelflow: requested hub shutdown"
+                else:
+                    if self.started_controller.poll() is not None:
+                        self.started_controller.terminate()
+                        self.started_controller.wait()
+                        self.started_controller = None
+                    print "parallelflow: controller terminated"
+
+        if engines > 0 and not hub_shutdown:
             if qt_available:
                 if self._client is not None:
                     total = " (among %d total)" % len(self._client.ids)
@@ -410,29 +440,12 @@ class EngineManager(object):
                 res = True
             if res:
                 for engine in self.started_engines:
-                    engine.terminate()
-                    engine.wait()
+                    if engine.poll() is not None:
+                        engine.terminate()
+                        engine.wait()
                 print ("parallelflow: %d engines terminated" %
                        len(self.started_engines))
-                self.started_engines = set()
-
-        if ctrl:
-            if qt_available:
-                res = QtGui.QMessageBox.question(
-                        None,
-                        "Shutdown controller",
-                        "The controller is still running. Do you want to stop "
-                        "it?",
-                        QtGui.QMessageBox.Yes,
-                        QtGui.QMessageBox.No)
-                res = res != QtGui.QMessageBox.No
-            else:
-                res = True
-            if res:
-                self.started_controller.terminate()
-                self.started_controller.wait()
-                self.started_controller = None
-                print "parallelflow: controller terminated"
+            self.started_engines = set()
 
         if self._client is not None:
             print "parallelflow: closing client"
