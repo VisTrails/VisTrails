@@ -268,6 +268,12 @@ class CSVLoader(FileVariableLoader):
         if selected:
             selected = selected[0]
             self._selected_column = selected.leftColumn()
+            if (self._selected_column > self._table.columnCount() or
+                    self._selected_column > len(self._column_names)):
+                self._selected_column = None
+                self._table.setSelection(QtCore.QRect(),
+                                         QtGui.QItemSelectionModel.Clear)
+                return
             if self._column_names is not None:
                 column = derive_varname(
                         self._column_names[self._selected_column])
