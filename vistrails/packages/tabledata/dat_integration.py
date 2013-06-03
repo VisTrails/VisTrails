@@ -198,11 +198,18 @@ class CSVLoader(FileVariableLoader):
             if len(text) == 1:
                 self._delimiter = str(text)
                 self.read_file()
+            self._delimiter_tab_button.setEnabled(text != '\t')
         self.connect(
                 self._delimiter_input,
                 QtCore.SIGNAL('textChanged(QString)'),
                 delimiter_cb)
-        options.addRow(_("Column separator:"), self._delimiter_input)
+        delimiter_right = QtGui.QHBoxLayout()
+        delimiter_right.addWidget(self._delimiter_input)
+        self._delimiter_tab_button = QtGui.QPushButton("Use tab")
+        self.connect(self._delimiter_tab_button, QtCore.SIGNAL('clicked()'),
+                     lambda: self._delimiter_input.setText('\t'))
+        delimiter_right.addWidget(self._delimiter_tab_button)
+        options.addRow(_("Column separator:"), delimiter_right)
 
         # numeric, checked by default
         self._numeric_checkbox = QtGui.QCheckBox()
