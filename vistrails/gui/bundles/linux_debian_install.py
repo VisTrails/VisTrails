@@ -53,6 +53,9 @@ if __name__ != '__main__':
 package_name = sys.argv[1]
 
 
+apt_pkg.init()
+
+
 cache = apt_pkg.Cache(apt.progress.text.OpProgress())
 
 try:
@@ -198,8 +201,8 @@ class Window(QtGui.QWidget):
 
     def installation_over(self):
         self.status_label.setText("Success, exiting...")
-        print "Success, exiting..."
-        QtCore.QTimer.singleShot(1000, QtGui.qApp, QtCore.SLOT("quit()"))
+        print "Installation successful, back to VisTrails..."
+        QtCore.QTimer.singleShot(4000, QtGui.qApp, QtCore.SLOT("quit()"))
 
 
 app = QtGui.QApplication(sys.argv)
