@@ -541,7 +541,7 @@ class DateConversionWizard(OperationWizard):
             self._input_sample.setItem(row, 0, item)
 
         if isinstance(value, numpy.ndarray):
-            if not value:
+            if len(value) == 0: # not value doesn't work on numpy arrays
                 self.set_error(_("This variable is an empty array"))
                 return
             self.set_input_formats(self.TIMESTAMP, self.MATPLOTLIB,
