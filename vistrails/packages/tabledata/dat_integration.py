@@ -257,6 +257,8 @@ class CSVLoader(FileVariableLoader):
                 font = item.font()
                 font.setBold(True)
                 item.setFont(font)
+                item.setFlags(QtCore.Qt.ItemIsEnabled |
+                              QtCore.Qt.ItemIsSelectable)
                 self._table.setItem(0, col, item)
         with open(self._filename, 'rb') as fp:
             if self._header_present:
@@ -266,6 +268,8 @@ class CSVLoader(FileVariableLoader):
                 line = line.split(self._delimiter)
                 for col in xrange(min(column_count, len(line))):
                     item = QtGui.QTableWidgetItem(line[col])
+                    item.setFlags(QtCore.Qt.ItemIsEnabled |
+                                  QtCore.Qt.ItemIsSelectable)
                     self._table.setItem(row, col, item)
 
         self._table.clearSelection()
@@ -364,7 +368,6 @@ class DateConversionWizard(OperationWizard):
                 self._input_fmt_changed)
         grid.addWidget(self._input_format, 1, 0)
         self._input_sample = QtGui.QTableWidget(0, 1)
-        self._input_sample.setEnabled(False)
         self._input_sample.horizontalHeader().hide()
         grid.addWidget(self._input_sample, 2, 0)
 
@@ -376,7 +379,6 @@ class DateConversionWizard(OperationWizard):
                 self._output_fmt_changed)
         grid.addWidget(self._output_format, 1, 1)
         self._output_sample = QtGui.QTableWidget(0, 1)
-        self._output_sample.setEnabled(False)
         self._output_sample.horizontalHeader().hide()
         grid.addWidget(self._output_sample, 2, 1)
 
@@ -385,9 +387,17 @@ class DateConversionWizard(OperationWizard):
         params = QtGui.QFormLayout()
         self._format = QtGui.QLineEdit()
         self._format.setPlaceholderText('%Y-%m-%d %H:%M:%S')
+        self.connect(
+                self._format,
+                QtCore.SIGNAL('textChanged(const QString&)'),
+                self._output_fmt_changed)
         params.addRow(_("Date format:"), self._format)
         self._timezone = QtGui.QLineEdit()
         self._timezone.setPlaceholderText('UTC')
+        self.connect(
+                self._timezone,
+                QtCore.SIGNAL('textChanged(const QString&)'),
+                self._output_fmt_changed)
         params.addRow(_("Timezone:"), self._timezone)
 
         layout.addLayout(params)
@@ -402,8 +412,9 @@ class DateConversionWizard(OperationWizard):
             self._output_format.addItem(self.item_string[ofmt], ofmt)
         self._output_fmt_changed(self._output_format.currentIndex())
 
-    def _output_fmt_changed(self, idx):
+    def _output_fmt_changed(self, *args):
         self._output_sample.clear()
+        idx = self._output_format.currentIndex()
         if idx == -1 or self._sample is None:
             return
 
@@ -412,27 +423,37 @@ class DateConversionWizard(OperationWizard):
         ofmt, success = self._output_format.itemData(idx).toInt()
 
         if ifmt == self.TIMESTAMP and ofmt == self.DATETIME:
+            self._format.setEnabled(False)
+            self._timezone.setEnabled(False)
             output = TimestampsToDates.convert(self._sample)
         elif ifmt == self.TIMESTAMP and ofmt == self.MATPLOTLIB:
+            self._format.setEnabled(False)
+            self._timezone.setEnabled(False)
             output = TimestampsToMatplotlib.convert(self._sample)
         elif ifmt == self.DATESTRING and ofmt == self.DATETIME:
+            self._format.setEnabled(True)
+            self._timezone.setEnabled(True)
             output = StringsToDates.convert(
                     self._sample,
                     unicode(self._format.text()),
                     unicode(self._timezone.text()))
         elif ifmt == self.DATESTRING and ofmt == self.MATPLOTLIB:
+            self._format.setEnabled(True)
+            self._timezone.setEnabled(True)
             output = StringsToMatplotlib.convert(
                     self._sample,
                     unicode(self._format.text()),
                     unicode(self._timezone.text()))
         elif ifmt == self.DATETIME and ofmt == self.MATPLOTLIB:
+            self._format.setEnabled(False)
+            self._timezone.setEnabled(False)
             output = DatesToMatplotlib.convert(self._sample)
         else:
             assert False
-
         self._output_sample.setRowCount(len(output))
         for row, v in enumerate(output):
             item = QtGui.QTableWidgetItem(unicode(v))
+            item.setFlags(QtCore.Qt.ItemIsEnabled)
             self._output_sample.setItem(row, 0, item)
 
     def make_operation(self, target_var_name):
@@ -446,7 +467,7 @@ class DateConversionWizard(OperationWizard):
         # Keyword-only
         default = kwargs.pop('default', None)
         if kwargs:
-            raise TypeError("Unexpected keyword ar")
+            raise TypeError("Unexpected keyword argument")
 
         self._input_format.setEnabled(True)
         self._input_format.clear()
@@ -457,11 +478,6 @@ class DateConversionWizard(OperationWizard):
                 default_index = i
         if default_index != -1:
             self._input_format.setCurrentIndex(default_index)
-
-    def set_error(self, message):
-        self._input_format.clear()
-        self._input_format.setEnabled(False)
-        super(DateConversionWizard, self).set_error(message)
 
     def variable_selected(self, variable):
         try:
@@ -482,9 +498,13 @@ class DateConversionWizard(OperationWizard):
         self._input_sample.setRowCount(cols)
         for row, v in enumerate(self._sample):
             item = QtGui.QTableWidgetItem(unicode(v))
+            item.setFlags(QtCore.Qt.ItemIsEnabled)
             self._input_sample.setItem(row, 0, item)
 
         if isinstance(value, numpy.ndarray):
+            if not value:
+                self.set_error(_("This variable is an empty array"))
+                return
             self.set_input_formats(self.TIMESTAMP, self.MATPLOTLIB,
                                    default=self.TIMESTAMP)
         else: # isinstance(value, list)
@@ -493,9 +513,11 @@ class DateConversionWizard(OperationWizard):
                 return
             first_item = value[0]
             if isinstance(first_item, basestring):
-                self.set_input_formats(self.TIMESTAMP)
+                self.set_input_formats(self.DATESTRING)
             elif isinstance(first_item, datetime.datetime):
                 self.set_input_formats(self.DATETIME)
+            elif isinstance(first_item, (float, int, long)):
+                self.set_input_formats(self.TIMESTAMP, self.MATPLOTLIB)
 
 
 _variable_operations = [
