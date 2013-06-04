@@ -164,10 +164,7 @@ class StringsToDates(Module):
     @staticmethod
     def convert(strings, fmt, tz):
         if tz:
-            try:
-                tz = make_timezone(tz)
-            except ValueError, e:
-                raise ModuleError(self, e.message)
+            tz = make_timezone(tz) # Might raise ValueError
         else:
             tz = None
 
