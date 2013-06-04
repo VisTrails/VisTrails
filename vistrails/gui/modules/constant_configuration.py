@@ -284,7 +284,10 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
             raise Exception("Must pass param as first argument.")
         if param.port_spec_item and param.port_spec_item.entry_type and \
                 param.port_spec_item.entry_type.startswith("enum"):
-            return StandardConstantEnumWidget.__new__(StandardConstantEnumWidget, *args, **kwargs)
+            # StandardConstantEnumWidget is not related to StringWidget, so
+            # we have to call __init__ as well before returning
+            # That's why there's no __new__ here
+            return StandardConstantEnumWidget(*args, **kwargs)
         return QtGui.QWidget.__new__(cls, *args, **kwargs)
 
     def __init__(self, param, parent=None):
