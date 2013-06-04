@@ -921,4 +921,165 @@
       <port id="59" moduleId="1" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="destination" />
     </add>
   </action>
+  <action date="2013-06-04 16:13:18" id="81" prevId="80" session="18" user="Remi">
+    <add id="300" objectId="28" parentObjId="5" parentObjType="module" what="function">
+      <function id="28" name="alpha" pos="0" />
+    </add>
+    <add id="301" objectId="34" parentObjId="28" parentObjType="function" what="parameter">
+      <parameter alias="" id="34" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Float" val="0.8" />
+    </add>
+  </action>
+  <action date="2013-06-04 16:13:19" id="82" prevId="81" session="18" user="Remi">
+    <change id="302" newObjId="35" oldObjId="34" parentObjId="28" parentObjType="function" what="parameter">
+      <parameter alias="alpha" id="35" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Float" val="0.8" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:13:21" id="83" prevId="82" session="18" user="Remi">
+    <delete id="303" objectId="30" parentObjId="15" parentObjType="connection" what="port" />
+    <delete id="304" objectId="31" parentObjId="15" parentObjType="connection" what="port" />
+    <delete id="305" objectId="15" parentObjId="" parentObjType="" what="connection" />
+    <delete id="306" objectId="38" parentObjId="6" parentObjType="module" what="location" />
+    <delete id="307" objectId="10" parentObjId="6" parentObjType="function" what="parameter" />
+    <delete id="308" objectId="6" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="309" objectId="11" parentObjId="7" parentObjType="function" what="parameter" />
+    <delete id="310" objectId="7" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="311" objectId="12" parentObjId="8" parentObjType="function" what="parameter" />
+    <delete id="312" objectId="8" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="313" objectId="6" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-06-04 16:13:46" id="84" prevId="83" session="18" user="Remi">
+    <add id="314" objectId="29" parentObjId="5" parentObjType="module" what="function">
+      <function id="29" name="facecolor" pos="1" />
+    </add>
+    <add id="315" objectId="36" parentObjId="29" parentObjType="function" what="parameter">
+      <parameter alias="facecolor" id="36" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="1.0,1.0,1.0" />
+    </add>
+  </action>
+  <action date="2013-06-04 16:13:52" id="85" prevId="84" session="18" user="Remi">
+    <change id="316" newObjId="37" oldObjId="36" parentObjId="29" parentObjType="function" what="parameter">
+      <parameter alias="facecolor" id="37" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.223529411765,0.2,1.0" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:14:01" id="86" prevId="85" session="18" user="Remi">
+    <delete id="317" objectId="42" parentObjId="21" parentObjType="connection" what="port" />
+    <delete id="318" objectId="43" parentObjId="21" parentObjType="connection" what="port" />
+    <delete id="319" objectId="21" parentObjId="" parentObjType="" what="connection" />
+    <delete id="320" objectId="44" parentObjId="22" parentObjType="connection" what="port" />
+    <delete id="321" objectId="45" parentObjId="22" parentObjType="connection" what="port" />
+    <delete id="322" objectId="22" parentObjId="" parentObjType="" what="connection" />
+    <delete id="323" objectId="39" parentObjId="13" parentObjType="module" what="location" />
+    <delete id="324" objectId="27" parentObjId="22" parentObjType="function" what="parameter" />
+    <delete id="325" objectId="22" parentObjId="13" parentObjType="module" what="function" />
+    <delete id="326" objectId="13" parentObjId="" parentObjType="" what="module" />
+    <delete id="327" objectId="50" parentObjId="7" parentObjType="module" what="location" />
+    <delete id="328" objectId="13" parentObjId="9" parentObjType="function" what="parameter" />
+    <delete id="329" objectId="9" parentObjId="7" parentObjType="module" what="function" />
+    <delete id="330" objectId="14" parentObjId="10" parentObjType="function" what="parameter" />
+    <delete id="331" objectId="10" parentObjId="7" parentObjType="module" what="function" />
+    <delete id="332" objectId="15" parentObjId="11" parentObjType="function" what="parameter" />
+    <delete id="333" objectId="11" parentObjId="7" parentObjType="module" what="function" />
+    <delete id="334" objectId="7" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-06-04 16:14:10" id="87" prevId="86" session="18" user="Remi">
+    <delete id="335" objectId="48" parentObjId="24" parentObjType="connection" what="port" />
+    <delete id="336" objectId="49" parentObjId="24" parentObjType="connection" what="port" />
+    <delete id="337" objectId="24" parentObjId="" parentObjType="" what="connection" />
+    <delete id="338" objectId="46" parentObjId="23" parentObjType="connection" what="port" />
+    <delete id="339" objectId="47" parentObjId="23" parentObjType="connection" what="port" />
+    <delete id="340" objectId="23" parentObjId="" parentObjType="" what="connection" />
+    <delete id="341" objectId="32" parentObjId="8" parentObjType="module" what="location" />
+    <delete id="342" objectId="16" parentObjId="12" parentObjType="function" what="parameter" />
+    <delete id="343" objectId="12" parentObjId="8" parentObjType="module" what="function" />
+    <delete id="344" objectId="17" parentObjId="13" parentObjType="function" what="parameter" />
+    <delete id="345" objectId="13" parentObjId="8" parentObjType="module" what="function" />
+    <delete id="346" objectId="18" parentObjId="14" parentObjType="function" what="parameter" />
+    <delete id="347" objectId="14" parentObjId="8" parentObjType="module" what="function" />
+    <delete id="348" objectId="8" parentObjId="" parentObjType="" what="module" />
+    <delete id="349" objectId="41" parentObjId="14" parentObjType="module" what="location" />
+    <delete id="350" objectId="29" parentObjId="23" parentObjType="function" what="parameter" />
+    <delete id="351" objectId="23" parentObjId="14" parentObjType="module" what="function" />
+    <delete id="352" objectId="14" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-06-04 16:14:19" id="88" prevId="87" session="18" user="Remi">
+    <add id="353" objectId="30" parentObjId="5" parentObjType="module" what="function">
+      <function id="30" name="edgecolor" pos="2" />
+    </add>
+    <add id="354" objectId="38" parentObjId="30" parentObjType="function" what="parameter">
+      <parameter alias="" id="38" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.0,0.0,0.0" />
+    </add>
+  </action>
+  <action date="2013-06-04 16:14:20" id="89" prevId="88" session="18" user="Remi">
+    <change id="355" newObjId="39" oldObjId="38" parentObjId="30" parentObjType="function" what="parameter">
+      <parameter alias="edgecolor" id="39" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Color" val="0.0,0.0,0.0" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:14:27" id="90" prevId="89" session="18" user="Remi">
+    <change id="356" newObjId="40" oldObjId="33" parentObjId="27" parentObjType="function" what="parameter">
+      <parameter alias="" id="40" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:14:38" id="91" prevId="90" session="18" user="Remi">
+    <change id="357" newObjId="41" oldObjId="19" parentObjId="15" parentObjType="function" what="parameter">
+      <parameter alias="" id="41" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:14:39" id="92" prevId="91" session="18" user="Remi">
+    <delete id="358" objectId="50" parentObjId="25" parentObjType="connection" what="port" />
+    <delete id="359" objectId="51" parentObjId="25" parentObjType="connection" what="port" />
+    <delete id="360" objectId="25" parentObjId="" parentObjType="" what="connection" />
+    <delete id="361" objectId="54" parentObjId="27" parentObjType="connection" what="port" />
+    <delete id="362" objectId="55" parentObjId="27" parentObjType="connection" what="port" />
+    <delete id="363" objectId="27" parentObjId="" parentObjType="" what="connection" />
+    <delete id="364" objectId="52" parentObjId="18" parentObjType="module" what="location" />
+    <delete id="365" objectId="40" parentObjId="27" parentObjType="function" what="parameter" />
+    <delete id="366" objectId="27" parentObjId="18" parentObjType="module" what="function" />
+    <delete id="367" objectId="18" parentObjId="" parentObjType="" what="module" />
+    <delete id="368" objectId="11" parentObjId="4" parentObjType="module" what="location" />
+    <delete id="369" objectId="41" parentObjId="15" parentObjType="function" what="parameter" />
+    <delete id="370" objectId="15" parentObjId="4" parentObjType="module" what="function" />
+    <delete id="371" objectId="20" parentObjId="16" parentObjType="function" what="parameter" />
+    <delete id="372" objectId="16" parentObjId="4" parentObjType="module" what="function" />
+    <delete id="373" objectId="21" parentObjId="17" parentObjType="function" what="parameter" />
+    <delete id="374" objectId="17" parentObjId="4" parentObjType="module" what="function" />
+    <delete id="375" objectId="4" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-06-04 16:14:52" id="93" prevId="92" session="18" user="Remi">
+    <add id="376" objectId="31" parentObjId="19" parentObjType="module" what="function">
+      <function id="31" name="bins" pos="0" />
+    </add>
+    <add id="377" objectId="42" parentObjId="31" parentObjType="function" what="parameter">
+      <parameter alias="" id="42" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="100" />
+    </add>
+  </action>
+  <action date="2013-06-04 16:14:53" id="94" prevId="93" session="18" user="Remi">
+    <change id="378" newObjId="43" oldObjId="42" parentObjId="31" parentObjType="function" what="parameter">
+      <parameter alias="bins" id="43" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="100" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:14:57" id="95" prevId="94" session="18" user="Remi">
+    <change id="379" newObjId="44" oldObjId="43" parentObjId="31" parentObjType="function" what="parameter">
+      <parameter alias="bins" id="44" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="10" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:15:26" id="96" prevId="95" session="18" user="Remi">
+    <add id="380" objectId="32" parentObjId="17" parentObjType="module" what="function">
+      <function id="32" name="text" pos="0" />
+    </add>
+    <add id="381" objectId="45" parentObjId="32" parentObjType="function" what="parameter">
+      <parameter alias="title" id="45" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="" />
+    </add>
+  </action>
+  <action date="2013-06-04 16:15:28" id="97" prevId="96" session="18" user="Remi">
+    <delete id="382" objectId="39" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="383" objectId="38" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="384" objectId="19" parentObjId="" parentObjType="" what="connection" />
+    <delete id="385" objectId="47" parentObjId="15" parentObjType="module" what="location" />
+    <delete id="386" objectId="30" parentObjId="24" parentObjType="function" what="parameter" />
+    <delete id="387" objectId="24" parentObjId="15" parentObjType="module" what="function" />
+    <delete id="388" objectId="31" parentObjId="25" parentObjType="function" what="parameter" />
+    <delete id="389" objectId="25" parentObjId="15" parentObjType="module" what="function" />
+    <delete id="390" objectId="32" parentObjId="26" parentObjType="function" what="parameter" />
+    <delete id="391" objectId="26" parentObjId="15" parentObjType="module" what="function" />
+    <delete id="392" objectId="15" parentObjId="" parentObjType="" what="module" />
+  </action>
 </vistrail>

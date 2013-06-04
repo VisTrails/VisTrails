@@ -191,4 +191,30 @@
       <port id="11" moduleId="1" moduleName="MplFigure" name="axesProperties" signature="(org.vistrails.vistrails.matplotlib:MplAxesProperties)" type="destination" />
     </add>
   </action>
+  <action date="2013-06-04 16:57:19" id="14" prevId="13" session="6" user="Remi">
+    <change id="56" newObjId="10" oldObjId="9" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="" />
+    </change>
+  </action>
+  <action date="2013-06-04 16:57:20" id="15" prevId="14" session="6" user="Remi">
+    <delete id="57" objectId="9" parentObjId="4" parentObjType="connection" what="port" />
+    <delete id="58" objectId="8" parentObjId="4" parentObjType="connection" what="port" />
+    <delete id="59" objectId="4" parentObjId="" parentObjType="" what="connection" />
+    <delete id="60" objectId="8" parentObjId="4" parentObjType="module" what="location" />
+    <delete id="61" objectId="7" parentObjId="5" parentObjType="function" what="parameter" />
+    <delete id="62" objectId="5" parentObjId="4" parentObjType="module" what="function" />
+    <delete id="63" objectId="8" parentObjId="6" parentObjType="function" what="parameter" />
+    <delete id="64" objectId="6" parentObjId="4" parentObjType="module" what="function" />
+    <delete id="65" objectId="10" parentObjId="7" parentObjType="function" what="parameter" />
+    <delete id="66" objectId="7" parentObjId="4" parentObjType="module" what="function" />
+    <delete id="67" objectId="4" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2013-06-04 16:57:23" id="16" prevId="15" session="6" user="Remi">
+    <add id="68" objectId="8" parentObjId="6" parentObjType="module" what="function">
+      <function id="8" name="text" pos="0" />
+    </add>
+    <add id="69" objectId="11" parentObjId="8" parentObjType="function" what="parameter">
+      <parameter alias="title" id="11" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="" />
+    </add>
+  </action>
 </vistrail>
