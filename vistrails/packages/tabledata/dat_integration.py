@@ -1,6 +1,7 @@
 import datetime
 import numpy
 import sys
+import traceback
 
 from PyQt4 import QtCore, QtGui
 
@@ -422,39 +423,46 @@ class DateConversionWizard(OperationWizard):
                 self._input_format.currentIndex()).toInt()
         ofmt, success = self._output_format.itemData(idx).toInt()
 
-        if ifmt == self.TIMESTAMP and ofmt == self.DATETIME:
-            self._format.setEnabled(False)
-            self._timezone.setEnabled(False)
-            output = TimestampsToDates.convert(self._sample)
-        elif ifmt == self.TIMESTAMP and ofmt == self.MATPLOTLIB:
-            self._format.setEnabled(False)
-            self._timezone.setEnabled(False)
-            output = TimestampsToMatplotlib.convert(self._sample)
-        elif ifmt == self.DATESTRING and ofmt == self.DATETIME:
-            self._format.setEnabled(True)
-            self._timezone.setEnabled(True)
-            output = StringsToDates.convert(
-                    self._sample,
-                    unicode(self._format.text()),
-                    unicode(self._timezone.text()))
-        elif ifmt == self.DATESTRING and ofmt == self.MATPLOTLIB:
-            self._format.setEnabled(True)
-            self._timezone.setEnabled(True)
-            output = StringsToMatplotlib.convert(
-                    self._sample,
-                    unicode(self._format.text()),
-                    unicode(self._timezone.text()))
-        elif ifmt == self.DATETIME and ofmt == self.MATPLOTLIB:
-            self._format.setEnabled(False)
-            self._timezone.setEnabled(False)
-            output = DatesToMatplotlib.convert(self._sample)
+        try:
+            if ifmt == self.TIMESTAMP and ofmt == self.DATETIME:
+                self._format.setEnabled(False)
+                self._timezone.setEnabled(False)
+                output = TimestampsToDates.convert(self._sample)
+            elif ifmt == self.TIMESTAMP and ofmt == self.MATPLOTLIB:
+                self._format.setEnabled(False)
+                self._timezone.setEnabled(False)
+                output = TimestampsToMatplotlib.convert(self._sample)
+            elif ifmt == self.DATESTRING and ofmt == self.DATETIME:
+                self._format.setEnabled(True)
+                self._timezone.setEnabled(True)
+                output = StringsToDates.convert(
+                        self._sample,
+                        unicode(self._format.text()),
+                        unicode(self._timezone.text()))
+            elif ifmt == self.DATESTRING and ofmt == self.MATPLOTLIB:
+                self._format.setEnabled(True)
+                self._timezone.setEnabled(True)
+                output = StringsToMatplotlib.convert(
+                        self._sample,
+                        unicode(self._format.text()),
+                        unicode(self._timezone.text()))
+            elif ifmt == self.DATETIME and ofmt == self.MATPLOTLIB:
+                self._format.setEnabled(False)
+                self._timezone.setEnabled(False)
+                output = DatesToMatplotlib.convert(self._sample)
+            else:
+                raise RuntimeError("This line shouldn't be reachable")
+        except Exception, e:
+            if not isinstance(e, ValueError):
+                traceback.print_exc()
+            self.set_error(e)
         else:
-            assert False
-        self._output_sample.setRowCount(len(output))
-        for row, v in enumerate(output):
-            item = QtGui.QTableWidgetItem(unicode(v))
-            item.setFlags(QtCore.Qt.ItemIsEnabled)
-            self._output_sample.setItem(row, 0, item)
+            self.set_error(None)
+            self._output_sample.setRowCount(len(output))
+            for row, v in enumerate(output):
+                item = QtGui.QTableWidgetItem(unicode(v))
+                item.setFlags(QtCore.Qt.ItemIsEnabled)
+                self._output_sample.setItem(row, 0, item)
 
     def make_operation(self, target_var_name):
         return '4 * 4' # TODO
