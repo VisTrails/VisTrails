@@ -464,8 +464,39 @@ class DateConversionWizard(OperationWizard):
                 item.setFlags(QtCore.Qt.ItemIsEnabled)
                 self._output_sample.setItem(row, 0, item)
 
-    def make_operation(self, target_var_name):
-        return '4 * 4' # TODO
+    def make_operation(self, varname):
+        ifmt, success = self._input_format.itemData(
+                self._input_format.currentIndex()).toInt()
+        idx = self._output_format.currentIndex()
+        ofmt, success = self._output_format.itemData(idx).toInt()
+
+        new_var = Variable(type=List)
+        orig_var = self.get_variable_argument()
+
+        def insert_conv(conv_mod, iport, oport):
+            mod = new_var.add_module(conv_mod)
+            orig_var.connect_to(mod, iport)
+            new_var.select_output_port(mod, oport)
+            return mod
+
+        if ifmt == self.TIMESTAMP and ofmt == self.DATETIME:
+            insert_conv(TimestampsToDates, 'timestamps', 'dates')
+        elif ifmt == self.TIMESTAMP and ofmt == self.MATPLOTLIB:
+            insert_conv(TimestampsToMatplotlib, 'timestamps', 'dates')
+        elif ifmt == self.DATESTRING and ofmt == self.DATETIME:
+            m = insert_conv(StringsToDates, 'strings', 'dates')
+            m.add_function('format', String, self._format.text())
+            m.add_function('timezone', String, self._timezone.text())
+        elif ifmt == self.DATESTRING and ofmt == self.MATPLOTLIB:
+            m = insert_conv(StringsToMatplotlib, 'strings', 'dates')
+            m.add_function('format', String, self._format.text())
+            m.add_function('timezone', String, self._timezone.text())
+        elif ifmt == self.DATETIME and ofmt == self.MATPLOTLIB:
+            insert_conv(DatesToMatplotlib, 'datetimes', 'dates')
+        else:
+            raise RuntimeError("This line shouldn't be reachable")
+
+        return new_var
 
     def variable_filter(self, variable):
         # Only show List variables on the right
