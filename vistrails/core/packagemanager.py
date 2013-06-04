@@ -391,6 +391,7 @@ Returns true if given package identifier is present."""
                 dep_name = dep[0]
             else:
                 dep_name = dep
+            dep_name = self.get_package(dep_name).identifier
 
             if not self._dependency_graph.has_edge(package.identifier,
                                                    dep_name):

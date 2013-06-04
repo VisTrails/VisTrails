@@ -33,42 +33,51 @@
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass{article}
+%% Note: shell-escape needs to be activated for this to work.
+%% This can either be done by passing -shell-escape as an option to
+%% latex or by adding/changing "shell_escape = t" in your texmf.cnf .
 
-%% This file illustrates how to embed images of vistrails published on crowdLabs.
-%% Please refer to 
-%% http://www.crowdlabs.org/site_media/static/user_docs/vistrails_usage.html 
-%% for instructions on how to publish workflows to crowdLabs.
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesPackage{crowdlabs}[2010/03/31 v0.1 crowdLabs in LaTeX]
 
-%% The crowdlabs extension requires python. If your python is not in the path,
-%% uncomment the line below and edit with the path to your python executable
-%\renewcommand{\vistrailspythonpath}{C:/Python27/python.exe}
+%% keyval package allows us to define arguments in a command as key-value pairs,
+%%  which is more convenient
 
-%% You need to enable the crowdlabs package. Make sure crowdlabs.sty is located
-%% in the same directory as the .tex file in which you want to embed the images.
+\RequirePackage{graphicx,keyval}
 
-\usepackage{crowdlabs}
+%% This is to hide the border of the included image
+\RequirePackage[pdfborder={0 0 0}]{hyperref}
 
-\begin{document}
+%% we will generate a file for passing to python
+\newwrite\pythonincludein
 
-This example shows how to embed images from workflows stored on www.crowdlabs.org.
-Please refer to \\
- http://www.crowdlabs.org/site\_media/static/user\_docs/vistrails\_usage.html
- \\
-for instructions on how to publish workflows on crowdLabs.
+%% by default we will run vistrails on the web server
+\newcommand{\vistrailspath}{http://www.crowdlabs.org/vistrails/workflows/}
 
-The images below were generated using crowdLabs. 
+%% full path to python or just python if it is on PATH
+\newcommand{\vistrailspythonpath}{python}
 
-This was using isosurfacing:\\
+%% this is for allowing line breaks, empty values in vistrails command's options
+\def\vistrail{\kernel@ifnextchar [{\@vistrail}{\@vistrail[]}}
 
-\vistrail[wfid=1043,
-buildalways=false]{width=0.45\linewidth}
+\def\@vistrail[#1]#2{%
+\immediate\openout\pythonincludein=\jobname.cmdline
+\immediate\write\pythonincludein{path=\vistrailspath}
+\setkeys{vt}{#1}
+\ifx\@empty#2\@empty
+    \immediate\write\pythonincludein{other=}
+\else
+    \immediate\write\pythonincludein{other=\string#2}
+\fi
+\immediate\closeout\pythonincludein
+\immediate\write18{"\vistrailspythonpath" includecrowdlabs.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
+\immediate\input\jobname.cmdline.out
+}
+
+%% key-value pairs for the command's options
+\define@key{vt}{wfid}{\immediate\write\pythonincludein{wfid=\string#1}}
+\define@key{vt}{buildalways}[true]{\immediate\write\pythonincludein{buildalways=\string#1}}
 
 
-\vspace{1.0cm}
-This was using volume rendering:\\
-\vistrail[wfid=1042,
-buildalways=false]{width=0.60\linewidth}
 
 
-\end{document}

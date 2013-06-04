@@ -1,6 +1,6 @@
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.basic_modules import List
+from vistrails.core.modules.basic_modules import List, String
 
 from engine_manager import EngineManager
 from map import Map
@@ -13,7 +13,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(Map, 'FunctionPort', (Module, ''))
     reg.add_input_port(Map, 'InputList', (List, ''))
     reg.add_input_port(Map, 'InputPort', (List, ''))
-    reg.add_input_port(Map, 'OutputPort', (List, ''))
+    reg.add_input_port(Map, 'OutputPort', (String, ''))
     reg.add_output_port(Map, 'Result', (List, ''))
 
 

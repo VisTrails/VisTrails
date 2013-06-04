@@ -328,6 +328,11 @@ def get_vistrail_from_file(filename):
 
 class TestAPI(vistrails.gui.utils.TestVisTrailsGUI):
 
+    def setUp(self):
+        app = vistrails.gui.application.get_vistrails_application()
+        app.builderWindow.auto_view = False
+        app.builderWindow.close_all_vistrails(True)
+
     def test_close_current_vistrail_no_vistrail(self):
         self.assertRaises(NoVistrail, lambda: get_current_vistrail_view())
 

@@ -36,7 +36,7 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(
                 os.path.abspath(__file__))), 'vistrails'))
-from db.services import io
+from vistrails.db.services import io
 from db_utils import parse_db_cmd_line
 
 def delete_from_db(config, obj_type, obj_id):

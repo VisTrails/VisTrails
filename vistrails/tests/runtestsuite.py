@@ -144,6 +144,10 @@ if v != 0:
         app.finishSession()
     sys.exit(v)
 
+# disable first vistrail
+app = vistrails.gui.application.get_vistrails_application()
+app.builderWindow.auto_view = False
+app.builderWindow.close_all_vistrails(True)
 
 print "Test Suite for VisTrails"
 

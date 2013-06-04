@@ -1251,7 +1251,11 @@ def open_vt_log_from_db(db_connection, vt_id, version=None):
         except get_db_lib().Error, e:
             debug.critical("Error getting log id:s %d: %s" % (e.args[0], e.args[1]))
     log = DBLog()
-    logs = dao_list.open_many_from_db(db_connection, DBLog.vtType, ids)
+    if hasattr(dao_list, 'open_many_from_db'): # does not exist pre 1.0.2
+        logs = dao_list.open_many_from_db(db_connection, DBLog.vtType, ids)
+    else:
+        logs = [dao_list.open_from_db(db_connection, DBLog.vtType, id) \
+                for id in ids]
     for new_log in logs:
         for workflow_exec in new_log.db_workflow_execs:
             workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)

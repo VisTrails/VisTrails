@@ -84,9 +84,11 @@ def parse_docutils_term(elt):
     accepts = ""
     for child in elt.children:
         if child.__class__ == docutils.nodes.emphasis:
-            term = parse_docutils_elt(child)[0]
-            if term.strip() != "None":
-                terms.append(term.strip())
+            term = parse_docutils_elt(child)[0].strip()
+            if term in ('True', 'False'):
+                accepts += term
+            elif term != "None":
+                terms.append(term)
         elif child.__class__ == docutils.nodes.Text:
             accepts += str(child)
         else:
@@ -996,5 +998,10 @@ def get_docutils(plot):
     print call_sigs
     
 if __name__ == '__main__':
-    run()
+    if len(sys.argv) <= 1:
+        run()
+    elif len(sys.argv) == 2:
+        run(sys.argv[1])
+    else:
+        raise TypeError("usage: python parse.py [all|artists|plots]")
     # get_docutils("axhline")

@@ -180,13 +180,16 @@ class EngineManager(object):
             p = subprocess.Popen(args)
         finally:
             os.chdir(prev_dir)
-        while True:
-            time.sleep(1)
-            if condition():
-                return p, None
-            res = p.poll()
-            if res is not None:
-                return None, res
+        if condition is None:
+            return p, None
+        else:
+            while True:
+                time.sleep(0.5)
+                if condition():
+                    return p, None
+                res = p.poll()
+                if res is not None:
+                    return None, res
 
     def start_engines(self, nb=None, prompt="Number of engines to start"):
         """Start some engines locally
@@ -214,41 +217,57 @@ class EngineManager(object):
             elif nb is None:
                 nb = 1
             print "parallelflow: about to start %d engines" % nb
-            init_engines = set(c.ids)
             if qt_available:
                 bar = QtGui.QProgressDialog(
                         "Starting engines...",
-                        "Stop",
+                        QtCore.QString(),
                         0, nb)
                 def progress(n):
                     bar.setValue(n)
-                def canceled():
-                    return bar.wasCanceled()
                 bar.show()
             else:
                 def progress(n): pass
-                def canceled(): return False
             progress(0)
+
+            init_engines = set(c.ids)
+            # Start the processes
+            starting = set()
             for i in xrange(nb):
                 proc, res = self.start_process(
-                        lambda: set(c.ids) - init_engines,
+                        None,
                         sys.executable,
                         '-m',
                         'IPython.parallel.apps.ipengineapp',
                         '--profile=%s' % self.profile)
-                if res is not None:
-                    if qt_available:
-                        QtGui.QMessageBox.critical(
-                                None,
-                                "Error",
-                                "Engine exited with code %d" % res)
-                    print ("parallelflow: engine %d/%d exited with code %d" % (
-                           i + 1, nb, res))
-                    break
-                self.started_engines.add(proc)
-                progress(i + 1)
-                if canceled():
-                    break
+                starting.add(proc)
+            # Wait for each one to either fail or connect
+            failed = []
+            connected = 0
+            while connected < len(starting):
+                connected = len(set(c.ids) - init_engines)
+                progress(len(failed) + connected)
+                time.sleep(0.5)
+                for p in list(starting):
+                    res = p.poll()
+                    if res is not None:
+                        failed.append(res)
+                        starting.remove(p)
+            if failed:
+                nb_failed = len(failed)
+                if nb_failed > 3:
+                    failed = "%s, ..." % (', '.join('%d' % f for f in failed))
+                else:
+                    failed = ', '.join('%d' % f for f in failed)
+                if qt_available:
+                    QtGui.QMessageBox.critical(
+                        None,
+                        "Error",
+                        "%d engine(s) exited with codes: %s" % (
+                        nb_failed, failed))
+                print "parallelflow: %d engine(s) exited with codes: %s" % (
+                        nb_failed, failed)
+            self.started_engines.update(starting)
+
             if qt_available:
                 bar.hide()
                 bar.deleteLater()
@@ -371,7 +390,37 @@ class EngineManager(object):
                "controller running" if ctrl else "no controller",
                engines))
 
-        if engines > 0:
+        hub_shutdown = False
+
+        if ctrl:
+            if qt_available:
+                res = QtGui.QMessageBox.question(
+                        None,
+                        "Shutdown controller",
+                        "The controller is still running. Do you want to stop "
+                        "it?",
+                        QtGui.QMessageBox.Yes,
+                        QtGui.QMessageBox.No)
+                res = res != QtGui.QMessageBox.No
+            else:
+                res = True
+            if res:
+                if self._client is not None:
+                    self._client.shutdown(
+                            targets='all',
+                            restart=False,
+                            hub=True,
+                            block=False)
+                    hub_shutdown = True
+                    print "parallelflow: requested hub shutdown"
+                else:
+                    if self.started_controller.poll() is not None:
+                        self.started_controller.terminate()
+                        self.started_controller.wait()
+                        self.started_controller = None
+                    print "parallelflow: controller terminated"
+
+        if engines > 0 and not hub_shutdown:
             if qt_available:
                 if self._client is not None:
                     total = " (among %d total)" % len(self._client.ids)
@@ -391,29 +440,12 @@ class EngineManager(object):
                 res = True
             if res:
                 for engine in self.started_engines:
-                    engine.terminate()
-                    engine.wait()
+                    if engine.poll() is not None:
+                        engine.terminate()
+                        engine.wait()
                 print ("parallelflow: %d engines terminated" %
                        len(self.started_engines))
-                self.started_engines = set()
-
-        if ctrl:
-            if qt_available:
-                res = QtGui.QMessageBox.question(
-                        None,
-                        "Shutdown controller",
-                        "The controller is still running. Do you want to stop "
-                        "it?",
-                        QtGui.QMessageBox.Yes,
-                        QtGui.QMessageBox.No)
-                res = res != QtGui.QMessageBox.No
-            else:
-                res = True
-            if res:
-                self.started_controller.terminate()
-                self.started_controller.wait()
-                self.started_controller = None
-                print "parallelflow: controller terminated"
+            self.started_engines = set()
 
         if self._client is not None:
             print "parallelflow: closing client"
