@@ -34,7 +34,7 @@
 ###############################################################################
 import sys
 sys.path.append('/vistrails/src/trunk/vistrails')
-from db.services import io
+from vistrails.db.services import io
 import MySQLdb
 
 def convert_sql_to_xml(filename, id):

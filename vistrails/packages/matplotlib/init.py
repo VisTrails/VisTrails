@@ -51,7 +51,7 @@ _modules = _base_modules + _plot_modules + _artist_modules
 
 def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
-    if reg.has_module('edu.utah.sci.vistrails.spreadsheet',
+    if reg.has_module('org.vistrails.vistrails.spreadsheet',
                       'SpreadsheetCell'):
         from figure_cell import MplFigureCell
         _modules.append(MplFigureCell)

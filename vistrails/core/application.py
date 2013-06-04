@@ -570,7 +570,7 @@ after self.init()"""
         if isinstance(version, basestring):
             try:
                 version = \
-                    self.get_controller.vistrail.get_version_number(version)
+                    self.get_controller().vistrail.get_version_number(version)
             except:
                 version = None
         return version

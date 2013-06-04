@@ -1063,6 +1063,9 @@ For backward compatibility, the form (verts, 0) is also accepted, but it is equi
       <entry_types>['enum']</entry_types>
       <values>[['FONTNAME', 'serif', 'sans-serif', 'cursive', 'fantasy', 'monospace']]</values>
     </inputPortSpec>
+    <inputPortSpec arg="x" name="x" port_type="basic:Float">
+      <docstring>Set the x position of the text</docstring>
+    </inputPortSpec>
     <inputPortSpec arg="color" name="color" port_type="basic:Color">
       <docstring>Set the foreground color of the text</docstring>
       <translations>translate_color</translations>
@@ -1095,9 +1098,6 @@ It may contain newlines (\n) or math in LaTeX syntax.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="fontproperties" name="fontproperties">
       <docstring>Set the font properties that control the text.  fp must be a :class:`matplotlib.font_manager.FontProperties` object.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="x" name="x" port_type="basic:Float">
-      <docstring>Set the x position of the text</docstring>
     </inputPortSpec>
     <inputPortSpec arg="horizontalalignment" name="horizontalalignment" port_type="basic:String">
       <docstring>Set the horizontal alignment to one of</docstring>
@@ -1531,32 +1531,17 @@ For documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_par
     respect its parent.
 
     </docstring>
-    <inputPortSpec arg="fancybox" arg_pos="24" constructor_arg="True" name="fancybox">
-      <docstring>if True, draw a frame with a round fancybox. If None, use rc</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="handlelength" arg_pos="17" constructor_arg="True" name="handlelength">
-      <docstring>the length of the legend handles</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="fancybox" arg_pos="24" constructor_arg="True" name="fancybox" />
+    <inputPortSpec arg="handlelength" arg_pos="17" constructor_arg="True" name="handlelength" />
     <inputPortSpec arg="labels" arg_pos="2" constructor_arg="True" name="labels" />
-    <inputPortSpec arg="labelspacing" arg_pos="16" constructor_arg="True" name="labelspacing">
-      <docstring>the vertical space between the legend entries</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="columnspacing" arg_pos="21" constructor_arg="True" name="columnspacing">
-      <docstring>the spacing between columns</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="handletextpad" arg_pos="19" constructor_arg="True" name="handletextpad">
-      <docstring>the pad between the legend handle and text</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="labelspacing" arg_pos="16" constructor_arg="True" name="labelspacing" />
+    <inputPortSpec arg="columnspacing" arg_pos="21" constructor_arg="True" name="columnspacing" />
+    <inputPortSpec arg="handletextpad" arg_pos="19" constructor_arg="True" name="handletextpad" />
     <inputPortSpec arg="ncol" arg_pos="22" constructor_arg="True" name="ncol" port_type="basic:Integer">
-      <docstring>number of columns</docstring>
       <defaults>['1']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="borderaxespad" arg_pos="20" constructor_arg="True" name="borderaxespad">
-      <docstring>the pad between the axes and legend border</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="loc" arg_pos="3" constructor_arg="True" name="loc">
-      <docstring>a location code</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="borderaxespad" arg_pos="20" constructor_arg="True" name="borderaxespad" />
+    <inputPortSpec arg="loc" arg_pos="3" constructor_arg="True" name="loc" />
     <inputPortSpec arg="bbox_to_anchor" name="bbox_to_anchor">
       <docstring>set the bbox that the legend will be anchored.
 
@@ -1566,17 +1551,11 @@ bbox can be a BboxBase instance, a tuple of [left, bottom, width, height] in the
       <docstring>set the legend title. Fontproperties can be optionally set with prop parameter.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="handletextsep" arg_pos="13" constructor_arg="True" name="handletextsep" />
-    <inputPortSpec arg="numpoints" arg_pos="4" constructor_arg="True" name="numpoints">
-      <docstring>the number of points in the legend for line</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="prop" arg_pos="8" constructor_arg="True" name="prop">
-      <docstring>the font property</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="numpoints" arg_pos="4" constructor_arg="True" name="numpoints" />
+    <inputPortSpec arg="prop" arg_pos="8" constructor_arg="True" name="prop" />
     <inputPortSpec arg="handles" arg_pos="1" constructor_arg="True" name="handles" />
     <inputPortSpec arg="pad" arg_pos="10" constructor_arg="True" name="pad" />
-    <inputPortSpec arg="borderpad" arg_pos="15" constructor_arg="True" name="borderpad">
-      <docstring>the fractional whitespace inside the legend border</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="borderpad" arg_pos="15" constructor_arg="True" name="borderpad" />
     <inputPortSpec arg="parent" arg_pos="0" constructor_arg="True" name="parent" />
     <inputPortSpec arg="axespad" arg_pos="14" constructor_arg="True" name="axespad" />
     <inputPortSpec arg="labelsep" arg_pos="11" constructor_arg="True" name="labelsep" />
@@ -1584,36 +1563,21 @@ bbox can be a BboxBase instance, a tuple of [left, bottom, width, height] in the
       <docstring>Set whether the legend box patch is drawn</docstring>
     </inputPortSpec>
     <inputPortSpec arg="scatterpoints" arg_pos="6" constructor_arg="True" name="scatterpoints" port_type="basic:Integer">
-      <docstring>the number of points in the legend for scatter plot</docstring>
       <defaults>['3']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="fontsize" arg_pos="9" constructor_arg="True" name="fontsize">
-      <docstring>the font size (used only if prop is not specified)</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="shadow" arg_pos="25" constructor_arg="True" name="shadow">
-      <docstring>if True, draw a shadow behind legend</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="fontsize" arg_pos="9" constructor_arg="True" name="fontsize" />
+    <inputPortSpec arg="shadow" arg_pos="25" constructor_arg="True" name="shadow" />
     <inputPortSpec arg="handler_map" arg_pos="30" constructor_arg="True" name="handler_map" />
-    <inputPortSpec arg="handleheight" arg_pos="18" constructor_arg="True" name="handleheight">
-      <docstring>the length of the legend handles</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="scatteryoffsets" arg_pos="7" constructor_arg="True" name="scatteryoffsets" port_type="basic:List">
-      <docstring>a list of yoffsets for scatter symbols in legend</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="markerscale" arg_pos="5" constructor_arg="True" name="markerscale">
-      <docstring>the relative size of legend markers vs. original</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="frameon" arg_pos="29" constructor_arg="True" name="frameon">
-      <docstring>if True, draw a frame around the legend. If None, use rc</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="handleheight" arg_pos="18" constructor_arg="True" name="handleheight" />
+    <inputPortSpec arg="scatteryoffsets" arg_pos="7" constructor_arg="True" name="scatteryoffsets" />
+    <inputPortSpec arg="markerscale" arg_pos="5" constructor_arg="True" name="markerscale" />
+    <inputPortSpec arg="frameon" arg_pos="29" constructor_arg="True" name="frameon" />
     <inputPortSpec arg="mode" arg_pos="23" constructor_arg="True" name="mode" />
     <inputPortSpec arg="handlelen" arg_pos="12" constructor_arg="True" name="handlelen" />
     <inputPortSpec arg="default_handler_map" name="default_handler_map">
       <docstring>A class method to set the default handler map.</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="bbox_transform" arg_pos="28" constructor_arg="True" name="bbox_transform">
-      <docstring>the transform for the bbox. transAxes if None.</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="bbox_transform" arg_pos="28" constructor_arg="True" name="bbox_transform" />
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.axes.Axes" name="MplAxesProperties" superclass="MplArtistProperties">
     <docstring>

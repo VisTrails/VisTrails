@@ -51,8 +51,8 @@ def package_dependencies():
     import vistrails.core.packagemanager
     manager = vistrails.core.packagemanager.get_package_manager()
     deps = []
-    if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-        deps += ['edu.utah.sci.vistrails.spreadsheet']
+    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
+        deps += ['org.vistrails.vistrails.spreadsheet']
     if _is_dat_available():
         deps += ['org.vistrails.vistrails.control_flow']
     return deps

@@ -46,7 +46,7 @@ def execute(modules, connections=[], add_port_specs=[]):
             ('Float', 'org.vistrails.vistrails.basic', [
                 ('value', [('Float', '44.0')]),
             ]),
-            ('PythonCalc', 'edu.utah.sci.vistrails.pythoncalc', [
+            ('PythonCalc', 'org.vistrails.vistrails.pythoncalc', [
                 ('value2', [('Float', '2.0')]),
                 ('op', [('String', '-')]),
             ]),

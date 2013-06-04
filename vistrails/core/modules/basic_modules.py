@@ -286,7 +286,7 @@ Float   = new_constant('Float'   , staticmethod(float), 0.0,
                        param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'FloatExploreWidget')])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
-                       staticmethod(lambda x: type(x) == int),
+                       staticmethod(lambda x: isinstance(x, (int, long))),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
@@ -296,7 +296,9 @@ String  = new_constant('String'  , staticmethod(str), "",
                        staticmethod(lambda x: type(x) == str),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'StringQueryWidget'),
-                       query_compute=string_compare)
+                       query_compute=string_compare,
+                       widget_type=('vistrails.gui.modules.constant_configuration',
+                                    'StringWidget'))
 
 ##############################################################################
 
@@ -729,12 +731,7 @@ class Tuple(Module):
                         for p in self.input_ports_order])
         self.values = values
         self.setResult("value", values)
-        
-class TestTuple(Module):
-    def compute(self):
-        pair = self.getInputFromPort('tuple')
-        print pair
-        
+
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
     reverses the actions of Tuple.
@@ -775,6 +772,16 @@ class ConcatenateString(Module):
                 inp = self.getInputFromPort(port)
                 result += inp
         self.setResult("value", result)
+
+##############################################################################
+
+class Not(Module):
+    """Not inverts a Boolean.
+    """
+
+    def compute(self):
+        value = self.getInputFromPort('input')
+        self.setResult('value', not value)
 
 ##############################################################################
 # List
@@ -1064,15 +1071,17 @@ def initialize(*args, **kwargs):
     reg = get_module_registry()
 
     # !!! is_root should only be set for Module !!!
-    reg.add_module(Module, is_root=True)
+    reg.add_module(Module, is_root=True, abstract=True)
     reg.add_output_port(Module, "self", Module, optional=True)
 
-    reg.add_module(Constant)
+    reg.add_module(Constant, abstract=True)
 
     reg.add_module(Boolean)
     reg.add_module(Float)
     reg.add_module(Integer)
-    reg.add_module(String)
+    reg.add_module(String,
+                   configureWidgetType=("vistrails.gui.modules.string_configure",
+                                        "TextConfigurationWidget"))
     
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
@@ -1130,9 +1139,6 @@ def initialize(*args, **kwargs):
                                         "TupleConfigurationWidget"))
     reg.add_output_port(Tuple, 'self', Tuple)
 
-    reg.add_module(TestTuple)
-    reg.add_input_port(TestTuple, 'tuple', [Integer, String])
-
     reg.add_module(Untuple, 
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "UntupleConfigurationWidget"))
@@ -1144,6 +1150,10 @@ def initialize(*args, **kwargs):
         port = "str%s" % j
         reg.add_input_port(ConcatenateString, port, String)
     reg.add_output_port(ConcatenateString, "value", String)
+
+    reg.add_module(Not)
+    reg.add_input_port(Not, 'input', Boolean)
+    reg.add_output_port(Not, 'value', Boolean)
 
     reg.add_module(Dictionary)
     reg.add_input_port(Dictionary, "addPair", [Module, Module])
@@ -1167,7 +1177,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
 
-    reg.add_module(Variant)
+    reg.add_module(Variant, abstract=True)
 
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
@@ -1268,6 +1278,35 @@ class TestConcatenateString(unittest.TestCase):
     def test_empty(self):
         """Runs ConcatenateString with no input"""
         self.assertEqual(self.concatenate(), [""])
+
+
+class TestNot(unittest.TestCase):
+    def run_pipeline(self, functions):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(Not, 'value') as results:
+            errors = execute([
+                    ('Not', 'org.vistrails.vistrails.basic',
+                     functions),
+                ])
+        return errors, results
+
+    def test_true(self):
+        errors, results = self.run_pipeline([
+                ('input', [('Boolean', 'True')])])
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 1)
+        self.assertIs(results[0], False)
+
+    def test_false(self):
+        errors, results = self.run_pipeline([
+                ('input', [('Boolean', 'False')])])
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 1)
+        self.assertIs(results[0], True)
+
+    def test_notset(self):
+        errors, results = self.run_pipeline([])
+        self.assertTrue(errors)
 
 
 class TestList(unittest.TestCase):

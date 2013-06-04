@@ -614,6 +614,11 @@ class DefaultTheme(DefaultCoreTheme):
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/edit.png'))
 
+        # Icon on the button to switch to single/multi line string edition
+        self.MULTILINE_STRING_ICON = QtGui.QIcon(QtGui.QPixmap(
+                vistrails.core.system.vistrails_root_directory() +
+                '/gui/resources/images/multiline_string_icon.png'))
+
         #### COLORS ####
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(

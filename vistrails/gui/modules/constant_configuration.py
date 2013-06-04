@@ -42,6 +42,7 @@ constants.
 from PyQt4 import QtCore, QtGui
 from vistrails.core.utils import any, expression
 from vistrails.core import system
+from vistrails.gui.theme import CurrentTheme
 
 ############################################################################
 
@@ -100,9 +101,6 @@ class StandardConstantWidgetBase(ConstantWidgetMixin):
         to 'int', 'float', and 'string'
 
         """
-
-        self.is_combo = False
-        self.is_editable = True
 
         psi = param.port_spec_item
         if param.strValue:
@@ -202,7 +200,185 @@ class StandardConstantWidget(QtGui.QLineEdit, StandardConstantWidgetBase):
         QtGui.QLineEdit.focusOutEvent(self, event)
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
-    
+
+
+class BaseStringWidget(object): # < virtual QtGui.QWidget
+    def focusInEvent(self, event):
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        super(BaseStringWidget, self).focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        self.parent().update_parent()
+        super(BaseStringWidget, self).focusOutEvent(event)
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+
+
+class SingleLineStringWidget(BaseStringWidget, QtGui.QLineEdit):
+    def __init__(self, parent, contents="", default=""):
+        QtGui.QLineEdit.__init__(self, contents, parent)
+        self.setDefault(default)
+
+        self.connect(self,
+                     QtCore.SIGNAL('returnPressed()'),
+                     parent.update_parent)
+
+    def setContents(self, contents):
+        self.setText(expression.evaluate_expressions(contents))
+
+    def contents(self):
+        contents = expression.evaluate_expressions(unicode(self.text()))
+        self.setText(contents)
+        return contents
+
+    def setDefault(self, value):
+        self.setPlaceholderText(value)
+
+    def sizeHint(self):
+        metrics = QtGui.QFontMetrics(self.font())
+        width = min(metrics.width(self.text()) + 10, 70)
+        return QtCore.QSize(width,
+                            metrics.height() + 6)
+
+    def minimumSizeHint(self):
+        return self.sizeHint()
+
+
+class MultiLineStringWidget(BaseStringWidget, QtGui.QTextEdit):
+    def __init__(self, parent, contents="", default=""):
+        QtGui.QTextEdit.__init__(self, parent)
+        self.setPlainText(contents)
+        self.setAcceptRichText(False)
+        self.setDefault(default)
+
+    def setContents(self, contents):
+        self.setPlainText(expression.evaluate_expressions(contents))
+
+    def contents(self):
+        contents = expression.evaluate_expressions(unicode(self.toPlainText()))
+        self.setPlainText(contents)
+        return contents
+
+    def setDefault(self, value):
+        pass # TODO : some magic will be required for this
+
+    def sizeHint(self):
+        metrics = QtGui.QFontMetrics(self.font())
+        width = 70
+        return QtCore.QSize(width,
+                            (metrics.height() + 1) * 3 + 5)
+
+    def minimumSizeHint(self):
+        return self.sizeHint()
+
+
+class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
+    def __new__(cls, *args, **kwargs):
+        param = None
+        if len(args) > 0:
+            param = args[0]
+        if 'param' in kwargs:
+            param = kwargs['param']
+        if param is None:
+            raise Exception("Must pass param as first argument.")
+        if param.port_spec_item and param.port_spec_item.entry_type and \
+                param.port_spec_item.entry_type.startswith("enum"):
+            return StandardConstantEnumWidget.__new__(StandardConstantEnumWidget, *args, **kwargs)
+        return QtGui.QWidget.__new__(cls, *args, **kwargs)
+
+    def __init__(self, param, parent=None):
+        QtGui.QWidget.__init__(self)
+        self.setLayout(QtGui.QHBoxLayout())
+        self.layout().setMargin(5)
+        self.layout().setSpacing(5)
+
+        self._widget = None
+        self._multiline = None
+        self._default = ""
+
+        self._button = QtGui.QToolButton()
+        self._button.setIcon(CurrentTheme.MULTILINE_STRING_ICON)
+        self._button.setIconSize(QtCore.QSize(12, 12))
+        self._button.setToolTip("Toggle multi-line editor")
+        self._button.setAutoRaise(True)
+        self._button.setSizePolicy(QtGui.QSizePolicy(
+                QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
+        self._button.setCheckable(True)
+        self.connect(self._button, QtCore.SIGNAL('toggled(bool)'),
+                     self.switch_multiline)
+        self.layout().addWidget(self._button)
+
+        psi = param.port_spec_item
+        if param.strValue:
+            value = param.strValue
+        elif psi and psi.default:
+            value = psi.default
+        else:
+            value = param.strValue
+        ConstantWidgetMixin.__init__(self, value)
+
+        # assert param.namespace == None
+        # assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        if psi and psi.default:
+            self.setDefault(psi.default)
+        contents = param.strValue
+        self.setContents(contents)
+
+    def switch_multiline(self, multiline):
+        if multiline != self._multiline:
+            # Doing multiline -> not multiline while the widget contains
+            # line-returns is weird but won't cause loss of data, so I'm not
+            # explicitely disabling it
+            # Not that the multiline widget will pop up again next time if the
+            # user doesn't change the contents
+            self.setContents(self.contents(), multiline=multiline)
+
+    def setDefault(self, value):
+        self._default = value
+        self._widget.setDefault(value)
+
+    def contents(self):
+        return self._widget.contents()
+
+    def setContents(self, strValue, silent=True, multiline=None):
+        if multiline is None:
+            multiline = '\n' in strValue
+        if self._multiline is not multiline:
+            self._multiline = multiline
+            if self._widget is not None:
+                self._widget.deleteLater()
+            if not multiline:
+                self._widget = SingleLineStringWidget(self,
+                                                      strValue, self._default)
+            else:
+                self._widget = MultiLineStringWidget(self,
+                                                     strValue, self._default)
+            self._button.setChecked(multiline)
+            self.layout().insertWidget(0, self._widget)
+            self.updateGeometry()
+        else:
+            self.setContents(strValue)
+
+        if not silent:
+            self.update_parent()
+
+    ###########################################################################
+    # event handlers
+
+    def focusInEvent(self, event):
+        #self._contents = str(self.contents())
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        super(StringWidget, self).focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        self.update_parent()
+        super(StringWidget, self).focusOutEvent(event)
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+
+
 class StandardConstantEnumWidget(QtGui.QComboBox, StandardConstantWidgetBase):
     def __init__(self, param, parent=None):
         QtGui.QComboBox.__init__(self, parent)

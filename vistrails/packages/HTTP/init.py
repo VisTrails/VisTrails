@@ -125,8 +125,7 @@ class HTTPFile(HTTP):
         opener = urllib2.build_opener()
 
         local_filename = self._local_filename(url)
-        
-        request = urllib2.Request(url)
+
         try:
             f1 = opener.open(url)
         except urllib2.URLError, e:
@@ -142,8 +141,14 @@ class HTTPFile(HTTP):
             return (2,(str(e)), local_filename)
         else:
             mod_header = f1.info().getheader('last-modified')
-            content_type = f1.info().getmaintype()
-             
+            try:
+                size_header = f1.info().getheader('content-length')
+                if not size_header:
+                    raise ValueError
+                size_header = int(size_header)
+            except ValueError:
+                size_header = None
+
             result = vistrails.core.modules.basic_modules.File()
             result.name = local_filename
 
@@ -151,16 +156,19 @@ class HTTPFile(HTTP):
                 not mod_header or
                 self._is_outdated(mod_header, local_filename)):
                 try:
-                    # For binary files on windows the mode has to be 'wb'
-                    if content_type in ['application', 
-                                        'audio', 
-                                        'image', 
-                                        'video']:
-                        mode = 'wb'
-                    else:
-                        mode = 'w'
-                    f2 = open(local_filename, mode)
-                    f2.write(f1.read())
+                    dl_size = 0
+                    CHUNKSIZE = 4096
+                    f2 = open(local_filename, 'wb')
+                    while True:
+                        if size_header is not None:
+                            self.logging.update_progress(
+                                    self,
+                                    dl_size*1.0/size_header)
+                        chunk = f1.read(CHUNKSIZE)
+                        if not chunk:
+                            break
+                        dl_size += len(chunk)
+                        f2.write(chunk)
                     f2.close()
                     f1.close()
 

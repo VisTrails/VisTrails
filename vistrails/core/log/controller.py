@@ -261,6 +261,8 @@ class LogController(object):
         return group_exec
 
     def finish_group_execution(self, group, error, suspended=False):
+        if not hasattr(group,'group_exec'):
+            return False
         group.group_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             group.group_exec.completed = -2
@@ -291,6 +293,8 @@ class LogController(object):
         return loop_exec
 
     def finish_loop_execution(self, module, error, loop_exec, suspended=True):
+        if not loop_exec:
+            return False
         loop_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             loop_exec.completed = -2
