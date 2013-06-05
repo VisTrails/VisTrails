@@ -117,6 +117,7 @@ class Package(DBPackage):
         self._force_no_unload = None
         self._force_unload = None
         self._force_sys_unload = None
+        self._imports_are_good = True
     
     def __copy__(self):
         Package.do_copy(self)
@@ -288,15 +289,20 @@ class Package(DBPackage):
             fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
             for pkg in fix_pkgs:
                 if name == pkg or name.startswith(pkg + '.'):
-                    debug.warning(
+                    if self._imports_are_good: # only warn first time
+                        self._imports_are_good = False
+                        debug.warning(
                             "In package '%s', Please use the 'vistrails.' "
                             "prefix when importing vistrails packages." %
                             self.identifier)
-                    fixed = True
+                    fixed = pkg
                     name = "vistrails." + name
                     break
             if fixed:
                 res = orig_import(name, globals, locals, fromlist, level)
+                if not fromlist:
+                     # otherwise we will return vistrails and not e.g. vistrails.core
+                    res = getattr(res, fixed) 
             else:
                 raise
         mod = res

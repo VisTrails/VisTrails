@@ -157,6 +157,7 @@ class PackageManager(object):
         self._userpackages = None
         self._packages = None
         self._abstraction_pkg = None
+        self._temp_packages = {}
 
     def init_registry(self, registry_filename=None):
         if registry_filename is not None:
@@ -199,12 +200,36 @@ class PackageManager(object):
         except KeyError:
             # Another method of getting the caller module, using the stack
             caller = inspect.currentframe().f_back
-            module = inspect.getmodule(caller).__name__
-        for pkg in self._package_list.itervalues():
-            if pkg.prefix and module.startswith(pkg.prefix + pkg.codepath):
+            module = inspect.getmodule(caller)
+            if module:
+                module = module.__name__
+        if module:
+            for pkg in self._package_list.itervalues():
+                if pkg.prefix and module.startswith(pkg.prefix + pkg.codepath):
+                    return pkg.import_override(
+                            self._orig_import,
+                            name, globals, locals, fromlist, level)
+            # look for uninitialized packages and redirect to temporary package
+            # FIXME: Can we create package before __init__.py is imported?
+            if not hasattr(self, '_apnl'):
+                self._apnl = self.available_package_names_list()
+            is_package = False
+            if module.startswith('vistrails.packages.'):
+                module_name = module[19:].split('.')[0]
+                is_package = True
+            elif module.startswith('userpackages.'):
+                module_name = module[13:].split('.')[0]
+                is_package = True
+            if is_package and module_name in self._apnl:
+                if module_name not in self._temp_packages:
+                    self._temp_packages[module_name] = Package(name=module_name,
+                                                               identifier=module_name,
+                                                               codepath=module)
+                pkg = self._temp_packages[module_name]
                 return pkg.import_override(
                         self._orig_import,
                         name, globals, locals, fromlist, level)
+
         return self._orig_import(name, globals, locals, fromlist, level)
 
     def finalize_packages(self):
