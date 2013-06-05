@@ -43,7 +43,7 @@ from PyQt4 import QtGui
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.gui.utils import show_warning
-import vistrails.core.modules.vistrails_module
+from vistrails.core.modules.vistrails_module import Module
 import vistrails.core.modules
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
@@ -82,10 +82,7 @@ urllib._urlopener = MyURLopener()
 
 ###############################################################################
 
-class HTTP(vistrails.core.modules.vistrails_module.Module):
-    pass
-
-class HTTPFile(HTTP):
+class HTTPFile(Module):
     """ Downloads file from URL """
 
     def is_cacheable(self):
@@ -153,8 +150,8 @@ class HTTPFile(HTTP):
             result.name = local_filename
 
             if (not self._file_is_in_local_cache(local_filename) or
-                not mod_header or
-                self._is_outdated(mod_header, local_filename)):
+                    not mod_header or
+                    self._is_outdated(mod_header, local_filename)):
                 try:
                     dl_size = 0
                     CHUNKSIZE = 4096
@@ -214,7 +211,7 @@ class HTTPFile(HTTP):
     def _local_filename(self, url):
         return package_directory + '/' + urllib.quote_plus(url)
 
-class RepoSync(HTTP):
+class RepoSync(Module):
     """ VisTrails Server version of RepoSync modules. Customized to play 
     nicely with crowdlabs. Needs refactoring.
 
@@ -225,7 +222,7 @@ class RepoSync(HTTP):
     """
 
     def __init__(self):
-        HTTP.__init__(self)
+        Module.__init__(self)
 
         config = get_vistrails_persistent_configuration()
         if config.check('webRepositoryURL'):
@@ -395,7 +392,6 @@ def initialize(*args, **keywords):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     basic = vistrails.core.modules.basic_modules
 
-    reg.add_module(HTTP, abstract=True)
     reg.add_module(HTTPFile)
     reg.add_input_port(HTTPFile, "url", (basic.String, 'URL'))
     reg.add_output_port(HTTPFile, "file", (basic.File, 'local File object'))
