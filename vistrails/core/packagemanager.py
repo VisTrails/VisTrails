@@ -477,6 +477,12 @@ Returns true if given package identifier is present."""
         already disabled.
         """
         pkg = self.get_package_by_codepath(package_codepath)
+        if not pkg._imports_are_good:
+            debug.critical(
+                "Package '%s' cannot be unloaded, because it does not use the"
+                 "'vistrails.' prefix when importing vistrails packages." %
+                 self.identifier)
+            return
         self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
 
