@@ -565,6 +565,20 @@ class NotCacheable(object):
 
 ################################################################################
 
+class Converter(Module):
+    """Base class for automatic conversion modules.
+
+    Modules that subclass Converter will be inserted automatically when
+    connecting incompatible ports, if possible.
+
+    You must override the 'in_value' and 'out_value' ports by providing the
+    types your module actually matches.
+    """
+    def compute(self):
+        raise NotImplementedError
+
+################################################################################
+
 class ModuleConnector(object):
     def __init__(self, obj, port, spec=None):
         self.obj = obj

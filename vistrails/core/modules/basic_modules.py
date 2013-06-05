@@ -38,7 +38,7 @@ import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
-     NotCacheable, ModuleError
+     Converter, NotCacheable, ModuleError
 from vistrails.core.system import vistrails_version
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -279,7 +279,7 @@ Boolean = new_constant('Boolean' , staticmethod(bool_conv),
                        widget_type=('vistrails.gui.modules.constant_configuration', 
                                     'BooleanWidget'))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
-                       staticmethod(lambda x: type(x) == float),
+                       staticmethod(lambda x: isinstance(x, (int, long, float))),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
@@ -287,6 +287,7 @@ Float   = new_constant('Float'   , staticmethod(float), 0.0,
                                                    'FloatExploreWidget')])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
                        staticmethod(lambda x: isinstance(x, (int, long))),
+                       base_class=Float,
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
@@ -1051,6 +1052,30 @@ class Unzip(Module):
         self.setResult("file", output)
 
 ##############################################################################
+
+class Round(Converter):
+    """Turns a Float into an Integer.
+    """
+    def compute(self):
+        fl = self.getInputFromPort('in_value')
+        floor = self.getInputFromPort('floor')
+        if floor:
+            integ = int(fl)         # just strip the decimals
+        else:
+            integ = int(fl + 0.5)   # nearest
+        self.setResult('out_value', integ)
+
+
+class TupleToList(Converter):
+    """Turns a Tuple into a List.
+    """
+    def compute(self):
+        tu = self.getInputFromPort('in_value')
+        if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
+            raise ModuleError(self, "Input is not a tuple")
+        self.setResult('out_value', list(tu.values))
+
+##############################################################################
     
 class Variant(Module):
     """
@@ -1073,6 +1098,10 @@ def initialize(*args, **kwargs):
     # !!! is_root should only be set for Module !!!
     reg.add_module(Module, is_root=True, abstract=True)
     reg.add_output_port(Module, "self", Module, optional=True)
+
+    reg.add_module(Converter, abstract=True)
+    reg.add_input_port(Converter, 'in_value', Module)
+    reg.add_output_port(Converter, 'out_value', Module)
 
     reg.add_module(Constant, abstract=True)
 
@@ -1178,6 +1207,16 @@ def initialize(*args, **kwargs):
     reg.add_output_port(Unzip, 'file', File)
 
     reg.add_module(Variant, abstract=True)
+
+    reg.add_module(Round)
+    reg.add_input_port(Round, 'in_value', Float)
+    reg.add_output_port(Round, 'out_value', Integer)
+    reg.add_input_port(Round, 'floor', Boolean, optional=True,
+                       defaults="(True,)")
+
+    reg.add_module(TupleToList)
+    reg.add_input_port(TupleToList, 'in_value', Tuple)
+    reg.add_output_port(TupleToList, 'out_value', List)
 
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
@@ -1423,3 +1462,28 @@ class TestPythonSource(unittest.TestCase):
                      'org.vistrails.vistrails.basic:String'),
                 ]))
         self.assertEqual(results[-1], "nb is 42")
+
+
+class TestNumericConversions(unittest.TestCase):
+    def test_full(self):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(Round, 'out_value') as results:
+            self.assertFalse(execute([
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '5')])
+                    ]),
+                    ('Float', 'org.vistrails.vistrails.basic', []),
+                    ('PythonCalc', 'org.vistrails.vistrails.pythoncalc', [
+                        ('value2', [('Float', '2.7')]),
+                        ('op', [('String', '+')]),
+                    ]),
+                    ('Round', 'org.vistrails.vistrails.basic', [
+                        ('floor', [('Boolean', 'True')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 1, 'value'),
+                    (1, 'value', 2, 'value1'),
+                    (2, 'value', 3, 'in_value'),
+                ]))
+        self.assertEqual(results, [7])

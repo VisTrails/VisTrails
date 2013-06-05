@@ -501,6 +501,9 @@ class ModuleRegistry(DBRegistry):
             kwargs['root_descriptor_id'] = -1
         DBRegistry.__init__(self, *args, **kwargs)
 
+        self._conversions = dict()
+        self._converters = set()
+
         self.set_defaults()
 
     def __copy__(self):
@@ -963,6 +966,12 @@ class ModuleRegistry(DBRegistry):
                                       version=version
                                       )
         self.add_descriptor(descriptor, package)
+
+        # invalidate the map of converters
+        if issubclass(module,
+                vistrails.core.modules.vistrails_module.Converter):
+            self._conversions = dict()
+            self._converters.add(descriptor)
 
         if module is not None:
             self._module_key_map[module] = (identifier, name, namespace,
@@ -1566,6 +1575,14 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor_by_name(identifier, module_name, 
                                                  namespace)
         assert len(descriptor.children) == 0
+
+        # invalidate the map of converters
+        converter_desc = self.get_descriptor(
+                vistrails.core.modules.vistrails_module.Converter)
+        if self.is_descriptor_subclass(descriptor, converter_desc):
+            self._conversions = dict()
+            self._converters.remove(descriptor)
+
         self.signals.emit_deleted_module(descriptor)
         if self.is_abstraction(descriptor):
             self.signals.emit_deleted_abstraction(descriptor)
@@ -1695,13 +1712,16 @@ class ModuleRegistry(DBRegistry):
             return True
         return self.are_specs_matched(port, port_spec)
 
-    def ports_can_connect(self, sourceModulePort, destinationModulePort):
+    def ports_can_connect(self, sourceModulePort, destinationModulePort,
+                          allow_conversion=False, out_converters=None):
         """ports_can_connect(sourceModulePort,destinationModulePort) ->
         Boolean returns true if there could exist a connection
         connecting these two ports."""
         if sourceModulePort.type == destinationModulePort.type:
             return False
-        return self.are_specs_matched(sourceModulePort, destinationModulePort)
+        return self.are_specs_matched(sourceModulePort, destinationModulePort,
+                                      allow_conversion=allow_conversion,
+                                      out_converters=out_converters)
 
     def is_port_sub_type(self, sub, super):
         """ is_port_sub_type(sub: Port, super: Port) -> bool        
@@ -1715,12 +1735,56 @@ class ModuleRegistry(DBRegistry):
             return False
         return self.are_specs_matched(sub, super)
 
-    def are_specs_matched(self, sub, super):
+    def get_converters(self, sub_descs, super_descs):
+        key = (tuple(sub_descs), tuple(super_descs))
+
+        # Get the result from the cache
+        try:
+            return self._conversions[key]
+        except KeyError:
+            pass
+
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        converters = []
+
+        # Compute the result
+        for converter in self._converters:
+            if converter.module is (
+                    vistrails.core.modules.vistrails_module.Converter):
+                continue
+
+            in_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'in_value', 'input')
+            if not check_types(sub_descs, in_port.descriptors()):
+                continue
+            out_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'out_value', 'output')
+            if not check_types(out_port.descriptors(), super_descs):
+                continue
+
+            converters.append(converter)
+
+        # Store in the cache that there was no result
+        self._conversions[key] = converters
+        return converters
+
+    def are_specs_matched(self, sub, super, allow_conversion=False,
+                          out_converters=None):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
         """
-        variantType = vistrails.core.modules.basic_modules.Variant
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         # sometimes sub is coming None
@@ -1741,13 +1805,26 @@ class ModuleRegistry(DBRegistry):
             return True
         if len(sub_descs) != len(super_descs):
             return False
-        
-        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-            if (sub_desc == variant_desc or super_desc == variant_desc):
-                continue
-            if not self.is_descriptor_subclass(sub_desc, super_desc):
-                return False
-        return True
+
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        if check_types(sub_descs, super_descs):
+            return True
+
+        if allow_conversion:
+            converters = self.get_converters(sub_descs, super_descs)
+            if converters:
+                if out_converters is not None:
+                    out_converters.extend(converters)
+                return True
+
+        return False
 
     def get_module_hierarchy(self, descriptor):
         """get_module_hierarchy(descriptor) -> [klass].

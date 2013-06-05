@@ -217,8 +217,16 @@ class DefaultTheme(DefaultCoreTheme):
         # Brush and pen to draw connections
         self.CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
-        self.CONNECTION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
+        self.CONNECTION_SELECTED_PEN = QtGui.QPen(
+                QtGui.QBrush(
+                    QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),
+                3,
+                QtCore.Qt.SolidLine)
+        self.CONNECTION_SELECTED_CONVERTING_PEN = QtGui.QPen(
+                QtGui.QBrush(
+                    QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),
+                3,
+                QtCore.Qt.DotLine)
         self.CONNECTION_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black'))))
 
