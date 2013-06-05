@@ -44,6 +44,7 @@ QVersionThumbs
 QVersionMashups
 
 """
+import re
 import os.path
 from PyQt4 import QtCore, QtGui
 from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
@@ -443,11 +444,11 @@ class QVersionPropOverlay(QtGui.QFrame):
         
         """
         # Some text we want to ignore lives outside brackets in the header
-        str.replace(QtCore.QRegExp("<head>.*</head>"), "")
+        str = re.sub(r"<head>.*</head>", r"", str)
         # Remove all other tags
-        str.replace(QtCore.QRegExp("<[^>]*>"), "")
+        str = re.sub(r"<[^>]*>", r"", str)
         # Remove newlines
-        str.replace(QtCore.QRegExp("\n"), " ")
+        str = re.sub(r"\n", r"", str)
         return str
 
     def truncate(self, str):
