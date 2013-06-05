@@ -39,46 +39,32 @@ directory. This way, files that haven't been changed do not need
 downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
-from PyQt4 import QtGui
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.gui.utils import show_warning
 from vistrails.core.modules.vistrails_module import Module
-import vistrails.core.modules
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
-import vistrails.core.system
 from vistrails.core import debug
 import vistrails.gui.repository
-import httplib
-import urllib2
+
+import datetime
+import email.utils
+import hashlib
 import os.path
 import sys
-import socket
-import datetime
+import unittest
 import urllib
+import urllib2
 
-import hashlib
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
 
-import unittest
 from vistrails.core.utils import DummyView
 
 # special file uploaders used to push files to repository
 
 package_directory = None
-
-class MyURLopener(urllib.FancyURLopener):
-    """ Custom URLopener that enables urllib.urlretrieve to catch 404 errors"""
-    def http_error_default(self, url, fp, errcode, errmsg, headers):
-        if errcode == 404:
-            raise IOError, ('http error', errcode, errmsg, headers)
-        # call parent method 
-        urllib.FancyURLopener().http_error_default(url, fp, errcode,
-                                                   errmsg, headers)
-
-urllib._urlopener = MyURLopener()
 
 ###############################################################################
 
@@ -123,23 +109,43 @@ class HTTPFile(Module):
 
         local_filename = self._local_filename(url)
 
+        # Get ETag from disk
         try:
-            f1 = opener.open(url)
+            with open(local_filename + '.etag') as etag_file:
+                etag = etag_file.read()
+        except IOError:
+            etag = None
+
+        try:
+            request = urllib2.Request(url)
+            if etag is not None:
+                request.add_header(
+                    'If-None-Match',
+                    etag)
+            mtime = email.utils.formatdate(os.path.getmtime(local_filename),
+                                           usegmt=True)
+            request.add_header(
+                'If-Modified-Since',
+                mtime)
+            f1 = opener.open(request)
         except urllib2.URLError, e:
+            if e.code == 304:
+                # Not modified
+                result = vistrails.core.modules.basic_modules.File()
+                result.name = local_filename
+                return (0, result, local_filename)
             if self._file_is_in_local_cache(local_filename):
-                debug.warning(('A network error occurred. HTTPFile will use'
-                                ' cached version of file'))
+                debug.warning('A network error occurred. HTTPFile will use a '
+                              'cached version of the file')
                 result = vistrails.core.modules.basic_modules.File()
                 result.name = local_filename
                 return (1, result, local_filename)
             else:
                 return (2, (str(e)), local_filename)
-        except urllib2.HTTPError, e:
-            return (2,(str(e)), local_filename)
         else:
-            mod_header = f1.info().getheader('last-modified')
+            mod_header = f1.headers['last-modified']
             try:
-                size_header = f1.info().getheader('content-length')
+                size_header = f1.headers['content-length']
                 if not size_header:
                     raise ValueError
                 size_header = int(size_header)
@@ -169,12 +175,23 @@ class HTTPFile(Module):
                     f2.close()
                     f1.close()
 
-                except IOError, e:
-                    return (2, ("Invalid URL: %s" % e), local_filename)
-                except:
-                    return (2, ("Could not create local file '%s'" %
-                                             local_filename), local_filename)
+                except Exception, e:
+                    try:
+                        os.unlink(local_filename)
+                    except OSError:
+                        pass
+                    return (2, ("Error retrieving URL: %s" % e), local_filename)
             result.name = local_filename
+
+            # Save ETag
+            try:
+                etag = f1.headers['ETag']
+            except KeyError:
+                pass
+            else:
+                with open(local_filename + '.etag', 'w') as etag_file:
+                    etag = etag_file.write(etag)
+
             return (0, result, local_filename)
         
     ##########################################################################
