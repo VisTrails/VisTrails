@@ -122,11 +122,14 @@ class HTTPFile(Module):
                 request.add_header(
                     'If-None-Match',
                     etag)
-            mtime = email.utils.formatdate(os.path.getmtime(local_filename),
-                                           usegmt=True)
-            request.add_header(
-                'If-Modified-Since',
-                mtime)
+            try:
+                mtime = email.utils.formatdate(os.path.getmtime(local_filename),
+                                               usegmt=True)
+                request.add_header(
+                    'If-Modified-Since',
+                    mtime)
+            except OSError:
+                pass
             f1 = opener.open(request)
         except urllib2.URLError, e:
             if e.code == 304:
@@ -135,8 +138,8 @@ class HTTPFile(Module):
                 result.name = local_filename
                 return (0, result, local_filename)
             if self._file_is_in_local_cache(local_filename):
-                debug.warning('A network error occurred. HTTPFile will use a '
-                              'cached version of the file')
+                debug.error('A network error occurred. HTTPFile will use a '
+                            'cached version of the file')
                 result = vistrails.core.modules.basic_modules.File()
                 result.name = local_filename
                 return (1, result, local_filename)
