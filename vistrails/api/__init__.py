@@ -185,7 +185,11 @@ def get_selected_modules(controller=None):
     if controller is None:
         controller = get_current_controller()
     modules = []
-    for m_id in controller.get_selected_item_ids()[0]:
+    selected = controller.get_selected_item_ids()
+    if selected is None:
+        return []
+    (sel_module_ids, sel_connection_ids) = selected
+    for m_id in sel_module_ids:
         modules.append(controller.current_pipeline.modules[m_id])
     return modules
     
