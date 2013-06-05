@@ -39,7 +39,7 @@ directory. This way, files that haven't been changed do not need
 downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
-from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.core.modules.vistrails_module import ModuleError, NotCacheable
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.gui.utils import show_warning
 from vistrails.core.modules.vistrails_module import Module
@@ -68,16 +68,9 @@ package_directory = None
 
 ###############################################################################
 
-class HTTPFile(Module):
+class HTTPFile(NotCacheable, Module):
     """ Downloads file from URL """
 
-    def is_cacheable(self):
-        self.checkInputPort('url')
-        url = self.getInputFromPort("url")
-        self._parse_url(url)
-        local_filename = self._local_filename(url)
-        return self._file_is_in_local_cache(local_filename)
-            
     def compute(self):
         self.checkInputPort('url')
         url = self.getInputFromPort("url")
@@ -87,7 +80,7 @@ class HTTPFile(Module):
             raise ModuleError(self, downloaded_file)
         else:
             self.setResult("file", downloaded_file)
-        
+
     def download(self, url):
         """download(url:string) -> (result: int, downloaded_file: File,
                                     local_filename:string)
@@ -132,14 +125,14 @@ class HTTPFile(Module):
                 pass
             f1 = opener.open(request)
         except urllib2.URLError, e:
-            if e.code == 304:
+            if isinstance(e, urllib2.HTTPError) and e.code == 304:
                 # Not modified
                 result = vistrails.core.modules.basic_modules.File()
                 result.name = local_filename
                 return (0, result, local_filename)
             if self._file_is_in_local_cache(local_filename):
-                debug.error('A network error occurred. HTTPFile will use a '
-                            'cached version of the file')
+                debug.warning('A network error occurred. HTTPFile will use a '
+                              'cached version of the file')
                 result = vistrails.core.modules.basic_modules.File()
                 result.name = local_filename
                 return (1, result, local_filename)
