@@ -52,7 +52,81 @@ from vistrails.core.system import get_elementtree_library, systemType
 
 ElementTree = get_elementtree_library()
 
+def process_workflow_tag(kwargs, value):
+    try:
+        kwargs["version_node"] = int(value)
+    except ValueError:
+        kwargs["version_tag"] = value
+
+def add_properties(cls):
+    """class decorator to programmatically add properties"""
+    for name in cls.KWARG_PROPS:
+        cls.add_property(name)
+    return cls
+
+@add_properties
 class BaseLocator(object):
+    """KWARG_PROPS defines 2-tuples (<python property>, <url tag>).  From
+    this, properties are automatically created and the parse_args and
+    generate_args methods use this info to do the necessary
+    conversions.  If you want to have a new property for a locator,
+    define it here.
+
+    """
+    
+    KWARG_PROPS = dict([("obj_type", "type"),
+                        ("obj_id", "id"),
+                        ("version_node", "workflow"),
+                        ("version_tag", "workflow"),
+                        ("workflow_exec", "workflow_exec"),
+                        ("parameterExploration", "parameterExploration"),
+                        ("mashuptrail", "mashuptrail"),
+                        ("mashupVersion", "mashupVersion"),
+                        ("mashup", "mashupVersion")])
+
+    SPECIAL_TAGS = {"workflow": process_workflow_tag}
+
+    @classmethod
+    def add_property(cls, attr):
+        def setter(self, v):
+            self.kwargs[attr] = v
+        def getter(self):
+            return self.kwargs.get(attr, None)
+        setattr(cls, attr, property(getter, setter))
+
+    @classmethod
+    def get_kwarg_props(cls):
+        return cls.KWARG_PROPS
+
+    @classmethod
+    def get_special_tags(cls):
+        return cls.SPECIAL_TAGS
+    
+    @classmethod
+    def parse_args(cls, arg_str):
+        kwargs = {}
+        parsed_dict = cgi.parse_qs(arg_str)
+        special_tags = cls.get_special_tags()
+        for (prop, url_tag) in cls.get_kwarg_props().iteritems():
+            if url_tag in parsed_dict:
+                if url_tag in special_tags:
+                    # special handling
+                    special_tags[url_tag](kwargs, parsed_dict[url_tag][0])
+                elif prop not in kwargs:
+                    # don't overwrite if we already set the prop
+                    kwargs[prop] = parsed_dict[url_tag][0]
+        return kwargs
+
+    @classmethod
+    def generate_args(cls, kwargs):
+        generate_dict = {}        
+        for (prop, url_tag) in cls.get_kwarg_props().iteritems():
+            if prop in kwargs and kwargs[prop]:
+                generate_dict[url_tag] = kwargs[prop]
+        return urllib.urlencode(generate_dict)
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
 
     def load(self):
         raise NotImplementedError("load is not implemented")
@@ -84,25 +158,19 @@ class BaseLocator(object):
     def has_temporaries(self):
         return self.get_temporary() is not None
 
-    def serialize(self, dom, element):
-        """Serializes this locator to XML.
-
-        """
-        raise NotImplementedError("serialize is not implemented")
-
     def to_xml(self, node=None): 
-        """ElementTree port of serialize.
+        """Serialize locator, optionally into existing ElementTree node.
 
         """
         raise NotImplementedError("to_xml is not implemented")
-
-    @staticmethod
-    def parse(element):
-        """Parse an XML object representing a locator and returns a Locator.
-        
-        """
-        raise NotImplementedError("parse is not implemented")
     
+    @staticmethod
+    def from_xml(node):
+        """Unserialize locator given ElementTree node.
+
+        """
+        raise NotImplementedError("from_xml is not implemented")
+
     @staticmethod
     def from_url(url):
         # FIXME works only with absolute paths right now...
@@ -128,62 +196,6 @@ class BaseLocator(object):
                 return DirectoryLocator.from_url(url)
         return None
 
-    @staticmethod
-    def parse_args(arg_str):
-        args = {}
-        parsed_dict = cgi.parse_qs(arg_str)
-        if 'type' in parsed_dict:
-            args['obj_type'] = parsed_dict['type'][0]
-        if 'id' in parsed_dict:
-            args['obj_id'] = parsed_dict['id'][0]
-        args['version_node'] = None
-        args['version_tag'] = None
-        if 'workflow' in parsed_dict:
-            workflow_arg = parsed_dict['workflow'][0]
-            try:
-                args['version_node'] = int(workflow_arg)
-            except ValueError:
-                args['version_tag'] = workflow_arg
-        if 'workflow_exec' in parsed_dict:
-            args['workflow_exec'] = parsed_dict['workflow_exec'][0]
-        if 'parameterExploration' in parsed_dict:
-            args['parameterExploration'] = \
-                                        parsed_dict['parameterExploration'][0]
-        if 'mashuptrail' in parsed_dict:
-            args['mashuptrail'] = parsed_dict['mashuptrail'][0]
-        # should use mashupVersion, but also allow (and preserve) mashup
-        if 'mashupVersion' in parsed_dict:
-            args['mashupVersion'] = parsed_dict['mashupVersion'][0]
-        elif 'mashup' in parsed_dict:
-            args['mashup'] = parsed_dict['mashup'][0]
-        if 'workflow_exec' in parsed_dict:
-            args['workflow_exec'] = parsed_dict['workflow_exec'][0]
-        return args
-
-    @staticmethod
-    def generate_args(args):
-        generate_dict = {}
-        if 'obj_type' in args and args['obj_type']:
-            generate_dict['type'] = args['obj_type']
-        if 'obj_id' in args and args['obj_id']:
-            generate_dict['id'] = args['obj_id']
-        if 'version_node' in args and args['version_node']:
-            generate_dict['workflow'] = args['version_node']
-        elif 'version_tag' in args and args['version_tag']:
-            generate_dict['workflow'] = args['version_tag']
-        if 'parameterExploration' in args and args['parameterExploration']:
-            generate_dict['parameterExploration'] = args['parameterExploration']
-        if 'mashuptrail' in args and args['mashuptrail']:
-            generate_dict['mashuptrail'] = args['mashuptrail']
-        if 'mashupVersion' in args and args['mashupVersion']:
-            generate_dict['mashupVersion'] = args['mashupVersion']
-        elif 'mashup' in args and args['mashup']:
-            generate_dict['mashup'] = args['mashup']
-        if 'workflow_exec' in args and args['workflow_exec']:
-            generate_dict['workflow_exec'] = args['workflow_exec']
-        return urllib.urlencode(generate_dict)
-
-
     def _get_name(self):
         return None # Returns a name that will be displayed for the object
     name = property(_get_name)
@@ -191,7 +203,13 @@ class BaseLocator(object):
     def _get_short_name(self):
         return None # Returns a short name that can be used for display
     short_name = property(_get_short_name)
-
+      
+    def _get_version(self):
+        if self.version_tag is not None:
+            return self.version_tag
+        return self.version_node
+    version = property(_get_version)
+  
     ###########################################################################
     # Operators
 
@@ -307,14 +325,6 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
             self._uuid = my_uuid
         else:
             self._uuid = uuid.uuid4()
-        self._vnode = kwargs.get('version_node', None)
-        self._vtag = kwargs.get('version_tag', '')
-        self._mshptrail = kwargs.get('mashuptrail', None)
-        if 'mashupVersion' in kwargs:
-            self._mshpversion = kwargs.get('mashupVersion', None)
-        else:
-            self._mshpversion = kwargs.get('mashup', None)
-        self._parameterexploration = kwargs.get('parameterExploration', None)
         self.kwargs = kwargs
 
     def load(self, type):
@@ -343,8 +353,8 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
         return self._get_name()
     short_name = property(_get_short_name)
 
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         if not url.startswith('untitled:'):
             raise VistrailsDBException("URL does not start with untitled:")
 
@@ -358,11 +368,11 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
                 pass
         url = 'http://example.com/' + rest
         (_, _, _, args_str, _) = urlparse.urlsplit(url)
-        kwargs = BaseLocator.parse_args(args_str)
-        return UntitledLocator(my_uuid, **kwargs)
+        kwargs = cls.parse_args(args_str)
+        return cls(my_uuid, **kwargs)
 
     def to_url(self):
-        args_str = BaseLocator.generate_args(self.kwargs)
+        args_str = self.generate_args(self.kwargs)
         url_tuple = ('untitled', '', self._uuid.hex, args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
@@ -399,14 +409,6 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
 class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
     def __init__(self, dirname, **kwargs):
         self._name = dirname
-        self._vnode = kwargs.get('version_node', None)
-        self._vtag = kwargs.get('version_tag', '')
-        self._mshptrail = kwargs.get('mashuptrail', None)
-        if 'mashupVersion' in kwargs:
-            self._mshpversion = kwargs.get('mashupVersion', None)
-        else:
-            self._mshpversion = kwargs.get('mashup', None)
-        self._parameterexploration = kwargs.get('parameterExploration', None)
         self.kwargs = kwargs
     
     def load(self, type):
@@ -450,12 +452,11 @@ class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
         urlparse.uses_query = old_uses_query
         # De-urlencode pathname
         path = url2pathname(str(path))
-        kwargs = BaseLocator.parse_args(args_str)
-
+        kwargs = cls.parse_args(args_str)
         return cls(os.path.abspath(path), **kwargs)
 
     def to_url(self):
-        args_str = BaseLocator.generate_args(self.kwargs)
+        args_str = self.generate_args(self.kwargs)
         url_tuple = ('file', '',
                      pathname2url(os.path.abspath(self._name)),
                      args_str, '')
@@ -464,14 +465,6 @@ class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
 class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     def __init__(self, filename, **kwargs):
         self._name = filename
-        self._vnode = kwargs.get('version_node', None)
-        self._vtag = kwargs.get('version_tag', '')
-        self._mshptrail = kwargs.get('mashuptrail', None)
-        if 'mashupVersion' in kwargs:
-            self._mshpversion = kwargs.get('mashupVersion', None)
-        else:
-            self._mshpversion = kwargs.get('mashup', None)
-        self._parameterexploration = kwargs.get('parameterExploration', None)
         self.kwargs = kwargs
 
     def load(self, type):
@@ -511,8 +504,8 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         return os.path.splitext(os.path.basename(self._name))[0]
     short_name = property(_get_short_name)
 
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         if '://' in url:
             scheme, rest = url.split('://', 1)
         else:
@@ -523,42 +516,13 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         # "/c:/path" needs to be "c:/path"
         if systemType in ['Windows', 'Microsoft']:
             path = path[1:]
-        kwargs = BaseLocator.parse_args(args_str)
-        return XMLFileLocator(path, **kwargs)
+        kwargs = cls.parse_args(args_str)
+        return cls(path, **kwargs)
 
     def to_url(self):
-        args_str = BaseLocator.generate_args(self.kwargs)
+        args_str = self.generate_args(self.kwargs)
         url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
         return urlparse.urlunsplit(url_tuple)
-
-    def serialize(self, dom, element):
-        """serialize(dom, element) -> None
-        Convert this object to an XML representation.
-
-        """
-        locator = dom.createElement('locator')
-        locator.setAttribute('type', 'file')
-        node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
-        node.appendChild(filename)
-        locator.appendChild(node)
-        element.appendChild(locator)
-
-    @staticmethod
-    def parse(element):
-        """ parse(element) -> XMLFileLocator or None
-        Parse an XML object representing a locator and returns a
-        XMLFileLocator object.
-
-        """
-        if str(element.getAttribute('type')) == 'file':
-            for n in element.childNodes:
-                if n.localName == "name":
-                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
-                    return XMLFileLocator(filename)
-            return None
-        else:
-            return None
 
     #ElementTree port
     def to_xml(self, node=None):
@@ -612,8 +576,8 @@ class ZIPFileLocator(XMLFileLocator):
         XMLFileLocator.__init__(self, filename, **kwargs)
         self.tmp_dir = None
 
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         if '://' in url:
             scheme, rest = url.split('://', 1)
         else:
@@ -624,11 +588,11 @@ class ZIPFileLocator(XMLFileLocator):
         # "/c:/path" needs to be "c:/path"
         if systemType in ['Windows', 'Microsoft']:
             path = path[1:]
-        kwargs = BaseLocator.parse_args(args_str)
-        return ZIPFileLocator(path, **kwargs)
+        kwargs = cls.parse_args(args_str)
+        return cls(path, **kwargs)
 
     def to_url(self):
-        args_str = BaseLocator.generate_args(self.kwargs)
+        args_str = self.generate_args(self.kwargs)
         url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
@@ -735,14 +699,6 @@ class DBLocator(BaseLocator):
         self._obj_id = self.kwargs.get('obj_id', None)
         self._obj_type = self.kwargs.get('obj_type', None)
         self._conn_id = self.kwargs.get('connection_id', None)
-        self._vnode = self.kwargs.get('version_node', None)
-        self._vtag = self.kwargs.get('version_tag', None)
-        self._mshptrail = self.kwargs.get('mashuptrail', None)
-        if 'mashupVersion' in self.kwargs:
-            self._mshpversion = self.kwargs.get('mashupVersion', None)
-        else:
-            self._mshpversion = self.kwargs.get('mashup', None)
-        self._parameterexploration = self.kwargs.get('parameterExploration', None)
         
     def _get_host(self):
         return self._host
@@ -886,50 +842,9 @@ class DBLocator(BaseLocator):
                                                 obj_type)
         ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
         return ts
-        
-    def serialize(self, dom, element):
-        """serialize(dom, element) -> None
-        Convert this object to an XML representation.
-
-        """
-        locator = dom.createElement('locator')
-        locator.setAttribute('type', 'db')
-        locator.setAttribute('host', str(self._host))
-        locator.setAttribute('port', str(self._port))
-        locator.setAttribute('db', str(self._db))
-        locator.setAttribute('vt_id', str(self._obj_id))
-        node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
-        node.appendChild(filename)
-        locator.appendChild(node)
-        element.appendChild(locator)
-
-    @staticmethod
-    def parse(element):
-        """ parse(element) -> DBFileLocator or None
-        Parse an XML object representing a locator and returns a
-        DBFileLocator object.
-
-        """
-        if str(element.getAttribute('type')) == 'db':
-            host = str(element.getAttribute('host'))
-            port = int(element.getAttribute('port'))
-            database = str(element.getAttribute('db'))
-            vt_id = str(element.getAttribute('vt_id'))
-            user = ""
-            passwd = ""
-            for n in element.childNodes:
-                if n.localName == "name":
-                    name = str(n.firstChild.nodeValue).strip(" \n\t")
-                    #print host, port, database, name, vt_id
-                    return DBLocator(host, port, database,
-                                     user, passwd, name, vt_id, None)
-            return None
-        else:
-            return None
-    
-    @staticmethod
-    def from_url(url):
+            
+    @classmethod
+    def from_url(cls, url):
         #FIXME may need some urllib.quote work here
         scheme, rest = url.split('://', 1)
         url = 'http://' + rest
@@ -937,15 +852,15 @@ class DBLocator(BaseLocator):
         db_name = db_name[1:]
         host, port = net_loc.split(':', 1)
 #        obj_type, obj_id = args_str.split('=', 1)
-        kwargs = BaseLocator.parse_args(args_str)
-        return DBLocator(host, port, db_name, None, '', **kwargs)
+        kwargs = cls.parse_args(args_str)
+        return cls(host, port, db_name, None, '', **kwargs)
     
     def to_url(self):
         # FIXME may need some urllib.quote work here 
         # FIXME may also want to allow database type to be encoded in 
         # scheme (ie mysql://host/db, sqlite3://path/to)
         net_loc = '%s:%s' % (self._host, self._port)
-        args_str = BaseLocator.generate_args(self.kwargs)
+        args_str = self.generate_args(self.kwargs)
         # query_str = '%s=%s' % (self._obj_type, self._obj_id)
         url_tuple = ('db', net_loc, self._db, args_str, '')
         return urlparse.urlunsplit(url_tuple)

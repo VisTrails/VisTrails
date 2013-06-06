@@ -1570,22 +1570,12 @@ class QVistrailsWindow(QVistrailViewWindow):
             if locator.has_temporaries():
                 if not locator_class.prompt_autosave(self):
                     locator.clean_temporaries()
-            if hasattr(locator, '_vnode'):
-                version = locator._vnode
-                if hasattr(locator,'_vtag'):
-                    # if a tag is set, it should be used instead of the
-                    # version number
-                    if locator._vtag != '':
-                        version = locator._vtag
-            mashuptrail = None
-            mashupversion = None
-            if hasattr(locator, '_mshptrail'):
-                mashuptrail = locator._mshptrail
-            if hasattr(locator, '_mshpversion'):
-                mashupversion = locator._mshpversion
+            version = locator.version
+            mashup_trail = locator.mashuptrail
+            mashup_version = locator.mashupVersion
             self.open_vistrail_without_prompt(locator, version, 
-                                              mashuptrail=mashuptrail,
-                                              mashupVersion=mashupversion)
+                                              mashuptrail=mashup_trail,
+                                              mashupVersion=mashup_version)
             self.set_current_locator(locator)
 
     def executeParameterExploration(self, pe_id):

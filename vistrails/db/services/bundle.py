@@ -34,11 +34,14 @@
 ###############################################################################
 
 from vistrails.core import debug
+from vistrails.core.external_connection import DBConnection
 import vistrails.core.requirements
 from vistrails.core.system import execute_cmdline, systemType, \
     get_executable_path
 from vistrails.core.utils import Chdir
 from vistrails.db import VistrailsDBException
+from vistrails.db.services.db import MySQLDBConnection, SQLite3Connection
+from vistrails.db.services.io import open_db_connection
 from vistrails.db.services.locator import DirectoryLocator, XMLFileLocator, \
     ZIPFileLocator
 
@@ -133,7 +136,10 @@ class Bundle(object):
         # Make all keyword args directly into attrs
         for (k,v) in kwargs.iteritems():
             self.add_object(k, v)
-        
+       
+    def cleanup(self):
+        pass
+ 
     def add_object(self, obj):
         if not isinstance(obj, BundleObj):
             raise VistrailsDBException('Can only add BundleObj objects.')
@@ -210,6 +216,47 @@ class FileSerializer(Serializer):
         with open(fname, 'wb') as f:
             f.write(obj.obj)
         return fname
+
+class DBSerializer(Serializer):
+    SCHEMA = """
+    CREATE TABLE blobdata(
+        id integer not null primary key auto_increment,
+        data mediumblob
+    );
+
+    """
+
+    DROP_SCHEMA = """DROP TABLE IF EXISTS blobdata;"""
+    
+    STMTS = {"load": "SELECT data FROM blobdata WHERE id=%s;",
+             "delete": "DELETE FROM blobdata WHERE id=%s;",
+             "insert": "INSERT INTO blobdata (data) VALUES (%s);",
+             "update": "UPDATE blobdata SET data=%s WHERE id=%s;"}
+
+    @staticmethod
+    def get_serializer_type():
+        return 'db'
+
+    @staticmethod
+    def load(db_id, connection_obj):
+        c = connection_obj.get_connection().cursor()
+        c.execute(connection_obj.format_stmt(DBSerializer.STMTS["load"]), 
+                  (db_id,))
+        rows = c.fetchall()
+        data = rows[0][0]
+        obj = BundleObj(data, 'data', db_id)
+        return obj
+
+    @staticmethod
+    def save(obj, connection_obj):
+        import sqlite3
+        c = connection_obj.get_connection().cursor()
+
+        c.execute(connection_obj.format_stmt(DBSerializer.STMTS["insert"]), 
+                  (sqlite3.Binary(obj.obj),))
+        db_id = c.lastrowid
+        connection_obj.get_connection().commit()
+        return db_id
 
 class ThumbnailFileSerializer(Serializer):
     def load(self, filename):
@@ -314,74 +361,74 @@ class FileManifest(Manifest):
                 print >>f, obj_type + "\t" + obj_id + "\t" + fname
 
 class DirectoryBundle(Bundle):
-    def __init__(self, locator, overwrite=False, *args, **kwargs):
+    def __init__(self, dir_path, overwrite=False, *args, **kwargs):
         Bundle.__init__(self, *args, **kwargs)
-        self._locator = locator
+        self._dir_path = dir_path
         self._manifest = None
         self._overwrite = overwrite
         
-    def create_manifest(self, locator=None, fname=None):
-        if locator is None:
-            locator = self._locator
+    def create_manifest(self, dir_path=None, fname=None):
+        if dir_path is None:
+            dir_path = self._dir_path
         if fname is None:
-            fname = os.path.join(locator.name, "MANIFEST")
+            fname = os.path.join(dir_path, "MANIFEST")
         self._manifest = FileManifest(fname)
 
-    def load_manifest(self, locator=None, fname=None):
-        self.create_manifest(locator, fname)
+    def load_manifest(self, dir_path=None, fname=None):
+        self.create_manifest(dir_path, fname)
         self._manifest.load()        
 
-    def load(self, locator=None):
-        if locator is None:
-            locator = self._locator
-        self.load_manifest(locator)
+    def load(self, dir_path=None):
+        if dir_path is None:
+            dir_path = self._dir_path
+        self.load_manifest(dir_path)
         for obj_type, obj_id, fname in self._manifest.get_items():
             serializer = self.get_serializer(obj_type, 
                                         FileSerializer.get_serializer_type())
-            path = os.path.join(locator.name, fname)
+            path = os.path.join(dir_path, fname)
             obj = serializer.load(path)
             if obj is not None:
                 self.add_object(obj)
 
-    def save(self, locator=None, overwrite=None):
-        if locator is None:
-            locator = self._locator
+    def save(self, dir_path=None, overwrite=None):
+        if dir_path is None:
+            dir_path = self._dir_path
         if overwrite is None:
             overwrite = self._overwrite
         if self._manifest is None:
-            self.create_manifest(locator)
+            self.create_manifest(dir_path)
         all_files = []
-        if os.path.exists(locator.name):
-            if os.path.isdir(locator.name):
+        if os.path.exists(dir_path):
+            if os.path.isdir(dir_path):
                 if not overwrite:
                     raise VistrailsDBException('Directory "%s" already '
                                                'exists and overwrite is '
-                                               'off.' % locator.name)
-                for path, subdirs, fnames in os.walk(locator.name):
+                                               'off.' % dir_path)
+                for path, subdirs, fnames in os.walk(dir_path):
                     all_files.extend(os.path.join(path, fname) for fname in fnames)
             elif not overwrite:
                 raise VistrailsDBException('Directory "%s" already '
                                            'exists and overwrite is '
-                                           'off.' % locator.name)
+                                           'off.' % dir_path)
             else:
-                os.unlink(locator.name)
+                os.unlink(dir_path)
         else:
-            parent_dir = os.path.dirname(locator.name)
+            parent_dir = os.path.dirname(dir_path)
             if not os.path.exists(parent_dir) or not os.path.isdir(parent_dir):
                 raise VistrailsDBException('Parent directory "%s" does not '
                                            'exist.' % parent_dir)
-            os.mkdir(locator.name)
+            os.mkdir(dir_path)
 
         for obj_type, obj_id, obj in self._objs.get_items():
             try:
                 serializer = self.get_serializer(obj_type, 
                                         FileSerializer.get_serializer_type())
-                if not locator.name.endswith(os.sep):
-                    dir_name = locator.name + os.sep
+                if not dir_path.endswith(os.sep):
+                    dir_path = dir_path + os.sep
                 else:
-                    dir_name = locator.name
-                path = serializer.save(obj, dir_name)
-                fname = path[len(dir_name):]
+                    dir_path = dir_path
+                path = serializer.save(obj, dir_path)
+                fname = path[len(dir_path):]
                 self._manifest.add_entry(obj_type, obj_id, fname)
             except VistrailsDBException:
                 # cannot serialize object
@@ -393,44 +440,58 @@ class DirectoryBundle(Bundle):
     def cleanup(self):
         pass
 
-class ZIPBundle(DirectoryBundle):
-    # just a zipped version of a directory bundle
-    def __init__(self, locator, overwrite=False, *args, **kwargs):
-        DirectoryBundle.__init__(self, locator, overwrite, *args, **kwargs)
-        self._save_dir = None
+class ZIPBundle(Bundle):
+    # a zipped version of a directory bundle
+    def __init__(self, file_path, overwrite=False, *args, **kwargs):
+        Bundle.__init__(self, *args, **kwargs)
+        self._file_path = file_path
+        self._dir_bundle = None
 
-    def load(self):
+    def load(self, file_path=None):
         # have path and temp dir 
         #
         # first unzip it to a temporary directory and then
         # treat it like a directory bundle
+        if file_path is None:
+            file_path = self._file_path
 
-        filename = self._locator.name
         vistrails.core.requirements.require_executable('unzip')
 
-        self._save_dir = tempfile.mkdtemp(prefix='vt_save')
+        if self._dir_bundle is None:
+            save_dir = tempfile.mkdtemp(prefix='vt_save')
+            self._dir_bundle = DirectoryBundle(save_dir)
+            # need to link objs from dir bundle to this bundle
+            self._dir_bundle._objs = self._objs
+            self._dir_bundle.serializers = self.serializers
+        else:
+            save_dir = self._dir_bundle._dir_path
+
         output = []
-        cmdline = ['unzip', '-q','-o','-d', self._save_dir, filename]
+        cmdline = ['unzip', '-q','-o','-d', save_dir, file_path]
         result = execute_cmdline(cmdline, output)
 
         if result != 0 and len(output) != 0:
-            raise VistrailsDBException("Unzip of '%s' failed" % filename)
+            raise VistrailsDBException("Unzip of '%s' failed" % file_path)
 
-        dir_locator = DirectoryLocator(self._save_dir)
-        DirectoryBundle.load(self, dir_locator)
+        self._dir_bundle.load()
 
-    def save(self):
+    def save(self, file_path=None):
         # first save everything to a temporary directory as a
         # directory bundle and then zip it
-        if self._save_dir is None:
-            self._save_dir = tempfile.mkdtemp(prefix='vt_save')
-        dir_locator = DirectoryLocator(self._save_dir)
-        DirectoryBundle.save(self, dir_locator, True)
+        if file_path is None:
+            file_path = self._file_path
+        if self._dir_bundle is None:
+            save_dir = tempfile.mkdtemp(prefix='vt_save')
+            self._dir_bundle = DirectoryBundle(save_dir)
+            # need to link objs from dir bundle to this bundle
+            self._dir_bundle._objs = self._objs
+            self._dir_bundle.serializers = self.serializers
+        self._dir_bundle.save(overwrite=True)
 
         tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
         tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
         output = []
-        rel_vt_save_dir = os.path.split(self._save_dir)[1]
+        rel_vt_save_dir = os.path.split(save_dir)[1]
 
         # on windows, we assume zip.exe is in the current directory when
         # running from the binary install
@@ -443,20 +504,21 @@ class ZIPBundle(DirectoryBundle):
         try:
             #if we want that directories are also stored in the zip file
             # we need to run from the vt directory
-            with Chdir(self._save_dir):
+            with Chdir(save_dir):
                 result = execute_cmdline(cmdline,output)
             if result != 0 or len(output) != 0:
                 for line in output:
                     if line.find('deflated') == -1:
                         raise VistrailsDBException(" ".join(output))
-            shutil.copyfile(tmp_zip_file, self._locator.name)
+            shutil.copyfile(tmp_zip_file, file_path)
         finally:
             os.unlink(tmp_zip_file)
             os.rmdir(tmp_zip_dir)
 
     def cleanup(self):
-        if self._save_dir is not None:
-            shutil.rmtree(self._save_dir)
+        if (self._dir_bundle is not None and
+            self._dir_bundle._dir_path is not None):
+            shutil.rmtree(self._dir_bundle._dir_path)
 
 class DBManifest(Manifest):
     SCHEMA = """
@@ -472,42 +534,125 @@ class DBManifest(Manifest):
     #  engine=InnoDB;
     DROP_SCHEMA = """DROP TABLE IF EXISTS manifest;"""
 
-    STMTS = {"load": "SELECT * FROM manifest WHERE bundle_id=%s;",
+    STMTS = {"load": ("SELECT obj_type, obj_id, db_id FROM manifest "
+                      "WHERE bundle_id=%s;"),
              "delete": "DELETE FROM manifest WHERE bundle_id=%s;",
              "insert": ("INSERT INTO manifest (bundle_id, obj_type, "
                         "obj_id, db_id) VALUES (%s, %s, %s, %s);")}
 
-    def __init__(self, db_connection, bundle_id=None):
+    def __init__(self, connection_obj, bundle_id=None):
         Manifest.__init__(self)
-        self._db_connection = db_connection
+        self._connection_obj = connection_obj
         self._bundle_id = bundle_id
         self._obj_db_ids = BundleObjDictionary()
 
+    def set_bundle_id(self, bundle_id):
+        self._bundle_id = bundle_id
+
     def load(self):
-        c = self._db_connection.cursor()
-        c.execute(self.STMTS["load"], (self._bundle_id,))
+        c = self._connection_obj.get_connection().cursor()
+        c.execute(self._connection_obj.format_stmt(self.STMTS["load"]), 
+                  (self._bundle_id,))
         rows = c.fetchall()
         for row in rows:
-            self.add_entry(*row[1:])
+            self.add_entry(*row)
 
     def save(self):
-        c = self._db_connection.cursor()
-        c.execute(self.STMTS["delete"], (self._bundle_id,))
-        c.executemany(self.STMTS["insert"], 
+        c = self._connection_obj.get_connection().cursor()
+        c.execute(self._connection_obj.format_stmt(self.STMTS["delete"]), 
+                  (self._bundle_id,))
+        c.executemany(self._connection_obj.format_stmt(self.STMTS["insert"]),
                       [(self._bundle_id,) + item 
                        for item in sorted(self.get_items())])
 
 class DBBundle(Bundle):
     SCHEMA = """
     CREATE TABLE bundle(
-        id int not null auto_increment primary key,
-        name varchar(255)
+        id integer not null primary key auto_increment,
+        name varchar(1023)
     );
 
     """
 
     DROP_SCHEMA = """DROP TABLE IF EXISTS bundle;"""
     
+    STMTS = {"load": "SELECT name FROM bundle WHERE id=%s;",
+             "delete": "DELETE FROM bundle WHERE id=%s;",
+             "insert": "INSERT INTO bundle (name) VALUES (%s);",
+             "update": "UPDATE bundle SET name=%s WHERE id=%s;"}
+
+    def __init__(self, connection_obj, bundle_id=None, name="",
+                 overwrite=False, *args, **kwargs):
+        Bundle.__init__(self, *args, **kwargs)
+        self._connection_obj = connection_obj
+        self._name = name
+        self._bundle_id = bundle_id
+        self._manifest = None
+        self._overwrite = overwrite
+
+    def create_manifest(self, connection_obj=None, bundle_id=None):
+        if connection_obj is None:
+            connection_obj = self._connection_obj
+        self._manifest = DBManifest(connection_obj, bundle_id)
+
+    def load_manifest(self, connection_obj=None, bundle_id=None):
+        self.create_manifest(connection_obj, bundle_id)
+        self._manifest.load()
+
+    def load(self, connection_obj=None, bundle_id=None):
+        if connection_obj is None:
+            connection_obj = self._connection_obj
+        if bundle_id is None:
+            bundle_id = self._bundle_id
+        self.load_manifest(connection_obj, bundle_id)
+
+        c = connection_obj.get_connection().cursor()
+        c.execute(connection_obj.format_stmt(self.STMTS["load"]), (bundle_id,))
+        rows = c.fetchall()
+        self._name = rows[0][0]
+
+        for obj_type, obj_id, db_id in self._manifest.get_items():
+            serializer = self.get_serializer(obj_type, 
+                                        DBSerializer.get_serializer_type())
+            obj = serializer.load(db_id, connection_obj)
+            if obj is not None:
+                self.add_object(obj)
+
+    def save(self, connection_obj=None, bundle_id=None, name=None,
+             overwrite=None):
+        if connection_obj is None:
+            connection_obj = self._connection_obj
+        if bundle_id is None:
+            bundle_id = self._bundle_id
+        if name is None:
+            name = self._name
+        if overwrite is None:
+            overwrite = self._overwrite
+        
+        if self._manifest is None:
+            self.create_manifest(connection_obj, bundle_id)
+        all_objs = []
+        for obj_type, obj_id, obj in self._objs.get_items():
+            try:
+                serializer = self.get_serializer(obj_type, 
+                                        DBSerializer.get_serializer_type())
+                db_id = serializer.save(obj, connection_obj)
+                self._manifest.add_entry(obj_type, obj_id, db_id)
+            except VistrailsDBException:
+                # cannot serialize object
+                print 'cannot serialize obj', obj_type
+                debug.warning('Cannot serialize object(s) of type "%s"' % \
+                              obj_type)
+        if self._bundle_id is None:
+            c = connection_obj.get_connection().cursor()
+            c.execute(connection_obj.format_stmt(self.STMTS['insert']), 
+                      (self._name,))
+            self._bundle_id = c.lastrowid
+            self._manifest.set_bundle_id(self._bundle_id)
+        else:
+            c.execute(connection_obj.format_stmt(self.STMTS['update']), 
+                      (self._name,))
+        self._manifest.save()
 
 class VistrailBundle(Bundle):
     def get_primary_obj(self):
@@ -579,16 +724,18 @@ import os
 import shutil
 import tempfile
 
-class MySQLDatabase(object):
+class DatabaseTest(object):
     def __init__(self):
-        self.db_connection = None
+        self.connection_obj = None
 
     def setup(self):
-        try:
-            import MySQLdb
-        except:
-            self.skipTest("Do not have MySQLdb installed.")
+        pass
 
+    def cleanup(self):
+        pass
+
+class MySQLDatabaseTest(DatabaseTest):
+    def setup(self):
         create_cmd = "CREATE DATABASE `vt_test`;"
         use_cmd = "USE `vt_test`;"
 
@@ -597,74 +744,29 @@ class MySQLDatabase(object):
                      'user': 'vt_test',
                      }
 
-        self.db_connection = MySQLdb.connect(**db_config)
-        c = self.db_connection.cursor()
+        self.connection_obj = MySQLDBConnection(**db_config)
+        c = self.connection_obj.get_connection().cursor()
         c.execute(create_cmd)
         c.execute(use_cmd)
-        return self.db_connection
-
-    def format_stmt(self, statement):
-        """format_prepared_statement(statement: str) -> str
-        Formats a prepared statement for compatibility with the currently
-        loaded database library's paramstyle.
-
-        Currently only supports 'qmark' and 'format' paramstyles.
-        May be expanded later to allow for more compatibility options
-        on input and output.  See PEP 249 for more info.
-
-        """
-        import MySQLdb
-        style = MySQLdb.paramstyle
-        if style == 'format':
-            return statement.replace("?", "%s")
-        elif style == 'qmark':
-            return statement.replace("%s", "?")
-        return statement
+        return self.connection_obj
 
     def cleanup(self):
         drop_cmd = "DROP DATABASE IF EXISTS `vt_test`;"
 
-        c = self.db_connection.cursor()            
+        c = self.connection_obj.get_connection().cursor()            
         c.execute(drop_cmd);
-        self.db_connection.close()
+        self.connection_obj.close()
 
-class SQLite3Database(object):
-    def __init__(self):
-        self.fname = None
-        self.db_connection = None
-
+class SQLite3DatabaseTest(DatabaseTest):
     def setup(self):
-        try:
-            import sqlite3
-        except:
-            self.skipTest("Do not have sqlite3 installed.")
-
         (h, self.fname) = \
                     tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
         os.close(h)
-        self.db_connection = sqlite3.connect(self.fname)
-        return self.db_connection
-
-    def format_stmt(self, statement):
-        """format_prepared_statement(statement: str) -> str
-        Formats a prepared statement for compatibility with the currently
-        loaded database library's paramstyle.
-
-        Currently only supports 'qmark' and 'format' paramstyles.
-        May be expanded later to allow for more compatibility options
-        on input and output.  See PEP 249 for more info.
-
-        """
-        import sqlite3
-        style = sqlite3.paramstyle
-        if style == 'format':
-            return statement.replace("?", "%s")
-        elif style == 'qmark':
-            return statement.replace("%s", "?")
-        return statement
+        self.connection_obj = SQLite3Connection(self.fname)
+        return self.connection_obj
 
     def cleanup(self):
-        self.db_connection.close()
+        self.connection_obj.close()
         os.unlink(self.fname)
 
 class TestBundles(unittest.TestCase):
@@ -682,7 +784,7 @@ class TestBundles(unittest.TestCase):
                          'thumbs/thumb-def.png')
 
     def test_manifest_file(self):
-        d = tempfile.mkdtemp(prefix='vtbundle_test')
+        d = tempfile.mkdtemp(prefix='vt_bundle_test')
         try:
             manifest = FileManifest(os.path.join(d, 'MANIFEST'))
             paths = [('vistrail', None, 'vistrail.xml'),
@@ -702,33 +804,41 @@ class TestBundles(unittest.TestCase):
         finally:
             shutil.rmtree(d)
 
-    def create_bundle(self, b):
-        b.add_serializer('data', FileSerializer)
+    def create_bundle(self, b, ids, is_file=True):
+        if is_file:
+            b.add_serializer('data', FileSerializer)
+        else:
+            b.add_serializer('data', DBSerializer)
         o1 = FileSerializer.load('/Users/dakoop/Pictures/DSCF0723_OUT.JPG')
-        o1.id = 'abc'
+        o1.id = ids[0]
         b.add_object(o1)
         o2 = FileSerializer.load('/Users/dakoop/Pictures/DSCF0723_OUT2.JPG')
-        o2.id = 'def'
+        o2.id = ids[1]
         b.add_object(o2)
         b.save()
 
-    def load_bundle(self, b):
-        b.add_serializer('data', FileSerializer)
+    def load_bundle(self, b, is_file=True):
+        if is_file:
+            b.add_serializer('data', FileSerializer)
+        else:
+            b.add_serializer('data', DBSerializer)
         b.load()
 
     def compare_bundles(self, b1, b2):
         self.assertEqual(len(b1.get_items()), len(b2.get_items()))
         for obj_type, obj_id, obj in b1.get_items():
             obj2 = b2.get_object(obj_type, obj_id)
-            self.assertEqual(obj.obj, obj2.obj)
+            # not ideal, but fails when trying to compare buffer obj with str
+            # on db stuff without conversion
+            self.assertEqual(str(obj.obj), str(obj2.obj))
 
     def test_dir_bundle(self):
         d = tempfile.mkdtemp(prefix='vtbundle_test')
         inner_d = os.path.join(d, 'mybundle')
-        b1 = DirectoryBundle(DirectoryLocator(inner_d))
-        b2 = DirectoryBundle(DirectoryLocator(inner_d))
+        b1 = DirectoryBundle(inner_d)
+        b2 = DirectoryBundle(inner_d)
         try:
-            self.create_bundle(b1)
+            self.create_bundle(b1, ['abc', 'def'])
             self.load_bundle(b2)
 
             self.compare_bundles(b1, b2)
@@ -739,10 +849,10 @@ class TestBundles(unittest.TestCase):
     def test_zip_bundle(self):
         (h, fname) = tempfile.mkstemp(prefix='vtbundle_test', suffix='.zip')
         os.close(h)
-        b1 = ZIPBundle(ZIPFileLocator(fname))
-        b2 = ZIPBundle(ZIPFileLocator(fname))
+        b1 = ZIPBundle(fname)
+        b2 = ZIPBundle(fname)
         try:
-            self.create_bundle(b1)
+            self.create_bundle(b1, ['abc', 'def'])
             self.load_bundle(b2)
             
             self.compare_bundles(b1, b2)
@@ -753,7 +863,7 @@ class TestBundles(unittest.TestCase):
                 b2.cleanup()
             os.unlink(fname)
 
-    def run_manifest_db(self, db):
+    def run_manifest_db(self, db_klass):
         """To run this, you need to create a user named "vt_test" on
         localhost:3306.  You also need to grant "vt_test" create table
         priviledges.
@@ -765,39 +875,77 @@ class TestBundles(unittest.TestCase):
 
         """
 
-        DBManifest.STMTS = dict((k, db.format_stmt(v)) 
-                               for k,v in DBManifest.STMTS.iteritems())
-        db_connection = db.setup()
-        c = db_connection.cursor()
-        c.execute(DBManifest.SCHEMA)
+        try:
+            db = db_klass()
+        except ImportError:
+            self.skipTest("Cannot import dependencies for %s." % \
+                          db_klass.__name__)
+            
+        connection_obj = db.setup()
+        c = connection_obj.get_connection().cursor()
+        c.execute(connection_obj.format_stmt(DBManifest.SCHEMA))
         
         try:
-            manifest = DBManifest(db_connection, 0)
+            manifest = DBManifest(connection_obj, 0)
 
             entries = [('vistrail', None, 0),
-                     ('thumbnail', 'abc', 23),
-                     ('thumbnail', 'def', 34)]
+                       ('thumbnail', 'abc', 23),
+                       ('thumbnail', 'def', 34)]
             for e in entries:
                 manifest.add_entry(*e)
             manifest.save()
 
-            manifest2 = DBManifest(db_connection, 0)
+            manifest2 = DBManifest(connection_obj, 0)
             manifest2.load()
             for e in entries:
                 self.assertTrue(manifest2.has_entry(e[0], e[1]))
                 self.assertEqual(manifest.get_value(e[0], e[1]),
                                  manifest2.get_value(e[0], e[1]))
-            db_connection.commit()
+            connection_obj.get_connection().commit()
         finally:
-            c.execute(DBManifest.DROP_SCHEMA);
+            c.execute(connection_obj.format_stmt(DBManifest.DROP_SCHEMA));
+            db.cleanup()
+
+    def run_bundle_db(self, db_klass):
+        try:
+            db = db_klass()
+        except ImportError:
+            self.skipTest("Cannot import dependencies for %s." % \
+                          db_klass.__name__)
+        connection_obj = db.setup()
+        c = connection_obj.get_connection().cursor()
+        c.execute(connection_obj.format_stmt(DBManifest.SCHEMA))
+        c.execute(connection_obj.format_stmt(DBBundle.SCHEMA))
+        c.execute(connection_obj.format_stmt(DBSerializer.SCHEMA))
+
+        try:
+            b1 = DBBundle(connection_obj, name="test")
+            b2 = DBBundle(connection_obj, bundle_id=1)
+
+            self.create_bundle(b1, [1,2], False)
+            self.load_bundle(b2, False)
+            self.compare_bundles(b1, b2)
+        finally:
+            if b1:
+                b1.cleanup()
+            if b2:
+                b2.cleanup()
+            c.execute(connection_obj.format_stmt(DBManifest.DROP_SCHEMA));
+            c.execute(connection_obj.format_stmt(DBBundle.DROP_SCHEMA));
+            c.execute(connection_obj.format_stmt(DBSerializer.DROP_SCHEMA));
             db.cleanup()
 
     def test_manifest_mysql(self):
-        self.run_manifest_db(MySQLDatabase())
+        self.run_manifest_db(MySQLDatabaseTest)
 
     def test_manifest_sqlite3(self):
-        self.run_manifest_db(SQLite3Database())
+        self.run_manifest_db(SQLite3DatabaseTest)
 
+    def test_bundle_mysql(self):
+        self.run_bundle_db(MySQLDatabaseTest)
+
+    def test_bundle_sqlite3(self):
+        self.run_bundle_db(SQLite3DatabaseTest)
 
 if __name__ == '__main__':
     unittest.main()

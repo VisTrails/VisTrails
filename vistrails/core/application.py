@@ -443,27 +443,16 @@ after self.init()"""
                         pe = version
                         version = None
                     else:
-                        if hasattr(locator, '_vnode') and \
-                                locator._vnode is not None:
-                            version = locator._vnode
-                        if hasattr(locator,'_vtag'):
-                            # if a tag is set, it should be used instead of the
-                            # version number
-                            if locator._vtag != '':
-                                version = locator._vtag
+                        version = locator.version
                     execute = self.temp_configuration.executeWorkflows
-                    mashuptrail = None
-                    mashupversion = None
-                    if hasattr(locator, '_mshptrail'):
-                        mashuptrail = locator._mshptrail
-                    if hasattr(locator, '_mshpversion'):
-                        mashupversion = locator._mshpversion
+                    mashup_trail = locator.mashuptrail
+                    mashup_version = locator.mashupVersion
                     if not self.temp_configuration.showSpreadsheetOnly:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
                                                                     version, execute,
-                                                                    mashuptrail=mashuptrail, 
-                                                                    mashupVersion=mashupversion)
+                                                                    mashuptrail=mashup_trail, 
+                                                                    mashupVersion=mashup_version)
 
                     if self.temp_configuration.check('parameterExploration'):
                         self.builderWindow.executeParameterExploration(pe)
