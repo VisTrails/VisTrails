@@ -75,86 +75,6 @@ class BaseInterpreter(object):
         self.done_summon_hook = None
         self.done_update_hook = None
 
-    def get_name_dependencies(self, astList):
-        """get_name_dependencies(astList) -> list of something 
-        
-        """
-        
-        result = []
-        if astList[0]==1: # NAME token
-            result += [astList[1]]
-        else:
-            for e in astList:
-                if isinstance(e, list):
-                    result += self.get_name_dependencies(e)
-        return result
-
-#    def build_alias_dictionary(self, pipeline):
-#        aliases = {}
-#        for mid in pipeline.modules:
-#            for f in pipeline.modules[mid].functions:
-#                fsig = f.getSignature()
-#                for pidx in xrange(len(f.params)):
-#                    palias = f.params[pidx].alias
-#                    if palias and palias!='':
-#                        for f1 in reversed(pipeline.modules[mid].functions):
-#                            if f1.getSignature()==fsig:
-#                                p = f1.params[pidx]
-#                                aliases[palias] = (p.type, expression.parse_expression(str(p.strValue)))
-#                                break
-#        return aliases
-
-    def compute_evaluation_order(self, aliases):
-        # Build the dependencies graph
-        dp = {}
-        for alias,(atype,(base,exp)) in aliases.items():
-            edges = []
-            for e in exp:
-                edges += self.get_name_dependencies()
-            dp[alias] = edges
-            
-        # Topological Sort to find the order to compute aliases
-        # Just a slow implementation, O(n^3)...
-        unordered = copy.copy(list(aliases.keys()))
-        ordered = []
-        while unordered:
-            added = []
-            for i in xrange(len(unordered)):
-                ok = True
-                u = unordered[i]
-                for j in xrange(len(unordered)):
-                    if i!=j:
-                        for v in dp[unordered[j]]:
-                            if u==v:
-                                ok = False
-                                break
-                        if not ok: break
-                if ok: added.append(i)
-            if not added:
-                debug.warning('Looping dependencies detected!')
-                break
-            for i in reversed(added):
-                ordered.append(unordered[i])
-                del unordered[i]
-        return ordered
-
-    def evaluate_exp(self, atype, base, exps, aliases):
-        # FIXME: eval should pretty much never be used
-        import datetime        
-        for e in exps: base = (base[:e[0]] +
-                               str(eval(e[1],
-                                        {'datetime':locals()['datetime']},
-                                        aliases)) +
-                               base[e[0]:])
-        if not atype in ['string', 'String']:
-            if base=='':
-                base = '0'
-            try:
-                base = eval(base,None,None)
-            except:
-                pass
-        return base
-
     def resolve_aliases(self, pipeline,
                         customAliases=None):
         # We don't build the alias dictionary anymore because as we don't 
@@ -168,17 +88,7 @@ class BaseInterpreter(object):
             #so we need to build the Alias Dictionary always
             for k,v in customAliases.iteritems():
                 aliases[k] = v
-            # no support for expression evaluation. The code that does that is
-            # ugly and dangerous.
-#        ordered = self.compute_evaluation_order(aliases)
-#        casting = {'int': int, 'float': float, 'double': float, 'string': str,
-#                   'Integer': int, 'Float': float, 'String': str}
-#        for alias in reversed(ordered):
-#            (atype,base) = aliases[alias]
-#            #no expression evaluation anymore
-#            aliases[alias] = base
-#            #value = self.evaluate_exp(atype,base,exps,aliases)
-#            #aliases[alias] = value
+
         for alias in aliases:
             try:
                 info = pipeline.aliases[alias]
