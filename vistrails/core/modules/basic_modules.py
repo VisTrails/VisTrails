@@ -38,7 +38,7 @@ import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
-     Converter, NotCacheable, ModuleError
+     Converter, NotCacheable, ModuleError, SeparateThread
 from vistrails.core.system import vistrails_version
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -864,7 +864,7 @@ class Null(Module):
 
 ##############################################################################
 
-class PythonSource(NotCacheable, Module):
+class PythonSource(NotCacheable, SeparateThread, Module):
     """PythonSource is a Module that executes an arbitrary piece of
     Python code.
     
@@ -913,9 +913,21 @@ class PythonSource(NotCacheable, Module):
                 if locals_[k] != None:
                     self.setResult(k, locals_[k])
 
+    def do_compute(self):
+        if self.getInputFromPort('use_thread'):
+            SeparateThread.do_compute(self)
+        else:
+            Module.do_compute(self)
+
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
         self.run_code(s, use_input=True, use_output=True)
+
+    def _get_priority(self):
+        if self.getInputFromPort('use_thread'):
+            return SeparateThread.COMPUTE_PRIORITY
+        else:
+            return Module.COMPUTE_PRIORITY
 
 ##############################################################################
 
@@ -1194,6 +1206,8 @@ def initialize(*args, **kwargs):
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
     reg.add_input_port(PythonSource, 'source', String, True)
+    reg.add_input_port(PythonSource, 'use_thread', Boolean,
+                       optional=True, defaults=['False'])
     reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
