@@ -1421,21 +1421,6 @@ class Module(object):
             if conList==[]:
                 del self.inputPorts[port_name]
 
-    def create_instance_of_type(self, ident, name, ns=''):
-        """ Create a vistrails module from the module registry.  This creates
-        an instance of the module for use in creating the object output by a
-        Module.
-        """
-        from vistrails.core.modules.module_registry import get_module_registry
-        try:
-            reg = get_module_registry()
-            m = reg.get_module_by_name(ident, name, ns)
-            return m()
-        except:
-            msg = "Cannot get module named " + str(name) + \
-                  " with identifier " + str(ident) + " and namespace " + ns
-            raise ModuleError(self, msg)
-
     def set_streaming(self, UserGenerator):
         """creates a generator object that computes when the next input is received.
         """
