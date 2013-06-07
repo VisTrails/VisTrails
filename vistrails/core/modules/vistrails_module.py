@@ -344,6 +344,8 @@ Designing New Modules
 
 """
 
+    COMPUTE_PRIORITY = 100
+
     def __init__(self):
         Task.__init__(self)
         self.inputPorts = {}
@@ -464,11 +466,12 @@ context."""
                 except KeyError:
                     pass
 
+        prio, callback = default_prio(self.COMPUTE_PRIORITY, callback)
         if callback is None:
             callback = self.on_upstream_ready
 
         self.run_upstream_module(
-                lambda: callback(connectors),
+                (prio, lambda: callback(connectors)),
                 *connectors)
 
     def update(self):
@@ -726,9 +729,59 @@ Makes sure input port 'name' is filled."""
 ################################################################################
 
 class NotCacheable(object):
+    """This Mixin marks a Module as not being cacheable.
 
+    It will get reexecuted every time even if it gets the exact same input on
+    its ports.
+    """
     def is_cacheable(self):
         return False
+
+################################################################################
+
+class SeparateThread(object):
+    """This mixin enables a Module's compute() method to be run in parallel.
+
+    You mustn't use the compute() method but should use compute_static()
+    instead. It will be run in a separate process in parallel with the
+    execution of other modules.
+    """
+    COMPUTE_PRIORITY = 0
+
+    def do_compute(self):
+        self._runner.run_thread(self.compute, self.thread_done)
+
+    def thread_done(self, future):
+        self.done()
+        try:
+            future.result()
+            self.computed = True
+        except ModuleSuspended, e:
+            self.suspended = e.msg
+            self._module_suspended = e
+            self.logging.end_update(self, e, was_suspended=True)
+            self.logging.signalSuspended(self)
+            return
+        except ModuleError, me:
+            if hasattr(me.module, 'interpreter'):
+                raise
+            else:
+                msg = "A dynamic module raised an exception: '%s'"
+                msg %= str(me)
+                raise ModuleError(self, msg)
+        except ModuleErrors:
+            raise
+        except KeyboardInterrupt, e:
+            raise ModuleError(self, 'Interrupted by user')
+        except Exception, e:
+            import traceback
+            traceback.print_exc()
+            raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
+        if self.annotate_output:
+            self.annotate_output_values()
+        self.upToDate = True
+        self.logging.end_update(self)
+        self.logging.signalSuccess(self)
 
 ################################################################################
 

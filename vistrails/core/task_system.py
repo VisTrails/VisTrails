@@ -73,7 +73,7 @@ class TaskRunner(object):
         self.running_threads += 1
         def done(runner):
             runner.running_threads -= 1
-            callback(future.result())
+            callback(future)
         future.add_done_callback(lambda res: self.tasks.put((prio, done)))
 
     def execute_tasks(self):
