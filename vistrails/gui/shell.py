@@ -837,15 +837,10 @@ def getIPythonDialog():
     from IPython.frontend.qt.inprocess import QtInProcessKernelManager
 #    from IPython.kernel.inprocess.ipkernel import InProcessKernel
 
-    def print_process_id():
-        print 'Process ID is:', os.getpid()
-    print_process_id()
-
     km = QtInProcessKernelManager()
     km.start_kernel()
     kernel = km.kernel
     kernel.gui = 'qt4'
-    kernel.shell.push({'foo': 43, 'print_process_id': print_process_id})
 
     kernel_client = km.client()
     kernel_client.start_channels()
