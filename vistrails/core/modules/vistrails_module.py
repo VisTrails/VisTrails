@@ -331,8 +331,8 @@ context."""
         for connectorList in self.inputPorts.itervalues():
             for connector in connectorList:
                 connector.obj.update()
-                if hasattr(connector.obj, 'suspended') and \
-                   connector.obj.suspended:
+                if (hasattr(connector.obj, 'suspended') and
+                        connector.obj.suspended):
                     self.suspended = connector.obj.suspended
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
@@ -533,20 +533,6 @@ Makes sure input port 'name' is filled."""
                 conList.remove(connector)
             if conList==[]:
                 del self.inputPorts[inputPort]
-
-    def create_instance_of_type(self, ident, name, ns=''):
-        """ Create a vistrails module from the module registry.  This creates an instance of the module
-        for use in creating the object output by a Module.
-        """
-        from vistrails.core.modules.module_registry import get_module_registry
-        try:
-            reg = get_module_registry()
-            m = reg.get_module_by_name(ident, name, ns)
-            return m()
-        except:
-            msg = "Cannot get module named " + str(name) + \
-                  " with identifier " + str(ident) + " and namespace " + ns
-            raise ModuleError(self, msg)
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):
