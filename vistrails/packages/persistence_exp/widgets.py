@@ -480,7 +480,7 @@ class ManagedRefDialog(QtGui.QDialog):
                                               'Use File...',
                                               self.current_file,
                                               'All files (*.*)')
-        if chosen_file and not chosen_file.isEmpty():
+        if chosen_file:
             self.current_file = chosen_file
             self.filename_edit.setText(self.current_file)
     
@@ -554,7 +554,7 @@ class PathChooserLayout(QtGui.QHBoxLayout):
                                                   self.pathname_edit.text(),
                                                   'All files (*.*)')
 
-        if chosen_path and not chosen_path.isEmpty():
+        if chosen_path:
             self.pathname_edit.setText(chosen_path)
             self.emit(QtCore.SIGNAL('pathnameChanged()'))
 

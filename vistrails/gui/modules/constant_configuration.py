@@ -474,7 +474,7 @@ class PathChooserToolButton(QtGui.QToolButton):
         setPath() -> None
 
         """
-        if self.lineEdit and path and not path.isEmpty():
+        if self.lineEdit and path:
             self.lineEdit.setText(path)
             self.lineEdit.update_parent()
             self.parent().update_parent()

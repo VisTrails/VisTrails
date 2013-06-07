@@ -2675,7 +2675,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.controller and not self.read_only_mode:
             cb = QtGui.QApplication.clipboard()        
-            text = str(cb.text().toAscii())
+            text = cb.text()
             if text=='' or not text.startswith("<workflow"): return
             ids = self.controller.paste_modules_and_connections(text, center)
             self.setupScene(self.controller.current_pipeline)

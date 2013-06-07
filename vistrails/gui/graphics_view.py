@@ -636,7 +636,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 "PDF files (*.pdf)",
                 None)
 
-            if fileName.isEmpty():
+            if not fileName:
                 return None
             f = str(fileName)
         else:

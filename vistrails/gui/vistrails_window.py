@@ -2395,7 +2395,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 name)
-        if ok and not text.isEmpty():
+        if ok and text:
             return str(text).strip().rstrip()
         if not ok:
             return None

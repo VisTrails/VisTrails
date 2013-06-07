@@ -287,7 +287,7 @@ Click on No to create a new tag.""" %pname,
                     (text, ok) = QtGui.QInputDialog.getText(self, "VisTrails::Mashups",
                                                             "Enter a new tag:",
                                                             text="")
-                    if ok and not text.isEmpty():
+                    if ok and text:
                         tag = str(text)
                         if self.mshpController.updateCurrentTag(tag):
                             tag_exists = False

@@ -213,7 +213,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
                                                   'Load LaTeX File...',
                                                   self.source_edit.text(),
                                                   'LaTeX files (*.tex)')
-        if fname and not fname.isEmpty():
+        if fname:
             self.source_edit.setText(fname)
             self.texts = parse_latex_file(fname)
             for cmd_tuple in self.texts[1]:

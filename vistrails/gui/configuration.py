@@ -909,7 +909,7 @@ hovering tree nodes')
                   "Choose a new directory for storing thumbnail chache files",
                   "",
                   QtGui.QFileDialog.ShowDirsOnly)
-        if not dir.isEmpty():
+        if dir:
             self._thumbs_cache_directory_edt.setText(dir)
             self.thumbs_cache_directory_changed()
             

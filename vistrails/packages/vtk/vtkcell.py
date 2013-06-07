@@ -588,8 +588,8 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 
@@ -626,8 +626,8 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 

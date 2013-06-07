@@ -1110,7 +1110,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 name)
-        if ok and not text.isEmpty():
+        if ok and text:
             return str(text).strip().rstrip()
         if not ok:
             return None
@@ -1133,7 +1133,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 '')
-        if ok and not text.isEmpty():
+        if ok and not text:
             return str(text).strip().rstrip()
         return ''
             
@@ -1141,7 +1141,7 @@ class VistrailController(QtCore.QObject, BaseController):
         dialog = QtGui.QFileDialog.getExistingDirectory
         dir_name = dialog(None, "Save Subworkflows...",
                           vistrails.core.system.vistrails_file_directory())
-        if dir_name.isEmpty():
+        if dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
         setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)

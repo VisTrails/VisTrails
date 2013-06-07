@@ -99,7 +99,7 @@ class ImageViewerCellWidget(QCellWidget):
             img = QtGui.QImage()
             if img.load(fileValue.name):
                 self.originalPix = QtGui.QPixmap.fromImage(img)
-                self.label.setPixmap(self.originalPix.scaled(self.label.size(),
+                self.label.setPixmap(self.originalPix.scaled(len(self.label),
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
             else:
@@ -212,9 +212,9 @@ class ImageViewerSaveAction(QtGui.QAction):
                                                "Images (*.png);;PDF files (*.pdf)")
         if not fn:
             return
-        if fn.endsWith("png", QtCore.Qt.CaseInsensitive):
+        if fn.lower().endswith("png"):
             cellWidget.label.pixmap().toImage().save(fn, "png")
-        elif fn.endsWith("pdf", QtCore.Qt.CaseInsensitive):
+        elif fn.lower().endswith("pdf"):
             cellWidget.saveToPDF(str(fn))
         
 
