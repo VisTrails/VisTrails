@@ -35,40 +35,120 @@
 
 \documentclass{article}
 
-%% This file illustrates how to embed images of vistrails published on crowdLabs.
-%% Please refer to 
-%% http://www.crowdlabs.org/site_media/static/user_docs/vistrails_usage.html 
-%% for instructions on how to publish workflows to crowdLabs.
+%% This file illustrates how to embed images of vistrails published on
+%% crowdLabs.  Please refer to
+%% http://www.crowdlabs.org/site_media/static/user_docs/vistrails_usage.html
+%% for instructions on how to publish workflows to crowdLabs and to
+%% http://www.crowdlabs.org/site_media/static/user_docs/embedding.html for
+%% more details about how to use this extension.
+
+%% This is crowdlabs main package
+\usepackage{crowdlabs}
 
 %% The crowdlabs extension requires python. If your python is not in the path,
 %% uncomment the line below and edit with the path to your python executable
-%\renewcommand{\vistrailspythonpath}{C:/Python27/python.exe}
+%\renewcommand{\pythonpath}{C:/Python27/python.exe}
 
 %% You need to enable the crowdlabs package. Make sure crowdlabs.sty is located
 %% in the same directory as the .tex file in which you want to embed the images.
 
-\usepackage{crowdlabs}
+%% If crowdlabs you are using is not on crowdlabs.org, 
+%% uncomment the line below and configure it with the current server
+%\renewcommand{\urlcrowdlabs}{http://yourcrowdlabsserver.com}
 
+\title{Embedding workflows in \LaTeX\ using crowdLabs}
+\author{The VisTrails Team}
 \begin{document}
+\maketitle
+\begin{abstract}
+This article shows how to embed images from workflows stored on
+\url{www.crowdlabs.org} in a \LaTeX\ document. The images can be
+workflow results, workflow graphs or VisTrails' history trees.
+\end{abstract}
 
-This example shows how to embed images from workflows stored on www.crowdlabs.org.
-Please refer to \\
- http://www.crowdlabs.org/site\_media/static/user\_docs/vistrails\_usage.html
- \\
-for instructions on how to publish workflows on crowdLabs.
+\section{Introduction}
+%% Please refer to \\
+%%  http://www.crowdlabs.org/site\_media/static/user\_docs/vistrails\_usage.html
+%%  \\
+%% for instructions on how to publish workflows on crowdLabs  and to \\
+%%  http://www.crowdlabs.org/site\_media/static/user\_docs/embedding.html \\
+%% for more details about how to use this extension.
 
-The images below were generated using crowdLabs. 
+After uploading your workflows to crowdLabs\footnote{Please visit
+\url{http://www.crowdlabs.org/site_media/static/user_docs/vistrails_usage.html}
+if you need instructions on how to publish workflows to crowdLabs}, you need the following requirements in order to embed the workflows in the \LaTeX\ file:
+\begin{itemize}
+\item Python (\url{www.python.org})
+\item the file \textsf{crowdlabs.sty}
+\item and the file \textsf{includecrowdlabs.py} 
+\end{itemize} 
 
-This was using isosurfacing:\\
+Both \textsf{crowdlabs.sty} and \textsf{includecrowdlabs.py} are
+located in the same directory as this document and they should be
+copied to the same folder that your main document is located.
 
-\vistrail[wfid=1043,
+\subsection{Preparing the \LaTeX\ document}
+
+After copying the files, you need to configure your document.In the
+preamble of the \LaTeX\ file add the crowdlabs package: 
+\begin{verbatim}
+   \usepackage{crowdlabs}
+\end{verbatim}
+
+As we mentioned before, the crowdLabs package requires Python to
+run. If the python executable is not accessible in the PATH, you will
+need to set the \texttt{\textbackslash pythonpath} command with the correct path for your environment:
+ 
+\begin{verbatim}
+   \renewcommand{\pythonpath}{C:/Python27/python.exe}
+\end{verbatim}
+
+Also, by default, \url{crowdlabs.org} will be used as the main server, but
+you can use your own crowdLabs server setting the \texttt{\textbackslash urlcrowdlabs} command: 
+\begin{verbatim}
+   \renewcommand{\urlcrowdlabs}{http://yourcrowdlabsserver.com}
+\end{verbatim}
+
+\section{Embedding workflows}
+If you go to \url{crowdlabs.org} and visit the details page of the
+workflow you would like to embed, you will see a tab just below the
+resulting image, named \textsf{Embed this Workflow}. Clicking on it,
+will display snippets you can use to embed that particular workflow in
+different types of documents. So copy the text displayed in the
+\textsf{In LaTex} box. For example, we will embed the image produced
+by the workflow
+\textbf{Isosurface}\footnote{\url{http://www.crowdlabs.org/vistrails/workflows/details/1054/}}.
+
+We copied and pasted the following text into this document:
+\begin{verbatim}
+\crowdlabs[wfid=1054,
 buildalways=false]{width=0.45\linewidth}
+\end{verbatim}
 
+And it generated the image in Figure~\ref{fig:isosurface}.
+\begin{figure}
+\begin{center}
+\crowdlabs[wfid=1054,
+buildalways=false]{width=0.45\linewidth}
+\end{center}
+\label{fig:isosurface}
+\end{figure}
+
+This is the workflow that generated the image above:\\
+\crowdlabs[wfid=1054,
+showworkflow,
+pdf, % use the pdf key to generate in pdf
+buildalways=false]{width=0.45\linewidth}
 
 \vspace{1.0cm}
 This was using volume rendering:\\
-\vistrail[wfid=1042,
+\crowdlabs[wfid=1046,
 buildalways=false]{width=0.60\linewidth}
 
+This is the vistrail containing the workflows above:\\
+
+\crowdlabs[vtid=209,
+% pdf, %uncomment this for using the pdf format
+buildalways=false]{width=0.60\linewidth}
 
 \end{document}
