@@ -36,14 +36,11 @@ import base64
 from vistrails.core import modules
 from vistrails.core.common import *
 from vistrails.core.data_structures.bijectivedict import Bidict
-import vistrails.core.db.io
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
     ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView
-from vistrails.core.vistrail.annotation import Annotation
-from vistrails.core.vistrail.vistrail import Vistrail
 import copy
 import vistrails.core.interpreter.base
 import vistrails.core.interpreter.utils
@@ -53,7 +50,7 @@ import gc
 import cPickle
 
 import unittest
-import vistrails.core.packagemanager
+from vistrails.core.task_system import TaskRunner
 
 # from core.modules.module_utils import FilePool
 
@@ -64,6 +61,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def __init__(self):
         vistrails.core.interpreter.base.BaseInterpreter.__init__(self)
         self.debugger = None
+        self.runner = None
         self.create()
 
     def create(self):
@@ -118,6 +116,10 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         Matches a pipeline with the persistent pipeline and creates
         instances of modules that aren't in the cache.
         """
+        if self.runner is not None:
+            self.runner.close()
+        self.runner = TaskRunner()
+
         def fetch(name, default):
             r = kwargs.get(name, default)
             try:
@@ -207,8 +209,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 #print annotate_output
                 if annotate_output:
                     obj.annotate_output = True
-                
-            reg = modules.module_registry.get_module_registry()
+
             for f in module.functions:
                 connector = None
                 if len(f.params) == 0:
@@ -234,7 +235,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     for (j,p) in enumerate(f.params):
                         try:
                             constant = create_constant(p, module)
-                            constant.update()
+                            self.runner.add(constant)
                             connector = ModuleConnector(constant, 'value')
                             tupleModule.set_input_port(j, connector)
                         except ValueError, e:
@@ -433,24 +434,25 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         else:
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
-                                        
+
         # Update new sinks
         for obj in persistent_sinks:
-            try:
-                obj.update()
-            except ModuleErrors, mes:
-                for me in mes.module_errors:
-                    me.module.logging.end_update(me.module, me.msg)
-                    errors[me.module.id] = me
-                break
-            except ModuleError, me:
-                me.module.logging.end_update(me.module, me.msg, me.errorTrace)
+            self.runner.add(obj)
+        try:
+            self.runner.execute_tasks()
+        except ModuleErrors, mes:
+            for me in mes.module_errors:
+                me.module.logging.end_update(me.module, me.msg)
                 errors[me.module.id] = me
-                break
-            except ModuleBreakpoint, mb:
-                mb.module.logging.end_update(mb.module)
-                errors[mb.module.id] = mb
-                break
+        except ModuleError, me:
+            me.module.logging.end_update(me.module, me.msg, me.errorTrace)
+            errors[me.module.id] = me
+        except ModuleBreakpoint, mb:
+            mb.module.logging.end_update(mb.module)
+            errors[mb.module.id] = mb
+
+        self.runner.close()
+        self.runner = None
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)

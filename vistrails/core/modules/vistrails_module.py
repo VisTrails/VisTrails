@@ -34,6 +34,7 @@
 ###############################################################################
 import copy
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.task_system import Task, default_prio
 from vistrails.core.utils import VistrailsInternalError
 
 class NeedsInputPort(Exception):
@@ -270,7 +271,7 @@ class Serializable(object):
 ################################################################################
 # Module
 
-class Module(Serializable):
+class Module(Task, Serializable):
 
     """Module is the base module from which all module functionality
 is derived from in VisTrails. It defines a set of basic interfaces to
@@ -344,6 +345,7 @@ Designing New Modules
 """
 
     def __init__(self):
+        Task.__init__(self)
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
@@ -391,6 +393,19 @@ Designing New Modules
         # execution log
         self.annotate_output = False
 
+    def run(self):
+        self.update()
+
+    def done(self):
+        self.computed = True
+        super(Module, self).done()
+
+    def run_upstream_module(self, callback, *modules):
+        modules = [m.obj if isinstance(m, ModuleConnector) else m
+                   for m in modules]
+        prio, callback = default_prio(100, callback)
+        self._runner.add(*modules, callback=(prio, lambda r: callback()))
+
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
 deletion."""
@@ -423,43 +438,90 @@ context."""
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(port, connector)
 
-    def updateUpstream(self):
-        """ updateUpstream() -> None        
-        Go upstream from the current module, then update its upstream
-        modules and check input connection based on upstream modules
-        results
-        
+    def updateUpstream(self, callback=None, targets=None):
+        """ updateUpstream(targets: list) -> None
+        Called from update() to update the upstream modules, so as to make
+        their results available on this Module's input ports.
+        Just schedules the Modules to be run, asking the TaskRunner to get back
+        to us when they have completed.
+
+        You can call this method from subclasses with a list of port names or
+        connectors to only update some upstream modules:
+            self.updateUpstream(targets=['portA', 'portB'])
+            self.updateUpstream(callback=self.color_ready, targets=['color'])
         """
-        for connectorList in self.inputPorts.itervalues():
-            for connector in connectorList:
-                connector.obj.update()
-                if (hasattr(connector.obj, 'suspended') and
-                        connector.obj.suspended):
-                    self.suspended = connector.obj.suspended
+        if targets is None:
+            connectors = []
+            for connectorList in self.inputPorts.itervalues():
+                connectors.extend(connectorList)
+        elif all(isinstance(e, ModuleConnector) for e in targets):
+            connectors = targets
+        elif all(isinstance(e, basestring) for e in targets):
+            connectors = []
+            for port in targets:
+                try:
+                    connectors.extend(self.inputPorts[port])
+                except KeyError:
+                    pass
+
+        if callback is None:
+            callback = self.on_upstream_ready
+
+        self.run_upstream_module(
+                lambda: callback(connectors),
+                *connectors)
+
+    def update(self):
+        """ update() -> None
+        This is the entry point for a Module's execution. It is called either
+        by the interpreter (for a sink) or by a downstream Module that needs
+        this Module's output.
+        """
+        self.logging.begin_update(self)
+        self.updateUpstream()
+
+    def on_upstream_ready(self, connectors):
+        """ on_upstream_ready([connector: ModuleConnector]) -> None
+        Callback for the TaskRunner, triggered when all upstream modules have
+        completed.
+        """
+        for connector in connectors:
+            if (hasattr(connector.obj, 'suspended') and
+                    connector.obj.suspended):
+                self.suspended = connector.obj.suspended
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(iport, connector)
-                    
-    def update(self):
-        """ update() -> None        
-        Check if the module is up-to-date then update the
-        modules. Report to the logger if available
-        
-        """
-        self.logging.begin_update(self)
-        self.updateUpstream()
+
         if self.suspended:
+            self.done()
             return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
+            self.done()
             return
+
         self.logging.begin_compute(self)
+        if self.is_breakpoint:
+            raise ModuleBreakpoint(self)
+        self.do_compute()
+
+    def do_compute(self):
+        """ do_compute() -> None
+        Actually compute the result of this module now that the upstream
+        modules have finished, optionally using several tasks. Call done() when
+        finished.
+
+        It also calls the appropriate methods on self.logging to report
+        progress to the application.
+
+        The base implementation calls compute().
+        """
+        self.done()
         try:
-            if self.is_breakpoint:
-                raise ModuleBreakpoint(self)
             self.compute()
             self.computed = True
         except ModuleSuspended, e:
@@ -479,9 +541,7 @@ context."""
             raise
         except KeyboardInterrupt, e:
             raise ModuleError(self, 'Interrupted by user')
-        except ModuleBreakpoint:
-            raise
-        except Exception, e: 
+        except Exception, e:
             import traceback
             traceback.print_exc()
             raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
