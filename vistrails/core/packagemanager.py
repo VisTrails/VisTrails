@@ -157,7 +157,7 @@ class PackageManager(object):
         self._userpackages = None
         self._packages = None
         self._abstraction_pkg = None
-        self._temp_packages = {}
+        self._currently_importing_package = None
 
     def init_registry(self, registry_filename=None):
         if registry_filename is not None:
@@ -203,33 +203,41 @@ class PackageManager(object):
             module = inspect.getmodule(caller)
             if module:
                 module = module.__name__
-        if module:
-            for pkg in self._package_list.itervalues():
-                if pkg.prefix and module.startswith(pkg.prefix + pkg.codepath):
-                    return pkg.import_override(
-                            self._orig_import,
-                            name, globals, locals, fromlist, level)
-            # look for uninitialized packages and redirect to temporary package
-            # FIXME: Can we create package before __init__.py is imported?
-            if not hasattr(self, '_apnl'):
-                self._apnl = self.available_package_names_list()
-            is_package = False
-            if module.startswith('vistrails.packages.'):
-                module_name = module[19:].split('.')[0]
-                is_package = True
-            elif module.startswith('userpackages.'):
-                module_name = module[13:].split('.')[0]
-                is_package = True
-            if is_package and module_name in self._apnl:
-                if module_name not in self._temp_packages:
-                    self._temp_packages[module_name] = Package(name=module_name,
-                                                               identifier=module_name,
-                                                               codepath=module)
-                pkg = self._temp_packages[module_name]
-                return pkg.import_override(
-                        self._orig_import,
-                        name, globals, locals, fromlist, level)
 
+        # Get the Package from the module name
+        if module:
+            importing_pkg = None
+            current = self._currently_importing_package
+            if (current is not None and
+                    current.prefix and
+                    module.startswith(current.prefix + current.codepath)):
+                importing_pkg = current
+            else:
+                for pkg in self._package_list.itervalues():
+                    if (pkg.prefix and
+                            module.startswith(pkg.prefix + pkg.codepath)):
+                        importing_pkg = pkg
+                        break
+
+            # If we are importing directly from a package
+            if importing_pkg is not None:
+                old_current = self._currently_importing_package
+                self._currently_importing_package = importing_pkg
+                result = importing_pkg.import_override(
+                        self._orig_import,
+                        name, globals, locals, fromlist, level,
+                        package_importing_directly=True)
+                self._currently_importing_package = old_current
+                return result
+            # If we are doing it indirectly (from other stuff imported from a
+            # package)
+            elif self._currently_importing_package is not None:
+                return self._currently_importing_package.import_override(
+                        self._orig_import,
+                        name, globals, locals, fromlist, level,
+                        package_importing_directly=False)
+
+        # Else, this is not from a package
         return self._orig_import(name, globals, locals, fromlist, level)
 
     def finalize_packages(self):
@@ -477,12 +485,6 @@ Returns true if given package identifier is present."""
         already disabled.
         """
         pkg = self.get_package_by_codepath(package_codepath)
-        if not pkg._imports_are_good:
-            debug.critical(
-                "Package '%s' cannot be unloaded, because it does not use the"
-                 "'vistrails.' prefix when importing vistrails packages." %
-                 self.identifier)
-            return
         self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
 
@@ -827,3 +829,72 @@ def get_package_manager():
     return _package_manager
 
 ##############################################################################
+
+import unittest
+
+
+class TestImports(unittest.TestCase):
+    def test_package(self):
+        # Hacks PackageManager so that it temporarily uses our test package
+        # instead of userpackages
+        pm = get_package_manager()
+        from vistrails.tests.resources import import_pkg
+        def fake_userpkg_mod():
+            pm._userpackages = import_pkg
+            return import_pkg
+        old_userpackages = pm._userpackages
+        old_import_userpackages = pm.import_user_packages_module
+        pm._userpackages = import_pkg
+        pm.import_user_packages_module = fake_userpkg_mod
+
+        old_fix_names = list(Package.FIX_PACKAGE_NAMES)
+        Package.FIX_PACKAGE_NAMES.append('tests.resources.import_targets')
+
+        try:
+            # Check the package is in the list
+            available_pkg_names = pm.available_package_names_list()
+            self.assertIn('test_import_pkg', available_pkg_names)
+
+            # Import __init__ and check metadata
+            pkg = pm.look_at_available_package('test_import_pkg')
+            pkg.load('vistrails.tests.resources.import_pkg.')
+            self.assertEqual(pkg.identifier,
+                             'org.vistrails.tests.test_import_pkg')
+            self.assertEqual(pkg.version,
+                             '0.42')
+            for n in ['vistrails.tests.resources.import_targets.test1',
+                      'vistrails.tests.resources.import_targets.test2']:
+                self.assertIn(n, sys.modules)
+
+            # Import init.py
+            pm.late_enable_package(
+                    'test_import_pkg',
+                    {'test_import_pkg':
+                     'vistrails.tests.resources.import_pkg.'})
+            pkg = pm.get_package_by_codepath('test_import_pkg')
+            for n in ['vistrails.tests.resources.import_targets.test3',
+                      'vistrails.tests.resources.import_targets.test4',
+                      'vistrails.tests.resources.import_targets.test5']:
+                self.assertIn(n, sys.modules)
+
+            # Check dependencies
+            deps = pkg.get_py_deps()
+            for dep in ['vistrails.tests.resources.import_pkg.test_import_pkg',
+                        'vistrails.tests.resources.import_pkg.test_import_pkg.init',
+                        #'vistrails.tests.resources.import_pkg.test_import_pkg.module1',
+                        'vistrails.tests.resources.import_pkg.test_import_pkg.module2',
+                        #'vistrails.tests.resources.import_targets.test1',
+                        #'vistrails.tests.resources.import_targets.test2',
+                        #'vistrails.tests.resources.import_targets.test3',
+                        #'vistrails.tests.resources.import_targets.test4',
+                        'vistrails.tests.resources.import_targets.test5',
+                        'vistrails.tests.resources.import_targets.test6']:
+                self.assertIn(dep, deps)
+        finally:
+            pm._userpackages = old_userpackages
+            pm.import_user_packages_module = old_import_userpackages
+            Package.FIX_PACKAGE_NAMES = old_fix_names
+            try:
+                pm.late_disable_package('test_import_pkg')
+            except PackageManager.MissingPackage:
+                pass

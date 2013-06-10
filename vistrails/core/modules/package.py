@@ -52,6 +52,8 @@ from vistrails.db.domain import DBPackage
 class Package(DBPackage):
     Base, User, Other = 0, 1, 2
 
+    FIX_PACKAGE_NAMES = ["api", "core", "db", "gui", "packages", "tests"]
+
     class InitializationFailed(Exception):
         def __init__(self, package, tracebacks):
             self.package = package
@@ -250,7 +252,8 @@ class Package(DBPackage):
     _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/',
                                    re.IGNORECASE)
     def import_override(self, orig_import,
-                        name, globals, locals, fromlist, level):
+                        name, globals, locals, fromlist, level,
+                        package_importing_directly):
         def in_package_list(pkg_name, pkg_list):
             if pkg_list is None:
                 return False
@@ -271,23 +274,29 @@ class Package(DBPackage):
             return (self._python_lib_regex.search(pkg_fname) or
                     self._lib_python_regex.search(pkg_fname))
 
+        sys_modules = sys.modules.keys()
+
         def checked_add_package(qual_name, pkg):
+            if qual_name in sys_modules:
+                return
             if (not in_package_list(qual_name, self._force_no_unload) and
-                    (not self._force_sys_unload or not is_sys_pkg(pkg)
+                    (self._force_sys_unload or not is_sys_pkg(pkg)
                      or in_package_list(qual_name, self._force_unload)) and
                      not qual_name.endswith('_rc')):
                 self.py_dependencies.add(qual_name)
 
-        in_sys_modules = name in sys.modules
-
+        fixed = False
         try:
             res = orig_import(name, globals, locals, fromlist, level)
         except ImportError:
+            if not package_importing_directly:
+                # We only fix stuff imported directly from a package, i.e. we
+                # only tolerate misspellings in the package's code
+                raise
+
             # backward compatibility for packages that import without
             # "vistrails." prefix
-            fixed = False
-            fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
-            for pkg in fix_pkgs:
+            for pkg in Package.FIX_PACKAGE_NAMES:
                 if name == pkg or name.startswith(pkg + '.'):
                     if self._imports_are_good: # only warn first time
                         self._imports_are_good = False
@@ -300,30 +309,29 @@ class Package(DBPackage):
                     break
             if fixed:
                 res = orig_import(name, globals, locals, fromlist, level)
-                if not fromlist:
-                     # otherwise we will return vistrails and not e.g. vistrails.core
-                    res = getattr(res, fixed) 
             else:
                 raise
         mod = res
 
-        if not in_sys_modules:
-            if not fromlist or len(fromlist) < 1:
-                checked_add_package(mod.__name__, mod)
-                for comp in name.split('.')[1:]:
-                    try:
-                        mod = getattr(mod, comp)
-                        checked_add_package(mod.__name__, mod)
-                    except AttributeError:
-                        break
-            else:
-                res_name = mod.__name__
-                checked_add_package(mod.__name__, mod)
-                for from_name in fromlist:
-                    qual_name = res_name + '.' + from_name
-                    checked_add_package(qual_name, mod)
+        if not fromlist:
+            checked_add_package(mod.__name__, mod)
+            for comp in name.split('.')[1:]:
+                try:
+                    mod = getattr(mod, comp)
+                    checked_add_package(mod.__name__, mod)
+                except AttributeError:
+                    break
+        else:
+            res_name = mod.__name__
+            checked_add_package(mod.__name__, mod)
+            for from_name in fromlist:
+                qual_name = res_name + '.' + from_name
+                checked_add_package(qual_name, mod)
 
-        return res
+        if fixed and not fromlist:
+            return getattr(res, fixed)
+        else:
+            return res
 
     def get_py_deps(self):
         return self.py_dependencies
@@ -344,17 +352,24 @@ class Package(DBPackage):
             # print 'initialized'
             return
 
+
+        from vistrails.core.packagemanager import get_package_manager
+        pm = get_package_manager()
+
         def import_from(p_path):
             # print 'running import_from'
             try:
                 # print p_path + self.codepath
-                __import__(p_path+self.codepath,
-                                    globals(),
-                                    locals(), []),
+                self.prefix = p_path
+                pm._currently_importing_package = self
+                __import__(p_path + self.codepath,
+                           globals(),
+                           locals(),
+                           [])
+                pm._currently_importing_package = None
                 self._module = module = sys.modules[p_path + self.codepath]
                 self.py_dependencies.add(p_path + self.codepath)
                 self._package_type = self.Base
-                self.prefix = p_path
 
                 if hasattr(module, "_force_no_unload_pkg_list"):
                     self._force_no_unload = module._force_no_unload_pkg_list
@@ -370,6 +385,7 @@ class Package(DBPackage):
                     self._force_sys_unload = False
             except ImportError, e:
                 errors.append(traceback.format_exc())
+                self.prefix = None
                 return False
             return True
 
