@@ -125,6 +125,7 @@ def get_libX11():
     
     """
     ctypes = py_import('ctypes', {
+            'pip': 'ctypes',
             'linux-debian': 'python-ctypes',
             'linux-ubuntu': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
@@ -144,6 +145,7 @@ def XDestroyWindow(displayId, windowId):
     
     """
     ctypes = py_import('ctypes', {
+            'pip': 'ctypes',
             'linux-debian': 'python-ctypes',
             'linux-ubuntu': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
