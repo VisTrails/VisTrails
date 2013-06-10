@@ -1389,6 +1389,8 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         reg = vistrails.core.modules.module_registry.get_module_registry()
+        spreadsheet_pkg = '%s.spreadsheet' % \
+                vistrails.core.system.get_vistrails_default_pkg_prefix()
 
         if pe.action_id != self.current_version:
             self.change_selected_version(pe.action_id)
@@ -1401,8 +1403,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.current_pipeline, actions, pre_actions)
             
             dim = [max(1, len(a)) for a in actions]
-            if (reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
-                reg.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
+            if (reg.has_module(spreadsheet_pkg, 'CellLocation') and
+                reg.has_module(spreadsheet_pkg, 'SheetReference')):
                 from vistrails.gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
                 from vistrails.gui.paramexplore.pe_view import QParamExploreView
                 modifiedPipelines, pipelinePositions = positionPipelines(
@@ -1502,8 +1504,9 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
                                         pipeline_view=DummyView(),
                                         auto_save=False)
         controller.change_selected_version(0L)
-        module = controller.add_module(0.0,0.0, 'edu.utah.sci.vistrails.basic', 
-                                       'ConcatenateString')
+        module = controller.add_module(0.0,0.0, 
+                        vistrails.core.system.get_vistrails_basic_pkg_id(), 
+                        'ConcatenateString')
         functions = [('str1', ['foo'], -1, True),
                      ('str2', ['bar'], -1, True)]
         controller.update_functions(module, functions)
@@ -1543,11 +1546,11 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         # DAK: changed these because of upgrades...
         # module_ids = [1, 2, 3]
         # connection_ids = [1, 2, 3]
-        module_ids = [4, 5, 6]
+        module_ids = [8, 10, 11]
         #connection_ids = [6, 8, 9]
         # TE: changed again because upgrades produced different id:s
         # also saved upgrade in test_abstraction.xml
-        connection_ids = [6, 7, 9]
+        connection_ids = [13,14,15]
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))

@@ -538,14 +538,14 @@ Makes sure input port 'name' is filled."""
         """ Create a vistrails module from the module registry.  This creates an instance of the module
         for use in creating the object output by a Module.
         """
-        # FIXME (DAK): I don't get this, shouldn't we import module_registry?
-        import vistrails.core.modules.vistrails_module
+        from vistrails.core.modules.module_registry import get_module_registry
         try:
-            reg = core.modules.module_registry.get_module_registry()
+            reg = get_module_registry()
             m = reg.get_module_by_name(ident, name, ns)
             return m()
         except:
-            msg = "Cannot get module named " + str(name) + " with identifier " + str(ident) + " and namespace " + ns
+            msg = "Cannot get module named " + str(name) + \
+                  " with identifier " + str(ident) + " and namespace " + ns
             raise ModuleError(self, msg)
 
     @classmethod
@@ -562,6 +562,20 @@ class NotCacheable(object):
 
     def is_cacheable(self):
         return False
+
+################################################################################
+
+class Converter(Module):
+    """Base class for automatic conversion modules.
+
+    Modules that subclass Converter will be inserted automatically when
+    connecting incompatible ports, if possible.
+
+    You must override the 'in_value' and 'out_value' ports by providing the
+    types your module actually matches.
+    """
+    def compute(self):
+        raise NotImplementedError
 
 ################################################################################
 

@@ -33,9 +33,12 @@
 ##
 ###############################################################################
 import cgi
-from datetime import datetime
+from datetime import datetime, date
 import hashlib
+import locale
 import os.path
+import re
+import sys
 from time import strptime
 import urllib
 import urlparse
@@ -63,6 +66,33 @@ def add_properties(cls):
     for name in cls.KWARG_PROPS:
         cls.add_property(name)
     return cls
+
+_drive_regex = re.compile(r"/*([a-zA-Z]:/.+)$")
+def pathname2url(path):
+    """ Takes an absolute filename and turns it into a file:// URL.
+
+    While urllib.pathname2url seems like a good idea, it doesn't appear
+    to do anything sensible in practice on Windows.
+    """
+    if path.startswith('file://'):
+        path = urllib.unquote(path[7:])
+    if systemType in ('Windows', 'Microsoft'):
+        path = path.replace('\\', '/')
+        match = _drive_regex.match(path)
+        if match is not None:
+            path = '/%s' % match.group(1)
+    path = urllib.quote(path, safe='/:')
+    return path
+
+
+def url2pathname(urlpath):
+    """ Takes a file:// URL and turns it into a filename.
+    """
+    path = urllib.url2pathname(urlpath)
+    if systemType in ('Windows', 'Microsoft'):
+        path = path.replace('/', '\\')
+        path = path.lstrip('\\')
+    return path
 
 @add_properties
 class BaseLocator(object):
@@ -172,25 +202,60 @@ class BaseLocator(object):
         raise NotImplementedError("from_xml is not implemented")
 
     @staticmethod
+    def convert_filename_to_url(filename):
+        """ Converts a local filename to a file:// URL.
+
+        All file:// URLs are absolute, so abspath() will be used on the
+        argument.
+        """
+        exts = ["vt", "xml"]
+        q_mark = False
+        query_str_idx = None
+        for match in re.finditer("\.(%s)(\??)" % "|".join(exts), filename):
+            if match.group(2):
+                if q_mark:
+                    raise VistrailsDBException('Ambiguous URI with '
+                                               'multiple question '
+                                               'marks: "%s"' % filename)
+                else:
+                    q_mark = True
+                    query_str_idx = match.end()
+        if q_mark:
+            args_str = filename[query_str_idx-1:]
+            filename = filename[:query_str_idx-1]
+        else:
+            args_str = ""
+
+        return 'file://%s%s' % (pathname2url(os.path.abspath(filename)),
+                                urllib.quote(args_str, safe='/?=&'))
+
+    @staticmethod
     def from_url(url):
-        # FIXME works only with absolute paths right now...
-        # FIXME are ? or / in filenames problematic?
+        """Assumes a valid URL if the scheme is specified.  For example,
+        'file:///C:/My%20Documents/test.vt'.  If only a filename is
+        specified, it converts the filename to a URL.
+
+        """
         if '://' in url:
-            scheme, rest = url.split('://', 1)
+            scheme = url.split('://', 1)[0]
         elif url.startswith('untitled:'):
             scheme = 'untitled'
         else:
             scheme = 'file'
-            rest = url
+            url = BaseLocator.convert_filename_to_url(url)
         if scheme == 'untitled':
             return UntitledLocator.from_url(url)
         elif scheme == 'db':
             return DBLocator.from_url(url)
         elif scheme == 'file':
-            filename = urlparse.urlsplit('http://' + rest)[2]
-            if filename.endswith('.vt'):
+            old_uses_query = urlparse.uses_query
+            urlparse.uses_query = urlparse.uses_query + ['file']
+            scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
+            urlparse.uses_query = old_uses_query
+            path = url2pathname(path)
+            if path.endswith(".vt"):
                 return ZIPFileLocator.from_url(url)
-            elif filename.endswith('.xml'):
+            elif path.endswith(".xml"):
                 return XMLFileLocator.from_url(url)
             else:
                 return DirectoryLocator.from_url(url)
@@ -200,8 +265,16 @@ class BaseLocator(object):
         return None # Returns a name that will be displayed for the object
     name = property(_get_name)
 
+    def _get_short_filename(self):
+        """ Returns a short name that can be used to derive other filenames
+        """
+        return None
+    short_filename = property(_get_short_filename)
+
     def _get_short_name(self):
-        return None # Returns a short name that can be used for display
+        """ Returns a short name that can be used for display
+        """
+        return None
     short_name = property(_get_short_name)
       
     def _get_version(self):
@@ -349,8 +422,12 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
         return UntitledLocator.UNTITLED_NAME
     name = property(_get_name)
 
-    def _get_short_name(self):
+    def _get_short_filename(self):
         return self._get_name()
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        return self._get_name().decode('ascii')
     short_name = property(_get_short_name)
 
     @classmethod
@@ -366,9 +443,13 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
                 rest = rest[32:]
             except ValueError:
                 pass
-        url = 'http://example.com/' + rest
-        (_, _, _, args_str, _) = urlparse.urlsplit(url)
-        kwargs = cls.parse_args(args_str)
+
+        if not rest:
+            kwargs = dict()
+        elif rest[0] == '?':
+            kwargs = cls.parse_args(rest[1:])
+        else:
+            raise ValueError
         return cls(my_uuid, **kwargs)
 
     def to_url(self):
@@ -500,28 +581,40 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         return str(self._name)
     name = property(_get_name)
 
-    def _get_short_name(self):
+    def _get_short_filename(self):
         return os.path.splitext(os.path.basename(self._name))[0]
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        name = self._get_short_filename()
+        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
+        return name.decode(enc)
     short_name = property(_get_short_name)
 
     @classmethod
     def from_url(cls, url):
         if '://' in url:
-            scheme, rest = url.split('://', 1)
+            scheme, path = url.split('://', 1)
+            if scheme != 'file':
+                raise ValueError
         else:
-            scheme = 'file'
-            rest = url
-        url = 'http://' + rest
-        (_, _, path, args_str, _) = urlparse.urlsplit(url)
-        # "/c:/path" needs to be "c:/path"
-        if systemType in ['Windows', 'Microsoft']:
-            path = path[1:]
+            url = BaseLocator.convert_filename_to_url(url)
+
+        old_uses_query = urlparse.uses_query
+        urlparse.uses_query = urlparse.uses_query + ['file']
+        scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
+        urlparse.uses_query = old_uses_query
+        # De-urlencode pathname
+        path = url2pathname(str(path))
         kwargs = cls.parse_args(args_str)
-        return cls(path, **kwargs)
+
+        return cls(os.path.abspath(path), **kwargs)
 
     def to_url(self):
-        args_str = self.generate_args(self.kwargs)
-        url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
+        args_str = BaseLocator.generate_args(self.kwargs)
+        url_tuple = ('file', '',
+                     pathname2url(os.path.abspath(self._name)),
+                     args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
     #ElementTree port
@@ -534,7 +627,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
 
         node.set('type', 'file')
         childnode = ElementTree.SubElement(node,'name')
-        childnode.text = str(self._name)
+        childnode.text = self._name.decode('latin-1')
         return node
 
     @staticmethod
@@ -551,12 +644,12 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
         if type == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = str(child.text).strip(" \n\t")
+                    filename = child.text.encode('latin-1').strip()
                     return XMLFileLocator(filename)
         return None
 
     def __str__(self):
-        return '<%s vistrail_name=" %s/>' % (self.__class__.__name__, self._name)
+        return '<%s vistrail_name="%s" />' % (self.__class__.__name__, self._name)
 
     ###########################################################################
     # Operators
@@ -575,26 +668,6 @@ class ZIPFileLocator(XMLFileLocator):
     def __init__(self, filename, **kwargs):
         XMLFileLocator.__init__(self, filename, **kwargs)
         self.tmp_dir = None
-
-    @classmethod
-    def from_url(cls, url):
-        if '://' in url:
-            scheme, rest = url.split('://', 1)
-        else:
-            scheme = 'file'
-            rest = url
-        url = 'http://' + rest
-        (_, _, path, args_str, _) = urlparse.urlsplit(url)
-        # "/c:/path" needs to be "c:/path"
-        if systemType in ['Windows', 'Microsoft']:
-            path = path[1:]
-        kwargs = cls.parse_args(args_str)
-        return cls(path, **kwargs)
-
-    def to_url(self):
-        args_str = self.generate_args(self.kwargs)
-        url_tuple = ('file', '', os.path.abspath(self._name), args_str, '')
-        return urlparse.urlunsplit(url_tuple)
 
     def load(self, type):
         fname = self.get_temporary()
@@ -672,7 +745,7 @@ class ZIPFileLocator(XMLFileLocator):
         if type == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = str(child.text).strip(" \n\t")
+                    filename = child.text.encode('latin-1').strip()
                     return ZIPFileLocator(filename)
             return None
         return None
@@ -729,8 +802,15 @@ class DBLocator(BaseLocator):
             str(self._name)
     name = property(_get_name)
 
-    def _get_short_name(self):
+    def _get_short_filename(self):
         return str(self._name)
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        name = self._name
+        if not isinstance(name, unicode):
+            name = name.decode('ascii')
+        return name
     short_name = property(_get_short_name)
 
     def hash(self):
@@ -842,27 +922,40 @@ class DBLocator(BaseLocator):
                                                 obj_type)
         ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
         return ts
-            
+    
     @classmethod
     def from_url(cls, url):
-        #FIXME may need some urllib.quote work here
-        scheme, rest = url.split('://', 1)
-        url = 'http://' + rest
-        (_, net_loc, db_name, args_str, _) = urlparse.urlsplit(url)
-        db_name = db_name[1:]
-        host, port = net_loc.split(':', 1)
-#        obj_type, obj_id = args_str.split('=', 1)
-        kwargs = cls.parse_args(args_str)
-        return cls(host, port, db_name, None, '', **kwargs)
+        format = re.compile(
+                r"^"
+                "([a-zA-Z0-9_-]+)://"   # scheme
+                "(?:"
+                    "([^:@]+)"          # user name
+                    "(?:([^:@]+))?"     # password
+                "@)?"
+                "([^/]+)"               # net location
+                "/([^?]+)"              # database name
+                "(?:\?(.+))?"           # query arguments
+                "$")
+        match = format.match(url)
+        if match is None:
+            return ValueError
+        else:
+            scheme, user, passwd, net_loc, db_name, args_str = match.groups('')
+            if ':' in net_loc:
+                host, port = net_loc.rsplit(':', 1)
+            else:
+                host, port = net_loc, None
+            db_name = urllib.unquote(str(db_name))
+            kwargs = cls.parse_args(args_str)
+            return cls(host, port, db_name, user, passwd, **kwargs)
     
     def to_url(self):
-        # FIXME may need some urllib.quote work here 
         # FIXME may also want to allow database type to be encoded in 
         # scheme (ie mysql://host/db, sqlite3://path/to)
         net_loc = '%s:%s' % (self._host, self._port)
         args_str = self.generate_args(self.kwargs)
         # query_str = '%s=%s' % (self._obj_type, self._obj_id)
-        url_tuple = ('db', net_loc, self._db, args_str, '')
+        url_tuple = ('db', net_loc, urllib.quote(self._db, ''), args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
     #ElementTree port
@@ -977,6 +1070,37 @@ class TestLocators(unittest.TestCase):
         def assertIsNone(self, obj):
             self.assertEqual(obj, None)
 
+    @staticmethod
+    def path2url(fname):
+        path = os.path.abspath(fname)
+        path = path.replace(os.sep, '/')
+        if path.startswith('/'):
+            path = path[1:]
+        return "file:///%s" % urllib.quote(path, '/:')
+
+    def test_convert_filename(self):
+        # Test both systemTypes
+        global systemType
+        old_systemType = systemType
+        # Don't use abspath, it would cause Linux tests to fail on Windows
+        # we are using abspaths anyway
+        old_abspath = os.path.abspath
+        os.path.abspath = lambda x: x
+        try:
+            systemType = 'Linux'
+            self.assertEqual(
+                    BaseLocator.convert_filename_to_url(
+                            '/a dir/test.vt?v=a\xE9&b'),
+                    'file:///a%20dir/test.vt?v=a%E9&b')
+            systemType = 'Windows'
+            self.assertEqual(
+                    BaseLocator.convert_filename_to_url(
+                            'C:\\a dir\\test.vt?v=a\xE9&b'),
+                    'file:///C:/a%20dir/test.vt?v=a%E9&b')
+        finally:
+            systemType = old_systemType
+            os.path.abspath = old_abspath
+
     def test_parse_untitled(self):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"
         loc = BaseLocator.from_url(loc_str)
@@ -994,20 +1118,84 @@ class TestLocators(unittest.TestCase):
         self.assertEqual(len(loc.to_url()), 41)
 
     def test_parse_zip_file(self):
-        loc_str = "file:///vistrails/tmp/test.vt?workflow=abc"
+        loc_str = self.path2url(
+                "/vistrails/tmp/test_parse_zip_file \xE9 \xEA.vt")
+        loc_str += "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
         self.assertEqual(loc.kwargs['version_tag'], "abc")
-        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.short_filename, "test_parse_zip_file \xE9 \xEA")
+        self.assertEqual(loc.to_url(), loc_str)
+
+    def test_parse_zip_file_no_scheme(self):
+        loc_str = os.path.abspath(
+                "../tmp/test_parse_zip_file_no_scheme \xE9 \xEA.vt")
+        loc_str += "?workflow=abc"
+        loc = BaseLocator.from_url(loc_str)
+        self.assertIsInstance(loc, ZIPFileLocator)
+        self.assertEqual(loc.kwargs['version_tag'], "abc")
+        self.assertEqual(loc.short_filename,
+                         "test_parse_zip_file_no_scheme \xE9 \xEA")
+        loc_str = loc_str.replace(os.sep, '/')
+        if loc_str[0] == '/':
+            loc_str = loc_str[1:]
+        loc_str = "file:///%s" % urllib.quote(loc_str, '/:?=')
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_xml_file(self):
-        loc_str = "file:///vistrails/tmp/test.xml"
+        loc_str = self.path2url(
+                "/vistrails/tmp/test_parse_xml_file \xE9 \xEA.xml")
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, XMLFileLocator)
-        self.assertEqual(loc.short_name, "test")
+        self.assertEqual(loc.short_filename, "test_parse_xml_file \xE9 \xEA")
         self.assertEqual(loc.to_url(), loc_str)
-        
+
+    def test_short_names(self):
+        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
+        if (enc.lower() not in ('mbcs', 'utf-8', 'utf8',
+                                'latin-1', 'iso-8859-1', 'iso-8859-15')):
+            self.skipTest("unusual encoding on this system: %r" % enc)
+        if enc.lower() in ('mbcs', 'latin-1', 'iso-8859-1', 'iso-8859-15'):
+            fname = "test_short_names \xE9 \xEA"
+        elif enc.lower() in ('utf8', 'utf-8'):
+            fname = "test_short_names \xC3\xA9 \xC3\xAA"
+        else:
+            self.skipTest("unusual encoding on this system: %r" % enc)
+        loc = BaseLocator.from_url("../%s.xml" % fname)
+        self.assertEqual(loc.short_filename, fname)
+        self.assertEqual(loc.short_name, u"test_short_names \xE9 \xEA")
+
+    def test_win_xml_file(self):
+        try:
+            import ntpath
+            import nturl2path
+        except ImportError:
+            return self.skipTest("Do not have ntpath or nturl2path installed.")
+            
+        global systemType
+        old_sys_type = systemType
+        old_path = os.path
+        old_pathname2url = urllib.pathname2url
+        old_url2pathname = urllib.url2pathname
+        systemType = 'Windows'
+        os.path = ntpath
+        urllib.pathname2url = nturl2path.pathname2url
+        urllib.url2pathname = nturl2path.url2pathname
+        try:
+            loc_str = "C:\\vt?dir\\tmp\\test_win_xml_file.xml?workflow=3"
+            loc = BaseLocator.from_url(loc_str)
+            self.assertIsInstance(loc, XMLFileLocator)
+            self.assertEqual(loc.short_filename, "test_win_xml_file")
+            self.assertEqual(loc.kwargs['version_node'], 3)
+            self.assertEqual(
+                    loc.to_url(),
+                    "file:///C:/vt%3Fdir/tmp/test_win_xml_file.xml?workflow=3")
+        finally:
+            systemType = old_sys_type
+            os.path = old_path
+            urllib.pathname2url = old_pathname2url
+            urllib.url2pathname = old_url2pathname
+
     def test_parse_db(self):
         loc_str = "db://localhost:3306/vistrails?workflow=42"
         loc = BaseLocator.from_url(loc_str)

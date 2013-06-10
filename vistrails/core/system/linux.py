@@ -38,7 +38,7 @@ from ctypes import CDLL, c_void_p
 from vistrails.core.system.unix import executable_is_in_path,\
      executable_is_in_pythonpath, list2cmdline, execute_cmdline, \
      get_executable_path, execute_piped_cmdlines
-import vistrails.core.bundles
+from vistrails.core.bundles import py_import
 
 import unittest
 
@@ -49,7 +49,7 @@ def parse_meminfo():
     Parses /proc/meminfo and returns appropriate dictionary. Only available on
     Linux."""
     result = {}
-    for line in file('/proc/meminfo'):
+    for line in open('/proc/meminfo'):
         (key, value) = line.split(':')
         value = value[:-1]
         if value.endswith(' kB'):
@@ -124,9 +124,10 @@ def get_libX11():
     different machines. Right now, libX11.so.6 is used.
     
     """
-    ctypes = vistrails.core.bundles.pyimport.py_import('ctypes',
-                                             {'linux-ubuntu':
-                                              'python-ctypes'})
+    ctypes = py_import('ctypes', {
+            'pip': 'ctypes',
+            'linux-debian': 'python-ctypes',
+            'linux-ubuntu': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
     CDLL = ctypes.CDLL
     return CDLL('libX11.so.6')
@@ -143,9 +144,10 @@ def XDestroyWindow(displayId, windowId):
     Qt widget
     
     """
-    ctypes = vistrails.core.bundles.pyimport.py_import('ctypes',
-                                             {'linux-ubuntu':
-                                              'python-ctypes'})
+    ctypes = py_import('ctypes', {
+            'pip': 'ctypes',
+            'linux-debian': 'python-ctypes',
+            'linux-ubuntu': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
     displayPtr = c_void_p(int(displayId[1:displayId.find('_void_p')], 16))
     windowPtr = c_void_p(int(windowId[1:windowId.find('_void_p')], 16))

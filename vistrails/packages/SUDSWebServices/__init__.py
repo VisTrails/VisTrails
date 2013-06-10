@@ -39,9 +39,10 @@ urls to the package (use a ; to separate the urls).
 from vistrails.core.configuration import ConfigurationObject
 import vistrails.core
 
-identifier = 'edu.utah.sci.vistrails.sudswebservices'
+identifier = 'org.vistrails.vistrails.sudswebservices'
 name = 'SUDS Web Services'
-version = '0.1.1'
+version = '0.1.2'
+old_identifiers = ['edu.utah.sci.vistrails.sudswebservices']
 configuration = ConfigurationObject(wsdlList=(None, str),
                                     proxy_http=(None, str),
                                     cache_days=(None, int))

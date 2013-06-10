@@ -174,7 +174,7 @@ class XMLWrapper(object):
         Save as an XML file 
         
         """
-        output_file = file(filename,'w')
+        output_file = open(filename,'w')
         root.writexml(output_file, "  ", "  ", '\n')
         output_file.close()
 

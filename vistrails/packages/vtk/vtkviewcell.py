@@ -58,6 +58,8 @@ from vistrails.core.vistrail.location import Location
 from vistrails.core.modules.vistrails_module import ModuleError
 import copy
 
+from identifiers import identifier as vtk_pkg_identifier
+
 ################################################################################
 
 class VTKViewCell(SpreadsheetCell):
@@ -964,7 +966,7 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
             
             if not camera:
                 # Create camera
-                vtk_package = 'edu.utah.sci.vistrails.vtk'
+                vtk_package = vtk_pkg_identifier
                 camera = controller.create_module(vtk_package, 'vtkCamera', '',
                                                   0.0, 0.0)
                 ops.append(('add', camera))
@@ -1029,14 +1031,14 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
-    identifier = 'edu.utah.sci.vistrails.vtk'
     registry = get_module_registry()
     registry.add_module(VTKViewCell)
     registry.add_input_port(VTKViewCell, "Location", CellLocation)
     import vistrails.core.debug
     for (port,module) in [("SetRenderView",'vtkRenderView')]:
         try:
-            registry.add_input_port(VTKViewCell, port,'(%s:%s)'%(identifier,module))
+            registry.add_input_port(VTKViewCell, port,'(%s:%s)'% \
+                                        (vtk_pkg_identifier, module))
  
         except Exception, e:
             vistrails.core.debug.warning(str(e))

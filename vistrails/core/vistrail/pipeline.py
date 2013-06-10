@@ -42,6 +42,8 @@ from vistrails.core import debug
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, PortMismatch
+from vistrails.core.system import get_vistrails_default_pkg_prefix, \
+    get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.utils import expression, append_to_dict_of_lists
 from vistrails.core.utils.uxml import named_elements
@@ -55,7 +57,6 @@ from vistrails.core.vistrail.plugin_data import PluginData
 from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
-from types import ListType
 import vistrails.core.vistrail.action
 from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
 
@@ -112,7 +113,7 @@ class Pipeline(DBWorkflow):
         """
         self.clear()
 
-	DBWorkflow.__init__(self, *args, **kwargs)
+        DBWorkflow.__init__(self, *args, **kwargs)
         if self.id is None:
             self.id = 0
         if self.name is None:
@@ -188,15 +189,15 @@ class Pipeline(DBWorkflow):
         if _workflow.__class__ == Pipeline:
             return
         # do clear plus get the modules and connections
-	_workflow.__class__ = Pipeline
-	for _module in _workflow.db_modules:
+        _workflow.__class__ = Pipeline
+        for _module in _workflow.db_modules:
             if _module.vtType == Module.vtType:
                 Module.convert(_module)
             elif _module.vtType == Abstraction.vtType:
                 Abstraction.convert(_module)
             elif _module.vtType == Group.vtType:
                 Group.convert(_module)
-	for _connection in _workflow.db_connections:
+        for _connection in _workflow.db_connections:
             Connection.convert(_connection)
         for _plugin_data in _workflow.db_plugin_datas:
             PluginData.convert(_plugin_data)
@@ -880,7 +881,7 @@ class Pipeline(DBWorkflow):
             result.add_module(copy.copy(self.modules[module_id]))
         for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
             result.add_connection(copy.copy(self.connections[conn_id]))
-		# I haven't finished this yet. -cscheid
+                # I haven't finished this yet. -cscheid
         raise Exception("Incomplete implementation!")
         return result
 
@@ -1066,7 +1067,7 @@ class Pipeline(DBWorkflow):
                 pos_map = {}
                 for p in function.parameters:
                     if p.identifier == '':
-                        idn = 'edu.utah.sci.vistrails.basic'
+                        idn = get_vistrails_basic_pkg_id()
                     else:
                         idn = p.identifier
 
@@ -1291,7 +1292,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = 'edu.utah.sci.vistrails.pythoncalc'
+            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
             m.functions.append(f1())
             return m
         
@@ -1309,7 +1310,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = 'edu.utah.sci.vistrails.pythoncalc'
+            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
             m.functions.append(f1())
             return m
         m1 = module1(p)
@@ -1347,6 +1348,7 @@ class TestPipeline(unittest.TestCase):
         return p
 
     def create_pipeline2(self, id_scope=None):
+        basic_pkg = get_vistrails_basic_pkg_id()
         if id_scope is None:
             id_scope = IdScope(remap={Abstraction.vtType: Module.vtType})
 
@@ -1369,7 +1371,7 @@ class TestPipeline(unittest.TestCase):
                         x=21.34,
                         y=456.234)
         m1 = Module(id=id_scope.getNewId(Module.vtType),
-                    package='edu.utah.sci.vistrails.basic',
+                    package=basic_pkg,
                     name='String',
                     location=loc1,
                     functions=[func1])
@@ -1382,7 +1384,7 @@ class TestPipeline(unittest.TestCase):
                       moduleId=m1.id, 
                       moduleName='String', 
                       name='value',
-                      signature='(edu.utah.sci.vistrails.basic:String)')
+                      signature='(%s:String)' % basic_pkg)
         destination = Port(id=id_scope.getNewId(Port.vtType),
                            type='destination',
                            moduleId=m2.id,
@@ -1520,6 +1522,7 @@ class TestPipeline(unittest.TestCase):
     def test_module_signature(self):
         """Tests signatures for modules with similar (but not equal)
         parameter specs."""
+        pycalc_pkg = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
         p1 = Pipeline()
         p1_functions = [ModuleFunction(name='value1',
                                        parameters=[ModuleParam(type='Float',
@@ -1532,7 +1535,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='PythonCalc',
-                             package='edu.utah.sci.vistrails.pythoncalc',
+                             package=pycalc_pkg,
                              id=3,
                              functions=p1_functions))
 
@@ -1548,7 +1551,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p2.add_module(Module(name='PythonCalc', 
-                             package='edu.utah.sci.vistrails.pythoncalc',
+                             package=pycalc_pkg,
                              id=3,
                              functions=p2_functions))
 
@@ -1568,7 +1571,8 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='edu.utah.sci.vistrails.console_mode_test',
+                            package='%s.console_mode_test' % \
+                             get_vistrails_default_pkg_prefix(),
                             id=3,
                             functions=p1_functions))
 
@@ -1590,7 +1594,8 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='edu.utah.sci.vistrails.console_mode_test',
+                            package='%s.console_mode_test' % \
+                             get_vistrails_default_pkg_prefix(),
                             id=3,
                             functions=p1_functions))
         str(p1)
@@ -1628,12 +1633,13 @@ class TestPipeline(unittest.TestCase):
         import vistrails.core.modules.basic_modules
         p = Pipeline()
         basic_version = vistrails.core.modules.basic_modules.version
+        basic_pkg = vistrails.core.modules.basic_modules.identifier
         m1 = Module(name="String",
-                    package="edu.utah.sci.vistrails.basic",
+                    package=basic_pkg,
                     version=basic_version,
                     id=1L)
         m2 = Module(name="String",
-                    package="edu.utah.sci.vistrails.basic",
+                    package=basic_pkg,
                     version=basic_version,
                     id=2L)
         source = Port(id=1L,
@@ -1641,13 +1647,13 @@ class TestPipeline(unittest.TestCase):
                       moduleId=m1.id, 
                       moduleName='String', 
                       name='value',
-                      signature='(edu.utah.sci.vistrails.basic:StringBean)')
+                      signature='(%s:StringBean)' % basic_pkg)
         destination = Port(id=2L,
                            type='destination',
                            moduleId=m2.id,
                            moduleName='String',
                            name='value',
-                           signature='(edu.utah.sci.vistrails.basic:NString)')
+                           signature='(%s:NString)' % basic_pkg)
         c1 = Connection(id=1L,
                         ports=[source, destination])
         p.add_module(m1)
@@ -1657,11 +1663,9 @@ class TestPipeline(unittest.TestCase):
         p.ensure_connection_specs()
         p_source = p.connections[c1.id].source
         p_destination = p.connections[c1.id].destination
-        self.assertEqual(p_source.signature, 
-                         '(edu.utah.sci.vistrails.basic:String)')
+        self.assertEqual(p_source.signature, '(%s:String)' % basic_pkg)
         self.assertEqual(len(p_source.descriptors()), 1)
-        self.assertEqual(p_destination.signature,
-                         '(edu.utah.sci.vistrails.basic:String)')
+        self.assertEqual(p_destination.signature, '(%s:String)' % basic_pkg)
         self.assertEqual(len(p_destination.descriptors()), 1)
 
 if __name__ == '__main__':

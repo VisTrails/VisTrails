@@ -66,7 +66,7 @@ class ModuleFunction(DBFunction):
     # Constructors and copy
     
     def __init__(self, *args, **kwargs):
-	DBFunction.__init__(self, *args, **kwargs)
+        DBFunction.__init__(self, *args, **kwargs)
         if self.name is None:
             self.name = ""
         if self.real_id is None:
@@ -98,9 +98,9 @@ class ModuleFunction(DBFunction):
     def convert(_function):
         if _function.__class__ == ModuleFunction:
             return
-	_function.__class__ = ModuleFunction
-	for _parameter in _function.db_get_parameters():
-	    ModuleParam.convert(_parameter)
+        _function.__class__ = ModuleFunction
+        for _parameter in _function.db_get_parameters():
+            ModuleParam.convert(_parameter)
         _function.set_defaults()
 
     ##########################################################################
@@ -141,13 +141,13 @@ class ModuleFunction(DBFunction):
         return len(self.params)
     
     def serialize(self, doc, element):
-	"""serialize(doc, element) -> None - Writes itself in XML """
-	child = doc.createElement('function')
-	child.setAttribute('name',self.name)
-	child.setAttribute('returnType',self.type)
-	for p in self.params:
-		p.serialize(doc,child)
-	element.appendChild(child)
+        """serialize(doc, element) -> None - Writes itself in XML """
+        child = doc.createElement('function')
+        child.setAttribute('name',self.name)
+        child.setAttribute('returnType',self.type)
+        for p in self.params:
+                p.serialize(doc,child)
+        element.appendChild(child)
 
     def get_spec(self, port_type):
         """ get_spec(port_type) -> PortSpec

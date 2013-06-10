@@ -90,7 +90,7 @@ def touch(file_name):
     if os.path.isfile(file_name):
         os.utime(file_name, None)
     else:
-        file(file_name, 'w')
+        open(file_name, 'w')
 
 def mkdir(dir_name):
     """mkdir(dir_name) -> None Equivalent to 'mkdir' in a shell except
@@ -118,6 +118,14 @@ __fileDir = os.path.realpath(os.path.join(__rootDir,
                                           '..','examples'))
 
 __defaultFileType = '.vt'
+
+__defaultPkgPrefix = 'org.vistrails.vistrails'
+
+def get_vistrails_default_pkg_prefix():
+    return __defaultPkgPrefix
+
+def get_vistrails_basic_pkg_id():
+    return "%s.basic" % get_vistrails_default_pkg_prefix()
 
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None 

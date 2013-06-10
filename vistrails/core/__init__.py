@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import vistrails.core
+
 def get_vistrails_application():
     import vistrails.core.application
     return vistrails.core.application.get_vistrails_application()

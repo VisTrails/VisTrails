@@ -35,6 +35,7 @@
 """dialogs provides modules for user-based interaction on execution.
 Users can then enter file names, numbers, strings, etc."""
 
-identifier = 'edu.utah.sci.vistrails.dialogs'
+identifier = 'org.vistrails.vistrails.dialogs'
 name = 'Dialogs'
-version = '0.9.0'
+version = '0.9.1'
+old_identifiers = ['edu.utah.sci.vistrails.dialogs']

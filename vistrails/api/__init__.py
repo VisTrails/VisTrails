@@ -185,7 +185,11 @@ def get_selected_modules(controller=None):
     if controller is None:
         controller = get_current_controller()
     modules = []
-    for m_id in controller.get_selected_item_ids()[0]:
+    selected = controller.get_selected_item_ids()
+    if selected is None:
+        return []
+    (sel_module_ids, sel_connection_ids) = selected
+    for m_id in sel_module_ids:
         modules.append(controller.current_pipeline.modules[m_id])
     return modules
     
@@ -327,6 +331,11 @@ def get_vistrail_from_file(filename):
 
 
 class TestAPI(vistrails.gui.utils.TestVisTrailsGUI):
+
+    def setUp(self):
+        app = vistrails.gui.application.get_vistrails_application()
+        app.builderWindow.auto_view = False
+        app.builderWindow.close_all_vistrails(True)
 
     def test_close_current_vistrail_no_vistrail(self):
         self.assertRaises(NoVistrail, lambda: get_current_vistrail_view())

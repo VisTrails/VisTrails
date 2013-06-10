@@ -42,7 +42,7 @@ import copy
 class DBLog(_DBLog):
 
     def __init__(self, *args, **kwargs):
-	_DBLog.__init__(self, *args, **kwargs)
+        _DBLog.__init__(self, *args, **kwargs)
         self.id_scope = IdScope(1,
                               {DBAbstractionRef.vtType: DBModule.vtType})
 

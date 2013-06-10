@@ -51,10 +51,10 @@ class SQLObject(Object):
         
     def getName(self):
         try:
-	    return self.layouts[SQL_TYPE]['table']
-	except KeyError:
-	    pass
-	return Object.getName(self)
+            return self.layouts[SQL_TYPE]['table']
+        except KeyError:
+            pass
+        return Object.getName(self)
 
     def getSQLFields(self):
         return self.getSQLProperties() + self.getSQLChoices()
@@ -105,19 +105,19 @@ class SQLObject(Object):
                 if p.isInverse() and p.isForeignKey()]
   
     def getSQLReferencedField(self, refObj):
-	if refObj is not None:
-	    # find inverse
-	    for refProp in refObj.properties:
-		if refProp.isReference() and \
-			refProp.isInverse() and \
-			refProp.getReference() == self.getRegularName():
-		    return (refProp, False)
-	    for choice in refObj.choices:
-		for refProp in self.getSQLPropertiesForChoice(choice):
-		    if refProp.isReference() and \
-			    refProp.getReference() == self.getRegularName():
-			return (choice, True)
-	return (None, False)
+        if refObj is not None:
+            # find inverse
+            for refProp in refObj.properties:
+                if refProp.isReference() and \
+                        refProp.isInverse() and \
+                        refProp.getReference() == self.getRegularName():
+                    return (refProp, False)
+            for choice in refObj.choices:
+                for refProp in self.getSQLPropertiesForChoice(choice):
+                    if refProp.isReference() and \
+                            refProp.getReference() == self.getRegularName():
+                        return (choice, True)
+        return (None, False)
 
     def get_sql_referenced(self, ref_obj, inverse=False):
         if ref_obj is not None:
@@ -135,36 +135,36 @@ class SQLObject(Object):
                         return (choice, True)
         raise Exception("didn't work", ref_obj.getRegularName(), 
                         self.getRegularName())
-	    
+            
 class SQLProperty (Property):
     def hasSpec(self):
-	try:
-	    sqlSpec = self.specs[SQL_TYPE]
-	    return True
-	except KeyError:
-	    pass
-	return False
+        try:
+            sqlSpec = self.specs[SQL_TYPE]
+            return True
+        except KeyError:
+            pass
+        return False
 
     def getName(self):
-	try:
-	    return self.specs[SQL_TYPE]['name']
-	except KeyError:
-	    pass
-	return Property.getName(self)
+        try:
+            return self.specs[SQL_TYPE]['name']
+        except KeyError:
+            pass
+        return Property.getName(self)
 
     def getColumn(self):
-	try:
-	    return self.specs[SQL_TYPE]['column']
-	except KeyError:
-	    pass
-	return self.getName()
+        try:
+            return self.specs[SQL_TYPE]['column']
+        except KeyError:
+            pass
+        return self.getName()
     
     def getType(self):
-	try:
-	    return self.specs[SQL_TYPE]['type']
-	except KeyError:
-	    pass
-	return 'int'
+        try:
+            return self.specs[SQL_TYPE]['type']
+        except KeyError:
+            pass
+        return 'int'
 
     def getGlobalName(self):
         try:
@@ -174,10 +174,10 @@ class SQLProperty (Property):
         return ''
 
     def isText(self):
-	if string.find(self.getType().upper(), 'CHAR') != -1 or \
-		string.find(self.getType().upper(), 'DATE') != -1:
-	    return True
-	return False
+        if string.find(self.getType().upper(), 'CHAR') != -1 or \
+                string.find(self.getType().upper(), 'DATE') != -1:
+            return True
+        return False
 
     def isAutoInc(self):
         try:
@@ -210,11 +210,11 @@ class SQLChoice(Choice):
         for property in self.properties:
             if property.hasSpec():
                 break
-	try:
-	    return property.specs[SQL_TYPE]['column']
-	except KeyError:
-	    pass
-	return self.getName()
+        try:
+            return property.specs[SQL_TYPE]['column']
+        except KeyError:
+            pass
+        return self.getName()
       
     def isGlobal(self):
         try:

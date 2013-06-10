@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 import __builtin__
-from itertools import izip
+from itertools import izip, chain
 import copy
 import os
 import tempfile
@@ -50,7 +50,8 @@ import vistrails.core.modules.utils
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
      all, profile, versions_increasing, InvalidPipeline
-from vistrails.core.system import vistrails_root_directory, vistrails_version
+from vistrails.core.system import vistrails_root_directory, vistrails_version, \
+    get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 import vistrails.core.cache.hasher
@@ -500,6 +501,9 @@ class ModuleRegistry(DBRegistry):
             kwargs['root_descriptor_id'] = -1
         DBRegistry.__init__(self, *args, **kwargs)
 
+        self._conversions = dict()
+        self._converters = set()
+
         self.set_defaults()
 
     def __copy__(self):
@@ -513,7 +517,7 @@ class ModuleRegistry(DBRegistry):
             # _constant_hasher_map stores callables for custom parameter
             # hashers
             self._constant_hasher_map = {}
-            basic_pkg = vistrails.core.modules.basic_modules.identifier
+            basic_pkg = get_vistrails_basic_pkg_id()
             if basic_pkg in self.packages:
                 self._default_package = self.packages[basic_pkg]
                 self._current_package = self._default_package
@@ -532,13 +536,14 @@ class ModuleRegistry(DBRegistry):
         self.package_versions = self.db_packages_identifier_index
         self.packages = {}
         self._module_key_map = {}
-        for (key, _), pkg in self.package_versions.iteritems():
-            if key in self.packages:
-                old_pkg = self.packages[key]
-                if versions_increasing(old_pkg.version, pkg.version):
+        for pkg in self.package_versions.itervalues():
+            for key in chain(pkg.old_identifiers, [pkg.identifier]):
+                if key in self.packages:
+                    old_pkg = self.packages[key]
+                    if versions_increasing(old_pkg.version, pkg.version):
+                        self.packages[key] = pkg
+                else:
                     self.packages[key] = pkg
-            else:
-                self.packages[key] = pkg
             for descriptor in pkg.descriptor_list:
                 self.descriptors_by_id[descriptor.id] = descriptor
                 k = (descriptor.identifier, descriptor.name, 
@@ -621,13 +626,13 @@ class ModuleRegistry(DBRegistry):
         package.delete_descriptor(desc)
     def add_package(self, package):
         DBRegistry.db_add_package(self, package)
-        key = package.identifier
-        if key in self.packages:
-            old_pkg = self.packages[key]
-            if versions_increasing(old_pkg.version, package.version):
+        for key in chain(package.old_identifiers, [package.identifier]):
+            if key in self.packages:
+                old_pkg = self.packages[key]
+                if versions_increasing(old_pkg.version, package.version):
+                    self.packages[key] = package
+            else:
                 self.packages[key] = package
-        else:
-            self.packages[key] = package
 
     def delete_package(self, package):
         DBRegistry.db_delete_package(self, package)
@@ -636,16 +641,19 @@ class ModuleRegistry(DBRegistry):
         self.setup_indices()
 
     def create_default_package(self):
+        basic_pkg = get_vistrails_basic_pkg_id()
         default_codepath = os.path.join(vistrails_root_directory(), 
                                         "core", "modules", "basic_modules.py")
         self._default_package = \
             Package(id=self.idScope.getNewId(Package.vtType),
                     codepath=default_codepath,
                     load_configuration=False,
-                    identifier='edu.utah.sci.vistrails.basic',
+                    identifier=basic_pkg,
                     name='Basic Modules',
                     version=vistrails_version(),
                     description="Basic modules for VisTrails")
+        # FIXME need to serialize old_identifiers!
+        self._default_package.old_identifiers = ['edu.utah.sci.vistrails.basic']
         self.add_package(self._default_package)
         return self._default_package
 
@@ -959,6 +967,12 @@ class ModuleRegistry(DBRegistry):
                                       )
         self.add_descriptor(descriptor, package)
 
+        # invalidate the map of converters
+        if issubclass(module,
+                vistrails.core.modules.vistrails_module.Converter):
+            self._conversions = dict()
+            self._converters.add(descriptor)
+
         if module is not None:
             self._module_key_map[module] = (identifier, name, namespace,
                                             package_version, version)
@@ -1190,8 +1204,8 @@ class ModuleRegistry(DBRegistry):
 
         if constantSignatureCallable:
             try:
-                c = self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                                'Constant').module
+                basic_pkg = get_vistrails_basic_pkg_id()
+                c = self.get_descriptor_by_name(basic_pkg, 'Constant').module
             except ModuleRegistryException:
                 msg = "Constant not found - can't set constantSignatureCallable"
                 raise VistrailsInternalError(msg)
@@ -1561,6 +1575,14 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor_by_name(identifier, module_name, 
                                                  namespace)
         assert len(descriptor.children) == 0
+
+        # invalidate the map of converters
+        converter_desc = self.get_descriptor(
+                vistrails.core.modules.vistrails_module.Converter)
+        if self.is_descriptor_subclass(descriptor, converter_desc):
+            self._conversions = dict()
+            self._converters.remove(descriptor)
+
         self.signals.emit_deleted_module(descriptor)
         if self.is_abstraction(descriptor):
             self.signals.emit_deleted_abstraction(descriptor)
@@ -1650,9 +1672,9 @@ class ModuleRegistry(DBRegistry):
             return None
         
     def is_method(self, port_spec):
+        basic_pkg = get_vistrails_basic_pkg_id()
         constant_desc = \
-            self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                        'Constant')
+            self.get_descriptor_by_name(basic_pkg, 'Constant')
         return port_spec.type == 'input' and \
             all(self.is_descriptor_subclass(d, constant_desc) 
                 for d in port_spec.descriptors())
@@ -1690,13 +1712,16 @@ class ModuleRegistry(DBRegistry):
             return True
         return self.are_specs_matched(port, port_spec)
 
-    def ports_can_connect(self, sourceModulePort, destinationModulePort):
+    def ports_can_connect(self, sourceModulePort, destinationModulePort,
+                          allow_conversion=False, out_converters=None):
         """ports_can_connect(sourceModulePort,destinationModulePort) ->
         Boolean returns true if there could exist a connection
         connecting these two ports."""
         if sourceModulePort.type == destinationModulePort.type:
             return False
-        return self.are_specs_matched(sourceModulePort, destinationModulePort)
+        return self.are_specs_matched(sourceModulePort, destinationModulePort,
+                                      allow_conversion=allow_conversion,
+                                      out_converters=out_converters)
 
     def is_port_sub_type(self, sub, super):
         """ is_port_sub_type(sub: Port, super: Port) -> bool        
@@ -1710,15 +1735,58 @@ class ModuleRegistry(DBRegistry):
             return False
         return self.are_specs_matched(sub, super)
 
-    def are_specs_matched(self, sub, super):
+    def get_converters(self, sub_descs, super_descs):
+        key = (tuple(sub_descs), tuple(super_descs))
+
+        # Get the result from the cache
+        try:
+            return self._conversions[key]
+        except KeyError:
+            pass
+
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        converters = []
+
+        # Compute the result
+        for converter in self._converters:
+            if converter.module is (
+                    vistrails.core.modules.vistrails_module.Converter):
+                continue
+
+            in_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'in_value', 'input')
+            if not check_types(sub_descs, in_port.descriptors()):
+                continue
+            out_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'out_value', 'output')
+            if not check_types(out_port.descriptors(), super_descs):
+                continue
+
+            converters.append(converter)
+
+        # Store in the cache that there was no result
+        self._conversions[key] = converters
+        return converters
+
+    def are_specs_matched(self, sub, super, allow_conversion=False,
+                          out_converters=None):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
         """
-        variantType = vistrails.core.modules.basic_modules.Variant
-        variant_desc = \
-            self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                        'Variant')
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
         sub_descs = []
@@ -1737,13 +1805,26 @@ class ModuleRegistry(DBRegistry):
             return True
         if len(sub_descs) != len(super_descs):
             return False
-        
-        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-            if (sub_desc == variant_desc or super_desc == variant_desc):
-                continue
-            if not self.is_descriptor_subclass(sub_desc, super_desc):
-                return False
-        return True
+
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        if check_types(sub_descs, super_descs):
+            return True
+
+        if allow_conversion:
+            converters = self.get_converters(sub_descs, super_descs)
+            if converters:
+                if out_converters is not None:
+                    out_converters.extend(converters)
+                return True
+
+        return False
 
     def get_module_hierarchy(self, descriptor):
         """get_module_hierarchy(descriptor) -> [klass].
@@ -1879,7 +1960,7 @@ class ModuleRegistry(DBRegistry):
         return d1_list[d1_idx+1]
 
     def is_abstraction(self, descriptor):
-        basic_pkg = vistrails.core.modules.basic_modules.identifier
+        basic_pkg = get_vistrails_basic_pkg_id()
         try:
             abstraction_desc = self.get_descriptor_by_name(basic_pkg, 
                                                        'SubWorkflow')

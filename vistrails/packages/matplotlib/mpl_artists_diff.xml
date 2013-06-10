@@ -1,0 +1,28 @@
+<diff>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.artist.Artist" port="picker" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="picker" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <addPortSpec code_ref="matplotlib.axes.Axes" port="title" type="output">
+    <value>
+      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
+    </value>
+  </addPortSpec>
+  <changePortSpec attr="translations" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>{'caretright': 5, 'star': '*', 'point': '.', 'tickdown': 3, 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'hline': '_', 'vline': '|', 'mathtext': '$...$', 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'caretdown': 7, 'tri_down': '1', 'tickright': 1, 'tri_right': '4', 'thin_diamond': 'd', 'diamond': 'D', 'octagon': '8', 'tickleft': 0, 'square': 's', 'tri_up': '2', 'plus': '+', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'hexagon2': 'H', 'caretup': 6, 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>['enum']</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>[['caretdown', 'caretleft', 'caretright', 'caretup', 'circle', 'diamond', 'hexagon1', 'hexagon2', 'hline', 'nothing', 'octagon', 'pentagon', 'pixel', 'plus', 'point', 'square', 'star', 'thin_diamond', 'tickdown', 'tickleft', 'tickright', 'tickup', 'tri_down', 'tri_left', 'tri_right', 'tri_up', 'triangle_down', 'triangle_left', 'triangle_right', 'triangle_up', 'vline', 'x', 'mathtext']]</value>
+  </changePortSpec>
+</diff>

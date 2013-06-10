@@ -217,8 +217,16 @@ class DefaultTheme(DefaultCoreTheme):
         # Brush and pen to draw connections
         self.CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
-        self.CONNECTION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
+        self.CONNECTION_SELECTED_PEN = QtGui.QPen(
+                QtGui.QBrush(
+                    QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),
+                3,
+                QtCore.Qt.SolidLine)
+        self.CONNECTION_SELECTED_CONVERTING_PEN = QtGui.QPen(
+                QtGui.QBrush(
+                    QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),
+                3,
+                QtCore.Qt.DotLine)
         self.CONNECTION_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black'))))
 
@@ -610,6 +618,11 @@ class DefaultTheme(DefaultCoreTheme):
         self.QUERY_EDIT_ICON = QtGui.QIcon(QtGui.QPixmap(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/edit.png'))
+
+        # Icon on the button to switch to single/multi line string edition
+        self.MULTILINE_STRING_ICON = QtGui.QIcon(QtGui.QPixmap(
+                vistrails.core.system.vistrails_root_directory() +
+                '/gui/resources/images/multiline_string_icon.png'))
 
         #### COLORS ####
         # Color for the PIP frame

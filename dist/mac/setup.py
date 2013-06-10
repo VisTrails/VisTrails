@@ -61,11 +61,11 @@ APP = ['../../vistrails/run.py']
 OPTIONS = {'argv_emulation': True,
            'iconfile': 'resources/vistrails_icon.icns',
            'includes': 'sip,pylab,xml,\
-			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
+            libxml2,libxslt, Cookie, BaseHTTPServer, multifile, \
                         shelve, uuid, \
                         sine,st,Numeric,pexpect,psycopg2,sqlite3,suds,shapelib, dbflib,mpl_toolkits.mplot3d,_mysql_exceptions',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,api,twisted,Scientific,distutils,h5py,batchq,osgeo',
-           'excludes': 'mpl_toolkits.basemap, PyQt4.uic',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,api,twisted,Scientific,distutils,h5py,batchq,osgeo,nose',
+           'excludes': 'mpl_toolkits.basemap,PyQt4.uic,PyQt4.uic.Compiler,PyQt4.uic.Loader,PyQt4.uic.port_v2,PyQt4.uic.port_v3',
            'plist': plist,
            }
 

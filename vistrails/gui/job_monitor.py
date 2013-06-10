@@ -214,8 +214,11 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         conf_jobs = conf.runningJobsList.split(';')
                     if not conf_jobs:
                         conf_jobs = []
-                    url = controller.vistrail.locator.to_url() + \
-                          "?workflow=%s" % version_id
+                    url = controller.vistrail.locator.to_url()
+                    if '?' in url:
+                        url += '&workflow=%d' % version_id
+                    else:
+                        url += '?workflow=%d' % version_id
                     if not url in conf_jobs:
                         conf_jobs.append(str(url))
                         conf.runningJobsList = ';'.join(conf_jobs)
@@ -274,7 +277,11 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 conf_jobs = conf.runningJobsList.split(';')
             if not conf_jobs:
                 conf_jobs = []
-            url = controller.locator.to_url() + "?workflow=%s" % version_id
+            url = controller.locator.to_url()
+            if '?' in url:
+                url += '&workflow=%s' % version_id
+            else:
+                url += '?workflow=%s' % version_id
             if url in conf_jobs:
                 conf_jobs.remove(url)
                 conf.runningJobsList = ';'.join(conf_jobs)

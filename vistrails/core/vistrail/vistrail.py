@@ -129,8 +129,8 @@ class Vistrail(DBVistrail):
 
         for action in _vistrail.actions:
             Action.convert(action)
-# 	for tag in _vistrail.tags:
-#             Tag.convert(tag)
+#        for tag in _vistrail.tags:
+#            Tag.convert(tag)
         for annotation in _vistrail.annotations:
             Annotation.convert(annotation)
         for annotation in _vistrail.action_annotations:
@@ -508,7 +508,7 @@ class Vistrail(DBVistrail):
     def getLastCommonVersion(self, v):
         """getLastCommonVersion(v: Vistrail) -> int
         Returns the last version that is common to this vistrail and v
-	
+        
         """
         # TODO:  There HAS to be a better way to do this...
         common = []
@@ -521,7 +521,7 @@ class Vistrail(DBVistrail):
             if time > timestep:
                 timestep = time
 
-        return timestep	
+        return timestep
 
     def general_action_chain(self, v1, v2):
         """general_action_chain(v1, v2): Returns an action that turns
@@ -1010,7 +1010,7 @@ class Vistrail(DBVistrail):
 
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
-    #	return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    #    return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):
@@ -1182,6 +1182,7 @@ class VersionNotTagged(Exception):
 ##############################################################################
 # Testing
 
+from vistrails.core.system import get_vistrails_basic_pkg_id
 
 class TestVistrail(unittest.TestCase):
 
@@ -1190,7 +1191,7 @@ class TestVistrail(unittest.TestCase):
 
         m = Module(id=vistrail.idScope.getNewId(Module.vtType),
                    name='Float',
-                   package='edu.utah.sci.vistrails.basic')
+                   package=get_vistrails_basic_pkg_id())
         add_op = AddOp(id=vistrail.idScope.getNewId(AddOp.vtType),
                        what=Module.vtType,
                        objectId=m.id,

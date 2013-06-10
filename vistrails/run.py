@@ -73,6 +73,17 @@ def disable_lion_restore():
         os.system('rm -rf "%s"' % ssPath)
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
+def enable_user_base():
+    # USER_BASE and USER_SITE in site.py is not set when running from py2app,
+    # this is neded by at least scipy.weave
+    import platform
+    if platform.system()!='Darwin': return
+    import site
+    if hasattr(site, "USER_BASE"): return
+    from vistrails.core.system import mac_site
+    site.USER_BASE = mac_site.getuserbase()
+    site.USER_SITE = mac_site.getusersitepackages()
+
 if __name__ == '__main__':
     # Fix import path: add parent directory(so that we can
     # import vistrails.[gui|...] and remove other paths below it (we might have
@@ -95,7 +106,7 @@ if __name__ == '__main__':
     sys.path.insert(0, vistrails_dir)
 
     disable_lion_restore()
-
+    enable_user_base()
     # does not work because it checks if gui already running
     #import gui.requirements
     #gui.requirements.check_pyqt4()
@@ -107,9 +118,8 @@ if __name__ == '__main__':
         vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
     except vistrails.core.requirements.MissingRequirement, req:
         r = vistrails.gui.bundles.installbundle.install(
-            {'linux-ubuntu': ['python-qt4',
-                              'python-qt4-gl',
-                              'python-qt4-sql'],
+            {'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+             'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
              'linux-fedora': ['PyQt4']})
         if not r:
             raise req

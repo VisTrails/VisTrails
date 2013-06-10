@@ -66,23 +66,23 @@ import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
 from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
-    translate_object, translate_vistrail, translate_workflow, translate_log, \
-    translate_registry
+    translate_vistrail, translate_workflow, translate_log, translate_registry
 
 import unittest
 import vistrails.core.system
-import os
 
 ElementTree = get_elementtree_library()
-
 
 
 _db_lib = None
 def get_db_lib():
     global _db_lib
     if _db_lib is None:
-        # FIXME use core.bundles.py_import here
-        import MySQLdb
+        MySQLdb = py_import('MySQLdb', {
+                'pip': 'mysql-python',
+                'linux-debian': 'python-mysqldb',
+                'linux-ubuntu': 'python-mysqldb',
+                'linux-fedora': 'MySQL-python'})
         # import sqlite3
         _db_lib = MySQLdb
     return _db_lib
@@ -90,11 +90,6 @@ def set_db_lib(lib):
     global _db_lib
     _db_lib = lib
 
-# load MySQLdb early if it exists, o/w don't error out
-try:
-    get_db_lib()
-except ImportError:
-    pass
 
 class SaveBundle(object):
     """Transient bundle of objects to be saved or loaded.
@@ -1257,7 +1252,11 @@ def open_vt_log_from_db(db_connection, vt_id, version=None):
         except get_db_lib().Error, e:
             debug.critical("Error getting log id:s %d: %s" % (e.args[0], e.args[1]))
     log = DBLog()
-    logs = dao_list.open_many_from_db(db_connection, DBLog.vtType, ids)
+    if hasattr(dao_list, 'open_many_from_db'): # does not exist pre 1.0.2
+        logs = dao_list.open_many_from_db(db_connection, DBLog.vtType, ids)
+    else:
+        logs = [dao_list.open_from_db(db_connection, DBLog.vtType, id) \
+                for id in ids]
     for new_log in logs:
         for workflow_exec in new_log.db_workflow_execs:
             workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)

@@ -41,9 +41,10 @@ import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from vistrails.core.modules.basic_modules import Float, Integer
 
-identifier = 'edu.utah.sci.vistrails.console_mode_test'
-version = '0.9.0'
+identifier = 'org.vistrails.vistrails.console_mode_test'
+version = '0.9.1'
 name = 'Console Mode Tests'
+old_identifiers = ['edu.utah.sci.vistrails.console_mode_test']
 
 class TestTupleExecution(Module):
 

@@ -36,7 +36,7 @@
 """Helper classes for inspecting vistrails/pipelines at runtime"""
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.modules.module_registry import get_module_registry
-
+from vistrails.core.system import get_vistrails_default_pkg_prefix
 ################################################################################
 
 class PipelineInspector(object):
@@ -157,12 +157,13 @@ class PipelineInspector(object):
             if root_id is None:
                 root_id = []
             # Sometimes we run without the spreadsheet!
-            if registry.has_module('edu.utah.sci.vistrails.spreadsheet', 
-                                   'SpreadsheetCell'):
+            spreadsheet_pkg = \
+                '%s.spreadsheet' % get_vistrails_default_pkg_prefix()
+            if registry.has_module(spreadsheet_pkg, 'SpreadsheetCell'):
                 # First pass to check cells types
-                cellType = registry.get_descriptor_by_name( \
-                    'edu.utah.sci.vistrails.spreadsheet',
-                    'SpreadsheetCell').module
+                cellType = \
+                    registry.get_descriptor_by_name(spreadsheet_pkg,
+                                                    'SpreadsheetCell').module
                 for mId, module in pipeline.modules.iteritems():
                     desc = registry.get_descriptor_by_name(module.package, 
                                                            module.name, 

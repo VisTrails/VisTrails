@@ -26,111 +26,126 @@ import copy
 import inspect
 from itertools import izip
 import os
+import re
+import sys
 import tempfile
+
+from IPython.parallel.error import CompositeError
 
 from .api import get_client
 
 
-################################################################################
+###############################################################################
 # This function is sent to the engines which execute it
 #
 # It receives the workflow, and the list of targeted output ports
 #
 # It returns the corresponding computed outputs and the execution log
 #
-def execute_wf(wf, output_ports):
+def execute_wf(wf, output_port):
     # Save the workflow in a temporary file
     temp_wf_fd, temp_wf = tempfile.mkstemp()
 
-    f = open(temp_wf, 'w')
-    f.write(wf)
-    f.close()
-    os.close(temp_wf_fd)
+    try:
+        f = open(temp_wf, 'w')
+        f.write(wf)
+        f.close()
+        os.close(temp_wf_fd)
 
-    # Clean the cache
-    interpreter = get_default_interpreter()
-    interpreter.flush()
+        # Clean the cache
+        interpreter = get_default_interpreter()
+        interpreter.flush()
 
-    # Load the Pipeline from the temporary file
-    vistrail = Vistrail()
-    locator = XMLFileLocator(temp_wf)
-    workflow = locator.load(Pipeline)
+        # Load the Pipeline from the temporary file
+        vistrail = Vistrail()
+        locator = XMLFileLocator(temp_wf)
+        workflow = locator.load(Pipeline)
 
-    # Build a Vistrail from this single Pipeline
-    action_list = []
-    for module in workflow.module_list:
-        action_list.append(('add', module))
-    for connection in workflow.connection_list:
-        action_list.append(('add', connection))
-    action = vistrails.core.db.action.create_action(action_list)
+        # Build a Vistrail from this single Pipeline
+        action_list = []
+        for module in workflow.module_list:
+            action_list.append(('add', module))
+        for connection in workflow.connection_list:
+            action_list.append(('add', connection))
+        action = vistrails.core.db.action.create_action(action_list)
 
-    vistrail.add_action(action, 0L)
-    vistrail.update_id_scope()
-    tag = 'parallel flow'
-    vistrail.addTag(tag, action.id)
+        vistrail.add_action(action, 0L)
+        vistrail.update_id_scope()
+        tag = 'parallel flow'
+        vistrail.addTag(tag, action.id)
 
-    # Build a controller and execute
-    controller = VistrailController(vistrail, None)
-    controller.change_selected_version(vistrail.get_version_number(tag))
-    execution = controller.execute_current_workflow(
-            custom_aliases=None,
-            custom_params=None,
-            extra_info=None,
-            reason='API Pipeline Execution')
+        # Build a controller and execute
+        controller = VistrailController()
+        controller.set_vistrail(vistrail, None)
+        controller.change_selected_version(vistrail.get_version_number(tag))
+        execution = controller.execute_current_workflow(
+                custom_aliases=None,
+                custom_params=None,
+                extra_info=None,
+                reason='API Pipeline Execution')
 
-    # Build a list of errors
-    errors = []
-    pipeline = vistrail.getPipeline(tag)
-    execution_errors = execution[0][0].errors
-    if execution_errors:
-        for key in execution_errors:
-            module = pipeline.modules[key]
-            msg = '%s: %s' %(module.name, execution_errors[key])
-            errors.append(msg)
+        # Build a list of errors
+        errors = []
+        pipeline = vistrail.getPipeline(tag)
+        execution_errors = execution[0][0].errors
+        if execution_errors:
+            for key in execution_errors:
+                module = pipeline.modules[key]
+                msg = '%s: %s' %(module.name, execution_errors[key])
+                errors.append(msg)
 
-    # Get the execution log from the controller
-    module_log = controller.log.workflow_execs[0].item_execs[0]
-    machine = controller.log.machine_list[0]
-    xml_log = serialize(module_log)
-    machine_log = serialize(machine)
+        # Get the execution log from the controller
+        module_log = controller.log.workflow_execs[0].item_execs[0]
+        machine = controller.log.machine_list[0]
+        xml_log = serialize(module_log)
+        machine_log = serialize(machine)
 
-    # Get the requested output values
-    module_outputs = []
-    annotations = module_log.annotations
-    for annotation in annotations:
-        if annotation.key == 'output':
-            module_outputs = annotation.value
-            break
-
-    # Store the output values in the order they were requested
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-    ports = []
-    outputs = []
-    serializable = []
-    for port in output_ports:
-        for output in module_outputs:
-            if output[0] == port:
-                # checking if output port needs to be serialized
-                base_classes = inspect.getmro(type(output[1]))
-                if Module in base_classes:
-                    ports.append(output[0])
-                    outputs.append(output[1].serialize())
-                    serializable.append(reg.get_descriptor(type(output[1])).sigstring)
-                else:
-                    ports.append(output[0])
-                    outputs.append(output[1])
-                    serializable.append(None)
+        # Get the requested output values
+        module_outputs = []
+        annotations = module_log.annotations
+        for annotation in annotations:
+            if annotation.key == 'output':
+                module_outputs = annotation.value
                 break
 
-    # Return the dictionary, that will be sent back to the client
-    return dict(errors=errors,
-                ports=ports,
-                outputs=outputs,
-                serializable=serializable,
-                xml_log=xml_log,
-                machine_log=machine_log)
+        # Store the output values in the order they were requested
+        reg = vistrails.core.modules.module_registry.get_module_registry()
+        output = None
+        serializable = None
+        found = False
+        for m_output in module_outputs:
+            if m_output[0] == output_port:
+                # checking if output port needs to be serialized
+                base_classes = inspect.getmro(type(m_output[1]))
+                if Module in base_classes:
+                    output = m_output[1].serialize()
+                    serializable = reg.get_descriptor(type(m_output[1])).sigstring
+                else:
+                    output = m_output[1]
+                    serializable = None
+                found = True
+                break
 
-################################################################################
+        if not found:
+            errors.append("Output port not found: %s" % output_port)
+
+        # Return the dictionary, that will be sent back to the client
+        return dict(errors=errors,
+                    output=output,
+                    serializable=serializable,
+                    xml_log=xml_log,
+                    machine_log=machine_log)
+    finally:
+        os.unlink(temp_wf)
+
+###############################################################################
+
+_ansi_code = re.compile(r'%s(?:(?:\[[^A-Za-z]*[A-Za-z])|[^\[])' % '\x1B')
+
+def strip_ansi_codes(s):
+    return _ansi_code.sub('', s)
+
+###############################################################################
 # Map Operator
 #
 class Map(Module, NotCacheable):
@@ -161,6 +176,15 @@ class Map(Module, NotCacheable):
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput:
                         self.removeInputConnector(port_name, connector)
+
+    @staticmethod
+    def print_compositeerror(e):
+        sys.stderr.write("Got %d exceptions from IPython engines:\n" %
+                         len(e.elist))
+        for e_type, e_msg, formatted_tb, infos in e.elist:
+            sys.stderr.write("Error from engine %d (%r):\n" % (
+                             infos['engine_id'], infos['engine_uuid']))
+            sys.stderr.write("%s\n" % strip_ansi_codes(formatted_tb))
 
     def updateFunctionPort(self):
         """
@@ -272,14 +296,14 @@ class Map(Module, NotCacheable):
         try:
             rc = get_client()
             engines = rc.ids
-            if not engines:
-                raise ModuleError(
-                        self,
-                        "Exception while loading IPython: No IPython engines "
-                        "detected!")
         except Exception, error:
-            msg = "Exception while loading IPython: '%s'" %str(error)
-            raise ModuleError(self, msg)
+            raise ModuleError(self, "Exception while loading IPython: "
+                              "%s" % error)
+        if not engines:
+            raise ModuleError(
+                    self,
+                    "Exception while loading IPython: No IPython engines "
+                    "detected!")
 
         # initializes each engine
         # importing modules and initializing the VisTrails application
@@ -310,8 +334,14 @@ class Map(Module, NotCacheable):
                 from vistrails.core.interpreter.default import get_default_interpreter
 
             # initializing a VisTrails application
-            init_view.execute('app = vistrails.core.application.init(args=[])',
-                          block=True)
+            try:
+                init_view.execute('app = vistrails.core.application.init(args=[])',
+                                  block=True)
+            except CompositeError, e:
+                self.print_compositeerror(e)
+                raise ModuleError(self, "Error running imports on IPython "
+                                  "engines (see terminal):\n"
+                                  "%s" % ', '.join([ce[0] for ce in e.elist]))
 
             init_view['init'] = True
 
@@ -323,9 +353,11 @@ class Map(Module, NotCacheable):
         try:
             ldview = rc.load_balanced_view()
             map_result = ldview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
-        except Exception, error:
-            msg = "Exception while executing in the IPython engines: '%s'" %str(error)
-            raise ModuleError(self, msg)
+        except CompositeError, e:
+            self.print_compositeerror(e)
+            raise ModuleError(self, "Error initializing application on "
+                              "IPython engines:\n"
+                              "%r" % e.elist)
 
         # verifying errors
         errors = []
@@ -340,37 +372,20 @@ class Map(Module, NotCacheable):
         # setting success color
         module.logging.signalSuccess(module)
 
-        # getting the value of the output ports
-        # here, we get the first map execution to check the name of the output
-        # ports, as they are the same among the map executions
-        first_map_execution = map_result[0]
-        output_ports = first_map_execution['ports']
-
-        # checking if the value of some output port was not obtained
-        diff = list(set(nameOutput) - set(output_ports))
-
-        if diff != []:
-            ports = ', '.join(diff)
-            raise ModuleError(self,
-                              'Output ports not found: %s' %ports)
-
         import vistrails.core.modules.module_registry
         reg = vistrails.core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
-            execution_output = []
             serializable = map_execution['serializable']
-            for i in range(len(map_execution['outputs'])):
-                output = None
-                if not serializable[i]:
-                    output = map_execution['outputs'][i]
-                else:
-                    d_tuple = vistrails.core.modules.utils.parse_descriptor_string(serializable[i])
-                    d = reg.get_descriptor_by_name(*d_tuple)
-                    module_klass = d.module
-                    output = module_klass().deserialize(map_execution['outputs'][i])
-                execution_output.append(output)
-            self.result.append(execution_output)
+            output = None
+            if not serializable:
+                output = map_execution['output']
+            else:
+                d_tuple = vistrails.core.modules.utils.parse_descriptor_string(serializable)
+                d = reg.get_descriptor_by_name(*d_tuple)
+                module_klass = d.module
+                output = module_klass().deserialize(map_execution['output'])
+            self.result.append(output)
 
         # including execution logs
         for engine in range(len(map_result)):
@@ -406,7 +421,7 @@ class Map(Module, NotCacheable):
                         exec_.item_execs[i].machine_id = machine.id
                         vt_type = exec_.item_execs[i].vtType
                         if (vt_type == 'abstraction') or (vt_type == 'group'):
-                            add_machine_resursive(exec_.item_execs[i])
+                            add_machine_recursive(exec_.item_execs[i])
 
             exec_.machine_id = machine.id
             if (vtType == 'abstraction') or (vtType == 'group'):
@@ -509,7 +524,7 @@ class Map(Module, NotCacheable):
 
         self.setResult('Result', self.result)
 
-#################################################################################
+###############################################################################
 
 class NewConstant(Constant):
     """
@@ -532,7 +547,7 @@ def create_module(value, signature):
     Creates a module for value, in order to do the type checking.
     """
 
-    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, Tuple, File, List
+    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, File, List
 
     if type(value)==bool:
         v_module = Boolean()

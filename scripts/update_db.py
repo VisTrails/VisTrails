@@ -38,8 +38,8 @@ import sys
 import tempfile
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(
                 os.path.abspath(__file__))), 'vistrails'))
-from db.services import io
-from db.versions import currentVersion
+from vistrails.db.services import io
+from vistrails.db.versions import currentVersion
 from db_utils import parse_db_cmd_line
 
 # DO NOT RUN THIS WHILE USERS HAVE ACCESS TO THE DATABASE!
@@ -99,7 +99,7 @@ def update_db(config, new_version=None, tmp_dir=None, restore=False):
     io.close_db_connection(db_connection)
 
 if __name__ == '__main__':
-    import core.application
+    import vistrails.core.application
 
     more_options = {'v:': ('set new schema version', False, 'version'),
                     'd:': ('set temporary directory', False, 'directory'),
@@ -110,6 +110,6 @@ if __name__ == '__main__':
     if options['v']:
         new_version = options['v']
 
-    core.application.init()
+    vistrails.core.application.init()
 
     update_db(config, new_version, options['d'], options['e']) 

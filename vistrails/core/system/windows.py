@@ -113,9 +113,9 @@ def home_directory():
     
     """
     if len(os.environ['HOMEPATH']) == 0:
-	return '\\'
+        return '\\'
     else:
-	return os.environ['HOMEDRIVE'] + os.environ['HOMEPATH']
+        return os.environ['HOMEDRIVE'] + os.environ['HOMEPATH']
 
 def remote_copy_program():
     return "pscp -P"

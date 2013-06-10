@@ -365,8 +365,8 @@ def getTypeIdList(operation):
                 ('parameter', operation.db_oldId)]
     else:
         print "unknown type: '%s'" % operation.db_what
-        return [(operation.db_what, operation.db_oldId)]	
-    	
+        return [(operation.db_what, operation.db_oldId)]
+
 def getOldId(object):
     if object.vtType == 'annotation':
         return object.db_key
@@ -484,7 +484,7 @@ def getChildList(typeIdList, objectDict):
     except KeyError:
         pass
     return {}
-	    
+
 def createOperation(actionType, objId, objType, parentId, parentType,
                     object=None):
     if actionType == 'add':

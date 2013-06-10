@@ -33,8 +33,6 @@
 ##
 ###############################################################################
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput
-from vistrails.core.modules.basic_modules import NotCacheable
-from vistrails.core.utils import VistrailsInternalError
 import copy
 
 ##############################################################################

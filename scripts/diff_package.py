@@ -40,9 +40,9 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(
                 os.path.abspath(__file__))), "vistrails"))
 
-import core.application
-from core.modules.module_registry import ModuleRegistry
-from db.services.io import open_registry_from_xml
+import vistrails.core.application
+from vistrails.core.modules.module_registry import ModuleRegistry
+from vistrails.db.services.io import open_registry_from_xml
 
 def get_module_name(d):
     if d.namespace:
@@ -97,5 +97,5 @@ if __name__ == '__main__':
         print "Usage: %s %s <pkg_identifer> <old_registry> <new_registry>" % \
             (sys.executable, sys.argv[0])
         sys.exit(71)
-    core.application.init()
+    vistrails.core.application.init()
     diff_package(*sys.argv[1:])

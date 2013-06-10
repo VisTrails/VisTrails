@@ -1,6 +1,5 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,16 +37,14 @@ This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
 """
-import vistrails.core
-identifier = 'edu.utah.sci.vistrails.matplotlib'
-name = 'matplotlib'
-version = '0.9.0'
+
+from identifiers import *
 
 def package_dependencies():
     import vistrails.core.packagemanager
     manager = vistrails.core.packagemanager.get_package_manager()
-    if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-        return ['edu.utah.sci.vistrails.spreadsheet']
+    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
+        return ['org.vistrails.vistrails.spreadsheet']
     else:
         return []
 

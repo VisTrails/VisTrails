@@ -39,7 +39,7 @@ from id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
     def __init__(self, *args, **kwargs):
-	_DBVistrail.__init__(self, *args, **kwargs)
+        _DBVistrail.__init__(self, *args, **kwargs)
         self.idScope = IdScope(remap={DBAdd.vtType: 'operation',
                                       DBChange.vtType: 'operation',
                                       DBDelete.vtType: 'operation'})

@@ -407,13 +407,13 @@ class VisTrailsAPI(object):
         self.controller.vistrail.set_tag(version, tag)
 
     def save_vistrail(self, locator_str):
-        self.app.save_vistrail(locator_str)
+        return self.app.save_vistrail(locator_str)
 
     def new_vistrail(self):
-        self.app.new_vistrail()
+        return bool(self.app.new_vistrail())
 
     def load_vistrail(self, locator_str):
-        self.app.open_vistrail(locator_str)
+        return bool(self.app.open_vistrail(locator_str))
     open_vistrail = load_vistrail
 
     def load_workflow(self, locator_str):
@@ -550,13 +550,14 @@ class TestAPI(unittest.TestCase):
         self.check_parameters()
 
     def test_write_and_read_vistrail(self):
-        get_api().new_vistrail()
+        self.assertTrue(get_api().new_vistrail())
         basic = self.get_basic_package()
         s1, s2 = self.create_modules(basic)
         fname = os.path.join(temporary_directory(), "test_write_read.vt")
-        get_api().save_vistrail(fname)
+        self.assertTrue(get_api().save_vistrail(fname))
+        self.assertTrue(os.path.exists(fname))
         get_api().close_vistrail()
-        get_api().open_vistrail(fname)
+        self.assertTrue(get_api().open_vistrail(fname))
         self.assertEqual(get_api().controller.current_version, 4)
         get_api().close_vistrail()
 
