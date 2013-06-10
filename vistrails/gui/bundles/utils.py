@@ -38,6 +38,7 @@ from vistrails.core import debug
 import vistrails.core.system
 import os
 import platform
+import sys
 
 ##############################################################################
 
@@ -49,6 +50,9 @@ def guess_graphical_sudo():
       sudo is the command to be used to gain root privileges
       escape is True if the rest of the line needs to be escaped
     """
+    if sys.platform == 'win32':
+        return '', False
+
     if vistrails.core.system.executable_is_in_path('kdesu'):
         return 'kdesu -c', True
     elif vistrails.core.system.executable_is_in_path('gksu'):
