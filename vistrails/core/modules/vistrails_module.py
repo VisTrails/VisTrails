@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import copy
+import sys
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.task_system import Task, default_prio
 from vistrails.core.utils import VistrailsInternalError
@@ -566,7 +567,18 @@ Makes sure input port 'name' is filled."""
 
     def compute(self):
         inputs = InputWrapper(self)
-        outputs = self.compute_static(inputs)
+
+        try:
+            outputs = self.compute_static(inputs)
+        except ModuleError:
+            exctype, value, tb = sys.exc_info()
+            if value.module is None:
+                value.module = self
+            try:
+                raise value, None, tb
+            finally:
+                del tb # delete circular reference to stack frame
+
         for port, value in outputs.iteritems():
             self.setResult(port, value)
 
