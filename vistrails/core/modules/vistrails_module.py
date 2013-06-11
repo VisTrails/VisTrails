@@ -215,6 +215,10 @@ class InputWrapper(object):
         except KeyError:
             return False
 
+    def checkInputFromPort(self, inputPort):
+        if not self.hasInputFromPort(inputPort):
+            raise ModuleError(None, "'%s' is a mandatory port" % inputPort)
+
     def forceGetInputFromPort(self, inputPort, defaultValue=None):
         try:
             value, is_default = self.inputPorts[inputPort]
