@@ -349,6 +349,18 @@ Designing New Modules
 
 """
 
+    # Task priorities - remember, lowest goes first
+
+    # Typical priority for "update upstream ports" tasks
+    # These should run first so that upstream module can add their background
+    # tasks as soon as possible
+    UPDATE_UPSTREAM_PRIORITY = 10
+    # Typical priority for "start compute thread" tasks
+    # These run before regular compute tasks so that they run at the same time
+    # as the later
+    COMPUTE_BACKGROUND_PRIORITY = 50
+    # Typical priority for "regular compute" tasks, i.e. long
+    # non-parallelizable routines
     COMPUTE_PRIORITY = 100
 
     def __init__(self):
@@ -401,16 +413,29 @@ Designing New Modules
         self.annotate_output = False
 
     def run(self):
+        """Entry point of the Task, simply runs update().
+        """
         self.update()
 
     def done(self):
+        """Indicate that the Module has finished executing.
+
+        This allows other Tasks waiting on this Module to begin.
+        """
         self.computed = True
         super(Module, self).done()
 
     def run_upstream_module(self, callback, *modules):
-        modules = [m.obj if isinstance(m, ModuleConnector) else m
+        """Adds upstream modules to the task system.
+
+        Registers the given modules as tasks to be run. The callback task will
+        be added once these are done.
+        The callback will have priority COMPUTE_PRIORITY if none is specified.
+        """
+        modules = [(self.UPDATE_UPSTREAM_PRIORITY,
+                    m.obj) if isinstance(m, ModuleConnector) else m
                    for m in modules]
-        prio, callback = default_prio(100, callback)
+        prio, callback = default_prio(self.COMPUTE_PRIORITY, callback)
         self._runner.add(*modules, callback=(prio, lambda r: callback()))
 
     def clear(self):
@@ -762,7 +787,10 @@ class SeparateThread(object):
     instead. It will be run in a separate process in parallel with the
     execution of other modules.
     """
-    COMPUTE_PRIORITY = 0
+
+    # We want to be started before the "regular compute" tasks, because we run
+    # in the background
+    COMPUTE_PRIORITY = Module.COMPUTE_BACKGROUND_PRIORITY
 
     def do_compute(self):
         self._runner.run_thread(self.compute, self.thread_done)
@@ -810,7 +838,8 @@ class Converter(Module):
     You must override the 'in_value' and 'out_value' ports by providing the
     types your module actually matches.
     """
-    def compute(self):
+    @staticmethod
+    def compute_static(inputs):
         raise NotImplementedError
 
 ################################################################################

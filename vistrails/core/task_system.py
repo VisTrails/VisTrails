@@ -24,6 +24,13 @@ def default_prio(prio, task):
         return prio, task
 
 
+def remove_prio(task):
+    if isinstance(task, (tuple, list)):
+        return task[1]
+    else:
+        return task
+
+
 class UsageWarning(UserWarning):
     pass
 
@@ -55,20 +62,21 @@ class TaskRunner(object):
             raise TypeError
         if not tasks:
             if callback is not None:
-                prio, callback = default_prio(1, callback)
+                prio, callback = default_prio(100, callback)
                 self.tasks.put((prio, callback))
             return
         for task in tasks:
-            prio, task = default_prio(1, task)
+            prio, task = default_prio(100, task)
             self.tasks.put((prio, task))
         if callback is not None:
+            tasks = [remove_prio(task) for task in tasks]
             dependent = DependentTask(callback, set(tasks))
             for task in tasks:
                 self.dependencies.setdefault(task, set()).add(dependent)
 
     def run_thread(self, task, callback):
         task = remove_prio_warn(task)
-        prio, callback = default_prio(1, callback)
+        prio, callback = default_prio(100, callback)
         future = self.thread_pool.submit(task)
         self.running_threads += 1
         def done(runner):
@@ -88,6 +96,9 @@ class TaskRunner(object):
             elif hasattr(task, '__call__'):
                 task(self)
                 self.task_done(task)
+            else:
+                raise RuntimeError("Something in task queue is not a task: "
+                                   "%r" % (task,))
 
     def task_done(self, task):
         try:
