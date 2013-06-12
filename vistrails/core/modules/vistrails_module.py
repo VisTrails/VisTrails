@@ -36,7 +36,7 @@ import copy
 import sys
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.task_system import Task, default_prio
-from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.utils import pickleable_staticmethods
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -276,7 +276,10 @@ class Serializable(object):
 ################################################################################
 # Module
 
-class Module(Task, Serializable):
+class BaseModule(object):
+    __metaclass__ = pickleable_staticmethods
+
+class Module(BaseModule, Task, Serializable):
 
     """Module is the base module from which all module functionality
 is derived from in VisTrails. It defines a set of basic interfaces to
@@ -769,7 +772,7 @@ Makes sure input port 'name' is filled."""
 
 ################################################################################
 
-class NotCacheable(object):
+class NotCacheable(BaseModule):
     """This Mixin marks a Module as not being cacheable.
 
     It will get reexecuted every time even if it gets the exact same input on
@@ -780,7 +783,7 @@ class NotCacheable(object):
 
 ################################################################################
 
-class SeparateThread(object):
+class SeparateThread(BaseModule):
     """This mixin enables a Module's compute() method to be run in parallel.
 
     You mustn't use the compute() method but should use compute_static()
