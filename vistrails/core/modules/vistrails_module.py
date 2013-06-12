@@ -796,7 +796,7 @@ class SeparateThread(BaseModule):
     COMPUTE_PRIORITY = Module.COMPUTE_BACKGROUND_PRIORITY
 
     def do_compute(self):
-        self._runner.run_thread(self.compute, self.thread_done)
+        self._runner.run_thread(self.thread_done, self.compute)
 
     def thread_done(self, future):
         self.done()

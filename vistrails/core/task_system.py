@@ -74,10 +74,10 @@ class TaskRunner(object):
             for task in tasks:
                 self.dependencies.setdefault(task, set()).add(dependent)
 
-    def run_thread(self, task, callback):
+    def run_thread(self, callback, task, *args, **kwargs):
         task = remove_prio_warn(task)
         prio, callback = default_prio(100, callback)
-        future = self.thread_pool.submit(task)
+        future = self.thread_pool.submit(task, *args, **kwargs)
         self.running_threads += 1
         def done(runner):
             runner.running_threads -= 1
