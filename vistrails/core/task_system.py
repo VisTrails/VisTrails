@@ -53,8 +53,21 @@ class TaskRunner(object):
         self.dependencies = dict()
 
         self.running_threads = 0
-        self.thread_pool = concurrent.futures.ThreadPoolExecutor(
-                multiprocessing.cpu_count())
+        # We'll create these when needed
+        self._thread_pool = None
+        self._process_pool = None
+
+    def thread_pool(self):
+        if self._thread_pool is None:
+            self._thread_pool = concurrent.futures.ThreadPoolExecutor(
+                    multiprocessing.cpu_count())
+        return self._thread_pool
+
+    def process_pool(self):
+        if self._process_pool is None:
+            self._process_pool = concurrent.futures.ProcessPoolExecutor(
+                    multiprocessing.cpu_count())
+        return self._process_pool
 
     def add(self, *tasks, **kwargs):
         callback = kwargs.pop('callback', None)
@@ -77,7 +90,17 @@ class TaskRunner(object):
     def run_thread(self, callback, task, *args, **kwargs):
         task = remove_prio_warn(task)
         prio, callback = default_prio(100, callback)
-        future = self.thread_pool.submit(task, *args, **kwargs)
+        future = self.thread_pool().submit(task, *args, **kwargs)
+        self.running_threads += 1
+        def done(runner):
+            runner.running_threads -= 1
+            callback(future)
+        future.add_done_callback(lambda res: self.tasks.put((prio, done)))
+
+    def run_process(self, callback, task, *args, **kwargs):
+        task = remove_prio_warn(task)
+        prio, callback = default_prio(100, callback)
+        future = self.process_pool().submit(task, *args, **kwargs)
         self.running_threads += 1
         def done(runner):
             runner.running_threads -= 1
