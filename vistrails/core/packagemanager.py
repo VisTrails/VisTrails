@@ -201,6 +201,14 @@ class PackageManager(object):
             # Another method of getting the caller module, using the stack
             caller = inspect.currentframe().f_back
             module = inspect.getmodule(caller)
+            # Some frames might not be associated to a module, because of the
+            # use of exec for instance; we just skip these until we reach a
+            # valid one
+            while module is None:
+                caller = caller.f_back
+                if caller is None:
+                    break
+                module = inspect.getmodule(caller)
             if module:
                 module = module.__name__
 
