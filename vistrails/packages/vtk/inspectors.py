@@ -52,7 +52,7 @@ class vtkBaseInspector(Module):
         def resolve_type(t):
             if type(t) == tuple:
                 return registry.get_descriptor_by_name(*t).module
-            elif type(t) == type:
+            elif isinstance(t, type):
                 return t
             else:
                 assert False, ("Unknown type " + str(type(t)))

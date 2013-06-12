@@ -828,7 +828,7 @@ class ModuleRegistry(DBRegistry):
         class that subclasses from modules.vistrails_module.Module)
 
         """
-        # assert type(module) == type
+        # assert isinstance(module, type)
         # assert issubclass(module, core.modules.vistrails_module.Module)
         # assert self._module_key_map.has_key(module)
         k = self._module_key_map[module]
@@ -1017,11 +1017,11 @@ class ModuleRegistry(DBRegistry):
         to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        if type(module) == type:
+        if isinstance(module, type):
             return self.add_module(module)
         elif (type(module) == tuple and
               len(module) == 2 and
-              type(module[0]) == type and
+              isinstance(module[0], type) and
               type(module[1]) == dict):
             descriptor = self.add_module(module[0], **module[1])
             return descriptor

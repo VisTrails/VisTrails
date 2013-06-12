@@ -76,7 +76,7 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags(self.flags() & ~(QtCore.Qt.ItemIsDragEnabled |
                                            QtCore.Qt.ItemIsSelectable ))
-        elif t == tuple and obj[0] is None and type(obj[1]) == type:
+        elif t == tuple and obj[0] is None and isinstance(obj[1], type):
             self._obj_type = obj[1]
             lst << '' << obj[1].__name__
             QtGui.QTreeWidget.__init__(self, parent, lst)
