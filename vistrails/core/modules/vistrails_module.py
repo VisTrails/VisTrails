@@ -261,6 +261,7 @@ Designing New Modules
         # and the builder besides Parameter Exploration.
         self.moduleInfo = {
             'locator': None,
+            'controller': None,
             'vistrailName': 'Unknown',
             'version': -1,
             'pipeline': None,
