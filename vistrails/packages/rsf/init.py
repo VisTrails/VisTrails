@@ -68,6 +68,7 @@ def splitall(path):
 
 def compute(self):
     prog = self.program
+    e = getattr(sf, prog.name)
     infiles = []
     if '<' in prog.snps:
         # read input files
@@ -86,17 +87,22 @@ def compute(self):
             if self.hasInputFromPort(name):
                 params[name] = self.getInputFromPort(name)
     # use '0' if no infiles
-    infiles = infiles or [0]
+    infiles = tuple(infiles) if infiles else 0
     #execute
-    if '>' in prog.snps and "vpl" in prog.snps.split('>')[-1]:
+    if e.plot:
         # assume a plot program
         print "Calling %s.%s(%s)" % (infiles[0], prog.name, params)
         result = getattr(infiles[0], prog.name[2:])(**params)
     else:
         print "Calling %s(%s)%s" % (prog.name, params, infiles)
-        p = getattr(sf, prog.name)(**params)
-        result = p.__getitem__(*infiles)
-    if '>' in prog.snps:
+        if params:
+            p = e(**params)
+        else:
+            p = e
+        print "prog:", p, type(p), p.__getitem__
+        result = p.__getitem__(infiles)
+
+    if e.stdout:
         # FIXME: strange file ports
         print type(result), result
         if type(result) in [sf.File, sf.Filter]:
