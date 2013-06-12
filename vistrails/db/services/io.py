@@ -79,6 +79,7 @@ def get_db_lib():
     global _db_lib
     if _db_lib is None:
         MySQLdb = py_import('MySQLdb', {
+                'pip': 'mysql-python',
                 'linux-debian': 'python-mysqldb',
                 'linux-ubuntu': 'python-mysqldb',
                 'linux-fedora': 'MySQL-python'})

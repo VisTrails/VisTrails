@@ -190,6 +190,7 @@ def default():
         'executeWorkflows': False,
         'fileDirectory': (None, str),
 #        'evolutionGraph': (None, str),
+        'installBundlesWithPip': False,
         'interactiveMode': True,
         'logFile': (None, str),
         'logger': default_logger(),

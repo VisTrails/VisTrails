@@ -2968,27 +2968,27 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 4, ''))
-        QtCore.QCoreApplication.processEvents()
         if self.progress:
             self.cancel_progress()
             self.progress.new_value = self.progress.value() + 1 
             self.progress.setValue(self.progress.new_value)
             self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
+        QtGui.QApplication.postEvent(self,
+                                     QModuleStatusEvent(moduleId, 4, ''))
+        QtCore.QCoreApplication.processEvents()
         
     def set_module_progress(self, moduleId, progress=0.0):
         """ set_module_computing(moduleId: int, progress: float) -> None
         Post an event to the scene (self) for updating the module color
         
         """
+        if self.progress:
+            self.cancel_progress()
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
                                                         '%d%% Completed' % int(progress*100),
                                                         progress))
         QtCore.QCoreApplication.processEvents()
-        if self.progress:
-            self.cancel_progress()
 
     def set_module_persistent(self, moduleId):
         QtGui.QApplication.postEvent(self,

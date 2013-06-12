@@ -35,6 +35,7 @@
 
 """Module with utilities to try and install a bundle if possible."""
 from vistrails.core import get_vistrails_application
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.system import get_executable_path, vistrails_root_directory
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
@@ -130,24 +131,70 @@ def linux_fedora_install(package_name):
     return run_install_command_as_root(qt, cmd, package_name)
 
 
-def show_question(which_files):
-    qt = has_qt()
-    if qt:
-        import vistrails.gui.utils
+def pip_install(package_name):
+    hide_splash_if_necessary()
+
+    if vistrails.core.system.executable_is_in_path('pip'):
+        cmd = 'pip install'
+    else:
+        cmd = 'python -m pip install'
+    return run_install_command_as_root(has_qt(), cmd, package_name)
+
+
+def show_question(which_files, has_distro_pkg, has_pip):
+    if has_qt():
+        from PyQt4 import QtCore, QtGui
         if type(which_files) == str:
             which_files = [which_files]
-        v = vistrails.gui.utils.show_question("Required packages missing",
-                                    "One or more required packages are missing: " +
-                                    " ".join(which_files) +
-                                    ". VisTrails can " +
-                                    "automaticallly install them. " +
-                                    "If you click OK, VisTrails will need "+
-                                    "administrator privileges, and you " +
-                                    "might be asked for the administrator password.",
-                                    buttons=[vistrails.gui.utils.OK_BUTTON,
-                                             vistrails.gui.utils.CANCEL_BUTTON],
-                                    default=vistrails.gui.utils.OK_BUTTON)
-        return v == vistrails.gui.utils.OK_BUTTON
+        dialog = QtGui.QDialog()
+        dialog.setWindowTitle("Required packages missing")
+        layout = QtGui.QVBoxLayout()
+
+        label = QtGui.QLabel(
+                "One or more required packages are missing: %s. VisTrails can "
+                "automaticallly install them. If you click OK, VisTrails will "
+                "need administrator privileges, and you might be asked for "
+                "the administrator password." % (" ".join(which_files)))
+        label.setWordWrap(True)
+        layout.addWidget(label)
+
+        use_pip = QtGui.QCheckBox("Use pip")
+        use_pip.setChecked(
+                not has_distro_pkg or (
+                    has_pip and
+                    getattr(get_vistrails_configuration(),
+                            'installBundlesWithPip')))
+        use_pip.setEnabled(has_distro_pkg and has_pip)
+        layout.addWidget(use_pip)
+
+        remember_align = QtGui.QHBoxLayout()
+        remember_align.addSpacing(20)
+        remember_pip = QtGui.QCheckBox("Remember my choice")
+        remember_pip.setChecked(False)
+        remember_pip.setEnabled(use_pip.isEnabled())
+        remember_align.addWidget(remember_pip)
+        layout.addLayout(remember_align)
+
+        buttons = QtGui.QDialogButtonBox(
+                QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
+                               dialog, QtCore.SLOT('accept()'))
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
+                               dialog, QtCore.SLOT('reject()'))
+        layout.addWidget(buttons)
+
+        dialog.setLayout(layout)
+        if dialog.exec_() != QtGui.QDialog.Accepted:
+            return False
+        else:
+            if remember_pip.isChecked():
+                setattr(get_vistrails_configuration(), 'installBundlesWithPip',
+                        use_pip.isChecked())
+
+            if use_pip.isChecked():
+                return 'pip'
+            else:
+                return 'distro'
     else:
         print "Required package missing"
         print ("A required package is missing, but VisTrails can " +
@@ -157,20 +204,32 @@ def show_question(which_files):
                "might be asked for the administrator password.")
         print "Give VisTrails permission to try to install package? (y/N)"
         v = raw_input().upper()
-        return v == 'Y' or v == 'YES'
+        if v == 'Y' or v == 'YES':
+            if has_distro_pkg:
+                return 'distro'
+            else:
+                return 'pip'
 
 
 def install(dependency_dictionary):
     """Tries to install a bundle after a py_import() failed.."""
 
     distro = guess_system()
-    if distro not in dependency_dictionary:
-        return False
+
+    files = (dependency_dictionary.get(distro) or
+             dependency_dictionary.get('pip'))
+    if not files:
+        return None
     else:
-        files = dependency_dictionary[distro]
-        if show_question(files):
+        action = show_question(
+                files,
+                distro in dependency_dictionary,
+                'pip' in dependency_dictionary)
+        if action == 'distro':
             callable_ = getattr(vistrails.gui.bundles.installbundle,
                                 distro.replace('-', '_') + '_install')
             return callable_(files)
+        elif action == 'pip':
+            return pip_install(files)
         else:
             return False
