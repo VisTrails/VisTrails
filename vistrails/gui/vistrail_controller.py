@@ -337,14 +337,32 @@ class VistrailController(QtCore.QObject, BaseController):
 
     ##########################################################################
     # Workflow Execution
-    
+
+    class WorkflowExecutingThread(QtCore.QThread):
+        def __init__(self, controller, vistrails):
+            QtCore.QThread.__init__(self)
+            self.controller = controller
+            self.vistrails = vistrails
+
+        def run(self):
+            self.results, self.changed = BaseController.execute_workflow_list(
+                    self.controller,
+                    self.vistrails)
+
     def execute_workflow_list(self, vistrails):
         old_quiet = self.quiet
         self.quiet = True
         self.current_pipeline_scene.reset_module_colors()
         self.current_pipeline_scene.update()
-        (results, changed) = BaseController.execute_workflow_list(self, 
-                                                                  vistrails)        
+
+        loop = QtCore.QEventLoop()
+        thread = VistrailController.WorkflowExecutingThread(self, vistrails)
+        QtCore.QObject.connect(thread, QtCore.SIGNAL('finished()'),
+                               loop, QtCore.SLOT('quit()'))
+        thread.start()
+        loop.exec_()
+        results, changed = thread.results, thread.changed
+
         self.quiet = old_quiet
         if changed:
             self.invalidate_version_tree(False)
