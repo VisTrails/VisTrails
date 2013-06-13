@@ -3163,7 +3163,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
         try:
             modules = len(self.controller.current_pipeline.modules)
-            progress = ExecutionProgressDialog(modules)
+            progress = ExecutionProgressDialog(modules, self.viewport())
             self.scene().progress = progress
             progress.show()
             
@@ -3320,10 +3320,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return module_item.paintToPixmap(m.m11(), m.m22())
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
-    def __init__(self, modules):
-        QtGui.QProgressDialog.__init__(self, 'Starting Workflow execution',
-                                       '&Cancel',
-                                       0, modules)
+    def __init__(self, modules, parent=None):
+        QtGui.QProgressDialog.__init__(
+                self,
+                'Starting Workflow execution', '&Cancel',
+                0, modules,
+                parent, QtCore.Qt.Dialog)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self.new_value = 0
