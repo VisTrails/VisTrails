@@ -138,6 +138,10 @@ class TaskRunner(object):
     def close(self):
         for task in self.tasks_ran:
             task.reset()
+        if self._thread_pool is not None:
+            self._thread_pool.shutdown()
+        if self._process_pool is not None:
+            self._process_pool.shutdown()
 
 
 class Task(object):
