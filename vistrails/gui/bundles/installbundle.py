@@ -93,7 +93,7 @@ def run_install_command_as_root(graphical, cmd, args):
         elif not systemType == 'Darwin':
             sucmd, escape = "su -c %s", True
         else:
-            return -1
+            return False
 
     if escape:
         sucmd = sucmd % '"%s"' % cmd.replace('\\', '\\\\').replace('"', '\\"')
