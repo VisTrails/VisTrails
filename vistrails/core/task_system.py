@@ -10,6 +10,7 @@ import concurrent.futures
 import multiprocessing
 import Queue
 import sys
+import warnings
 
 
 class DependentTask(object):
@@ -175,6 +176,15 @@ class TaskRunner(object):
             else:
                 raise RuntimeError("Something in task queue is not a task: "
                                    "%r" % (task,))
+
+        for deps in self.dependencies.itervalues():
+            if any(dep.tasks for dep in deps):
+                warnings.warn("Some tasks were never completed, but we don't have "
+                              "anything left to run (did you forget to call "
+                              "done()?)",
+                              RuntimeWarning,
+                              stacklevel=2)
+                break
 
     def task_done(self, task):
         """Internal method, called from Task#done().
