@@ -39,8 +39,9 @@ import apt
 import apt_pkg
 import sys
 
-from apt.progress import InstallProgress
-from apt.progress import FetchProgress
+from apt.progress.base import InstallProgress
+from apt.progress.base import AcquireProgress
+import apt.progress.text
 
 from PyQt4 import QtCore, QtGui
 
@@ -52,57 +53,32 @@ if __name__ != '__main__':
 package_name = sys.argv[1]
 
 
-cache = apt.Cache(apt.progress.OpTextProgress())
+apt_pkg.init()
+
+
+cache = apt_pkg.Cache(apt.progress.text.OpProgress())
 
 try:
     pkg = cache[package_name]
 except KeyError:
     sys.exit(1)
 
-if pkg.isInstalled:
+if pkg.current_state == apt_pkg.CURSTATE_INSTALLED:
     sys.exit(0)
 
 
 ##############################################################################
 
-
-class GUIInstallProgress(InstallProgress):
+class GUIAcquireProgress(AcquireProgress):
     def __init__(self, pbar, status_label):
-        apt.progress.InstallProgress.__init__(self)
-        self.pbar = pbar
-        self.status_label = status_label
-        self.last = 0.0
-    def updateInterface(self):
-        InstallProgress.updateInterface(self)
-        if self.last >= self.percent:
-            return
-        self.status_label.setText(self.status)
-        self.pbar.setValue(int(self.percent))
-        self.last = self.percent
-        QtGui.qApp.processEvents()
-    def pulse(self):
-        QtGui.qApp.processEvents()
-        return InstallProgress.pulse(self)
-    def finishUpdate(self):
-        InstallProgress.finishUpdate(self)
-        self.quit()
-    def conffile(self,current,new):
-        print "WARNING: conffile prompt: %s %s" % (current,new)
-    def error(self, errorstr):
-        print "ERROR: got dpkg error: '%s'" % errorstr
-
-class GUIFetchProgress(FetchProgress):
-
-    def __init__(self, pbar, status_label):
-        apt.progress.FetchProgress.__init__(self)
+        AcquireProgress.__init__(self)
         self.pbar = pbar
         self.status_label = status_label
 
-    def pulse(self):
-        FetchProgress.pulse(self)
-        if self.currentCPS > 0:
-            s = "%sB/s %s" % (apt_pkg.SizeToStr(int(self.currentCPS)),
-                              apt_pkg.TimeToStr(int(self.eta)))
+    def pulse(self, owner):
+        if self.current_cps > 0:
+            s = "%sB/s %s" % (apt_pkg.size_to_str(int(self.currentCPS)),
+                              apt_pkg.time_to_str(int(self.eta)))
         else:
             s = "[Working..]"
         self.status_label.setText(s)
@@ -113,21 +89,61 @@ class GUIFetchProgress(FetchProgress):
     def stop(self):
         self.status_label.setText("Finished downloading.")
         QtGui.qApp.processEvents()
-    
-    def updateStatus(self, uri, descr, shortDescr, status):
-        if status != self.dlQueued:
-            print "\r%s %s" % (self.dlStatusStr[status], descr)
-    
-        
-class Window(QtGui.QWidget):
 
+    def done(self, item):
+        print "[Fetched] %s" % item.shortdesc
+
+    def fail(self, item):
+        print "[Failed] %s" % item.shortdesc
+
+    def ims_hit(self, item):
+        print "[Hit] %s" % item.shortdesc
+
+    def media_change(self, media, drive):
+        print "[Waiting] Please insert media '%s' in drive '%s'" % (
+                media, drive)
+
+
+class GUIInstallProgress(InstallProgress):
+    def __init__(self, pbar, status_label, finished_callback):
+        InstallProgress.__init__(self)
+        self.pbar = pbar
+        self.status_label = status_label
+        self.last = 0.0
+        self.finished_callback = finished_callback
+
+    def status_change(self, percent, status):
+        if self.last >= percent:
+            return
+        self.status_label.setText(status)
+        self.pbar.setValue(int(percent))
+        self.last = percent
+        QtGui.qApp.processEvents()
+
+    def pulse(self):
+        QtGui.qApp.processEvents()
+        return InstallProgress.pulse(self)
+
+    def finish_update(self):
+        self.finished_callback()
+
+    def processing(self, pkg, stage):
+        print "starting '%s' stage for %s" % (stage, pkg)
+
+    def conffile(self,current,new):
+        print "WARNING: conffile prompt: %s %s" % (current, new)
+
+    def error(self, errorstr):
+        print "ERROR: got dpkg error: '%s'" % errorstr
+
+
+class Window(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
-        
+
         mainlayout = QtGui.QVBoxLayout()
         self.setLayout(mainlayout)
         desktop = QtGui.qApp.desktop()
-        print desktop.isVirtualDesktop()
         geometry = desktop.screenGeometry(self)
         h = 200
         w = 300
@@ -137,14 +153,14 @@ class Window(QtGui.QWidget):
         self.setWindowTitle('VisTrails APT interface')
         lbl = QtGui.QLabel(self)
         mainlayout.addWidget(lbl)
-        lbl.setText("VisTrails wants to use APT to install\
- package '%s'. Do you want to allow this?" % package_name) 
+        lbl.setText("VisTrails is about to install '%s'."
+                    "Continue?" % package_name)
         lbl.resize(self.width(), 150)
         lbl.setAlignment(QtCore.Qt.AlignHCenter)
         lbl.setWordWrap(True)
         layout = QtGui.QHBoxLayout()
-        self.allowBtn = QtGui.QPushButton("Yes, allow")
-        self.denyBtn = QtGui.QPushButton("No, deny")
+        self.allowBtn = QtGui.QPushButton("Install")
+        self.denyBtn = QtGui.QPushButton("Cancel")
         layout.addWidget(self.allowBtn)
         layout.addWidget(self.denyBtn)
         self.layout().addLayout(layout)
@@ -169,27 +185,29 @@ class Window(QtGui.QWidget):
         self.layout().addStretch()
 
     def perform_install(self):
-        pkg.markInstall()
+        depcache = apt_pkg.DepCache(cache)
+        depcache.mark_install(pkg)
+
         self.allowBtn.setEnabled(False)
         self.denyBtn.setEnabled(False)
-        fprogress = GUIFetchProgress(self.pbar, self.status_label)
-        iprogress = GUIInstallProgress(self.pbar, self.status_label)
+        aprogress = GUIAcquireProgress(self.pbar, self.status_label)
+        iprogress = GUIInstallProgress(self.pbar, self.status_label,
+                                       self.installation_over)
         try:
-            cache.commit(fprogress, iprogress)
-        except OSError, e:
-            pass
-        except Exception, e:
-            
-            self._timeout = QtCore.QTimer()
-            self.connect(self._timeout, QtCore.SIGNAL("timeout()"),
-                         QtGui.qApp, QtCore.SLOT("quit()"))
-            self._timeout.start(3000)
-            self.status_label.setText("Success, exiting in 3 seconds.")
+            depcache.commit(aprogress, iprogress)
+        except Exception:
+            import traceback; traceback.print_exc()
+            sys.exit(1)
+
+    def installation_over(self):
+        self.status_label.setText("Success, exiting...")
+        print "Installation successful, back to VisTrails..."
+        QtCore.QTimer.singleShot(4000, QtGui.qApp, QtCore.SLOT("quit()"))
+
 
 app = QtGui.QApplication(sys.argv)
 
 window = Window()
 window.show()
-print app.exec_()
+app.exec_()
 sys.exit(0)
-

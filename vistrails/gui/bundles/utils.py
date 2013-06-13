@@ -53,8 +53,11 @@ def guess_graphical_sudo():
     """
     if sys.platform == 'win32':
         return '%s', False
-
-    if vistrails.core.system.executable_is_in_path('kdesu'):
+    # sudo needs -E so that the Xauthority file is found and root can connect
+    # to the user's X server
+    if vistrails.core.system.executable_is_in_path('kdesudo'):
+        return 'kdesudo %s', True
+    elif vistrails.core.system.executable_is_in_path('kdesu'):
         return 'kdesu -c %s', True
     elif vistrails.core.system.executable_is_in_path('gksu'):
         return 'gksu %s', False
@@ -66,7 +69,7 @@ def guess_graphical_sudo():
                 '(zenity --entry --title "sudo password prompt" --text '
                 '"Please enter your password to give the system install '
                 'authorization." --hide-text="" | sudo -v -S -p "")); '
-                'sudo -S -p "" %s',
+                'sudo -E -S -p "" %s',
                False)
         # graphical sudo for osx
     elif vistrails.core.system.executable_is_in_path('osascript'):
@@ -77,10 +80,10 @@ def guess_graphical_sudo():
 
         if vistrails.core.system.get_executable_path('sudo'):
             debug.warning("Will use regular sudo")
-            return "sudo %s", False
+            return "sudo -E %s", False
         else:
             debug.warning("Will use regular su")
-            return "su -c %s", True
+            return "su --preserve-environment -c %s", True
 
 ##############################################################################
 
