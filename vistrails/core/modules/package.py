@@ -598,13 +598,19 @@ class Package(DBPackage):
         self._initialized = False
 
     def dependencies(self):
-        deps = []
+        from vistrails.core.packagemanager import get_package_manager
+        pm = get_package_manager()
+        old_cip = pm._currently_importing_package
+        pm._currently_importing_package = self
+
         try:
             callable_ = self._module.package_dependencies
         except AttributeError:
-            pass
+            deps = []
         else:
             deps = callable_()
+
+        pm._currently_importing_package = old_cip
 
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):
