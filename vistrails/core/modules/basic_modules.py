@@ -928,6 +928,7 @@ class PythonSource(NotCacheable, SeparateThread, Module):
             return SeparateThread.COMPUTE_PRIORITY
         else:
             return Module.COMPUTE_PRIORITY
+    COMPUTE_PRIORITY = property(_get_priority)
 
 ##############################################################################
 
