@@ -1,13 +1,15 @@
 import concurrent.futures
 import multiprocessing
 import Queue
+import sys
 
 
 class DependentTask(object):
-    def __init__(self, callback, tasks, priority):
+    def __init__(self, callback, tasks, priority, inh_priority):
         self.callback = callback
         self.tasks = tasks
         self.priority = priority
+        self.inh_priority = inh_priority
 
     def task_done(self, task):
         try:
@@ -28,6 +30,8 @@ class TaskRunner(object):
         self._thread_pool = None
         self._process_pool = None
 
+        self._inherited_priority = sys.maxint
+
     def thread_pool(self):
         if self._thread_pool is None:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(
@@ -44,16 +48,21 @@ class TaskRunner(object):
         callback = kwargs.pop('callback', None)
         priority = kwargs.pop('priority', 100)
         cb_priority = kwargs.pop('cb_priority', 100)
+        inh_priority = kwargs.pop('inh_priority', None)
         if kwargs:
             raise TypeError
         if not tasks:
             if callback is not None:
-                self.tasks.put((cb_priority, callback))
+                self.tasks.put(
+                        (cb_priority, self._inherited_priority, callback))
             return
+        if inh_priority is None:
+            inh_priority = min(cb_priority, self._inherited_priority)
         for task in tasks:
-            self.tasks.put((priority, task))
+            self.tasks.put((priority, inh_priority, task))
         if callback is not None:
-            dependent = DependentTask(callback, set(tasks), cb_priority)
+            dependent = DependentTask(callback, set(tasks),
+                                      cb_priority, self._inherited_priority)
             for task in tasks:
                 self.dependencies.setdefault(task, set()).add(dependent)
 
@@ -64,7 +73,8 @@ class TaskRunner(object):
         def done(runner):
             runner.running_threads -= 1
             callback(future)
-        future.add_done_callback(lambda res: self.tasks.put((priority, done)))
+        future.add_done_callback(lambda res: self.tasks.put(
+                (priority, self._inherited_priority, done)))
 
     def run_process(self, callback, task, *args, **kwargs):
         priority = kwargs.pop('cb_priority', 100)
@@ -73,14 +83,16 @@ class TaskRunner(object):
         def done(runner):
             runner.running_threads -= 1
             callback(future)
-        future.add_done_callback(lambda res: self.tasks.put((priority, done)))
+        future.add_done_callback(lambda res: self.tasks.put(
+                (priority, self._inherited_priority, done)))
 
     def execute_tasks(self):
         while True:
             try:
-                prio, task = self.tasks.get(self.running_threads > 0)
+                prio, inh_prio, task = self.tasks.get(self.running_threads > 0)
             except Queue.Empty:
                 break
+            self._inherited_priority = inh_prio
             if isinstance(task, Task):
                 self.tasks_ran.add(task)
                 task.start(self)
@@ -99,7 +111,8 @@ class TaskRunner(object):
         for dep in list(dependents):
             if dep.task_done(task):
                 dependents.remove(dep)
-                self.add(dep.callback, priority=dep.priority)
+                self.add(dep.callback,
+                         priority=dep.priority, inh_priority=dep.inh_priority)
         if not self.dependencies[task]:
             del self.dependencies[task]
 
