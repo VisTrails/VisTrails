@@ -36,7 +36,7 @@ import copy
 import sys
 import warnings
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.task_system import Task, default_prio
+from vistrails.core.task_system import Task
 from vistrails.core.utils import pickleable_staticmethods
 
 class NeedsInputPort(Exception):
@@ -429,18 +429,23 @@ Designing New Modules
         self.computed = True
         super(Module, self).done()
 
-    def run_upstream_module(self, callback, *modules):
+    def run_upstream_module(self, callback, *modules, **kwargs):
         """Adds upstream modules to the task system.
 
         Registers the given modules as tasks to be run. The callback task will
         be added once these are done.
         The callback will have priority COMPUTE_PRIORITY if none is specified.
         """
-        modules = [(self.UPDATE_UPSTREAM_PRIORITY,
-                    m.obj) if isinstance(m, ModuleConnector) else m
+        priority = kwargs.pop('priority', self.COMPUTE_PRIORITY)
+        if kwargs:
+            raise TypeError
+        if priority is None:
+            priority = self.COMPUTE_PRIORITY
+        modules = [m.obj if isinstance(m, ModuleConnector) else m
                    for m in modules]
-        prio, callback = default_prio(self.COMPUTE_PRIORITY, callback)
-        self._runner.add(*modules, callback=(prio, lambda r: callback()))
+        self._runner.add(*modules, callback=lambda r: callback(),
+                         priority=self.UPDATE_UPSTREAM_PRIORITY,
+                         cb_priority=priority)
 
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -474,7 +479,7 @@ context."""
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(port, connector)
 
-    def updateUpstream(self, callback=None, targets=None):
+    def updateUpstream(self, callback=None, targets=None, priority=None):
         """ updateUpstream(targets: list) -> None
         Called from update() to update the upstream modules, so as to make
         their results available on this Module's input ports.
@@ -500,13 +505,15 @@ context."""
                 except KeyError:
                     pass
 
-        prio, callback = default_prio(self.COMPUTE_PRIORITY, callback)
+        if priority is None:
+            priority = self.COMPUTE_PRIORITY
         if callback is None:
             callback = self.on_upstream_ready
 
         self.run_upstream_module(
-                (prio, lambda: callback(connectors)),
-                *connectors)
+                lambda: callback(connectors),
+                *connectors,
+                priority=priority)
 
     def update(self):
         """ update() -> None
