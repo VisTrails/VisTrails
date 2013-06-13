@@ -38,10 +38,11 @@ from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.system import get_executable_path, vistrails_root_directory
+from vistrails.core.system import systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 import os
-
+import sys
 
 ##############################################################################
 
@@ -55,6 +56,11 @@ def has_qt():
     except ImportError:
         return False
 
+has_pip = True
+try:
+    import pip
+except ImportError:
+    has_pip = False
 
 def hide_splash_if_necessary():
     qt = has_qt()
@@ -83,14 +89,16 @@ def run_install_command_as_root(graphical, cmd, args):
         debug.warning("VisTrails wants to install package(s) %r" %
                       args)
         if get_executable_path('sudo'):
-            sucmd, escape = "sudo", False
+            sucmd, escape = "sudo %s", False
+        elif not systemType == 'Darwin':
+            sucmd, escape = "su -c %s", True
         else:
-            sucmd, escape = "su -c", True
+            return -1
 
     if escape:
-        sucmd = '%s "%s"' % (sucmd, cmd.replace('\\', '\\\\').replace('"', '\\"'))
+        sucmd = sucmd % '"%s"' % cmd.replace('\\', '\\\\').replace('"', '\\"')
     else:
-        sucmd = '%s %s' % (sucmd, cmd)
+        sucmd = sucmd % cmd
 
     print "about to run: %s" % sucmd
     result = os.system(sucmd)
@@ -137,9 +145,8 @@ def pip_install(package_name):
     if vistrails.core.system.executable_is_in_path('pip'):
         cmd = 'pip install'
     else:
-        cmd = 'python -m pip install'
+        cmd = sys.executable + ' -m pip install'
     return run_install_command_as_root(has_qt(), cmd, package_name)
-
 
 def show_question(which_files, has_distro_pkg, has_pip):
     if has_qt():
@@ -152,7 +159,7 @@ def show_question(which_files, has_distro_pkg, has_pip):
 
         label = QtGui.QLabel(
                 "One or more required packages are missing: %s. VisTrails can "
-                "automaticallly install them. If you click OK, VisTrails will "
+                "automatically install them. If you click OK, VisTrails will "
                 "need administrator privileges, and you might be asked for "
                 "the administrator password." % (" ".join(which_files)))
         label.setWordWrap(True)
@@ -174,7 +181,6 @@ def show_question(which_files, has_distro_pkg, has_pip):
         remember_pip.setEnabled(use_pip.isEnabled())
         remember_align.addWidget(remember_pip)
         layout.addLayout(remember_align)
-
         buttons = QtGui.QDialogButtonBox(
                 QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
@@ -184,6 +190,7 @@ def show_question(which_files, has_distro_pkg, has_pip):
         layout.addWidget(buttons)
 
         dialog.setLayout(layout)
+        hide_splash_if_necessary()
         if dialog.exec_() != QtGui.QDialog.Accepted:
             return False
         else:
@@ -215,7 +222,6 @@ def install(dependency_dictionary):
     """Tries to install a bundle after a py_import() failed.."""
 
     distro = guess_system()
-
     files = (dependency_dictionary.get(distro) or
              dependency_dictionary.get('pip'))
     if not files:
@@ -229,7 +235,7 @@ def install(dependency_dictionary):
             callable_ = getattr(vistrails.gui.bundles.installbundle,
                                 distro.replace('-', '_') + '_install')
             return callable_(files)
-        elif action == 'pip':
+        elif action == 'pip' and has_pip:
             return pip_install(files)
         else:
             return False

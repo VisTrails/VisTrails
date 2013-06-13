@@ -250,6 +250,12 @@ def get_executable_path(executable_name):
             os.path.join(os.path.dirname(vt_path), executable_name)
         if os.path.exists(executable_path):
             return executable_path
+    paths = os.environ['PATH']
+    paths = paths.split(os.pathsep)
+    for prefix in paths:
+        path = os.path.join(prefix, executable_name)
+        if os.path.exists(path):
+            return path
     return None
 
 ################################################################################
