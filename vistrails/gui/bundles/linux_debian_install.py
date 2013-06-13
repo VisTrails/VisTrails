@@ -110,9 +110,11 @@ class GUIInstallProgress(InstallProgress):
         self.pbar = pbar
         self.status_label = status_label
         self.last = 0.0
+        #self.select_timeout = 60
         self.finished_callback = finished_callback
 
-    def status_change(self, percent, status):
+    def status_change(self, pkg, percent, status):
+        print "status", pkg, percent, status
         if self.last >= percent:
             return
         self.status_label.setText(status)
@@ -168,7 +170,7 @@ class Window(QtGui.QWidget):
         self.connect(self.allowBtn, QtCore.SIGNAL("clicked()"),
                      self.perform_install)
         self.connect(self.denyBtn, QtCore.SIGNAL("clicked()"),
-                     QtGui.qApp, QtCore.SLOT("quit()"))
+                    self.fail_quit)
 
         pbarlayout = QtGui.QVBoxLayout()
         pbar = QtGui.QProgressBar()
@@ -183,6 +185,9 @@ class Window(QtGui.QWidget):
         mainlayout.addWidget(self.status_label)
         self.status_label.setText('Waiting for decision...')
         self.layout().addStretch()
+
+    def fail_quit(self):
+        quit(-1)
 
     def perform_install(self):
         depcache = apt_pkg.DepCache(cache)

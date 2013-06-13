@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 """Module with utilities to try and install a bundle if possible."""
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
@@ -41,6 +40,7 @@ from vistrails.core.system import get_executable_path, vistrails_root_directory
 from vistrails.core.system import systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
+import subprocess
 import os
 import sys
 
@@ -101,8 +101,17 @@ def run_install_command_as_root(graphical, cmd, args):
         sucmd = sucmd % cmd
 
     print "about to run: %s" % sucmd
-    result = os.system(sucmd)
+    p = subprocess.Popen(sucmd.split(' '), stdout=subprocess.PIPE,
+                                           stderr=subprocess.STDOUT)
+    lines = ''
+    for line in iter(p.stdout.readline, ""):
+        lines += line
+        print line,
+    result = p.wait()
 
+    if result != 0:
+        debug.critical("Error running: %s" % cmd, lines)
+                
     return result == 0 # 0 indicates success
 
 
@@ -165,22 +174,26 @@ def show_question(which_files, has_distro_pkg, has_pip):
         label.setWordWrap(True)
         layout.addWidget(label)
 
-        use_pip = QtGui.QCheckBox("Use pip")
-        use_pip.setChecked(
+        if has_pip:
+            use_pip = QtGui.QCheckBox("Use pip")
+            use_pip.setChecked(
                 not has_distro_pkg or (
                     has_pip and
                     getattr(get_vistrails_configuration(),
                             'installBundlesWithPip')))
-        use_pip.setEnabled(has_distro_pkg and has_pip)
-        layout.addWidget(use_pip)
+            use_pip.setEnabled(has_distro_pkg and has_pip)
+            layout.addWidget(use_pip)
 
-        remember_align = QtGui.QHBoxLayout()
-        remember_align.addSpacing(20)
-        remember_pip = QtGui.QCheckBox("Remember my choice")
-        remember_pip.setChecked(False)
-        remember_pip.setEnabled(use_pip.isEnabled())
-        remember_align.addWidget(remember_pip)
-        layout.addLayout(remember_align)
+            remember_align = QtGui.QHBoxLayout()
+            remember_align.addSpacing(20)
+            remember_pip = QtGui.QCheckBox("Remember my choice")
+            remember_pip.setChecked(False)
+            remember_pip.setEnabled(use_pip.isEnabled())
+            remember_align.addWidget(remember_pip)
+            layout.addLayout(remember_align)
+        else:
+            label = QtGui.QLabel("Install 'pip' for more options.")
+            layout.addWidget(label)
         buttons = QtGui.QDialogButtonBox(
                 QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
@@ -194,14 +207,14 @@ def show_question(which_files, has_distro_pkg, has_pip):
         if dialog.exec_() != QtGui.QDialog.Accepted:
             return False
         else:
-            if remember_pip.isChecked():
-                setattr(get_vistrails_configuration(), 'installBundlesWithPip',
-                        use_pip.isChecked())
+            if has_pip:
+                if remember_pip.isChecked():
+                    setattr(get_vistrails_configuration(), 'installBundlesWithPip',
+                            use_pip.isChecked())
 
-            if use_pip.isChecked():
-                return 'pip'
-            else:
-                return 'distro'
+                if use_pip.isChecked():
+                    return 'pip'
+            return 'distro'
     else:
         print "Required package missing"
         print ("A required package is missing, but VisTrails can " +
@@ -235,7 +248,10 @@ def install(dependency_dictionary):
             callable_ = getattr(vistrails.gui.bundles.installbundle,
                                 distro.replace('-', '_') + '_install')
             return callable_(files)
-        elif action == 'pip' and has_pip:
-            return pip_install(files)
+        elif action == 'pip':
+            if not has_pip:
+                debug.warning("Attempted to use pip, but it is not installed.")
+                return False
+            return pip_install(dependency_dictionary.get('pip'))
         else:
             return False
