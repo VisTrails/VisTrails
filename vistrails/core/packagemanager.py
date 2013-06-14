@@ -733,20 +733,18 @@ Returns true if given package identifier is present."""
                     os.path.isdir(path) and \
                         os.path.isfile(os.path.join(path, '__init__.py')))
 
-        def visit(_, dirname, names):
-            for name in names:
+        def search(dirname):
+            for name in os.listdir(dirname):
                 if is_vistrails_package(os.path.join(dirname, name)):
                     if name.endswith('.py'):
                         name = name[:-3]
                     pkg_name_set.add(name)
-            # We want a shallow walk, so we prune the names list
-            del names[:]
 
         # Finds standard packages
         packages = self.import_packages_module()
-        os.path.walk(os.path.dirname(packages.__file__), visit, None)
+        search(os.path.dirname(packages.__file__))
         userpackages = self.import_user_packages_module()
-        os.path.walk(os.path.dirname(userpackages.__file__), visit, None)
+        search(os.path.dirname(userpackages.__file__))
 
         pkg_name_set.update(self._package_list)
         return list(pkg_name_set)
