@@ -220,7 +220,7 @@ class FileSerializer(Serializer):
             raise VistrailsDBException('Cannot open file "%s".' % filename)
         with open(filename, 'rb') as f:
             data = f.read()
-            obj = BundleObj(data, 'data', os.path.basename(filename))
+            obj = BundleObj(data, 'data')
             return obj
     
     @classmethod
@@ -548,7 +548,7 @@ class DBDataSerializer(Serializer):
                   (db_id,))
         rows = c.fetchall()
         data = rows[0][0]
-        obj = BundleObj(data, 'data', db_id)
+        obj = BundleObj(data, 'data')
         return obj
 
     @staticmethod
@@ -633,6 +633,10 @@ class DirectorySerializer(BundleSerializer):
             path = os.path.join(dir_path, fname)
             obj = serializer.load(path)
             if obj is not None:
+                if obj.id is None:
+                    obj.id = obj_id
+                if obj.obj_type is None:
+                    obj.obj_type = obj_type
                 self._bundle.add_object(obj)
         return self._bundle
 
@@ -854,6 +858,10 @@ class DBSerializer(BundleSerializer):
                                         DBDataSerializer.get_serializer_type())
             obj = serializer.load(db_id, connection_obj)
             if obj is not None:
+                if obj.id is None:
+                    obj.id = obj_id
+                if obj.obj_type is None:
+                    obj.obj_type = obj_type
                 self._bundle.add_object(obj)
 
         return self._bundle
@@ -1078,15 +1086,15 @@ class TestBundles(unittest.TestCase):
         finally:
             shutil.rmtree(d)
 
-    def create_bundle(self, ids):
+    def create_bundle(self):
         b = Bundle()
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
         o1 = FileSerializer.load(fname1)
-        o1.id = ids[0]
+        o1.id = "abc"
         b.add_object(o1)
         fname2 = os.path.join(resource_directory(), 'images', 'left.png')
         o2 = FileSerializer.load(fname2)
-        o2.id = ids[1]
+        o2.id = "def"
         b.add_object(o2)
         return b
 
@@ -1102,7 +1110,7 @@ class TestBundles(unittest.TestCase):
         d = tempfile.mkdtemp(prefix='vtbundle_test')
         inner_d = os.path.join(d, 'mybundle')
         try:
-            b1 = self.create_bundle(['abc', 'def'])
+            b1 = self.create_bundle()
             s1 = DirectorySerializer(inner_d, b1)
             s1.add_serializer('data', FileSerializer)
             s1.save()
@@ -1122,7 +1130,7 @@ class TestBundles(unittest.TestCase):
         s1 = None
         s2 = None
         try:
-            b1 = self.create_bundle(['abc', 'def'])
+            b1 = self.create_bundle()
             s1 = ZIPSerializer(fname, b1)
             s1.add_serializer('data', FileSerializer)
             s1.save()
@@ -1197,7 +1205,7 @@ class TestBundles(unittest.TestCase):
         s1 = None
         s2 = None
         try:
-            b1 = self.create_bundle([1,2])
+            b1 = self.create_bundle()
             s1 = DBSerializer(connection_obj, name="test", bundle=b1)
             s1.add_serializer('data', DBDataSerializer)
             s1.save()
@@ -1241,12 +1249,10 @@ class TestBundles(unittest.TestCase):
             b1 = Bundle()
             b1.add_object(BundleObj(Vistrail(), 'vistrail', 'vistrail'))
             b1.add_object(BundleObj(Log(), 'log', 'log'))
-            b1.add_object(BundleObj(os.path.join(resource_directory(), 'images',
-                                                'info.png'),
-                         'thumbnail', 'info.png'))
-            b1.add_object(BundleObj(os.path.join(resource_directory(), 'images',
-                                                'left.png'),
-                         'thumbnail', 'left.png'))
+            fname1 = os.path.join(resource_directory(), 'images', 'info.png')
+            b1.add_object(BundleObj(fname1, 'thumbnail', 'info.png'))
+            fname2 = os.path.join(resource_directory(), 'images', 'left.png')
+            b1.add_object(BundleObj(fname2, 'thumbnail', 'left.png'))
             s1 = DefaultVistrailsDirSerializer(inner_d, b1)
             s1.save()
 
