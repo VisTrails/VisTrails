@@ -38,6 +38,7 @@ with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
 import copy
 import inspect
+import itertools
 import os
 import sys
 import warnings
@@ -144,10 +145,16 @@ class PackageManager(object):
             raise VistrailsInternalError(m)
         _package_manager = self
         self._configuration = configuration
-        self._package_list = {}
-        self._package_versions = {}
-        self._old_identifier_map = {}
+
+        # Contains packages that have not yet been enabled, but exist on the
+        # filesystem
+        self._available_packages = {} # codepath: str -> Package
+        # These other lists contain enabled packages
+        self._package_list = {} # codepath: str -> Package
+        self._package_versions = {} # identifier: str -> version -> Package
+        self._old_identifier_map = {} # old_id: str -> new_id: str
         self._dependency_graph = vistrails.core.data_structures.graph.Graph()
+
         self._registry = None
         self._userpackages = None
         self._packages = None
@@ -216,8 +223,9 @@ class PackageManager(object):
                     module.startswith(current.prefix + current.codepath)):
                 importing_pkg = current
             else:
-                for pkg in self._package_list.itervalues():
-                    if (pkg.prefix and
+                for pkg in itertools.chain(self._package_list.itervalues(),
+                                           self._available_packages):
+                    if (pkg.loaded() and
                             module.startswith(pkg.prefix + pkg.codepath)):
                         importing_pkg = pkg
                         break
@@ -254,15 +262,24 @@ exiting VisTrails."""
         global _package_manager
         _package_manager = None
 
+    def get_available_package(self, codepath):
+        try:
+            pkg = self._available_packages[codepath]
+        except KeyError:
+            pkg = self._registry.create_package(codepath)
+            self._available_packages[codepath] = pkg
+        return pkg
+
     def add_package(self, codepath, add_to_package_list=True):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
-        package = self._registry.create_package(codepath)
+        package = self.get_available_package(codepath)
         if add_to_package_list:
             self.add_to_package_list(codepath, package)
         return package
 
     def add_to_package_list(self, codepath, package):
+        self._available_packages[codepath] = package
         self._package_list[codepath] = package
 
     def initialize_abstraction_pkg(self, prefix_dictionary):
@@ -314,7 +331,7 @@ Returns true if given package identifier is present."""
         Returns a Package object for an uninstalled package. This does
         NOT install a package.
         """
-        return self._registry.create_package(codepath, False)
+        return self.get_available_package(codepath)
 
     def get_package(self, identifier, version=None):
         # check if it's an old identifier
