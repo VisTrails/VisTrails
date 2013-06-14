@@ -78,7 +78,7 @@ class UpgradeWorkflowHandler(object):
             debug.log("module %s already handled. skipping" % module_id)
             return []
         invalid_module = current_pipeline.modules[module_id]
-        pkg = pm.get_package_by_identifier(invalid_module.package)
+        pkg = pm.get_package(invalid_module.package)
         if hasattr(pkg.module, 'handle_module_upgrade_request'):
             f = pkg.module.handle_module_upgrade_request
             return f(controller, module_id, current_pipeline)
@@ -139,7 +139,7 @@ class UpgradeWorkflowHandler(object):
                                         invalid_module.name,
                                         invalid_module.namespace,
                                         invalid_module.id)
-        pkg = pm.get_package_by_identifier(mpkg)
+        pkg = pm.get_package(mpkg)
         desired_version = ''
         d = None
         # don't check for abstraction/subworkflow since the old module

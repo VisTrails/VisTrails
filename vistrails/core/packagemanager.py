@@ -40,6 +40,7 @@ import copy
 import inspect
 import os
 import sys
+import warnings
 
 from vistrails.core import debug, get_vistrails_application
 from vistrails.core.configuration import ConfigurationObject
@@ -345,12 +346,14 @@ Returns true if given package identifier is present."""
 
     def get_package_by_identifier(self, identifier):
         """get_package_by_identifier(identifier: string) -> Package.
-        Returns a package with given identifier if it is enabled,
-        otherwise throws exception
+        Deprecated, use get_package() instead.
         """
-        if identifier not in self._registry.packages:
-            raise MissingPackage(identifier)
-        return self._registry.packages[identifier]
+        warnings.warn(
+                "You should use get_package instead of "
+                "get_package_by_identifier",
+                DeprecationWarning,
+                stacklevel=2)
+        return self.get_package(identifier)
 
     def get_package_configuration(self, codepath):
         """get_package_configuration(codepath: string) ->
