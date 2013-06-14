@@ -129,6 +129,7 @@ class Package(DBPackage):
         if other is None:
             self._module = None
             self._init_module = None
+            self._loaded = False
             self._initialized = False
             self._abs_pkg_upgrades = {}
             self.package_dir = None
@@ -138,6 +139,7 @@ class Package(DBPackage):
         else:
             self._module = other._module
             self._init_module = other._init_module
+            self._loaded = other._loaded
             self._initialized = other._initialized
             self._abs_pkg_upgrades = copy.copy(other._abs_pkg_upgrades)
             self.package_dir = other.package_dir
@@ -340,33 +342,25 @@ class Package(DBPackage):
         self.py_dependencies.difference_update(deps)
 
     def load(self, prefix=None):
-        """load(module=None). Loads package's module. If module is not None,
-        then uses that as the module instead of 'import'ing it.
+        """load(module=None). Loads package's module.
 
-        If package is already initialized, this is a NOP.
+        If package is already loaded, this is a NOP.
 
         """
 
         errors = []
-        if self._initialized:
-            # print 'initialized'
+        if self._loaded:
             return
-
-
-        from vistrails.core.packagemanager import get_package_manager
-        pm = get_package_manager()
 
         def import_from(p_path):
             # print 'running import_from'
             try:
                 # print p_path + self.codepath
                 self.prefix = p_path
-                pm._currently_importing_package = self
                 __import__(p_path + self.codepath,
                            globals(),
                            locals(),
                            [])
-                pm._currently_importing_package = None
                 self._module = module = sys.modules[p_path + self.codepath]
                 self.py_dependencies.add(p_path + self.codepath)
                 self._package_type = self.Base
@@ -418,6 +412,9 @@ class Package(DBPackage):
         self.set_properties()
 
     def initialize(self):
+        if not self._loaded:
+            raise VistrailsInternalError("Called initialize() on non-loaded "
+                                         "Package %s" % self.codepath)
         try:
             name = self.prefix + self.codepath + '.init'
             try:
@@ -460,10 +457,12 @@ class Package(DBPackage):
                 # print 'deleting path:', path, path in sys.modules
                 del sys.modules[path]
         self.py_dependencies.clear()
+        self._loaded = False
 
     def set_properties(self):
         # Set properties
         try:
+            self._loaded = True
             self.name = self._module.name
             self.identifier = self._module.identifier
             self.version = self._module.version
@@ -598,11 +597,6 @@ class Package(DBPackage):
         self._initialized = False
 
     def dependencies(self):
-        from vistrails.core.packagemanager import get_package_manager
-        pm = get_package_manager()
-        old_cip = pm._currently_importing_package
-        pm._currently_importing_package = self
-
         try:
             callable_ = self._module.package_dependencies
         except AttributeError:
@@ -610,12 +604,13 @@ class Package(DBPackage):
         else:
             deps = callable_()
 
-        pm._currently_importing_package = old_cip
-
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):
             deps.extend(self._module._dependencies)
         return deps
+
+    def loaded(self):
+        return self._loaded
 
     def initialized(self):
         return self._initialized
