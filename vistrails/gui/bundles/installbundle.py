@@ -239,7 +239,9 @@ def install(dependency_dictionary):
              dependency_dictionary.get('pip'))
     if not files:
         return None
-    else:
+    can_install = ('pip' in dependency_dictionary and pip_installed) or \
+                  distro in dependency_dictionary
+    if can_install:
         action = show_question(
                 files,
                 distro in dependency_dictionary,
