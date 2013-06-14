@@ -38,10 +38,10 @@
 import apt
 import apt_pkg
 import sys
+import time
 
-from apt.progress.base import InstallProgress
-from apt.progress.base import AcquireProgress
-import apt.progress.text
+from apt_pkg import gettext as _
+from apt.progress.base import InstallProgress, OpProgress, AcquireProgress
 
 from PyQt4 import QtCore, QtGui
 
@@ -52,39 +52,52 @@ if __name__ != '__main__':
 
 package_name = sys.argv[1]
 
-
-apt_pkg.init()
-
-
-cache = apt_pkg.Cache(apt.progress.text.OpProgress())
-
-try:
-    pkg = cache[package_name]
-except KeyError:
-    sys.exit(1)
-
-if pkg.current_state == apt_pkg.CURSTATE_INSTALLED:
-    sys.exit(0)
-
-
 ##############################################################################
+
+class GuiOpProgress(OpProgress):
+    def __init__(self, pbar):
+        OpProgress.__init__(self)
+        self.pbar = pbar
+
+    def update(self, percent):
+        self.pbar.setValue(int(percent))
+        QtGui.qApp.processEvents()
+        OpProgress.update(self, percent)
+
+    def done(self):
+        OpProgress.done(self)
 
 class GUIAcquireProgress(AcquireProgress):
     def __init__(self, pbar, status_label):
         AcquireProgress.__init__(self)
         self.pbar = pbar
         self.status_label = status_label
+        self.percent = 0.0
 
     def pulse(self, owner):
+        current_item = self.current_items + 1
+        if current_item > self.total_items:
+            current_item = self.total_items
         if self.current_cps > 0:
-            s = "%sB/s %s" % (apt_pkg.size_to_str(int(self.currentCPS)),
-                              apt_pkg.time_to_str(int(self.eta)))
+            text = (_("Downloading file %(current)li of %(total)li with "
+                      "%(speed)s/s") % \
+                      {"current": current_item,
+                       "total": self.total_items,
+                       "speed": apt_pkg.size_to_str(self.current_cps)})
         else:
-            s = "[Working..]"
-        self.status_label.setText(s)
-        self.pbar.setValue(int(self.percent))
+            text = (_("Downloading file %(current)li of %(total)li") % \
+                      {"current": current_item,
+                       "total": self.total_items})
+        self.status_label.setText(text)
+        percent = (((self.current_bytes + self.current_items) * 100.0) /
+                        float(self.total_bytes + self.total_items))
+        self.pbar.setValue(int(percent))
         QtGui.qApp.processEvents()
         return True
+
+    def start(self):
+        self.status_label.setText("Started downloading.")
+        QtGui.qApp.processEvents()
 
     def stop(self):
         self.status_label.setText("Finished downloading.")
@@ -92,29 +105,29 @@ class GUIAcquireProgress(AcquireProgress):
 
     def done(self, item):
         print "[Fetched] %s" % item.shortdesc
+        self.status_label.setText("[Fetched] %s" % item.shortdesc)
+        QtGui.qApp.processEvents()
 
     def fail(self, item):
         print "[Failed] %s" % item.shortdesc
 
     def ims_hit(self, item):
         print "[Hit] %s" % item.shortdesc
+        self.status_label.setText("[Hit] %s" % item.shortdesc)
+        QtGui.qApp.processEvents()
 
     def media_change(self, media, drive):
         print "[Waiting] Please insert media '%s' in drive '%s'" % (
                 media, drive)
 
-
 class GUIInstallProgress(InstallProgress):
-    def __init__(self, pbar, status_label, finished_callback):
+    def __init__(self, pbar, status_label):
         InstallProgress.__init__(self)
         self.pbar = pbar
         self.status_label = status_label
         self.last = 0.0
-        #self.select_timeout = 60
-        self.finished_callback = finished_callback
 
     def status_change(self, pkg, percent, status):
-        print "status", pkg, percent, status
         if self.last >= percent:
             return
         self.status_label.setText(status)
@@ -127,7 +140,7 @@ class GUIInstallProgress(InstallProgress):
         return InstallProgress.pulse(self)
 
     def finish_update(self):
-        self.finished_callback()
+        pass
 
     def processing(self, pkg, stage):
         print "starting '%s' stage for %s" % (stage, pkg)
@@ -138,6 +151,7 @@ class GUIInstallProgress(InstallProgress):
     def error(self, errorstr):
         print "ERROR: got dpkg error: '%s'" % errorstr
 
+##############################################################################
 
 class Window(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -171,7 +185,6 @@ class Window(QtGui.QWidget):
                      self.perform_install)
         self.connect(self.denyBtn, QtCore.SIGNAL("clicked()"),
                     self.fail_quit)
-
         pbarlayout = QtGui.QVBoxLayout()
         pbar = QtGui.QProgressBar()
         pbar.setMinimum(0)
@@ -183,32 +196,56 @@ class Window(QtGui.QWidget):
         self.pbar.setValue(0)
         self.status_label = QtGui.QLabel(self)
         mainlayout.addWidget(self.status_label)
-        self.status_label.setText('Waiting for decision...')
         self.layout().addStretch()
 
+        self.op_progress = None #GuiOpProgress(self.pbar)
+        self.status_label.setText('Waiting for decision...')
+
     def fail_quit(self):
-        quit(-1)
+        sys.exit(-1)
 
     def perform_install(self):
-        depcache = apt_pkg.DepCache(cache)
-        depcache.mark_install(pkg)
-
         self.allowBtn.setEnabled(False)
         self.denyBtn.setEnabled(False)
-        aprogress = GUIAcquireProgress(self.pbar, self.status_label)
-        iprogress = GUIInstallProgress(self.pbar, self.status_label,
-                                       self.installation_over)
+
+        self.status_label.setText('Reading package cache')
+        QtGui.qApp.processEvents()
+        apt_pkg.init()
+        cache = apt.cache.Cache(self.op_progress)
+        pkg = None
         try:
-            depcache.commit(aprogress, iprogress)
+            pkg = cache[package_name]
+        except KeyError:
+            self.status_label.setText('Package not found: updating cache')
+            QtGui.qApp.processEvents()
+            cache.update(self.op_progress)
+            try:
+                pkg = cache[package_name]
+            except KeyError:
+                self.show_quit('Package not found!')
+        if pkg.is_installed:
+            self.show_quit('Package already installed!', result=0)
+        self.status_label.setText('Marking for install')
+        pkg.mark_install()
+        self.status_label.setText('Installing')
+        QtGui.qApp.processEvents()
+        try:
+            aprogress = GUIAcquireProgress(self.pbar, self.status_label)
+            iprogress = GUIInstallProgress(self.pbar, self.status_label)
+            cache.commit(aprogress, iprogress)
         except Exception:
             import traceback; traceback.print_exc()
-            sys.exit(1)
-
-    def installation_over(self):
-        self.status_label.setText("Success, exiting...")
+            self.show_quit('Error installing package!')
         print "Installation successful, back to VisTrails..."
-        QtCore.QTimer.singleShot(4000, QtGui.qApp, QtCore.SLOT("quit()"))
+        self.show_quit("Success, exiting...", result=0)
 
+    def show_quit(self, message, t=2, result=1):
+        self.status_label.setText(message)
+        QtGui.qApp.processEvents()
+        time.sleep(t)
+        sys.exit(result)
+
+##############################################################################
 
 app = QtGui.QApplication(sys.argv)
 
