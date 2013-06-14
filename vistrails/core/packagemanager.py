@@ -78,12 +78,6 @@ class PackageManager(object):
                     (self._package_1,
                      self._package_2))
 
-    class MissingPackage(Exception):
-        def __init__(self, n):
-            self._package_name = n
-        def __str__(self):
-            return "Package '%s' is missing." % self._package_name
-
     class PackageInternalError(Exception):
         def __init__(self, n, d):
             self._package_name = n
@@ -324,9 +318,12 @@ Returns true if given package identifier is present."""
     def get_package(self, identifier, version=None):
         # check if it's an old identifier
         identifier = self._old_identifier_map.get(identifier, identifier)
-        package_versions = self._package_versions[identifier]
-        if version is not None:
-            return package_versions[version]
+        try:
+            package_versions = self._package_versions[identifier]
+            if version is not None:
+                return package_versions[version]
+        except KeyError:
+            raise MissingPackage(identifier)
 
         max_version = '0'
         max_pkg = None
@@ -342,7 +339,7 @@ Returns true if given package identifier is present."""
         otherwise throws exception
         """
         if codepath not in self._package_list:
-            raise self.MissingPackage(codepath)
+            raise MissingPackage(codepath)
         else:
             return self._package_list[codepath]
 
@@ -352,7 +349,7 @@ Returns true if given package identifier is present."""
         otherwise throws exception
         """
         if identifier not in self._registry.packages:
-            raise self.MissingPackage(identifier)
+            raise MissingPackage(identifier)
         return self._registry.packages[identifier]
 
     def get_package_configuration(self, codepath):
@@ -697,7 +694,7 @@ Returns true if given package identifier is present."""
         for codepath in self.available_package_names_list():
             try:
                 pkg = self.get_package_by_codepath(codepath)
-            except self.MissingPackage:
+            except MissingPackage:
                 pkg = self.look_at_available_package(codepath)
             try:
                 pkg.load()
@@ -902,5 +899,5 @@ class TestImports(unittest.TestCase):
             Package.FIX_PACKAGE_NAMES = old_fix_names
             try:
                 pm.late_disable_package('test_import_pkg')
-            except PackageManager.MissingPackage:
+            except MissingPackage:
                 pass

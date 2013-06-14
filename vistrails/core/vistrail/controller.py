@@ -2925,7 +2925,7 @@ class VistrailController(object):
             for identifier, err_list in package_errs.iteritems():
                 try:
                     pkg = pm.get_package_by_identifier(identifier)
-                except Exception, e:
+                except MissingPackage:
                     # cannot get the package we need
                     continue
                 details = '\n'.join(str(e) for e in err_list)
