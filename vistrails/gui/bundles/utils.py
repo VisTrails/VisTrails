@@ -58,7 +58,7 @@ def guess_graphical_sudo():
     if vistrails.core.system.executable_is_in_path('kdesudo'):
         return 'kdesudo %s', True
     elif vistrails.core.system.executable_is_in_path('kdesu'):
-        return 'kdesu -c %s', True
+        return 'kdesu %s', False
     elif vistrails.core.system.executable_is_in_path('gksu'):
         return 'gksu %s', False
     elif (vistrails.core.system.executable_is_in_path('sudo') and
