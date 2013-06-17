@@ -223,9 +223,10 @@ class PackageManager(object):
                     module.startswith(current.prefix + current.codepath)):
                 importing_pkg = current
             else:
-                for pkg in itertools.chain(self._package_list.itervalues(),
-                                           self._available_packages):
-                    if (pkg.loaded() and
+                for pkg in itertools.chain(
+                        self._package_list.itervalues(),
+                        self._available_packages.itervalues()):
+                    if (pkg.prefix is not None and
                             module.startswith(pkg.prefix + pkg.codepath)):
                         importing_pkg = pkg
                         break
@@ -712,18 +713,15 @@ Returns true if given package identifier is present."""
 
         If true, returns succesfully loaded, uninitialized package."""
         for codepath in self.available_package_names_list():
-            try:
-                pkg = self.get_package_by_codepath(codepath)
-            except MissingPackage:
-                pkg = self.look_at_available_package(codepath)
+            pkg = self.get_available_package(codepath)
             try:
                 pkg.load()
                 if pkg.identifier == identifier:
                     return pkg
                 elif identifier in pkg.old_identifiers:
                     return pkg
-                if hasattr(pkg._module, "can_handle_identifier") and \
-                    pkg._module.can_handle_identifier(identifier):
+                if (hasattr(pkg._module, "can_handle_identifier") and
+                        pkg._module.can_handle_identifier(identifier)):
                     return pkg
             except pkg.LoadFailed:
                 pass
