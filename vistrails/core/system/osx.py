@@ -261,7 +261,7 @@ class TestMacOSX(unittest.TestCase):
      def test1(self):
          """ Test if guess_total_memory() is returning an int >= 0"""
          result = guess_total_memory()
-         assert type(result) == type(1) or type(result) == type(1L)
+         assert isinstance(result, (int, long))
          assert result >= 0
 
      def test2(self):

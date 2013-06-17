@@ -63,14 +63,14 @@ def create_vector(v_list, desired_type=None):
     is_float = True
     is_str = True
     for elt in v_list:
-        if type(elt) == str:
+        if isinstance(elt, basestring):
             is_bool = False
             is_int = False
             is_float = False
-        elif type(elt) == float:
+        elif isinstance(elt, float):
             is_bool = False
             is_int = False
-        elif type(elt) == int:
+        elif isinstance(elt, (int, long)):
             is_bool = False
         else:
             is_bool = False
@@ -181,9 +181,9 @@ RMatrix._input_ports.extend([('rvector', '(Types|RVector)'),
 def create_list(v_dict):
     data_dict = {}
     for k,v in v_dict.iteritems():
-        if type(v) == list:
+        if isinstance(v, list):
             data_dict[k] = create_vector(v)
-        elif type(v) == dict:
+        elif isinstance(v, dict):
             data_dict[k] = create_list(v)
         else:
             data_dict[k] = v
@@ -202,9 +202,9 @@ RList = new_constant('RList', staticmethod(list_conv),
 def create_data_frame(v_dict):
     data_dict = {}
     for k,v in v_dict.iteritems():
-        if type(v) == list:
+        if isinstance(v, list):
             data_dict[k] = create_vector(v)
-        elif type(v) == dict:
+        elif isinstance(v, dict):
             data_dict[k] = create_data_frame(v)
         else:
             data_dict[k] = v

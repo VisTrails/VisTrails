@@ -151,7 +151,7 @@ class vtkBaseModule(Module):
             if p is None:
                 # None indicates a call with no parameters
                 params = []
-            elif type(p) == tuple:
+            elif isinstance(p, tuple):
                 # A tuple indicates a call with many parameters
                 params = list(p)
             else:

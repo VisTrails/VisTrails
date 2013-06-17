@@ -553,7 +553,7 @@ parameters from other instances")
                 mac_attribute = QtCore.Qt.WA_MacBrushedMetal
             if(event.type() == create_event and 
                issubclass(type(o),QtGui.QWidget) and
-               type(o) != QtGui.QSplashScreen and 
+               not isinstance(o, QtGui.QSplashScreen) and
                not (o.windowFlags() & QtCore.Qt.Popup)):
                     o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
@@ -630,7 +630,7 @@ parameters from other instances")
         if options_re.match(msg):
             #it's safe to eval as a list
             args = eval(msg)
-            if type(args) == type([]):
+            if isinstance(args, list):
                 #print "args from another instance %s"%args
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()

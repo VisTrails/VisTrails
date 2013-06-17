@@ -164,7 +164,7 @@ class Field:
                 if key is not None:
                     indices.append(key.getRegularName())
             for index in self.getIndices():
-                if type(index) == type([]):
+                if isinstance(index, list):
                     index_field = []
                     for piece in index:
                         ignore_del_err = False

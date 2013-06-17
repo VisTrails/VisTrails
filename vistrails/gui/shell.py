@@ -193,7 +193,7 @@ class vistrails_module(object):
 
             args = None
             # FIXME want this to be any iterable
-            if type(value) == tuple:
+            if isinstance(value, tuple):
                 args = value
             else:
                 args = (value,)
@@ -395,7 +395,7 @@ class QShell(QtGui.QTextEdit):
         
         def create_namespace_path(root, modules):
             for k,v in modules.iteritems():
-                if type(v) == type({}):
+                if isinstance(v, dict):
                     d = create_namespace_path(k,v)
                     modules[k] = d
             

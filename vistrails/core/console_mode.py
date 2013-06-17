@@ -72,7 +72,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
         controller = VistrailController(v, locator, abstractions, thumbnails, 
                                         mashups, auto_save=update_vistrail)
-        if type(workflow) == type("str"):
+        if isinstance(workflow, basestring):
             version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
             version = workflow
@@ -147,7 +147,7 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                                                    thumbnails, mashups,
                                                    auto_save=False)
                 version = None
-                if type(workflow) == type("str"):
+                if isinstance(workflow, basestring):
                     version = v.get_version_number(workflow)
                 elif type(workflow) in [ type(1), long]:
                     version = workflow

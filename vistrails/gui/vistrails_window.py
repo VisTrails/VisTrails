@@ -121,7 +121,7 @@ class QBaseViewWindow(QtGui.QMainWindow):
                     parent.addSeparator()
                 continue
             name, title, options = data
-            if type(options) == list:
+            if isinstance(options, list):
                 # menu
                 if parent is not None:
                     qmenu = parent.addMenu(title)
@@ -1052,9 +1052,9 @@ class QVistrailsWindow(QVistrailViewWindow):
             first_added = None
             for p_klass in p_group:
                 notifications = []
-                if type(p_klass) == tuple:
+                if isinstance(p_klass, tuple):
                     p_klass, visible = p_klass
-                    if type(p_klass) == tuple:
+                    if isinstance(p_klass, tuple):
                         notifications = visible
                         p_klass, visible = p_klass      
                 #print "generating instance", p_klass
@@ -1063,7 +1063,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.palettes.append(palette)
                 for n_tuple in notifications:
                     #print "n_tuple:", n_tuple
-                    if type(n_tuple) == tuple:
+                    if isinstance(n_tuple, tuple):
                         if len(n_tuple) > 1:
                             n_id, method_name = n_tuple
                         else:
@@ -1124,9 +1124,9 @@ class QVistrailsWindow(QVistrailViewWindow):
             for dock_area, p_group in self.palette_layout:
                 for p_klass in p_group:
                 
-                    if type(p_klass) == tuple:
+                    if isinstance(p_klass, tuple):
                         p_klass, visible = p_klass
-                        if type(p_klass) == tuple:
+                        if isinstance(p_klass, tuple):
                             notifications = visible
                             p_klass, visible = p_klass      
                     palette = p_klass.instance()
@@ -1334,7 +1334,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def change_view(self, view):
         #print 'changing view', id(view), view
-        if type(view) == QVistrailView or view is None:
+        if isinstance(view, QVistrailView) or view is None:
             if view and view not in self.windows:
                 if self.stack.currentWidget() != view:
                     self.stack.setCurrentWidget(view)

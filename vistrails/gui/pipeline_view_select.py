@@ -70,9 +70,9 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
             [scene_copy.remove_connection(c_id) for c_id in sel_connections if c_id not in scene_copy.get_selected_item_ids()[1]]
         # Hide configure button on modules
         for item in scene_copy.selectedItems():
-            if type(item) == QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 for c_item in item.childItems():
-                    if type(c_item) == QGraphicsConfigureItem:
+                    if isinstance(c_item, QGraphicsConfigureItem):
                         c_item.setVisible(False)
         # Unselect everything and use the newly created scene
         scene_copy.clearSelection()

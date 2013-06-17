@@ -58,7 +58,7 @@ def get_param_explore_widget_list(module_klass):
     for klass in klass_list:
         if klass is None:
             pass
-        elif type(klass) == tuple:
+        elif isinstance(klass, tuple):
             (path, klass_name) = klass
             module = __import__(path, globals(), locals(), [klass_name])
             widget_list.append(getattr(module, klass_name))

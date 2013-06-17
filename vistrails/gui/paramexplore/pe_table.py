@@ -580,7 +580,7 @@ class QParameterExplorationTable(QPromptWidget):
                             desc = getter(paramInfo.identifier,
                                           paramInfo.type,
                                           paramInfo.namespace)
-                            if type(v) != str:
+                            if not isinstance(v, str):
                                 str_value = desc.module.translate_to_string(v)
                             else:
                                 str_value = v

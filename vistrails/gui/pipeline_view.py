@@ -1908,7 +1908,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         items = self.selectedItems()
         modules = [x.id
                    for x in items
-                   if type(x) == QGraphicsModuleItem]
+                   if isinstance(x, QGraphicsModuleItem)]
         return self.controller.current_pipeline.graph.subgraph(modules)
 
 #     def create_abstraction(self):
@@ -2572,7 +2572,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def get_selected_module_ids(self):
         module_ids = []
         for item in self.selectedItems():
-            if type(item) == QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 module_ids.append(item.module.id)
         return module_ids
 
@@ -2916,13 +2916,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        msg = error if type(error) == str else error.msg
+        msg = error if isinstance(error, str) else error.msg
         text = "Module is suspended, reason: %s" % msg
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, text))
         QtCore.QCoreApplication.processEvents()
         # add to suspended modules dialog
-        if type(error) == str:
+        if isinstance(error, str):
             return
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()

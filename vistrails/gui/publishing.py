@@ -283,7 +283,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             opt_dict = {}
         for k, v in check_links.iteritems():
             opt_set = k in opt_dict
-            if type(v) == tuple:
+            if isinstance(v, tuple):
                 chb = v[0]
                 chb_default = v[1]
                 if len(v) > 2:
@@ -377,7 +377,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             opt_dict['_args'] = graphicx_text
 
         locator = self.figure_ref.locator
-        if type(locator) == DBLocator:
+        if isinstance(locator, DBLocator):
             opt_dict['host'] = locator.host
             opt_dict['port'] = locator.port
             opt_dict['db'] = locator.db

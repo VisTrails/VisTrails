@@ -50,9 +50,9 @@ class vtkBaseInspector(Module):
     def register_self(cls, **kwargs):
         registry = get_module_registry()
         def resolve_type(t):
-            if type(t) == tuple:
+            if isinstance(t, tuple):
                 return registry.get_descriptor_by_name(*t).module
-            elif type(t) == type:
+            elif isinstance(t, type):
                 return t
             else:
                 assert False, ("Unknown type " + str(type(t)))

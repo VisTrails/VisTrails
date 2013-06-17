@@ -1214,7 +1214,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
-                if type(item) == vistrails.gui.version_view.QGraphicsVersionItem:
+                if isinstance(item, vistrails.gui.version_view.QGraphicsVersionItem):
                     item.text.clearFocus()
         qt_super(QVersionTreeView, self).selectModules()
                 

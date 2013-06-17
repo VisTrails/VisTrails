@@ -657,7 +657,7 @@ class QListEditDialog(QtGui.QDialog):
         alias.component.val = text
         widget = \
           QAliasDetailsWidget.createAliasWidget(alias, self.controller, None)
-        if type(widget) != StandardConstantWidget:
+        if not isinstance(widget, StandardConstantWidget):
             item = QtGui.QTableWidgetItem()
         else:
             item = QtGui.QTableWidgetItem(text)

@@ -66,11 +66,11 @@ def hide_splash_if_necessary():
 
 
 def run_install_command_as_root(graphical, cmd, args):
-    if type(args) == str:
+    if isinstance(args, str):
         cmd += ' ' + args
-    elif type(args) == list:
+    elif isinstance(args, list):
         for package in args:
-            if type(package) != str:
+            if not isinstance(package, str):
                 raise TypeError("Expected string or list of strings")
             cmd += ' ' + package
     else:
@@ -134,7 +134,7 @@ def show_question(which_files):
     qt = has_qt()
     if qt:
         import vistrails.gui.utils
-        if type(which_files) == str:
+        if isinstance(which_files, str):
             which_files = [which_files]
         v = vistrails.gui.utils.show_question("Required packages missing",
                                     "One or more required packages are missing: " +

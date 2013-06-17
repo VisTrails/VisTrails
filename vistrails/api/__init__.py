@@ -268,7 +268,7 @@ def select_version(version, ctrl=None):
     if ctrl is None:
         ctrl = get_current_controller()
     vistrail = ctrl.vistrail
-    if type(version) == str:
+    if isinstance(version, str):
         version = vistrail.get_tag_str(version).action_id
     ctrl.change_selected_version(version)
     ctrl.invalidate_version_tree(False)
@@ -318,7 +318,7 @@ def get_vistrail_from_file(filename):
     from vistrails.core.db.locator import FileLocator
     from vistrails.core.vistrail.vistrail import Vistrail
     v = FileLocator(filename).load()
-    if type(v) != Vistrail:
+    if not isinstance(v, Vistrail):
         v = v.vistrail
     return v
 

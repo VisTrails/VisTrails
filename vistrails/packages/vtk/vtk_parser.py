@@ -311,8 +311,8 @@ class VTKMethodParser(object):
                 ret = eval(pat.sub('\"', ret))
             if arg:
                 arg = eval(pat.sub('\"', arg))
-                if type(arg) == type('str'):
-                    arg = [arg]        
+                if isinstance(arg, basestring):
+                    arg = [arg]
 
             sig.append(([ret], arg))
 

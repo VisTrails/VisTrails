@@ -47,7 +47,7 @@ def linux_ubuntu_check(package_name):
     depcache = apt_pkg.GetDepCache(cache)
 
     def get_single_package(name):
-        if type(name) != str:
+        if not isinstance(name, str):
             raise TypeError("Expected string")
         cache = apt_pkg.GetCache()
         depcache = apt_pkg.GetDepCache(cache)
@@ -57,9 +57,9 @@ def linux_ubuntu_check(package_name):
                                       sourcelist, None, cache[sys.argv[1]])
         return pkg
 
-    if type(package_name) == str:
+    if isinstance(package_name, str):
         return get_single_package(package_name).candidateVersion
-    elif type(package_name) == list:
+    elif isinstance(package_name, list):
         return [get_single_package(name).candidateVersion
                 for name in package_name]
 

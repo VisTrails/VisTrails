@@ -147,7 +147,7 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """
         if type(editor)==QtGui.QComboBox:
             model.setData(index, editor.currentText())
-        elif type(editor) == QtGui.QLineEdit:
+        elif isinstance(editor, QtGui.QLineEdit):
             model.setData(index, editor.text())
         else:
             # Should never get here
@@ -168,7 +168,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         def create_item(parent, obj, parent_obj, name, temp_obj, temp_parent_obj):
             item = QConfigurationTreeWidgetItem(parent, obj, parent_obj, 
                                                 name, temp_obj, temp_parent_obj)
-            if type(obj) == ConfigurationObject:
+            if isinstance(obj, ConfigurationObject):
                 for key in sorted(obj.keys()):
                     create_item(item, getattr(obj, key), obj, key, 
                                 getattr(temp_obj, key), temp_obj)
