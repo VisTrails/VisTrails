@@ -23,6 +23,9 @@ class DependentTask(object):
         self.callback = callback
         self.tasks = tasks
         self.priority = priority
+        # Tuple of priorities of upstream tasks' callbacks for the callback
+        # task
+        # This allows us to get to more urgent callbacks first
         self.inh_priority = inh_priority
 
     def task_done(self, task):
@@ -64,7 +67,7 @@ class TaskRunner(object):
         self._thread_pool = None
         self._process_pool = None
 
-        self._inherited_priority = sys.maxint
+        self._inherited_priority = ()
 
     def thread_pool(self):
         if self._thread_pool is None:
@@ -109,7 +112,7 @@ class TaskRunner(object):
 
         # Compute inherited priority from the currently running task
         if inh_priority is None:
-            inh_priority = min(cb_priority, self._inherited_priority)
+            inh_priority = self._inherited_priority
         # Add tasks
         for task in tasks:
             self.tasks.put((priority, inh_priority, task))
@@ -166,7 +169,7 @@ class TaskRunner(object):
                 prio, inh_prio, task = self.tasks.get(self.running_threads > 0)
             except Queue.Empty:
                 break
-            self._inherited_priority = inh_prio
+            self._inherited_priority = inh_prio + (prio,)
             if isinstance(task, Task):
                 self.tasks_ran.add(task)
                 task.start(self)
@@ -198,8 +201,7 @@ class TaskRunner(object):
         for dep in list(dependents):
             if dep.task_done(task):
                 dependents.remove(dep)
-                self.add(dep.callback,
-                         priority=dep.priority, inh_priority=dep.inh_priority)
+                self.tasks.put((dep.priority, dep.inh_priority, dep.callback))
         if not self.dependencies[task]:
             del self.dependencies[task]
 
