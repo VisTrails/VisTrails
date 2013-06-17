@@ -435,23 +435,23 @@ Returns true if given package identifier is present."""
                                                    dep_name):
                 self._dependency_graph.add_edge(package.identifier, dep_name)
 
-    def late_enable_package(self, package_codepath, prefix_dictionary={}, 
+    def late_enable_package(self, codepath, prefix_dictionary={},
                             needs_add=True):
         """late_enable_package enables a package 'late', that is,
         after VisTrails initialization. All dependencies need to be
         already enabled.
         """
         if needs_add:
-            if package_codepath in self._package_list:
-                msg = 'duplicate package identifier: %s' % package_codepath
+            if codepath in self._package_list:
+                msg = 'duplicate package identifier: %s' % codepath
                 raise VistrailsInternalError(msg)
-            self.add_package(package_codepath)
-        pkg = self.get_package_by_codepath(package_codepath)
+            self.add_package(codepath)
+        pkg = self.get_package_by_codepath(codepath)
         try:
             pkg.load(prefix_dictionary.get(pkg.codepath, None))
         except Exception, e:
             # invert self.add_package
-            del self._package_list[package_codepath]
+            del self._package_list[codepath]
             raise
         self._dependency_graph.add_vertex(pkg.identifier)
         if pkg.identifier not in self._package_versions:
@@ -466,7 +466,7 @@ Returns true if given package identifier is present."""
             self._registry.initialize_package(pkg)
             self._registry.signals.emit_new_package(pkg.identifier, True)
             app = get_vistrails_application()
-            app.send_notification("package_added", package_codepath)
+            app.send_notification("package_added", codepath)
             self.add_menu_items(pkg)
         except Exception, e:
             del self._package_versions[pkg.identifier][pkg.version]
@@ -475,7 +475,7 @@ Returns true if given package identifier is present."""
             self.remove_old_identifiers(pkg.identifier)
             self._dependency_graph.delete_vertex(pkg.identifier)
             # invert self.add_package
-            del self._package_list[package_codepath]
+            del self._package_list[codepath]
             # if we adding the package to the registry, make sure we
             # remove it if initialization fails
             try:
@@ -484,19 +484,19 @@ Returns true if given package identifier is present."""
                 pass
             raise e
 
-    def late_disable_package(self, package_codepath):
+    def late_disable_package(self, codepath):
         """late_disable_package disables a package 'late', that is,
         after VisTrails initialization. All reverse dependencies need to be
         already disabled.
         """
-        pkg = self.get_package_by_codepath(package_codepath)
-        self.remove_package(package_codepath)
+        pkg = self.get_package_by_codepath(codepath)
+        self.remove_package(codepath)
         pkg.remove_own_dom_element()
 
-    def reload_package_disable(self, package_codepath):
+    def reload_package_disable(self, codepath):
         # for all reverse dependencies, disable them
         prefix_dictionary = {}
-        pkg = self.get_package_by_codepath(package_codepath)
+        pkg = self.get_package_by_codepath(codepath)
         reverse_deps = []
         for dep_id in self.all_reverse_dependencies(pkg.identifier):
             reverse_deps.append(self.get_package(dep_id))
@@ -508,10 +508,10 @@ Returns true if given package identifier is present."""
         # Queue the re-enabling of the packages so event loop can free
         # any QObjects whose deleteLater() method is invoked
         app = get_vistrails_application()
-        app.send_notification("pm_reloading_package", package_codepath,
+        app.send_notification("pm_reloading_package", codepath,
                               reverse_deps, prefix_dictionary)
         # self.emit(self.reloading_package_signal,
-        #           package_codepath,
+        #           codepath,
         #           reverse_deps,
         #           prefix_dictionary)
 
