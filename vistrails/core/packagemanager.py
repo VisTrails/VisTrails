@@ -902,12 +902,13 @@ class TestImports(unittest.TestCase):
             deps = pkg.get_py_deps()
             for dep in ['vistrails.tests.resources.import_pkg.test_import_pkg',
                         'vistrails.tests.resources.import_pkg.test_import_pkg.init',
-                        #'vistrails.tests.resources.import_pkg.test_import_pkg.module1',
+                        'vistrails.tests.resources.import_pkg.test_import_pkg.module1',
                         'vistrails.tests.resources.import_pkg.test_import_pkg.module2',
-                        #'vistrails.tests.resources.import_targets.test1',
-                        #'vistrails.tests.resources.import_targets.test2',
-                        #'vistrails.tests.resources.import_targets.test3',
-                        #'vistrails.tests.resources.import_targets.test4',
+                        'vistrails.tests.resources.import_targets',
+                        'vistrails.tests.resources.import_targets.test1',
+                        'vistrails.tests.resources.import_targets.test2',
+                        'vistrails.tests.resources.import_targets.test3',
+                        'vistrails.tests.resources.import_targets.test4',
                         'vistrails.tests.resources.import_targets.test5',
                         'vistrails.tests.resources.import_targets.test6']:
                 self.assertIn(dep, deps)

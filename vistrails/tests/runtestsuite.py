@@ -186,6 +186,8 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         if module.startswith('vistrails.tests.run'):
             continue
+        if module.startswith('vistrails.tests.resources'):
+            continue
         if ('system' in module and not
             module.endswith('__init__')):
             continue
