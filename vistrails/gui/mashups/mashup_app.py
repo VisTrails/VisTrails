@@ -272,7 +272,7 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
                                                         "Save images to...",
                                                         self.lastExportPath,
                                                         QtGui.QFileDialog.ShowDirsOnly)
-        if not folder.isEmpty():
+        if folder:
             self.dumpcells = str(folder)
             self.saveEach()
             self.lastExportPath = str(folder)
@@ -283,7 +283,7 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
                                                         "Save images to...",
                                                         self.lastExportPath,
                                                         QtGui.QFileDialog.ShowDirsOnly)
-        if not folder.isEmpty():
+        if folder:
             self.dumpcells = str(folder)
             self.saveAll()
             self.lastExportPath

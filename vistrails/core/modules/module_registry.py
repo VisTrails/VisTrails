@@ -64,10 +64,10 @@ import unittest
 # This is used by add_module to make sure the fringe specifications
 # make sense
 def _check_fringe(fringe):
-    assert type(fringe) == list
+    assert isinstance(fringe, list)
     assert len(fringe) >= 1
     for v in fringe:
-        assert type(v) == tuple
+        assert isinstance(v, tuple)
         assert len(v) == 2
         assert type(v[0]) == float
         assert type(v[1]) == float
@@ -83,12 +83,12 @@ def _toposort_modules(module_list):
 
     g = Graph()
     for m in module_list:
-        if type(m) == tuple:
+        if isinstance(m, tuple):
             g.add_vertex(m[0], m)
         else:
             g.add_vertex(m, m)
     for m in module_list:
-        if type(m) == tuple:
+        if isinstance(m, tuple):
             m = m[0]
         for subclass in m.mro()[1:]: # skip self
             if subclass in g.vertices:
@@ -114,7 +114,7 @@ def _toposort_abstractions(package, abstraction_list):
     from vistrails.core.modules.sub_module import find_internal_abstraction_refs
     g = Graph()
     for a in abstraction_list:
-        if type(a) == tuple:
+        if isinstance(a, tuple):
             if type(a[1]) == dict and 'name' in a[1]:
                 name = a[1]['name']
                 if 'namespace' in a[1]:
@@ -127,7 +127,7 @@ def _toposort_abstractions(package, abstraction_list):
         else:
             g.add_vertex((_parse_abstraction_name(a), ''), a)
     for a in abstraction_list:
-        if type(a) == tuple:
+        if isinstance(a, tuple):
             a = a[0]
         for ref in find_internal_abstraction_refs(package, a):
             if ref in g.vertices:
@@ -828,7 +828,7 @@ class ModuleRegistry(DBRegistry):
         class that subclasses from modules.vistrails_module.Module)
 
         """
-        # assert type(module) == type
+        # assert isinstance(module, type)
         # assert issubclass(module, core.modules.vistrails_module.Module)
         # assert self._module_key_map.has_key(module)
         k = self._module_key_map[module]
@@ -988,7 +988,7 @@ class ModuleRegistry(DBRegistry):
             if port_key in module.__dict__:
                 for port_info in module.__dict__[port_key]:
                     added = False
-                    if type(port_info) == PortSpec:
+                    if isinstance(port_info, PortSpec):
                         # force port type to match list it occurs in
                         # we just need "input" or "output"
                         port_info.type = port_key[1:-6]
@@ -1017,9 +1017,9 @@ class ModuleRegistry(DBRegistry):
         to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        if type(module) == type:
+        if isinstance(module, type):
             return self.add_module(module)
-        elif (type(module) == tuple and
+        elif (isinstance(module, tuple) and
               len(module) == 2 and
               type(module[0]) == type and
               type(module[1]) == dict):
@@ -1239,9 +1239,9 @@ class ModuleRegistry(DBRegistry):
         return descriptor
 
     def auto_add_subworkflow(self, subworkflow):
-        if type(subworkflow) == str:
+        if isinstance(subworkflow, str):
             return self.add_subworkflow(subworkflow)
-        elif (type(subworkflow) == tuple and
+        elif (isinstance(subworkflow, tuple) and
               len(subworkflow) == 2 and
               type(subworkflow[0]) == str and
               type(subworkflow[1]) == dict):
@@ -1467,7 +1467,7 @@ class ModuleRegistry(DBRegistry):
         doc/module_registry.txt. Optionally, it receives whether the
         input port is optional."""
         descriptor = self.get_descriptor(module)
-        if type(portSignature) == type(""):
+        if isinstance(portSignature, basestring):
             self.add_port(descriptor, portName, 'input', None, portSignature, 
                           optional, sort_key, labels, defaults, values,
                           entry_types, docstring, shape, min_conns, max_conns)
@@ -1496,7 +1496,7 @@ class ModuleRegistry(DBRegistry):
         in doc/module_registry.txt. Optionally, it receives whether
         the output port is optional."""
         descriptor = self.get_descriptor(module)
-        if type(portSignature) == type(""):
+        if isinstance(portSignature, basestring):
             self.add_port(descriptor, portName, 'output', None, portSignature, 
                           optional, sort_key, None, None, None, None, 
                           docstring, shape, min_conns, max_conns)
@@ -1525,12 +1525,12 @@ class ModuleRegistry(DBRegistry):
             # Perform auto-initialization
             if hasattr(package.module, '_modules'):
                 modules = package.module._modules
-                if type(modules) == dict:
+                if isinstance(modules, dict):
                     module_list = []
                     for namespace, m_list in modules.iteritems():
                         for module in m_list:
                             m_dict = {'namespace': namespace}
-                            if type(module) == tuple:
+                            if isinstance(module, tuple):
                                 m_dict.update(module[1])
                                 module_list.append((module[0], m_dict))
                             else:
@@ -1905,7 +1905,7 @@ class ModuleRegistry(DBRegistry):
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
         klass = descriptor.configuration_widget()
-        if type(klass) == tuple:
+        if isinstance(klass, tuple):
             (path, klass_name) = klass
             module = __import__(path, globals(), locals(), [klass_name])
             klass = getattr(module, klass_name)            

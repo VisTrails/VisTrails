@@ -275,7 +275,7 @@ class QMashupProp(QtGui.QWidget):
                            vistrails.core.system.vistrails_file_directory(),
                            "VisTrail link files (*.vtl)",
                            None)
-                if not fileName.isEmpty():
+                if fileName:
                     filename = str(fileName)
                     res = MashupsManager.exportMashup(filename, 
                                                       self.controller.originalController, 
@@ -340,7 +340,7 @@ class QMashupsListPanel(QtGui.QWidget):
                 self.controller.setCurrentVersion(version, quiet=False)
             
     def selectMashup(self, name):
-        itemlist = self.mashupsList.findItems(QtCore.QString(name),
+        itemlist = self.mashupsList.findItems(name,
                                               QtCore.Qt.MatchExactly)
         if len(itemlist) == 1:
             item = itemlist[0]

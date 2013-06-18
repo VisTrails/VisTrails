@@ -870,9 +870,9 @@ class Pipeline(DBWorkflow):
 
         Returns a subset of the current pipeline with the modules passed
         in as module_ids and the internal connections between them."""
-        if type(module_set) == list:
+        if isinstance(module_set, list):
             subgraph = self.graph.subgraph(module_set)
-        elif type(module_set) == Graph:
+        elif isinstance(module_set, Graph):
             subgraph = module_set
         else:
             raise Exception("Expected list of ints or graph")

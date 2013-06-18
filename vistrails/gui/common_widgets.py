@@ -320,7 +320,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         Return the default search tree
 
         """
-        self.treeWidget.searchItemName(QtCore.QString(''))
+        self.treeWidget.searchItemName('')
 
     def createTreeWidget(self):
         """ createTreeWidget() -> QSearchTreeWidget
@@ -470,7 +470,7 @@ class QStringEdit(QtGui.QFrame):
                                                      self.text(),
                                                      'All files '
                                                      '(*.*)')
-        if not fileName.isEmpty():
+        if fileName:
             self.setText(fileName)
         
 ###############################################################################
@@ -507,7 +507,7 @@ class MultiLineWidget(StandardConstantWidget):
                                                                'All files '
                                                                '(*.*)')
                 fileName = fileNames.join(',')
-                if not fileName.isEmpty():
+                if fileName:
                     self.setText(fileName)
                     return
         QtGui.QLineEdit.keyPressEvent(self,event)

@@ -67,7 +67,7 @@ class Module(object):
 
             args = None
             # FIXME want this to be any iterable
-            if type(value) == tuple:
+            if isinstance(value, tuple):
                 args = value
             else:
                 args = (value,)
@@ -391,7 +391,7 @@ class VisTrailsAPI(object):
                 print ' --', module
 
     def _convert_version(self, version):
-        if type(version) == type(""):
+        if isinstance(version, basestring):
             try:
                 version = \
                     self.controller.vistrail.get_version_number(version)

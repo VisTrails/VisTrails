@@ -643,9 +643,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         """
         d = {}
         d["__reason__"] = reason
-        if aliases is not None and type(aliases) == dict:
+        if aliases is not None and isinstance(aliases, dict):
             d["__aliases__"] = cPickle.dumps(aliases)
-        if params is not None and type(params) == list:
+        if params is not None and isinstance(params, list):
             d["__params__"] = cPickle.dumps(params)
         logger.insert_workflow_exec_annotations(d)
         

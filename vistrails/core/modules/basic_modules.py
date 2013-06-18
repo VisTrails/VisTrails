@@ -275,7 +275,7 @@ def string_compare(value_a, value_b, query_method):
     return False
 
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
-                       False, staticmethod(lambda x: type(x) == bool),
+                       False, staticmethod(lambda x: isinstance(x, bool)),
                        widget_type=('vistrails.gui.modules.constant_configuration', 
                                     'BooleanWidget'))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
@@ -294,7 +294,7 @@ Integer = new_constant('Integer' , staticmethod(int_conv), 0,
                        param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'IntegerExploreWidget')])
 String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: type(x) == str),
+                       staticmethod(lambda x: isinstance(x, str)),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'StringQueryWidget'),
                        query_compute=string_compare,
@@ -595,7 +595,7 @@ class Color(Constant):
 
     @staticmethod
     def validate(x):
-        return type(x) == InstanceObject and hasattr(x, 'tuple')
+        return isinstance(x, InstanceObject) and hasattr(x, 'tuple')
 
     @staticmethod
     def to_string(r, g, b):
@@ -850,7 +850,7 @@ def dict_compute(self):
     self.setResult("value", d)
         
 Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
-                          {}, staticmethod(lambda x: type(x) == dict),
+                          {}, staticmethod(lambda x: isinstance(x, dict)),
                           compute=dict_compute)
 
 ##############################################################################

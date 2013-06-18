@@ -60,7 +60,7 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
         QtGui.QComboBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         QtGui.QComboBox.clear(self)
-        listqt = QtCore.QStringList()
+        listqt = []
         for element in self.enumerationlist:
             listqt.append(element)
             

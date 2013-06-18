@@ -181,7 +181,7 @@ class Vistrail(DBVistrail):
             if old_annotation.value == value:
                 return False
             self.db_delete_annotation(old_annotation)
-        if not (value is None or (type(value) == str and value.strip() == '')):
+        if not (value is None or (isinstance(value, str) and value.strip() == '')):
             annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
                                     key=key,
                                     value=value,
@@ -633,9 +633,9 @@ class Vistrail(DBVistrail):
         Returns True if a tag with given name or number exists
        
         """
-        if type(tag) == type(0) or type(tag) == type(0L):
+        if isinstance(tag, (int, long)):
             return self.has_tag(tag)
-        elif type(tag) == type('str'):
+        elif isinstance(tag, basestring):
             return self.has_tag_str(tag)
         
     def addTag(self, version_name, version_number):
@@ -801,7 +801,7 @@ class Vistrail(DBVistrail):
             return a.value
         return None
     def set_prune(self, action_id, value):
-        if type(value) == type(True):
+        if isinstance(value, bool):
             value = str(value)
         return self.set_action_annotation(action_id, Vistrail.PRUNE_ANNOTATION,
                                           value)
@@ -1134,7 +1134,7 @@ class Vistrail(DBVistrail):
         for action in self.actions:
             for op in action.operations:
                 try:
-                    if type(op) == AddOp and op.what == 'module':
+                    if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
                 except:
                     pass

@@ -187,7 +187,7 @@ class PortSpec(object):
 
     def set_defaults(self, **kwargs):
         for attr, props in self.attrs.iteritems():
-            if type(props) == tuple:
+            if isinstance(props, tuple):
                 default_val = props[0]
             else:
                 default_val = props
@@ -209,7 +209,7 @@ class PortSpec(object):
         for attr, props in self.attrs.iteritems():
             attr_val = getattr(self, attr)
             is_subelt = False
-            if type(props) == tuple:
+            if isinstance(props, tuple):
                 default_val = props[0]
                 if len(props) > 1:
                     is_subelt = props[1]
@@ -259,7 +259,7 @@ class PortSpec(object):
         for attr, props in obj.attrs.iteritems():
             is_subelt = False
             run_eval = False
-            if type(props) == tuple:
+            if isinstance(props, tuple):
                 if len(props) > 1:
                     is_subelt = props[1]
                 if len(props) > 2:

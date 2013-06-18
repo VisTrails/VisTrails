@@ -73,11 +73,11 @@ def hide_splash_if_necessary():
 
 
 def run_install_command_as_root(graphical, cmd, args):
-    if type(args) == str:
+    if isinstance(args, str):
         cmd += ' ' + args
-    elif type(args) == list:
+    elif isinstance(args, list):
         for package in args:
-            if type(package) != str:
+            if not isinstance(package, str):
                 raise TypeError("Expected string or list of strings")
             cmd += ' ' + package
     else:
@@ -160,7 +160,7 @@ def pip_install(package_name):
 def show_question(which_files, has_distro_pkg, has_pip):
     if has_qt():
         from PyQt4 import QtCore, QtGui
-        if type(which_files) == str:
+        if isinstance(which_files, str):
             which_files = [which_files]
         dialog = QtGui.QDialog()
         dialog.setWindowTitle("Required packages missing")

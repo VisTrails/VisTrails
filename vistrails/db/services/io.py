@@ -901,7 +901,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     # Save Abstractions
     saved_abstractions = []
     for obj in save_bundle.abstractions:
-        if type(obj) == type(""):
+        if isinstance(obj, basestring):
             # FIXME we should have an abstraction directory here instead
             # of the abstraction_ prefix...
             if not os.path.basename(obj).startswith('abstraction_'):
@@ -929,7 +929,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     # Save Thumbnails
     saved_thumbnails = []
     for obj in save_bundle.thumbnails:
-        if type(obj) == type(""):
+        if isinstance(obj, basestring):
             obj_fname = os.path.basename(obj)
             png_fname = os.path.join(thumbnail_dir, obj_fname)
             saved_thumbnails.append(png_fname)

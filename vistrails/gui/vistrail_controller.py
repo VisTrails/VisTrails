@@ -327,7 +327,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Parameters
         ----------
 
-        - notes : 'QtCore.QString'
+        - notes : 'string'
         
         """
         self.flush_delayed_actions()
@@ -1110,7 +1110,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 name)
-        if ok and not text.isEmpty():
+        if ok and text:
             return str(text).strip().rstrip()
         if not ok:
             return None
@@ -1133,7 +1133,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 '')
-        if ok and not text.isEmpty():
+        if ok and not text:
             return str(text).strip().rstrip()
         return ''
             
@@ -1141,7 +1141,7 @@ class VistrailController(QtCore.QObject, BaseController):
         dialog = QtGui.QFileDialog.getExistingDirectory
         dir_name = dialog(None, "Save Subworkflows...",
                           vistrails.core.system.vistrails_file_directory())
-        if dir_name.isEmpty():
+        if dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
         setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
@@ -1324,9 +1324,9 @@ class VistrailController(QtCore.QObject, BaseController):
     # analogies
 
     def add_analogy(self, analogy_name, version_from, version_to):
-        assert type(analogy_name) == str
-        assert type(version_from) == int or type(version_from) == long
-        assert type(version_to) == int or type(version_to) == long
+        assert isinstance(analogy_name, str)
+        assert isinstance(version_from, (int, long))
+        assert isinstance(version_to, (int, long))
         if analogy_name in self.analogy:
             raise VistrailsInternalError("duplicated analogy name '%s'" %
                                          analogy_name)

@@ -102,7 +102,7 @@ class ConfigurationObject(InstanceObject):
         if not hasattr(self, key):
             return False
         v = getattr(self, key)
-        if type(v) == tuple and v[0] is None and type(v[1]) == type:
+        if isinstance(v, tuple) and v[0] is None and isinstance(v[1], type):
             return False
         return True
 
@@ -142,7 +142,7 @@ class ConfigurationObject(InstanceObject):
                 conf_element.appendChild(key_element)
                 value_element = quote_xml_value(dom, value)
                 key_element.appendChild(value_element)
-            elif type(value) == tuple:
+            elif isinstance(value, tuple):
                 pass
             else:
                 assert isinstance(value, ConfigurationObject)

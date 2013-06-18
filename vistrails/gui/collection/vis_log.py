@@ -69,7 +69,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         else:
             self.wf_execution = execution
 
-        if type(execution) == WorkflowExec:
+        if isinstance(execution, WorkflowExec):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == -2:
@@ -83,7 +83,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 self.setText(0, execution.db_name)
             else:
                 self.setText(0, 'Version #%s' % execution.parent_version )
-        if type(execution) == ModuleExec:
+        if isinstance(execution, ModuleExec):
             for loop_exec in execution.loop_execs:
                 QExecutionItem(loop_exec, self)
             if execution.completed == 1:
@@ -99,7 +99,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, '%s' % execution.module_name)
-        if type(execution) == GroupExec:
+        if isinstance(execution, GroupExec):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == 1:
@@ -115,7 +115,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Group')
-        if type(execution) == LoopExec:
+        if isinstance(execution, LoopExec):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == 1:
@@ -480,12 +480,12 @@ class QLogView(QPipelineView):
 
     def get_execution_pipeline(self, execution):
         """ Recursively finds pipeline through layers of groupExecs """
-        if type(execution) == WorkflowExec:
+        if isinstance(execution, WorkflowExec):
             version = execution.parent_version
             # change the current version to this as well
 
             return self.controller.vistrail.getPipeline(version)
-        if type(execution) == GroupExec:
+        if isinstance(execution, GroupExec):
             parent = execution.item.wf_execution
             parent_pipeline = self.get_execution_pipeline(parent)
             return parent_pipeline.db_get_module_by_id(

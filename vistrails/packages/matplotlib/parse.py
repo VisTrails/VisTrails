@@ -217,17 +217,17 @@ def get_value_and_type(s):
     return (val, port_type)
 
 def get_type_from_val(val):
-    if type(val) == float:
+    if isinstance(val, float):
         return "basic:Float"
-    elif type(val) == int:
+    elif isinstance(val, (int, long)):
         return "basic:Integer"
     elif isinstance(val, basestring):
         return "basic:String"
-    elif type(val) == bool:
+    elif isinstance(val, bool):
         return "basic:Boolean"
-    elif type(val) == list:
+    elif isinstance(val, list):
         return "basic:List"
-    return None        
+    return None
 
 def resolve_port_type(port_types, port_spec):
     port_types_set = set(p for p in port_types if p is not None)
@@ -412,7 +412,7 @@ def get_names(obj, default_module_base, default_super_base,
               prefix="Mpl", suffix=""):
     module_name = None
     super_name = None
-    if type(obj) == tuple:
+    if isinstance(obj, tuple):
         if len(obj) > 2:
             super_name = obj[2]
         if len(obj) < 2:

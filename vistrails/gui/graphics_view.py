@@ -244,8 +244,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.resetButton = None
         self.selectionBox = QGraphicsRubberBandItem(None)
         self.startSelectingPos = None
-        self.setProperty('captureModifiers',
-                         QtCore.QVariant(1))
+        self.setProperty('captureModifiers', 1)
         self.defaultCursorState = 0
         self.setCursorState(self.defaultCursorState)
         self.canSelectBackground = True
@@ -637,7 +636,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 "PDF files (*.pdf)",
                 None)
 
-            if fileName.isEmpty():
+            if not fileName:
                 return None
             f = str(fileName)
         else:
