@@ -190,6 +190,8 @@ class PackageManager(object):
         # Get the caller module, using globals (like the original __import
         # does)
         try:
+            if globals is None:
+                raise KeyError
             module = globals['__name__']
         except KeyError:
             # Another method of getting the caller module, using the stack
