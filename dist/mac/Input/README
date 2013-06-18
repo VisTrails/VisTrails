@@ -26,7 +26,7 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0.3 build 82d9b26478a0 from v2.0 branch
+Release Name: v2.0.3 build a6ad79347667 from v2.0 branch
 
 Bug fixes: 
  - Ticket #639: Package details are not updated when a disabled package is selected in preferences panel (49db740c7a8c)
