@@ -26,7 +26,21 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.0.2 build 3813fdd2573b from v2.0 branch
+Release Name: v2.0.3 build 82d9b26478a0 from v2.0 branch
+
+Bug fixes: 
+ - Ticket #639: Package details are not updated when a disabled package is selected in preferences panel (49db740c7a8c)
+ - Logging fails when Group executed by Map fails (fcb6d4b1b637)
+ - VisTrails Server: fixed generating a pdf from a vistrail tree  (0a3d02e92b48)
+ - PipelineView: Execution exceptions were not caught which caused jobView to lock up execution (91bd58c44897)
+ - open_many_from_db should not be used with pre 1.0.2 schemas (e2b247f2c588)
+ - Updated latex example files to use crowdlabs instead of vistrails.org (0314ecf38606)
+ - Fixed generating an image of workflow graph from the command line (3f40090c5e12)
+ - Fix issue with intermediate persistent files not being found in the store when a uuid is already assigned. (72c89f5aa6ca)
+  - io.save_vistrail_to_db was using "Vistrail"-specific methods (db662d585a3e)
+  - Mac binary: Added support for distutils.ccompiler and scipy.weave (d2c388fc491d)
+
+From release: v2.0.2 build 3813fdd2573b from v2.0 branch
 
 Enhancements: 
  - Added animation support to matplotlib/pylab (38fb971b6305)
