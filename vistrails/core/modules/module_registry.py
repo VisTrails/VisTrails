@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import __builtin__
 from itertools import izip, chain
 import copy
 import os
