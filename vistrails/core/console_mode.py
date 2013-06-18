@@ -74,7 +74,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                                         mashups, auto_save=update_vistrail)
         if isinstance(workflow, basestring):
             version = v.get_version_number(workflow)
-        elif type(workflow) in [ type(1), long]:
+        elif isinstance(workflow, (int, long)):
             version = workflow
         elif workflow is None:
             version = controller.get_latest_version_in_graph()
@@ -149,7 +149,7 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                 version = None
                 if isinstance(workflow, basestring):
                     version = v.get_version_number(workflow)
-                elif type(workflow) in [ type(1), long]:
+                elif isinstance(workflow, (int, long)):
                     version = workflow
                 elif workflow is None:
                     version = controller.get_latest_version_in_graph()

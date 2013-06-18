@@ -59,7 +59,8 @@ class PortSpecItem(DBPortSpecItem):
             if "namespace" not in kwargs:
                 kwargs["namespace"] = namespace
         if "values" in kwargs:
-            if not isinstance(kwargs["values"], basestring):
+            if (kwargs["values"] is not None and
+                    not isinstance(kwargs["values"], basestring)):
                 kwargs["values"] = str(kwargs["values"])
         if 'id' not in kwargs:
             kwargs['id'] = -1

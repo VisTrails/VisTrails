@@ -86,7 +86,7 @@ class vtkBaseInspector(Module):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
                     self.setResult(function, output)
-                elif type(retValues) in [tuple, list]:
+                elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):

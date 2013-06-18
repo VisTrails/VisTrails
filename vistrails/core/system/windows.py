@@ -184,7 +184,7 @@ def executable_is_in_pythonpath(filename):
 
 def list2cmdline(lst):
     for el in lst:
-        assert type(el) in [str,unicode]
+        assert isinstance(el, basestring)
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):

@@ -138,7 +138,7 @@ class ConfigurationObject(InstanceObject):
                 continue
             key_element = dom.createElement('key')
             key_element.setAttribute('name', key)
-            if type(value) in [int, str, bool, float]:
+            if isinstance(value, (int, long, basestring, bool, float)):
                 conf_element.appendChild(key_element)
                 value_element = quote_xml_value(dom, value)
                 key_element.appendChild(value_element)
