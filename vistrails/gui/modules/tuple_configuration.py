@@ -123,16 +123,16 @@ class PortTable(QtGui.QTableWidget):
             
     def getPorts(self):
         ports = []
+        model = self.model()
         for i in xrange(self.rowCount()):
-            model = self.model()
-            name = str(model.data(model.index(i, 0), 
-                                  QtCore.Qt.DisplayRole))
-            sigstring = str(model.data(model.index(i, 1), 
-                                       QtCore.Qt.UserRole))
-            if name != '' and sigstring != '':
-                ports.append((name, '(' + sigstring + ')', i))
+            name = model.data(model.index(i, 0),
+                              QtCore.Qt.DisplayRole)
+            sigstring = model.data(model.index(i, 1),
+                                   QtCore.Qt.UserRole)
+            if name is not None and sigstring is not None:
+                ports.append((name, '(%s)' % sigstring, i))
         return ports
-        
+
 #    def focusOutEvent(self, event):
 #        if self.parent():
 #            QtCore.QCoreApplication.sendEvent(self.parent(), event)
