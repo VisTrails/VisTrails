@@ -42,64 +42,45 @@ import copy
 
 class If(Module, NotCacheable):
     """
-    The If Module alows the user to choose the part of the workflow to be
-    executed through the use of a condition.
+    Return one of two values depending on a boolean condition.
+
+    Note that the modules upstream of the port that is not chosen won't get
+    executed (short-circuit).
     """
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update(self):
+        self.logging.begin_update(self)
+        self.updateUpstream(
+                self.condition_ready,
+                [self.getInputConnector('Condition')])
 
-        # everything is the same except that we don't update anything
-        # upstream of TruePort or FalsePort
-        excluded_ports = set(['TruePort', 'FalsePort', 'TrueOutputPorts',
-                              'FalseOutputPorts'])
-        for port_name, connector_list in self.inputPorts.iteritems():
-            if port_name not in excluded_ports:
-                for connector in connector_list:
-                    connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
-            if port_name not in excluded_ports:
-                for connector in connectorList:
-                    if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+    def condition_ready(self, connectors):
+        if self.suspended:
+            self.done()
+            return
 
-    def compute(self):
-        """ The compute method for the If module."""
-
-        if not self.hasInputFromPort('Condition'):
-            raise ModuleError(self, 'Must set condition')
-        cond = self.getInputFromPort('Condition')
-
-        if cond:
+        self.__condition = self.getInputFromPort('Condition')
+        if self.__condition:
             port_name = 'TruePort'
-            output_ports_name = 'TrueOutputPorts'
         else:
             port_name = 'FalsePort'
-            output_ports_name = 'FalseOutputPorts'
+        self.updateUpstream(
+                self.input_ready,
+                [self.getInputConnector(port_name)],
+                priority=50)
+        # This module does nothing, it just forwards the value we get from
+        # upstream, so we might as well give it a higher priority
 
-        if self.hasInputFromPort(output_ports_name):
-            for connector in self.inputPorts.get(output_ports_name):
-                connector.obj.update()
-
-        if not self.hasInputFromPort(port_name):
-            raise ModuleError(self, 'Must set ' + port_name)
-
-        for connector in self.inputPorts.get(port_name):
-            connector.obj.upToDate = False
-            connector.obj.update()
-
-            if self.hasInputFromPort(output_ports_name):
-                output_ports = self.getInputFromPort(output_ports_name)
-                result = []
-                for output_port in output_ports:
-                    result.append(connector.obj.get_output(output_port))
-
-                # FIXME can we just make this a list?
-                if len(output_ports) == 1:
-                    self.setResult('Result', result[0])
-                else:
-                    self.setResult('Result', result)
+    def input_ready(self, connectors):
+        self.done()
+        self.logging.begin_compute(self)
+        if self.__condition:
+            self.setResult('Result', self.getInputFromPort('TruePort'))
+        else:
+            self.setResult('Result', self.getInputFromPort('FalsePort'))
+        self.logging.end_update(self)
+        self.logging.signalSuccess(self)
+        self.done()
 
 #################################################################################
 ## Default module
@@ -112,10 +93,21 @@ class Default(Module, NotCacheable):
     value from the Default port in case nothing is set on the Input port. This
     is particularly useful when using subworkflows, with InputPort modules with
     optional set to True.
+
+    Note that if a value is set on the Input port, the modules upstream of the
+    Default port won't be executed (short-circuit).
     """
 
+    def updateUpstream(self, callback=None, priority=None):
+        try:
+            self.__connector = self.getInputConnector('Input')
+        except ModuleError:
+            self.__connector = self.getInputConnector('Default')
+
+        super(Default, self).updateUpstream(
+                callback,
+                [self.__connector],
+                priority)
+
     def compute(self):
-        if self.hasInputFromPort('Input'):
-            self.setResult('Result', self.getInputFromPort('Input'))
-        else:
-            self.setResult('Result', self.getInputFromPort('Default'))
+        self.setResult('Result', self.__connector())
