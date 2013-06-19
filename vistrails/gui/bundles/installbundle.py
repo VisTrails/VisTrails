@@ -43,7 +43,7 @@ import vistrails.gui.bundles.installbundle # this is on purpose
 import subprocess
 import os
 import sys
-
+from io import StringIO
 ##############################################################################
 
 def has_qt():
@@ -101,12 +101,16 @@ def run_install_command_as_root(graphical, cmd, args):
         sucmd = sucmd % cmd
 
     print "about to run: %s" % sucmd
-    p = subprocess.Popen(sucmd.split(' '), stdout=subprocess.PIPE,
-                                           stderr=subprocess.STDOUT)
+    p = subprocess.Popen(sucmd, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                shell=True)
     lines = ''
-    for line in iter(p.stdout.readline, ""):
-        lines += line
-        print line,
+    try:
+        for line in iter(p.stdout.readline, ""):
+            lines += line
+	    print StringIO(unicode(line), newline=None).read(),
+    except IOError, e:
+        print "Ignoring IOError:", str(e)
     result = p.wait()
 
     if result != 0:
