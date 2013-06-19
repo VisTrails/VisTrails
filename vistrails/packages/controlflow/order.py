@@ -40,23 +40,21 @@ import copy
 
 class ExecuteInOrder(Module):
     """
-    The Order Module alows the user to control which sink of a pair of
-    sinks ought to executed first.  Connect the "self" port of each
-    sink to the corresponding port.  Note that if you have more than
-    two sinks, you can string them together by using a string of Order
-    modules.
+    Controls the execution order of a set of sinks.
     """
 
-    def updateUpstream(self):
-        # don't do update until compute!
-        pass
+    def __update_one_port(self, connectors):
+        connectors = self.__to_update.pop(0)
+        if self.__to_update:
+            callback = self.__update_one_port
+        else:
+            callback = self.on_upstream_ready
+        self.updateUpstream(callback, targets=connectors)
 
-    def compute(self):
-        # do updateUpstream as compute, but sort by key
-        for _, connectorList in sorted(self.inputPorts.iteritems()):
-            for connector in connectorList:
-                connector.obj.update()
-        for iport, connectorList in copy.copy(self.inputPorts.items()):
-            for connector in connectorList:
-                if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+    def update(self):
+        self.logging.begin_update(self)
+        self.__to_update = [connectors
+                            for name, connectors in sorted(
+                                    self.inputPorts.iteritems(),
+                                    key=lambda (name, connectors): name)]
+        self.__update_one_port(None)
