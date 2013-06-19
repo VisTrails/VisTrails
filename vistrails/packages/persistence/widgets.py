@@ -1067,9 +1067,10 @@ class PersistentConfiguration(QtGui.QDialog):
             # save single file/dir
             info = info_list[0]
             name = info[2]
-            chosen_path = str(QtGui.QFileDialog.getSaveFileName(self,
-                                                                'Save...',
-                                                                name))
+            chosen_path = QtGui.QFileDialog.getSaveFileName(
+                    self,
+                    'Save...',
+                    name)
             if not chosen_path:
                 return
 
@@ -1083,9 +1084,9 @@ class PersistentConfiguration(QtGui.QDialog):
                                              chosen_path)
         else:
             # have multiple files/dirs
-            get_dir = QtGui.QFileDialog.getExistingDirectory
-            chosen_path = str(get_dir(self,
-                                      'Save All to Directory...'))
+            chosen_path = QtGui.QFileDialog.getExistingDirectory(
+                    self,
+                    'Save All to Directory...')
             has_overwrite = False
             # if untitled (no name, use the uuid)
             for info in info_list:

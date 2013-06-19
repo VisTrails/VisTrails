@@ -161,9 +161,8 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         parent,
         "Save Vistrail...",
         vistrails.core.system.vistrails_file_directory(),
-        "VisTrails files (%s)" % suffixes, # filetypes.strip()
-        None,
-        QtGui.QFileDialog.DontConfirmOverwrite)
+        filter="VisTrails files (%s)" % suffixes, # filetypes.strip()
+        options=QtGui.QFileDialog.DontConfirmOverwrite)
     if not fileName:
         return None
     f = str(QtCore.QFile.encodeName(fileName))

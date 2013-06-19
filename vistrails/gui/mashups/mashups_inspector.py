@@ -270,11 +270,11 @@ class QMashupProp(QtGui.QWidget):
             dialog = QMashupExportDialog(self)
             if dialog.exec_() == QtGui.QDialog.Accepted:
                 result = dialog.btnPressed
-                fileName = QtGui.QFileDialog.getSaveFileName(self,
+                fileName = QtGui.QFileDialog.getSaveFileName(
+                           self,
                            "Export Mashup...",
                            vistrails.core.system.vistrails_file_directory(),
-                           "VisTrail link files (*.vtl)",
-                           None)
+                           "VisTrail link files (*.vtl)")
                 if fileName:
                     filename = str(fileName)
                     res = MashupsManager.exportMashup(filename, 
