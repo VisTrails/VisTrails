@@ -44,7 +44,7 @@ from vistrails.core.utils import Chdir
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBLog, DBVistrail, DBWorkflowExec
 import vistrails.db.versions
-from vistrails.db.services.db import MySQLDBConnection, SQLite3Connection
+from vistrails.db.services.db_utils import MySQLDBConnection, SQLite3Connection
 from vistrails.db.services.io import open_db_connection
 from vistrails.db.services.locator import DirectoryLocator, XMLFileLocator, \
     ZIPFileLocator
@@ -293,7 +293,6 @@ class XMLFileSerializer(FileSerializer):
         vt_obj = daoList.open_from_xml(filename, obj_type, tree)
         vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f, 
                                                         version)
-        cls.finish_load(vt_obj)
         obj_id = cls.get_obj_id(vt_obj)
         obj = BundleObj(vt_obj, obj_type, obj_id)
         return obj
@@ -335,6 +334,7 @@ class XMLFileSerializer(FileSerializer):
         vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f, 
                                                         version)
         obj.obj = vt_obj
+        cls.finish_save(vt_obj)
         return obj
 
     @classmethod
@@ -355,19 +355,17 @@ class XMLFileSerializer(FileSerializer):
         return vt_obj.id
 
     @classmethod
-    def finish_load(cls, vt_obj):
-        pass
-
-    @classmethod
     def finish_save(cls, vt_obj):
         pass
 
 class VistrailXMLSerializer(XMLFileSerializer):
     @classmethod
     def load(cls, filename):
-        return super(VistrailXMLSerializer, cls).load(filename, 
-                                                      DBVistrail.vtType,
-                                                      "translateVistrail")
+        obj = super(VistrailXMLSerializer, cls).load(filename, 
+                                                     DBVistrail.vtType,
+                                                     "translateVistrail")
+        vistrails.db.services.vistrail.update_id_scope(obj.obj)
+        return obj
 
     @classmethod
     def save(cls, obj, rootdir):
@@ -380,9 +378,6 @@ class VistrailXMLSerializer(XMLFileSerializer):
     def get_obj_id(cls, vt_obj):
         return 'vistrail'
 
-    @classmethod
-    def finish_load(cls, vt_obj):
-        vistrails.db.services.vistrail.update_id_scope(vt_obj)
 
 class MashupXMLSerializer(XMLFileSerializer):
     @classmethod
@@ -401,9 +396,11 @@ class MashupXMLSerializer(XMLFileSerializer):
 class RegistryXMLSerializer(XMLFileSerializer):
     @classmethod
     def load(cls, filename):
-        return super(RegistryXMLSerializer, cls).load(filename, 
-                                                      DBRegistry.vtType, 
-                                                      "translateRegistry")
+        obj = super(RegistryXMLSerializer, cls).load(filename, 
+                                                     DBRegistry.vtType, 
+                                                     "translateRegistry")
+        vistrails.db.services.regsitry.update_id_scope(obj.obj)
+        return obj
 
     @classmethod
     def save(cls, obj, filename, version):
@@ -416,10 +413,6 @@ class RegistryXMLSerializer(XMLFileSerializer):
     @classmethod
     def get_obj_id(cls, vt_obj):
         return 'registry'
-
-    @classmethod
-    def finish_load(cls, obj):
-        vistrails.db.services.regsitry.update_id_scope(obj)
                                
 class XMLAppendSerializer(XMLFileSerializer):
     @classmethod
@@ -449,7 +442,6 @@ class XMLAppendSerializer(XMLFileSerializer):
                 inner_obj = cls.get_inner_objs(vt_obj)[0]
             obj_list.append(inner_obj)
         vt_obj = cls.create_obj(obj_list)
-        cls.finish_load(vt_obj)
         obj_id = cls.get_obj_id(vt_obj)
         obj = BundleObj(vt_obj, obj_type, obj_id)
         return obj
@@ -488,9 +480,11 @@ class XMLAppendSerializer(XMLFileSerializer):
 class LogXMLSerializer(XMLAppendSerializer):
     @classmethod
     def load(cls, filename):
-        return super(LogXMLSerializer, cls).load(filename, DBLog.vtType, 'log',
-                                                 DBWorkflowExec.vtType,
-                                                 "translateLog")
+        obj = super(LogXMLSerializer, cls).load(filename, DBLog.vtType, 'log',
+                                                DBWorkflowExec.vtType,
+                                                "translateLog")
+        vistrails.db.services.log.update_ids(obj.obj)
+        return obj
 
     @classmethod
     def save(cls, obj, rootdir):
@@ -516,10 +510,6 @@ class LogXMLSerializer(XMLAppendSerializer):
     @classmethod
     def get_inner_objs(cls, vt_obj):
         return vt_obj.db_workflow_execs
-
-    @classmethod
-    def finish_load(cls, vt_obj):
-        vistrails.db.services.log.update_ids(vt_obj)
 
 class DBDataSerializer(Serializer):
     SCHEMA = """
@@ -561,6 +551,197 @@ class DBDataSerializer(Serializer):
         db_id = c.lastrowid
         connection_obj.get_connection().commit()
         return db_id
+
+class BaseDBSerializer(DBDataSerializer):
+    @classmethod
+    def load(cls, db_id, connection_obj, obj_type, translator_f, lock=False, 
+             version=None):
+        db_connection = connection_obj.get_connection()
+        if version is None:
+            version = get_db_object_version(db_connection, db_id, obj_type)
+        dao_list = vistrails.db.versions.getVersionDAO(version)
+        vt_obj = dao_list.open_from_db(db_connection, obj_type, db_id, lock)
+        vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f, 
+                                                        version)
+        obj_id = cls.get_obj_id(vt_obj)
+        obj = BundleObj(vt_obj, obj_type, obj_id)
+        return obj
+
+    @classmethod
+    def save(cls, obj, connection_obj, translator_f, overwrite=True,
+             version=None):
+        db_connection = connection_obj.get_connection()
+        if version is None:
+            version = cls.get_db_version(db_connection)
+            if version is None:
+                version = vistrails.db.versions.currentVersion
+
+        # if not vt_obj.db_version:
+        #     vt_obj.db_version = currentVersion
+
+        vt_obj = obj.obj
+
+        dao_list = vistrails.db.versions.getVersionDAO(version)
+        vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f,
+                                                        vt_obj.db_version, 
+                                                        version)
+        dao_list.save_to_db(db_connection, vt_obj, overwrite)
+        vt_obj = vistrails.db.versions.translate_object(vt_obj, version,
+                                        vistrails.db.versions.currentVersion)
+
+        cls.finish_save(vt_obj, db_connection, dao_list)
+        db_connection.commit()
+        return vt_obj.db_id
+    
+    @staticmethod
+    def translate_to_tbl_name(obj_type):
+        map = {DBVistrail.vtType: 'vistrail',
+               DBWorkflow.vtType: 'workflow',
+               DBLog.vtType: 'log_tbl',
+               DBRegistry.vtType: 'registry',
+               DBAbstraction.vtType: 'abstraction',
+               DBMashuptrail.vtType: 'mashuptrail',
+               DBAnnotation.vtType: 'annotation',
+               }
+        return map[obj_type]
+
+    @classmethod
+    def get_db_object_version(db_connection, obj_id, obj_type):
+        command = """
+        SELECT o.version
+        FROM %s o
+        WHERE o.id = %s
+        """
+
+        version = vistrails.db.versions.currentVersion
+        try:
+            c = db_connection.cursor()
+            #print command % (cls.translate_to_tbl_name(obj_type), obj_id)
+            c.execute(command % (cls.translate_to_tbl_name(obj_type), obj_id))
+            version = c.fetchall()[0][0]
+            c.close()
+        finally:
+            return version
+
+    @staticmethod
+    def get_db_version(db_connection):
+        command = """
+        SELECT `version`
+        FROM `vistrails_version`
+        """
+
+        try:
+            c = db_connection.cursor()
+            c.execute(command)
+            version = c.fetchall()[0][0]
+            c.close()
+        finally:
+            # just return None if we hit an error
+            return None
+        return version
+
+    @classmethod
+    def get_obj_path(cls, vt_obj):
+        """Return the id by default."""
+        return cls.get_obj_id(vt_obj)
+
+    @classmethod
+    def get_obj_id(cls, vt_obj):
+        return vt_obj.id
+
+    @classmethod
+    def finish_save(cls, obj, db_connection, dao_list):
+        pass
+
+class VistrailDBSerializer(BaseDBSerializer):
+    @classmethod
+    def load(cls, db_id, connection_obj, lock=False, version=None):
+        obj = super(VistrailDBSerializer, cls).load(db_id, connection_obj, 
+                                                    DBVistrail.vtType, 
+                                                    "translateVistrail", lock, 
+                                                    version)
+        for db_action in obj.obj.db_get_actions():
+            db_action.db_operations.sort(key=lambda x: x.db_id)
+        vistrails.db.services.vistrail.update_id_scope(obj.obj)
+        return obj
+
+    @classmethod
+    def save(cls, obj, connection_obj, overwrite=True):
+        # current_action holds the current action id 
+        # (used by the controller--write_vistrail)
+        version = vistrails.db.versions.currentVersion
+        vt_obj = obj.obj
+        current_action = vt_obj.db_currentVersion
+
+        if overwrite and vt_obj.db_last_modified is not None:
+            new_time = get_db_object_modification_time(db_connection, 
+                                                       vt_obj.db_id,
+                                                       DBVistrail.vtType)
+            if new_time > vt_obj.db_last_modified:
+                # need synchronization
+                old_vistrail = open_vistrail_from_db(db_connection,
+                                                     vt_obj.db_id,
+                                                     True, version)
+                old_vistrail = vistrails.db.version.translate_vistrail(
+                    old_vistrail, version)
+                # the "old" one is modified and changes integrated
+                current_action = \
+                    vistrails.db.services.vistrail.synchronize(old_vistrail, 
+                                                               vt_obj, 
+                                                               current_action)
+                obj.obj = old_vistrail
+                obj.obj.db_currentVersion = current_action
+        obj.obj.db_last_modified = connection_obj.get_current_time()
+        
+        db_id = super(VistrailDBSerializer, cls).save(obj, connection_obj, 
+                                                      "translateVistrail", 
+                                                      overwrite, version)
+        return db_id
+
+    @staticmethod
+    def get_saved_workflows(vistrail, db_connection):
+        """ Returns list of action id:s representing populated workflows.
+        """
+        if not vistrail.db_id:
+            return []
+        c = db_connection.cursor()
+        c.execute("SELECT parent_id FROM workflow WHERE vistrail_id=%s;", 
+                  (vistrail.db_id,))
+        ids = [i[0] for i in c.fetchall()]
+        c.close()
+        return ids
+
+    @classmethod
+    def finish_save(cls, vt_obj, db_connection, dao_list):
+        # update all missing tagged workflows
+        # get saved workflows from db
+        workflowIds = cls.get_saved_workflows(vt_obj, db_connection)
+        #print "Workflows already saved:", workflowIds
+        tagMap = {}
+        for annotation in vt_obj.db_actionAnnotations:
+            if annotation.db_key == '__tag__':
+                tagMap[annotation.db_action_id] = annotation.db_value
+        wfToSave = []
+        for id, name in tagMap.iteritems():
+            if id not in workflowIds:
+                #print "creating workflow", vt_obj.db_id, id, name,
+                workflow = vistrails.db.services.vistrail.materializeWorkflow(vt_obj, id)
+                workflow.db_id = None
+                workflow.db_vistrail_id = vt_obj.db_id
+                workflow.db_parent_id = id
+                workflow.db_group = id
+                workflow.db_last_modified = \
+                                    vt_obj.db_get_action_by_id(id).db_date
+                workflow.db_name = name
+                wfToSave.append(workflow)
+        if wfToSave:
+            dao_list.save_many_to_db(db_connection, wfToSave, True)
+        # vt_obj.db_currentVersion = current_action
+
+class WorkflowDBSerializer(BaseDBSerializer):
+    @classmethod
+    def load(cls, db_id, connection_obj):
+        pass
 
 class Manifest(BundleObjDictionary):
     def load(self):
@@ -886,7 +1067,9 @@ class DBSerializer(BundleSerializer):
                                     DBDataSerializer.get_serializer_type())
                 db_id = serializer.save(obj, connection_obj)
                 self._manifest.add_entry(obj_type, obj_id, db_id)
-            except VistrailsDBException:
+            except VistrailsDBException, e:
+                import traceback
+                traceback.print_exc()
                 # cannot serialize object
                 print 'cannot serialize obj', obj_type
                 debug.warning('Cannot serialize object(s) of type "%s"' % \
@@ -901,6 +1084,7 @@ class DBSerializer(BundleSerializer):
             c.execute(connection_obj.format_stmt(self.STMTS['update']), 
                       (self._name,))
         self._manifest.save()
+        connection_obj.get_connection().commit()
 
 class VistrailBundle(Bundle):
     def get_primary_obj(self):
@@ -987,6 +1171,13 @@ class DefaultVistrailsZIPSerializer(ZIPSerializer):
         self.add_serializer("mashup", MashupXMLSerializer)
         self.add_serializer("thumbnail", ThumbnailFileSerializer)
         self.add_serializer("abstraction", AbstractionFileSerializer)    
+
+class DefaultVistrailsDBSerializer(DBSerializer):
+    def __init__(self, connection_obj, bundle_id=None, name="", bundle=None,
+                 overwrite=False, *args, **kwargs):
+        DBSerializer.__init__(self, connection_obj, bundle_id, name, bundle,
+                              overwrite, *args, **kwargs)
+        self.add_serializer("vistrail", VistrailDBSerializer)
 
 class NoManifestMixin(object):
     def load_manifest(self, dir_path=None, fname=None):
@@ -1341,7 +1532,54 @@ class TestBundles(unittest.TestCase):
         finally:
             os.unlink(out_fname)
 
+    def run_vt_db_bundle(self, db_klass):
+        in_fname = os.path.join(vistrails_root_directory(),'tests', 
+                                'resources', 'terminator.vt')
+        (h, out_fname) = tempfile.mkstemp(prefix='vtbundle_test', suffix='.zip')
+        os.close(h)
+
+        try:
+            db = db_klass()
+        except ImportError:
+            self.skipTest("Cannot import dependencies for %s." % \
+                          db_klass.__name__)
+        db_version = vistrails.db.versions.currentVersion
+        connection_obj = db.setup()
+        c = connection_obj.get_connection().cursor()
+        c.execute(connection_obj.format_stmt(DBManifest.SCHEMA))
+        c.execute(connection_obj.format_stmt(DBSerializer.SCHEMA))
+        schema_dir = vistrails.db.versions.getVersionSchemaDir(db_version)
+        vt_schema = os.path.join(schema_dir, 'vistrails.sql')
+        connection_obj.run_sql_file(vt_schema)
+
+        s1 = None
+        s2 = None
+        try:
+            s1 = NoManifestZIPSerializer(in_fname)
+            b1 = s1.load()
+            s2 = DefaultVistrailsDBSerializer(connection_obj, bundle=b1)
+            s2.save()
+        finally:
+            if s1:
+                s1.cleanup()
+            if s2:
+                s2.cleanup()
+            c.execute(connection_obj.format_stmt(DBManifest.DROP_SCHEMA));
+            c.execute(connection_obj.format_stmt(DBSerializer.DROP_SCHEMA));
+            # schema_dir = vistrails.db.versions.getVersionSchemaDir(db_version)
+            # vt_drop_schema = os.path.join(schema_dir, 'vistrails_drop.sql')
+            # connection_obj.run_sql_file(vt_drop_schema)
+            db.cleanup()
+
+    def test_vt_bundle_mysql(self):
+        self.run_vt_db_bundle(MySQLDatabaseTest)        
+
+    def test_vt_bundle_sqlite(self):
+        self.run_vt_db_bundle(SQLite3DatabaseTest)
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTest(TestBundles("test_vt_bundle_sqlite"))
+    unittest.TextTestRunner().run(suite)
                   
