@@ -103,84 +103,102 @@ class FoldWithModule(Fold, NotCacheable):
         Fold.__init__(self)
         self.is_fold_module = True
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update(self):
+        self.logging.begin_update(self)
+        if len(self.inputPorts.get('FunctionPort', [])) != 1:
+            raise ModuleError(self,
+                              "%s module should have exactly one connection "
+                              "on its FunctionPort" % self.__class__.__name__)
+        connectors = []
+        for port, connectorList in self.inputPorts.iteritems():
+            if port != 'FunctionPort':
+                connectors.extend(connectorList)
+        self.run_upstream_module(
+                self.other_ports_ready,
+                *connectors,
+                priority=self.UPDATE_UPSTREAM_PRIORITY)
 
-        # everything is the same except that we don't update anything
-        # upstream of FunctionPort
-        for port_name, connector_list in self.inputPorts.iteritems():
-            if port_name == 'FunctionPort':
-                for connector in connector_list:
-                    connector.obj.updateUpstream()
-            else:
-                for connector in connector_list:
-                    connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
-            if port_name != 'FunctionPort':
-                for connector in connectorList:
-                    if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+    def other_ports_ready(self):
+        self.setInitialValue()
+        self.partialResult = self.initialValue
+        self.elementResult = None
 
-    def updateFunctionPort(self):
-        """
-        Function to be used inside the updateUsptream method of the
-        FoldWithModule module. It updates the modules connected to the
-        FunctionPort port.
-        """
-        nameInput = self.getInputFromPort('InputPort')
-        nameOutput = self.getInputFromPort('OutputPort')
-        rawInputList = self.getInputFromPort('InputList')
+        input_port = self.getInputFromPort('InputPort')
+        input_list = self.getInputFromPort('InputList')
 
-        # Create inputList to always have iterable elements
-        # to simplify code
-        if len(nameInput) == 1:
-            element_is_iter = False
-            inputList = [[element] for element in rawInputList]
+        if len(input_port) == 1:
+            input_list = [[element] for element in input_list]
+            self.input_is_single_element = True
         else:
-            element_is_iter = True
-            inputList = rawInputList
-        suspended = []
-        ## Update everything for each value inside the list
-        for i, element in enumerate(inputList):
-            if element_is_iter:
-                self.element = element
+            self.input_is_single_element = False
+
+        # Loop on the input to update the function modules
+        self.modules_to_run = []
+        for i, element in enumerate(input_list):
+            # If only one input port is set, self.input_is_single_element is
+            # True and the operation() method receives this single element
+            # directly as self.elementResult (not in a 1-element list)
+            # If several input ports are set, self.input_is_single_element is
+            # False and the operation() method receives a list of the arguments
+            # as self.elementResult
+            if self.input_is_single_element:
+                self.element, = element
             else:
-                self.element = element[0]
-            for connector in self.inputPorts.get('FunctionPort'):
-                module = connector.obj
+                self.element = element
 
-                if not self.upToDate:
-                    ## Type checking
-                    if i == 0:
-                        self.typeChecking(module, nameInput, inputList)
+            connector, = self.inputPorts['FunctionPort']
+            module = copy.copy(connector.obj)
 
-                    module.upToDate = False
-                    module.already_computed = False
+            if not self.upToDate:
+                # Type checking
+                if i == 0:
+                    self.typeChecking(module, input_port, input_list)
 
-                    ## Setting information for logging stuff
-                    module.is_fold_operator = True
-                    module.first_iteration = i == 0
-                    module.last_iteration = i == len(inputList) - 1
-                    module.fold_iteration = i
+                module.upToDate = False
+                self.setInputValues(module, input_port, element)
 
-                    self.setInputValues(module, nameInput, element)
+            self.modules_to_run.append(module)
 
-                module.update()
-                if hasattr(module, 'suspended') and module.suspended:
-                    suspended.append(module._module_suspended)
-                    module.suspended = False
-                    continue
-                ## Getting the result from the output port
-                if nameOutput not in module.outputPorts:
-                    raise ModuleError(module,
-                                      'Invalid output port: %s' % nameOutput)
-                self.elementResult = copy.copy(module.get_output(nameOutput))
+        if not self.upToDate:
+            self.run_upstream_module(
+                    self.functions_ready,
+                    *self.modules_to_run)
+        else:
+            self.done()
+
+    def functions_ready(self):
+        self.done()
+        self.logging.begin_compute(self)
+        output_port = self.getInputFromPort('OutputPort')
+
+        suspended = []
+        for module in self.modules_to_run:
+            if hasattr(module, 'suspended') and module.suspended:
+                suspended.append(module._module_suspended)
+                module.suspended = False
+                continue
+            # Getting the result from the output port
+            if output_port not in module.outputPorts:
+                raise ModuleError(module,
+                                  'Invalid output port: %s' % output_port)
+
+            self.elementResult = module.get_output(output_port)
             self.operation()
+
         if suspended:
             self.suspended = "%d module(s) suspended: %s" % (
                     len(suspended), suspended[0].msg)
             self._module_suspended = suspended
+        if self.suspended:
+            raise ModuleSuspended(
+                    self,
+                    self.suspended,
+                    children=self._module_suspended)
+        self.setResult('Result', self.partialResult)
+
+        self.upToDate = True
+        self.logging.end_update(self)
+        self.logging.signalSuccess(self)
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -245,21 +263,6 @@ class FoldWithModule(Fold, NotCacheable):
 
         return matched
 
-    def compute(self):
-        """The compute method for the Fold."""
-
-        self.setInitialValue()
-        self.partialResult = self.initialValue
-        self.elementResult = None
-
-        self.updateFunctionPort()
-
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
-        self.setResult('Result', self.partialResult)
 
 ###############################################################################
 
