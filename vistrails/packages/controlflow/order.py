@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.vistrails_module import Module, InvalidOutput
-import copy
+from vistrails.core.modules.vistrails_module import Module
 
 ##############################################################################
 ## Order Operator
