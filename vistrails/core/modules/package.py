@@ -305,7 +305,7 @@ class Package(DBPackage):
                         debug.warning(
                             "In package '%s', Please use the 'vistrails.' "
                             "prefix when importing vistrails packages." %
-                            self.identifier)
+                            (self.identifier or self.codepath))
                     fixed = pkg
                     name = "vistrails." + name
                     break
