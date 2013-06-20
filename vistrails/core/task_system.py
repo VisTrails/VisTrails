@@ -232,14 +232,17 @@ class Task(object):
     TaskRunner (it is reset by TaskRunner#close()).
     """
     def __init__(self):
-        self.__has_been_run = False
+        self.__started = False
+        self.__finished = False
         self._runner = None
 
     def start(self, runner):
         self._runner = runner
-        if not self.__has_been_run:
-            self.__has_been_run = True
+        if not self.__started:
+            self.__started = True
             self.run()
+        elif self.__finished:
+            self.done()
 
     def run(self):
         """You should override this method. By default, just call done().
@@ -249,6 +252,7 @@ class Task(object):
     def done(self):
         """Indicates that this task has been completed and callback can run.
         """
+        self.__finished = True
         self._runner.task_done(self)
 
     def reset(self):
@@ -256,5 +260,6 @@ class Task(object):
 
         Resets the task so it can be run again.
         """
-        self.__has_been_run = False
+        self.__started = False
+        self.__finished = False
         self._runner = None
