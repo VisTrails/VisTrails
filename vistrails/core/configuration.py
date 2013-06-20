@@ -102,7 +102,7 @@ class ConfigurationObject(InstanceObject):
         if not hasattr(self, key):
             return False
         v = getattr(self, key)
-        if type(v) == tuple and v[0] is None and type(v[1]) == type:
+        if isinstance(v, tuple) and v[0] is None and isinstance(v[1], type):
             return False
         return True
 
@@ -138,11 +138,11 @@ class ConfigurationObject(InstanceObject):
                 continue
             key_element = dom.createElement('key')
             key_element.setAttribute('name', key)
-            if type(value) in [int, str, bool, float]:
+            if isinstance(value, (int, long, basestring, bool, float)):
                 conf_element.appendChild(key_element)
                 value_element = quote_xml_value(dom, value)
                 key_element.appendChild(value_element)
-            elif type(value) == tuple:
+            elif isinstance(value, tuple):
                 pass
             else:
                 assert isinstance(value, ConfigurationObject)
@@ -190,6 +190,7 @@ def default():
         'executeWorkflows': False,
         'fileDirectory': (None, str),
 #        'evolutionGraph': (None, str),
+        'installBundlesWithPip': False,
         'interactiveMode': True,
         'logFile': (None, str),
         'logger': default_logger(),

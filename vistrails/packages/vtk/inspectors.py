@@ -50,7 +50,7 @@ class vtkBaseInspector(Module):
     def register_self(cls, **kwargs):
         registry = get_module_registry()
         def resolve_type(t):
-            if type(t) == tuple:
+            if isinstance(t, tuple):
                 return registry.get_descriptor_by_name(*t).module
             elif isinstance(t, type):
                 return t
@@ -86,7 +86,7 @@ class vtkBaseInspector(Module):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
                     self.setResult(function, output)
-                elif type(retValues) in [tuple, list]:
+                elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):

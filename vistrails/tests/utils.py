@@ -86,7 +86,7 @@ def execute(modules, connections=[], add_port_specs=[]):
     module_list = []
     for i, (name, identifier, functions) in enumerate(modules):
         function_list = []
-        pkg = pm.get_package_by_identifier(identifier)
+        pkg = pm.get_package(identifier)
         for func_name, params in functions:
             param_list = []
             for param_type, param_val in params:

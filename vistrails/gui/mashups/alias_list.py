@@ -177,7 +177,7 @@ class QAliasList(QtGui.QTreeWidget):
         self.alias_widgets = {}
         self.controller = controller
         self.header().setStretchLastSection(True)
-        self.setHeaderLabels(QtCore.QStringList() << "Position" << "Name" << "Type")
+        self.setHeaderLabels(["Position", "Name", "Type"])
         self.itemSelectionChanged.connect(self.setPreviousSelected)
         self.connect(self,
                      QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)"),
@@ -247,8 +247,8 @@ class QAliasList(QtGui.QTreeWidget):
         """
         
         alias.pos = self.topLevelItemCount()
-        labels = QtCore.QStringList() << str(alias.component.pos) << str(alias.name) << \
-                                         str(alias.component.type)
+        labels = [str(alias.component.pos), str(alias.name), \
+                  str(alias.component.type)]
         item = QAliasListItem(self, alias, labels)
         item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable )
         
@@ -340,7 +340,7 @@ class QAliasListItem (QtGui.QTreeWidgetItem):
     
     """
     def __init__(self, parent, alias, labels):
-        """ QAliasListItem(alias: AliasItem, labels: QStringList): 
+        """ QAliasListItem(alias: AliasItem, labels: string): 
         Create a new item with alias and text
 
         """

@@ -40,8 +40,6 @@ import unittest
 from vistrails.db.domain import IdScope
 import copy
 
-systype = type
-
 ################################################################################
 class Component(DBMashupComponent):
     def __init__(self, id, vttype, param_id, parent_vttype, parent_id, mid, 
@@ -56,7 +54,7 @@ class Component(DBMashupComponent):
                                    parent_id, p_pos, mid, pos, type, value, 
                                    minVal, maxVal, stepSize, strvaluelist, 
                                    widget, seq, parent)
-        if systype(seq) == bool:
+        if isinstance(seq, bool):
             self.seq = seq
 
     id = DBMashupComponent.db_id

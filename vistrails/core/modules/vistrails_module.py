@@ -388,6 +388,7 @@ Designing New Modules
         # and the builder besides Parameter Exploration.
         self.moduleInfo = {
             'locator': None,
+            'controller': None,
             'vistrailName': 'Unknown',
             'version': -1,
             'pipeline': None,
@@ -961,7 +962,7 @@ def new_module(baseModule, name, dict={}, docstring=None):
     if isinstance(baseModule, type):
         assert issubclass(baseModule, Module)
         superclasses = (baseModule, )
-    elif type(baseModule) == list:
+    elif isinstance(baseModule, list):
         assert len([x for x in baseModule
                     if issubclass(x, Module)]) == 1
         superclasses = tuple(baseModule)

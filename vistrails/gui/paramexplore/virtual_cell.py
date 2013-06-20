@@ -438,7 +438,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         getConfiguration could be passed directly to
         setConfiguration (the dimensions aren't used).
         """
-        if type(info) == type({}):
+        if isinstance(info, dict):
             result = info
         else:
             rCount, cCount, result = info

@@ -45,7 +45,8 @@ from vistrails.core.modules.vistrails_module import Module, NotCacheable, Invali
 
 from vistrails.core.bundles import py_import
 try:
-    mpl_dict = {'linux-debian': 'python-matplotlib',
+    mpl_dict = {'pip': 'matplotlib',
+                'linux-debian': 'python-matplotlib',
                 'linux-ubuntu': 'python-matplotlib',
                 'linux-fedora': 'python-matplotlib'}
     matplotlib = py_import('matplotlib', mpl_dict)

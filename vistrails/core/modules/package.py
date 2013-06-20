@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import __builtin__
 import copy
 import os
 import re
@@ -42,9 +41,8 @@ import xml.dom
 
 from vistrails.core import debug
 from vistrails.core import get_vistrails_application
-from vistrails.core.configuration import ConfigurationObject, get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
-from vistrails.core.utils import versions_increasing
+from vistrails.core.utils import versions_increasing, VistrailsInternalError
 from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 
 from vistrails.db.domain import DBPackage
@@ -53,6 +51,8 @@ from vistrails.db.domain import DBPackage
 
 class Package(DBPackage):
     Base, User, Other = 0, 1, 2
+
+    FIX_PACKAGE_NAMES = ["api", "core", "db", "gui", "packages", "tests"]
 
     class InitializationFailed(Exception):
         def __init__(self, package, tracebacks):
@@ -103,8 +103,8 @@ class Package(DBPackage):
     def __init__(self, *args, **kwargs):
         if 'load_configuration' in kwargs:
             arg = kwargs['load_configuration']
-            if type(arg) != type(1):
-                if type(arg) == type(True):
+            if not isinstance(arg, (int, long)):
+                if isinstance(arg, bool):
                     if arg:
                         kwargs['load_configuration'] = 1
                     else:
@@ -116,6 +116,10 @@ class Package(DBPackage):
 
         DBPackage.__init__(self, *args, **kwargs)
         self.set_defaults()
+        self._force_no_unload = None
+        self._force_unload = None
+        self._force_sys_unload = None
+        self._imports_are_good = True
     
     def __copy__(self):
         Package.do_copy(self)
@@ -125,6 +129,7 @@ class Package(DBPackage):
         if other is None:
             self._module = None
             self._init_module = None
+            self._loaded = False
             self._initialized = False
             self._abs_pkg_upgrades = {}
             self.package_dir = None
@@ -134,6 +139,7 @@ class Package(DBPackage):
         else:
             self._module = other._module
             self._init_module = other._init_module
+            self._loaded = other._loaded
             self._initialized = other._initialized
             self._abs_pkg_upgrades = copy.copy(other._abs_pkg_upgrades)
             self.package_dir = other.package_dir
@@ -242,39 +248,22 @@ class Package(DBPackage):
 
     ##########################################################################
     # Methods
-    
-    def _override_import(self, existing_paths=None, 
-                         force_no_unload_pkg_list=[], 
-                         force_unload_pkg_list=[], 
-                         force_sys_unload=False):
-        self._real_import = __builtin__.__import__
-        self._imported_paths = set()
-        if existing_paths is not None:
-            self._existing_paths = existing_paths
-        else:
-            self._existing_paths = set(sys.modules.iterkeys())
-        self._warn_vistrails_prefix = False
-        self._force_no_unload = force_no_unload_pkg_list
-        self._force_unload = force_unload_pkg_list
-        self._force_sys_unload = force_sys_unload
-        __builtin__.__import__ = self._import
-        
-    def _reset_import(self):
-        __builtin__.__import__ = self._real_import
-        if self._warn_vistrails_prefix:
-            debug.warning('In package "%s", Please use the "vistrails." prefix when importing vistrails packages.' % self.identifier)
-        return self._imported_paths
 
-    def _import(self, name, globals=None, locals=None, fromlist=None, level=-1):
-        # if name != 'core.modules.module_registry':
-        #     print 'running import', name, fromlist
-
+    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/',
+                                   re.IGNORECASE)
+    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/',
+                                   re.IGNORECASE)
+    def import_override(self, orig_import,
+                        name, globals, locals, fromlist, level,
+                        package_importing_directly):
         def in_package_list(pkg_name, pkg_list):
+            if pkg_list is None:
+                return False
             for pkg in pkg_list:
                 if pkg_name == pkg or pkg_name.startswith(pkg + '.'):
                     return True
             return False
-            
+
         def is_sys_pkg(pkg):
             try:
                 pkg_fname = pkg.__file__
@@ -284,38 +273,49 @@ class Package(DBPackage):
                 return True
             if os.sep != '/':
                 pkg_fname = pkg_fname.replace(os.sep, '/')
-            return (re.search(r'python[0-9.]+[a-z]?/lib/', 
-                              pkg_fname, re.IGNORECASE) or
-                    re.search(r'lib/python[0-9.]+[a-z]?/', 
-                              pkg_fname, re.IGNORECASE))
+            return (self._python_lib_regex.search(pkg_fname) or
+                    self._lib_python_regex.search(pkg_fname))
+
+        sys_modules = sys.modules.keys()
 
         def checked_add_package(qual_name, pkg):
-            if qual_name not in self._existing_paths and \
-                not in_package_list(qual_name, self._force_no_unload) and \
-                (not self._force_sys_unload or not is_sys_pkg(pkg)
-                 or in_package_list(qual_name, self._force_unload)) and \
-                 not qual_name.endswith('_rc'):
-                self._imported_paths.add(qual_name)
+            if qual_name in sys_modules:
+                return
+            if (not in_package_list(qual_name, self._force_no_unload) and
+                    (self._force_sys_unload or not is_sys_pkg(pkg)
+                     or in_package_list(qual_name, self._force_unload)) and
+                     not qual_name.endswith('_rc')):
+                self.py_dependencies.add(qual_name)
 
+        fixed = False
         try:
-            res = self._real_import(name, globals, locals, fromlist, level)
+            res = orig_import(name, globals, locals, fromlist, level)
         except ImportError:
+            if not package_importing_directly:
+                # We only fix stuff imported directly from a package, i.e. we
+                # only tolerate misspellings in the package's code
+                raise
+
             # backward compatibility for packages that import without
             # "vistrails." prefix
-            fixed = False
-            fix_pkgs = ["api", "core", "db", "gui", "packages", "tests"]
-            for pkg in fix_pkgs:
+            for pkg in Package.FIX_PACKAGE_NAMES:
                 if name == pkg or name.startswith(pkg + '.'):
-                    self._warn_vistrails_prefix = True
-                    fixed = True
+                    if self._imports_are_good: # only warn first time
+                        self._imports_are_good = False
+                        debug.warning(
+                            "In package '%s', Please use the 'vistrails.' "
+                            "prefix when importing vistrails packages." %
+                            (self.identifier or self.codepath))
+                    fixed = pkg
                     name = "vistrails." + name
                     break
             if fixed:
-                res = self._real_import(name, globals, locals, fromlist, level)
+                res = orig_import(name, globals, locals, fromlist, level)
             else:
                 raise
         mod = res
-        if not fromlist or len(fromlist) < 1:
+
+        if not fromlist:
             checked_add_package(mod.__name__, mod)
             for comp in name.split('.')[1:]:
                 try:
@@ -329,8 +329,11 @@ class Package(DBPackage):
             for from_name in fromlist:
                 qual_name = res_name + '.' + from_name
                 checked_add_package(qual_name, mod)
-                    
-        return res
+
+        if fixed and not fromlist:
+            return getattr(res, fixed)
+        else:
+            return res
 
     def get_py_deps(self):
         return self.py_dependencies
@@ -338,40 +341,49 @@ class Package(DBPackage):
     def remove_py_deps(self, deps):
         self.py_dependencies.difference_update(deps)
 
-    def load(self, prefix=None, existing_paths=None):
-        """load(module=None). Loads package's module. If module is not None,
-        then uses that as the module instead of 'import'ing it.
+    def load(self, prefix=None):
+        """load(module=None). Loads package's module.
 
-        If package is already initialized, this is a NOP.
+        If package is already loaded, this is a NOP.
 
         """
 
         errors = []
-        if self._initialized:
-            # print 'initialized'
+        if self._loaded:
             return
 
         def import_from(p_path):
             # print 'running import_from'
             try:
                 # print p_path + self.codepath
-                module = __import__(p_path+self.codepath,
-                                    globals(),
-                                    locals(), []),
-                self._module = sys.modules[p_path + self.codepath]
-                self._imported_paths.add(p_path + self.codepath)
-                self._package_type = self.Base
                 self.prefix = p_path
+                __import__(p_path + self.codepath,
+                           globals(),
+                           locals(),
+                           [])
+                self._module = module = sys.modules[p_path + self.codepath]
+                self.py_dependencies.add(p_path + self.codepath)
+                self._package_type = self.Base
+
+                if hasattr(module, "_force_no_unload_pkg_list"):
+                    self._force_no_unload = module._force_no_unload_pkg_list
+                else:
+                    self._force_no_unload = []
+                if hasattr(module, "_force_unload_pkg_list"):
+                    self._force_unload = module._force_unload_pkg_list
+                else:
+                    self._force_unload = []
+                if hasattr(module, "_force_sys_unload"):
+                    self._force_sys_unload = module._force_sys_unload
+                else:
+                    self._force_sys_unload = False
             except ImportError, e:
                 errors.append(traceback.format_exc())
+                self.prefix = None
                 return False
             return True
 
         try:
-            # override __import__ so that we can track what needs to
-            # be unloaded, try imports, and then stop overriding,
-            # updating the set of python dependencies
-            self._override_import(existing_paths)
             if self.prefix is not None:
                 r = not import_from(self.prefix)
             elif prefix is not None:
@@ -381,9 +393,7 @@ class Package(DBPackage):
                      not import_from('userpackages.'))
         except Exception, e:
             raise self.LoadFailed(self, e, traceback.format_exc())
-        finally:
-            self.py_dependencies.update(self._reset_import())
-            
+
         if r:
             raise self.InitializationFailed(self, errors)
 
@@ -401,21 +411,10 @@ class Package(DBPackage):
 
         self.set_properties()
 
-    def initialize(self, existing_paths=None):
-        if hasattr(self._module, "_force_no_unload_pkg_list"):
-            force_no_unload = self._module._force_no_unload_pkg_list
-        else:
-            force_no_unload = []
-        if hasattr(self._module, "_force_unload_pkg_list"):
-            force_unload = self._module._force_unload_pkg_list
-        else:
-            force_unload = []
-        if hasattr(self._module, "_force_sys_unload"):
-            force_sys_unload = self._module._force_sys_unload
-        else:
-            force_sys_unload = False
-        self._override_import(existing_paths, force_no_unload, force_unload, 
-                              force_sys_unload)
+    def initialize(self):
+        if not self._loaded:
+            raise VistrailsInternalError("Called initialize() on non-loaded "
+                                         "Package %s" % self.codepath)
         try:
             name = self.prefix + self.codepath + '.init'
             try:
@@ -430,7 +429,7 @@ class Package(DBPackage):
                     self._init_module = self._module
             else:
                 self._init_module = sys.modules[name]
-                self._imported_paths.add(name)
+                self.py_dependencies.add(name)
                 # Copy attributes (shallow) from _module into _init_module's namespace and point _module to _init_module
                 module_attributes = ['identifier', 'name', 'version',
                                      'configuration', 'package_dependencies',
@@ -441,20 +440,14 @@ class Package(DBPackage):
                     if hasattr(self._module, attr):
                         setattr(self._init_module, attr, getattr(self._module, attr))
                 self._module = self._init_module
-            
+
             self.check_requirements()
             if hasattr(self._init_module, 'initialize'):
-                # override __import__ so that we can track what needs to
-                # be unloaded, try imports, and then stop overriding,
-                # updating the set of python dependencies
                 self._init_module.initialize()
         except Exception:
-            self.py_dependencies.update(self._reset_import())            
             self.unload()
             raise
-        else:
-            self.py_dependencies.update(self._reset_import())
-        
+
     def unload(self):
         for path in self.py_dependencies:
             if path not in sys.modules:
@@ -464,10 +457,12 @@ class Package(DBPackage):
                 # print 'deleting path:', path, path in sys.modules
                 del sys.modules[path]
         self.py_dependencies.clear()
+        self._loaded = False
 
     def set_properties(self):
         # Set properties
         try:
+            self._loaded = True
             self.name = self._module.name
             self.identifier = self._module.identifier
             self.version = self._module.version
@@ -602,11 +597,10 @@ class Package(DBPackage):
         self._initialized = False
 
     def dependencies(self):
-        deps = []
         try:
             callable_ = self._module.package_dependencies
         except AttributeError:
-            pass
+            deps = []
         else:
             deps = callable_()
 
@@ -614,6 +608,9 @@ class Package(DBPackage):
                 hasattr(self._module, '_dependencies'):
             deps.extend(self._module._dependencies)
         return deps
+
+    def loaded(self):
+        return self._loaded
 
     def initialized(self):
         return self._initialized

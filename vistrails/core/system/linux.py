@@ -125,6 +125,7 @@ def get_libX11():
     
     """
     ctypes = py_import('ctypes', {
+            'pip': 'ctypes',
             'linux-debian': 'python-ctypes',
             'linux-ubuntu': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
@@ -144,6 +145,7 @@ def XDestroyWindow(displayId, windowId):
     
     """
     ctypes = py_import('ctypes', {
+            'pip': 'ctypes',
             'linux-debian': 'python-ctypes',
             'linux-ubuntu': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
@@ -161,7 +163,7 @@ class TestLinux(unittest.TestCase):
      def test1(self):
          """ Test if guess_total_memory() is returning an int >= 0"""
          result = guess_total_memory()
-         assert type(result) == type(1) or type(result) == type(1L)
+         assert isinstance(result, (int, long))
          assert result >= 0
 
      def test2(self):

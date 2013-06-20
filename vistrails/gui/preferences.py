@@ -35,6 +35,7 @@
 from PyQt4 import QtGui, QtCore
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.modules.package import Package
 from vistrails.core.utils import InvalidPipeline
 from vistrails.core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
@@ -311,14 +312,14 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             pm.check_dependencies(self._current_package, new_deps)
-        except self._current_package.MissingDependency, e:
+        except Package.MissingDependency, e:
             debug.critical("Missing dependencies", str(e))
         else:
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
-            except self._current_package.InitializationFailed, e:
+            except Package.InitializationFailed, e:
                 debug.critical("Initialization of package '%s' failed" %
                                codepath, str(e))
                 raise
@@ -372,7 +373,7 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         try:
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
-        except self._current_package.InitializationFailed, e:
+        except Package.InitializationFailed, e:
             debug.critical("Re-initialization of package '%s' failed" % 
                             codepath, str(e))
             raise
@@ -409,7 +410,6 @@ class QPackagesWidget(QtGui.QWidget):
         inst = self._enabled_packages_list
         # if we run a late-enable with a prefix (console_mode_test),
         # we don't actually have the package later
-        self.populate_lists()
         for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
             pos = inst.indexFromItem(item).row()
             inst.takeItem(pos)

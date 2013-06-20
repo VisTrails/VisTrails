@@ -389,7 +389,7 @@ class InstanceObject(object):
             else:
                 result += prefix
                 result += "." + str(k) + " = " 
-                if type(v) == type('string'):
+                if isinstance(v, basestring):
                     result +=  "'" + str(v) + "'\n"
                 else:
                     result += str(v) + "\n"

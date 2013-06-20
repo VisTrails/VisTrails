@@ -275,7 +275,7 @@ def string_compare(value_a, value_b, query_method):
     return False
 
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
-                       False, staticmethod(lambda x: type(x) == bool),
+                       False, staticmethod(lambda x: isinstance(x, bool)),
                        widget_type=('vistrails.gui.modules.constant_configuration', 
                                     'BooleanWidget'))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
@@ -294,7 +294,7 @@ Integer = new_constant('Integer' , staticmethod(int_conv), 0,
                        param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'IntegerExploreWidget')])
 String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: type(x) == str),
+                       staticmethod(lambda x: isinstance(x, str)),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'StringQueryWidget'),
                        query_compute=string_compare,
@@ -595,7 +595,7 @@ class Color(Constant):
 
     @staticmethod
     def validate(x):
-        return type(x) == InstanceObject and hasattr(x, 'tuple')
+        return isinstance(x, InstanceObject) and hasattr(x, 'tuple')
 
     @staticmethod
     def to_string(r, g, b):
@@ -850,7 +850,7 @@ def dict_compute(self):
     self.setResult("value", d)
         
 Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
-                          {}, staticmethod(lambda x: type(x) == dict),
+                          {}, staticmethod(lambda x: isinstance(x, dict)),
                           compute=dict_compute)
 
 ##############################################################################
@@ -878,6 +878,10 @@ class PythonSource(NotCacheable, SeparateThread, Module):
     cache_this().
     """
 
+    def __init__(self):
+        Module.__init__(self)
+        self.output_ports_order = []
+
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
@@ -896,9 +900,8 @@ class PythonSource(NotCacheable, SeparateThread, Module):
                               for k in self.inputPorts])
             locals_.update(inputDict)
         if use_output:
-            outputDict = dict([(k, None)
-                               for k in self.outputPorts])
-            locals_.update(outputDict)
+            for output_portname in self.output_ports_order:
+                locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         reg = get_module_registry()
         locals_.update({'fail': fail,
@@ -909,8 +912,8 @@ class PythonSource(NotCacheable, SeparateThread, Module):
         del locals_['source']
         exec code_str in locals_, locals_
         if use_output:
-            for k in outputDict.iterkeys():
-                if locals_[k] != None:
+            for k in self.output_ports_order:
+                if locals_.get(k) != None:
                     self.setResult(k, locals_[k])
 
     def do_compute(self):
@@ -968,9 +971,8 @@ class SmartSource(NotCacheable, Module):
                               for k in self.inputPorts])
             locals_.update(inputDict)
         if use_output:
-            outputDict = dict([(k, None)
-                               for k in self.outputPorts])
-            locals_.update(outputDict)
+            for output_portname in self.output_ports_order:
+                locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         locals_.update({'fail': fail,
                         'package_manager': _m,
@@ -980,11 +982,11 @@ class SmartSource(NotCacheable, Module):
         exec code_str in locals_, locals_
         if use_output:
             oports = self.registry.get_descriptor(SmartSource).output_ports
-            for k in outputDict.iterkeys():
-                if locals_[k] != None:
+            for k in self.output_ports_order:
+                if locals_.get(k) != None:
                     v = locals_[k]
                     spec = oports.get(k, None)
-                    
+
                     if spec:
                         # See explanation of algo in doc/smart_source_resolution_algo.txt
                         # changed from spec.types()[0]

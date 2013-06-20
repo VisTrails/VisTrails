@@ -37,8 +37,11 @@
 with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
 import copy
+import inspect
+import itertools
 import os
 import sys
+import warnings
 
 from vistrails.core import debug, get_vistrails_application
 from vistrails.core.configuration import ConfigurationObject
@@ -76,12 +79,6 @@ class PackageManager(object):
             return ("Packages '%s' and '%s' have cyclic dependencies" %
                     (self._package_1,
                      self._package_2))
-
-    class MissingPackage(Exception):
-        def __init__(self, n):
-            self._package_name = n
-        def __str__(self):
-            return "Package '%s' is missing." % self._package_name
 
     class PackageInternalError(Exception):
         def __init__(self, n, d):
@@ -148,14 +145,21 @@ class PackageManager(object):
             raise VistrailsInternalError(m)
         _package_manager = self
         self._configuration = configuration
-        self._package_list = {}
-        self._package_versions = {}
-        self._old_identifier_map = {}
+
+        # Contains packages that have not yet been enabled, but exist on the
+        # filesystem
+        self._available_packages = {} # codepath: str -> Package
+        # These other lists contain enabled packages
+        self._package_list = {} # codepath: str -> Package
+        self._package_versions = {} # identifier: str -> version -> Package
+        self._old_identifier_map = {} # old_id: str -> new_id: str
         self._dependency_graph = vistrails.core.data_structures.graph.Graph()
+
         self._registry = None
         self._userpackages = None
         self._packages = None
         self._abstraction_pkg = None
+        self._currently_importing_package = None
 
     def init_registry(self, registry_filename=None):
         if registry_filename is not None:
@@ -183,6 +187,73 @@ class PackageManager(object):
             self._abstraction_pkg.version = '1.6'
             self._registry.add_package(self._abstraction_pkg)
 
+        # Setup a global __import__ hook that calls Package#import_override()
+        # for all imports executed from that package
+        import __builtin__
+        self._orig_import = __builtin__.__import__
+        __builtin__.__import__ = self._import_override
+
+    def _import_override(self,
+                         name, globals={}, locals={}, fromlist=[], level=-1):
+        # Get the caller module, using globals (like the original __import
+        # does)
+        try:
+            if globals is None:
+                raise KeyError
+            module = globals['__name__']
+        except KeyError:
+            # Another method of getting the caller module, using the stack
+            caller = inspect.currentframe().f_back
+            module = inspect.getmodule(caller)
+            # Some frames might not be associated to a module, because of the
+            # use of exec for instance; we just skip these until we reach a
+            # valid one
+            while module is None:
+                caller = caller.f_back
+                if caller is None:
+                    break
+                module = inspect.getmodule(caller)
+            if module:
+                module = module.__name__
+
+        # Get the Package from the module name
+        if module:
+            importing_pkg = None
+            current = self._currently_importing_package
+            if (current is not None and
+                    current.prefix and
+                    module.startswith(current.prefix + current.codepath)):
+                importing_pkg = current
+            else:
+                for pkg in itertools.chain(
+                        self._package_list.itervalues(),
+                        self._available_packages.itervalues()):
+                    if (pkg.prefix is not None and
+                            module.startswith(pkg.prefix + pkg.codepath)):
+                        importing_pkg = pkg
+                        break
+
+            # If we are importing directly from a package
+            if importing_pkg is not None:
+                old_current = self._currently_importing_package
+                self._currently_importing_package = importing_pkg
+                result = importing_pkg.import_override(
+                        self._orig_import,
+                        name, globals, locals, fromlist, level,
+                        package_importing_directly=True)
+                self._currently_importing_package = old_current
+                return result
+            # If we are doing it indirectly (from other stuff imported from a
+            # package)
+            elif self._currently_importing_package is not None:
+                return self._currently_importing_package.import_override(
+                        self._orig_import,
+                        name, globals, locals, fromlist, level,
+                        package_importing_directly=False)
+
+        # Else, this is not from a package
+        return self._orig_import(name, globals, locals, fromlist, level)
+
     def finalize_packages(self):
         """Finalizes all installed packages. Call this only prior to
 exiting VisTrails."""
@@ -194,15 +265,24 @@ exiting VisTrails."""
         global _package_manager
         _package_manager = None
 
+    def get_available_package(self, codepath):
+        try:
+            pkg = self._available_packages[codepath]
+        except KeyError:
+            pkg = self._registry.create_package(codepath)
+            self._available_packages[codepath] = pkg
+        return pkg
+
     def add_package(self, codepath, add_to_package_list=True):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
-        package = self._registry.create_package(codepath)
+        package = self.get_available_package(codepath)
         if add_to_package_list:
             self.add_to_package_list(codepath, package)
         return package
 
     def add_to_package_list(self, codepath, package):
+        self._available_packages[codepath] = package
         self._package_list[codepath] = package
 
     def initialize_abstraction_pkg(self, prefix_dictionary):
@@ -254,14 +334,17 @@ Returns true if given package identifier is present."""
         Returns a Package object for an uninstalled package. This does
         NOT install a package.
         """
-        return self._registry.create_package(codepath, False)
+        return self.get_available_package(codepath)
 
     def get_package(self, identifier, version=None):
         # check if it's an old identifier
         identifier = self._old_identifier_map.get(identifier, identifier)
-        package_versions = self._package_versions[identifier]
-        if version is not None:
-            return package_versions[version]
+        try:
+            package_versions = self._package_versions[identifier]
+            if version is not None:
+                return package_versions[version]
+        except KeyError:
+            raise MissingPackage(identifier)
 
         max_version = '0'
         max_pkg = None
@@ -277,18 +360,20 @@ Returns true if given package identifier is present."""
         otherwise throws exception
         """
         if codepath not in self._package_list:
-            raise self.MissingPackage(codepath)
+            raise MissingPackage(codepath)
         else:
             return self._package_list[codepath]
 
     def get_package_by_identifier(self, identifier):
         """get_package_by_identifier(identifier: string) -> Package.
-        Returns a package with given identifier if it is enabled,
-        otherwise throws exception
+        Deprecated, use get_package() instead.
         """
-        if identifier not in self._registry.packages:
-            raise self.MissingPackage(identifier)
-        return self._registry.packages[identifier]
+        warnings.warn(
+                "You should use get_package instead of "
+                "get_package_by_identifier",
+                DeprecationWarning,
+                stacklevel=2)
+        return self.get_package(identifier)
 
     def get_package_configuration(self, codepath):
         """get_package_configuration(codepath: string) ->
@@ -315,7 +400,7 @@ Returns true if given package identifier is present."""
         for dep in deps:
             min_version = None
             max_version = None
-            if type(dep) == tuple:
+            if isinstance(dep, tuple):
                 identifier = dep[0]
                 if len(dep) > 1:
                     min_version = dep[1]
@@ -363,7 +448,7 @@ Returns true if given package identifier is present."""
         self.check_dependencies(package, deps)
 
         for dep in deps:
-            if type(dep) == tuple:
+            if isinstance(dep, tuple):
                 dep_name = dep[0]
             else:
                 dep_name = dep
@@ -373,23 +458,23 @@ Returns true if given package identifier is present."""
                                                    dep_name):
                 self._dependency_graph.add_edge(package.identifier, dep_name)
 
-    def late_enable_package(self, package_codepath, prefix_dictionary={}, 
+    def late_enable_package(self, codepath, prefix_dictionary={},
                             needs_add=True):
         """late_enable_package enables a package 'late', that is,
         after VisTrails initialization. All dependencies need to be
         already enabled.
         """
         if needs_add:
-            if package_codepath in self._package_list:
-                msg = 'duplicate package identifier: %s' % package_codepath
+            if codepath in self._package_list:
+                msg = 'duplicate package identifier: %s' % codepath
                 raise VistrailsInternalError(msg)
-            self.add_package(package_codepath)
-        pkg = self.get_package_by_codepath(package_codepath)
+            self.add_package(codepath)
+        pkg = self.get_package_by_codepath(codepath)
         try:
             pkg.load(prefix_dictionary.get(pkg.codepath, None))
         except Exception, e:
             # invert self.add_package
-            del self._package_list[package_codepath]
+            del self._package_list[codepath]
             raise
         self._dependency_graph.add_vertex(pkg.identifier)
         if pkg.identifier not in self._package_versions:
@@ -404,7 +489,7 @@ Returns true if given package identifier is present."""
             self._registry.initialize_package(pkg)
             self._registry.signals.emit_new_package(pkg.identifier, True)
             app = get_vistrails_application()
-            app.send_notification("package_added", package_codepath)
+            app.send_notification("package_added", codepath)
             self.add_menu_items(pkg)
         except Exception, e:
             del self._package_versions[pkg.identifier][pkg.version]
@@ -413,7 +498,7 @@ Returns true if given package identifier is present."""
             self.remove_old_identifiers(pkg.identifier)
             self._dependency_graph.delete_vertex(pkg.identifier)
             # invert self.add_package
-            del self._package_list[package_codepath]
+            del self._package_list[codepath]
             # if we adding the package to the registry, make sure we
             # remove it if initialization fails
             try:
@@ -422,19 +507,19 @@ Returns true if given package identifier is present."""
                 pass
             raise e
 
-    def late_disable_package(self, package_codepath):
+    def late_disable_package(self, codepath):
         """late_disable_package disables a package 'late', that is,
         after VisTrails initialization. All reverse dependencies need to be
         already disabled.
         """
-        pkg = self.get_package_by_codepath(package_codepath)
-        self.remove_package(package_codepath)
+        pkg = self.get_package_by_codepath(codepath)
+        self.remove_package(codepath)
         pkg.remove_own_dom_element()
 
-    def reload_package_disable(self, package_codepath):
+    def reload_package_disable(self, codepath):
         # for all reverse dependencies, disable them
         prefix_dictionary = {}
-        pkg = self.get_package_by_codepath(package_codepath)
+        pkg = self.get_package_by_codepath(codepath)
         reverse_deps = []
         for dep_id in self.all_reverse_dependencies(pkg.identifier):
             reverse_deps.append(self.get_package(dep_id))
@@ -446,10 +531,10 @@ Returns true if given package identifier is present."""
         # Queue the re-enabling of the packages so event loop can free
         # any QObjects whose deleteLater() method is invoked
         app = get_vistrails_application()
-        app.send_notification("pm_reloading_package", package_codepath,
+        app.send_notification("pm_reloading_package", codepath,
                               reverse_deps, prefix_dictionary)
         # self.emit(self.reloading_package_signal,
-        #           package_codepath,
+        #           codepath,
         #           reverse_deps,
         #           prefix_dictionary)
 
@@ -471,15 +556,13 @@ Returns true if given package identifier is present."""
 
         failed = []
         # import the modules
-        existing_paths = set(sys.modules.iterkeys())
         for package in self._package_list.itervalues():
             # print '+ initializing', package.codepath, id(package)
             if package.initialized():
                 # print '- already initialized'
                 continue
             try:
-                package.load(prefix_dictionary.get(package.codepath, None),
-                             existing_paths)
+                package.load(prefix_dictionary.get(package.codepath, None))
             except Package.LoadFailed, e:
                 debug.critical("Package %s failed to load and will be "
                                "disabled" % package.name, str(e))
@@ -573,8 +656,6 @@ Returns true if given package identifier is present."""
 #                     pkg.remove_own_dom_element()
 #                     failed.append(package)
                 else:
-                    pkg.remove_py_deps(existing_paths)
-                    existing_paths.update(pkg.get_py_deps())
                     self.add_menu_items(pkg)
                     app = get_vistrails_application()
                     app.send_notification("package_added", pkg.codepath)
@@ -634,18 +715,15 @@ Returns true if given package identifier is present."""
 
         If true, returns succesfully loaded, uninitialized package."""
         for codepath in self.available_package_names_list():
-            try:
-                pkg = self.get_package_by_codepath(codepath)
-            except self.MissingPackage:
-                pkg = self.look_at_available_package(codepath)
+            pkg = self.get_available_package(codepath)
             try:
                 pkg.load()
                 if pkg.identifier == identifier:
                     return pkg
                 elif identifier in pkg.old_identifiers:
                     return pkg
-                if hasattr(pkg._module, "can_handle_identifier") and \
-                    pkg._module.can_handle_identifier(identifier):
+                if (hasattr(pkg._module, "can_handle_identifier") and
+                        pkg._module.can_handle_identifier(identifier)):
                     return pkg
             except pkg.LoadFailed:
                 pass
@@ -672,20 +750,18 @@ Returns true if given package identifier is present."""
                     os.path.isdir(path) and \
                         os.path.isfile(os.path.join(path, '__init__.py')))
 
-        def visit(_, dirname, names):
-            for name in names:
+        def search(dirname):
+            for name in os.listdir(dirname):
                 if is_vistrails_package(os.path.join(dirname, name)):
                     if name.endswith('.py'):
                         name = name[:-3]
                     pkg_name_set.add(name)
-            # We want a shallow walk, so we prune the names list
-            del names[:]
 
         # Finds standard packages
         packages = self.import_packages_module()
-        os.path.walk(os.path.dirname(packages.__file__), visit, None)
+        search(os.path.dirname(packages.__file__))
         userpackages = self.import_user_packages_module()
-        os.path.walk(os.path.dirname(userpackages.__file__), visit, None)
+        search(os.path.dirname(userpackages.__file__))
 
         pkg_name_set.update(self._package_list)
         return list(pkg_name_set)
@@ -716,7 +792,7 @@ Returns true if given package identifier is present."""
             if pkg:
                 deps = pkg.dependencies()
                 for dep in deps:
-                    if type(dep) == tuple:
+                    if isinstance(dep, tuple):
                         dep_name = dep[0]
                     else:
                         dep_name = dep
@@ -776,3 +852,73 @@ def get_package_manager():
     return _package_manager
 
 ##############################################################################
+
+import unittest
+
+
+class TestImports(unittest.TestCase):
+    def test_package(self):
+        # Hacks PackageManager so that it temporarily uses our test package
+        # instead of userpackages
+        pm = get_package_manager()
+        from vistrails.tests.resources import import_pkg
+        def fake_userpkg_mod():
+            pm._userpackages = import_pkg
+            return import_pkg
+        old_userpackages = pm._userpackages
+        old_import_userpackages = pm.import_user_packages_module
+        pm._userpackages = import_pkg
+        pm.import_user_packages_module = fake_userpkg_mod
+
+        old_fix_names = list(Package.FIX_PACKAGE_NAMES)
+        Package.FIX_PACKAGE_NAMES.append('tests.resources.import_targets')
+
+        try:
+            # Check the package is in the list
+            available_pkg_names = pm.available_package_names_list()
+            self.assertIn('test_import_pkg', available_pkg_names)
+
+            # Import __init__ and check metadata
+            pkg = pm.look_at_available_package('test_import_pkg')
+            pkg.load('vistrails.tests.resources.import_pkg.')
+            self.assertEqual(pkg.identifier,
+                             'org.vistrails.tests.test_import_pkg')
+            self.assertEqual(pkg.version,
+                             '0.42')
+            for n in ['vistrails.tests.resources.import_targets.test1',
+                      'vistrails.tests.resources.import_targets.test2']:
+                self.assertIn(n, sys.modules)
+
+            # Import init.py
+            pm.late_enable_package(
+                    'test_import_pkg',
+                    {'test_import_pkg':
+                     'vistrails.tests.resources.import_pkg.'})
+            pkg = pm.get_package_by_codepath('test_import_pkg')
+            for n in ['vistrails.tests.resources.import_targets.test3',
+                      'vistrails.tests.resources.import_targets.test4',
+                      'vistrails.tests.resources.import_targets.test5']:
+                self.assertIn(n, sys.modules)
+
+            # Check dependencies
+            deps = pkg.get_py_deps()
+            for dep in ['vistrails.tests.resources.import_pkg.test_import_pkg',
+                        'vistrails.tests.resources.import_pkg.test_import_pkg.init',
+                        'vistrails.tests.resources.import_pkg.test_import_pkg.module1',
+                        'vistrails.tests.resources.import_pkg.test_import_pkg.module2',
+                        'vistrails.tests.resources.import_targets',
+                        'vistrails.tests.resources.import_targets.test1',
+                        'vistrails.tests.resources.import_targets.test2',
+                        'vistrails.tests.resources.import_targets.test3',
+                        'vistrails.tests.resources.import_targets.test4',
+                        'vistrails.tests.resources.import_targets.test5',
+                        'vistrails.tests.resources.import_targets.test6']:
+                self.assertIn(dep, deps)
+        finally:
+            pm._userpackages = old_userpackages
+            pm.import_user_packages_module = old_import_userpackages
+            Package.FIX_PACKAGE_NAMES = old_fix_names
+            try:
+                pm.late_disable_package('test_import_pkg')
+            except MissingPackage:
+                pass

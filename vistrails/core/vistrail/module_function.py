@@ -43,7 +43,6 @@ from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.port_spec import PortSpec
 from itertools import izip
 import copy
-import __builtin__
 
 import unittest
 import copy

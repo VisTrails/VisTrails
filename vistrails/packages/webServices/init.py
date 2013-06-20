@@ -53,7 +53,8 @@ import enumeration_widget
 import platform
 import cPickle
 
-ZSI = py_import('ZSI', {'linux-debian': 'python-zsi',
+ZSI = py_import('ZSI', {'pip': 'zsi',
+                        'linux-debian': 'python-zsi',
                         'linux-ubuntu': 'python-zsi',
                         'linux-fedora': 'python-ZSI'})
 
@@ -1376,7 +1377,7 @@ def initialize(*args, **keywords):
         msg = "The Web Services package is deprecated and will be removed from \
 next VisTrails release. Please consider using the new SUDS Web Services package. \
 This message will not be shown again."
-        pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
+        pm.show_error_message(pm.get_package(identifier),msg)
         try:
             from vistrails.gui.application import get_vistrails_application
             if get_vistrails_application() is not None:
@@ -1450,7 +1451,7 @@ The following could not be loaded:\n"""
         error_list.extend(not_loaded)
         for (w,e) in error_list:
             msg += "Url: '%s', error: '%s'\n"%(w,e)
-        pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
+        pm.show_error_message(pm.get_package(identifier),msg)
 
 def handle_missing_module(*args, **kwargs):
     global webServicesmodulesDict
@@ -1528,7 +1529,7 @@ The following could not be loaded:\n"""
                 error_list.extend(not_loaded)
                 for (w,e) in error_list:
                     msg += "Url: '%s', error: '%s'\n"%(w,e)
-                    pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
+                    pm.show_error_message(pm.get_package(identifier),msg)
         except Exception, e:
             print e
             import traceback

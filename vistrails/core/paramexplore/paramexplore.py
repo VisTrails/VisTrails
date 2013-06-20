@@ -231,7 +231,7 @@ class ParameterExploration(DBParameterExploration):
                 actions = []
                 for v in values:
                     desc = port_spec_item.descriptor
-                    if type(v) != str:
+                    if not isinstance(v, str):
                         str_value = desc.module.translate_to_string(v)
                     else:
                         str_value = v

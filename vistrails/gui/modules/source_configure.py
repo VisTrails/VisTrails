@@ -87,13 +87,13 @@ class SourceWidget(PortTableConfigurationWidget):
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = PortTable(self)
-            labels = QtCore.QStringList() << "Input Port Name" << "Type"
+            labels = ["Input Port Name", "Type"]
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.inputPortTable.initializePorts(self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
             self.outputPortTable = PortTable(self)
-            labels = QtCore.QStringList() << "Output Port Name" << "Type"
+            labels = ["Output Port Name", "Type"]
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.outputPortTable.initializePorts(self.module.output_port_specs, 
                                                  True)
@@ -190,7 +190,7 @@ class SourceViewerWidget(SourceWidget):
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = QtGui.QTableWidget(1, 2, self)
-            labels = QtCore.QStringList() << "Input Port Name" << "Type"
+            labels = ["Input Port Name", "Type"]
             self.inputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.inputPortTable.horizontalHeader().setMovable(False)
             self.inputPortTable.horizontalHeader().setStretchLastSection(True)
@@ -200,7 +200,7 @@ class SourceViewerWidget(SourceWidget):
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
             self.outputPortTable = QtGui.QTableWidget(1, 2, self)
-            labels = QtCore.QStringList() << "Output Port Name" << "Type"
+            labels = ["Output Port Name", "Type"]
             self.outputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.outputPortTable.horizontalHeader().setMovable(False)
             self.outputPortTable.horizontalHeader().setStretchLastSection(True)

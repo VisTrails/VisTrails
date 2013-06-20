@@ -57,6 +57,16 @@ _this_dir = os.path.dirname(os.path.realpath(__file__))
 root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
 sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
 
+def setNewPyQtAPI():
+    try:
+        import sip
+        # We now use the new PyQt API - IPython needs it
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+    except:
+        print "Could not set PyQt API, is PyQt4 installed?"
+setNewPyQtAPI()
+
 import vistrails.tests
 import vistrails.core
 import vistrails.core.db.io
@@ -185,6 +195,8 @@ for (p, subdirs, files) in os.walk(root_directory):
         if test_modules and not module in test_modules:
             continue
         if module.startswith('vistrails.tests.run'):
+            continue
+        if module.startswith('vistrails.tests.resources'):
             continue
         if ('system' in module and not
             module.endswith('__init__')):

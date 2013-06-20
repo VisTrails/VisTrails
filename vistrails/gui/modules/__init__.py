@@ -40,7 +40,7 @@ def get_widget_class(module_klass):
     klass = module_klass.get_widget_class()
     if klass is None:
         return StandardConstantWidgetBase
-    if type(klass) == tuple:
+    if isinstance(klass, tuple):
         (path, klass_name) = klass
         module = __import__(path, globals(), locals(), [klass_name])
         return getattr(module, klass_name)
@@ -55,7 +55,7 @@ def get_query_widget_class(module_klass):
                                          ["==", "!="],
                                          param, parent)
         return DefaultQueryWidget
-    if type(klass) == tuple:
+    if isinstance(klass, tuple):
         (path, klass_name) = klass
         module = __import__(path, globals(), locals(), [klass_name])
         return getattr(module, klass_name)
