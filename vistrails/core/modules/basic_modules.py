@@ -878,6 +878,10 @@ class PythonSource(NotCacheable, Module):
     cache_this().
     """
 
+    def __init__(self):
+        Module.__init__(self)
+        self.output_ports_order = []
+
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
@@ -896,9 +900,8 @@ class PythonSource(NotCacheable, Module):
                               for k in self.inputPorts])
             locals_.update(inputDict)
         if use_output:
-            outputDict = dict([(k, None)
-                               for k in self.outputPorts])
-            locals_.update(outputDict)
+            for output_portname in self.output_ports_order:
+                locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         reg = get_module_registry()
         locals_.update({'fail': fail,
@@ -909,8 +912,8 @@ class PythonSource(NotCacheable, Module):
         del locals_['source']
         exec code_str in locals_, locals_
         if use_output:
-            for k in outputDict.iterkeys():
-                if locals_[k] != None:
+            for k in self.output_ports_order:
+                if locals_.get(k) != None:
                     self.setResult(k, locals_[k])
 
     def compute(self):
@@ -955,9 +958,8 @@ class SmartSource(NotCacheable, Module):
                               for k in self.inputPorts])
             locals_.update(inputDict)
         if use_output:
-            outputDict = dict([(k, None)
-                               for k in self.outputPorts])
-            locals_.update(outputDict)
+            for output_portname in self.output_ports_order:
+                locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         locals_.update({'fail': fail,
                         'package_manager': _m,
@@ -967,11 +969,11 @@ class SmartSource(NotCacheable, Module):
         exec code_str in locals_, locals_
         if use_output:
             oports = self.registry.get_descriptor(SmartSource).output_ports
-            for k in outputDict.iterkeys():
-                if locals_[k] != None:
+            for k in self.output_ports_order:
+                if locals_.get(k) != None:
                     v = locals_[k]
                     spec = oports.get(k, None)
-                    
+
                     if spec:
                         # See explanation of algo in doc/smart_source_resolution_algo.txt
                         # changed from spec.types()[0]
