@@ -220,7 +220,7 @@ class EngineManager(object):
             if qt_available:
                 bar = QtGui.QProgressDialog(
                         "Starting engines...",
-                        QtCore.QString(),
+                        None,
                         0, nb)
                 def progress(n):
                     bar.setValue(n)

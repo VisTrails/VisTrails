@@ -603,10 +603,10 @@ class VistrailController(object):
     @staticmethod
     def create_connection_static(id_scope, output_module, output_port_spec,
                                  input_module, input_port_spec):     
-        if type(output_port_spec) == type(""):
+        if isinstance(output_port_spec, basestring):
             output_port_spec = \
                 output_module.get_port_spec(output_port_spec, 'output')
-        if type(input_port_spec) == type(""):
+        if isinstance(input_port_spec, basestring):
             input_port_spec = \
                 input_module.get_port_spec(input_port_spec, 'input')            
         if output_port_spec is None:
@@ -1889,7 +1889,7 @@ class VistrailController(object):
             
         if module_version is None:
             module_version = str(abs_vistrail.get_latest_version())
-        elif type(module_version) == type(1):
+        elif isinstance(module_version, (int, long)):
             module_version = str(module_version)
         # If an upgraded version has already been created, we want to use that rather than loading the old version.
         # This step also avoid duplication of abstraction upgrades.  Otherwise, when we try to add the old version
@@ -1956,7 +1956,7 @@ class VistrailController(object):
 
 #    def update_abstraction(self, abstraction, new_actions):
 #        module_version = abstraction.internal_version
-#        if type(module_version) == type(""):
+#        if isinstance(module_version, basestring):
 #            module_version = int(module_version)
 #        abstraction_uuid = \
 #            abstraction.vistrail.get_annotation('__abstraction_uuid__').value
@@ -3372,7 +3372,7 @@ class VistrailController(object):
             save_bundle = SaveBundle(self.vistrail.vtType)
             if export:
                 save_bundle.vistrail = self.vistrail.do_copy()
-                if type(locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(locator, vistrails.core.db.locator.DBLocator):
                     save_bundle.vistrail.db_log_filename = None
             else:
                 save_bundle.vistrail = self.vistrail
@@ -3417,7 +3417,7 @@ class VistrailController(object):
                     self.locator = locator
                 save_bundle = locator.save_as(save_bundle, version)
                 new_vistrail = save_bundle.vistrail
-                if type(locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(locator, vistrails.core.db.locator.DBLocator):
                     new_vistrail.db_log_filename = None
                     locator.kwargs['obj_id'] = new_vistrail.db_id
                 if not export:

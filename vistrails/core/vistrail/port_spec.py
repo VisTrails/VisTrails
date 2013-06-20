@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import __builtin__
 from itertools import izip
 import operator
 
@@ -99,8 +98,8 @@ class PortSpec(DBPortSpec):
 
         if 'optional' not in kwargs:
             kwargs['optional'] = 0 # False
-        elif type(kwargs['optional']) != type(0):
-            if type(kwargs['optional']) == type(True):
+        elif not isinstance(kwargs['optional'], (int, long)):
+            if isinstance(kwargs['optional'], bool):
                 if kwargs['optional']:
                     kwargs['optional'] = 1
                 else:
@@ -229,7 +228,7 @@ class PortSpec(DBPortSpec):
     sigstring = property(_get_sigstring)
 
     def is_mandatory(self):
-        return (min_conns > 0)
+        return (self.min_conns > 0)
 
     def _get_labels(self):
         return [i.label for i in self.port_spec_items]
@@ -335,24 +334,24 @@ class PortSpec(DBPortSpec):
         registry = get_module_registry()
         entries = []
         def canonicalize(sig_item):
-            if type(sig_item) == __builtin__.tuple:
+            if isinstance(sig_item, tuple):
                 # assert len(sig_item) == 2
-                # assert type(sig_item[0]) == __builtin__.type
-                # assert type(sig_item[1]) == __builtin__.str
+                # assert type(sig_item[0]) == type
+                # assert type(sig_item[1]) == str
                 descriptor = registry.get_descriptor(sig_item[0])
                 label = sig_item[1]
                 return (descriptor, label)
-            elif type(sig_item) == __builtin__.list:
+            elif isinstance(sig_item, list):
                 descriptor = registry.get_descriptor_by_name(
                     get_vistrails_basic_pkg_id(), 'List')
                 return (descriptor, None)
             else:
-                # type(sig_item) == __builtin__.type:
+                # isinstance(sig_item, type):
                 return (registry.get_descriptor(sig_item), None)
 
         # def _add_entry(sig_item):
         ps_items = []
-        if type(signature) != __builtin__.list:
+        if not isinstance(signature, list):
             signature = [signature]
         self._resize_attrs(signature, *attrs)
         for i, item_tuple in enumerate(izip(signature, *attrs)):

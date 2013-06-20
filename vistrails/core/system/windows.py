@@ -184,7 +184,7 @@ def executable_is_in_pythonpath(filename):
 
 def list2cmdline(lst):
     for el in lst:
-        assert type(el) in [str,unicode]
+        assert isinstance(el, basestring)
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):
@@ -229,7 +229,7 @@ class TestWindows(unittest.TestCase):
      def test1(self):
          """ Test if guess_total_memory() is returning an int >= 0"""
          result = guess_total_memory()
-         assert type(result) == type(1) or type(result) == type(1L)
+         assert isinstance(result, (int, long))
          assert result >= 0
 
      def test2(self):

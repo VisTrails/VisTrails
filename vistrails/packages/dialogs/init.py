@@ -68,9 +68,9 @@ class TextDialog(Dialog):
                 label = 'Password'
 
         if self.hasInputFromPort('default'):
-            default = QtCore.QString(self.getInputFromPort('default'))
+            default = self.getInputFromPort('default')
         else:
-            default = QtCore.QString('')
+            default = ''
             
         if self.hasInputFromPort('cacheable') and self.getInputFromPort('cacheable'):
             self.cacheable_dialog = True

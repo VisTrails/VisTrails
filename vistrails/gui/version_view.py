@@ -242,12 +242,12 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
             painter.drawLine(line)
 
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: variant) -> variant
         Do not allow link to be selected with version shape
         
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
-            return QtCore.QVariant(False)
+        if change==QtGui.QGraphicsItem.ItemSelectedChange and value:
+            return False
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 
 
@@ -378,7 +378,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
-        if not self.updatingTag and QtCore.QString.compare(self.label, self.toPlainText()) != 0:
+        if not self.updatingTag and self.label != self.toPlainText():
             self.updatingTag = True
             if (self.label == str(self.toPlainText()) or 
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
@@ -1214,7 +1214,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
-                if type(item) == vistrails.gui.version_view.QGraphicsVersionItem:
+                if isinstance(item, vistrails.gui.version_view.QGraphicsVersionItem):
                     item.text.clearFocus()
         qt_super(QVersionTreeView, self).selectModules()
                 

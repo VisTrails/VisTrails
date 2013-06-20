@@ -50,6 +50,7 @@ Intermediate Concepts and VisTrails Packages
 
    controlflow
    cfassistant
+   parallelflow
    database
    example_webservices
    persistence

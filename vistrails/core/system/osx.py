@@ -250,6 +250,12 @@ def get_executable_path(executable_name):
             os.path.join(os.path.dirname(vt_path), executable_name)
         if os.path.exists(executable_path):
             return executable_path
+    paths = os.environ['PATH']
+    paths = paths.split(os.pathsep)
+    for prefix in paths:
+        path = os.path.join(prefix, executable_name)
+        if os.path.exists(path):
+            return path
     return None
 
 ################################################################################
@@ -261,7 +267,7 @@ class TestMacOSX(unittest.TestCase):
      def test1(self):
          """ Test if guess_total_memory() is returning an int >= 0"""
          result = guess_total_memory()
-         assert type(result) == type(1) or type(result) == type(1L)
+         assert isinstance(result, (int, long))
          assert result >= 0
 
      def test2(self):

@@ -185,7 +185,11 @@ def get_selected_modules(controller=None):
     if controller is None:
         controller = get_current_controller()
     modules = []
-    for m_id in controller.get_selected_item_ids()[0]:
+    selected = controller.get_selected_item_ids()
+    if selected is None:
+        return []
+    (sel_module_ids, sel_connection_ids) = selected
+    for m_id in sel_module_ids:
         modules.append(controller.current_pipeline.modules[m_id])
     return modules
     
@@ -268,7 +272,7 @@ def select_version(version, ctrl=None):
     if ctrl is None:
         ctrl = get_current_controller()
     vistrail = ctrl.vistrail
-    if type(version) == str:
+    if isinstance(version, str):
         version = vistrail.get_tag_str(version).action_id
     ctrl.change_selected_version(version)
     ctrl.invalidate_version_tree(False)
@@ -318,7 +322,7 @@ def get_vistrail_from_file(filename):
     from vistrails.core.db.locator import FileLocator
     from vistrails.core.vistrail.vistrail import Vistrail
     v = FileLocator(filename).load()
-    if type(v) != Vistrail:
+    if not isinstance(v, Vistrail):
         v = v.vistrail
     return v
 

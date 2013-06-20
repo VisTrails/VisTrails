@@ -46,4 +46,4 @@ def list_conv(l):
         return l
 
 ListOfElements = new_constant('ListOfElements' , staticmethod(list_conv), [],\
-                              staticmethod(lambda x: type(x) == list))
+                              staticmethod(lambda x: isinstance(x, list)))

@@ -261,6 +261,7 @@ Designing New Modules
         # and the builder besides Parameter Exploration.
         self.moduleInfo = {
             'locator': None,
+            'controller': None,
             'vistrailName': 'Unknown',
             'version': -1,
             'pipeline': None,
@@ -565,6 +566,20 @@ class NotCacheable(object):
 
 ################################################################################
 
+class Converter(Module):
+    """Base class for automatic conversion modules.
+
+    Modules that subclass Converter will be inserted automatically when
+    connecting incompatible ports, if possible.
+
+    You must override the 'in_value' and 'out_value' ports by providing the
+    types your module actually matches.
+    """
+    def compute(self):
+        raise NotImplementedError
+
+################################################################################
+
 class ModuleConnector(object):
     def __init__(self, obj, port, spec=None):
         self.obj = obj
@@ -588,10 +603,10 @@ def new_module(baseModule, name, dict={}, docstring=None):
     elements of the baseModule list (or baseModule itself, in the case
     it's a single class) should be a subclass of Module.
     """
-    if type(baseModule) == type:
+    if isinstance(baseModule, type):
         assert issubclass(baseModule, Module)
         superclasses = (baseModule, )
-    elif type(baseModule) == list:
+    elif isinstance(baseModule, list):
         assert len([x for x in baseModule
                     if issubclass(x, Module)]) == 1
         superclasses = tuple(baseModule)

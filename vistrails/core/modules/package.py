@@ -103,8 +103,8 @@ class Package(DBPackage):
     def __init__(self, *args, **kwargs):
         if 'load_configuration' in kwargs:
             arg = kwargs['load_configuration']
-            if type(arg) != type(1):
-                if type(arg) == type(True):
+            if not isinstance(arg, (int, long)):
+                if isinstance(arg, bool):
                     if arg:
                         kwargs['load_configuration'] = 1
                     else:

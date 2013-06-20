@@ -246,7 +246,7 @@ class UpgradeWorkflowHandler(object):
                               dst_module, dst_port):
         # spec -> name, type, signature
         output_port_id = controller.id_scope.getNewId(Port.vtType)
-        if type(src_port) == type(""):
+        if isinstance(src_port, basestring):
             output_port_spec = src_module.get_port_spec(src_port, 'output')
             output_port = Port(id=output_port_id,
                                spec=output_port_spec,
@@ -261,7 +261,7 @@ class UpgradeWorkflowHandler(object):
                                moduleName=src_module.name)
 
         input_port_id = controller.id_scope.getNewId(Port.vtType)
-        if type(dst_port) == type(""):
+        if isinstance(dst_port, basestring):
             input_port_spec = dst_module.get_port_spec(dst_port, 'input')
             input_port = Port(id=input_port_id,
                               spec=input_port_spec,
@@ -296,7 +296,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add the annotation back in
                     continue
-                elif type(remap) != type(""):
+                elif not isinstance(remap, basestring):
                     ops.extend(remap(annotation))
                     continue
                 else:
@@ -317,7 +317,7 @@ class UpgradeWorkflowHandler(object):
                         remap = dst_port_remap[port_spec.name]
                         if remap is None:
                             continue
-                        elif type(remap) != type(""):
+                        elif not isinstance(remap, basestring):
                             ops.extend(remap(port_spec))
                             continue
                         else:
@@ -329,7 +329,7 @@ class UpgradeWorkflowHandler(object):
                         remap = src_port_remap[port_spec.name]
                         if remap is None:
                             continue
-                        elif type(remap) != type(""):
+                        elif not isinstance(remap, basestring):
                             ops.extend(remap(port_spec))
                             continue
                         else:
@@ -347,7 +347,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add the function back in
                     continue                    
-                elif type(remap) != type(""):
+                elif not isinstance(remap, basestring):
                     function_ops.extend(remap(function, new_module))
                     continue
                 else:
@@ -380,7 +380,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add this connection back in
                     continue
-                elif type(remap) != type(""):
+                elif not isinstance(remap, basestring):
                     ops.extend(remap(old_conn, new_module))
                     continue
                 else:
@@ -404,7 +404,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add this connection back in
                     continue
-                elif type(remap) != type(""):
+                elif not isinstance(remap, basestring):
                     ops.extend(remap(old_conn, new_module))
                     continue
                 else:
@@ -534,7 +534,7 @@ class UpgradeWorkflowHandler(object):
                                                         old_module.namespace)
                             else:
                                 raise e
-                    elif type(new_module_type) == type(""):
+                    elif isinstance(new_module_type, basestring):
                         d_tuple = parse_descriptor_string(new_module_type,
                                                           old_module.package)
                         try:

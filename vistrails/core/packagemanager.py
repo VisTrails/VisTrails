@@ -400,7 +400,7 @@ Returns true if given package identifier is present."""
         for dep in deps:
             min_version = None
             max_version = None
-            if type(dep) == tuple:
+            if isinstance(dep, tuple):
                 identifier = dep[0]
                 if len(dep) > 1:
                     min_version = dep[1]
@@ -448,7 +448,7 @@ Returns true if given package identifier is present."""
         self.check_dependencies(package, deps)
 
         for dep in deps:
-            if type(dep) == tuple:
+            if isinstance(dep, tuple):
                 dep_name = dep[0]
             else:
                 dep_name = dep
@@ -792,7 +792,7 @@ Returns true if given package identifier is present."""
             if pkg:
                 deps = pkg.dependencies()
                 for dep in deps:
-                    if type(dep) == tuple:
+                    if isinstance(dep, tuple):
                         dep_name = dep[0]
                     else:
                         dep_name = dep

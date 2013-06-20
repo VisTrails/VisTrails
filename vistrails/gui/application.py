@@ -553,7 +553,7 @@ parameters from other instances")
                 mac_attribute = QtCore.Qt.WA_MacBrushedMetal
             if(event.type() == create_event and 
                issubclass(type(o),QtGui.QWidget) and
-               type(o) != QtGui.QSplashScreen and 
+               not isinstance(o, QtGui.QSplashScreen) and
                not (o.windowFlags() & QtCore.Qt.Popup)):
                     o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
@@ -569,7 +569,7 @@ parameters from other instances")
             local_socket = self.local_server.nextPendingConnection()
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return
             byte_array = local_socket.readAll()
             self.temp_db_options = None
@@ -589,7 +589,7 @@ parameters from other instances")
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.debug("Writing failed: %s" %
-                            local_socket.errorString().toLatin1())
+                            local_socket.errorString())
                 return
             local_socket.disconnectFromServer()
     
@@ -601,18 +601,18 @@ parameters from other instances")
             local_socket.connectToServer(self._unique_key)
             if not local_socket.waitForConnected(self.timeout):
                 debug.critical("Connection failed: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             self.shared_memory.lock()
             local_socket.write(message)
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.critical("Writing failed: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             byte_array = local_socket.readAll()
             result = str(byte_array)
@@ -630,7 +630,7 @@ parameters from other instances")
         if options_re.match(msg):
             #it's safe to eval as a list
             args = eval(msg)
-            if type(args) == type([]):
+            if isinstance(args, list):
                 #print "args from another instance %s"%args
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()

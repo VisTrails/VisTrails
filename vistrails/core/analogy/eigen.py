@@ -265,7 +265,7 @@ class EigenBase(object):
     def pv(v, digits=5, left_digits=None):
         # FIXME - some scipy indexing seems to be currently
         # inconsistent across different deployed versions. Fix this.
-        if type(v) == scipy.matrix:
+        if isinstance(v, scipy.matrix):
             v = scipy.array(v)[0]
         (c,) = v.shape
         print "[ ",

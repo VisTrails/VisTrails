@@ -53,7 +53,8 @@ import enumeration_widget
 import platform
 import cPickle
 
-ZSI = py_import('ZSI', {'linux-debian': 'python-zsi',
+ZSI = py_import('ZSI', {'pip': 'zsi',
+                        'linux-debian': 'python-zsi',
                         'linux-ubuntu': 'python-zsi',
                         'linux-fedora': 'python-ZSI'})
 

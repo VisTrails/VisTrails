@@ -390,7 +390,7 @@ class QViewManager(QtGui.QTabWidget):
         if version is None, use the latest version
         """
 
-        if type(version) == type(""):
+        if isinstance(version, basestring):
             try:
                 version = vistrail.get_version_number(version)
             except:
@@ -420,7 +420,7 @@ class QViewManager(QtGui.QTabWidget):
         view = self.ensureVistrail(locator)
         if view:
             if version is not None:
-                if type(version) == type(""):
+                if isinstance(version, basestring):
                     try:
                         version = view.vistrail.get_version_number(version)
                     except:

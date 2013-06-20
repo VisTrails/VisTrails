@@ -297,7 +297,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             del self.workflowItems[(name, version_id)]
 
     def item_selected(self, item):
-        if type(item) == QWorkflowItem:
+        if isinstance(item, QWorkflowItem):
             item.goto()
 
     def load_running_jobs(self):

@@ -300,7 +300,7 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     can either be a tag (string) or an id (long)
     """
 
-    if type(vistrail) == type(""):
+    if isinstance(vistrail, basestring):
         vt_fname = vistrail
         vistrail = read_vistrail(vistrail)
     elif vt_fname is None:
@@ -363,7 +363,7 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     return new_module(Abstraction, name, d, docstring)
 
 def get_abstraction_dependencies(vistrail, internal_version=-1L):
-    if type(vistrail) == type(""):
+    if isinstance(vistrail, basestring):
         vistrail = read_vistrail(vistrail)
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
@@ -378,7 +378,7 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
     return packages
 
 def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
-    if type(vistrail) == type(""):
+    if isinstance(vistrail, basestring):
         vistrail = read_vistrail(os.path.join(pkg.package_dir, vistrail))
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()

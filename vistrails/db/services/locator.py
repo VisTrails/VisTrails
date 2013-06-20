@@ -625,7 +625,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     # Operators
 
     def __eq__(self, other):
-        if type(other) != XMLFileLocator:
+        if not isinstance(other, XMLFileLocator):
             return False
         return self._name == other._name
 
@@ -677,7 +677,7 @@ class ZIPFileLocator(XMLFileLocator):
     # Operators
 
     def __eq__(self, other):
-        if type(other) != ZIPFileLocator:
+        if not isinstance(other, ZIPFileLocator):
             return False
         return self._name == other._name
 

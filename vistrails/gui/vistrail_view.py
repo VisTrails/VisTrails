@@ -576,7 +576,7 @@ class QVistrailView(QtGui.QWidget):
             #if none of the detached views is active we will assume that the
             #window containing this vistrail has focus
             widget = self.stack.currentWidget()
-            if not query_top_level and type(widget) == QQueryView:
+            if not query_top_level and isinstance(widget, QQueryView):
                 widget = widget.get_current_view()
             return widget
         
@@ -591,7 +591,7 @@ class QVistrailView(QtGui.QWidget):
         
     def get_tab(self, stack_idx):
         widget = self.stack.widget(stack_idx)
-        if type(widget) == QQueryView:
+        if isinstance(widget, QQueryView):
             widget = widget.get_current_view()
         return widget
 

@@ -143,7 +143,7 @@ def get_load_file_locator_from_gui(parent, obj_type):
         "Open %s..." % obj_type.capitalize(),
         vistrails.core.system.vistrails_file_directory(),
         "VisTrails files (%s)\nOther files (*)" % suffixes)
-    if fileName.isEmpty():
+    if not fileName:
         return None
     filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
     dirName = os.path.dirname(filename)
@@ -161,10 +161,9 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         parent,
         "Save Vistrail...",
         vistrails.core.system.vistrails_file_directory(),
-        "VisTrails files (%s)" % suffixes, # filetypes.strip()
-        None,
-        QtGui.QFileDialog.DontConfirmOverwrite)
-    if fileName.isEmpty():
+        filter="VisTrails files (%s)" % suffixes, # filetypes.strip()
+        options=QtGui.QFileDialog.DontConfirmOverwrite)
+    if not fileName:
         return None
     f = str(QtCore.QFile.encodeName(fileName))
 
@@ -200,8 +199,8 @@ def get_autosave_prompt(parent):
     
     """
     result = QtGui.QMessageBox.question(parent, 
-                                        QtCore.QString("AutoSave"),
-                                        QtCore.QString("Autosave data has been found.\nDo you want to open autosave data?"),
+                                        "AutoSave",
+                                        "Autosave data has been found.\nDo you want to open autosave data?",
                                         QtGui.QMessageBox.Open,
                                         QtGui.QMessageBox.Ignore)
     return result == QtGui.QMessageBox.Open

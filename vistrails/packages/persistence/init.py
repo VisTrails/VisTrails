@@ -132,7 +132,7 @@ class PersistentRef(Constant):
         
     @staticmethod
     def validate(x):
-        return type(x) == PersistentRef
+        return isinstance(x, PersistentRef)
 
     _input_ports = [('value', '(PersistentRef)')]
     _output_ports = [('value', '(PersistentRef)')]

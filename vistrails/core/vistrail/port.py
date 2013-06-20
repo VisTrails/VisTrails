@@ -40,7 +40,6 @@ from vistrails.db.domain import DBPort
 from vistrails.core.utils import VistrailsInternalError, all
 from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 import vistrails.core.modules.vistrails_module
-import __builtin__
 import copy
 
 import unittest
