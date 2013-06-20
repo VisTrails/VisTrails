@@ -230,7 +230,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     for (j,p) in enumerate(f.params):
                         try:
                             constant = create_constant(p, module)
-                            constant.start(None)
                             connector = ModuleConnector(constant, 'value')
                             tupleModule.set_input_port(j, connector)
                         except ValueError, e:
