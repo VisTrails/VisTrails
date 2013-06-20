@@ -76,9 +76,9 @@ class If(Module, NotCacheable):
             self.setResult('Result', self.getInputFromPort('TruePort'))
         else:
             self.setResult('Result', self.getInputFromPort('FalsePort'))
+        self.upToDate = True
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
-        self.done()
 
 #################################################################################
 ## Default module
