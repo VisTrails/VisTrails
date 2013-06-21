@@ -186,6 +186,14 @@ class Map(Module, NotCacheable):
                              infos['engine_id'], infos['engine_uuid']))
             sys.stderr.write("%s\n" % strip_ansi_codes(formatted_tb))
 
+    @staticmethod
+    def list_exceptions(e):
+        return '\n'.join(
+                "% 3d: %s: %s" % (infos['engine_id'],
+                                  e_type,
+                                  e_msg)
+                for e_type, e_msg, tb, infos in e.elist)
+
     def updateFunctionPort(self):
         """
         Function to be used inside the updateUsptream method of the Map module. It
@@ -339,9 +347,9 @@ class Map(Module, NotCacheable):
                                   block=True)
             except CompositeError, e:
                 self.print_compositeerror(e)
-                raise ModuleError(self, "Error running imports on IPython "
-                                  "engines (see terminal):\n"
-                                  "%s" % ', '.join([ce[0] for ce in e.elist]))
+                raise ModuleError(self, "Error initializing application on "
+                                  "IPython engines:\n"
+                                  "%s" % self.list_exceptions(e))
 
             init_view['init'] = True
 
@@ -355,15 +363,16 @@ class Map(Module, NotCacheable):
             map_result = ldview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
         except CompositeError, e:
             self.print_compositeerror(e)
-            raise ModuleError(self, "Error initializing application on "
-                              "IPython engines:\n"
-                              "%r" % e.elist)
+            raise ModuleError(self, "Error from IPython engines:\n"
+                              "%s" % self.list_exceptions(e))
 
         # verifying errors
         errors = []
         for engine in range(len(map_result)):
             if map_result[engine]['errors']:
-                msg = "ModuleError in engine %d: '%s'" %(engine, ', '.join(map_result[engine]['errors']))
+                msg = "ModuleError in engine %d: '%s'" % (
+                        engine,
+                        ', '.join(map_result[engine]['errors']))
                 errors.append(msg)
 
         if errors:
