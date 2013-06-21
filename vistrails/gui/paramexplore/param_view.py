@@ -406,7 +406,7 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
         """
         self.parameter = info
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
-        if type(self.parameter)==int:
+        if isinstance(self.parameter, int):
             self.setData(0, QtCore.Qt.UserRole+1,
                          self.parameter)
         self.isSet = isSet

@@ -68,8 +68,8 @@ def _check_fringe(fringe):
     for v in fringe:
         assert isinstance(v, tuple)
         assert len(v) == 2
-        assert type(v[0]) == float
-        assert type(v[1]) == float
+        assert isinstance(v[0], float)
+        assert isinstance(v[1], float)
 
 def _toposort_modules(module_list):
     """_toposort_modules([class]) -> [class]
@@ -114,7 +114,7 @@ def _toposort_abstractions(package, abstraction_list):
     g = Graph()
     for a in abstraction_list:
         if isinstance(a, tuple):
-            if type(a[1]) == dict and 'name' in a[1]:
+            if isinstance(a[1], dict) and 'name' in a[1]:
                 name = a[1]['name']
                 if 'namespace' in a[1]:
                     name = (name, namespace)
@@ -997,7 +997,7 @@ class ModuleRegistry(DBRegistry):
                     elif len(port_info) >= 2:
                         port_name, port_sig = port_info[:2]
                         if len(port_info) > 2 and \
-                                type(port_info[2]) == dict:
+                                isinstance(port_info[2], dict):
                             kwargs = port_info[2]
                             adder_f(module, port_name, port_sig, **kwargs)
                             added = True
@@ -1020,8 +1020,8 @@ class ModuleRegistry(DBRegistry):
             return self.add_module(module)
         elif (isinstance(module, tuple) and
               len(module) == 2 and
-              type(module[0]) == type and
-              type(module[1]) == dict):
+              isinstance(module[0], type) and
+              isinstance(module[1], dict)):
             descriptor = self.add_module(module[0], **module[1])
             return descriptor
         else:
@@ -1242,8 +1242,8 @@ class ModuleRegistry(DBRegistry):
             return self.add_subworkflow(subworkflow)
         elif (isinstance(subworkflow, tuple) and
               len(subworkflow) == 2 and
-              type(subworkflow[0]) == str and
-              type(subworkflow[1]) == dict):
+              isinstance(subworkflow[0], str) and
+              isinstance(subworkflow[1], dict)):
             descriptor = self.add_subworkflow(subworkflow[0], **subworkflow[1])
             return descriptor
         else:

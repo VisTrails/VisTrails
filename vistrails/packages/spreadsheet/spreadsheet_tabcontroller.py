@@ -272,7 +272,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Actual code to create export an image
         
         """
-        if type(action)!=bool and action.text()=='Separately':
+        if not isinstance(action, bool) and action.text() == 'Separately':
             dir = QtGui.QFileDialog.getExistingDirectory(
                 self, 'Select a Directory to Export Images', ".",
                 QtGui.QFileDialog.ShowDirsOnly)

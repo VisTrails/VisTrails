@@ -1679,7 +1679,7 @@ class MedleySimpleGUI(XMLObject):
 
         if has_seq == None:
             self._has_seq = False
-            if type(self._alias_list) == type({}):
+            if isinstance(self._alias_list, dict):
                 for v in self._alias_list.itervalues():
                     if v._component._seq == True:
                         self._has_seq = True

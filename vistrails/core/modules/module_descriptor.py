@@ -254,7 +254,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             assert isinstance(color, tuple)
             assert len(color) == 3
             for i in 0,1,2:
-                assert type(color[i]) == float
+                assert isinstance(color[i], float)
         self._module_color = color
 
     def module_color(self):

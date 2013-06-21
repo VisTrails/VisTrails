@@ -336,8 +336,8 @@ class PortSpec(DBPortSpec):
         def canonicalize(sig_item):
             if isinstance(sig_item, tuple):
                 # assert len(sig_item) == 2
-                # assert type(sig_item[0]) == type
-                # assert type(sig_item[1]) == str
+                # assert isinstance(sig_item[0], type)
+                # assert isinstance(sig_item[1], str)
                 descriptor = registry.get_descriptor(sig_item[0])
                 label = sig_item[1]
                 return (descriptor, label)

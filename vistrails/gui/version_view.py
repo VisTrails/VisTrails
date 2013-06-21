@@ -657,7 +657,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             data.versionId!=self.id) or \
            (hasattr(data, 'items') and 
             len(data.items) == 1 and
-            type(data.items[0]) == QParamExplorationEntityItem):
+            isinstance(data.items[0], QParamExplorationEntityItem)):
             event.accept()
         else:
             event.ignore()
@@ -677,7 +677,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             # visDiff.show()
         elif (hasattr(data, 'items') and 
               len(data.items) == 1 and
-              type(data.items[0]) == QParamExplorationEntityItem):
+              isinstance(data.items[0], QParamExplorationEntityItem)):
             # apply this parameter exploration to the new version, validate it and switch to PE view
             from vistrails.gui.vistrails_window import _app
             view = _app.get_current_view()
@@ -1070,7 +1070,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         """        
         selectedItems = self.selectedItems()
         versions = [item.id for item in selectedItems 
-                    if type(item)==QGraphicsVersionItem
+                    if isinstance(item, QGraphicsVersionItem)
                     and not item.text.hasFocus()] 
         if (self.controller and len(versions)>0 and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):

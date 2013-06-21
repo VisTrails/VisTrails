@@ -138,7 +138,7 @@ class SaveBundle(object):
 
     def get_db_objs(self):
         """Gets a list containing only the DB* objects in the bundle"""
-        return [obj for obj in self.__dict__.itervalues() if obj is not None and type(obj) not in [type([]), type('')]]
+        return [obj for obj in self.__dict__.itervalues() if obj is not None and not isinstance(obj, (list, basestring))]
 
     def get_primary_obj(self):
         """get_primary_obj() -> DB*

@@ -192,7 +192,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cellWidget = self.getCellWidget(row, col)
-        if type(cellWidget)==QCellContainer:
+        if isinstance(cellWidget, QCellContainer):
             return cellWidget.widget()
         return cellWidget
 
@@ -222,7 +222,7 @@ class StandardWidgetSheetTabInterface(object):
         Put the cellWidget inside a container and place it on the sheet
 
         """
-        if type(cellWidget)!=QCellContainer:
+        if not isinstance(cellWidget, QCellContainer):
             container = QCellContainer(cellWidget)
         else:
             container = cellWidget
@@ -241,7 +241,7 @@ class StandardWidgetSheetTabInterface(object):
             else:
                 toolBarType = QCellToolBar
             container = self.getCellWidget(row, col)
-            if type(container)==QCellContainer:
+            if isinstance(container, QCellContainer):
                 if container.toolBar==None:
                     container.toolBar = toolBarType(self)
                 return container.toolBar
@@ -275,7 +275,7 @@ class StandardWidgetSheetTabInterface(object):
         for r in xrange(rowCount):
             for c in xrange(colCount):
                 w = self.getCell(r, c)
-                if w==None or (type(w)==QCellPresenter and w.cellWidget==None):
+                if w==None or (isinstance(w, QCellPresenter) and w.cellWidget==None):
                     return (r,c)
         (r, c) = self.lastCellLocation
         (rs, cs) = self.getSpan(r, c)
@@ -293,7 +293,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         oldCell = self.getCell(row, col)
-        if type(oldCell)!=cellType:
+        if cellType is None or not isinstance(oldCell, cellType):
             if cellType:
                 newCell = cellType(self)
                 self.setCellByWidget(row, col, newCell)
@@ -376,7 +376,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cell = self.getCellWidget(row, col)
-        if type(cell)==QCellContainer:
+        if isinstance(cell, QCellContainer):
             widget = cell.takeWidget()
             self.setCellWidget(row, col, None)
             return widget
@@ -390,7 +390,7 @@ class StandardWidgetSheetTabInterface(object):
         """
         if editing:
             cellWidget = self.getCell(r, c)
-            if type(cellWidget)==QCellPresenter:
+            if isinstance(cellWidget, QCellPresenter):
                 return
             presenter = QCellPresenter()
             presenter.assignCell(self, r, c)
@@ -400,7 +400,7 @@ class StandardWidgetSheetTabInterface(object):
                 cellWidget.hide()
         else:
             presenter = self.getCell(r, c)
-            if type(presenter)!=QCellPresenter:
+            if not isinstance(presenter, QCellPresenter):
                 return
             presenter = self.takeCell(r, c)
             if presenter:
@@ -1077,7 +1077,7 @@ class StandardTabDockWidget(QtGui.QDockWidget):
         
         """
         for c in self.children():
-            if type(c)==QtGui.QAbstractButton:
+            if isinstance(c, QtGui.QAbstractButton):
                 return c
         return None
 

@@ -63,7 +63,7 @@ class SpreadsheetController(object):
         """
         wList = QtGui.QApplication.topLevelWidgets()
         for w in wList:
-            if type(w)==SpreadsheetWindow:
+            if isinstance(w, SpreadsheetWindow):
                 return w
         global spreadsheetWindow
         spreadsheetWindow = SpreadsheetWindow()

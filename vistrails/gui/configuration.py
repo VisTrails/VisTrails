@@ -76,7 +76,7 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags(self.flags() & ~(QtCore.Qt.ItemIsDragEnabled |
                                            QtCore.Qt.ItemIsSelectable ))
-        elif t == tuple and obj[0] is None and type(obj[1]) == type:
+        elif t == tuple and obj[0] is None and isinstance(obj[1], type):
             self._obj_type = obj[1]
             lst.extend(['', obj[1].__name__])
             QtGui.QTreeWidget.__init__(self, parent, lst)
@@ -133,7 +133,7 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Set the editor to reflects data at index
         
         """
-        if type(editor)==QtGui.QComboBox:           
+        if isinstance(editor, QtGui.QComboBox):
             editor.setCurrentIndex(editor.findText(index.data()))
         else:
             QtGui.QItemDelegate.setEditorData(self, editor, index)
@@ -145,7 +145,7 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        if type(editor)==QtGui.QComboBox:
+        if isinstance(editor, QtGui.QComboBox):
             model.setData(index, editor.currentText())
         elif isinstance(editor, QtGui.QLineEdit):
             model.setData(index, editor.text())

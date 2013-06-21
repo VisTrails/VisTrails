@@ -73,8 +73,8 @@ class QCellWidget(QtGui.QWidget):
         self._currentFrame = 0
         self._playing = False
         # cell can be captured if it re-implements saveToPNG
-        self._capturingEnabled = type(self) is not QCellWidget and \
-                                 'saveToPNG' in  type(self).__dict__
+        self._capturingEnabled = (not isinstance(self, QCellWidget) and
+                                  hasattr(self, 'saveToPNG'))
         self.connect(self._playerTimer,
                      QtCore.SIGNAL('timeout()'),
                      self.playNextFrame)
@@ -983,8 +983,8 @@ class QCellManipulator(QtGui.QFrame):
                 b.updateCellInfo(self.cellInfo)
             if sheet and sheet.getCell(row, col)!=None:
                 widget = sheet.getCell(row, col)
-                b.setVisible(type(widget)!=QCellPresenter or
-                             widget.cellWidget!=None)
+                b.setVisible(not isinstance(widget, QCellPresenter) or
+                             widget.cellWidget is not None)
             else:
                 b.setVisible(False)
         self.updateButton.setVisible(False)

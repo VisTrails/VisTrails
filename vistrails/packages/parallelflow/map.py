@@ -501,7 +501,7 @@ class Map(Module, NotCacheable):
         """
     `   Function used to create a signature, given v_module, for a port spec.
         """
-        if type(v_module)==tuple:
+        if isinstance(v_module, tuple):
             v_module_class = []
             for module_ in v_module:
                 v_module_class.append(self.createSignature(module_))
@@ -558,30 +558,30 @@ def create_module(value, signature):
 
     from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, File, List
 
-    if type(value)==bool:
+    if isinstance(value, bool):
         v_module = Boolean()
         return v_module
-    elif type(value)==str:
+    elif isinstance(value, str):
         v_module = String()
         return v_module
-    elif type(value)==int:
-        if type(signature)==list:
+    elif isinstance(value, int):
+        if isinstance(signature, list):
             signature = signature[0]
         if signature[0]==Float().__class__:
             v_module = Float()
         else:
             v_module = Integer()
         return v_module
-    elif type(value)==float:
+    elif isinstance(value, float):
         v_module = Float()
         return v_module
-    elif type(value)==list:
+    elif isinstance(value, list):
         v_module = List()
         return v_module
-    elif type(value)==file:
+    elif isinstance(value, file):
         v_module = File()
         return v_module
-    elif type(value)==tuple:
+    elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
             v_modules += (create_module(value[element], signature[element]),)

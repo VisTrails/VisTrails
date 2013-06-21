@@ -250,7 +250,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         tab_idx = self.tabBar.count()-1
         while self.tabBar.count() > 1:
             idx = self.tab_to_stack_idx[tab_idx]
-            if type(self.stack.widget(idx)) == QMashupViewTab:
+            if isinstance(self.stack.widget(idx), QMashupViewTab):
                 self.tabBar.removeTab(tab_idx)
                 if idx >= 0:
                     self.stack.removeWidget(self.stack.widget(idx))
