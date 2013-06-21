@@ -290,7 +290,7 @@ class ${obj.getClassName()}(object):
         return new_obj
 
     ## create child methods
-    def ${obj.getChildren()}(self, parent=(None,None), orphan=False):
+    def ${obj.getChildren()}(self, parent=(None,None), orphan=False, for_action=False):
         % if not any([not ref.isInverse() and ref.shouldExpand() \
                       for ref in obj.getReferences()]):
         return [(self, parent[0], parent[1])]
@@ -299,22 +299,36 @@ class ${obj.getClassName()}(object):
         % for ref in obj.getReferences():
         % if not ref.isInverse() and ref.shouldExpand():
         ## refObj = ref.getReferencedObject()
+        % if not ref.shouldExpandAction():
+        if not for_action:
+            % if not ref.isPlural():
+            if self.${ref.getPrivateName()} is not None:
+                children.extend(self.${ref.getPrivateName()}. \!
+                                ${ref.getReferencedObject().getChildren()}( \!
+                                (self.vtType, self.db_id), orphan, for_action))
+            % else:
+            for child in self.${ref.getIterator()}:
+                children.extend(child.${ref.getReferencedObject().getChildren()}( \!
+                                (self.vtType, self.db_id), orphan, for_action))
+            % endif
+        % else:
         % if not ref.isPlural():
         if self.${ref.getPrivateName()} is not None:
             children.extend(self.${ref.getPrivateName()}. \!
                             ${ref.getReferencedObject().getChildren()}( \!
-                    (self.vtType, self.db_id), orphan))
+                                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self.${ref.getPrivateName()} = None
         % else:
         to_del = []
         for child in self.${ref.getIterator()}:
             children.extend(child.${ref.getReferencedObject().getChildren()}( \!
-                    (self.vtType, self.db_id), orphan))
+                                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.${ref.getRemover()}(child)
+        % endif
         % endif
         % endif
         % endfor

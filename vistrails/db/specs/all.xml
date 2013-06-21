@@ -1649,7 +1649,7 @@
     </property>
 
     <property ref="true" object="portSpecItem" type="list" 
-	      mapping="one-to-many" expand="false">
+	      mapping="one-to-many" expandAction="false">
       <xml nodeType="xs:element"/>
     </property>
 
@@ -1708,7 +1708,7 @@
       <sql type="int"/>
     </property>
 
-    <property name="pos" type="long" primaryKey="true">
+    <property name="pos" type="long">
       <xml nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
     </property>

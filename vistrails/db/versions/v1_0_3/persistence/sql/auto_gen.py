@@ -1996,7 +1996,8 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[10], 'long', 'int')
             entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
             
-            portSpecItem = DBPortSpecItem(module=module,
+            portSpecItem = DBPortSpecItem(pos=pos,
+                                          module=module,
                                           package=package,
                                           namespace=namespace,
                                           label=label,
@@ -2034,7 +2035,8 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[10], 'long', 'int')
             entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
             
-            portSpecItem = DBPortSpecItem(module=module,
+            portSpecItem = DBPortSpecItem(pos=pos,
+                                          module=module,
                                           package=package,
                                           namespace=namespace,
                                           label=label,
