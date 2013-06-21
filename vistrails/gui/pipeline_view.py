@@ -3238,7 +3238,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def clipboard_non_empty(self):
         clipboard = QtGui.QApplication.clipboard()
         clipboard_text = clipboard.text()
-        return not clipboard_text #and \
+        return bool(clipboard_text) #and \
         #    str(clipboard_text).startswith("<workflow")
 
     def pipeline_non_empty(self, pipeline):
