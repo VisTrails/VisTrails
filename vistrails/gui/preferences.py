@@ -410,6 +410,7 @@ class QPackagesWidget(QtGui.QWidget):
         inst = self._enabled_packages_list
         # if we run a late-enable with a prefix (console_mode_test),
         # we don't actually have the package later
+        self.populate_lists()
         for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
             pos = inst.indexFromItem(item).row()
             inst.takeItem(pos)
