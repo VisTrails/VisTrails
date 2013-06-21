@@ -52,6 +52,13 @@ Request cluster shutdown
     started locally or not. If accepted, the controller will ask every
     connected engine to terminate and exit.
 
+Note that when VisTrails is exited, it will shutdown the engines that it
+started. If it started the controller, it will also be shutdown, along with
+every engine that might have connected to it from other machines. To prevent
+that, use the 'cleanup' button and choose not to stop them; they will detach
+from VisTrails and won't be killed automatically. You will still be able to use
+the 'cluster shutdown' button explicitely.
+
 The ``Map`` module
 ==================
 

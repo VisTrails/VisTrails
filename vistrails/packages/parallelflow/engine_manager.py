@@ -417,8 +417,8 @@ class EngineManager(object):
                     if self.started_controller.poll() is not None:
                         self.started_controller.terminate()
                         self.started_controller.wait()
-                        self.started_controller = None
                     print "parallelflow: controller terminated"
+            self.started_controller = None
 
         if engines > 0 and not hub_shutdown:
             if qt_available:
