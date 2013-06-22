@@ -32,10 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from xml.auto_gen import XMLDAOListBase
-from sql.auto_gen import SQLDAOListBase
-from vistrails.core.system import get_elementtree_library
 
+# the fact that "xml" is a submodule here can cause issues so we
+# remove the current directory from the path before continuing
+if __name__ == '__main__':
+    import sys
+    # assume current directory is first on the path
+    del sys.path[0]
+
+from vistrails.db.versions.v1_0_3.persistence.xml.auto_gen import XMLDAOListBase
+from vistrails.db.versions.v1_0_3.persistence.sql.auto_gen import SQLDAOListBase
+
+from vistrails.core.system import get_elementtree_library
 from vistrails.db import VistrailsDBException
 from vistrails.db.versions.v1_0_3 import version as my_version
 from vistrails.db.versions.v1_0_3.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
@@ -45,7 +53,6 @@ root_set = set([DBVistrail.vtType, DBWorkflow.vtType,
                 DBLog.vtType, DBRegistry.vtType, DBMashuptrail.vtType])
 
 ElementTree = get_elementtree_library()
-
 
 class DAOList(dict):
     def __init__(self):
@@ -141,9 +148,13 @@ class DAOList(dict):
             dbCommand = dao.get_sql_select(db_connection, global_props, lock)
             dbCommandList.append(dbCommand)
             
-        # Exacute all select statements
-        results = self['sql'][vtType].executeSQLGroup(db_connection,
-                                                      dbCommandList, True)
+        # Debug version of Execute all select statements
+        results = [self['sql'][vtType].executeSQL(db_connection, c, True)
+                   for c in dbCommandList]
+
+        # # Execute all select statements
+        # results = self['sql'][vtType].executeSQLGroup(db_connection,
+        #                                               dbCommandList, True)
 
         # add result to correct dao
         for i in xrange(len(daoList)):
@@ -311,13 +322,14 @@ class DAOList(dict):
             self['sql'][child.vtType].to_sql_fast(child, do_copy)
 
         # Debug version of Execute all insert/update statements
-        #results = [self['sql'][children[0][0].vtType].executeSQL(
-        #                      db_connection, c, False) for c in dbCommandList]
+        results = [self['sql'][children[0][0].vtType].executeSQL(
+                             db_connection, c, False) for c in dbCommandList]
 
-        # Execute all insert/update statements
-        results = self['sql'][children[0][0].vtType].executeSQLGroup(
-                                                    db_connection,
-                                                    dbCommandList, False)
+        # # Execute all insert/update statements
+        # results = self['sql'][children[0][0].vtType].executeSQLGroup(
+        #                                             db_connection,
+        #                                             dbCommandList, False)
+
         resultDict = dict(zip(writtenChildren, results))
         # process remaining children
         for (child, _, _) in children:
@@ -470,3 +482,49 @@ class DAOList(dict):
             msg = "Invalid VisTrails serialized object %s" % str
             raise VistrailsDBException(msg)
             return None
+
+import unittest
+
+class TestPersistence(unittest.TestCase):
+
+    def run_sql_save_vistrail(self, test_db):
+        from vistrails.db.domain import DBVistrail
+        from vistrails.db.versions.v1_0_3.persistence.sql.sql_dao import SQLDAO
+        import sqlalchemy
+        dao_list = DAOList()
+
+        SQLDAO.engine = sqlalchemy.create_engine(test_db)
+        SQLDAO.metadata.create_all(SQLDAO.engine)
+
+        in_fname = '/vistrails/tmp/terminator/vistrail'
+        vt1 = dao_list.open_from_xml(in_fname, DBVistrail.vtType)
+        conn = SQLDAO.engine.connect()
+        trans = conn.begin()
+        dao_list.save_to_db(conn, vt1, True)
+        trans.commit()
+        vt2 = dao_list.open_from_db(conn, DBVistrail.vtType, id=vt1.db_id)
+        vt2.db_actions.sort(key=lambda x: x.db_id)
+        for a in vt2.db_actions:
+            a.db_operations.sort(key=lambda x: x.db_id)
+            a.db_annotations.sort(key=lambda x: x.db_id)
+        vt2.db_actionAnnotations.sort(key=lambda x: x.db_id)
+        dao_list.save_to_xml(vt2, '/vistrails/tmp/terminator/vistrail.out', {})
+
+    def test_save_vistrail_mysql(self):
+        test_db = 'mysql+mysqldb://vt_test@localhost/vt_test'
+        self.run_sql_save_vistrail(test_db)
+        # FIXME should drop table?
+
+    def test_save_vistrail_sqlite3(self):
+        import os
+        import tempfile
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
+        os.close(h)
+        test_db = 'sqlite:///%s' % fname
+        try:
+            self.run_sql_save_vistrail(test_db)
+        finally:
+            os.unlink(fname)
+        
+if __name__ == '__main__':
+    unittest.main()

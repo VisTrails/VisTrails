@@ -227,6 +227,7 @@ def main(argv=None):
                     'p': ('generate python domain classes', False),
                     's': ('generate sql schema and persistence classes', False),
                     'x': ('generate xml schema and persistence classes', False),
+                    'c': ('generate sqlalchemy classes', False),
                     'v:': ('vistrail version tag', True, 'version'),
                     'm': ('make all directories', False),
                     'n': ('do not change current version', False)}
@@ -369,6 +370,19 @@ def main(argv=None):
                      version, versionName,
                      os.path.join(versionDirs['sqlPersistence'], 'auto_gen.py'),
                      True)
+
+    if options['c']:
+        print "generating sqlalchemy objects..."
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        sql_objects = sql_gen_objects.convert(objects)
+            
+        run_template('templates/sql_alchemy.py.mako', sql_objects, 
+                     version, versionName,
+                     os.path.join(versionDirs['sqlPersistence'], 'alchemy.py'),
+                     False)
+
 
     if not options['n']:
         domainFile = os.path.join(baseDirs['persistence'], '__init__.py')

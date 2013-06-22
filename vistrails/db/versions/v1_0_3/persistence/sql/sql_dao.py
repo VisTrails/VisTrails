@@ -36,7 +36,14 @@ from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import get_db_lib
 from vistrails.core import debug
 
+import sqlalchemy
+import sqlalchemy.sql
+import alchemy
+
 class SQLDAO:
+    metadata = alchemy.metadata
+    engine = None
+
     def __init__(self):
         pass
 
@@ -115,9 +122,11 @@ class SQLDAO:
                         value = MAX_INT
                 return str(value)
             elif type == 'date':
-                return value.isoformat()
+                # return value.isoformat()
+                return value
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                # return value.strftime('%Y-%m-%d %H:%M:%S')
+                return value
             else:
                 return str(value)
 
@@ -125,90 +134,47 @@ class SQLDAO:
 
     def createSQLSelect(self, table, columns, whereMap, orderBy=None, 
                         forUpdate=False):
-        columnStr = ', '.join(columns)
-        whereStr = ''
-        whereClause = ''
-        values = []
-        for column, value in whereMap.iteritems():
-            whereStr += '%s%s = %%s' % \
-                        (whereClause, column)
-            values.append(value)
-            whereClause = ' AND '
-        dbCommand = """SELECT %s FROM %s WHERE %s""" % \
-                    (columnStr, table, whereStr)
+        sql_table = self.metadata.tables[table]
+        cmd = sqlalchemy.select([sql_table.columns[c] for c in columns],
+                                for_update=forUpdate)
+        if len(whereMap) > 0:
+            cmd = cmd.where(sqlalchemy.sql.and_(*[sql_table.columns[c] == v 
+                                                  for c,v in whereMap.iteritems()]))
         if orderBy is not None:
-            dbCommand += " ORDER BY " + orderBy
-        if forUpdate:
-            dbCommand += " FOR UPDATE"
-        dbCommand += ";"
-        return (dbCommand, tuple(values))
+            cmd = cmd.order_by(sql_table.columns[orderBy])
+        
+        return cmd
 
     def createSQLInsert(self, table, columnMap):
-        columns = []
-        values = []
-        for column, value in columnMap.iteritems():
-            if value is None:
-                value = 'NULL'
-            columns.append(column)
-            values.append(value)
-        columnStr = ', '.join(columns)
-        # valueStr = '%s, '.join(values)
-        valueStr = ''
-        if len(values) > 1:
-            valueStr = '%s,' * (len(values) - 1) + '%s'
-        dbCommand = """INSERT INTO %s(%s) VALUES (%s);""" % \
-                    (table, columnStr, valueStr)
-        return (dbCommand, tuple(values))
+        sql_table = self.metadata.tables[table]
+        cmd = sql_table.insert().values(columnMap)
+        return cmd
 
     def createSQLUpdate(self, table, columnMap, whereMap):
-        setStr = ''
-        comma = ''
-        values = []
-        for column, value in columnMap.iteritems():
-#            if value is None:
-#                value = 'NULL'
-            setStr += '%s%s = %%s' % (comma, column)
-            comma = ', '
-            values.append(value)
-        whereStr = ''
-        whereClause = ''
-        for column, value in whereMap.iteritems():
-            whereStr += '%s%s = %%s' % (whereClause, column)
-            values.append(value)
-            whereClause = ' AND '
-        dbCommand = """UPDATE %s SET %s WHERE %s;""" % \
-                    (table, setStr, whereStr)
-        return (dbCommand, tuple(values))
+        sql_table = self.metadata.tables[table]
+        cmd = sql_table.update([sql_table.columns[c] for c in columnMap])
+        cmd = cmd.where(sqlalchemy.sql.and_(sql_table.columns[c] == v
+                                            for c,v in whereMap.iteritems()))
+        cmd = cmd.values(columnMap)
+        return cmd
 
     def createSQLDelete(self, table, whereMap):
-        whereStr = ''
-        whereClause = ''
-        values = []
-        for column, value in whereMap.iteritems():
-            whereStr += '%s %s = %%s' % (whereClause, column)
-            values.append(value)
-            whereClause = ' AND '
-        dbCommand = """DELETE FROM %s WHERE %s;""" % \
-            (table, whereStr)
-        return (dbCommand, tuple(values))
+        sql_table = self.metadata.tables[table]
+        cmd = sql_table.delete().where(sql_table.columns[c] == v
+                                       for c,v in whereMap.iteritems())
+        return cmd
 
     def executeSQL(self, db, cmd_tuple, isFetch):
-        dbCommand, values = cmd_tuple
-        # print 'db: %s' % dbCommand
-        # print 'values:', values
-        data = None
-        cursor = db.cursor()
-        try:
-            cursor.execute(dbCommand, values)
-            if isFetch:
-                data = cursor.fetchall()
+        result = db.execute(cmd_tuple)
+
+        if isFetch:
+            data = result
+        else:
+            data = result.inserted_primary_key
+            if len(data) > 0:
+                data = data[0]
             else:
-                data = cursor.lastrowid
-        except Exception, e:
-            raise VistrailsDBException('Command "%s" with values "%s" '
-                                       'failed: %s' % (dbCommand, values, e))
-        finally:
-            cursor.close()
+                data = None
         return data
 
     def executeSQLGroup(self, db, dbCommandList, isFetch):
