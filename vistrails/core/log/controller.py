@@ -224,6 +224,8 @@ class LogController(object):
 
     def finish_module_execution(self, module, error, errorTrace=None,
                                 suspended=False):
+        if not hasattr(module,'module_exec'):
+            return False
         module.module_exec.ts_end = core.system.current_time()
         if suspended:
             module.module_exec.completed = -2
