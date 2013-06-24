@@ -363,6 +363,27 @@ def uniq(l):
     l2 = a[1:]
     return [a[0]] + [next for (i, next) in itertools.izip(l1, l2) if i != next]
 
+def bisect(count, getter, element, lo=0, comp=lambda x, y: x < y):
+    """Version of bisect.bisect_right that uses lambdas.
+
+    Contrary to bisect.bisect_right which takes a list, this version accepts a
+    'getter' function to retrieve a specific element, and a 'comp' function to
+    compare them.
+
+    It is useful for list views in widgets.
+    """
+    if lo < 0:
+        raise ValueError("lo must be non-negative")
+    hi = count
+    while lo < hi:
+        mid = (lo + hi)//2
+        mid_elem = getter(mid)
+        if comp(element, mid_elem):
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+
 class InstanceObject(object):
     """InstanceObject is a convenience class created to facilitate
     creating of one-off objects with many fields. It simply translates
