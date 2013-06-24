@@ -479,7 +479,7 @@ context."""
             raise ModuleBreakpoint(self)
         self.do_compute()
 
-    def do_compute(self):
+    def do_compute(self, compute=None):
         """ do_compute() -> None
         Actually compute the result of this module now that the upstream
         modules have finished, optionally using several tasks. Call done() when
@@ -488,11 +488,15 @@ context."""
         It also calls the appropriate methods on self.logging to report
         progress to the application.
 
-        The base implementation calls compute().
+        The base implementation calls 'compute' if present or compute() and
+        catches error classes to set status.
         """
         self.done()
         try:
-            self.compute()
+            if compute is not None:
+                compute()
+            else:
+                self.compute()
             self.computed = True
         except ModuleSuspended, e:
             self.suspended = e.msg
