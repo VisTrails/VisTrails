@@ -405,10 +405,10 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         # Perform single-click event on the spread sheet
         if (not self.tabController.editingMode and
             eType==QtCore.QEvent.MouseButtonPress):
-            if type(q)==QCellContainer:
+            if isinstance(q, QCellContainer):
                 return q.containedWidget!=None
             p = q
-            while (p and (not p.isModal()) and type(p)!=StandardWidgetSheet):
+            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet)):
                 p = p.parent()
             if p and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())

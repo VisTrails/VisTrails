@@ -10,7 +10,7 @@
     <package name="spreadsheet"/>
     <package name="dialogs"/>
     <package name="HTTP"/>
-    <package name="pylab"/>
+    <package name="controlflow"/>
   </packages>
   <disabledpackages/>
 </startup>
@@ -41,7 +41,6 @@
     <package name="ImageMagick"/>
     <package name="HTTP"/>
     <package name="teem"/>
-    <package name="pylab"/>
     <package name="ectmc"/>
     <package name="macet"/>
     <package name="trimesh2"/>

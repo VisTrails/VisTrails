@@ -1120,10 +1120,10 @@ class Vistrail(DBVistrail):
         Returns the log object for this vistrail if available
         """
         log = Log()
-        if type(self.locator) == vistrails.core.db.locator.ZIPFileLocator:
+        if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
             if self.db_log_filename is not None:
                 log = open_log_from_xml(self.db_log_filename, True)
-        if type(self.locator) == vistrails.core.db.locator.DBLocator:
+        if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
             connection = self.locator.get_connection()
             log = open_vt_log_from_db(connection, self.db_id)
         Log.convert(log)

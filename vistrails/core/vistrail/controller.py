@@ -1131,8 +1131,8 @@ class VistrailController(object):
         moduleId
         
         """
-        assert type(pair[0]) == type('')
-        assert type(pair[1]) == type('')
+        assert isinstance(pair[0], basestring)
+        assert isinstance(pair[1], basestring)
         if pair[0].strip()=='':
             return
 
@@ -3394,7 +3394,7 @@ class VistrailController(object):
             if self.locator != locator:
                 # check for db log
                 log = Log()
-                if type(self.locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
                     connection = self.locator.get_connection()
                     db_log = open_vt_log_from_db(connection, 
                                                  self.vistrail.db_id)
@@ -3444,8 +3444,9 @@ class VistrailController(object):
             # FIXME abstractions only work with FileLocators right now
             if is_abstraction:
                 new_vistrail.is_abstraction = True
-                if ( type(self.locator) == vistrails.core.db.locator.XMLFileLocator or
-                     type(self.locator) == vistrails.core.db.locator.ZIPFileLocator ):
+                if isinstance(self.locator, (
+                        vistrails.core.db.locator.XMLFileLocator,
+                        vistrails.core.db.locator.ZIPFileLocator)):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
                         del self._loaded_abstractions[filename]

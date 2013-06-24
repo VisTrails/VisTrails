@@ -931,7 +931,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
             selectedItems = self.scene().selectedItems()
             selectedModules = False
             for item in selectedItems:
-                if type(item)==QGraphicsModuleItem:
+                if isinstance(item, QGraphicsModuleItem):
                     selectedModules = True
                     break
             if selectedModules:
@@ -2146,7 +2146,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         for item in self.items(pos):
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 return item
         return None
 
@@ -2317,9 +2317,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Set to accept drops from the module palette
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if not self.read_only_mode:
                 if hasattr(data, 'items'):
@@ -2340,9 +2340,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Set to accept drag move event from the module palette
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 if get_vistrails_configuration().check('autoConnect'):
@@ -2381,7 +2381,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             event.ignore()
 
     def dragLeaveEvent(self, event):
-        if (self.controller and type(event.source())==QModuleTreeWidget):
+        if (self.controller and isinstance(event.source(), QModuleTreeWidget)):
             if self.tmp_output_conn:
                 self.tmp_output_conn.disconnect(True)
                 self.removeItem(self.tmp_output_conn)
@@ -2390,7 +2390,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 self.tmp_input_conn.disconnect(True)
                 self.removeItem(self.tmp_input_conn)
                 self.tmp_input_conn = None
-        elif type(event.source()) == QDragVariableLabel:
+        elif isinstance(event.source(), QDragVariableLabel):
             data = event.mimeData()
             if hasattr(data, 'variableData'):
                 if self._var_selected_port is not None:
@@ -2546,9 +2546,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Accept drop event to add a new module
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 assert len(data.items) == 1
@@ -2676,10 +2676,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connection_ids = {}
         module_ids = {}
         for item in selectedItems:
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 module_ids[item.module.id] = 1
         for item in selectedItems:
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 for connItem in item.dependingConnectionItems().itervalues():
                     conn = connItem.connection
                     if not conn.id in connection_ids:
@@ -3238,7 +3238,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def clipboard_non_empty(self):
         clipboard = QtGui.QApplication.clipboard()
         clipboard_text = clipboard.text()
-        return not clipboard_text #and \
+        return bool(clipboard_text) #and \
         #    str(clipboard_text).startswith("<workflow")
 
     def pipeline_non_empty(self, pipeline):

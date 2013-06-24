@@ -716,7 +716,7 @@ Makes sure input port 'name' is filled."""
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
         for conn in self.inputPorts[inputPort]:
-            if type(conn.obj)==InputPort:
+            if isinstance(conn.obj, InputPort):
                 return conn()
         return self.inputPorts[inputPort][0]()
 
@@ -751,7 +751,7 @@ Makes sure input port 'name' is filled."""
         from vistrails.core.modules.sub_module import InputPort
         fromInputPortModule = [connector()
                                for connector in self.inputPorts[inputPort]
-                               if type(connector.obj)==InputPort]
+                               if isinstance(connector.obj, InputPort)]
         if len(fromInputPortModule)>0:
             return fromInputPortModule
         return [connector() for connector in self.inputPorts[inputPort]]

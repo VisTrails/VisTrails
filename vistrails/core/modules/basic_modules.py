@@ -591,7 +591,7 @@ class Color(Constant):
 
     @staticmethod
     def translate_to_string(v):
-        return str(v.tuple)[1:-1]
+        return ','.join('%f' % c for c in v.tuple)
 
     @staticmethod
     def validate(x):
@@ -801,6 +801,10 @@ class List(Constant):
     @staticmethod
     def translate_to_python(v):
         return eval(v)
+
+    @staticmethod
+    def translate_to_string(v):
+        return '[%s]' % ', '.join(repr(c) for c in v)
 
     def compute(self):
         head, middle, items, tail = [], [], [], []

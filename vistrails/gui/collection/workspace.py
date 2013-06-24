@@ -1133,7 +1133,7 @@ class QVistrailList(QtGui.QTreeWidget):
         destination = self.itemAt(event.pos())
         if not destination:
             return
-        if type(event.source())==QVistrailList:
+        if isinstance(event.source(), QVistrailList):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 assert len(data.items) == 1

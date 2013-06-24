@@ -133,7 +133,7 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Set the editor to reflects data at index
         
         """
-        if type(editor)==QtGui.QComboBox:           
+        if isinstance(editor, QtGui.QComboBox):
             editor.setCurrentIndex(editor.findText(index.data()))
         else:
             QtGui.QItemDelegate.setEditorData(self, editor, index)
@@ -145,7 +145,7 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        if type(editor)==QtGui.QComboBox:
+        if isinstance(editor, QtGui.QComboBox):
             model.setData(index, editor.currentText())
         elif isinstance(editor, QtGui.QLineEdit):
             model.setData(index, editor.text())

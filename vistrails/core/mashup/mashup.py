@@ -56,7 +56,7 @@ class Mashup(DBMashup):
         self.id_scope = id_scope
         if has_seq == None:
             self.has_seq = False
-            if type(self.alias_list) == list:
+            if isinstance(self.alias_list, list):
                 for v in self.alias_list:
                     if v.component.seq == True:
                         self.has_seq = True

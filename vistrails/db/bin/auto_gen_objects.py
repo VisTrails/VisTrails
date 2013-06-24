@@ -208,6 +208,9 @@ class Field:
     def shouldExpand(self):
         return self.params.get('expand','true') == 'true'
 
+    def shouldExpandAction(self):
+        return self.params.get('expandAction', 'true') == 'true'
+
     def hasDiscriminator(self):
         return self.params.has_key('discriminator')
 

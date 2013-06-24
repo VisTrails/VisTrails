@@ -146,7 +146,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 try:
                     # call queue
                     job.jobFinished = job.queue.finished()
-                    if type(job.jobFinished) != bool:
+                    if not isinstance(job.jobFinished, bool):
                         job.jobFinished = job.jobFinished.val()
                 except Exception, e:
                     debug.critical("Error checking job %s: %s" %
@@ -329,9 +329,9 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
             self.name = "Untitled.vt:%s" % controller.get_pipeline_name()[10:]
             
         QtGui.QTreeWidgetItem.__init__(self, parent,
-                    [self.name, error if type(error)==str else error.msg])
+                    [self.name, error if isinstance(error, str) else error.msg])
         self.setToolTip(0, "Double-Click to View Pipeline")
-        self.setToolTip(1, error if type(error)==str else error.msg)
+        self.setToolTip(1, error if isinstance(error, str) else error.msg)
         
         self.controller = controller
         self.version = controller.current_version
