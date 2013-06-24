@@ -48,6 +48,7 @@ from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
+from vistrails.core.parallelization import setup_parallelization_schemes
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
@@ -345,13 +346,17 @@ The builder window can be accessed by a spreadsheet menu option.")
                 
         # Command line options override temp_configuration
         self.readOptions()
-        
+
+        # Create the registry and load default packages
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:
             reg = None
         self.vistrailsStartup.set_registry(reg)
-        
+
+        # Register parallelization schemes
+        setup_parallelization_schemes()
+
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
 includes local definitions from startup.py. Should only be called
