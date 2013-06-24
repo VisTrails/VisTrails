@@ -37,7 +37,7 @@ from .errors import IncompleteImplementation, InvalidOutput, MissingModule, \
     ModuleBreakpoint, ModuleError, ModuleErrors, ModuleSuspended, \
     NeedsInputPort
 from .module import BaseModule, Module, ModuleConnector, new_module
-from .parallel import SeparateThread, SeparateProcess
+from .parallel import parallelizable
 
 
 ###############################################################################
