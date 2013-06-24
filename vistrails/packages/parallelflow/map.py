@@ -1,6 +1,4 @@
-import vistrails.core
 import vistrails.core.db.action
-import vistrails.core.application
 import vistrails.db.versions
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.utils
@@ -485,7 +483,7 @@ class Map(Module, NotCacheable):
                 p_modules = module.moduleInfo['pipeline'].modules
                 p_module = p_modules[module.moduleInfo['moduleId']]
                 port_spec = p_module.get_port_spec(inputPort, 'input')
-                v_module = create_module(element, port_spec.signature)
+                v_module = get_module(element, port_spec.signature)
                 if v_module is not None:
                     if not self.compare(port_spec, v_module, inputPort):
                         raise ModuleError(self,
@@ -507,7 +505,7 @@ class Map(Module, NotCacheable):
                 v_module_class.append(self.createSignature(module_))
             return v_module_class
         else:
-            return v_module.__class__
+            return v_module
 
     def compare(self, port_spec, v_module, port):
         """
@@ -551,44 +549,32 @@ def create_constant(value):
     constant.setValue(value)
     return constant
 
-def create_module(value, signature):
+def get_module(value, signature):
     """
     Creates a module for value, in order to do the type checking.
     """
 
-    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, File, List
+    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, List
 
-    if isinstance(value, bool):
-        v_module = Boolean()
-        return v_module
+    if isinstance(value, Constant):
+        return type(value)
+    elif isinstance(value, bool):
+        return Boolean
     elif isinstance(value, str):
-        v_module = String()
-        return v_module
+        return String
     elif isinstance(value, int):
-        if isinstance(signature, list):
-            signature = signature[0]
-        if signature[0]==Float().__class__:
-            v_module = Float()
-        else:
-            v_module = Integer()
-        return v_module
+        return Integer
     elif isinstance(value, float):
-        v_module = Float()
-        return v_module
+        return Float
     elif isinstance(value, list):
-        v_module = List()
-        return v_module
-    elif isinstance(value, file):
-        v_module = File()
-        return v_module
+        return List
     elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (create_module(value[element], signature[element]),)
+            v_modules += (get_module(value[element], signature[element]))
         return v_modules
     else:
         from vistrails.core import debug
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside Map module.")
         return None
-
