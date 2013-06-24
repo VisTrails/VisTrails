@@ -1761,25 +1761,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         if not self.quit():
             e.ignore()
-            
-    def stopIPythonController(self):
-        """ stopIPythonController() -> None
-        Stops the IPython controller, in case it is still running.
-        
-        """
-        try:
-            from vistrails.packages.parallelflow.init import ipythonSet
-            if ipythonSet:
-                ipythonSet.stop_engines()
-                ipythonSet.stop_controller()
-        except:
-            pass
-        
+
     def quit(self):
         self._is_quitting = True
         if self.close_all_vistrails():
-            # stopping IPython controller, in case there is one running
-            self.stopIPythonController()
             QtCore.QCoreApplication.quit()
             # In case the quit() failed (when Qt doesn't have the main
             # event loop), we have to return True still
