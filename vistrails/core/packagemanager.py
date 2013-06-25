@@ -472,6 +472,7 @@ Returns true if given package identifier is present."""
         pkg = self.get_package_by_codepath(codepath)
         try:
             pkg.load(prefix_dictionary.get(pkg.codepath, None))
+            pkg.create_startup_package_node()
         except Exception, e:
             # invert self.add_package
             del self._package_list[codepath]
