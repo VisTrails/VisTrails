@@ -242,7 +242,8 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             return visible
 
         if str(name)=='':
-            testFunction = lambda x: True
+            testFunction = lambda x: (not hasattr(x, 'is_hidden') or
+                                      not x.is_hidden)
             if not self._search_was_empty:
                 self.collapseAll()
                 self._search_was_empty = True
