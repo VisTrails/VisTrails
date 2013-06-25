@@ -697,8 +697,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      '',
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)')
-        if not fileName:
-            (root,ext) = os.path.splitext(fileName)
+        if fileName:
+            (root, ext) = os.path.splitext(fileName)
             if ext=='':
                 fileName += '.vss'
             self.saveSpreadsheet(fileName)
