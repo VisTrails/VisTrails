@@ -651,3 +651,64 @@ class QPreferencesDialog(QtGui.QDialog):
         from PyQt4 import QtCore
         from vistrails.gui.application import get_vistrails_application
         get_vistrails_application().save_configuration()
+
+
+#############################################################################
+
+import unittest
+
+class TestPreferencesDialog(unittest.TestCase):
+    def test_remove_package(self):
+        """ Tests if the package really gets deleted, and that it gets
+            selected again in the available packages list.
+        """
+        
+        pkg = "dialogs"
+        _app = get_vistrails_application()
+        builder = _app.builderWindow
+        builder.showPreferences()
+        prefs = builder.preferencesDialog
+        packages = prefs._packages_tab
+        prefs._tab_widget.setCurrentWidget(packages)
+
+        # check if package is loaded
+        pkg_manager = get_package_manager()
+        
+        if pkg not in pkg_manager.enabled_package_list():
+            # load package
+            av = packages._available_packages_list
+            for item in av.findItems(unicode(pkg), QtCore.Qt.MatchExactly):
+                av.setCurrentItem(item)
+                packages.enable_current_package()
+                QtCore.QCoreApplication.processEvents()
+
+        inst = packages._enabled_packages_list
+        for item in inst.findItems(unicode(pkg), QtCore.Qt.MatchExactly):
+            inst.setCurrentItem(item)
+            packages.disable_current_package()
+            QtCore.QCoreApplication.processEvents()
+
+        QtCore.QCoreApplication.processEvents()
+
+        # This does not work because the selection is delayed
+        av = packages._available_packages_list
+        items = av.selectedItems()
+        self.assertEqual(len(items), 1, "No available items selected!")
+        self.assertEqual(items[0].text(), unicode(pkg),
+                         "Wrong available item selected: %s" % items[0].text())
+        # check if configuration has been written correctly
+        startup = _app.vistrailsStartup
+        doc = startup.startup_dom().documentElement
+        disabledpackages = enter_named_element(doc, 'disabledpackages')
+        dpackage = None
+        for package_node in named_elements(disabledpackages, 'package'):
+            if str(package_node.attributes['name'].value) == pkg:
+                dpackage = package_node
+        self.assertIsNotNone(dpackage, "Removed package '%s' is not in unloaded packages list!" % pkg)
+
+        epackages = enter_named_element(doc, 'packages')
+        apackage = None
+        for package_node in named_elements(epackages, 'package'):
+            if str(package_node.attributes['name'].value) == pkg:
+                apackage = package_node
+        self.assertIsNone(apackage, "Removed package '%s' is still in loaded packages list!" % pkg)
