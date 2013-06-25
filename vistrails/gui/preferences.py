@@ -404,18 +404,11 @@ class QPackagesWidget(QtGui.QWidget):
 
     def package_removed(self, codepath):
         # package was removed, we need to update list
-        av = self._available_packages_list
-        inst = self._enabled_packages_list
         # if we run a late-enable with a prefix (console_mode_test),
         # we don't actually have the package later
         self.populate_lists()
-        for item in inst.findItems(unicode(codepath), QtCore.Qt.MatchExactly):
-            pos = inst.indexFromItem(item).row()
-            inst.takeItem(pos)
-            av.addItem(item)
-            av.sortItems()
-            self.erase_cache = True
-            self.select_package_after_update(codepath)
+        self.erase_cache = True
+        self.select_package_after_update(codepath)
 
     def select_package_after_update(self, codepath):
         # Selecting the package causes self._current_package to be set,
