@@ -340,7 +340,7 @@ class QMashupsListPanel(QtGui.QWidget):
                 self.controller.setCurrentVersion(version, quiet=False)
             
     def selectMashup(self, name):
-        itemlist = self.mashupsList.findItems(name,
+        itemlist = self.mashupsList.findItems(unicode(name),
                                               QtCore.Qt.MatchExactly)
         if len(itemlist) == 1:
             item = itemlist[0]

@@ -331,10 +331,8 @@ class QPackagesWidget(QtGui.QWidget):
             self.invalidate_current_pipeline()
 
     def disable_current_package(self):
-        av = self._available_packages_list
         inst = self._enabled_packages_list
         item = inst.currentItem()
-        pos = inst.indexFromItem(item).row()
         codepath = str(item.text())
         pm = get_package_manager()
 
@@ -390,12 +388,12 @@ class QPackagesWidget(QtGui.QWidget):
         # package was added, we need to update list
         av = self._available_packages_list
         inst = self._enabled_packages_list
-        items = av.findItems(codepath, QtCore.Qt.MatchExactly)
+        items = av.findItems(unicode(codepath), QtCore.Qt.MatchExactly)
         if len(items) < 1:
             # this is required for basic_modules and abstraction since
             # they are not in available_package_names_list initially
             self.populate_lists()
-            items = av.findItems(codepath, QtCore.Qt.MatchExactly)
+            items = av.findItems(unicode(codepath), QtCore.Qt.MatchExactly)
         for item in items:
             pos = av.indexFromItem(item).row()
             av.takeItem(pos)
@@ -411,7 +409,7 @@ class QPackagesWidget(QtGui.QWidget):
         # if we run a late-enable with a prefix (console_mode_test),
         # we don't actually have the package later
         self.populate_lists()
-        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
+        for item in inst.findItems(unicode(codepath), QtCore.Qt.MatchExactly):
             pos = inst.indexFromItem(item).row()
             inst.takeItem(pos)
             av.addItem(item)
@@ -428,9 +426,9 @@ class QPackagesWidget(QtGui.QWidget):
     def select_package_after_update_slot(self, codepath):
         inst = self._enabled_packages_list
         av = self._available_packages_list
-        for item in av.findItems(codepath, QtCore.Qt.MatchExactly):
+        for item in av.findItems(unicode(codepath), QtCore.Qt.MatchExactly):
             av.setCurrentItem(item)
-        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
+        for item in inst.findItems(unicode(codepath), QtCore.Qt.MatchExactly):
             inst.setCurrentItem(item)
 
     def set_buttons_to_enabled_package(self):
