@@ -359,7 +359,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         if self.view is not None:
             self.setCentralWidget(view)
             self.view.setVisible(True)
-            self.setWindowTitle(self.view.get_name())
+            self.setWindowTitle('%s - VisTrails' % self.view.get_name())
 
     def close_vistrail(self):
         global _app
@@ -429,7 +429,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
 
     def set_title(self, title):
-        self.setWindowTitle(title)
+        self.setWindowTitle('%s - VisTrails' % title)
         
     def get_name(self):
         return self.windowTitle()

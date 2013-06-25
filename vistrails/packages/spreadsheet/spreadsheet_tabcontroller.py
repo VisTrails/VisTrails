@@ -559,7 +559,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         else:
             displayName = 'Untitled'
         self.emit(QtCore.SIGNAL('needChangeTitle'),
-                  'VisTrails - Spreadsheet - %s' % displayName)
+                  '%s - VisTrails Spreadsheet' % displayName)
 
     def pipelineId(self, pipelineInfo):
         return (pipelineInfo['controller'], pipelineInfo['version'])

@@ -67,7 +67,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """
         QtGui.QMainWindow.__init__(self, parent, f)
         self.createEventMap()
-        self.setWindowTitle('VisTrails - Spreadsheet - Untitled')
+        self.setWindowTitle('Untitled - VisTrails Spreadsheet')
         self.shownConfig = False #flag to control the window setup code is done only once
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
@@ -574,7 +574,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.tabController.tabBar().hide()
         self.tabController.clearTabs()
         self.setWindowFlags(QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
-        self.setWindowTitle('Pipeline Review')
+        self.setWindowTitle('Pipeline Review - VisTrails Spreadsheet')
         self.resize(560*vCol, 512)
         self.show()
 
