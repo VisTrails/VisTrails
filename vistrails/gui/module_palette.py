@@ -128,7 +128,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         moduleName = descriptor.name
         
         items = [x for x in
-                 self.treeWidget.findItems(unicode(moduleName),
+                 self.treeWidget.findItems(moduleName,
                                            QtCore.Qt.MatchExactly | 
                                            QtCore.Qt.MatchWrap | 
                                            QtCore.Qt.MatchRecursive)

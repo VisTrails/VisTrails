@@ -292,13 +292,10 @@ class QPackagesWidget(QtGui.QWidget):
 
     def enable_current_package(self):
         av = self._available_packages_list
-        inst = self._enabled_packages_list
         item = av.currentItem()
-        pos = av.indexFromItem(item).row()
         codepath = str(item.text())
         pm = get_package_manager()
 
-        dependency_graph = pm.dependency_graph()
         try:
             new_deps = self._current_package.dependencies()
         except Exception, e:
@@ -388,12 +385,12 @@ class QPackagesWidget(QtGui.QWidget):
         # package was added, we need to update list
         av = self._available_packages_list
         inst = self._enabled_packages_list
-        items = av.findItems(unicode(codepath), QtCore.Qt.MatchExactly)
+        items = av.findItems(codepath, QtCore.Qt.MatchExactly)
         if len(items) < 1:
             # this is required for basic_modules and abstraction since
             # they are not in available_package_names_list initially
             self.populate_lists()
-            items = av.findItems(unicode(codepath), QtCore.Qt.MatchExactly)
+            items = av.findItems(codepath, QtCore.Qt.MatchExactly)
         for item in items:
             pos = av.indexFromItem(item).row()
             av.takeItem(pos)
@@ -419,9 +416,9 @@ class QPackagesWidget(QtGui.QWidget):
     def select_package_after_update_slot(self, codepath):
         inst = self._enabled_packages_list
         av = self._available_packages_list
-        for item in av.findItems(unicode(codepath), QtCore.Qt.MatchExactly):
+        for item in av.findItems(codepath, QtCore.Qt.MatchExactly):
             av.setCurrentItem(item)
-        for item in inst.findItems(unicode(codepath), QtCore.Qt.MatchExactly):
+        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
             inst.setCurrentItem(item)
 
     def set_buttons_to_enabled_package(self):
@@ -670,13 +667,13 @@ class TestPreferencesDialog(unittest.TestCase):
         if pkg not in pkg_manager.enabled_package_list():
             # load package
             av = packages._available_packages_list
-            for item in av.findItems(unicode(pkg), QtCore.Qt.MatchExactly):
+            for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
                 av.setCurrentItem(item)
                 packages.enable_current_package()
                 QtCore.QCoreApplication.processEvents()
 
         inst = packages._enabled_packages_list
-        for item in inst.findItems(unicode(pkg), QtCore.Qt.MatchExactly):
+        for item in inst.findItems(pkg, QtCore.Qt.MatchExactly):
             inst.setCurrentItem(item)
             packages.disable_current_package()
             QtCore.QCoreApplication.processEvents()
