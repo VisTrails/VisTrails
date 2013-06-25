@@ -3259,7 +3259,7 @@ class VistrailController(object):
                            'Please contact the developer of that package '
                            'and report a bug.' % err.package.name)
                     debug.critical(msg)
-                elif isinstance(err, PackageManager.MissingPackage):
+                elif isinstance(err, MissingPackage):
                     msg = ('Cannot find package "%s" in '
                            'list of available packages. '
                            'Please install it first.' % err._identifier)
