@@ -32,19 +32,24 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import os
-import sys
-import json
-import subprocess
-import errno
-import shutil
 
-import core.system
+import errno
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+from core.modules.vistrails_module import Module, ModuleError, IncompleteImplementation, new_module
 import core.modules.module_registry
 from core import debug
-from core.modules.vistrails_module import Module, ModuleError, new_module
+import core.system
+
+import identifiers
+
 
 cl_tools = {}
+
 
 class CLTools(Module):
     """ CLTools is the base Module.
@@ -52,19 +57,19 @@ class CLTools(Module):
      the web service.
 
     """
-    def __init__(self):
-        Module.__init__(self)
-
     def compute(self):
-        raise core.modules.vistrails_module.IncompleteImplementation
+        raise IncompleteImplementation
 
 SUFFIX = '.clt'
 DEFAULTFILESUFFIX = '.cld'
 
+
 def _eintr_retry_call(func, *args):
-    # Fixes OSErrors and IOErrors
-    #From: http://code.google.com/p/seascope/source/detail?spec=svn8dbe5e23d41db673727ce90fd338e9a43f8877e8&name=8dbe5e23d41d&r=8dbe5e23d41db673727ce90fd338e9a43f8877e8
-    # IOError added
+    """Fixes OSErrors and IOErrors
+
+    From: http://code.google.com/p/seascope/source/detail?spec=svn8dbe5e23d41db673727ce90fd338e9a43f8877e8&name=8dbe5e23d41d&r=8dbe5e23d41db673727ce90fd338e9a43f8877e8
+    IOError added
+    """
     while True:
         try:
             return func(*args)
@@ -73,8 +78,8 @@ def _eintr_retry_call(func, *args):
                 continue
             raise
 
+
 def add_tool(path):
-    global cl_tools
     # first create classes
     tool_name = os.path.basename(path)
     if not tool_name.endswith(SUFFIX):
@@ -86,7 +91,7 @@ def add_tool(path):
     try:
         conf = json.load(open(path))
     except ValueError as exc:
-        debug.critical("Package CLTools could not parse '%s'" % path, str(exc))
+        debug.critical("Package CLTools could not parse '%s'" % path, exc)
         return
 
     def compute(self):
@@ -111,9 +116,7 @@ def add_tool(path):
                 if name:
                     # if flag==name we assume user tried to name a constant
                     if not name == flag:
-                        if 'prefix' in options:
-                            name = options['prefix'] + str(name)
-                        args.append(name)
+                        args.append('%s%s' % (options.get('prefix', ''), name))
             elif "input" == type:
                 # handle multiple inputs
                 values = self.forceGetInputListFromPort(name)
@@ -129,18 +132,18 @@ def add_tool(path):
                             # use name as flag
                             value = name
                     elif 'file' == klass:
-                        value = str(value.name)
+                        value = value.name
                     # check for flag and append file name
                     if not 'flag' == klass and 'flag' in options:
                         args.append(options['flag'])
-                    if 'prefix' in options:
-                        value = options['prefix'] + str(value)
-                    args.append(str(value))
+                    value = '%s%s' % (options.get('prefix', ''),
+                                      value)
+                    args.append(value)
             elif "output" == type:
                 # output must be a filename but we may convert the result to a string
                 # create new file
                 file = self.interpreter.filePool.create_file(
-                              suffix=options.get('suffix', DEFAULTFILESUFFIX))
+                        suffix=options.get('suffix', DEFAULTFILESUFFIX))
                 fname = file.name
                 if 'prefix' in options:
                     fname = options['prefix'] + fname
@@ -149,30 +152,28 @@ def add_tool(path):
                 args.append(fname)
                 if "file" == klass:
                     self.setResult(name, file)
-                else: # assume String - set to string value after execution
+                elif "string" == klass:
                     setOutput.append((name, file))
+                else:
+                    raise ValueError
             elif "inputoutput" == type:
                 # handle single file that is both input and output
-                values = self.forceGetInputListFromPort(name)
-                for value in values:
-                    # create copy of infile to operate on
-                    outfile = self.interpreter.filePool.create_file(
-                              suffix=options.get('suffix', DEFAULTFILESUFFIX))
-                    try:
-                        shutil.copyfile(value.name, outfile.name)
-                    except IOError, e:
-                        raise ModuleError("Error copying file '%s': %s" %
-                                          (value.name, str(e)))
-                    value = str(outfile.name)
-                    # check for flag and append file name
-                    if 'flag' in options:
-                        args.append(options['flag'])
-                    if 'prefix' in options:
-                        value = options['prefix'] + str(value)
-                    args.append(str(value))
-                    self.setResult(name, outfile)
-                    # only process one input
-                    break
+                value = self.getInputFromPort(name)
+
+                # create copy of infile to operate on
+                outfile = self.interpreter.filePool.create_file(
+                        suffix=options.get('suffix', DEFAULTFILESUFFIX))
+                try:
+                    shutil.copyfile(value.name, outfile.name)
+                except IOError, e:
+                    raise ModuleError("Error copying file '%s': %s" %
+                                      (value.name, e))
+                value = '%s%s' % (options.get('prefix', ''), outfile.name)
+                # check for flag and append file name
+                if 'flag' in options:
+                    args.append(options['flag'])
+                args.append(value)
+                self.setResult(name, outfile)
         if "stdin" in self.conf:
             name, type, options = self.conf["stdin"]
             type = type.lower()
@@ -181,23 +182,21 @@ def add_tool(path):
                 if "file" == type:
                     if file_std:
                         f = open(value.name, 'rb')
-                        data = f.read()
-                        stdin = ''
-                        while data:
-                            stdin += data
-                            data = f.read()
-                        f.close()
                     else:
                         f = open(value.name, 'rb')
-                else: # assume String
+                        stdin = f.read()
+                        f.close()
+                elif "string" == type:
                     if file_std:
                         file = self.interpreter.filePool.create_file()
                         f = open(file.name, 'w')
-                        f.write(str(value))
+                        f.write(value)
                         f.close()
                         f = open(file.name)
                     else:
                         stdin = value
+                else:
+                    raise ValueError
                 if file_std:
                     open_files.append(f)
                     kwargs['stdin'] = f.fileno()
@@ -208,11 +207,13 @@ def add_tool(path):
                 name, type, options = self.conf["stdout"]
                 type = type.lower()
                 file = self.interpreter.filePool.create_file(
-                                                     suffix=DEFAULTFILESUFFIX)
+                        suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
                     self.setResult(name, file)
-                else: # assume String - set to string value after execution
+                elif "string" == type:
                     setOutput.append((name, file))
+                else:
+                    raise ValueError
                 f = open(file.name, 'wb')
                 open_files.append(f)
                 kwargs['stdout'] = f.fileno()
@@ -223,21 +224,24 @@ def add_tool(path):
                 name, type, options = self.conf["stderr"]
                 type = type.lower()
                 file = self.interpreter.filePool.create_file(
-                                                     suffix=DEFAULTFILESUFFIX)
+                        suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
                     self.setResult(name, file)
-                else: # assume String - set to string value after execution
+                elif "string" == type:
                     setOutput.append((name, file))
+                else:
+                    raise ValueError
                 f = open(file.name, 'wb')
                 open_files.append(f)
                 kwargs['stderr'] = f.fileno()
             else:
                 kwargs['stderr'] = subprocess.PIPE
-        # On windows, builtin commands like cd/dir must use shell=True
-        if core.system.systemType in ['Windows', 'Microsoft'] and \
-                          args[0] in ['dir', 'cd']:
-            kwargs['shell'] = True
-            
+
+        if "return_code" in self.conf:
+            return_code = self.forceGetInputFromPort(name)
+        else:
+            return_code = None
+
         env = {}
         # 0. add defaults
         # 1. add from configuration
@@ -246,24 +250,24 @@ def add_tool(path):
         if configuration.check('env'):
             try:
                 for var in configuration.env.split(";"):
-                    key, value = str(var).split('=')
+                    key, value = var.split('=')
                     key = key.strip()
                     value = value.strip()
                     if key:
                         env[key] = value
             except Exception, e:
-                raise ModuleError('Error parsing configuration env: %s' % str(e))
+                raise ModuleError('Error parsing configuration env: %s' % e)
 
         if 'options' in self.conf and 'env' in self.conf['options']:
             try:
                 for var in self.conf['options']['env'].split(";"):
-                    key, value = str(var).split('=')
+                    key, value = var.split('=')
                     key = key.strip()
                     value = value.strip()
                     if key:
                         env[key] = value
             except Exception, e:
-                raise ModuleError('Error parsing module env: %s' % str(e))
+                raise ModuleError('Error parsing module env: %s' % e)
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
             for e in self.forceGetInputListFromPort('env'):
@@ -271,13 +275,13 @@ def add_tool(path):
                     for var in e.split(';'):
                         if not var:
                             continue
-                        key, value = str(var).split('=')
+                        key, value = var.split('=')
                         key = key.strip()
                         value = value.strip()
                         if key:
                             env[key] = value
                 except Exception, e:
-                    raise ModuleError('Error parsing env port: %s' % str(e))
+                    raise ModuleError('Error parsing env port: %s' % e)
 
         if env:
             kwargs['env'] = dict(os.environ)
@@ -302,6 +306,12 @@ def add_tool(path):
             #if stderr:
             #    print "stderr:", len(stderr), stderr[:30]
 
+        if return_code is not None:
+            if process.returncode != return_code:
+                raise ModuleError("Command returned %d (!= %d)" % (
+                                  process.returncode, return_code))
+        self.setResult('return_code', process.returncode)
+
         for f in open_files:
             f.close()
 
@@ -316,25 +326,29 @@ def add_tool(path):
                 type = type.lower()
                 if "file" == type:
                     file = self.interpreter.filePool.create_file(
-                                                     suffix=DEFAULTFILESUFFIX)
+                            suffix=DEFAULTFILESUFFIX)
                     f = open(file.name, 'w')
                     f.write(stdout)
                     f.close()
                     self.setResult(name, file)
-                else: # assume String - set to string value after execution
+                elif "string" == type:
                     self.setResult(name, stdout)
+                else:
+                    raise ValueError
             if stderr and "stderr" in self.conf:
                 name, type, options = self.conf["stderr"]
                 type = type.lower()
                 if "file" == type:
                     file = self.interpreter.filePool.create_file(
-                                                     suffix=DEFAULTFILESUFFIX)
+                            suffix=DEFAULTFILESUFFIX)
                     f = open(file.name, 'w')
                     f.write(stderr)
                     f.close()
                     self.setResult(name, file)
-                else: # assume String - set to string value after execution
+                elif "string" == type:
                     self.setResult(name, stderr)
+                else:
+                    raise ValueError
 
 
     # create docstring
@@ -346,14 +360,15 @@ def add_tool(path):
                                            "tool_name": tool_name,
                                            "__doc__": d})
     reg = core.modules.module_registry.get_module_registry()
-    reg.add_module(M, package=identifier, package_version=version)
+    reg.add_module(M, package=identifiers.identifier,
+                   package_version=identifiers.version)
 
     def to_vt_type(s):
         # add recognized types here - default is String
         return '(edu.utah.sci.vistrails.basic:%s)' % \
           {'file':'File', 'flag':'Boolean', 'list':'List',
            'float':'Float','integer':'Integer'
-          }.get(str(s).lower(), 'String')
+          }.get(s.lower(), 'String')
     # add module ports
     if 'stdin' in conf:
         name, type, options = conf['stdin']
@@ -378,11 +393,12 @@ def add_tool(path):
         elif 'inputoutput' == type.lower():
             reg.add_input_port(M, name, to_vt_type('file'), optional=optional)
             reg.add_output_port(M, name, to_vt_type('file'), optional=optional)
+    reg.add_output_port(M, 'return_code', to_vt_type('integer'))
     cl_tools[tool_name] = M
 
 
 def initialize(*args, **keywords):
-    if "CLTools" == name:
+    if "CLTools" == identifiers.name:
         # this is the original package 
         location = os.path.join(core.system.default_dot_vistrails(),
                                      "CLTools")
@@ -409,17 +425,15 @@ def initialize(*args, **keywords):
             except Exception as exc:
                 import traceback
                 debug.critical("Package CLTools failed to create module "
-                   "from '%s': %s" % (os.path.join(location, path), str(exc)),
+                   "from '%s': %s" % (os.path.join(location, path), exc),
                    traceback.format_exc())
 
 def reload_scripts():
-    global cl_tools
-
     reg = core.modules.module_registry.get_module_registry()
     for tool_name in cl_tools.keys():
         del cl_tools[tool_name]
-        reg.delete_module(identifier, tool_name)
-    if "CLTools" == name:
+        reg.delete_module(identifiers.identifier, tool_name)
+    if "CLTools" == identifiers.name:
         # this is the original package 
         location = os.path.join(core.system.default_dot_vistrails(),
                                      "CLTools")
@@ -443,7 +457,7 @@ def reload_scripts():
             except Exception as exc:
                 import traceback
                 debug.critical("Package CLTools failed to create module "
-                   "from '%s': %s" % (os.path.join(location, path), str(exc)),
+                   "from '%s': %s" % (os.path.join(location, path), exc),
                    traceback.format_exc())
 
     from gui.vistrails_window import _app
@@ -463,7 +477,7 @@ def menu_items():
     except:
         return
     lst = []
-    if "CLTools" == name:
+    if "CLTools" == identifiers.name:
         def open_wizard():
             window = QCLToolsWizardWindow(reload_scripts=reload_scripts)
             wizards_list.append(window)
