@@ -601,6 +601,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.changeModuleLabelAct)
         menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
+        menu.addAction(self.runModuleAct)
         menu.addAction(self.setErrorAct)
         if module.is_abstraction() and not module.is_latest_version():
             menu.addAction(self.upgradeAbstractionAct)
@@ -641,6 +642,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.setWatchedAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_watched)
+        self.runModuleAct = QtGui.QAction("Run this module", self.scene())
+        self.runModuleAct.setStatusTip("Run this module")
+        QtCore.QObject.connect(self.runModuleAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.run_module)
         self.setErrorAct = QtGui.QAction("Show Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
@@ -651,6 +657,9 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.upgradeAbstractionAct,
                    QtCore.SIGNAL("triggered()"),
                    self.upgradeAbstraction)
+
+    def run_module(self):
+        self.scene().parent().execute(sinks=[self.moduleId])
 
     def set_breakpoint(self):
         """ set_breakpoint() -> None
@@ -3150,7 +3159,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             return self.pipeline_non_empty(self.controller.current_pipeline)
         return False
     
-    def execute(self):
+    def execute(self, sinks=None):
         # view.checkModuleConfigPanel()
         # reset job view
         from vistrails.gui.job_monitor import QJobView
@@ -3166,8 +3175,8 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             progress = ExecutionProgressDialog(modules)
             self.scene().progress = progress
             progress.show()
-            
-            self.controller.execute_current_workflow()
+
+            self.controller.execute_current_workflow(sinks=sinks)
 
             progress.setValue(modules)
             #progress.hide()
