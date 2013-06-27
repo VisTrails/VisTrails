@@ -137,8 +137,9 @@ class TaskRunner(object):
         def done(runner):
             runner.running_threads -= 1
             callback(future)
+        inh_priority = self._inherited_priority
         future.add_done_callback(lambda res: self.tasks.put(
-                (priority, self._inherited_priority, done)))
+                (priority, inh_priority, done)))
 
     def run_process(self, callback, task, *args, **kwargs):
         """Runs a process and add the callback task on completion
@@ -155,8 +156,9 @@ class TaskRunner(object):
         def done(runner):
             runner.running_threads -= 1
             callback(future)
+        inh_priority = self._inherited_priority
         future.add_done_callback(lambda res: self.tasks.put(
-                (priority, self._inherited_priority, done)))
+                (priority, inh_priority, done)))
 
     def execute_tasks(self):
         """Main loop executing tasks until there is nothing more to run.
