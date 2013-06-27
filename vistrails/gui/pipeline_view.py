@@ -659,7 +659,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                    self.upgradeAbstraction)
 
     def run_module(self):
-        self.scene().parent().execute(sinks=[self.moduleId])
+        self.scene().parent().execute(target=self.moduleId)
 
     def set_breakpoint(self):
         """ set_breakpoint() -> None
@@ -3159,7 +3159,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             return self.pipeline_non_empty(self.controller.current_pipeline)
         return False
     
-    def execute(self, sinks=None):
+    def execute(self, target=None):
         # view.checkModuleConfigPanel()
         # reset job view
         from vistrails.gui.job_monitor import QJobView
@@ -3176,7 +3176,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             self.scene().progress = progress
             progress.show()
 
-            self.controller.execute_current_workflow(sinks=sinks)
+            if target is not None:
+                self.controller.execute_current_workflow(
+                        sinks=[target],
+                        reason="Execute specific module")
+            else:
+                self.controller.execute_current_workflow()
 
             progress.setValue(modules)
             #progress.hide()
