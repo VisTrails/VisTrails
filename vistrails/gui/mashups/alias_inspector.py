@@ -135,6 +135,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.dw_minval_edit = QtGui.QLineEdit()
         self.dw_maxval_edit = QtGui.QLineEdit()
         self.dw_stepsize_edit = QtGui.QLineEdit()
+        
         l = QtGui.QVBoxLayout()
         l.setMargin(0)
         l.setSpacing(0)
@@ -153,6 +154,9 @@ class QAliasDetailsWidget(QtGui.QWidget):
         l.addWidget(self.dw_stepsize_label)
         l.addWidget(self.dw_stepsize_edit)
         self.dw_slider_layout.addLayout(l)
+        self.dw_seq_toggle = QtGui.QCheckBox("Loop")
+        self.dw_seq_toggle.setToolTip("Enable option to loop through all steps")
+        self.dw_slider_layout.addWidget(self.dw_seq_toggle)
         self.dw_layout.addWidget(self.dw_label)
         self.dw_layout.addWidget(self.dw_combobox)
         self.dw_layout.addLayout(self.dw_slider_layout)
@@ -201,6 +205,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.order_spinbox.valueChanged.connect(self.orderChanged)
         self.dw_minval_edit.editingFinished.connect(self.minvalChanged)
         self.dw_stepsize_edit.editingFinished.connect(self.stepsizeChanged)
+        self.dw_seq_toggle.clicked.connect(self.seqToggled)
         self.dw_maxval_edit.editingFinished.connect(self.maxvalChanged)
         
     def unplugSignals(self):
@@ -244,6 +249,17 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.alias.component.stepSize = new_stepsize
             self.aliasChanged.emit(self.alias)
         
+
+    @pyqtSlot()
+    def seqToggled(self):
+        if self.alias:
+            old_seq = self.alias.component.seq
+            new_seq = self.dw_seq_toggle.isChecked()
+            if old_seq == new_seq:
+                return
+            self.alias.component.seq = new_seq
+            self.aliasChanged.emit(self.alias)
+
     @pyqtSlot()
     def nameChanged(self):
         old_alias = self.alias.name
@@ -288,6 +304,8 @@ Please type a unique name. """ % new_alias)
                 self.set_int_validators()
             elif self.alias and self.alias.component.type == "Float":
                 self.set_float_validators()
+        # show loop option for stepper
+        self.dw_seq_toggle.setVisible(index == 1)
         if self.alias:
             self.alias.component.widget = str(self.dw_combobox.currentText())
             self.aliasChanged.emit(self.alias)
@@ -311,6 +329,7 @@ Please type a unique name. """ % new_alias)
         self.dw_maxval_edit.setVisible(on)
         self.dw_stepsize_label.setVisible(on)
         self.dw_stepsize_edit.setVisible(on)
+        self.dw_seq_toggle.setVisible(on)
         
     def populate_dw_combobox(self):
         self.dw_combobox.currentIndexChanged.disconnect(self.toggle_dw_combobox)
@@ -343,11 +362,14 @@ Please type a unique name. """ % new_alias)
             self.dw_minval_edit.setText(self.alias.component.minVal)
             self.dw_maxval_edit.setText(self.alias.component.maxVal)
             self.dw_stepsize_edit.setText(self.alias.component.stepSize)
+            self.dw_seq_toggle.setChecked(self.alias.component.seq)
                 
             if self.dw_combobox.currentIndex() == 0:
                 self.show_dw_contents(False)
             else:
                 self.show_dw_contents(True)
+            # show loop option for stepper
+            self.dw_seq_toggle.setVisible(index == 1)
                 
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)

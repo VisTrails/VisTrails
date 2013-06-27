@@ -68,6 +68,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.setCentralWidget(centralWidget)
         self.numberOfCells = 0
         self.is_executing = False
+        self.sequenceOption = False
+        self.steps = []
+        self.isLooping = False
         #self.resize(100,100)
         self.dumpcells = dumpcells
         self.view = vistrail_view
@@ -81,7 +84,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.setWindowTitle('%s Mashup'%self.controller.getMashupName(version))
         else:
             self.setWindowTitle('Mashup')
-            
+
         # Assign "hidden" shortcut
         self.editingModeAct = QtGui.QAction("Chang&e Layout", self, shortcut="Ctrl+E",
                statusTip="Change the layout of the widgets", triggered=self.toggleEditingMode)
@@ -129,11 +132,19 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         buttonLayout.setMargin(5)
         self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update", self.centralWidget())
         self.cb_auto_update.setChecked(False)
+        if self.sequenceOption:
+            self.cb_loop_sequence = QtGui.QCheckBox("Render all steps in %s" % self.sequenceOption.alias.name, self.centralWidget())
+            self.cb_loop_sequence.setChecked(False)
+            self.cb_loop_sequence.setToolTip("Render each step of this stepper for fast switching")
         self.cb_keep_camera = QtGui.QCheckBox("Keep camera position", self.centralWidget())
         self.cb_keep_camera.setChecked(True)
         self.connect(self.cb_auto_update,
                      QtCore.SIGNAL("stateChanged(int)"),
                      self.auto_update_changed)
+        if self.sequenceOption:
+            self.loopButton = QtGui.QPushButton("&Loop", self.centralWidget())
+            self.loopButton.setToolTip("Loop automatically through steps in 4 steps/second")
+            self.loopButton.setCheckable(True)
         self.updateButton = QtGui.QPushButton("&Update", self.centralWidget())
         if self.dumpcells:
             self.quitButton = QtGui.QPushButton("&Save", self.centralWidget())
@@ -146,13 +157,21 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                          QtCore.SIGNAL('clicked(bool)'),
                          self.close)
         buttonLayout.setColumnStretch(0, 1)
+        if self.sequenceOption:
+            buttonLayout.addWidget(self.cb_loop_sequence, 0, 0, QtCore.Qt.AlignRight)
         buttonLayout.addWidget(self.cb_auto_update, 0, 1, QtCore.Qt.AlignLeft)    
         buttonLayout.addWidget(self.cb_keep_camera, 0, 2, 1, 2, QtCore.Qt.AlignLeft) 
+        if self.sequenceOption:
+            buttonLayout.addWidget(self.loopButton, 1, 1, QtCore.Qt.AlignRight)
         buttonLayout.addWidget(self.updateButton, 1, 2, QtCore.Qt.AlignRight)
         buttonLayout.addWidget(self.quitButton, 1, 3, QtCore.Qt.AlignRight)
         self.connect(self.updateButton,
                      QtCore.SIGNAL('clicked(bool)'),
                      self.updateButtonClick)
+        if self.sequenceOption:
+            self.connect(self.loopButton,
+                         QtCore.SIGNAL('clicked(bool)'),
+                         self.loopButtonClick)
         buttonDock.setWidget(buttonWidget)
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, buttonDock)
         self.controlDocks["__buttons__"] = buttonDock
@@ -199,7 +218,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             
         return (cellEvents, errors)
     
-    def updateCells(self):
+    def updateCells(self, info=None):
+        # check if we should create a sequence
+        if self.cb_loop_sequence.isChecked():
+            return self.updateCellsLoop(info)
         self.is_executing = True
         (cellEvents, errors) = self.runAndGetCellEvents()
         self.is_executing = False
@@ -217,14 +239,78 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
                 #self.cellWidgets[i].updateContents(cellEvents[i].inputPorts)
             else:
                 self.cellWidgets[i].updateContents(cellEvents[i].inputPorts)
+
+    def updateCellsLoop(self, info=None):
+        """ Run workflow for each step in the loop sequence and collect results.
+        """
+        slider = self.sequenceOption.value
+        if info and info[1][0] == slider:
+            # User is moving the slider, so we use the existing result
+            return self.updateRenderedCells(info[1][0].value())
         
+        self.is_executing = True
+        self.steps = []
+        old_value = slider.value()
+        value = slider.minimum()
+        slider.setValue(value)
+
+        while True:
+            (cellEvents, errors) = self.runAndGetCellEvents()
+            if len(cellEvents) != self.numberOfCells:
+                raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
+    Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
+            self.steps.append([])
+            for i in xrange(self.numberOfCells):
+                self.steps[-1].append(cellEvents[i].inputPorts)
+
+            # show the result
+            self.updateRenderedCells(value)
+            self.is_executing = True
+
+            if value >= slider.maximum():
+                break
+            value += slider.singleStep()
+            slider.setValue(value)
+        self.is_executing = False
+        slider.setValue(old_value)
+        
+    def updateRenderedCells(self, value):
+        """ Show the cell specified by slider info
+        """
+        self.is_executing = True
+        for i in xrange(self.numberOfCells):
+            camera = []
+            if (hasattr(self.cellWidgets[i],"getRendererList") and 
+                self.cb_keep_camera.isChecked()):
+                for ren in self.cellWidgets[i].getRendererList():
+                    camera.append(ren.GetActiveCamera())
+                self.cellWidgets[i].updateContents(self.steps[value][i], camera)
+            else:
+                self.cellWidgets[i].updateContents(self.steps[value][i])
+        self.is_executing = False
+
     def updateButtonClick(self):
         self.updateButton.setEnabled(False)
         try:
             self.updateCells()
         finally:
-            self.updateButton.setEnabled(True
-                                         )
+            self.updateButton.setEnabled(True)
+
+    def loopButtonClick(self, toggled):
+        if toggled:
+            self.isLooping = self.startTimer(250)
+        else:
+            self.killTimer(self.isLooping)
+
+    def timerEvent(self, event):
+        if self.steps:
+            stepper = self.sequenceOption.value
+            if stepper.value() == stepper.maximum():
+                stepper.setValue(stepper.minimum())
+            else:
+                stepper.setValue(stepper.value() + stepper.singleStep())
+            self.updateRenderedCells(stepper.value())
+
     def toggleEditingMode(self):
         if len(self.controlDocks) > 0:
             for dock in self.controlDocks.itervalues():
@@ -329,6 +415,11 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
             
             if alias.component.widget == 'slider':
                 aliasWidget = QAliasSliderWidget(alias, vtparam, dock)
+                # enables looping of 
+                if alias.component.seq:
+                    self.sequenceOption = aliasWidget
+
+
             elif alias.component.widget == 'numericstepper':
                 aliasWidget = QAliasNumericStepperWidget(alias, vtparam, dock)
             else:
@@ -358,7 +449,7 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
             
     def widget_changed(self, info):
         if self.cb_auto_update.isChecked() and not self.is_executing:
-            self.updateCells()
+            self.updateCells(info)
         
             
     def run(self, useDefaultValues=False):
