@@ -437,7 +437,8 @@ class Package(DBPackage):
                                      'can_handle_identifier',
                                      'can_handle_vt_file']
                 for attr in module_attributes:
-                    if hasattr(self._module, attr):
+                    if (hasattr(self._module, attr) and
+                            not hasattr(self._init_module, attr)):
                         setattr(self._init_module, attr, getattr(self._module, attr))
                 self._module = self._init_module
 
