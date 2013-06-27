@@ -2482,7 +2482,7 @@ class VistrailController(object):
         results = []
         for vis in vistrails:
             error = None
-            (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
+            (locator, version, pipeline, view, aliases, params, reason, sinks, extra_info) = vis
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
                 not extra_info['pathDumpCells']):
@@ -2499,6 +2499,7 @@ class VistrailController(object):
                       'aliases': aliases,
                       'params': params,
                       'reason': reason,
+                      'sinks': sinks,
                       'extra_info': extra_info,
                       }    
             if self.get_vistrail_variables():
@@ -2566,7 +2567,8 @@ class VistrailController(object):
         return (results,changed)
     
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 extra_info=None, reason='Pipeline Execution'):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow(custom_aliases: dict, 
                                      custom_params: list,
                                      extra_info: dict) -> (list, bool)
@@ -2594,6 +2596,7 @@ class VistrailController(object):
                                                 custom_aliases,
                                                 custom_params,
                                                 reason,
+                                                sinks,
                                                 extra_info)])
 
     def recompute_terse_graph(self):
