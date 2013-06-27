@@ -49,6 +49,7 @@ from itertools import izip
 import re
 import os
 import os.path
+import pickle
 import shutil
 #import zipfile
 import urllib
@@ -868,6 +869,15 @@ class Null(Module):
 
 ##############################################################################
 
+class Unpickle(Module):
+    """Unpickles a string.
+    """
+    def compute(self):
+        value = self.getInputFromPort('input')
+        self.setResult('result', pickle.loads(value))
+
+##############################################################################
+
 class PythonSource(NotCacheable, Module):
     """PythonSource is a Module that executes an arbitrary piece of
     Python code.
@@ -1194,7 +1204,13 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Dictionary, "addPair", [Module, Module])
     reg.add_input_port(Dictionary, "addPairs", List)
 
-    reg.add_module(Null)
+    reg.add_module(Null, hide_descriptor=True)
+
+    reg.add_module(Variant, abstract=True)
+
+    reg.add_module(Unpickle, hide_descriptor=True)
+    reg.add_input_port(Unpickle, 'input', String)
+    reg.add_output_port(Unpickle, 'result', Variant)
 
     reg.add_module(PythonSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
@@ -1212,15 +1228,13 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
 
-    reg.add_module(Variant, abstract=True)
-
-    reg.add_module(Round)
+    reg.add_module(Round, hide_descriptor=True)
     reg.add_input_port(Round, 'in_value', Float)
     reg.add_output_port(Round, 'out_value', Integer)
     reg.add_input_port(Round, 'floor', Boolean, optional=True,
                        defaults="(True,)")
 
-    reg.add_module(TupleToList)
+    reg.add_module(TupleToList, hide_descriptor=True)
     reg.add_input_port(TupleToList, 'in_value', Tuple)
     reg.add_output_port(TupleToList, 'out_value', List)
 
