@@ -39,6 +39,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
+from vistrails.core.modules.vistrails_module.parallel import parallelizable
 from vistrails.core.system import vistrails_version
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -934,6 +935,11 @@ class PythonSource(NotCacheable, Module):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
         self.run_code(s, use_input=True, use_output=True)
 
+
+@parallelizable(thread=True, process=True, remote=True)
+class RemotePythonSource(PythonSource):
+    pass
+
 ##############################################################################
 
 class SmartSource(NotCacheable, Module):
@@ -1217,6 +1223,10 @@ def initialize(*args, **kwargs):
                                         "PythonSourceConfigurationWidget"))
     reg.add_input_port(PythonSource, 'source', String, True)
     reg.add_output_port(PythonSource, 'self', Module)
+
+    reg.add_module(RemotePythonSource,
+                   configureWidgetType=("vistrails.gui.modules.python_source_configure",
+                                        "PythonSourceConfigurationWidget"))
 
     reg.add_module(SmartSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
