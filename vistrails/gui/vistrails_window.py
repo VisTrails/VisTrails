@@ -62,6 +62,7 @@ from vistrails.core import debug
 from vistrails.gui.application import get_vistrails_application
 from vistrails.gui.preferences import QPreferencesDialog
 from vistrails.gui.base_view import BaseView
+from vistrails.gui.parallelization import QParallelizationSettings
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.repository import QRepositoryDialog
 from vistrails.gui.theme import initializeCurrentTheme, CurrentTheme
@@ -986,7 +987,8 @@ class QVistrailsWindow(QVistrailViewWindow):
               [((QWorkspaceWindow,True),
                 (('search_changed', 'updateSearchResults'),
                  ('execution_updated', 'execution_updated'),
-                 ('state_changed', 'state_changed')))]),
+                 ('state_changed', 'state_changed'))),
+               (QParallelizationSettings,True)]),
              (self.LOWER_LEFT_DOCK_AREA,
               [(QModulePalette, True),
                ((QParamExploreInspector, False),

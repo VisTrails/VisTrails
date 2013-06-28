@@ -13,6 +13,7 @@ class ProcessScheme(ParallelizationScheme):
                 100,
                 SchemeType.LOCAL_PROCESS,
                 'multiprocessing')
+        self._enabled = True
         self._process_pool = None
 
     def process_pool(self):
@@ -39,6 +40,12 @@ class ProcessScheme(ParallelizationScheme):
         def process_done(runner):
             module.do_compute(compute=get_results)
         future.add_done_callback(lambda res: async_task.callback(process_done))
+
+    def enabled(self):
+        return self._enabled
+
+    def set_enabled(self, enabled):
+        self._enabled = enabled
 
 
 register_parallelization_scheme(ProcessScheme)
