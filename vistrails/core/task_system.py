@@ -1,15 +1,11 @@
 """A task system running a dynamic graph of tasks while respecting priorities.
 
 This runs the task you add to it, which can in turn add new tasks, calling you
-back when the tasks you are waiting on are done. It also respects priorities,
-and can run tasks in a thread or process as well.
+back when the tasks you are waiting on are done. It also respects priorities.
 """
 
 
-import concurrent.futures
-import multiprocessing
 import Queue
-import sys
 import warnings
 
 
@@ -41,6 +37,35 @@ class DependentTask(object):
             return False
 
 
+class AsyncTask(object):
+    """Keeps the execution context to execute another task later.
+
+    Tasks that run in the background without the TaskRunner managing them
+    should call make_async_task() to signal that a task is yet to finish.
+    It will store the current context so that callback() can add a task
+    correctly.
+
+    When the background task is finished, call callback() with the wanted
+    callback function. It will signal the TaskRunner that there is no
+    background task anymore, and will call the given callback on the main
+    thread.
+
+    This is intended to be used with futures, for instance:
+    future = executor.submit(somefunc)
+    async_task = runner.make_async_task()
+    future.add_done_callback(lambda: async_task.callback(more_stuff))
+    """
+    def __init__(self, runner, inherited_priority):
+        self.runner = runner
+        self.runner.running_threads += 1
+        self.inherited_priority = inherited_priority
+
+    def callback(self, callback, priority=100):
+        self.runner.running_threads -= 1
+        self.runner.tasks.put((priority, self.inherited_priority, callback))
+        self.runner = None
+
+
 class TaskRunner(object):
     """The main object keeping track of and running the tasks.
 
@@ -51,8 +76,6 @@ class TaskRunner(object):
 
     Tasks can be added via the add() method, which takes a bunch of tasks and a
     callback task.
-    They can also be run in parallel via run_thread() and run_process(), via
-    concurrent.futures.
 
     execute_tasks() starts the main loop, which will return when every task and
     thread have completed.
@@ -63,23 +86,8 @@ class TaskRunner(object):
         self.dependencies = dict()
 
         self.running_threads = 0
-        # We'll create these when needed
-        self._thread_pool = None
-        self._process_pool = None
 
         self._inherited_priority = ()
-
-    def thread_pool(self):
-        if self._thread_pool is None:
-            self._thread_pool = concurrent.futures.ThreadPoolExecutor(
-                    multiprocessing.cpu_count())
-        return self._thread_pool
-
-    def process_pool(self):
-        if self._process_pool is None:
-            self._process_pool = concurrent.futures.ProcessPoolExecutor(
-                    multiprocessing.cpu_count())
-        return self._process_pool
 
     def add(self, *tasks, **kwargs):
         """Adds a group of tasks to be run, and a callback.
@@ -122,43 +130,8 @@ class TaskRunner(object):
             for task in tasks:
                 self.dependencies.setdefault(task, set()).add(dependent)
 
-    def run_thread(self, callback, task, *args, **kwargs):
-        """Runs a thread and add the callback task on completion.
-
-        Note that there is no priority between threads, as they are submitted
-        to the ThreadPoolExecutor right away.
-
-        Also note that 'task' should be a callable, Task instances are not
-        expected here.
-        """
-        priority = kwargs.pop('cb_priority', 100)
-        future = self.thread_pool().submit(task, *args, **kwargs)
-        self.running_threads += 1
-        def done(runner):
-            runner.running_threads -= 1
-            callback(future)
-        inh_priority = self._inherited_priority
-        future.add_done_callback(lambda res: self.tasks.put(
-                (priority, inh_priority, done)))
-
-    def run_process(self, callback, task, *args, **kwargs):
-        """Runs a process and add the callback task on completion
-
-        Note that there is no priority between processes, as they are submitted
-        to the ProcessPoolExecutor right away.
-
-        Also note that 'task' should be a callable, Task instances are not
-        expected here. It should be pickleable, as multiprocessing needs it.
-        """
-        priority = kwargs.pop('cb_priority', 100)
-        future = self.process_pool().submit(task, *args, **kwargs)
-        self.running_threads += 1
-        def done(runner):
-            runner.running_threads -= 1
-            callback(future)
-        inh_priority = self._inherited_priority
-        future.add_done_callback(lambda res: self.tasks.put(
-                (priority, inh_priority, done)))
+    def make_async_task(self):
+        return AsyncTask(self, self._inherited_priority)
 
     def execute_tasks(self):
         """Main loop executing tasks until there is nothing more to run.
@@ -214,10 +187,6 @@ class TaskRunner(object):
         """
         for task in self.tasks_ran:
             task.reset()
-        if self._thread_pool is not None:
-            self._thread_pool.shutdown()
-        if self._process_pool is not None:
-            self._process_pool.shutdown()
         self.dependencies = None
 
 

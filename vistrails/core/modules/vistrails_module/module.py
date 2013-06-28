@@ -473,7 +473,10 @@ context."""
         self.logging.begin_compute(self)
         if self.is_breakpoint:
             raise ModuleBreakpoint(self)
-        self.do_compute()
+        if hasattr(self, 'remote_execution'):
+            self.remote_execution.do_compute(self)
+        else:
+            self.do_compute()
 
     def do_compute(self, compute=None):
         """ do_compute() -> None
