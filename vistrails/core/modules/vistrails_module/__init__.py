@@ -36,13 +36,13 @@
 from .errors import IncompleteImplementation, InvalidOutput, MissingModule, \
     ModuleBreakpoint, ModuleError, ModuleErrors, ModuleSuspended, \
     NeedsInputPort
-from .module import BaseModule, Module, ModuleConnector, new_module
+from .module import Module, ModuleConnector, new_module
 from .parallel import parallelizable
 
 
 ###############################################################################
 
-class NotCacheable(BaseModule):
+class NotCacheable(object):
     """This Mixin marks a Module as not being cacheable.
 
     It will get reexecuted every time even if it gets the exact same input on
@@ -63,6 +63,5 @@ class Converter(Module):
     You must override the 'in_value' and 'out_value' ports by providing the
     types your module actually matches.
     """
-    @staticmethod
-    def compute_static(inputs):
+    def compute(self):
         raise NotImplementedError

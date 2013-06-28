@@ -38,7 +38,6 @@ import sys
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.task_system import Task
-from vistrails.core.utils import pickleable_staticmethods
 
 from .errors import InvalidOutput, ModuleBreakpoint, \
     ModuleError, ModuleErrors, ModuleSuspended
@@ -190,10 +189,7 @@ class Serializable(object):
 ###############################################################################
 # Module
 
-class BaseModule(object):
-    __metaclass__ = pickleable_staticmethods
-
-class Module(BaseModule, Task, Serializable):
+class Module(Task, Serializable):
 
     """Module is the base module from which all module functionality
 is derived from in VisTrails. It defines a set of basic interfaces to
@@ -532,37 +528,7 @@ Makes sure input port 'name' is filled."""
             raise ModuleError(self, "'%s' is a mandatory port" % name)
 
     def compute(self):
-        inputs = InputWrapper(self)
-
-        try:
-            outputs = self.compute_static(inputs)
-        except ModuleError:
-            exctype, value, tb = sys.exc_info()
-            if value.module is None:
-                value.module = self
-            try:
-                raise value, None, tb
-            finally:
-                del tb # delete circular reference to stack frame
-
-        for port, value in outputs.iteritems():
-            self.setResult(port, value)
-
-    @staticmethod
-    def compute_static(inputs):
-        """Static version of compute.
-
-        inputs is a object containing the values from the input ports.
-        It should return a dictionary containing the values to set on the
-        output ports.
-
-        The purpose of this is to be easily executable from a different process
-        without requiring this Module object to be copied to that process.
-
-        If you override compute() directly, you don't need to worry about this
-        method.
-        """
-        return dict()
+        pass
 
     def setResult(self, port, value):
         self.outputPorts[port] = value

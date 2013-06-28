@@ -96,23 +96,26 @@ def parallelizable(thread=True, process=False, remote=False, standalone=False,
     in parallel. You can specify which kind of parallelism is supported using
     the keyword arguments:
       * thread: enabled by default if you use this decorator. This means that
-      both the compute_static() (and even the compute()) method can be run in a
-      separate thread, in parallel with the execution of other modules.
-      * process: means that compute_static() can be run in a separate process
-      using multiprocessing from the standard library.
-      * remote: means that compute_static() can be run on a different machine.
-      * standalone: means that compute_static() can be run on a machine even if
-      it doesn't have VisTrails.
+      the compute() method can be run in a separate thread, in parallel with
+      the execution of other modules.
+      * process: means that compute() can be run in a separate process using
+      multiprocessing from the standard library.
+      * remote: means that compute() can be run on a different machine.
+      * standalone: means that compute() can be run on a machine even if it
+      doesn't have VisTrails.
 
     The requirements for your code are as follow (each type includes the
     constraints from the previous type as well):
-      * thread: the module doesn't thread-unsafe global states or libraries..
-      * process: compute_static() has been defined instead of compute() and the
-      inputs and outputs for this module are pickleable between processes.
+      * thread: the module doesn't thread-unsafe global states or libraries.
+      * process: the inputs and outputs for this module are pickleable between
+      processes.
       * remote: the module doesn't use local files (that are not on the remote
-      machines) or global variables (including imports! you should move this to
+      machines) or global variables (including imports! you should move them to
       the method's body).
-      * standalone: means that no use is made of VisTrails's modules.
+      * standalone: means that no use is made of VisTrails's modules and
+      functions, and that only the methods accessing inputs and setResult() are
+      used on 'self' ('self' will be a pickled copy of a simplified Module
+      instance).
 
     In addition, you may specify whether a specific system can be used by
     adding it to the 'system' dictionary.
