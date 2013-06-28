@@ -121,7 +121,10 @@ class RemoteExecution(object):
         for priority, scheme in _parallelization_schemes:
             if scheme.supports(**module.remote_execution.parallelizable):
                 scheme.do_compute(module)
-                break
+                return
+
+        # Fallback to classic execution
+        module.do_compute()
 
 
 def parallelizable(thread=True, process=False, remote=False, standalone=False,
