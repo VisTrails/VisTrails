@@ -420,11 +420,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 obj.moduleInfo['actions'] = actions
 
         ## Checking 'sinks' from kwargs to resolve only requested sinks
+        # Note that we accept any module in 'sinks', even if it's not actually
+        # a sink in the graph
         if sinks is not None:
-            requestedSinks = sinks
             persistent_sinks = [tmp_id_to_module_map[sink]
-                                for sink in pipeline.graph.sinks()
-                                if sink in requestedSinks]
+                                for sink in sinks
+                                if sink in tmp_id_to_module_map]
         else:
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]

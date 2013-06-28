@@ -126,6 +126,10 @@ parser.add_option("-e", "--examples", action="store_true",
 parser.add_option("-i", "--images", action="store_true",
                   default=False,
                   help="perform image comparisons")
+parser.add_option("--installbundles", action='store_true',
+                  default=False,
+                  help=("Attempt to install missing Python packages "
+                        "automatically"))
 
 (options, args) = parser.parse_args()
 # remove empty strings
@@ -133,6 +137,7 @@ args = filter(len, args)
 verbose = options.verbose
 test_examples = options.examples
 test_images = options.images
+installbundles = options.installbundles
 test_modules = None
 if len(args) > 0:
     test_modules = set(args)
@@ -144,10 +149,13 @@ sys.argv = sys.argv[:1]
 # creates the app so that testing can happen
 
 # We need the windows so we can test events, etc.
-v = vistrails.gui.application.start_application({'interactiveMode': True,
-                                       'nologger': True,
-                                       'singleInstance': False,
-                                       'fixedSpreadsheetCells': True})
+v = vistrails.gui.application.start_application({
+        'interactiveMode': True,
+        'nologger': True,
+        'singleInstance': False,
+        'fixedSpreadsheetCells': True,
+        'installBundles': installbundles,
+    })
 if v != 0:
     app = vistrails.gui.application.get_vistrails_application()
     if app:

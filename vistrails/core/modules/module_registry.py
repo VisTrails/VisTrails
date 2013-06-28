@@ -115,11 +115,7 @@ def _toposort_abstractions(package, abstraction_list):
     for a in abstraction_list:
         if isinstance(a, tuple):
             if isinstance(a[1], dict) and 'name' in a[1]:
-                name = a[1]['name']
-                if 'namespace' in a[1]:
-                    name = (name, namespace)
-                else:
-                    name = (name, '')
+                name = (a[1]['name'], a[1].get('namespace', ''))
             else:
                 name = (_parse_abstraction_name(a[0]), '')
             g.add_vertex(name, a)

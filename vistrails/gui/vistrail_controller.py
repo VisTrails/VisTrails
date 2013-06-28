@@ -351,7 +351,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution'):
+                                 reason='Pipeline Execution', sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -369,6 +369,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          custom_aliases,
                                          custom_params,
                                          reason,
+                                         sinks,
                                          None)])
         return ([], False)
     
@@ -441,7 +442,7 @@ class VistrailController(QtCore.QObject, BaseController):
 #                         'Package "%s" failed during initialization. '
 #                         'Please contact the developer of that package '
 #                         'and report a bug.' % err.package.name)
-#                 elif isinstance(err, PackageManager.MissingPackage):
+#                 elif isinstance(err, MissingPackage):
 #                     QtGui.QMessageBox.critical(
 #                         get_vistrails_application().builderWindow,
 #                         'Unavailable package',
