@@ -1,4 +1,5 @@
 import concurrent.futures
+import multiprocessing
 
 from vistrails.core.modules.vistrails_module.parallel import SchemeType, \
     register_parallelization_scheme, ParallelizationScheme
@@ -15,10 +16,12 @@ class ProcessScheme(ParallelizationScheme):
                 'multiprocessing')
         self._enabled = True
         self._process_pool = None
+        self._pool_size = multiprocessing.cpu_count()
 
     def process_pool(self):
         if self._process_pool is None:
-            self._process_pool = concurrent.futures.ProcessPoolExecutor()
+            self._process_pool = concurrent.futures.ProcessPoolExecutor(
+                    self._pool_size)
         return self._process_pool
 
     def do_compute(self, module):
@@ -46,6 +49,12 @@ class ProcessScheme(ParallelizationScheme):
 
     def set_enabled(self, enabled):
         self._enabled = enabled
+
+    def set_pool_size(self, nb):
+        if self._pool_size != nb and self._process_pool is not None:
+            self._process_pool.shutdown()
+            self._process_pool = None
+        self._pool_size = nb
 
     def finalize(self):
         if self._process_pool is not None:

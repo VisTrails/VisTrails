@@ -2,6 +2,8 @@ import multiprocessing
 
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.configuration import get_vistrails_configuration, \
+    get_vistrails_persistent_configuration
 from vistrails.core.parallelization.parallel_thread import ThreadScheme
 
 
@@ -11,32 +13,40 @@ class QParallelThreadSettings(QtGui.QWidget):
     def __init__(self):
         QtGui.QWidget.__init__(self)
 
-        self._default_threads = multiprocessing.cpu_count()
+        self._default_threads = max(multiprocessing.cpu_count(), 2)
 
-        layout = QtGui.QFormLayout()
+        layout = QtGui.QVBoxLayout()
 
-        checkbox = QtGui.QCheckBox()
+        checkbox = QtGui.QCheckBox("Use threads")
         checkbox.setChecked(True)
         self.connect(checkbox, QtCore.SIGNAL('stateChanged(int)'),
                     self.enable_clicked)
-        label = QtGui.QLabel("Use threads:")
-        label.setBuddy(checkbox)
-        layout.addRow(label, checkbox)
+        layout.addWidget(checkbox)
 
-        processes = QtGui.QSpinBox()
-        processes.setRange(0, 32)
-        processes.setSpecialValueText("autodetect (%d)" %
-                                      self._default_threads)
-        self.connect(processes, QtCore.SIGNAL('valueChanged(int)'),
-                     self.processes_changed)
-        layout.addRow("Number of processes:", processes)
+        form = QtGui.QFormLayout()
+        threads = QtGui.QSpinBox()
+        threads.setRange(0, 32)
+        threads.setSpecialValueText("autodetect (%d)" %
+                                    self._default_threads)
+        threads.setValue(getattr(get_vistrails_configuration(),
+                                 'parallelThread_number'))
+        self.threads_changed(threads.value())
+        self.connect(threads, QtCore.SIGNAL('valueChanged(int)'),
+                     self.threads_changed)
+        form.addRow("Number of threads:", threads)
+        layout.addLayout(form)
+
+        layout.addStretch()
 
         self.setLayout(layout)
 
     def enable_clicked(self, state):
         ThreadScheme.set_enabled(state == QtCore.Qt.Checked)
 
-    def processes_changed(self, nb):
+    def threads_changed(self, nb):
+        setattr(get_vistrails_persistent_configuration(),
+                'parallelThread_number',
+                nb)
         if nb == 0:
             nb = self._default_threads
         ThreadScheme.set_pool_size(nb)

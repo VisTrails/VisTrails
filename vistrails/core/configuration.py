@@ -203,6 +203,8 @@ def default():
         'multiHeads': False,
         'nologger': True,
         'packageDirectory': (None, str),
+        'parallelThread_number': 0,
+        'parallelProcess_number': 0,
         'pythonPrompt': False,
         'recentVistrailList': (None, str),
         'repositoryLocalPath': (None, str),
