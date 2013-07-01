@@ -4,8 +4,8 @@ import sys
 import time
 
 from IPython.utils.path import get_ipython_dir, locate_profile
-from .ipython_callbacks import Client
-from IPython.parallel import error
+from .ipython_callbacks import SafeClient
+from IPython.parallel import Client, error
 
 from vistrails.core.system import vistrails_root_directory
 
@@ -97,8 +97,8 @@ class EngineManager(object):
     def ensure_controller(self, connect_only=False):
         """Make sure a controller is available, else start a local one.
 
-        This returns the Client connected to the controller. DO NOT call
-        close() on this Client. If this returns non-None, you can call
+        This returns the SafeClient connected to the controller. DO NOT call
+        close() on this client. If this returns non-None, you can call
         private_client() to get a different Client object (connected to the
         same cluster).
         """
@@ -112,7 +112,7 @@ class EngineManager(object):
         print "ipython: using IPython profile %r" % self.profile
 
         try:
-            self._client = Client(profile=self.profile)
+            self._client = SafeClient(profile=self.profile)
             print "ipython: connected to controller"
             return self._client
         except error.TimeoutError:
@@ -170,7 +170,7 @@ class EngineManager(object):
             else:
                 self.started_controller = proc
                 print "ipython: controller started, connecting"
-                self._client = Client(profile=self.profile)
+                self._client = SafeClient(profile=self.profile)
                 return self._client
 
         return None
@@ -178,9 +178,10 @@ class EngineManager(object):
     def private_client(self):
         """Makes a new Client object that is not shared with others.
 
-        The client returned by ensure_controller is shared and not thread-safe.
-        Use this to get your own private Client object with its own ZeroMQ
-        connections.
+        Client objects are not thread-safe. ensure_controller returns a
+        SafeClient that adds a lock and a safe callback feature, but if you
+        need access to other IPython features, call this method. You will get
+        your own private Client object with its own ZeroMQ connections.
 
         Don't forget to call close() on it when done.
         """
@@ -315,15 +316,15 @@ class EngineManager(object):
         print "total engines in cluster: %s" % (
                 nb_engines if nb_engines is not None else "(unknown)")
         if connected and client.ids:
-            dview = client[:]
-            with dview.sync_imports():
-                import os
-                import platform
-                import socket
-            engines = dview.apply_async(
-                    eval,
-                    '(os.getpid(), platform.system(), socket.getfqdn())'
-            ).get_dict()
+            with client.direct_view() as dview:
+                with dview.sync_imports():
+                    import os
+                    import platform
+                    import socket
+                engines = dview.apply_async(
+                        eval,
+                        '(os.getpid(), platform.system(), socket.getfqdn())'
+                ).get_dict()
             engines = sorted(
                     engines.items(),
                     key=lambda (ip_id, (pid, system, fqdn)): (fqdn, ip_id))

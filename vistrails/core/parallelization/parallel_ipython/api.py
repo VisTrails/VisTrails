@@ -5,8 +5,8 @@ This may return None if no client is available, if the user cancels, etc, in
 which case you can raise an exception.
 
 direct_view() returns a DirectView of the whole cluster. It is equivalent to
-get_client()[:], with the difference that it will prompt the user to create new
-engines if none are started.
+get_client().direct_view(), with the difference that it will prompt the user to
+create new engines if none are started.
 
 load_balanced_view() returns a LoadBalancedView of the cluster. It is
 equivalent to get_client().load_balanced_view(), with the difference that it
@@ -57,12 +57,12 @@ def get_client(ask=True, shared_client=False):
 def direct_view(ask=True):
     """Returns a DirectView of the whole cluster.
 
-    This is equivalent to get_client()[:], with the difference that it will
-    prompt the user to create new engines if none are started.
+    This is equivalent to get_client().direct_view(), with the difference that
+    it will prompt the user to create new engines if none are started.
     """
     c = get_client()
     if c is not None:
-        return c[:]
+        return c.direct_view()
     else:
         return None
 
@@ -115,6 +115,7 @@ def parallel_map(function, *args, **kwargs):
         if c is None or not c.ids:
             result, ipython = map(function, *args), False
         else:
+            c = EngineManager.private_client()
             ldview = c.load_balanced_view()
             result, ipython = ldview.map_sync(function, *args), True
 

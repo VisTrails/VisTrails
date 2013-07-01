@@ -1,11 +1,11 @@
-from IPython.parallel import Client as _Client
+from IPython.parallel import Client
 
 import threading
 import time
 import contextlib
 
 
-class Client(_Client):
+class SafeClient(Client):
     """Subclass of IPython.parallel.Client adding callbacks for AsyncResults.
 
     This adds an add_callback() method that can be used to safely get called
@@ -16,11 +16,11 @@ class Client(_Client):
     ZeroMQ sockets are not thread-safe.
     """
     def __init__(self, *args, **kwargs):
-        _Client.__init__(self, *args, **kwargs)
+        self.client = Client(*args, **kwargs)
 
-        self.__callback_thread = None
-        self.__callback_condition = threading.Condition()
-        self.__callbacks = None
+        self._callback_thread = None
+        self._callback_condition = threading.Condition()
+        self._callbacks = None
 
     def add_callback(self, asyncresult, callback):
         """Adds a callback for an AsyncResult.
@@ -35,59 +35,83 @@ class Client(_Client):
         """
         item = (set(asyncresult.msg_ids), asyncresult, callback)
 
-        self.__callback_condition.acquire()
+        self._callback_condition.acquire()
 
-        if self.__callback_thread is None:
-            self.__callbacks = [item]
-            self.__callback_thread = threading.Thread(
-                    target=self.__callback_loop)
-            self.__callback_thread.start()
+        if self._callback_thread is None:
+            self._callbacks = [item]
+            self._callback_thread = threading.Thread(
+                    target=self._callback_loop)
+            self._callback_thread.start()
         else:
-            self.__callbacks.append(item)
-            self.__callback_condition.notify()
+            self._callbacks.append(item)
+            self._callback_condition.notify()
 
-        self.__callback_condition.release()
+        self._callback_condition.release()
 
-    def __callback_loop(self):
+    def _callback_loop(self):
         while True:
-            self.__callback_condition.acquire()
-            if self._closed:
+            self._callback_condition.acquire()
+            if self.client._closed:
                 break
-            if not self.__callbacks:
-                self.__callback_condition.wait()
+            if not self._callbacks:
+                self._callback_condition.wait()
 
-            if self.__callbacks:
-                self.spin()
+            if self._callbacks:
+                self.client.spin()
                 i = 0
-                while i < len(self.__callbacks):
-                    msgs, res, cb = self.__callbacks[i]
-                    msgs.intersection_update(self.outstanding)
+                while i < len(self._callbacks):
+                    msgs, res, cb = self._callbacks[i]
+                    msgs.intersection_update(self.client.outstanding)
                     if not msgs:
                         cb(res)
-                        del self.__callbacks[i]
+                        del self._callbacks[i]
                     else:
                         i += 1
 
-            self.__callback_condition.release()
+            self._callback_condition.release()
 
             time.sleep(1e-3)
 
     def close(self):
-        self.__callback_condition.acquire()
-        _Client.close(self)
-        self.__callback_condition.notify()
-        self.__callback_condition.release()
-
-    def _spin_every(self, *args, **kwargs):
-        with self.lock():
-            _Client._spin_every(self, *args, **kwargs)
+        self._callback_condition.acquire()
+        self.client.close()
+        self._callback_condition.notify()
+        self._callback_condition.release()
 
     def lock(self):
         @contextlib.contextmanager
         def acquirelock():
-            self.__callback_condition.acquire()
+            self._callback_condition.acquire()
             try:
                 yield
             finally:
-                self.__callback_condition.release()
+                self._callback_condition.release()
         return acquirelock()
+
+    @property
+    def ids(self):
+        return self.client.ids
+
+    def direct_view(self, targets='all'):
+        @contextlib.contextmanager
+        def wrapper():
+            self._callback_condition.acquire()
+            try:
+                yield self.client.direct_view(targets=targets)
+            finally:
+                self._callback_condition.release()
+        return wrapper()
+
+    def load_balanced_view(self, targets='all'):
+        @contextlib.contextmanager
+        def wrapper():
+            self._callback_condition.acquire()
+            try:
+                yield self.client.load_balanced_view(targets=targets)
+            finally:
+                self._callback_condition.release()
+        return wrapper()
+
+    def shutdown(self, *args, **kwargs):
+        self.client.shutdown(*args, **kwargs)
+        self.close()

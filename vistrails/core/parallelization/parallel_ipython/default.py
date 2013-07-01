@@ -76,8 +76,7 @@ class IPythonScheme(ParallelizationScheme):
                 module_to_serialized_pipeline(module)
 
         # Start execution
-        with rc.lock():
-            ldview = rc.load_balanced_view(targets=engines)
+        with rc.load_balanced_view(targets=engines) as ldview:
             future = ldview.apply_async(
                     initialize_then_execute_serialized_pipeline,
                     pipeline,
