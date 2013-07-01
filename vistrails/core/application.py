@@ -48,7 +48,8 @@ from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
-from vistrails.core.parallelization import setup_parallelization_schemes
+from vistrails.core.parallelization import setup_parallelization_schemes, \
+    finalize_parallelization_schemes
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
@@ -376,6 +377,8 @@ after self.init()"""
         """
         if hasattr(self, 'vistrailsStartup'):
             self.vistrailsStartup.destroy()
+
+        finalize_parallelization_schemes()
 
     def __del__(self):
         """ __del__() -> None

@@ -87,6 +87,9 @@ class ParallelizationScheme(object):
     def do_compute(self, module):
         raise NotImplementedError
 
+    def finalize(self):
+        pass
+
 
 _parallelization_schemes = []
 
@@ -100,6 +103,15 @@ def register_parallelization_scheme(scheme):
             (priority, scheme),
             comp=lambda a, b: a[0] < b[0])
     _parallelization_schemes.insert(i, (priority, scheme))
+
+
+def finalize_parallelization_schemes():
+    """Finalize every ParallelizationScheme.
+    """
+    global _parallelization_schemes
+    for priority, scheme in _parallelization_schemes:
+        scheme.finalize()
+    _parallelization_schemes = []
 
 
 class RemoteExecution(object):

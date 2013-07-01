@@ -45,5 +45,10 @@ class ThreadScheme(ParallelizationScheme):
             self._thread_pool = None
         self._pool_size = nb
 
+    def finalize(self):
+        if self._thread_pool is not None:
+            self._thread_pool.shutdown()
+            self._thread_pool = None
+
 
 register_parallelization_scheme(ThreadScheme)

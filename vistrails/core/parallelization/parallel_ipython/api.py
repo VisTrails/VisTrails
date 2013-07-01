@@ -27,13 +27,18 @@ prompt the user to start a cluster if none is available. It is True by default
 __all__ = ['get_client', 'direct_view', 'load_balanced_view', 'parallel_map']
 
 
-def get_client(ask=True):
+def get_client(ask=True, shared_client=False):
     """Returns a Client object, from which you can construct a view.
 
     This may return None if no client is available, if the user cancels, etc.
     In this case, you might want to raise a ModuleError.
+
+    Note that the returned object is shared with other callers, a new one is
+    not returned every time. It is not the original IPython.parallel.Client
+    class but a subclass adding the add_callback() method (see
+    ipython_callbacks.py).
     """
-    from engine_manager import EngineManager
+    from .engine_manager import EngineManager
 
     c = EngineManager.ensure_controller(connect_only=not ask)
     if c is not None and ask and not c.ids:
@@ -41,7 +46,10 @@ def get_client(ask=True):
                 prompt="A module requested an IPython cluster, but no engines "
                        "are started. Do you want to start some?")
     if c is not None and c.ids:
-        return c
+        if shared_client:
+            return c
+        else:
+            return EngineManager.private_client()
     else:
         return None
 

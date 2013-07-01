@@ -47,5 +47,10 @@ class ProcessScheme(ParallelizationScheme):
     def set_enabled(self, enabled):
         self._enabled = enabled
 
+    def finalize(self):
+        if self._process_pool is not None:
+            self._process_pool.shutdown()
+            self._process_pool = None
+
 
 register_parallelization_scheme(ProcessScheme)
