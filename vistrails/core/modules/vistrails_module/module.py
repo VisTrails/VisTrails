@@ -417,6 +417,9 @@ context."""
             connectors = []
             for connectorList in self.inputPorts.itervalues():
                 connectors.extend(connectorList)
+        elif not isinstance(targets, (tuple, list)):
+            raise TypeError("updateUpstream(): targets should be None or the "
+                            "list of wanted ports")
         elif all(isinstance(e, ModuleConnector) for e in targets):
             connectors = targets
         elif all(isinstance(e, basestring) for e in targets):
@@ -426,6 +429,9 @@ context."""
                     connectors.extend(self.inputPorts[port])
                 except KeyError:
                     pass
+        else:
+            raise TypeError("updateUpstream(): the targets list should either "
+                            "contain ModuleConnector objects or port names")
 
         if priority is None:
             priority = self.COMPUTE_PRIORITY

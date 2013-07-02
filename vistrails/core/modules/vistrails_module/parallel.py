@@ -115,8 +115,14 @@ def finalize_parallelization_schemes():
 
 
 class RemoteExecution(object):
-    def __init__(self, **kwargs):
-        self.parallelizable = kwargs
+    def __init__(self, thread=False, process=False, remote=False,
+                 standalone=False, systems={}):
+        self.parallelizable = dict(
+                thread=thread,
+                process=process,
+                remote=remote,
+                standalone=standalone,
+                systems=systems)
 
     @staticmethod
     def do_compute(module):
