@@ -1,6 +1,4 @@
 from IPython.parallel.error import RemoteError
-import re
-import sys
 
 from vistrails.core.modules.vistrails_module.parallel import SchemeType, \
     register_parallelization_scheme, ParallelizationScheme
@@ -10,18 +8,7 @@ from vistrails.core.modules.vistrails_module.errors import ModuleError
 
 from .api import get_client
 from .engine_manager import EngineManager
-
-
-_ansi_code = re.compile(r'%s(?:(?:\[[^A-Za-z]*[A-Za-z])|[^\[])' % '\x1B')
-
-def strip_ansi_codes(s):
-    return _ansi_code.sub('', s)
-
-
-def print_remoteerror(e):
-    sys.stderr.write("Got exception from IPython engine:\n")
-    sys.stderr.write("%s: %s\n" % (e.ename, e.evalue))
-    sys.stderr.write("Traceback:\n%s\n" % strip_ansi_codes(e.traceback))
+from .utils import print_remoteerror
 
 
 def initialize_then_execute_serialized_pipeline(*args):
@@ -53,18 +40,16 @@ class IPythonScheme(ParallelizationScheme):
                 SchemeType.REMOTE_MACHINE,
                 'ipython')
         self._enabled = False
-        self._process_pool = None
 
     def do_compute(self, module):
         # Connect to cluster
         try:
             rc = get_client(shared_client=True)
-            engines = rc.ids
         except Exception, error:
             raise ModuleError(
                     module,
                     "Exception while loading IPython: %s" % error)
-        if not engines:
+        if not rc.ids:
             raise ModuleError(
                     module,
                     "Exception while loading IPython: No IPython engines "
@@ -76,7 +61,7 @@ class IPythonScheme(ParallelizationScheme):
                 module_to_serialized_pipeline(module)
 
         # Start execution
-        with rc.load_balanced_view(targets=engines) as ldview:
+        with rc.load_balanced_view() as ldview:
             future = ldview.apply_async(
                     initialize_then_execute_serialized_pipeline,
                     pipeline,
