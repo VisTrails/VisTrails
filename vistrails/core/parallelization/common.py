@@ -38,6 +38,59 @@ def get_pickled_module_inputs(module):
     return inputs
 
 
+def get_module_inputs_with_defaults(module):
+    inputPorts = dict()
+
+    # Gets the input values
+    for name, conns in module.inputPorts.iteritems():
+        inputs = []
+        for conn in conns:
+            if isinstance(conn.obj, InputPort):
+                inputs.insert(0, conn())
+            else:
+                inputs.append(conn())
+        if inputs:
+            inputPorts[name] = (inputs, False)
+
+    # Get the defaults for the ports that are not set yet
+    reg = module.registry
+    if reg is not None:
+        try:
+            d = reg.get_descriptor(module.__class__)
+        except:
+            pass
+        else:
+            all_input_ports = reg.destination_ports_from_descriptor(
+                    d)
+            for ps in all_input_ports:
+                if ps.name in inputPorts:
+                    continue
+                found = False
+                if len(ps.port_spec_items) == 1:
+                    psi = ps.port_spec_items[0]
+                    if psi.default is not None:
+                        m_klass = psi.descriptor.module
+                        found = True
+                        value = m_klass.translate_to_python(psi.default)
+                else:
+                    default_val = []
+                    default_valid = True
+                    for psi in ps.port_spec_items:
+                        if psi.default is None:
+                            default_valid = False
+                            break
+                        m_klass = psi.descriptor.module
+                        default_val.append(
+                            m_klass.translate_to_python(psi.default))
+                    if default_valid:
+                        found = True
+                        value = tuple(default_val)
+                if found:
+                    inputPorts[ps.name] = ([value], True)
+
+    return inputPorts
+
+
 def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
     if get_vistrails_application() is None:
         vistrails.core.application.init(args=[])

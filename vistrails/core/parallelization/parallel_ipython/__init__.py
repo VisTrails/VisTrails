@@ -14,3 +14,4 @@ from .api import direct_view, get_client, load_balanced_view, parallel_map
 from .engine_manager import EngineManager
 
 from .default import IPythonScheme
+from .standalone import IPythonStandaloneScheme
