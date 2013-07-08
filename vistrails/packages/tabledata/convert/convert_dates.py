@@ -184,7 +184,26 @@ class StringsToDates(Module):
             result = [datetime.datetime.strptime(s, fmt) for s in strings]
 
         if tz:
+            # Compute the time without daylight saving
             result = [dt.replace(tzinfo=tz) for dt in result]
+
+            # Check if it is in fact during daylight saving
+            if hasattr(tz, 'normalize'):
+                for i in xrange(len(result)):
+                    dt = result[i]
+                    dst = tz.dst(dt.replace(tzinfo=None))
+                    if dst:
+                        result[i] = tz.normalize(dt) - dst
+                        # This is close enough but the way this work is by
+                        # essence ambiguous
+                        # If the given datetime falls right during the time
+                        # change period (one hour, two times a year):
+                        # For standard -> dst (spring): the time will be in
+                        #   dst, although it doesn't actually exist (we stepped
+                        #   over it by changing the clock)
+                        # For dst -> standard (fall): the time will be in dst,
+                        #   although it could also have been standard (there is
+                        #   noway to know which one was meant)
 
         return result
 
@@ -441,7 +460,7 @@ class TestStringsToDates(unittest.TestCase):
                 [d.strftime(fmt) for d in results],
                 ['2013-01-20 09:25:00 EST -0500',
                  '2013-01-20 09:31:00 EST -0500',
-                 '2013-06-02 19:05:00 EDT -0400']) # FIXME: fails for some reason!
+                 '2013-06-02 19:05:00 EDT -0400'])
 
 
 class TestDatesToMatplotlib(unittest.TestCase):
