@@ -6,7 +6,16 @@ extraction and conversion routines.
 
 """
 
+from vistrails.core.packagemanager import get_package_manager
+
 from identifiers import *
+
+
+def package_dependencies():
+    pm = get_package_manager()
+    if pm.has_package('org.vistrails.vistrails.spreadsheet'):
+        return ['org.vistrails.vistrails.spreadsheet']
+
 
 def package_requirements():
     import vistrails.core.requirements
