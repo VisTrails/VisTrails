@@ -48,7 +48,7 @@ def build_csv_variable(filename, delimiter, header_present, column, numeric):
     csvfile.add_function('header_present', Boolean, header_present)
 
     extract = var.add_module(ExtractColumn)
-    csvfile.connect_outputport_to('value', extract, 'csv')
+    csvfile.connect_outputport_to('value', extract, 'table')
     if isinstance(column, (int, long)):
         extract.add_function('column_index', Integer, column)
     else:
