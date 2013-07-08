@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -14,7 +14,13 @@ class QParallelizationSettings(QtGui.QTabWidget, QVistrailsPaletteInterface):
         self.setWindowTitle("Parallelization")
 
         def add(klass):
-            self.addTab(klass(), klass.TAB_NAME)
+            scrollArea = QtGui.QScrollArea()
+            scrollArea.setWidget(klass())
+            scrollArea.setHorizontalScrollBarPolicy(
+                    QtCore.Qt.ScrollBarAlwaysOff)
+            scrollArea.setVerticalScrollBarPolicy(
+                    QtCore.Qt.ScrollBarAsNeeded)
+            self.addTab(scrollArea, klass.TAB_NAME)
 
         add(QParallelThreadSettings)
         add(QParallelProcessSettings)
