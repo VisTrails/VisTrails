@@ -247,7 +247,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         if suite.countTestCases() == 0 and verbose >= 1:
             print msg, "WARNING: %s has no tests!" % filename
         elif verbose >= 2:
-            print msg, "Ok: %s test cases." % len(suite.countTestCases())
+            print msg, "Ok: %d test cases." % suite.countTestCases()
 
 sub_print("Imported modules. Running %d tests..." %
           main_test_suite.countTestCases(),
@@ -317,7 +317,7 @@ if not test_modules or test_images:
 
 ############## RUN TEST SUITE ####################
 
-result = unittest.TextTestRunner().run(main_test_suite)
+result = unittest.TextTestRunner(verbosity=max(verbose, 1)).run(main_test_suite)
 
 if not result.wasSuccessful():
     tests_passed = False
