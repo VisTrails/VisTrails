@@ -6,7 +6,10 @@ extraction and conversion routines.
 
 """
 
+from vistrails.core.packagemanager import get_package_manager
+
 from identifiers import *
+
 
 def _is_dat_available():
     try:
@@ -14,6 +17,13 @@ def _is_dat_available():
         return True
     except ImportError:
         return False
+
+
+def package_dependencies():
+    pm = get_package_manager()
+    if pm.has_package('org.vistrails.vistrails.spreadsheet'):
+        return ['org.vistrails.vistrails.spreadsheet']
+
 
 def package_requirements():
     import vistrails.core.requirements

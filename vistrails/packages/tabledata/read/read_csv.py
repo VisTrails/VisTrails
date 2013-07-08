@@ -2,10 +2,18 @@ import csv
 from itertools import izip
 import numpy
 
-from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.vistrails_module import ModuleError
+from ..common import Table
 
 
-class CSVFile(Module):
+def count_lines(fp):
+    lines = 0
+    for line in fp:
+        lines += 1
+    return lines
+
+
+class CSVFile(Table):
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
             ('delimiter', '(org.vistrails.vistrails.basic:String)',
@@ -18,6 +26,10 @@ class CSVFile(Module):
             ('value', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
 
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
+
+    def __init__(self):
+        Table.__init__(self)
+        self._rows = None
 
     @staticmethod
     def read_file(filename, delimiter=None, header_present=True):
@@ -62,80 +74,59 @@ class CSVFile(Module):
 
         self.filename = csv_file
 
-        self.column_count, self.column_names, self.delimiter = \
+        self.columns, self.names, self.delimiter = \
                 self.read_file(csv_file, self.delimiter, self.header_present)
-        self.setResult('column_count', self.column_count)
-        self.setResult('column_names', self.column_names)
+
+        self.column_cache = {}
+
+        self.setResult('column_count', self.columns)
+        self.setResult('column_names', self.names)
         self.setResult('value', self)
 
+    def get_column(self, index, numeric=False):
+        if index in self.column_cache:
+            return self.column_cache[index]
 
-class ExtractColumn(Module):
-    _input_ports = [
-            ('csv', CSVFile),
-            ('column_name', '(org.vistrails.vistrails.basic:String)',
-             {'optional': True}),
-            ('column_index', '(org.vistrails.vistrails.basic:Integer)',
-             {'optional': True}),
-            ('numeric', '(org.vistrails.vistrails.basic:Boolean)',
-             {'optional': True, 'defaults': "['True']"})]
-    _output_ports = [
-            ('value', '(org.vistrails.vistrails.basic:List)')]
-
-    def compute(self):
-        csv_file = self.getInputFromPort('csv')
-        if self.hasInputFromPort('column_index'):
-            column_index = self.getInputFromPort('column_index')
-        if self.hasInputFromPort('column_name'):
-            name = self.getInputFromPort('column_name')
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            try:
-                index = csv_file.column_names.index(name)
-            except ValueError:
-                try:
-                    name = name.strip()
-                    index = csv_file.column_names.index(name)
-                except:
-                    raise ModuleError(self, "Column name was not found")
-            if self.hasInputFromPort('column_index'):
-                if column_index != index:
-                    raise ModuleError(self,
-                                      "Both column_name and column_index were "
-                                      "specified, and they don't agree")
-        elif self.hasInputFromPort('column_index'):
-            index = column_index
-        else:
-            raise ModuleError(self,
-                              "You must set one of column_name or "
-                              "column_index")
-
-        if self.getInputFromPort('numeric', allowDefault=True):
+        if numeric:
             result = numpy.loadtxt(
-                    csv_file.filename,
+                    self.filename,
                     dtype=numpy.float32,
-                    delimiter=csv_file.delimiter,
-                    skiprows=1 if csv_file.header_present else 0,
+                    delimiter=self.delimiter,
+                    skiprows=1 if self.header_present else 0,
                     usecols=[index])
         else:
-            with open(csv_file.filename, 'rb') as fp:
-                if csv_file.header_present:
+            with open(self.filename, 'rb') as fp:
+                if self.header_present:
                     fp.readline()
                 reader = csv.reader(
                         fp,
-                        delimiter=csv_file.delimiter)
+                        delimiter=self.delimiter)
                 result = [row[index] for row in reader]
 
-        self.setResult('value', result)
+        self.column_cache[index] = result
+        return result
+
+    @property
+    def rows(self):
+        if self._rows is not None:
+            return self._rows
+        with open(self.filename, 'rb') as fp:
+            self._rows = count_lines(fp)
+        if self.header_present:
+            self._rows -= 1
+        return self._rows
 
 
-_modules = {'csv': [CSVFile, ExtractColumn]}
+_modules = {'csv': [CSVFile]}
 
 
 ###############################################################################
 
+from StringIO import StringIO
 import unittest
 from vistrails.tests.utils import execute, intercept_result
 from ..identifiers import identifier
+from ..common import ExtractColumn
 
 
 class CSVTestCase(unittest.TestCase):
@@ -156,13 +147,14 @@ class CSVTestCase(unittest.TestCase):
                         ('read|csv|CSVFile', identifier, [
                             ('file', [('File', self._test_dir + '/test.csv')]),
                         ]),
-                        ('read|csv|ExtractColumn', identifier, [
+                        ('ExtractColumn', identifier, [
                             ('column_index', [('Integer', '1')]),
                             ('column_name', [('String', 'col 2')]),
+                            ('numeric', [('Boolean', 'True')]),
                         ]),
                     ],
                     [
-                        (0, 'value', 1, 'csv'),
+                        (0, 'value', 1, 'table'),
                     ]))
         self.assertEqual(columns, [3])
         self.assertEqual(len(results), 1)
@@ -175,13 +167,13 @@ class CSVTestCase(unittest.TestCase):
                 ('read|csv|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
-                ('read|csv|ExtractColumn', identifier, [
+                ('ExtractColumn', identifier, [
                     ('column_index', [('Integer', '0')]), # index is wrong
                     ('column_name', [('String', 'col 2')]),
                 ]),
             ],
             [
-                (0, 'value', 1, 'csv'),
+                (0, 'value', 1, 'table'),
             ]))
 
     def test_csv_missing(self):
@@ -191,12 +183,12 @@ class CSVTestCase(unittest.TestCase):
                 ('read|csv|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
-                ('read|csv|ExtractColumn', identifier, [
+                ('ExtractColumn', identifier, [
                     ('column_name', [('String', 'col not here')]),
                 ]),
             ],
             [
-                (0, 'value', 1, 'csv'),
+                (0, 'value', 1, 'table'),
             ]))
 
     def test_csv_nonnumeric(self):
@@ -208,14 +200,33 @@ class CSVTestCase(unittest.TestCase):
                         ('file', [('File', self._test_dir + '/test.csv')]),
                         ('header_present', [('Boolean', 'False')]),
                     ]),
-                    ('read|csv|ExtractColumn', identifier, [
+                    ('ExtractColumn', identifier, [
                         ('column_index', [('Integer', '2')]),
                         ('numeric', [('Boolean', 'False')]),
                     ]),
                 ],
                 [
-                    (0, 'value', 1, 'csv'),
+                    (0, 'value', 1, 'table'),
                 ]))
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0],
                          ['col moutarde', '4', 'not a number', '7'])
+
+
+class TestCountlines(unittest.TestCase):
+    def test_countlines(self):
+        # Simple
+        fp = StringIO("first\nsecond")
+        self.assertEqual(count_lines(fp), 2)
+
+        # With newline at EOF
+        fp = StringIO("first\nsecond\n")
+        self.assertEqual(count_lines(fp), 2)
+
+        # Empty
+        fp = StringIO("")
+        self.assertEqual(count_lines(fp), 0)
+
+        # Single newline
+        fp = StringIO("\n")
+        self.assertEqual(count_lines(fp), 1)
