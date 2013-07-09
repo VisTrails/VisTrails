@@ -909,10 +909,7 @@ class QArgWidget(QtGui.QWidget):
     def getValues(self):
         """ get the values from the widgets and store them """
         self.klass = self.klassList.itemData(self.klassList.currentIndex())
-        if self.argtype == 'constant':
-            self.name = ''
-        else:
-            self.name = self.nameLine.text()
+        self.name = self.nameLine.text()
         self.options = {}
         if self.argtype not in self.stdTypes:
             flag = self.flag.text()

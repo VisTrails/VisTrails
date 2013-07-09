@@ -43,7 +43,8 @@ import sys
 from vistrails.core.modules.vistrails_module import Module, ModuleError, IncompleteImplementation, new_module
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
-import vistrails.core.system
+from vistrails.core.system import default_dot_vistrails, packages_directory, \
+    vistrails_root_directory
 
 import identifiers
 
@@ -127,7 +128,9 @@ def add_tool(path):
                       if 'type' in options else 'string'
                 for value in values:
                     if 'flag' == klass:
-                        if value and 'flag' in options and options['flag']:
+                        if not value:
+                            continue
+                        if 'flag' in options and options['flag']:
                             value = options['flag']
                         else:
                             # use name as flag
@@ -400,9 +403,8 @@ def add_tool(path):
 
 def initialize(*args, **keywords):
     if "CLTools" == identifiers.name:
-        # this is the original package 
-        location = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                     "CLTools")
+        # this is the original package
+        location = os.path.join(default_dot_vistrails(), "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
             try:
@@ -429,15 +431,18 @@ def initialize(*args, **keywords):
                    "from '%s': %s" % (os.path.join(location, path), exc),
                    traceback.format_exc())
 
-def reload_scripts():
+
+def remove_all_scripts():
     reg = vistrails.core.modules.module_registry.get_module_registry()
     for tool_name in cl_tools.keys():
         del cl_tools[tool_name]
         reg.delete_module(identifiers.identifier, tool_name)
+
+def reload_scripts():
+    remove_all_scripts()
     if "CLTools" == identifiers.name:
-        # this is the original package 
-        location = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                     "CLTools")
+        # this is the original package
+        location = os.path.join(default_dot_vistrails(), "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
             try:
@@ -464,6 +469,7 @@ def reload_scripts():
     from vistrails.gui.vistrails_window import _app
     _app.invalidate_pipelines()
 
+
 wizards_list = []
 
 def menu_items():
@@ -486,6 +492,62 @@ def menu_items():
         lst.append(("Open Wizard", open_wizard))
     lst.append(("Reload All Scripts", reload_scripts))
     return tuple(lst)
-        
+
+
 def finalize():
     pass
+
+
+###############################################################################
+
+import unittest
+from vistrails.tests.utils import execute, intercept_results
+
+
+class TestCLTools(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        remove_all_scripts()
+        cls.testdir = os.path.join(packages_directory(), 'cltools', 'test_files')
+        cls._tools = {}
+        for name in os.listdir(cls.testdir):
+            if not name.endswith(SUFFIX):
+                continue
+            add_tool(os.path.join(cls.testdir, name))
+            toolname = os.path.splitext(name)[0]
+            cls._tools[toolname] = cl_tools[toolname]
+        cls._old_dir = os.getcwd()
+        os.chdir(vistrails_root_directory())
+
+    @classmethod
+    def tearDownClass(cls):
+        os.chdir(cls._old_dir)
+        reload_scripts()
+
+    def do_the_test(self, toolname):
+        with intercept_results(self._tools['intern_cltools_1'],
+                'return_code', 'f_out', 'stdout') as (
+                return_code, f_out, stdout):
+            self.assertFalse(execute([
+                    ('intern_cltools_1', 'org.vistrails.vistrails.cltools', [
+                        ('f_in', [('File', self.testdir + '/test_1.cltest')]),
+                        ('chars', [('List', '["a", "b", "c"]')]),
+                        ('false', [('Boolean', 'False')]),
+                        ('true', [('Boolean', 'True')]),
+                        ('nb', [('Integer', '42')]),
+                        ('stdin', [('String', 'some line\nignored')]),
+                    ]),
+                ]))
+        self.assertEqual(return_code, [0])
+        self.assertEqual(f_out, ['ok\nmessage received'])
+        self.assertEqual(stdout, ['program output here'])
+
+    def test_with_pipes(self):
+        """Without std_using_files: use pipes instead of files.
+        """
+        self.do_the_test('intern_cltools_1')
+
+    def test_with_files(self):
+        """With std_using_files: use files instead of pipes.
+        """
+        self.do_the_test('intern_cltools_2')
