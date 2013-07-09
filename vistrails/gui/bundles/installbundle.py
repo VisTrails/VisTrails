@@ -34,7 +34,8 @@
 ###############################################################################
 """Module with utilities to try and install a bundle if possible."""
 from vistrails.core import get_vistrails_application
-from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.configuration import get_vistrails_configuration, \
+    get_vistrails_persistent_configuration
 from vistrails.core import debug
 from vistrails.core.system import get_executable_path, vistrails_root_directory
 from vistrails.core.system import systemType
@@ -213,7 +214,8 @@ def show_question(which_files, has_distro_pkg, has_pip):
         else:
             if pip_installed and has_pip:
                 if remember_pip.isChecked():
-                    setattr(get_vistrails_configuration(), 'installBundlesWithPip',
+                    setattr(get_vistrails_persistent_configuration(),
+                            'installBundlesWithPip',
                             use_pip.isChecked())
 
                 if use_pip.isChecked():

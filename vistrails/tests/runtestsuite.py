@@ -140,7 +140,15 @@ test_images = options.images
 installbundles = options.installbundles
 test_modules = None
 if len(args) > 0:
-    test_modules = set(args)
+    test_modules = args
+
+def module_filter(name):
+    if test_modules is None:
+        return True
+    for mod in test_modules:
+        if name.startswith(mod):
+            return True
+    return False
 
 ###############################################################################
 # reinitializing arguments and options so VisTrails does not try parsing them
@@ -200,7 +208,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         if module.endswith('__init__'):
             module = module[:-9]
 
-        if test_modules and not module in test_modules:
+        if not module_filter(module):
             continue
         if module.startswith('vistrails.tests.run'):
             continue
@@ -247,7 +255,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         if suite.countTestCases() == 0 and verbose >= 1:
             print msg, "WARNING: %s has no tests!" % filename
         elif verbose >= 2:
-            print msg, "Ok: %s test cases." % len(suite.countTestCases())
+            print msg, "Ok: %d test cases." % suite.countTestCases()
 
 sub_print("Imported modules. Running %d tests..." %
           main_test_suite.countTestCases(),
@@ -317,7 +325,7 @@ if not test_modules or test_images:
 
 ############## RUN TEST SUITE ####################
 
-result = unittest.TextTestRunner().run(main_test_suite)
+result = unittest.TextTestRunner(verbosity=max(verbose, 1)).run(main_test_suite)
 
 if not result.wasSuccessful():
     tests_passed = False
