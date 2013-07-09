@@ -140,7 +140,15 @@ test_images = options.images
 installbundles = options.installbundles
 test_modules = None
 if len(args) > 0:
-    test_modules = set(args)
+    test_modules = args
+
+def module_filter(name):
+    if test_modules is None:
+        return True
+    for mod in test_modules:
+        if name.startswith(mod):
+            return True
+    return False
 
 ###############################################################################
 # reinitializing arguments and options so VisTrails does not try parsing them
@@ -200,7 +208,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         if module.endswith('__init__'):
             module = module[:-9]
 
-        if test_modules and not module in test_modules:
+        if not module_filter(module):
             continue
         if module.startswith('vistrails.tests.run'):
             continue
