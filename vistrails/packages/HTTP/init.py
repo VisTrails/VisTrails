@@ -139,7 +139,10 @@ class HTTPFile(NotCacheable, Module):
             else:
                 return (2, (str(e)), local_filename)
         else:
-            mod_header = f1.headers['last-modified']
+            try:
+                mod_header = f1.headers['last-modified']
+            except KeyError:
+                mod_header = None
             try:
                 size_header = f1.headers['content-length']
                 if not size_header:
