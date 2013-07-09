@@ -190,10 +190,10 @@ def add_tool(path):
                 elif "string" == type:
                     if file_std:
                         file = self.interpreter.filePool.create_file()
-                        f = open(file.name, 'w')
+                        f = open(file.name, 'wb')
                         f.write(value)
                         f.close()
-                        f = open(file.name)
+                        f = open(file.name, 'rb')
                     else:
                         stdin = value
                 else:
@@ -317,7 +317,7 @@ def add_tool(path):
             f.close()
 
         for name, file in setOutput:
-            f = open(file.name)
+            f = open(file.name, 'rb')
             self.setResult(name, f.read())
             f.close()
 
@@ -328,7 +328,7 @@ def add_tool(path):
                 if "file" == type:
                     file = self.interpreter.filePool.create_file(
                             suffix=DEFAULTFILESUFFIX)
-                    f = open(file.name, 'w')
+                    f = open(file.name, 'wb')
                     f.write(stdout)
                     f.close()
                     self.setResult(name, file)
@@ -342,7 +342,7 @@ def add_tool(path):
                 if "file" == type:
                     file = self.interpreter.filePool.create_file(
                             suffix=DEFAULTFILESUFFIX)
-                    f = open(file.name, 'w')
+                    f = open(file.name, 'wb')
                     f.write(stderr)
                     f.close()
                     self.setResult(name, file)
