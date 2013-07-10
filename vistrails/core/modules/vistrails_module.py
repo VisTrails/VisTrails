@@ -78,7 +78,13 @@ class ModuleBreakpoint(Exception):
             inputs[p] = self.module.getInputListFromPort(p)
 
         return inputs
-        
+
+class ModuleHadError(Exception):
+    """Exception occurring when a module that failed gets updated again.
+
+    It is caught by the interpreter that doesn't log it.
+    """
+
 class ModuleError(Exception):
 
     """Exception representing a VisTrails module runtime error. This
@@ -245,6 +251,7 @@ Designing New Modules
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
+        self.ran = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -346,14 +353,20 @@ context."""
         modules. Report to the logger if available
         
         """
-        self.logging.begin_update(self)
-        self.updateUpstream()
-        if self.suspended:
-            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
+            return
+        if self.ran:
+            if self.had_error:
+                raise ModuleHadError(self)
+            return
+        self.ran = True
+        self.had_error = True # Unset later in this method
+        self.logging.begin_update(self)
+        self.updateUpstream()
+        if self.suspended:
             return
         self.logging.begin_compute(self)
         try:
@@ -387,6 +400,7 @@ context."""
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True
+        self.had_error = False
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
