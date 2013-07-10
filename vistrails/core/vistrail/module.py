@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -133,13 +133,13 @@ class Module(DBModule):
     def convert(_module):
         if _module.__class__ == Module:
             return
-	_module.__class__ = Module
+        _module.__class__ = Module
         for _port_spec in _module.db_portSpecs:
             PortSpec.convert(_port_spec)
         if _module.db_location:
             Location.convert(_module.db_location)
-	for _function in _module.db_functions:
-	    ModuleFunction.convert(_function)
+        for _function in _module.db_functions:
+            ModuleFunction.convert(_function)
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
         _module.set_defaults()
@@ -169,7 +169,7 @@ class Module(DBModule):
         self.db_functions.sort(key=lambda x: x.db_pos)
         return self.db_functions
     def _set_functions(self, functions):
-	# want to convert functions to hash...?
+        # want to convert functions to hash...?
         self.db_functions = functions
     functions = property(_get_functions, _set_functions)
     def add_function(self, function):
@@ -409,6 +409,7 @@ class Module(DBModule):
 class TestModule(unittest.TestCase):
 
     def create_module(self, id_scope=None):
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         from vistrails.db.domain import IdScope
         if id_scope is None:
             id_scope = IdScope()
@@ -421,7 +422,7 @@ class TestModule(unittest.TestCase):
                                     parameters=params)]
         module = Module(id=id_scope.getNewId(Module.vtType),
                         name='Float',
-                        package='edu.utah.sci.vistrails.basic',
+                        package=basic_pkg,
                         functions=functions)
         return module
 
@@ -469,16 +470,16 @@ class TestModule(unittest.TestCase):
 
     def testSummonModule(self):
         """Check that summon creates a correct module"""
-        
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+
         x = Module()
         x.name = "String"
-        x.package = 'edu.utah.sci.vistrails.basic'
+        x.package = basic_pkg
         try:
             registry = get_module_registry()
             c = x.summon()
-            m = registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                                'String').module
-            assert type(c) == m
+            m = registry.get_descriptor_by_name(basic_pkg, 'String').module
+            assert isinstance(c, m)
         except NoSummon:
             msg = "Expected to get a String object, got a NoSummon exception"
             self.fail(msg)

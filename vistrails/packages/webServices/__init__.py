@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,6 +38,9 @@ important fixes. Click on configure to add wsdl urls to the package
 (use a ; to separate the urls).
 
 ChangeLog
+2013-04-26  (by VisTrails Team)
+    * Updated package to version 0.9.4
+    * Updated to new org.vistrails identifiers
 2010-02-25  (by VisTrails Team)
     * Updated package to version 0.9.3
     * Fixed bug with new package reloading
@@ -57,14 +60,15 @@ ChangeLog
 from vistrails.core.configuration import ConfigurationObject
 import vistrails.core
 
-identifier = 'edu.utah.sci.vistrails.webservices'
+identifier = 'org.vistrails.vistrails.webservices'
 name = 'Web Services'
-version = '0.9.3'
+version = '0.9.4'
+old_identifiers = ['edu.utah.sci.vistrails.webservices']
 configuration = ConfigurationObject(wsdlList=(None, str),
                                     showWarning=True)
 
 def package_dependencies():
-    return ['edu.utah.sci.vistrails.http']
+    return ['org.vistrails.vistrails.http']
     
 def package_requirements():
     import vistrails.core.requirements

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -193,7 +193,7 @@ class vistrails_module(object):
 
             args = None
             # FIXME want this to be any iterable
-            if type(value) == tuple:
+            if isinstance(value, tuple):
                 args = value
             else:
                 args = (value,)
@@ -259,9 +259,8 @@ class vistrails_module(object):
                 num_params += 1
         if num_ports > 1 or (num_ports == 1 and num_params > 0):
             reg = vistrails.core.modules.module_registry.get_module_registry()
-            tuple_desc = \
-                reg.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                           'Tuple', '')
+            tuple_desc = reg.get_descriptor_by_name(
+                vistrails.core.system.get_vistrails_basic_pkg_id(), 'Tuple')
 
             d = {'_module_desc': tuple_desc,
                  '_package': self._package,}
@@ -396,7 +395,7 @@ class QShell(QtGui.QTextEdit):
         
         def create_namespace_path(root, modules):
             for k,v in modules.iteritems():
-                if type(v) == type({}):
+                if isinstance(v, dict):
                     d = create_namespace_path(k,v)
                     modules[k] = d
             
@@ -460,7 +459,7 @@ class QShell(QtGui.QTextEdit):
         self.interpreter = InteractiveInterpreter(locals)
  
         # last line + last incomplete lines
-        self.line    = QtCore.QString()
+        self.line    = ''
         self.lines   = []
         # the cursor position in the last line
         self.point   = 0
@@ -519,10 +518,10 @@ class QShell(QtGui.QTextEdit):
       
         while self.reading:
             qApp.processOneEvent()
-        if self.line.length() == 0:
+        if len(self.line) == 0:
             return '\n'
         else:
-            return str(self.line) 
+            return self.line 
     
     def write(self, text):
         """write(text: str) -> None
@@ -569,8 +568,8 @@ class QShell(QtGui.QTextEdit):
         # self.set_controller()
         should_scroll = self.scroll_bar_at_bottom()
         self.pointer = 0
-        self.history.append(QtCore.QString(self.line))
-        self.lines.append(str(self.line))
+        self.history.append(self.line)
+        self.lines.append(self.line)
         source = '\n'.join(self.lines)
         self.write('\n')
         self.more = self.interpreter.runsource(source)
@@ -590,7 +589,7 @@ class QShell(QtGui.QTextEdit):
         Clear input line buffer.
         
         """
-        self.line.truncate(0)
+        self.line = ""
         self.point = 0
         
     def __insertText(self, text):
@@ -599,8 +598,8 @@ class QShell(QtGui.QTextEdit):
         
         """
         self.insertPlainText(text)
-        self.line.insert(self.point, text)
-        self.point += text.length()
+        self.line = self.line[:self.point] + text + self.line[self.point:]
+        self.point += len(text)
 
     # def add_pipeline(self, p):
     #     """
@@ -649,9 +648,9 @@ class QShell(QtGui.QTextEdit):
         key   = e.key()
 
         # NB: Sometimes len(str(text)) > 1!
-        if text.length() and all(ord(x) >= 32 and
-                                 ord(x) < 127
-                                 for x in str(text)):
+        if len(text) and all(ord(x) >= 32 and
+                             ord(x) < 127
+                             for x in str(text)):
         # exit select mode and jump to end of text
             cursor = self.textCursor()
             if self.selectMode or cursor.hasSelection():
@@ -704,10 +703,10 @@ class QShell(QtGui.QTextEdit):
             if self.point:
                 QtGui.QTextEdit.keyPressEvent(self, e)
                 self.point -= 1
-                self.line.remove(self.point, 1)
+                self.line = self.line[:self.point] + self.line[self.point+1:]
         elif key == QtCore.Qt.Key_Delete:
             QtGui.QTextEdit.keyPressEvent(self, e)
-            self.line.remove(self.point, 1)
+            self.line = self.line[:self.point] + self.line[self.point+1:]
         elif key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
             if self.reading:
                 self.reading = 0
@@ -720,7 +719,7 @@ class QShell(QtGui.QTextEdit):
                 QtGui.QTextEdit.keyPressEvent(self, e)
                 self.point -= 1
         elif key == QtCore.Qt.Key_Right:
-            if self.point < self.line.length():
+            if self.point < len(self.line):
                 QtGui.QTextEdit.keyPressEvent(self, e)
                 self.point += 1
         elif key == QtCore.Qt.Key_Home:
@@ -731,7 +730,7 @@ class QShell(QtGui.QTextEdit):
             self.point = 0
         elif key == QtCore.Qt.Key_End:
             QtGui.QTextEdit.keyPressEvent(self, e)
-            self.point = self.line.length()
+            self.point = len(self.line)
         elif key == QtCore.Qt.Key_Up:
             if len(self.history):
                 if self.pointer == 0:
@@ -830,3 +829,68 @@ class QShell(QtGui.QTextEdit):
         
         """
         return
+
+################################################################################
+
+def getIPythonDialog():
+    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+#    from IPython.kernel.inprocess.ipkernel import InProcessKernel
+
+    km = QtInProcessKernelManager()
+    km.start_kernel()
+    kernel = km.kernel
+    kernel.gui = 'qt4'
+
+    kernel_client = km.client()
+    kernel_client.start_channels()
+
+    def stop():
+        kernel_client.stop_channels()
+        km.shutdown_kernel()
+
+    class IPythonDialog(RichIPythonWidget, QVistrailsPaletteInterface):
+        """This class incorporates an  IPython shell into a dockable widget for use in the
+        VisTrails environment"""
+        def __init__(self, parent=None):
+            RichIPythonWidget.__init__(self, parent)
+            self.kernel_manager = km
+            self.kernel_client = kernel_client
+            self.exit_requested.connect(stop)
+            #locals() returns the original dictionary, not a copy as
+            #the docs say
+    #        self.firstLocals = copy.copy(locals())
+    #        self.shell = IPythonXXX(self.firstLocals,None)
+    #        layout = QtGui.QVBoxLayout()
+    #        layout.setMargin(0)
+    #        layout.setSpacing(0)
+    #        layout.addWidget(self.shell)
+    #        self.setLayout(layout)
+            # self.setWidget(self.shell)
+            self.setWindowTitle("Console")
+            # self.setTitleBarWidget(QtGui.QLabel(self.shell.windowTitle()))
+            # self.monitorWindowTitle(self.shell)
+            self.vistrails_interpreter = get_default_interpreter()
+    return IPythonDialog
+
+#install_attempted = False
+#installed = vistrails.core.requirements.python_module_exists('IPython.frontend.qt')
+#if not installed and not install_attempted:
+#    print "attempt to install"
+#    install_attempted = True
+#    from vistrails.core.bundles import installbundle
+#    installed = installbundle.install({'linux-ubuntu': 'ipython-qtconsole'})
+#if installed:
+#    print "installed!"
+#    QShellDialog = getIPythonDialog()
+
+# FIXME: For now this requires installing IPython from github
+try:
+    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+    try:
+        QShellDialog = getIPythonDialog()
+    except Exception, e:
+        import traceback; traceback.print_exc()
+        print str(e)
+except:
+    pass

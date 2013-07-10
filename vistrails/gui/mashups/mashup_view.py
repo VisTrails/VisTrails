@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -119,6 +119,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         #print "      *** mashup view versionChanged ", self.vtversion
         
     def controllerChanged(self, controller):
+        if controller is self.controller:
+            return
         from vistrails.gui.vistrails_window import _app
         self.set_controller(controller)
         self.versionChanged(self.controller.current_version)
@@ -248,7 +250,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         tab_idx = self.tabBar.count()-1
         while self.tabBar.count() > 1:
             idx = self.tab_to_stack_idx[tab_idx]
-            if type(self.stack.widget(idx)) == QMashupViewTab:
+            if isinstance(self.stack.widget(idx), QMashupViewTab):
                 self.tabBar.removeTab(tab_idx)
                 if idx >= 0:
                     self.stack.removeWidget(self.stack.widget(idx))
@@ -285,7 +287,7 @@ Click on No to create a new tag.""" %pname,
                     (text, ok) = QtGui.QInputDialog.getText(self, "VisTrails::Mashups",
                                                             "Enter a new tag:",
                                                             text="")
-                    if ok and not text.isEmpty():
+                    if ok and text:
                         tag = str(text)
                         if self.mshpController.updateCurrentTag(tag):
                             tag_exists = False
@@ -308,7 +310,7 @@ Click on No to create a new tag.""" %pname,
     def mshpStateChanged(self):
         for idx in range(self.stack.count()):
             view = self.stack.widget(idx)
-            if type(view) == QMashupViewTab:
+            if isinstance(view, QMashupViewTab):
                 tab_idx = view.tab_idx
                 self.tabBar.setTabText(tab_idx,
                   "Preview: %s"%self.mshpController.getMashupName(view.version))

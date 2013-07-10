@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -134,25 +134,27 @@ class TestTraceMethod(unittest.TestCase):
         global _output_file
         (fd, name) = tempfile.mkstemp()
         os.close(fd)
-        _output_file = file(name, 'w')
+        try:
+            _output_file = open(name, 'w')
 
-        x = test_fun(10)
-        self.assertEquals(x, 15)
-        
-        _output_file.close()
-        _output_file = sys.stderr
+            x = test_fun(10)
+            self.assertEquals(x, 15)
 
-        output = "".join(file(name, 'r').readlines())
-        self.assertEquals(output,
-                          'test_fun.enter\n' +
-                          'test_fun.exit\n')
-        os.unlink(name)
+            _output_file.close()
+            _output_file = sys.stderr
+
+            output = "".join(open(name, 'r').readlines())
+            self.assertEquals(output,
+                              'test_fun.enter\n' +
+                              'test_fun.exit\n')
+        finally:
+            os.unlink(name)
 
     def test_trace_2(self):
         global _output_file
         (fd, name) = tempfile.mkstemp()
         os.close(fd)
-        _output_file = file(name, 'w')
+        _output_file = open(name, 'w')
 
         x = test_fun_2(10)
         self.assertEquals(x, 18)
@@ -160,7 +162,7 @@ class TestTraceMethod(unittest.TestCase):
         _output_file.close()
         _output_file = sys.stderr
 
-        output = "".join(file(name, 'r').readlines())
+        output = "".join(open(name, 'r').readlines())
         self.assertEquals(output,
                           'test_fun_2.enter\n' +
                           'test_fun_2.1\n' +

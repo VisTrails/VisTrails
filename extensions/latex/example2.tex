@@ -2,7 +2,6 @@
 
 \usepackage{times}
 \usepackage[letterpaper,hmargin=1in,vmargin=1.25in]{geometry}
-\usepackage{subfigure}
 \usepackage{float}
 \usepackage[rflt]{floatflt}
 \usepackage{xspace}
@@ -12,7 +11,8 @@
 \usepackage{array}
 \usepackage{mathptmx}
 
-\usepackage{vistrails}
+\usepackage{crowdlabs}
+\usepackage{subfigure}
 \newcommand{\etc}{\emph{etc.}\xspace}
 \newcommand{\eg}{\emph{e.g.,}\xspace}
 \newcommand{\ie}{\emph{i.e.,}\xspace}
@@ -134,12 +134,8 @@ that use multiple libraries and services.
 \begin{figure*}[t]
 \centering{
 %\includegraphics[width=0.9\linewidth, clip=false]{fig2.png}
-\vistrail[host=vistrails.org,
-db=vistrails,
-vtid=4,
-version=655,
-tag=demo11,
-showspreadsheetonly]{width=4cm}
+\crowdlabs[wfid=1046,
+buildalways=false]{width=4cm}
 }
 \caption{The end result of the script or VisTrails pipeline (see
   Figure~\ref{fig:fig1}) is a set of interactive visualizations.}
@@ -169,12 +165,8 @@ changes.
 \begin{figure*}[t]
 \centering{
 %\includegraphics[width=0.9\linewidth, clip=false]{fig2.png}
-\vistrail[host=vistrails.org,
-db=vistrails,
-vtid=4,
-version=613,
-showspreadsheetonly,
-pdf]{width=4cm}
+\crowdlabs[wfid=1050,
+buildalways=false]{width=4cm}
 }
 \caption{The end result of the script or VisTrails pipeline (see
   Figure~\ref{fig:fig1}) is a set of interactive visualizations.}

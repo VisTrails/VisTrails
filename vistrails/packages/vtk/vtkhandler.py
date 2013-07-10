@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,6 +41,8 @@ from vistrails.core.vistrail.module_function import ModuleFunction, ModuleParam
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.modules.python_source_configure import PythonEditor
 import urllib
+
+from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 class vtkInteractionHandler(NotCacheable, Module):
@@ -208,9 +210,8 @@ def registerSelf():
     Registry module with the registry
     """
     registry = get_module_registry()
-    vIO = registry.get_descriptor_by_name(
-        'edu.utah.sci.vistrails.vtk',
-        'vtkInteractorObserver').module
+    vIO = registry.get_descriptor_by_name(vtk_pkg_identifier,
+                                          'vtkInteractorObserver').module
     registry.add_module(vtkInteractionHandler, configureWidgetType=HandlerConfigurationWidget)
     registry.add_input_port(vtkInteractionHandler, 'Observer', vIO)
     registry.add_input_port(vtkInteractionHandler, 'Handler', String, True)

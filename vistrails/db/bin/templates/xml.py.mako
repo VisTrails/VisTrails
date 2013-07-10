@@ -1,6 +1,6 @@
 <%text>###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,11 +35,11 @@
 </%text>
 """generated automatically by auto_dao.py"""
 
-from core.system import get_elementtree_library
+from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 
 from xml_dao import XMLDAO
-from db.versions.${version_string}.domain import *
+from vistrails.db.versions.${version_string}.domain import *
 
 % for obj in objs:
 class ${obj.getClassName()}XMLDAOBase(XMLDAO):
@@ -188,22 +188,24 @@ class ${obj.getClassName()}XMLDAOBase(XMLDAO):
                     ${field.getSingleName()}, childNode)
                 % else:
                 childNode = ElementTree.SubElement(node, \
-                                                   '${prop.getSingleName()}')
+                                                   '${prop.getXMLPropertyName()}')
                 childNode.text = self.convertToStr(${prop.getSingleName()}, \
                                                    '${prop.getPythonType()}')
                 % endif
             <% cond = 'elif' %> \\
             % endfor
             % else:
-            childNode = ElementTree.SubElement(node, \
-                '${field.getReferencedObject().getName()}')
-            self.getDao('${field.getReference()}').toXML( \!
-                ${field.getSingleName()}, childNode)
+            if (${field.getRegularName()} is not None) and (${field.getRegularName()} != ""):
+                childNode = ElementTree.SubElement(node, \
+                    '${field.getReferencedObject().getName()}')
+                self.getDao('${field.getReference()}').toXML( \!
+                    ${field.getSingleName()}, childNode)
             % endif
         % else:
-        childNode = ElementTree.SubElement(node, '${field.getSingleName()}')
-        childNode.text = self.convertToStr(${field.getSingleName()}, \
-                                               '${field.getPythonType()}')
+        if (${field.getRegularName()} is not None) and (${field.getRegularName()} != ""):
+            childNode = ElementTree.SubElement(node, '${field.getXMLPropertyName()}')
+            childNode.text = self.convertToStr(${field.getSingleName()}, \
+                                                   '${field.getPythonType()}')
         % endif
         % endfor
         

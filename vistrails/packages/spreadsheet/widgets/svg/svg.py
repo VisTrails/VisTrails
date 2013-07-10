@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -176,9 +176,9 @@ class SVGSaveAction(QtGui.QAction):
                                                "SVG (*.svg);;PDF files (*.pdf)")
         if not fn:
             return
-        if fn.endsWith(QtCore.QString("svg"), QtCore.Qt.CaseInsensitive):
+        if fn.lower().endswith("svg"):
             cellWidget.dumpToFile(str(fn))
-        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+        elif fn.lower().endswith("pdf"):
             cellWidget.saveToPDF(str(fn))
         
 class SVGToolBar(QCellToolBar):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -188,11 +188,10 @@
 # sys.exit(0)
 import os
 import sys
-import vistrails.tests
 
 if __name__ != '__main__':
-    import vistrails.tests
-    raise vistrails.tests.NotModule('This should not be imported as a module')
+    from vistrails.tests import NotModule
+    raise NotModule('This should not be imported as a module')
 
 sys.exit(os.system('yum -y install ' + ' '.join(sys.argv[1:])))
 

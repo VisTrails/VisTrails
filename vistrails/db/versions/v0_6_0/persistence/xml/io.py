@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -47,7 +47,7 @@ def parse_xml_file(filename):
         raise VistrailsDBException(msg)
 
 def write_xml_file(filename, dom, prettyprint=True):
-    output = file(filename, 'w')
+    output = open(filename, 'w')
     if prettyprint:
         dom.writexml(output, '','  ','\n')
     else:

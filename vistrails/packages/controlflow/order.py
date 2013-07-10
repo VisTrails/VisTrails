@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,8 +33,6 @@
 ##
 ###############################################################################
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput
-from vistrails.core.modules.basic_modules import NotCacheable
-from vistrails.core.utils import VistrailsInternalError
 import copy
 
 ##############################################################################

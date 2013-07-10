@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -48,6 +48,8 @@ import copy
 import StringIO
 import unittest
 ElementTree = get_elementtree_library()
+
+from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 # etc
@@ -276,7 +278,7 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
 
     def itemChange(self, change, value):
         if change == QtGui.QGraphicsItem.ItemSelectedChange:
-            self.setPen(self.selection_pens[value.toBool()])
+            self.setPen(self.selection_pens[value])
         if change == QtGui.QGraphicsItem.ItemPositionChange:
             # moves point
             pt = value.toPointF()
@@ -306,8 +308,7 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
                         "Right-click to remove point\n"
                         "Scalar: %.5f, Opacity: %.5f" % (self._scalar,
                                                          self._opacity))
-            return QtGui.QGraphicsItem.itemChange(self, change,
-                                                  QtCore.QVariant(pt))
+            return QtGui.QGraphicsItem.itemChange(self, change, pt)
         return QtGui.QGraphicsItem.itemChange(self, change, value)
 
     def remove_self(self):
@@ -681,11 +682,11 @@ class vtkScaledTransferFunction(Module):
         self.setResult('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
         
-        of_module = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 
+        of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
                                                'vtkPiecewiseFunction').module()
         of_module.vtkInstance  = of
         
-        cf_module = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 
+        cf_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
                                                'vtkColorTransferFunction').module()
         cf_module.vtkInstance  = cf
         

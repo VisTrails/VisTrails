@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -78,7 +78,7 @@ def executable_is_in_pythonpath(filename):
 
 def list2cmdline(lst):
     for el in lst:
-        assert type(el) in [str,unicode]
+        assert isinstance(el, basestring)
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):
@@ -102,7 +102,12 @@ def execute_cmdline(lst, output):
     return result
 
 def get_executable_path(executable_name):
-    #FIXME
+    paths = os.environ['PATH']
+    paths = paths.split(os.pathsep)
+    for prefix in paths:
+        path = os.path.join(prefix, executable_name)
+        if os.path.exists(path):
+            return path
     return None
 
 def execute_piped_cmdlines(cmd_list_list):

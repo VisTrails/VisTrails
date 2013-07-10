@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,13 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import urlparse
 import copy
+import locale
+import sys
 
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
 from vistrails.core.query import extract_text
 import vistrails.core.system
+from vistrails.core.db.locator import BaseLocator
 
 from entity import Entity
 from workflow import WorkflowEntity
@@ -80,18 +82,9 @@ class VistrailEntity(Entity):
         entity.user = action.user
         entity.mod_time = action.date
         entity.create_time = action.date
-        scheme, rest = self.url.split('://', 1)
-        url = 'http://' + rest
-        url_tuple = urlparse.urlsplit(url)
-        query_str = url_tuple[3]
-        if query_str == '':
-            query_str = 'workflow=%s' % action.id
-        else:
-            query_str += '&workflow=%s' % action.id
-        url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
-                     url_tuple[4])
-        entity.url = urlparse.urlunsplit(url_tuple)
-        # entity.url = self.url + '?workflow_id=%s' % action.id
+        locator = BaseLocator.from_url(self.url)
+        locator.kwargs['version_node'] = action.id
+        entity.url = locator.to_url()
         return entity
     
     def create_mashup_entity(self, trail_id, mashup, action):
@@ -107,18 +100,10 @@ class VistrailEntity(Entity):
         entity.user = action.user
         entity.mod_time = action.date
         entity.create_time = action.date
-        scheme, rest = self.url.split('://', 1)
-        url = 'http://' + rest
-        url_tuple = urlparse.urlsplit(url)
-        query_str = url_tuple[3]
-        if query_str == '':
-            query_str = 'mashuptrail=%s&mashup=%s' %(trail_id, action.id)
-        else:
-            query_str += '&mashuptrail=%s&mashup=%s' %(trail_id, action.id)
-        url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
-                     url_tuple[4])
-        entity.url = urlparse.urlunsplit(url_tuple)
-        # entity.url = self.url + '?workflow_id=%s' % action.id
+        locator = BaseLocator.from_url(self.url)
+        locator.kwargs['mashuptrail'] = trail_id
+        locator.kwargs['mashup'] = action.id
+        entity.url = locator.to_url()
         return entity
 
     def create_parameter_exploration_entity(self, pe):
@@ -131,34 +116,18 @@ class VistrailEntity(Entity):
         else:
             # find logical name using vistrail tag
             entity.name = "Latest for " + self.get_pipeline_name(pe.action_id)
-        scheme, rest = self.url.split('://', 1)
-        url = 'http://' + rest
-        url_tuple = urlparse.urlsplit(url)
-        query_str = url_tuple[3]
-        if query_str == '':
-            query_str = 'parameterExploration=%s' % pe.id
-        else:
-            query_str += '&parameterExploration=%s' % pe.id
-        url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
-                     url_tuple[4])
-        entity.url = urlparse.urlunsplit(url_tuple)
+        locator = BaseLocator.from_url(self.url)
+        locator.kwargs['parameterExploration'] = pe.id
+        entity.url = locator.to_url()
         return entity
 
     def create_wf_exec_entity(self, wf_exec, wf_entity):
         entity = WorkflowExecEntity(wf_exec)
         wf_entity.children.append(entity)
         entity.parent = wf_entity
-        scheme, rest = self.url.split('://', 1)
-        url = 'http://' + rest
-        url_tuple = urlparse.urlsplit(url)
-        query_str = url_tuple[3]
-        if query_str == '':
-            query_str = 'workflow_exec=%s' % entity.name
-        else:
-            query_str += '&workflow_exec=%s' % entity.name
-        url_tuple = (scheme, url_tuple[1], url_tuple[2], query_str,
-                     url_tuple[4])
-        entity.url = urlparse.urlunsplit(url_tuple)
+        locator = BaseLocator.from_url(self.url)
+        locator.kwargs['workflow_exec'] = entity.name
+        entity.url = locator.to_url()
         return entity
 
     def get_vistrail_info(self, vistrail=None):
@@ -171,7 +140,7 @@ class VistrailEntity(Entity):
             if vistrail.db_name:
                 name = vistrail.db_name
             else:
-                name = "untitled"
+                name = u"untitled"
             
         size = vistrail.get_version_count()
         if size < 1:
@@ -188,8 +157,7 @@ class VistrailEntity(Entity):
             firstVersion = vistrail.actionMap[1] \
                 if 1 in vistrail.actionMap else latestVersion
             create_time = firstVersion.date
-        url = vistrail.locator.to_url() \
-            if vistrail.locator else 'file://untitled'
+        url = vistrail.locator.to_url() if vistrail.locator else "untitled:"
         return (name, size, user, mod_time, create_time, url)
 
     def set_vistrail(self, vistrail):
@@ -572,8 +540,3 @@ class VistrailEntity(Entity):
         for child in self.get_children():
             if child.match(search):
                 return True
-
-    def open(self):
-        locator = BaseLocator.from_url(self.url)
-        locator._name = self.name
-        vistrails.core.open_locator(locator)

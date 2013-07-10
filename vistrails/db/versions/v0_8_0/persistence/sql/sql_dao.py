@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,12 +35,12 @@
 
 class SQLDAO:
     def __init__(self):
-	pass
+        pass
 
     def convertFromDB(self, value, type, db_type):
-	if value is not None:
-	    if type == 'str':
-		return str(value)
+        if value is not None:
+            if type == 'str':
+                return str(value)
             elif type == 'long':
                 return long(value)
             elif type == 'float':
@@ -58,7 +58,7 @@ class SQLDAO:
                 else:
                     return datetime(*strptime(str(value), 
                                               '%Y-%m-%d %H:%M:%S')[0:6])
-	return None
+        return None
 
     def convertToDB(self, value, type, db_type):
         if value is not None:
@@ -101,10 +101,10 @@ class SQLDAO:
         columns = []
         values = []
         for column, value in columnMap.iteritems():
-	    if value is None:
-		value = 'NULL'
-	    columns.append(column)
-	    values.append(value)
+            if value is None:
+                value = 'NULL'
+            columns.append(column)
+            values.append(value)
         columnStr = ', '.join(columns)
         valueStr = ', '.join(values)
         dbCommand = """INSERT INTO %s(%s) VALUES (%s);""" % \
@@ -115,10 +115,10 @@ class SQLDAO:
         setStr = ''
         comma = ''
         for column, value in columnMap.iteritems():
-	    if value is None:
-		value = 'NULL'
-	    setStr += '%s %s = %s' % (comma, column, value)
-	    comma = ','
+            if value is None:
+                value = 'NULL'
+            setStr += '%s %s = %s' % (comma, column, value)
+            comma = ','
         whereStr = ''
         whereClause = ''
         for column, value in whereMap.iteritems():

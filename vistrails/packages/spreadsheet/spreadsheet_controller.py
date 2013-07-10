@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -63,7 +63,7 @@ class SpreadsheetController(object):
         """
         wList = QtGui.QApplication.topLevelWidgets()
         for w in wList:
-            if type(w)==SpreadsheetWindow:
+            if isinstance(w, SpreadsheetWindow):
                 return w
         global spreadsheetWindow
         spreadsheetWindow = SpreadsheetWindow()

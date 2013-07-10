@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -244,8 +244,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.resetButton = None
         self.selectionBox = QGraphicsRubberBandItem(None)
         self.startSelectingPos = None
-        self.setProperty('captureModifiers',
-                         QtCore.QVariant(1))
+        self.setProperty('captureModifiers', 1)
         self.defaultCursorState = 0
         self.setCursorState(self.defaultCursorState)
         self.canSelectBackground = True
@@ -634,10 +633,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             fileName = QtGui.QFileDialog.getSaveFileName(self.window(),
                 "Save PDF...",
                 vistrails.core.system.vistrails_file_directory(),
-                "PDF files (*.pdf)",
-                None)
+                "PDF files (*.pdf)")
 
-            if fileName.isEmpty():
+            if not fileName:
                 return None
             f = str(fileName)
         else:

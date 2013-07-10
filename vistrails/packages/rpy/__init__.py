@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 name = "R"
-identifier = "edu.utah.sci.vistrails.rpy"
-version = "0.1.0"
+identifier = "org.vistrails.vistrails.rpy"
+version = "0.1.2"
+old_identifiers = ["edu.utah.sci.vistrails.rpy"]
 

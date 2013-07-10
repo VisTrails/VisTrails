@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -139,10 +139,14 @@ class ParameterExploration(DBParameterExploration):
         parameterValues = [[], [], [], []]
         # a list of added functions [(module_id, function_name)] = function
         added_functions = {}
+        vistrail_vars = []
         function_actions = []
         for i in xrange(len(self.functions)):
             pe_function = self.functions[i]
             module = pipeline.db_get_object(Module.vtType, pe_function.real_id)
+            # collect overridden vistrail vars
+            if module.is_vistrail_var():
+                vistrail_vars.append(module.get_vistrail_var())
             port_spec = reg.get_input_port_spec(module, pe_function.name)
             tmp_f_id = -1L
             tmp_p_id = -1L
@@ -227,7 +231,7 @@ class ParameterExploration(DBParameterExploration):
                 actions = []
                 for v in values:
                     desc = port_spec_item.descriptor
-                    if type(v) != str:
+                    if not isinstance(v, str):
                         str_value = desc.module.translate_to_string(v)
                     else:
                         str_value = v
@@ -243,7 +247,7 @@ class ParameterExploration(DBParameterExploration):
                     action = vistrails.core.db.action.create_action([action_spec])
                     actions.append(action)
                 parameterValues[dim].append(actions)
-        return [zip(*p) for p in parameterValues], function_actions
+        return [zip(*p) for p in parameterValues], function_actions, vistrail_vars
 
     def __eq__(self, other):
         """ __eq__(other: ParameterExploration) -> boolean

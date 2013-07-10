@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -193,13 +193,32 @@ parameters from other instances")
     def is_running_gui(self):
         return True
 
-    def get_controller(self):
+    def get_current_controller(self):
         return self.builderWindow.get_current_controller()
+    get_controller = get_current_controller
 
     def get_vistrail(self):
         if self.get_controller():
             return self.get_controller().vistrail
         return None
+
+    def ensure_vistrail(self, locator):
+        view = self.builderWindow.ensureVistrail(locator)
+        if view is not None:
+            return view.controller
+        return None
+
+    def add_vistrail(self, *objs):
+        return self.builderWindow.add_vistrail(*objs)
+
+    def remove_vistrail(self, locator=None):
+        return self.builderWindow.remove_vistrail(locator)
+
+    def select_version(self, version):
+        return self.builderWindow.select_version(version)
+
+    def update_locator(self, old_locator, new_locator):
+        pass
 
     def create_notification(self, notification_id, window=None, view=None):
         if view is not None:
@@ -344,6 +363,7 @@ parameters from other instances")
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
+        self.builderWindow.check_running_jobs()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -407,30 +427,26 @@ parameters from other instances")
             if self.temp_db_options.parameters == None:
                 self.temp_db_options.parameters = ''
             
+            errs = []
             if self.temp_configuration.check('workflowGraph'):
                 workflow_graph = self.temp_configuration.workflowGraph
                 results = vistrails.core.console_mode.get_wf_graph(w_list, workflow_graph,
                                      self.temp_configuration.spreadsheetDumpPDF)
-                failed = True
                 for r in results:
-                    failed = False
                     if r[0] == False:
+                        errs.append("Error generating workflow graph: %s" % \
+                                    r[1])
                         debug.critical("*** Error in get_wf_graph: %s" % r[1])
-                        failed = True
-                return not failed
             
             if self.temp_configuration.check('evolutionGraph'):
                 evolution_graph = self.temp_configuration.evolutionGraph
                 results = vistrails.core.console_mode.get_vt_graph(vt_list, evolution_graph,
                                      self.temp_configuration.spreadsheetDumpPDF)
-                
-                failed = True
                 for r in results:
-                    failed = False
                     if r[0] == False:
+                        errs.append("Error generating vistrail graph: %s" % \
+                                    r[1])
                         debug.critical("*** Error in get_vt_graph: %s" % r[1])
-                        failed = True
-                return not failed
                 
             if self.temp_configuration.check('workflowInfo'):
                 workflow_info = self.temp_configuration.workflowInfo
@@ -447,13 +463,14 @@ parameters from other instances")
                 extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
 
             if self.temp_configuration.check('parameterExploration'):
-                errs = vistrails.core.console_mode.run_parameter_explorations(w_list,
-                                                                    extra_info=extra_info)
+                errs.extend(
+                    vistrails.core.console_mode.run_parameter_explorations(
+                        w_list, extra_info=extra_info))
             else:
-                errs = vistrails.core.console_mode.run(w_list,
+                errs.extend(vistrails.core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
                                       workflow_info, update_vistrail=True,
-                                      extra_info=extra_info)
+                                      extra_info=extra_info))
             if len(errs) > 0:
                 for err in errs:
                     debug.critical("*** Error in %s:%s:%s -- %s" % err)
@@ -517,7 +534,7 @@ parameters from other instances")
             if self.local_server:
                 self.local_server.close()
         if system.systemType in ['Darwin']:
-			self.removeEventFilter(self)
+            self.removeEventFilter(self)
         VistrailsApplicationInterface.finishSession(self)
    
     def eventFilter(self, o, event):
@@ -534,11 +551,11 @@ parameters from other instances")
             else:
                 create_event = 15
                 mac_attribute = QtCore.Qt.WA_MacBrushedMetal
-            if(event.type() == create_event and 
-               issubclass(type(o),QtGui.QWidget) and
-               type(o) != QtGui.QSplashScreen and 
-               not (o.windowFlags() & QtCore.Qt.Popup)):
-                    o.setAttribute(mac_attribute)
+            if (event.type() == create_event and
+                    isinstance(o, QtGui.QWidget) and
+                    not isinstance(o, QtGui.QSplashScreen) and
+                    not (o.windowFlags() & QtCore.Qt.Popup)):
+                o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
             self.input = [str(event.file())]
             self.process_interactive_input()
@@ -552,7 +569,7 @@ parameters from other instances")
             local_socket = self.local_server.nextPendingConnection()
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return
             byte_array = local_socket.readAll()
             self.temp_db_options = None
@@ -572,7 +589,7 @@ parameters from other instances")
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.debug("Writing failed: %s" %
-                            local_socket.errorString().toLatin1())
+                            local_socket.errorString())
                 return
             local_socket.disconnectFromServer()
     
@@ -584,18 +601,18 @@ parameters from other instances")
             local_socket.connectToServer(self._unique_key)
             if not local_socket.waitForConnected(self.timeout):
                 debug.critical("Connection failed: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             self.shared_memory.lock()
             local_socket.write(message)
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.critical("Writing failed: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             if not local_socket.waitForReadyRead(self.timeout):
                 debug.critical("Read error: %s" %
-                               local_socket.errorString().toLatin1())
+                               local_socket.errorString())
                 return False
             byte_array = local_socket.readAll()
             result = str(byte_array)
@@ -613,7 +630,7 @@ parameters from other instances")
         if options_re.match(msg):
             #it's safe to eval as a list
             args = eval(msg)
-            if type(args) == type([]):
+            if isinstance(args, list):
                 #print "args from another instance %s"%args
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()

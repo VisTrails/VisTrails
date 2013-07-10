@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -327,8 +327,8 @@ def getTypeIdList(operation):
                 ('parameter', operation.db_oldId)]
     else:
         print "unknown type: '%s'" % operation.db_what
-        return [(operation.db_what, operation.db_oldId)]	
-    	
+        return [(operation.db_what, operation.db_oldId)]
+
 def getOldId(object):
     if object.vtType == 'annotation':
         return object.db_key
@@ -446,7 +446,7 @@ def getChildList(typeIdList, objectDict):
     except KeyError:
         pass
     return {}
-	    
+
 def createOperation(actionType, objId, objType, parentId, parentType,
                     object=None):
     if actionType == 'add':

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,9 +33,7 @@
 ##
 ###############################################################################
 
-identifier = 'edu.utah.sci.vistrails.spreadsheet'
-name = 'VisTrails Spreadsheet'
-version = '0.9.1'
+from identifiers import *
 
 # This must be here because of VisTrails protocol
 from spreadsheet_config import configuration

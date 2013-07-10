@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -389,7 +389,7 @@ class InstanceObject(object):
             else:
                 result += prefix
                 result += "." + str(k) + " = " 
-                if type(v) == type('string'):
+                if isinstance(v, basestring):
                     result +=  "'" + str(v) + "'\n"
                 else:
                     result += str(v) + "\n"
@@ -458,6 +458,7 @@ class DummyView(object):
     def set_module_active(self, *args, **kwargs): pass
     def set_module_computing(self, *args, **kwargs): pass
     def set_module_success(self, *args, **kwargs): pass
+    def set_module_suspended(self, *args, **kwargs): pass
     def set_module_error(self, *args, **kwargs): pass
     def set_module_not_executed(self, *args, **kwargs): pass
     def set_module_progress(self, *args, **kwargs): pass

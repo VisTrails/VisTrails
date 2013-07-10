@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,7 +38,7 @@ QReadOnlyPortSelectPipelineView
 """
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.pipeline_view import QGraphicsConfigureItem, QGraphicsModuleItem, \
-    QGraphicsPortItem, QPipelineScene, QPipelineView
+    QAbstractGraphicsPortItem, QPipelineScene, QPipelineView
 from vistrails.gui.theme import CurrentTheme
 
 class QReadOnlyPortSelectPipelineView(QPipelineView):
@@ -70,9 +70,9 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
             [scene_copy.remove_connection(c_id) for c_id in sel_connections if c_id not in scene_copy.get_selected_item_ids()[1]]
         # Hide configure button on modules
         for item in scene_copy.selectedItems():
-            if type(item) == QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 for c_item in item.childItems():
-                    if type(c_item) == QGraphicsConfigureItem:
+                    if isinstance(c_item, QGraphicsConfigureItem):
                         c_item.setVisible(False)
         # Unselect everything and use the newly created scene
         scene_copy.clearSelection()
@@ -88,11 +88,11 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
         if buttons == QtCore.Qt.LeftButton:
             scenePos = self.mapToScene(event.pos())
             item = self.scene().itemAt(scenePos)
-            if type(item) == QGraphicsPortItem:
+            if isinstance(item, QAbstractGraphicsPortItem):
                 is_input = item.port.type == 'input'
                 if self.single_output and not is_input and len(self._selected_output_ports) > 0 and item != self._selected_output_ports[0]:
                     # Deselect current output port if another port selected in single output mode
-                    self._selected_output_ports[0].setPen(CurrentTheme.PORT_PEN)
+                    self._selected_output_ports[0].setSelected(False)
                     del self._selected_output_ports[:]
                 if is_input:
                     port_set = self._selected_input_ports
@@ -117,10 +117,8 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
         if event.button() == QtCore.Qt.LeftButton:
             port = self._clicked_port
             if port is not None:
-                if port in self._selected_input_ports or port in self._selected_output_ports:
-                    port.setPen(CurrentTheme.PORT_SELECTED_PEN)
-                else:
-                    port.setPen(CurrentTheme.PORT_PEN)
+                port.setSelected(port in self._selected_input_ports or
+                                 port in self._selected_output_ports)
             event.accept()
         else:
             QPipelineView.mouseReleaseEvent(self, event)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,16 +36,15 @@
 software system for 3D computer graphics, image processing, and
 visualization used by thousands of researchers and developers around
 the world. http://www.vtk.org"""
+
+from identifiers import *
 import vistrails.core
-identifier = 'edu.utah.sci.vistrails.vtk'
-name = 'VTK'
-version = '0.9.3'
 
 def package_dependencies():
     import vistrails.core.packagemanager
     manager = vistrails.core.packagemanager.get_package_manager()
-    if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-        return ['edu.utah.sci.vistrails.spreadsheet']
+    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
+        return ['org.vistrails.vistrails.spreadsheet']
     else:
         return []
 

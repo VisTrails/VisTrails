@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,4 +46,4 @@ def list_conv(l):
         return l
 
 ListOfElements = new_constant('ListOfElements' , staticmethod(list_conv), [],\
-                              staticmethod(lambda x: type(x) == list))
+                              staticmethod(lambda x: isinstance(x, list)))

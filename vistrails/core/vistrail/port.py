@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,7 +40,6 @@ from vistrails.db.domain import DBPort
 from vistrails.core.utils import VistrailsInternalError, all
 from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 import vistrails.core.modules.vistrails_module
-import __builtin__
 import copy
 
 import unittest
@@ -98,7 +97,7 @@ class Port(DBPort):
         if 'signature' not in kwargs:
             kwargs['signature'] = ""
 
-	DBPort.__init__(self, *args, **kwargs)
+        DBPort.__init__(self, *args, **kwargs)
 
         self.set_defaults()
 
@@ -246,6 +245,8 @@ if __name__ == '__main__':
     import vistrails.core.modules.basic_modules
     import vistrails.core.modules.module_registry
     
+from vistrails.core.system import get_vistrails_basic_pkg_id
+
 class TestPort(unittest.TestCase):
     def setUp(self):
         self.registry = vistrails.core.modules.module_registry.get_module_registry()
@@ -256,7 +257,7 @@ class TestPort(unittest.TestCase):
                     moduleId=12L, 
                     moduleName='String', 
                     name='value',
-                    signature='(edu.utah.sci.vistrails.basic:String)')
+                    signature='(%s:String)' % get_vistrails_basic_pkg_id())
         return port
 
     def test_copy(self):
@@ -284,15 +285,15 @@ class TestPort(unittest.TestCase):
 
     def test_registry_port_subtype(self):
         """Test registry isPortSubType"""
-        descriptor = self.registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                                          'String')
+        descriptor = self.registry.get_descriptor_by_name( \
+                            get_vistrails_basic_pkg_id(), 'String')
         ports = self.registry.source_ports_from_descriptor(descriptor)
         assert self.registry.is_port_sub_type(ports[0], ports[0])
 
     def test_registry_ports_can_connect(self):
         """Test registry isPortSubType"""
-        descriptor = self.registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                                          'String')
+        descriptor = self.registry.get_descriptor_by_name( \
+                            get_vistrails_basic_pkg_id(), 'String')
         oport = self.registry.source_ports_from_descriptor(descriptor)[0]
         iport = self.registry.destination_ports_from_descriptor(descriptor)[0]
         assert self.registry.ports_can_connect(oport, iport)

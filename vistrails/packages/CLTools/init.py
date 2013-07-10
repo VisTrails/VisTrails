@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -350,7 +350,7 @@ def add_tool(path):
 
     def to_vt_type(s):
         # add recognized types here - default is String
-        return '(edu.utah.sci.vistrails.basic:%s)' % \
+        return '(basic:%s)' % \
           {'file':'File', 'flag':'Boolean', 'list':'List',
            'float':'Float','integer':'Integer'
           }.get(str(s).lower(), 'String')

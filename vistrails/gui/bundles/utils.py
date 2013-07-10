@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,27 +38,52 @@ from vistrails.core import debug
 import vistrails.core.system
 import os
 import platform
+import sys
 
 ##############################################################################
 
 def guess_graphical_sudo():
-    """Tries to guess what to call to run a shell with elevated
-privileges."""
-    if vistrails.core.system.executable_is_in_path('kdesu'):
-        return 'kdesu -c'
+    """Tries to guess what to call to run a shell with elevated privileges.
+
+    Returns: (sudo, escape)
+    Where:
+      sudo is the command to be used to gain root privileges, it 
+           should contain %s where the actual command will be inserted
+      escape is True if the rest of the line needs to be escaped
+    """
+    if sys.platform == 'win32':
+        return '%s', False
+    # sudo needs -E so that the Xauthority file is found and root can connect
+    # to the user's X server
+    if vistrails.core.system.executable_is_in_path('kdesudo'):
+        return 'kdesudo %s', True
+    elif vistrails.core.system.executable_is_in_path('kdesu'):
+        return 'kdesu %s', False
     elif vistrails.core.system.executable_is_in_path('gksu'):
-        return 'gksu'
+        return 'gksu %s', False
     elif (vistrails.core.system.executable_is_in_path('sudo') and
           vistrails.core.system.executable_is_in_path('zenity')):
         # This is a reasonably convoluted hack to only prompt for the password
         # if user has not recently entered it
-        return ('((echo "" | sudo -v -S -p "") || ' +
-                '(zenity --entry --title "sudo password prompt" --text "Please enter your password '
-                'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -S -p ""')
+        return ('((echo "" | sudo -v -S -p "") || '
+                '(zenity --entry --title "sudo password prompt" --text '
+                '"Please enter your password to give the system install '
+                'authorization." --hide-text="" | sudo -v -S -p "")); '
+                'sudo -E -S -p "" %s',
+               False)
+        # graphical sudo for osx
+    elif vistrails.core.system.executable_is_in_path('osascript'):
+        return "osascript -e " \
+               "'do shell script %s with administrator privileges'", True
     else:
-        debug.warning("Could not find a graphical su-like command.")
-        debug.warning("Will use regular su")
-        return 'su -c'
+        debug.warning("Could not find a graphical sudo-like command.")
+
+        if vistrails.core.system.get_executable_path('sudo'):
+            debug.warning("Will use regular sudo")
+            return "sudo -E %s", False
+        else:
+            debug.warning("Will use regular su")
+            return "su --preserve-environment -c %s", True
 
 ##############################################################################
 
@@ -72,7 +97,7 @@ class System_guesser(object):
             raise Exception("test for '%s' already present." % system_name)
         if system_name == 'UNKNOWN':
             raise Exception("Invalid system name")
-        assert type(system_name) == str
+        assert isinstance(system_name, str)
         self._callable_dict[system_name] = test
 
     def guess_system(self):
@@ -89,16 +114,19 @@ _system_guesser = System_guesser()
 
 def _guess_suse():
     try:
-        tokens = file('/etc/SuSE-release').readline()[-1].split()
+        tokens = open('/etc/SuSE-release').readline()[-1].split()
         return tokens[0] == 'SUSE'
     except:
         return False
 _system_guesser.add_test(_guess_suse, 'linux-suse')
 
 def _guess_ubuntu():
-#    return os.path.isfile('/etc/apt/apt.conf.d/01ubuntu')
-     return platform.linux_distribution()[0]=='Ubuntu'
+    return platform.linux_distribution()[0]=='Ubuntu'
 _system_guesser.add_test(_guess_ubuntu, 'linux-ubuntu')
+
+def _guess_debian():
+    return platform.linux_distribution()[0].lower() == 'debian'
+_system_guesser.add_test(_guess_debian, 'linux-debian')
 
 def _guess_fedora():
     return os.path.isfile('/etc/fedora-release')
@@ -112,6 +140,6 @@ will be a string describing the system. This is more discriminating than
 Linux/OSX/Windows: We'll try to figure out whether you're running SuSE, Debian,
 Ubuntu, RedHat, fink, darwinports, etc.
 
-Currently, we only support SuSE, Ubuntu and Fedora. However, we only have
-actual bundle installing for Ubuntu and Fedora."""
+Currently, we only support SuSE, Debian, Ubuntu and Fedora. However, we only
+have actual bundle installing for Debian, Ubuntu and Fedora."""
     return _system_guesser.guess_system()

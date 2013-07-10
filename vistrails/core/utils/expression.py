@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,7 +46,7 @@ def evaluate_expressions(expressions):
     (base, exps) = parse_expression(str(expressions))
     for e in exps:
         try:                        
-            base = base[:e[0]] + str(eval(e[1],None,None)) + base[e[0]:]
+            base = base[:e[0]] + unicode(eval(e[1],None,None)) + base[e[0]:]
         except:
             base = base[:e[0]] + '$' + e[1] + '$' + base[e[0]:]
     return base

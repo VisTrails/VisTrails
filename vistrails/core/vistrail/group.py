@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -104,8 +104,8 @@ class Group(DBGroup, Module):
         if _group.db_workflow:
             from vistrails.core.vistrail.pipeline import Pipeline
             Pipeline.convert(_group.db_workflow)
-	for _function in _group.db_functions:
-	    ModuleFunction.convert(_function)
+        for _function in _group.db_functions:
+            ModuleFunction.convert(_function)
         for _annotation in _group.db_get_annotations():
             Annotation.convert(_annotation)
         _group.set_defaults()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -39,11 +39,11 @@ import sys
 if '../vistrails' not in sys.path:
     sys.path.append('../vistrails')
 
-import db.services.vistrail
-from db.domain import DBModule, DBConnection, DBPort, DBFunction, \
+import vistrails.db.services.vistrail
+from vistrails.db.domain import DBModule, DBConnection, DBPort, DBFunction, \
     DBParameter, DBLocation, DBPortSpec, DBTag, DBAnnotation, DBVistrail, \
     DBAction
-from db.services import io
+from vistrails.db.services import io
 
 def main(out_fname, in_fnames):
     """main(out_fname: str, in_fnames: list<str>) -> None
@@ -55,7 +55,7 @@ def main(out_fname, in_fnames):
     (save_bundle, vt_save_dir) = io.open_bundle_from_zip_xml(DBVistrail.vtType, in_fnames[0])
     for in_fname in in_fnames[1:]:
         (new_save_bundle, new_save_dir) = io.open_bundle_from_zip_xml(DBVistrail.vtType, in_fname)
-        db.services.vistrail.merge(save_bundle, new_save_bundle, "", True, vt_save_dir, new_save_dir)
+        vistrails.db.services.vistrail.merge(save_bundle, new_save_bundle, "", True, vt_save_dir, new_save_dir)
     io.save_bundle_to_zip_xml(save_bundle, out_fname)
     
 if __name__ == '__main__':

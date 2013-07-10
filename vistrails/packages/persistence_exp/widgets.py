@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,8 +38,8 @@ import sqlite3
 import uuid
 
 from vistrails.core.modules.basic_modules import Path
-from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
-from vistrails.core.modules.module_configure import StandardModuleConfigurationWidget
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
 from db_utils import DatabaseAccessSingleton
 
@@ -135,14 +135,14 @@ class ManagedRefModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         if section in self.cols:
-            return QtCore.QVariant(self.headers[self.cols[section]])
-        return QtCore.QVariant()
+            return self.headers[self.cols[section]]
+        return None
     
     def data(self, index, role):
         if not index.isValid() or role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         # if index.parent().isValid():
         #     print 'data', index.row(), index.column(), index.parent().row()
         if index.parent().isValid():
@@ -161,11 +161,11 @@ class ManagedRefModel(QtCore.QAbstractItemModel):
                     index.column() == self.idxs['date_created'] or \
                     index.column() == self.idxs['date_modified'] or \
                     index.column() == self.idxs['user']:
-                return QtCore.QVariant()
+                return None
 
         if index.column() < len(data):
-            return QtCore.QVariant(data[index.column()])
-        return QtCore.QVariant()
+            return data[index.column()]
+        return None
     
     def parent(self, index):
         # print 'calling parent() method'
@@ -480,7 +480,7 @@ class ManagedRefDialog(QtGui.QDialog):
                                               'Use File...',
                                               self.current_file,
                                               'All files (*.*)')
-        if chosen_file and not chosen_file.isEmpty():
+        if chosen_file:
             self.current_file = chosen_file
             self.filename_edit.setText(self.current_file)
     
@@ -554,7 +554,7 @@ class PathChooserLayout(QtGui.QHBoxLayout):
                                                   self.pathname_edit.text(),
                                                   'All files (*.*)')
 
-        if chosen_path and not chosen_path.isEmpty():
+        if chosen_path:
             self.pathname_edit.setText(chosen_path)
             self.emit(QtCore.SIGNAL('pathnameChanged()'))
 

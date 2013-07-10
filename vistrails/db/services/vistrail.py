@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -70,8 +70,8 @@ def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action
     if vistrail.db_has_action_with_id(version):
         workflow = DBWorkflow()
-        #	    for action in getActionChain(vistrail, version):
-        #		oldPerformAction(action, workflow)
+        #for action in getActionChain(vistrail, version):
+        #    oldPerformAction(action, workflow)
         performActions(getActionChain(vistrail, version), 
                             workflow)
         workflow.db_id = version

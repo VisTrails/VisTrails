@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,7 +42,7 @@ import copy
 class DBLog(_DBLog):
 
     def __init__(self, *args, **kwargs):
-	_DBLog.__init__(self, *args, **kwargs)
+        _DBLog.__init__(self, *args, **kwargs)
         self.id_scope = IdScope(1,
                               {DBAbstraction.vtType: DBModule.vtType,
                                DBGroup.vtType: DBModule.vtType})

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,6 +40,7 @@ downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
 
-identifier = 'edu.utah.sci.vistrails.http'
+identifier = 'org.vistrails.vistrails.http'
 name = 'HTTP'
-version = '0.9.0'
+version = '0.9.1'
+old_identifiers = ['edu.utah.sci.vistrails.http']

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -58,6 +58,8 @@ from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.location import Location
 from vistrails.core.modules.vistrails_module import ModuleError
 import copy
+
+from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 
@@ -586,8 +588,8 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 
@@ -624,8 +626,8 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 
@@ -966,11 +968,11 @@ class QVTKWidget(QCellWidget):
                                                "Save file as...",
                                                "screenshot.png",
                                                "Images (*.png);;PDF files (*.pdf)")
-        if fn.isNull():
+        if not fn or fn == '':
             return
-        if fn.endsWith(QtCore.QString("png"), QtCore.Qt.CaseInsensitive):
+        if fn.endswith("png", QtCore.Qt.CaseInsensitive):
             self.saveToPNG(str(fn))
-        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+        elif fn.endswith("pdf", QtCore.Qt.CaseInsensitive):
             self.saveToPDF(str(fn))
         
     def grabWindowPixmap(self):
@@ -1061,7 +1063,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             
             if not camera:
                 # Create camera
-                vtk_package = 'edu.utah.sci.vistrails.vtk'
+                vtk_package = vtk_pkg_identifier
                 camera = controller.create_module(vtk_package, 'vtkCamera', '',
                                                   0.0, 0.0)
                 ops.append(('add', camera))
@@ -1100,7 +1102,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                     self.toolBar.row, self.toolBar.col)
                 if info:
                     info = info[0]
-                    view = builderWindow.ensureVistrail(info['locator'])
+                    view = builderWindow.ensureController(info['controller'])
                     if view:
                         controller = view.controller
                         controller.change_selected_version(info['version'])
@@ -1126,7 +1128,6 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
-    identifier = 'edu.utah.sci.vistrails.vtk'
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
@@ -1137,8 +1138,9 @@ def registerSelf():
                           ("InteractorStyle", 'vtkInteractorStyle'),
                           ("AddPicker",'vtkAbstractPicker')]:
         try:
-            registry.add_input_port(VTKCell, port,'(%s:%s)'%(identifier,module))
- 
+            registry.add_input_port(VTKCell, port,'(%s:%s)' % \
+                                        (vtk_pkg_identifier,module))
+            
         except Exception, e:
             vistrails.core.debug.warning(str(e))
 

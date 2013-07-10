@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -95,15 +95,24 @@ error and the error message as a string."""
         self.errorTrace = traceback.format_exc()
 
 class ModuleSuspended(ModuleError):
-
     """Exception representing a VisTrails module being suspended. Raising 
     ModuleSuspended flags that the module is not ready to finish yet and
     that the workflow should be executed later.  A suspended module does
-    not execute the modules downstream but all modules upstream will be
+    not execute the modules downstream but all other branches will be
     executed. This is useful when executing external jobs where you do not
-    want to block vistrails while waiting for the execution to finish.  """
+    want to block vistrails while waiting for the execution to finish.
+
+    'queue' is a class instance that should provide a finished() method for
+    checking if the job has finished
+
+    'children' is a list of ModuleSuspended instances that is used for nested
+    modules
     
-    def __init__(self, module, errormsg):
+    """
+    
+    def __init__(self, module, errormsg, queue=None, children=None):
+        self.queue = queue
+        self.children = children
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
@@ -252,6 +261,7 @@ Designing New Modules
         # and the builder besides Parameter Exploration.
         self.moduleInfo = {
             'locator': None,
+            'controller': None,
             'vistrailName': 'Unknown',
             'version': -1,
             'pipeline': None,
@@ -353,7 +363,8 @@ context."""
             self.computed = True
         except ModuleSuspended, e:
             self.suspended = e.msg
-            self.logging.end_update(self, e.msg, was_suspended=True)
+            self._module_suspended = e
+            self.logging.end_update(self, e, was_suspended=True)
             self.logging.signalSuspended(self)
             return
         except ModuleError, me:
@@ -457,7 +468,7 @@ Makes sure input port 'name' is filled."""
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
         for conn in self.inputPorts[inputPort]:
-            if type(conn.obj)==InputPort:
+            if isinstance(conn.obj, InputPort):
                 return conn()
         return self.inputPorts[inputPort][0]()
 
@@ -492,7 +503,7 @@ Makes sure input port 'name' is filled."""
         from vistrails.core.modules.sub_module import InputPort
         fromInputPortModule = [connector()
                                for connector in self.inputPorts[inputPort]
-                               if type(connector.obj)==InputPort]
+                               if isinstance(connector.obj, InputPort)]
         if len(fromInputPortModule)>0:
             return fromInputPortModule
         return [connector() for connector in self.inputPorts[inputPort]]
@@ -528,14 +539,14 @@ Makes sure input port 'name' is filled."""
         """ Create a vistrails module from the module registry.  This creates an instance of the module
         for use in creating the object output by a Module.
         """
-        # FIXME (DAK): I don't get this, shouldn't we import module_registry?
-        import core.modules.vistrails_module
+        from vistrails.core.modules.module_registry import get_module_registry
         try:
-            reg = core.modules.module_registry.get_module_registry()
+            reg = get_module_registry()
             m = reg.get_module_by_name(ident, name, ns)
             return m()
         except:
-            msg = "Cannot get module named " + str(name) + " with identifier " + str(ident) + " and namespace " + ns
+            msg = "Cannot get module named " + str(name) + \
+                  " with identifier " + str(ident) + " and namespace " + ns
             raise ModuleError(self, msg)
 
     @classmethod
@@ -555,10 +566,25 @@ class NotCacheable(object):
 
 ################################################################################
 
+class Converter(Module):
+    """Base class for automatic conversion modules.
+
+    Modules that subclass Converter will be inserted automatically when
+    connecting incompatible ports, if possible.
+
+    You must override the 'in_value' and 'out_value' ports by providing the
+    types your module actually matches.
+    """
+    def compute(self):
+        raise NotImplementedError
+
+################################################################################
+
 class ModuleConnector(object):
     def __init__(self, obj, port, spec=None):
         self.obj = obj
         self.port = port
+        self.spec = spec
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""
@@ -566,7 +592,34 @@ class ModuleConnector(object):
         self.port = None
     
     def __call__(self):
-        return self.obj.get_output(self.port)
+        result = self.obj.get_output(self.port)
+        if self.spec is not None:
+            descs = self.spec.descriptors()
+            if len(descs) == 1:
+                mod = descs[0].module
+                if hasattr(mod, 'validate') and not mod.validate(result):
+                    raise ModuleError(self.obj, "Type passed on Variant port "
+                                      "%s does not match destination type "
+                                      "%s" % (self.port, descs[0].name))
+            else:
+                if not isinstance(result, tuple):
+                    raise ModuleError(self.obj, "Type passed on Variant port "
+                                      "%s is not a tuple" % self.port)
+                elif len(result) != len(descs):
+                    raise ModuleError(self.obj, "Object passed on Variant "
+                                      "port %s does not have the correct "
+                                      "length (%d, expected %d)" % (
+                                      len(result), len(descs)))
+                for i, desc in enumerate(descs):
+                    mod = desc.module
+                    if hasattr(mod, 'validate'):
+                        if not mod.validate(result[i]):
+                            raise ModuleError(
+                                    self.obj,
+                                    "Element %d of tuple passed on Variant "
+                                    "port %s does not match the destination "
+                                    "type %s" % (i, self.port, desc.name))
+        return result
 
 def new_module(baseModule, name, dict={}, docstring=None):
     """new_module(baseModule or [baseModule list],
@@ -578,10 +631,10 @@ def new_module(baseModule, name, dict={}, docstring=None):
     elements of the baseModule list (or baseModule itself, in the case
     it's a single class) should be a subclass of Module.
     """
-    if type(baseModule) == type:
+    if isinstance(baseModule, type):
         assert issubclass(baseModule, Module)
         superclasses = (baseModule, )
-    elif type(baseModule) == list:
+    elif isinstance(baseModule, list):
         assert len([x for x in baseModule
                     if issubclass(x, Module)]) == 1
         superclasses = tuple(baseModule)

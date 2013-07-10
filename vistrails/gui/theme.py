@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,7 +37,9 @@ This module describes a theme structure for VisTrails GUI. It
 specifies colors, background images and other measurements
 """
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.utils.color import ColorByName
+from vistrails.core.theme import DefaultCoreTheme
 import vistrails.core.system
 
 import unittest
@@ -53,7 +55,7 @@ def _create_configure_shape(w, h):
     return QtGui.QPolygonF(poly)
     
 
-class DefaultTheme(object):
+class DefaultTheme(DefaultCoreTheme):
     """
     This is the default theme which contains color, images,
     measurements, etc. for Vistrail. Other themes should derive from
@@ -66,87 +68,30 @@ class DefaultTheme(object):
         This is for initializing all Qt objects
         
         """
+        DefaultCoreTheme.__init__(self)
         ######################
         #### MEASUREMENTS ####
 
-        # Padded space of Version shape and its label
-        self.VERSION_LABEL_MARGIN = (60, 35)
-
-        # Padded space of Module shape into its label
-        self.MODULE_LABEL_MARGIN = (20, 20, 20, 15)
-
-        # Margin of Module shape into its ports
-        self.MODULE_PORT_MARGIN = (4, 4, 4, 4)
-
-        # Space between ports inside a module
-        self.MODULE_PORT_SPACE = 4
-
-        # The space added to the end of port shapes before it reaches the
-        # margin of the module
-        self.MODULE_PORT_PADDED_SPACE = 20
-
-        # Width and Height of Port shape
-        self.PORT_WIDTH = 10
-        self.PORT_HEIGHT = 10
+        # Port shape
         self.PORT_RECT = QtCore.QRectF(0, 0, self.PORT_WIDTH, self.PORT_HEIGHT)
 
-        # Width and Height of Configure button shape
-        self.CONFIGURE_WIDTH = 6
-        self.CONFIGURE_HEIGHT = 10
-
+        # Configure button shape
         self.CONFIGURE_SHAPE = _create_configure_shape(self.CONFIGURE_WIDTH,
                                                        self.CONFIGURE_HEIGHT)
-
-        self.BREAKPOINT_FRINGE = \
-            (((0.0,0.0),(-0.5,0.25),(-0.5,0.75),(0.0,1.0)),
-             ((0.0,0.0),(0.5,0.25),(0.5,0.75),(0.0,1.0)))
-                                       
-
-        # The number of control points when drawing connection curve
-        self.CONNECTION_CONTROL_POINTS = 20
-
-        # Control the size and gap for the 3 little segments when
-        # draw connections between versions
-        self.LINK_SEGMENT_LENGTH = 15
-        self.LINK_SEGMENT_GAP = 5
-        self.LINK_SEGMENT_SQUARE_LENGTH = 12
-
-        # The size of the frame containing the PIP graphics view
-        self.PIP_IN_FRAME_WIDTH = 5
-        self.PIP_OUT_FRAME_WIDTH = 1
-
-        # The size of the frame containing the PIP graphics view
-        self.PIP_DEFAULT_SIZE = (128, 128)
-
-        # The default minimum size of the graphics views
-        self.BOUNDING_RECT_MINIMUM = 512
-
-        # Default Paramter Inspector Window dimension
-        self.VISUAL_DIFF_PARAMETER_WINDOW_SIZE = (348,256)
-
-        # Default legend size (small rectangular shape)
-        self.VISUAL_DIFF_LEGEND_SIZE = (16, 16)
-
-        # Virtual Cell Label default  size
-        self.VIRTUAL_CELL_LABEL_SIZE = (40, 40)
-
-        # Query Preview Size
-        self.QUERY_PREVIEW_SIZE = (256, 256)
-
 
         #### BRUSH & PEN ####
         # Background brush of the pipeline view
         # self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
         #                  '/gui/resources/images/pipeline_bg.png'))
         #     #QtGui.QColor("white"))
         # # Background brush of the version tree
         # self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
         #                  '/gui/resources/images/version_bg.png'))
         # Background brush of the query pipeline view
         # self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
         #                  '/gui/resources/images/query_bg.png'))
         self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QColor(128, 128, 128))
@@ -272,8 +217,16 @@ class DefaultTheme(object):
         # Brush and pen to draw connections
         self.CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
-        self.CONNECTION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
+        self.CONNECTION_SELECTED_PEN = QtGui.QPen(
+                QtGui.QBrush(
+                    QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),
+                3,
+                QtCore.Qt.SolidLine)
+        self.CONNECTION_SELECTED_CONVERTING_PEN = QtGui.QPen(
+                QtGui.QBrush(
+                    QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),
+                3,
+                QtCore.Qt.DotLine)
         self.CONNECTION_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black'))))
 
@@ -645,6 +598,17 @@ class DefaultTheme(object):
         self.MASHUP_ALIAS_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/alias.png')
+
+        # Job View Icons
+        self.JOB_SCHEDULED = QtGui.QIcon(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/appointment-new.png')
+        self.JOB_FINISHED = QtGui.QIcon(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/emblem-important.png')
+        self.JOB_CHECKING = QtGui.QIcon(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/view-refresh.png')
         
         # Saved Queries icons
         self.QUERY_VIEW_ICON = self.ZOOM_ICON
@@ -654,6 +618,11 @@ class DefaultTheme(object):
         self.QUERY_EDIT_ICON = QtGui.QIcon(QtGui.QPixmap(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/edit.png'))
+
+        # Icon on the button to switch to single/multi line string edition
+        self.MULTILINE_STRING_ICON = QtGui.QIcon(QtGui.QPixmap(
+                vistrails.core.system.vistrails_root_directory() +
+                '/gui/resources/images/multiline_string_icon.png'))
 
         #### COLORS ####
         # Color for the PIP frame

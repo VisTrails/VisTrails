@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,7 +34,7 @@
 ###############################################################################
 import sys
 sys.path.append('/vistrails/src/trunk/vistrails')
-from db.services import io
+from vistrails.db.services import io
 import MySQLdb
 
 def convert_sql_to_xml(filename, id):

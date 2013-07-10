@@ -1,6 +1,7 @@
 ###############################################################################
 ##
-## Copyright (C) 2006-2012, University of Utah. 
+## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
@@ -58,7 +59,8 @@ class PortSpecItem(DBPortSpecItem):
             if "namespace" not in kwargs:
                 kwargs["namespace"] = namespace
         if "values" in kwargs:
-            if not isinstance(kwargs["values"], basestring):
+            if (kwargs["values"] is not None and
+                    not isinstance(kwargs["values"], basestring)):
                 kwargs["values"] = str(kwargs["values"])
         if 'id' not in kwargs:
             kwargs['id'] = -1
@@ -89,7 +91,7 @@ class PortSpecItem(DBPortSpecItem):
     def convert(_portSpecItem):
         if _portSpecItem.__class__ == PortSpecItem:
             return
-	_portSpecItem.__class__ = PortSpecItem
+        _portSpecItem.__class__ = PortSpecItem
         _portSpecItem.set_defaults()
 
     id = DBPortSpecItem.db_id
@@ -171,12 +173,13 @@ class PortSpecItem(DBPortSpecItem):
 ################################################################################
 # Testing
 
+from vistrails.core.system import get_vistrails_basic_pkg_id
 
 class TestPortSpecItem(unittest.TestCase):
     def create_port_spec_item(self):
         return PortSpecItem(id=0, pos=0, 
                             module="String", 
-                            package="edu.utah.sci.vistrails.basic", 
+                            package=get_vistrails_basic_pkg_id(), 
                             label="testLabel", 
                             default="abc", 
                             values=["abc", "def", "ghi"], 

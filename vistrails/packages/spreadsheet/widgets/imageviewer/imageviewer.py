@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -99,7 +99,7 @@ class ImageViewerCellWidget(QCellWidget):
             img = QtGui.QImage()
             if img.load(fileValue.name):
                 self.originalPix = QtGui.QPixmap.fromImage(img)
-                self.label.setPixmap(self.originalPix.scaled(self.label.size(),
+                self.label.setPixmap(self.originalPix.scaled(len(self.label),
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
             else:
@@ -212,9 +212,9 @@ class ImageViewerSaveAction(QtGui.QAction):
                                                "Images (*.png);;PDF files (*.pdf)")
         if not fn:
             return
-        if fn.endsWith(QtCore.QString("png"), QtCore.Qt.CaseInsensitive):
+        if fn.lower().endswith("png"):
             cellWidget.label.pixmap().toImage().save(fn, "png")
-        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+        elif fn.lower().endswith("pdf"):
             cellWidget.saveToPDF(str(fn))
         
 

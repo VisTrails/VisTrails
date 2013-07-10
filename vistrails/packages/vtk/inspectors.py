@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,6 +42,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 import vtk
 from base_module import vtkBaseModule
 from hasher import vtk_hasher
+from identifiers import identifier as vtk_pkg_identifier
 
 class vtkBaseInspector(Module):
 
@@ -49,9 +50,9 @@ class vtkBaseInspector(Module):
     def register_self(cls, **kwargs):
         registry = get_module_registry()
         def resolve_type(t):
-            if type(t) == tuple:
+            if isinstance(t, tuple):
                 return registry.get_descriptor_by_name(*t).module
-            elif type(t) == type:
+            elif isinstance(t, type):
                 return t
             else:
                 assert False, ("Unknown type " + str(type(t)))
@@ -85,7 +86,7 @@ class vtkBaseInspector(Module):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
                     self.setResult(function, output)
-                elif type(retValues) in [tuple, list]:
+                elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
@@ -120,9 +121,9 @@ class vtkDataSetInspector(vtkBaseInspector):
             self.auto_set_results(vtk_object)
 
     input_ports = [('SetInputConnection0',
-                    [('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput')]),
+                    [(vtk_pkg_identifier, 'vtkAlgorithmOutput')]),
                    ('SetInput',
-                    [('edu.utah.sci.vistrails.vtk', 'vtkDataSet')]),
+                    [(vtk_pkg_identifier, 'vtkDataSet')]),
                    ]
     output_ports = [('GetBounds', [Float] * 6),
                     ('GetScalarRange', [Float] * 2),
@@ -131,9 +132,9 @@ class vtkDataSetInspector(vtkBaseInspector):
                     ('GetNumberOfPoints', [Integer]),
                     ('GetNumberOfCells', [Integer]),
                     ('GetPointData', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkPointData')]),
+                     [(vtk_pkg_identifier, 'vtkPointData')]),
                     ('GetCellData',
-                     [('edu.utah.sci.vistrails.vtk', 'vtkCellData')]),
+                     [(vtk_pkg_identifier, 'vtkCellData')]),
                     ]
 
 class vtkDataSetAttributesInspector(vtkBaseInspector):
@@ -150,22 +151,22 @@ class vtkDataSetAttributesInspector(vtkBaseInspector):
             self.auto_set_results(vtk_object)
 
     input_ports = [('SetInput',
-                    [('edu.utah.sci.vistrails.vtk', 'vtkDataSetAttributes')]),
+                    [(vtk_pkg_identifier, 'vtkDataSetAttributes')]),
                    ]
     output_ports = [('GetScalars', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkDataArray')]),
+                     [(vtk_pkg_identifier, 'vtkDataArray')]),
                     ('GetVectors', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkDataArray')]),
+                     [(vtk_pkg_identifier, 'vtkDataArray')]),
                     ('GetNormals', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkDataArray')]),
+                     [(vtk_pkg_identifier, 'vtkDataArray')]),
                     ('GetTCoords', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkDataArray')]),
+                     [(vtk_pkg_identifier, 'vtkDataArray')]),
                     ('GetTensors', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkDataArray')]),
+                     [(vtk_pkg_identifier, 'vtkDataArray')]),
                     ('GetGlobalIds', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkDataArray')]),
+                     [(vtk_pkg_identifier, 'vtkDataArray')]),
                     ('GetPedigreeIds', 
-                     [('edu.utah.sci.vistrails.vtk', 'vtkAbstractArray')]),
+                     [(vtk_pkg_identifier, 'vtkAbstractArray')]),
                     ]
 
 class vtkDataArrayInspector(vtkBaseInspector):
@@ -182,7 +183,7 @@ class vtkDataArrayInspector(vtkBaseInspector):
             self.auto_set_results(vtk_object)
 
    input_ports = [('SetInput',
-                   [('edu.utah.sci.vistrails.vtk', 'vtkDataArray')])]
+                   [(vtk_pkg_identifier, 'vtkDataArray')])]
    output_ports = [('GetMaxNorm', [Float]),
                    ('GetRange', [Float] * 2)]
                    
@@ -210,20 +211,20 @@ class vtkPolyDataInspector(vtkDataSetInspector):
             self.auto_set_results(vtk_object)
 
     input_ports = [('SetInputConnection0',
-                    [('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput')]),
+                    [(vtk_pkg_identifier, 'vtkAlgorithmOutput')]),
                    ('SetInput',
-                    [('edu.utah.sci.vistrails.vtk', 'vtkDataSet')]),
+                    [(vtk_pkg_identifier, 'vtkDataSet')]),
                    ]
     output_ports = [('GetVerts',
-                     [('edu.utah.sci.vistrails.vtk', 'vtkCellArray')]),
+                     [(vtk_pkg_identifier, 'vtkCellArray')]),
                     ('GetLines',
-                     [('edu.utah.sci.vistrails.vtk', 'vtkCellArray')]),
+                     [(vtk_pkg_identifier, 'vtkCellArray')]),
                     ('GetPolys',
-                     [('edu.utah.sci.vistrails.vtk', 'vtkCellArray')]),
+                     [(vtk_pkg_identifier, 'vtkCellArray')]),
                     ('GetStrips',
-                     [('edu.utah.sci.vistrails.vtk', 'vtkCellArray')]),
+                     [(vtk_pkg_identifier, 'vtkCellArray')]),
                     ('GetPoints',
-                     [('edu.utah.sci.vistrails.vtk', 'vtkPoints')]),
+                     [(vtk_pkg_identifier, 'vtkPoints')]),
                     ('GetNumberOfVerts', [Integer]),
                     ('GetNumberOfLines', [Integer]),
                     ('GetNumberOfPolys', [Integer]),

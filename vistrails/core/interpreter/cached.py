@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,8 +38,9 @@ from vistrails.core.common import *
 from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.db.io
 from vistrails.core.log.controller import DummyLogController
-from vistrails.core.modules.vistrails_module import ModuleConnector, ModuleError, \
-    ModuleBreakpoint, ModuleErrors
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.vistrails_module import ModuleConnector, \
+    ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -128,6 +129,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -145,7 +147,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         def create_null():
             """Creates a Null value"""
             getter = modules.module_registry.registry.get_descriptor_by_name
-            descriptor = getter('edu.utah.sci.vistrails.basic', 'Null')
+            descriptor = getter(basic_pkg, 'Null')
             return descriptor.module()
         
         def create_constant(param, module):
@@ -178,9 +180,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             pipeline.validate()
 
         self.resolve_aliases(pipeline, aliases)
-        if controller is not None:
-            # Controller is none for sub_modules, so we can't resolve variables
-            self.resolve_variables(controller, pipeline)
+        if vistrail_variables:
+            self.resolve_variables(vistrail_variables,  pipeline)
 
         self.update_params(pipeline, params)
         
@@ -283,6 +284,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -361,6 +363,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             if was_suspended:
                 view.set_module_suspended(i, error)
+                error = error.msg
             elif not error:
                 view.set_module_success(i)
             else:
@@ -413,6 +416,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['version'] = current_version
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
+            obj.moduleInfo['controller'] = controller
             if extra_info is not None:
                 obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:
@@ -421,15 +425,16 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 obj.moduleInfo['actions'] = actions
 
         ## Checking 'sinks' from kwargs to resolve only requested sinks
+        # Note that we accept any module in 'sinks', even if it's not actually
+        # a sink in the graph
         if sinks is not None:
-            requestedSinks = sinks
             persistent_sinks = [tmp_id_to_module_map[sink]
-                                for sink in pipeline.graph.sinks()
-                                if sink in requestedSinks]
+                                for sink in sinks
+                                if sink in tmp_id_to_module_map]
         else:
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
-                                        
+
         # Update new sinks
         for obj in persistent_sinks:
             try:
@@ -591,6 +596,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
         view = fetch('view', DummyView())
+        vistrail_variables = fetch('vistrail_variables', None)
         aliases = fetch('aliases', None)
         params = fetch('params', None)
         extra_info = fetch('extra_info', None)
@@ -638,9 +644,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         """
         d = {}
         d["__reason__"] = reason
-        if aliases is not None and type(aliases) == dict:
+        if aliases is not None and isinstance(aliases, dict):
             d["__aliases__"] = cPickle.dumps(aliases)
-        if params is not None and type(params) == list:
+        if params is not None and isinstance(params, list):
             d["__params__"] = cPickle.dumps(params)
         logger.insert_workflow_exec_annotations(d)
         
@@ -768,8 +774,8 @@ class TestCachedInterpreter(unittest.TestCase):
         (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
         
         # the controller will take care of upgrades
-        controller = VistrailController()
-        controller.set_vistrail(v, locator, abstractions, thumbnails, mashups)
+        controller = VistrailController(v, locator, abstractions, thumbnails, 
+                                        mashups)
         p1 = v.getPipeline('int chain')
         n = v.get_version_number('int chain')
         controller.change_selected_version(n)

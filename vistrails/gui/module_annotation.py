@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -96,7 +96,8 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         
         """
         QtGui.QTableWidget.__init__(self, 1, 2, parent)
-        self.setHorizontalHeaderLabels(QtCore.QStringList() << 'Key' << 'Value')
+        self.read_only = False
+        self.setHorizontalHeaderLabels(['Key', 'Value'])
         self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
         self.horizontalHeader().setMovable(False)
         self.horizontalHeader().setStretchLastSection(True)
@@ -112,6 +113,11 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
 
     def set_controller(self, controller):
         self.controller = controller
+
+    def setReadOnly(self, read_only):
+        if read_only != self.read_only:
+            self.read_only = read_only
+            self.setEnabled(not read_only and self.module is not None)
 
     def updateModule(self, module=None):
         """ updateModule() -> None
@@ -136,7 +142,7 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
                     item = QtGui.QTableWidgetItem(annotation.value)
                     self.setItem(curRow, 1, item)
                     curRow += 1
-            self.setEnabled(True)
+            self.setEnabled(not self.read_only)
         else:
             self.setRowCount(1)
             self.setEnabled(False)
@@ -152,8 +158,7 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         oldFont = QtGui.QFont(self.model().data(index, QtCore.Qt.FontRole))
         oldFont.setBold(True)
         oldFont.setPointSize(20)
-        self.model().setData(index, QtCore.QVariant(oldFont),
-                             QtCore.Qt.FontRole)
+        self.model().setData(index, oldFont, QtCore.Qt.FontRole)
 
     def lockUpdate(self):
         """ lockUpdate() -> None
@@ -208,7 +213,7 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
         Set the current item (at index) data into editor for editting
         
         """
-        text = index.data(QtCore.Qt.DisplayRole).toString()
+        text = index.data(QtCore.Qt.DisplayRole)
         editor.setText(text)
 
     def setModelData(self, editor, model, index):
@@ -287,4 +292,4 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
                                                  moduleId)
             self.table.unlockUpdate()
         
-        model.setData(index, QtCore.QVariant(text))        
+        model.setData(index, text)        

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,74 +32,66 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import itertools
+
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 #################################################################################
 ## Products
 
-class Dot(Module):
-    """This module produces a Dot product between two input ports."""
-    
+class ElementwiseProduct(Module):
+    """This module does the product of two lists.
+
+    If NumericalProduct is True, this will effectively compute the product of
+    each element, eg:
+        [1, 2, 3] x [3, -3, 1] = [3, -6, 3]
+    Else, it will make tuples, eg:
+        [1, 2, 3] x [3, -3, 1] = [(1, 3), (2, -3), (3, 1)]
+    """
+
     def compute(self):
-        list1 = self.getInputFromPort("List_1")
-	list2 = self.getInputFromPort("List_2")
-	lenght1 = len(list1)
-	lenght2 = len(list2)
-	result = []
-	if lenght1 != lenght2:
-            raise ModuleError(self,'Both lists must have the same size.')
-        if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort\
-                                                      ("CombineTuple")):
-            for i in xrange(lenght1):
-                tuple_ = (list1[i],list2[i])
-                result.append(tuple_)
+        list1 = self.getInputFromPort('List1')
+        list2 = self.getInputFromPort('List2')
+        if len(list1) != len(list2):
+            raise ModuleError(self, "Both lists must have the same size.")
+
+        numerical = self.getInputFromPort('NumericalProduct')
+        if numerical:
+            result = [a*b for a, b in itertools.izip(list1, list2)]
         else:
-            for i in xrange(lenght1):
-                if type(list1[i])==tuple and type(list2[i])==tuple:
-                    tuple_ = list1[i]+list2[i]
-                    result.append(tuple_)
-                elif type(list1[i])==tuple and type(list2[i])!=tuple:
-                    tuple_ = list1[i]+(list2[i],)
-                    result.append(tuple_)
-                elif type(list1[i])!=tuple and type(list2[i])==tuple:
-                    tuple_ = (list1[i],)+list2[i]
-                    result.append(tuple_)
-                else:
-                    tuple_ = (list1[i],list2[i])
-                    result.append(tuple_)
+            result = zip(list1, list2)
+
+        self.setResult('Result', result)
+
+
+class Dot(Module):
+    """This module produces a Dot product between two lists."""
+
+    def compute(self):
+        list1 = self.getInputFromPort("List1")
+        list2 = self.getInputFromPort("List2")
+        if len(list1) != len(list2):
+            raise ModuleError(self, 'Both lists must have the same size.')
+
+        result = sum(a*b for a, b in itertools.izip(list1, list2))
 
         self.setResult("Result", result)
 
 
 class Cross(Module):
-    """This module produces a Cross product between two input ports."""
-    
+    """This module produces a Cross product between two 3-D vectors."""
+
     def compute(self):
-        list1 = self.getInputFromPort("List_1")
-	list2 = self.getInputFromPort("List_2")
-	lenght1 = len(list1)
-	lenght2 = len(list2)
-	result = []
-	if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort\
-                                                      ("CombineTuple")):
-            for i in xrange(lenght1):
-                for j in xrange(lenght2):
-                    tuple_ = (list1[i],list2[j])
-                    result.append(tuple_)
-        else:
-            for i in xrange(lenght1):
-                for j in xrange(lenght2):
-                    if type(list1[i])==tuple and type(list2[j])==tuple:
-                        tuple_ = list1[i]+list2[j]
-                        result.append(tuple_)
-                    elif type(list1[i])==tuple and type(list2[j])!=tuple:
-                        tuple_ = list1[i]+(list2[j],)
-                        result.append(tuple_)
-                    elif type(list1[i])!=tuple and type(list2[j])==tuple:
-                        tuple_ = (list1[i],)+list2[j]
-                        result.append(tuple_)
-                    else:
-                        tuple_ = (list1[i],list2[j])
-                        result.append(tuple_)
+        list1 = self.getInputFromPort("List1")
+        list2 = self.getInputFromPort("List2")
+        if not (len(list1) == len(list2) == 3):
+            raise ModuleError(self, 'Both lists must have size 3.')
+
+        x1, y1, z1 = list1
+        x2, y2, z2 = list2
+
+        result = [y1*z2 - y2*z1,
+                  z1*x2 - z2*x1,
+                  x1*y2 - x2*y1]
 
         self.setResult("Result", result)

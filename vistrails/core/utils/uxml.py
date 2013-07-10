@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -174,7 +174,7 @@ class XMLWrapper(object):
         Save as an XML file 
         
         """
-        output_file = file(filename,'w')
+        output_file = open(filename,'w')
         root.writexml(output_file, "  ", "  ", '\n')
         output_file.close()
 

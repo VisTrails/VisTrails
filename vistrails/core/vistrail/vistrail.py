@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -129,8 +129,8 @@ class Vistrail(DBVistrail):
 
         for action in _vistrail.actions:
             Action.convert(action)
-# 	for tag in _vistrail.tags:
-#             Tag.convert(tag)
+#        for tag in _vistrail.tags:
+#            Tag.convert(tag)
         for annotation in _vistrail.annotations:
             Annotation.convert(annotation)
         for annotation in _vistrail.action_annotations:
@@ -181,7 +181,7 @@ class Vistrail(DBVistrail):
             if old_annotation.value == value:
                 return False
             self.db_delete_annotation(old_annotation)
-        if not (value is None or (type(value) == str and value.strip() == '')):
+        if not (value is None or (isinstance(value, str) and value.strip() == '')):
             annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
                                     key=key,
                                     value=value,
@@ -511,7 +511,7 @@ class Vistrail(DBVistrail):
     def getLastCommonVersion(self, v):
         """getLastCommonVersion(v: Vistrail) -> int
         Returns the last version that is common to this vistrail and v
-	
+        
         """
         # TODO:  There HAS to be a better way to do this...
         common = []
@@ -524,7 +524,7 @@ class Vistrail(DBVistrail):
             if time > timestep:
                 timestep = time
 
-        return timestep	
+        return timestep
 
     def general_action_chain(self, v1, v2):
         """general_action_chain(v1, v2): Returns an action that turns
@@ -636,9 +636,9 @@ class Vistrail(DBVistrail):
         Returns True if a tag with given name or number exists
        
         """
-        if type(tag) == type(0) or type(tag) == type(0L):
+        if isinstance(tag, (int, long)):
             return self.has_tag(tag)
-        elif type(tag) == type('str'):
+        elif isinstance(tag, basestring):
             return self.has_tag_str(tag)
         
     def addTag(self, version_name, version_number):
@@ -804,7 +804,7 @@ class Vistrail(DBVistrail):
             return a.value
         return None
     def set_prune(self, action_id, value):
-        if type(value) == type(True):
+        if isinstance(value, bool):
             value = str(value)
         return self.set_action_annotation(action_id, Vistrail.PRUNE_ANNOTATION,
                                           value)
@@ -989,7 +989,7 @@ class Vistrail(DBVistrail):
 
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
-    #	return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    #    return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):
@@ -1076,10 +1076,10 @@ class Vistrail(DBVistrail):
         Returns the log object for this vistrail if available
         """
         log = Log()
-        if type(self.locator) == vistrails.core.db.locator.ZIPFileLocator:
+        if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
             if self.db_log_filename is not None:
                 log = open_log_from_xml(self.db_log_filename, True)
-        if type(self.locator) == vistrails.core.db.locator.DBLocator:
+        if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
             connection = self.locator.get_connection()
             log = open_vt_log_from_db(connection, self.db_id)
         Log.convert(log)
@@ -1090,7 +1090,7 @@ class Vistrail(DBVistrail):
         for action in self.actions:
             for op in action.operations:
                 try:
-                    if type(op) == AddOp and op.what == 'module':
+                    if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
                 except:
                     pass
@@ -1138,6 +1138,7 @@ class VersionNotTagged(Exception):
 ##############################################################################
 # Testing
 
+from vistrails.core.system import get_vistrails_basic_pkg_id
 
 class TestVistrail(unittest.TestCase):
 
@@ -1146,7 +1147,7 @@ class TestVistrail(unittest.TestCase):
 
         m = Module(id=vistrail.idScope.getNewId(Module.vtType),
                    name='Float',
-                   package='edu.utah.sci.vistrails.basic')
+                   package=get_vistrails_basic_pkg_id())
         add_op = AddOp(id=vistrail.idScope.getNewId(AddOp.vtType),
                        what=Module.vtType,
                        objectId=m.id,

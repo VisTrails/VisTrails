@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -128,7 +128,7 @@ class VistrailsStartup(object):
 
     def write_startup_dom(self, dom):
         filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
-        f = file(filename, 'w')
+        f = open(filename, 'w')
         f.write(dom.toxml())
                 
     def load_configuration(self):
@@ -207,7 +207,7 @@ by startup.py. This should only be called after init()."""
         def create_user_packages_init(userpackagesname):
             try:
                 name = os.path.join(userpackagesname, '__init__.py')
-                f = file(name, 'w')
+                f = open(name, 'w')
                 f.write('pass\n')
                 f.close()
             except:
@@ -351,32 +351,34 @@ by startup.py. This should only be called after init()."""
                 debug.warning("Old-style initialization hooks. Will try to set things correctly.")
                 (fd, name) = tempfile.mkstemp()
                 os.close(fd)
-                shutil.copyfile(self.temp_configuration.dotVistrails, name)
                 try:
-                    os.unlink(self.temp_configuration.dotVistrails)
-                except:
-                    debug.critical("""Failed to remove old initialization file.
-                    This could be an indication of a permissions problem.
-                    Make sure file '%s' is writable."""
-                    % self.temp_configuration.dotVistrails)
-                    sys.exit(1)
-                self.create_default_directory()
-                try:
-                    destiny = os.path.join(self.temp_configuration.dotVistrails,
-                                           'startup.py')
-                    shutil.copyfile(name, destiny)
-                except:
-                    debug.critical("""Failed to copy old initialization file to
-                    newly-created initialization directory. This must have been
-                    a race condition. Please remove '%s' and
-                    restart VisTrails."""
-                    % self.temp_configuration.dotVistrails)
-                    sys.exit(1)
-                debug.critical("Successful move!")
-                try:
-                    os.unlink(name)
-                except:
-                    debug.warning("Failed to erase temporary file.")
+                    shutil.copyfile(self.temp_configuration.dotVistrails, name)
+                    try:
+                        os.unlink(self.temp_configuration.dotVistrails)
+                    except:
+                        debug.critical("""Failed to remove old initialization file.
+                        This could be an indication of a permissions problem.
+                        Make sure file '%s' is writable."""
+                        % self.temp_configuration.dotVistrails)
+                        sys.exit(1)
+                    self.create_default_directory()
+                    try:
+                        destiny = os.path.join(self.temp_configuration.dotVistrails,
+                                               'startup.py')
+                        shutil.copyfile(name, destiny)
+                    except:
+                        debug.critical("""Failed to copy old initialization file to
+                        newly-created initialization directory. This must have been
+                        a race condition. Please remove '%s' and
+                        restart VisTrails."""
+                        % self.temp_configuration.dotVistrails)
+                        sys.exit(1)
+                    debug.critical("Successful move!")
+                finally:
+                    try:
+                        os.unlink(name)
+                    except:
+                        debug.warning("Failed to erase temporary file.")
 
             if os.path.isdir(self.temp_configuration.dotVistrails):
                 if self.temp_configuration.check('userPackageDirectory'):
@@ -408,7 +410,7 @@ by startup.py. This should only be called after init()."""
                     create_thumbnails_dir(thumbnails)
                 try:
                     
-                    dotVistrails = file(startup)
+                    dotVistrails = open(startup)
                     g = {}
                     localsDir = {'configuration': self.temp_configuration,
                                  'addStartupHook': addStartupHook,

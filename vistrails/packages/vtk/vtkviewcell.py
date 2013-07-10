@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -57,6 +57,8 @@ from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.location import Location
 from vistrails.core.modules.vistrails_module import ModuleError
 import copy
+
+from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 
@@ -496,8 +498,8 @@ class QVTKViewWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 
@@ -534,8 +536,8 @@ class QVTKViewWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 
@@ -872,9 +874,9 @@ class QVTKViewWidget(QCellWidget):
                                                "Save file as...",
                                                "screenshot.png",
                                                "Images (*.png)")
-        if fn.isNull():
+        if not fn or fn == '':
             return
-        self.saveToPNG(str(fn))
+        self.saveToPNG(fn)
         
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap
@@ -964,7 +966,7 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
             
             if not camera:
                 # Create camera
-                vtk_package = 'edu.utah.sci.vistrails.vtk'
+                vtk_package = vtk_pkg_identifier
                 camera = controller.create_module(vtk_package, 'vtkCamera', '',
                                                   0.0, 0.0)
                 ops.append(('add', camera))
@@ -1004,12 +1006,11 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
                 if info:
                     info = info[0]
                     viewManager = builderWindow.viewManager
-                    view = viewManager.ensureVistrail(info['locator'])
+                    view = viewManager.ensureController(info['controller'])
                     if view:
                         controller = view.controller
                         controller.change_selected_version(info['version'])
                         self.setCamera(controller)
-                        
                 
 class QVTKViewWidgetToolBar(QCellToolBar):
     """
@@ -1030,14 +1031,14 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
-    identifier = 'edu.utah.sci.vistrails.vtk'
     registry = get_module_registry()
     registry.add_module(VTKViewCell)
     registry.add_input_port(VTKViewCell, "Location", CellLocation)
     import vistrails.core.debug
     for (port,module) in [("SetRenderView",'vtkRenderView')]:
         try:
-            registry.add_input_port(VTKViewCell, port,'(%s:%s)'%(identifier,module))
+            registry.add_input_port(VTKViewCell, port,'(%s:%s)'% \
+                                        (vtk_pkg_identifier, module))
  
         except Exception, e:
             vistrails.core.debug.warning(str(e))

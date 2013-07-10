@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -175,10 +175,9 @@ class QAliasList(QtGui.QTreeWidget):
         self.panel = panel
         self.aliases = Bidict()
         self.alias_widgets = {}
-        self.current_item = None
         self.controller = controller
         self.header().setStretchLastSection(True)
-        self.setHeaderLabels(QtCore.QStringList() << "Position" << "Name" << "Type")
+        self.setHeaderLabels(["Position", "Name", "Type"])
         self.itemSelectionChanged.connect(self.setPreviousSelected)
         self.connect(self,
                      QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)"),
@@ -248,8 +247,8 @@ class QAliasList(QtGui.QTreeWidget):
         """
         
         alias.pos = self.topLevelItemCount()
-        labels = QtCore.QStringList() << str(alias.component.pos) << str(alias.name) << \
-                                         str(alias.component.type)
+        labels = [str(alias.component.pos), str(alias.name), \
+                  str(alias.component.type)]
         item = QAliasListItem(self, alias, labels)
         item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable )
         
@@ -270,10 +269,12 @@ class QAliasList(QtGui.QTreeWidget):
                 alias = self.createAliasItem(copy.copy(alias))
                 self.aliases[alias.name] = alias
         
-        if (self.previousSelected > -1 and 
-            self.previousSelected < self.topLevelItemCount()):
+        if self.previousSelected > -1:
+            if self.previousSelected >= self.topLevelItemCount():
+                self.previousSelected = self.topLevelItemCount()-1
             item = self.topLevelItem(self.previousSelected)
             self.setItemSelected(item, True)
+            self.setCurrentItem(item)
         self.itemSelectionChanged.connect(self.setPreviousSelected)
             
     def updatePosNumbers(self):
@@ -308,24 +309,28 @@ class QAliasList(QtGui.QTreeWidget):
                 
     @pyqtSlot(bool)
     def removeCurrentAlias(self, checked=False):
-        item = self.currentItem() 
+        item = self.currentItem()
+        if not item:
+            return
         name = item.alias.name
+        # item will get recreated after question dialog shows so keep only index
+        pos = self.indexOfTopLevelItem(item)
         res = show_question("Mashups", 
                 "Are you sure do you want to remove '%s' from the mashup?"%name,
                 [YES_BUTTON, NO_BUTTON], NO_BUTTON)
         if res == YES_BUTTON:
-        
-            old_alias = item.alias.name
-            del self.aliases[old_alias]
-        
-            pos = self.indexOfTopLevelItem(item)
+            self.previousSelected = pos 
             self.takeTopLevelItem(pos)
+            del self.aliases[name]
+
             self.updatePosNumbers()
-            if pos < self.topLevelItemCount() -1:
+            if pos >= self.topLevelItemCount() - 1:
+                pos = self.topLevelItemCount() - 1
+            self.previousSelected = pos
+            if pos != -1:
                 new_item = self.topLevelItem(pos)
-            else:
-                new_item = self.topLevelItem(pos-1)
-            self.setCurrentItem(new_item)
+                self.setCurrentItem(new_item)
+                self.setItemSelected(new_item, True)
             self.aliasRemoved.emit(name)        
 ################################################################################
 
@@ -335,7 +340,7 @@ class QAliasListItem (QtGui.QTreeWidgetItem):
     
     """
     def __init__(self, parent, alias, labels):
-        """ QAliasListItem(alias: AliasItem, labels: QStringList): 
+        """ QAliasListItem(alias: AliasItem, labels: string): 
         Create a new item with alias and text
 
         """

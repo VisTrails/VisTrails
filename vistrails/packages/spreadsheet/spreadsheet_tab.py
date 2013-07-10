@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -192,7 +192,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cellWidget = self.getCellWidget(row, col)
-        if type(cellWidget)==QCellContainer:
+        if isinstance(cellWidget, QCellContainer):
             return cellWidget.widget()
         return cellWidget
 
@@ -222,7 +222,7 @@ class StandardWidgetSheetTabInterface(object):
         Put the cellWidget inside a container and place it on the sheet
 
         """
-        if type(cellWidget)!=QCellContainer:
+        if not isinstance(cellWidget, QCellContainer):
             container = QCellContainer(cellWidget)
         else:
             container = cellWidget
@@ -241,7 +241,7 @@ class StandardWidgetSheetTabInterface(object):
             else:
                 toolBarType = QCellToolBar
             container = self.getCellWidget(row, col)
-            if type(container)==QCellContainer:
+            if isinstance(container, QCellContainer):
                 if container.toolBar==None:
                     container.toolBar = toolBarType(self)
                 return container.toolBar
@@ -275,7 +275,7 @@ class StandardWidgetSheetTabInterface(object):
         for r in xrange(rowCount):
             for c in xrange(colCount):
                 w = self.getCell(r, c)
-                if w==None or (type(w)==QCellPresenter and w.cellWidget==None):
+                if w==None or (isinstance(w, QCellPresenter) and w.cellWidget==None):
                     return (r,c)
         (r, c) = self.lastCellLocation
         (rs, cs) = self.getSpan(r, c)
@@ -293,7 +293,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         oldCell = self.getCell(row, col)
-        if type(oldCell)!=cellType:
+        if cellType is None or not isinstance(oldCell, cellType):
             if cellType:
                 newCell = cellType(self)
                 self.setCellByWidget(row, col, newCell)
@@ -376,7 +376,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cell = self.getCellWidget(row, col)
-        if type(cell)==QCellContainer:
+        if isinstance(cell, QCellContainer):
             widget = cell.takeWidget()
             self.setCellWidget(row, col, None)
             return widget
@@ -390,7 +390,7 @@ class StandardWidgetSheetTabInterface(object):
         """
         if editing:
             cellWidget = self.getCell(r, c)
-            if type(cellWidget)==QCellPresenter:
+            if isinstance(cellWidget, QCellPresenter):
                 return
             presenter = QCellPresenter()
             presenter.assignCell(self, r, c)
@@ -400,7 +400,7 @@ class StandardWidgetSheetTabInterface(object):
                 cellWidget.hide()
         else:
             presenter = self.getCell(r, c)
-            if type(presenter)!=QCellPresenter:
+            if not isinstance(presenter, QCellPresenter):
                 return
             presenter = self.takeCell(r, c)
             if presenter:
@@ -455,6 +455,7 @@ class StandardWidgetSheetTabInterface(object):
                                         actions=info['actions'],
                                         reason=info['reason'],
                                         locator=info['locator'],
+                                        controller=info['controller'],
                                         sinks=[mId])
 
     def executePipelineToCell(self, pInfo, row, col, reason=''):
@@ -468,6 +469,7 @@ class StandardWidgetSheetTabInterface(object):
         pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
         executePipelineWithProgress(pipeline, 'Execute Cell',
                                     locator=pInfo[0],
+                                    controller=pInfo[4],
                                     current_version=pInfo[1],
                                     actions=pInfo[2],
                                     reason=reason)
@@ -487,7 +489,7 @@ class StandardWidgetSheetTabInterface(object):
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple
-        Return (locator, versionNumber, actions, pipeline) for a cell
+        Return (locator, versionNumber, actions, pipeline, controller) for a cell
         
         """
         info = self.getCellPipelineInfo(row, col)
@@ -495,7 +497,8 @@ class StandardWidgetSheetTabInterface(object):
             return (info[0]['locator'],
                     info[0]['version'],
                     info[0]['actions'],
-                    info[0]['pipeline'])
+                    info[0]['pipeline'],
+                    info[0]['controller'])
         return None
 
     def exportSheetToImage(self, fileName):
@@ -742,6 +745,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                 if (row!=-1 and col!=-1):
                     pipeline = self.setPipelineToLocateAt(row, col, pipeline)
             executePipelineWithProgress(pipeline, 'Execute Cell',
+                                        controller=controller,
                                         locator=controller.locator,
                                         current_version=versionId,
                                         reason='Drop Version')
@@ -1073,7 +1077,7 @@ class StandardTabDockWidget(QtGui.QDockWidget):
         
         """
         for c in self.children():
-            if type(c)==QtGui.QAbstractButton:
+            if isinstance(c, QtGui.QAbstractButton):
                 return c
         return None
 

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -68,9 +68,9 @@ class TextDialog(Dialog):
                 label = 'Password'
 
         if self.hasInputFromPort('default'):
-            default = QtCore.QString(self.getInputFromPort('default'))
+            default = self.getInputFromPort('default')
         else:
-            default = QtCore.QString('')
+            default = ''
             
         if self.hasInputFromPort('cacheable') and self.getInputFromPort('cacheable'):
             self.cacheable_dialog = True

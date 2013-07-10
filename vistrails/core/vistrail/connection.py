@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -57,7 +57,7 @@ def moduleConnection(conn):
         iport = conn.destination.name
         oport = conn.source.name
         src.enableOutputPort(oport)
-        dst.set_input_port(iport, ModuleConnector(src, oport))
+        dst.set_input_port(iport, ModuleConnector(src, oport, conn.destination.spec))
     return theFunction
 
 ################################################################################
@@ -100,7 +100,7 @@ class Connection(DBConnection):
         Initializes source and destination ports.
         
         """
-	DBConnection.__init__(self, *args, **kwargs)
+        DBConnection.__init__(self, *args, **kwargs)
         if self.id is None:
             self.db_id = -1
         if not len(self.ports) > 0:
@@ -128,7 +128,7 @@ class Connection(DBConnection):
 
     @staticmethod
     def convert(_connection):
-#	print "ports: %s" % _Connection._get_ports(_connection)
+#        print "ports: %s" % _Connection._get_ports(_connection)
         if _connection.__class__ == Connection:
             return
         _connection.__class__ = Connection
@@ -137,24 +137,24 @@ class Connection(DBConnection):
             Port.convert(port)
 
 #         _connection.sourceInfo = \
-# 	    (_connection.source.moduleName, _connection.source.sig)
+#             (_connection.source.moduleName, _connection.source.sig)
 #         _connection.destinationInfo = \
-# 	    (_connection.destination.moduleName, _connection.destination.sig)
+#             (_connection.destination.moduleName, _connection.destination.sig)
 # #        print _connection.sourceInfo
 # #        print _connection.destinationInfo
 #         portFromRepresentation = registry.portFromRepresentation
 #         newSource = \
-# 	    portFromRepresentation(_connection.source.moduleName, 
-# 				   _connection.source.sig,
-# 				   PortEndPoint.Source, None, True)
-# 	newDestination = \
-# 	    portFromRepresentation(_connection.destination.moduleName,
-# 				   _connection.destination.sig,
-# 				   PortEndPoint.Destination, None, True)
-# 	newSource.moduleId = _connection.source.moduleId
-# 	newDestination.moduleId = _connection.destination.moduleId
-# 	_connection.source = newSource
-# 	_connection.destination = newDestination
+#             portFromRepresentation(_connection.source.moduleName, 
+#                                    _connection.source.sig,
+#                                    PortEndPoint.Source, None, True)
+#         newDestination = \
+#             portFromRepresentation(_connection.destination.moduleName,
+#                                    _connection.destination.sig,
+#                                    PortEndPoint.Destination, None, True)
+#         newSource.moduleId = _connection.source.moduleId
+#         newDestination.moduleId = _connection.destination.moduleId
+#         _connection.source = newSource
+#         _connection.destination = newDestination
         _connection.makeConnection = moduleConnection(_connection)
 
 
@@ -275,7 +275,7 @@ class Connection(DBConnection):
         property: c.destination 
 
         """
-#	return self.db_ports['destination']
+#        return self.db_ports['destination']
         try:
             return self.db_get_port_by_type('destination')
         except KeyError:
@@ -334,18 +334,19 @@ class TestConnection(unittest.TestCase):
 
     def create_connection(self, id_scope=IdScope()):
         from vistrails.core.vistrail.port import Port
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         source = Port(id=id_scope.getNewId(Port.vtType),
                       type='source', 
                       moduleId=21L, 
                       moduleName='String', 
                       name='value',
-                      signature='(edu.utah.sci.vistrails.basic:String)')
+                      signature='(%s:String)' % basic_pkg)
         destination = Port(id=id_scope.getNewId(Port.vtType),
                            type='destination',
                            moduleId=20L,
                            moduleName='Float',
                            name='value',
-                           signature='(edu.utah.sci.vistrails.basic:Float)')
+                           signature='(%s:Float)' % basic_pkg)
         connection = Connection(id=id_scope.getNewId(Connection.vtType),
                                 ports=[source, destination])
         return connection

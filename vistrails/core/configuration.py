@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -102,7 +102,7 @@ class ConfigurationObject(InstanceObject):
         if not hasattr(self, key):
             return False
         v = getattr(self, key)
-        if type(v) == tuple and v[0] is None and type(v[1]) == type:
+        if isinstance(v, tuple) and v[0] is None and isinstance(v[1], type):
             return False
         return True
 
@@ -138,11 +138,11 @@ class ConfigurationObject(InstanceObject):
                 continue
             key_element = dom.createElement('key')
             key_element.setAttribute('name', key)
-            if type(value) in [int, str, bool, float]:
+            if isinstance(value, (int, long, basestring, bool, float)):
                 conf_element.appendChild(key_element)
                 value_element = quote_xml_value(dom, value)
                 key_element.appendChild(value_element)
-            elif type(value) == tuple:
+            elif isinstance(value, tuple):
                 pass
             else:
                 assert isinstance(value, ConfigurationObject)
@@ -155,7 +155,7 @@ class ConfigurationObject(InstanceObject):
             key_name = str(key.attributes['name'].value)
             value = [x for x in
                      elements_filter(key, lambda node: node.nodeName in
-                                    ['bool', 'str', 'int', 'float', 'configuration'])][0]
+                                    ['unicode', 'bool', 'str', 'int', 'float', 'configuration'])][0]
             value_type = value.nodeName
             if value_type == 'configuration':
                 if hasattr(self,key_name):
@@ -190,6 +190,8 @@ def default():
         'executeWorkflows': False,
         'fileDirectory': (None, str),
 #        'evolutionGraph': (None, str),
+        'installBundles': True,
+        'installBundlesWithPip': False,
         'interactiveMode': True,
         'logFile': (None, str),
         'logger': default_logger(),
@@ -207,6 +209,7 @@ def default():
         'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,
         'rootDirectory': (None, str),
+        'runningJobsList': (None, str),
         'shell': default_shell(),
         'showScrollbars': True,
         'showMovies': True,

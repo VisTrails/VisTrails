@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,29 +33,74 @@
 ##
 ###############################################################################
 from vistrails.core import debug
-from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
-    ModuleConnector, InvalidOutput
-from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
-     File, NotCacheable, Constant, List
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+    ModuleConnector, InvalidOutput, ModuleSuspended
+from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
+    Float, NotCacheable, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.vistrail.port_spec import PortSpec
-from vistrails.core.utils import VistrailsInternalError
 
 import copy
 from itertools import izip
 
-#################################################################################
+###############################################################################
 ## Fold Operator
 
-class Fold(Module, NotCacheable):
-    """The Fold Module is a high-order operator to implement some other structures,
-    such as map, filter, sum, and so on.
-    To use it, the user must inherit this class.
-    Initially, the method setInitialValue() must be defined.
-    Later, the method operation() must be defined."""
-    
+class Fold(Module):
+    """Fold is the base class for List-reducing modules.
+
+    It can be used to easily implement a module that takes a List and
+    aggregates its element one by one to get the final result, such as Sum.
+
+    To use it, create a subclass and override the setInitialValue() and
+    operation() methods.
+    """
+
     def __init__(self):
         Module.__init__(self)
+
+    def compute(self):
+        """The compute method for the Fold."""
+
+        self.setInitialValue()
+        self.partialResult = self.initialValue
+        self.elementResult = None
+
+        for element in self.getInputFromPort('InputList'):
+            self.element = element
+            self.operation()
+
+        if self.suspended:
+            raise ModuleSuspended(
+                    self,
+                    self.suspended,
+                    children=self._module_suspended)
+        self.setResult('Result', self.partialResult)
+
+    def setInitialValue(self):
+        """This method defines the initial value of the Fold structure. It must
+        be defined before the operation() method."""
+
+        pass
+
+    def operation(self):
+        """This method defines the interaction between the current element of
+        the list and the previous iterations' result."""
+
+        pass
+
+###############################################################################
+
+class FoldWithModule(Fold, NotCacheable):
+    """Implementation of Fold that uses another module as its operation.
+
+    This can be used to create structures like Map or Filter, where another
+    module will be called with each element of the list to retrieve something
+    that this module will use.
+    """
+
+    def __init__(self):
+        Fold.__init__(self)
         self.is_fold_module = True
 
     def updateUpstream(self):
@@ -79,61 +124,63 @@ class Fold(Module, NotCacheable):
 
     def updateFunctionPort(self):
         """
-        Function to be used inside the updateUsptream method of the Fold module. It
-        updates the modules connected to the FunctionPort port.
+        Function to be used inside the updateUsptream method of the
+        FoldWithModule module. It updates the modules connected to the
+        FunctionPort port.
         """
         nameInput = self.getInputFromPort('InputPort')
         nameOutput = self.getInputFromPort('OutputPort')
         rawInputList = self.getInputFromPort('InputList')
 
-        # create inputList to always have iterable elements
+        # Create inputList to always have iterable elements
         # to simplify code
         if len(nameInput) == 1:
             element_is_iter = False
+            inputList = [[element] for element in rawInputList]
         else:
             element_is_iter = True
-        inputList = []
-        for element in rawInputList:
-            if not element_is_iter:
-                inputList.append([element])
-            else:
-                inputList.append(element)
-
+            inputList = rawInputList
+        suspended = []
         ## Update everything for each value inside the list
-        for i in xrange(len(inputList)): 
-            element = inputList[i]
+        for i, element in enumerate(inputList):
             if element_is_iter:
                 self.element = element
             else:
                 self.element = element[0]
             for connector in self.inputPorts.get('FunctionPort'):
-                if not self.upToDate:
-                    ##Type checking
-                    if i==0:
-                        self.typeChecking(connector.obj, nameInput, inputList)
-                    
-                    connector.obj.upToDate = False
-                    connector.obj.already_computed = False
-                    
-                    ## Setting information for logging stuff
-                    connector.obj.is_fold_operator = True
-                    connector.obj.first_iteration = False
-                    connector.obj.last_iteration = False
-                    connector.obj.fold_iteration = i
-                    if i==0:
-                        connector.obj.first_iteration = True
-                    if i==((len(inputList))-1):
-                        connector.obj.last_iteration = True
+                module = connector.obj
 
-                    self.setInputValues(connector.obj, nameInput, element)
-                connector.obj.update()
-                
+                if not self.upToDate:
+                    ## Type checking
+                    if i == 0:
+                        self.typeChecking(module, nameInput, inputList)
+
+                    module.upToDate = False
+                    module.already_computed = False
+
+                    ## Setting information for logging stuff
+                    module.is_fold_operator = True
+                    module.first_iteration = i == 0
+                    module.last_iteration = i == len(inputList) - 1
+                    module.fold_iteration = i
+
+                    self.setInputValues(module, nameInput, element)
+
+                module.update()
+                if hasattr(module, 'suspended') and module.suspended:
+                    suspended.append(module._module_suspended)
+                    module.suspended = False
+                    continue
                 ## Getting the result from the output port
-                if nameOutput not in connector.obj.outputPorts:
-                    raise ModuleError(connector.obj,\
-                                      'Invalid output port: %s'%nameOutput)
-                self.elementResult = connector.obj.get_output(nameOutput)
+                if nameOutput not in module.outputPorts:
+                    raise ModuleError(module,
+                                      'Invalid output port: %s' % nameOutput)
+                self.elementResult = copy.copy(module.get_output(nameOutput))
             self.operation()
+        if suspended:
+            self.suspended = "%d module(s) suspended: %s" % (
+                    len(suspended), suspended[0].msg)
+            self._module_suspended = suspended
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -145,7 +192,7 @@ class Fold(Module, NotCacheable):
                 del module.inputPorts[inputPort]
             new_connector = ModuleConnector(create_constant(element), 'value')
             module.set_input_port(inputPort, new_connector)
-            
+
     def typeChecking(self, module, inputPorts, inputList):
         """
         Function used to check if the types of the input list element and of the
@@ -160,7 +207,7 @@ class Fold(Module, NotCacheable):
                 p_modules = module.moduleInfo['pipeline'].modules
                 p_module = p_modules[module.moduleInfo['moduleId']]
                 port_spec = p_module.get_port_spec(inputPort, 'input')
-                v_module = create_module(element, port_spec.signature)
+                v_module = get_module(element, port_spec.signature)
                 if v_module is not None:
                     if not self.compare(port_spec, v_module, inputPort):
                         raise ModuleError(self,
@@ -176,13 +223,13 @@ class Fold(Module, NotCacheable):
         """
     `   Function used to create a signature, given v_module, for a port spec.
         """
-        if type(v_module)==tuple:
+        if isinstance(v_module, tuple):
             v_module_class = []
             for module_ in v_module:
                 v_module_class.append(self.createSignature(module_))
             return v_module_class
         else:
-            return v_module.__class__
+            return v_module
 
     def compare(self, port_spec, v_module, port):
         """
@@ -194,42 +241,31 @@ class Fold(Module, NotCacheable):
 
         v_module = self.createSignature(v_module)
         port_spec2 = PortSpec(**{'signature': v_module})
-        matched = reg.are_specs_matched(port_spec1, port_spec2)
-                
+        matched = reg.are_specs_matched(port_spec2, port_spec1)
+
         return matched
-        
+
     def compute(self):
         """The compute method for the Fold."""
 
         self.setInitialValue()
         self.partialResult = self.initialValue
         self.elementResult = None
-        if self.hasInputFromPort('FunctionPort'):
-            self.updateFunctionPort()
-        else:
-            for element in self.getInputFromPort('InputList'):
-                self.element = element
-                self.operation()
 
+        self.updateFunctionPort()
+
+        if self.suspended:
+            raise ModuleSuspended(
+                    self,
+                    self.suspended,
+                    children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
-    def setInitialValue(self):
-        """This method defines the initial value of the Fold structure. It must
-        be defined before the operation() method."""
-        
-        pass
-
-    def operation(self):
-        """This method defines the interaction between the current element of
-        the list and the previous iterations' result."""
-
-        pass
-
-#################################################################################
+###############################################################################
 
 class NewConstant(Constant):
     """
-    A new Constant module to be used inside the Fold module.
+    A new Constant module to be used inside the FoldWithModule module.
     """
     def setValue(self, v):
         self.setResult("value", v)
@@ -243,40 +279,29 @@ def create_constant(value):
     constant.setValue(value)
     return constant
 
-def create_module(value, signature):
+def get_module(value, signature):
     """
     Creates a module for value, in order to do the type checking.
-    """    
-    if type(value)==bool:
-        v_module = Boolean()
-        return v_module
-    elif type(value)==str:
-        v_module = String()
-        return v_module
-    elif type(value)==int:
-        if type(signature)==list:
-            signature = signature[0]
-        if signature[0]==Float().__class__:
-            v_module = Float()
-        else:
-            v_module = Integer()
-        return v_module
-    elif type(value)==float:
-        v_module = Float()
-        return v_module
-    elif type(value)==list:
-        v_module = List()
-        return v_module
-    elif type(value)==file:
-        v_module = File()
-        return v_module
-    elif type(value)==tuple:
+    """
+    if isinstance(value, Constant):
+        return type(value)
+    elif isinstance(value, bool):
+        return Boolean
+    elif isinstance(value, str):
+        return String
+    elif isinstance(value, int):
+        return Integer
+    elif isinstance(value, float):
+        return Float
+    elif isinstance(value, list):
+        return List
+    elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (create_module(value[element], signature[element]),)
+            v_modules += (get_module(value[element], signature[element]))
         return v_modules
     else:
         debug.warning("Could not identify the type of the list element.")
-        debug.warning("Type checking is not going to be done inside Fold module.")
+        debug.warning("Type checking is not going to be done inside"
+                      "FoldWithModule module.")
         return None
-

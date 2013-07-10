@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -265,7 +265,7 @@ class EigenBase(object):
     def pv(v, digits=5, left_digits=None):
         # FIXME - some scipy indexing seems to be currently
         # inconsistent across different deployed versions. Fix this.
-        if type(v) == scipy.matrix:
+        if isinstance(v, scipy.matrix):
             v = scipy.array(v)[0]
         (c,) = v.shape
         print "[ ",
@@ -470,7 +470,7 @@ class EigenPipelineSimilarity2(EigenBase):
         v = copy.copy(self._e)
         step = 0
         def write_current_matrix():
-            f = file('%s/%s_%03d.v' % (temporary_directory(),
+            f = open('%s/%s_%03d.v' % (temporary_directory(),
                                        self._debug_matrix_file, step), 'w')
             x = v.reshape(len(self._p1.modules),
                           len(self._p2.modules))
@@ -507,7 +507,7 @@ class EigenPipelineSimilarity2(EigenBase):
                 f.write('%d %d %d\n' % (i, c.sourceId, c.destinationId))
             
         if self._debug:
-            out = file('%s/pipelines.txt' % temporary_directory(), 'w')
+            out = open('%s/pipelines.txt' % temporary_directory(), 'w')
             write_debug_pipeline_positions(self._p1, self._g1_vertex_map, out)
             write_debug_pipeline_positions(self._p2, self._g2_vertex_map, out)
             self.print_s8ys()

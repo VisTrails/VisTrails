@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 import vistrails.core
+from vistrails.core.system import get_vistrails_default_pkg_prefix
+
 def create_descriptor_string(package, name, namespace=None,
                              use_package=True):
     package_str = ""
@@ -47,16 +49,16 @@ def parse_descriptor_string(d_string, cur_package=None):
     """parse_descriptor_string will expand names of modules using
     information about the current package and allowing shortcuts
     for any bundled vistrails packages (e.g. "basic" for
-    "edu.utah.sci.vistrails.basic").  It also allows a nicer
+    "org.vistrails.vistrails.basic").  It also allows a nicer
     format for namespace/module specification (namespace comes
     fist unlike port specifications where it is after the module
     name...
 
     Examples:
       "persistence:PersistentInputFile", None -> 
-          ("edu.utah.sci.vistrails.persistence", PersistentInputFile", "")
+          ("org.vistrails.vistrails.persistence", PersistentInputFile", "")
       "basic:String", None ->
-          ("edu.utah.sci.vistrails.basic", "String", "")
+          ("org.vistrails.vistrails.basic", "String", "")
       "NamespaceA|NamespaceB|Module", "org.example.my" ->
           ("org.example.my", "Module", "NamespaceA|NamespaceB")
     """
@@ -64,14 +66,14 @@ def parse_descriptor_string(d_string, cur_package=None):
     package = ''
     qual_name = ''
     name = ''
-    namespace = ''
+    namespace = None
     parts = d_string.strip().split(':', 1)
     if len(parts) > 1:
         qual_name = parts[1]
         if '.' in parts[0]:
             package = parts[0]
         else:
-            package = 'edu.utah.sci.vistrails.' + parts[0]
+            package = '%s.%s' % (get_vistrails_default_pkg_prefix(), parts[0])
     else:
         qual_name = d_string
         if cur_package is None:
@@ -135,3 +137,92 @@ def expand_port_spec_string(p_string, cur_package=None,
                             old_style=False):
     specs_list = parse_port_spec_string(p_string, cur_package)
     return create_port_spec_string(specs_list, old_style)
+
+
+def make_modules_dict(*dcts, **kwargs):
+    """Makes a dictionary suitable to be exposed as the '_modules' of a package.
+
+    This combines dictionaries hierarchically to make a global dict from other
+    "sub-dicts", allowing to structure a package with subpackages.
+
+    For example, you could have:
+        a/aa.py:
+            _modules = {'aa': [Some, Module]}
+        a/__init__.py:
+            from .aa import _modules as aa_modules
+            from .ab import _modules as bb_modules
+            _modules = make_modules_dict(aa_modules, bb_modules, namespace='a')
+        b.py:
+            _modules = {'b': [Other, Modules]}
+        init.py:
+            from .a import _modules as a_modules
+            from .b import _modules as b_modules
+            _modules = make_modules_dict(a_modules, b_modules)
+
+    The resulting module hierarchy will be:
+        a.aa.Some, a.aa.Module
+        b.Other, b.Modules
+    """
+    namespace = kwargs.pop('namespace', '')
+    if kwargs:
+        raise TypeError("make_modules_dict got unexpected keyword arguments")
+    if namespace:
+        build_namespace = lambda n: '%s|%s' % (namespace, n)
+    else:
+        build_namespace = lambda n: n
+
+    dct = dict()
+    for d in dcts:
+        if not isinstance(d, dict):
+            d = {'': d}
+
+        for subname, sublist in d.iteritems():
+            if subname:
+                name = build_namespace(subname)
+            else:
+                name = namespace
+            dct.setdefault(name, []).extend(sublist)
+
+    return dct
+
+
+###############################################################################
+
+import unittest
+
+
+class UnorderedList(object):
+    def __init__(self, *elems):
+        self._set = set(elems)
+
+    def __eq__(self, other):
+        return set(other) == self._set
+
+    def __str__(self):
+        return 'ul(%s)' % ', '.join(repr(e) for e in self._set)
+
+    def __repr__(self):
+        return str(self)
+
+
+class TestModulesDict(unittest.TestCase):
+    def test_modulesdict(self):
+        ul = UnorderedList
+        pkg_a_aa = {'aa': [1, 2], 'aa|n': [3]}
+        pkg_a_ab = {'ab': [4, 5]}
+        pkg_a = make_modules_dict(pkg_a_aa, pkg_a_ab, [12, 13], namespace='a')
+        self.assertEqual(set(pkg_a.keys()),
+                         set(['a', 'a|aa', 'a|aa|n', 'a|ab']))
+        pkg_b = {'b': [6, 7]}
+        glob = [10, 11]
+        more = {'a|aa': [8, 9]}
+        pkg = make_modules_dict(pkg_a, pkg_b, glob, more)
+        self.assertEqual(
+                pkg,
+                {
+                    '': ul(10, 11),
+                    'a': ul(12, 13),
+                    'a|aa': ul(1, 2, 8, 9),
+                    'a|aa|n': ul(3),
+                    'a|ab': ul(4, 5),
+                    'b': ul(6, 7)})

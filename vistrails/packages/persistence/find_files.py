@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,13 +35,20 @@
 import os
 import shutil
 import sys
-import vistrails.db.services.io
 
 vistrails_src = None
 if not vistrails_src:
-    vistrails_src = os.path.dirname(os.path.dirname(sys.path[0]))
+    vistrails_src = os.path.dirname(
+        os.path.dirname(os.path.dirname(sys.path[0])))
 if vistrails_src not in sys.path:
     sys.path.append(vistrails_src)
+
+import vistrails.db.services.io
+
+from identifiers import identifier as persistence_pkg, \
+    old_identifiers as persistence_old_ids
+persistence_pkg_ids = set(persistence_old_ids)
+persistence_pkg_ids.add(persistence_pkg)
     
 def find_files(filename, version=None):
     save_bundle, save_dir = \
@@ -52,7 +59,7 @@ def find_files(filename, version=None):
     log = vistrails.db.services.io.open_log_from_xml(log_fname, True)
 
     if version:
-        if type(version) == type(""):
+        if isinstance(version, basestring):
             # need to lookup version number
             if version in vistrail.db_tags_name_index:
                 version = vistrail.db_tags_name_index[version].db_id
@@ -63,7 +70,7 @@ def find_files(filename, version=None):
             if op.db_what == 'module' and (op.vtType == 'add' or 
                                            op.vtType == 'change'):
                 module = op.db_data
-                if module.db_package == 'edu.utah.sci.vistrails.persistence':
+                if module.db_package in persistence_pkg_ids:
                     persistent_module_ids.add(module.db_id)
                 
     filenames = {}

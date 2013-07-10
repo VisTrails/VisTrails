@@ -1,7 +1,7 @@
 #!/bin/bash
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,11 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-SRC_PATH="vistrails"
+ROOT_DIR_NAME="vistrails"
 BIN_PATH_25="Contents/Resources/lib/python2.5"
 BIN_PATH_26="Contents/Resources/lib/python2.6"
 BIN_PATH_27="Contents/Resources/lib/python2.7"
-DIRS="api core db gui packages tests"
+OLD_DIRS="api core db gui packages tests"
 
 if [ -z "$1" ] || [ -z "$2" ]
 then
@@ -56,19 +56,25 @@ then
     BIN_PATH=$BIN_PATH_25
 fi
 
-for dir in $DIRS
+# remove the old lower-level symlinks if they exist
+for dir in $OLD_DIRS
 do
     if [ -e "$2/$BIN_PATH/$dir" ]
     then
-    	rm -r $2/$BIN_PATH/$dir
+        rm -r $2/$BIN_PATH/$dir
     fi
-    ln -s -f -F $1/$SRC_PATH/$dir $2/$BIN_PATH/$dir
 done
 
-if [ -e "$2/$BIN_PATH/../../vistrails.py" ]
+if [ -e "$2/$BIN_PATH/$ROOT_DIR_NAME" ]
 then
-    rm $2/$BIN_PATH/../../vistrails.py
+    rm -r $2/$BIN_PATH/$ROOT_DIR_NAME
 fi
-ln -s -f -F $1/$SRC_PATH/vistrails.py $2/$BIN_PATH/../../vistrails.py
+ln -s -f -F $1/$ROOT_DIR_NAME $2/$BIN_PATH/$ROOT_DIR_NAME
+
+if [ -e "$2/$BIN_PATH/../../run.py" ]
+then
+    rm $2/$BIN_PATH/../../run.py
+fi
+ln -s -f -F $1/$ROOT_DIR_NAME/run.py $2/$BIN_PATH/../../run.py
 
 exit 0

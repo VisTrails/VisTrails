@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,11 +42,11 @@ import datetime
 import re
 import urllib
 
-from db.domain import DBModule, DBConnection, DBPort, DBFunction, \
+from vistrails.db.domain import DBModule, DBConnection, DBPort, DBFunction, \
     DBParameter, DBLocation, DBPortSpec, DBTag, DBAnnotation, DBVistrail, \
     DBRegistry
-import db.services.io
-from db.services.io import SaveBundle
+import vistrails.db.services.io
+from vistrails.db.services.io import SaveBundle
 from vtk_imposter import vtk_module, vtk_function
 
 class VTK2VT(object):
@@ -197,7 +197,7 @@ class VTK2VT(object):
         self.http_module = None
 
         r_file = '/vistrails/registry.xml'
-        self.registry = db.services.io.open_registry_from_xml(r_file)
+        self.registry = vistrails.db.services.io.open_registry_from_xml(r_file)
         self.registry_desc_idx = {}
         for package in self.registry.db_packages:
             for desc in package.db_module_descriptors:
@@ -1074,8 +1074,8 @@ class VTK2VT(object):
         return connection
 
     def print_vt(self, filename=None):
-        import db.services.io
-        import db.services.action
+        import vistrails.db.services.io
+        import vistrails.db.services.action
 
         action_list = []
         for module in self.modules.itervalues():
@@ -1086,7 +1086,7 @@ class VTK2VT(object):
                 # print 'connection:', connection._name, id(connection)
                 action_list.append(('add', connection))
         self.do_layout()
-        action = db.services.action.create_action(action_list)
+        action = vistrails.db.services.action.create_action(action_list)
         action.db_id = 1
         action.db_prevId = 0
         action.db_user = 'dakoop'
@@ -1110,8 +1110,8 @@ class VTK2VT(object):
                                       value="This workflow was automatically generated from a modified version of the vtk python example script '%s' from the vtk 5.0.4 distribution.  In most cases, running this workflow will generate a visualization that is identical to the result from the example script." % script_name)
             action.db_add_annotation(annotation)
 
-            db.services.io.save_bundle_to_zip_xml(SaveBundle(DBVistrail.vtType, vistrail), filename)
+            vistrails.db.services.io.save_bundle_to_zip_xml(SaveBundle(DBVistrail.vtType, vistrail), filename)
         else:
             f = None
-            print >>f, db.services.io.serialize(vistrail)
+            print >>f, vistrails.db.services.io.serialize(vistrail)
             

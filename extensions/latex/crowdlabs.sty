@@ -1,0 +1,105 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Copyright (C) 2011-2013, NYU-Poly.
+%% Copyright (C) 2006-2011, University of Utah. 
+%% All rights reserved.
+%% Contact: contact@vistrails.org
+%%
+%% This file is part of VisTrails.
+%%
+%% "Redistribution and use in source and binary forms, with or without 
+%% modification, are permitted provided that the following conditions are met:
+%%
+%%  - Redistributions of source code must retain the above copyright notice, 
+%%    this list of conditions and the following disclaimer.
+%%  - Redistributions in binary form must reproduce the above copyright 
+%%    notice, this list of conditions and the following disclaimer in the 
+%%    documentation and/or other materials provided with the distribution.
+%%  - Neither the name of the University of Utah nor the names of its 
+%%    contributors may be used to endorse or promote products derived from 
+%%    this software without specific prior written permission.
+%%
+%% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+%% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+%% THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+%% PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
+%% CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+%% EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+%% PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+%% OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+%% WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+%% OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+%% ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Note: shell-escape needs to be activated for this to work.
+%% This can either be done by passing -shell-escape as an option to
+%% latex or by adding/changing "shell_escape = t" in your texmf.cnf .
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesPackage{crowdlabs}[2013/06/07 v0.2 CrowdLabs in LaTeX]
+
+%% keyval package allows us to define arguments in a command as key-value pairs,
+%%  which is more convenient
+
+\RequirePackage{graphicx,keyval,ifthen}
+
+%% This is to hide the border of the included image
+\RequirePackage[pdfborder={0 0 0}]{hyperref}
+
+%% we will generate a file for passing to python
+\newwrite\pythonincludein
+
+%% by default we will run vistrails on the web server
+\newcommand{\urlcrowdlabs}{http://www.crowdlabs.org}
+
+%% full path to python or just python if it is on PATH
+\newcommand{\pythonpath}{python}
+
+%% this is for allowing line breaks, empty values in vistrails command's options
+\def\crowdlabs{\kernel@ifnextchar [{\@crowdlabs}{\@crowdlabs[]}}
+
+\def\@crowdlabs[#1]#2{%
+
+%% macros that will be used
+\def\clpdf{false}
+\def\clworkflow{false}
+\def\clvtid{}
+\def\clwfid{}
+\def\clbuildalways{false}
+
+\immediate\openout\pythonincludein=\jobname.crowd.cmdline
+\immediate\write\pythonincludein{url=\urlcrowdlabs}
+\setkeys{cl}{#1}
+
+\ifthenelse{\equal{\clvtid}{}}{% it's a workflow
+	\immediate\write\pythonincludein{wfid=\clwfid}
+	\immediate\write\pythonincludein{workflow=\clworkflow}
+}
+{% else it's a vistrail
+	\immediate\write\pythonincludein{vtid=\clvtid}
+}
+\immediate\write\pythonincludein{buildalways=\clbuildalways}
+\immediate\write\pythonincludein{pdf=\clpdf}
+
+\ifx\@empty#2\@empty
+    \immediate\write\pythonincludein{other=}
+\else
+    \immediate\write\pythonincludein{other=\string#2}
+\fi
+\immediate\closeout\pythonincludein
+\immediate\write18{"\pythonpath" includecrowdlabs.py \jobname.crowd.cmdline > \jobname.crowd.cmdline.tex 2> \jobname.crowd.cmdline.err}
+\immediate\input\jobname.crowd.cmdline.tex
+}
+
+%% key-value pairs for the command's options
+\define@key{cl}{vtid}{\def\clvtid{#1}}
+\define@key{cl}{wfid}{\def\clwfid{#1}}
+\define@key{cl}{showworkflow}[true]{\def\clworkflow{#1}}
+\define@key{cl}{pdf}[true]{\def\clpdf{#1}}
+\define@key{cl}{buildalways}[true]{\def\clbuildalways{#1}}
+
+
+
+

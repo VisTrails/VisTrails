@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 from PyQt4 import QtGui, QtCore
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.modules.package import Package
 from vistrails.core.utils import InvalidPipeline
 from vistrails.core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
@@ -139,15 +140,16 @@ class QPackagesWidget(QtGui.QWidget):
         
         ######################################################################
         left_layout = QtGui.QVBoxLayout(left)
-        left_layout.setMargin(2)
-        left_layout.setSpacing(2)
-       
         left_layout.addWidget(QtGui.QLabel("Disabled packages:", left))
         self._available_packages_list = QtGui.QListWidget(left)
         left_layout.addWidget(self._available_packages_list)
         left_layout.addWidget(QtGui.QLabel("Enabled packages:", left))
         self._enabled_packages_list = QtGui.QListWidget(left)
         left_layout.addWidget(self._enabled_packages_list)
+        self.update_button = QtGui.QPushButton("Refresh Lists", left)
+        left_layout.addWidget(self.update_button, 0, QtCore.Qt.AlignLeft)
+        
+        self.update_button.clicked.connect(self.populate_lists)
 
         self.connect(self._available_packages_list,
                      QtCore.SIGNAL('itemSelectionChanged()'),
@@ -290,29 +292,31 @@ class QPackagesWidget(QtGui.QWidget):
 
     def enable_current_package(self):
         av = self._available_packages_list
-        inst = self._enabled_packages_list
         item = av.currentItem()
-        pos = av.indexFromItem(item).row()
         codepath = str(item.text())
         pm = get_package_manager()
 
-        dependency_graph = pm.dependency_graph()
-        new_deps = self._current_package.dependencies()
-
+        try:
+            new_deps = self._current_package.dependencies()
+        except Exception, e:
+            debug.critical("Failed getting dependencies of package %s, "
+                           "so it will not be enabled" % \
+                            self._current_package.name, str(e))
+            return
         from vistrails.core.modules.basic_modules import identifier as basic_modules_identifier
         if self._current_package.identifier != basic_modules_identifier:
             new_deps.append(basic_modules_identifier)
 
         try:
             pm.check_dependencies(self._current_package, new_deps)
-        except self._current_package.MissingDependency, e:
+        except Package.MissingDependency, e:
             debug.critical("Missing dependencies", str(e))
         else:
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
-            except self._current_package.InitializationFailed, e:
+            except Package.InitializationFailed, e:
                 debug.critical("Initialization of package '%s' failed" %
                                codepath, str(e))
                 raise
@@ -324,10 +328,8 @@ class QPackagesWidget(QtGui.QWidget):
             self.invalidate_current_pipeline()
 
     def disable_current_package(self):
-        av = self._available_packages_list
         inst = self._enabled_packages_list
         item = inst.currentItem()
-        pos = inst.indexFromItem(item).row()
         codepath = str(item.text())
         pm = get_package_manager()
 
@@ -366,7 +368,7 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         try:
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
-        except self._current_package.InitializationFailed, e:
+        except Package.InitializationFailed, e:
             debug.critical("Re-initialization of package '%s' failed" % 
                             codepath, str(e))
             raise
@@ -399,15 +401,11 @@ class QPackagesWidget(QtGui.QWidget):
 
     def package_removed(self, codepath):
         # package was removed, we need to update list
-        av = self._available_packages_list
-        inst = self._enabled_packages_list
-        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
-            pos = inst.indexFromItem(item).row()
-            inst.takeItem(pos)
-            av.addItem(item)
-            av.sortItems()
-            self.erase_cache = True
-            self.select_package_after_update(codepath)
+        # if we run a late-enable with a prefix (console_mode_test),
+        # we don't actually have the package later
+        self.populate_lists()
+        self.erase_cache = True
+        self.select_package_after_update(codepath)
 
     def select_package_after_update(self, codepath):
         # Selecting the package causes self._current_package to be set,
@@ -459,10 +457,6 @@ class QPackagesWidget(QtGui.QWidget):
         assert self._current_package
         p = self._current_package
 
-        # A delayed signal can result in the package already has been removed
-        pm = get_package_manager()
-        if not pm.has_package(p.identifier):
-            return
         try:
             p.load()
         except Exception, e:
@@ -476,8 +470,13 @@ class QPackagesWidget(QtGui.QWidget):
             debug.critical('Cannot load package', str(e))
         else:
             self._name_label.setText(p.name)
-            deps = ', '.join(str(d) for d in p.dependencies()) or \
-                'No package dependencies.'
+            try:
+                deps = ', '.join(str(d) for d in p.dependencies()) or \
+                    'No package dependencies.'
+            except Exception, e:
+                debug.critical("Failed getting dependencies of package %s "
+                               "" % p.name, str(e))
+                deps = "ERROR: Failed getting dependencies"
             try:
                 pm = get_package_manager()
                 reverse_deps = \
@@ -505,6 +504,9 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         self._current_package = pm.get_package_by_codepath(codepath)
         self.set_buttons_to_enabled_package()
+        # A delayed signal can result in the package already has been removed
+        if not pm.has_package(self._current_package.identifier):
+            return
         self.set_package_information()
         self._enabled_packages_list.setFocus()
 
@@ -639,3 +641,64 @@ class QPreferencesDialog(QtGui.QDialog):
         from PyQt4 import QtCore
         from vistrails.gui.application import get_vistrails_application
         get_vistrails_application().save_configuration()
+
+
+#############################################################################
+
+import unittest
+
+class TestPreferencesDialog(unittest.TestCase):
+    def test_remove_package(self):
+        """ Tests if the package really gets deleted, and that it gets
+            selected again in the available packages list.
+        """
+        
+        pkg = "dialogs"
+        _app = get_vistrails_application()
+        builder = _app.builderWindow
+        builder.showPreferences()
+        prefs = builder.preferencesDialog
+        packages = prefs._packages_tab
+        prefs._tab_widget.setCurrentWidget(packages)
+
+        # check if package is loaded
+        pkg_manager = get_package_manager()
+        
+        if pkg not in pkg_manager.enabled_package_list():
+            # load package
+            av = packages._available_packages_list
+            for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
+                av.setCurrentItem(item)
+                packages.enable_current_package()
+                QtCore.QCoreApplication.processEvents()
+
+        inst = packages._enabled_packages_list
+        for item in inst.findItems(pkg, QtCore.Qt.MatchExactly):
+            inst.setCurrentItem(item)
+            packages.disable_current_package()
+            QtCore.QCoreApplication.processEvents()
+
+        QtCore.QCoreApplication.processEvents()
+
+        # This does not work because the selection is delayed
+        av = packages._available_packages_list
+        items = av.selectedItems()
+        self.assertEqual(len(items), 1, "No available items selected!")
+        self.assertEqual(items[0].text(), unicode(pkg),
+                         "Wrong available item selected: %s" % items[0].text())
+        # check if configuration has been written correctly
+        startup = _app.vistrailsStartup
+        doc = startup.startup_dom().documentElement
+        disabledpackages = enter_named_element(doc, 'disabledpackages')
+        dpackage = None
+        for package_node in named_elements(disabledpackages, 'package'):
+            if str(package_node.attributes['name'].value) == pkg:
+                dpackage = package_node
+        self.assertIsNotNone(dpackage, "Removed package '%s' is not in unloaded packages list!" % pkg)
+
+        epackages = enter_named_element(doc, 'packages')
+        apackage = None
+        for package_node in named_elements(epackages, 'package'):
+            if str(package_node.attributes['name'].value) == pkg:
+                apackage = package_node
+        self.assertIsNone(apackage, "Removed package '%s' is still in loaded packages list!" % pkg)

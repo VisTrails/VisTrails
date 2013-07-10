@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -103,7 +103,7 @@ class QPythonCalc(QtGui.QWidget):
         provided in vistrails.api.
 
         """
-        pythoncalc = "edu.utah.sci.vistrails.pythoncalc"
+        pythoncalc = "org.vistrails.vistrails.pythoncalc"
         module = vistrails.api.add_module(0, 0, pythoncalc, 'PythonCalc', '')
         vistrails.api.get_current_controller().update_function(module, 'value1',
                                                      [str(self.value1Edit.text())])

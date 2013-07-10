@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,9 +42,10 @@ should also consult the documentation in the User's Guide and in
 core/modules/vistrails_module.py.
 """
 
-identifier = 'edu.utah.sci.vistrails.pythoncalcqt'
+identifier = 'org.vistrails.vistrails.pythoncalcqt'
 name = 'PythonCalcQt'
-version = '0.0.1'
+version = '0.0.2'
+old_identifiers = ['edu.utah.sci.vistrails.pythoncalcqt']
 
 def package_dependencies():
-    return ['edu.utah.sci.vistrails.pythoncalc']
+    return ['org.vistrails.vistrails.pythoncalc']

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,53 +35,58 @@
 
 """module responsible for smartly importing python modules, checking
 for necessary installs."""
-import traceback
 
 import vistrails.core.bundles.installbundle
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 
 ##############################################################################
 
-class PyImportException(Exception):
-    def __init__(self, py_module_name, traceback_str):
-        self.py_module_name = py_module_name
-        self.traceback_str = traceback_str
-    def __str__(self):
-        return ("Installation of python package '%s' failed.\n%s" % \
-                    (self.py_module_name, self.traceback_str))
+_previously_failed_pkgs = set()
+
+class PyImportException(ImportError):
+    pass
 
 class PyImportBug(PyImportException):
-    def __str__(self):
-        return ("Installation of package '%s' successful, "
-                "but import still failed.\n%s" % \
-                    (self.py_module_name, self.traceback_str))
+    pass
 
 def _vanilla_import(module_name):
     return __import__(module_name, globals(), locals(), [])
 
-def unknown_py_import(module_name, package_name):
-    return _vanilla_import(module_name)
-
 def py_import(module_name, dependency_dictionary):
-    """Tries to import a python module. If unsuccessful, tries to install
-the appropriate bundle and then reimport. py_import tries to be smart
-about which system it runs on."""
+    """Tries to import a python module, installing if necessary.
+
+    If the import doesn't succeed, we guess which system we are running on and
+    install the corresponding package from the dictionary. We then run the
+    import again.
+    If the installation fails, we won't try to install that same module again
+    for the session.
+    """
     try:
         result = _vanilla_import(module_name)
         return result
-    except ImportError, e:
-        pass
+    except ImportError:
+        if not getattr(get_vistrails_configuration(), 'installBundles'):
+            raise
+
+    if module_name in _previously_failed_pkgs:
+        raise PyImportException("Import of Python module '%s' failed again, "
+                                "not triggering installation" % module_name)
     debug.warning("Import of python module '%s' failed. "
                   "Will try to install bundle." % module_name)
 
     success = vistrails.core.bundles.installbundle.install(dependency_dictionary)
 
     if not success:
-        raise PyImportException(module_name, traceback.format_exc())
+        _previously_failed_pkgs.add(module_name)
+        raise PyImportException("Installation of Python module '%s' failed." %
+                                module_name)
     try:
         result = _vanilla_import(module_name)
         return result
     except ImportError, e:
-        raise PyImportBug(module_name, traceback.format_exc())
+        _previously_failed_pkgs.add(module_name)
+        raise PyImportBug("Installation of package '%s' succeeded, but import "
+                          "still fails." % module_name)
 
 ##############################################################################

@@ -131,6 +131,19 @@ the modules can be selected and deleted with the 'Delete' key.
 
    The connection replaced.
 
+If the ports are not directly compatible, VisTrails may automatically insert a
+conversion module between the two ports.  If such a module is about to be used,
+VisTrails will display the connection you are drawing with a dotted line (see
+Figure :ref:`Automatic conversion <fig-automatic_conversion>`).
+
+.. _fig-automatic_conversion:
+
+.. figure:: /figures/creating/automatic_conversion.png
+   :height: 1.25in
+   :align: center
+
+   Insertion of a conversion module
+
 Changing Module Parameters
 ==========================
 

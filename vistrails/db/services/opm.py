@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,6 +34,8 @@
 ###############################################################################
 import copy
 import sys
+from vistrails.core.system import get_vistrails_default_pkg_prefix, \
+    get_vistrails_basic_pkg_id
 import vistrails.db.services.io
 from vistrails.db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
@@ -65,7 +67,7 @@ def create_process_manual(p_str, account, id_scope):
 def create_artifact_from_filename(filename, account, id_scope):
     parameter = DBParameter(id=-1,
                             pos=0,
-                            type='edu.utah.sci.vistrails.basic:File',
+                            type='%s:File' % get_vistrails_basic_pkg_id(),
                             val=filename)
     function = DBFunction(id=-1,
                           name="file",
@@ -80,7 +82,7 @@ def create_artifact_from_db_tuple(db_tuple, account, id_scope):
     for db_str in db_tuple:
         parameter = DBParameter(id=-1,
                                 pos=0,
-                                type='edu.utah.sci.vistrails.basic:String',
+                                type='%s:String' % get_vistrails_basic_pkg_id(),
                                 val=db_str)
         parameters.append(parameter)
     function = DBFunction(id=-1,
@@ -411,30 +413,32 @@ def create_opm(workflow, version, log, reg):
             out_downstream_artifacts = {}
 
 
-        all_special_ports = {'edu.utah.sci.vistrails.control_flow:Map':
+        ctrl_flow_pkg = '%s.control_flow' % get_vistrails_default_pkg_prefix()
+        basic_pkg = get_vistrails_basic_pkg_id()
+        all_special_ports = {'%s:Map' % ctrl_flow_pkg:
                                  [{'InputPort': False, 
                                    'OutputPort': False, 
                                    'InputList': True,
                                    'FunctionPort': False},
                                   {'Result': True},
                                   process_map],
-                             'edu.utah.sci.vistrails.basic:Group':
+                             '%s:Group' % basic_pkg:
                                  [{},
                                   {},
                                   process_group],
-                             'edu.utah.sci.vistrails.basic:InputPort':
+                             '%s:InputPort' % basic_pkg:
                                  [{'name': False,
                                    'spec': False,
                                    'old_name': False},
                                   {},
                                   process_port_module],
-                             'edu.utah.sci.vistrails.basic:OutputPort':
+                             '%s:OutputPort' % basic_pkg:
                                  [{'name': False,
                                    'spec': False,
                                    'old_name': False},
                                   {},
                                   process_port_module],
-                             'edu.utah.sci.vistrails.control_flow:If':
+                             '%s:If' % ctrl_flow_pkg:
                                  [{'TruePort': False,
                                    'FalsePort': False},
                                   {},
@@ -719,6 +723,7 @@ def add_module_descriptor_index(registry):
                 module_descriptor
 
 def add_group_portSpecs_index(workflow):
+    basic_pkg = get_vistrails_basic_pkg_id()
     def process_group(group):
         def get_port_name(module):
             port_name = None
@@ -729,8 +734,7 @@ def add_group_portSpecs_index(workflow):
         g_workflow = group.db_workflow
         group.db_portSpecs_name_index = {}
         for module in g_workflow.db_modules:
-            if module.db_name == 'InputPort' and \
-                    module.db_package == 'edu.utah.sci.vistrails.basic':
+            if module.db_name == 'InputPort' and module.db_package == basic_pkg:
                 port_name = get_port_name(module)
                 # FIXME add sigstring to DBPortSpec
                 group.db_portSpecs_name_index[(port_name, 'input')] = \
@@ -738,15 +742,14 @@ def add_group_portSpecs_index(workflow):
                                name=port_name,
                                type='input')
             elif module.db_name == 'OutputPort' and \
-                    module.db_package == 'edu.utah.sci.vistrails.basic':
+                    module.db_package == basic_package:
                 port_name = get_port_name(module)
                 # FIXME add sigstring to DBPortSpec
                 group.db_portSpecs_name_index[(port_name, 'output')] = \
                     DBPortSpec(id=-1,
                                name=port_name,
                                type='output')
-            elif module.db_name == 'Group' and \
-                    module.db_package == 'edu.utah.sci.vistrails.basic':
+            elif module.db_name == 'Group' and module.db_package == basic_pkg:
                 process_group(module)
 
     for module in workflow.db_modules:

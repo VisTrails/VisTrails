@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,9 +41,10 @@ import uuid
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
-from vistrails.core.modules.basic_modules import String, Boolean, Variant, NotCacheable
+from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
+    NotCacheable, identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError
+    ModuleError, ModuleSuspended
 from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 import vistrails.db
@@ -55,7 +56,6 @@ except ImportError:
     import sha
     sha_hash = sha.new
 
-
 ##############################################################################
 
 class InputPort(Module):
@@ -65,7 +65,11 @@ class InputPort(Module):
         if exPipe is not None:
             self.setResult('InternalPipe', exPipe)
         else:
-            self.setResult('InternalPipe', InvalidOutput)
+            if self.hasInputFromPort('Default'):
+                self.setResult('InternalPipe',
+                               self.getInputFromPort('Default'))
+            else:
+                self.setResult('InternalPipe', InvalidOutput)
 
 ###############################################################################
     
@@ -81,6 +85,7 @@ class Group(Module):
     def __init__(self):
         Module.__init__(self)
         self.is_group = True
+        self.persistent_modules = []
 
     def compute(self):
         if not hasattr(self, 'pipeline') or self.pipeline is None:
@@ -94,6 +99,7 @@ class Group(Module):
                                          "remap dictionaries don't exist")
             
         res = self.interpreter.setup_pipeline(self.pipeline)
+        self.persistent_modules = res[0].values()
         if len(res[5]) > 0:
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n'.join(me.msg for me in res[5].itervalues()))
@@ -119,6 +125,12 @@ class Group(Module):
             raise ModuleError(self, 'Error(s) inside group:\n' +
                               '\n '.join(me.module.__class__.__name__ + ': ' + \
                                             me.msg for me in res[2].itervalues()))
+        if len(res[4]) > 0:
+            # extract messages and previous ModuleSuspended exceptions
+            message = '\n'.join([msg for msg in res[4].itervalues()])
+            children = [tmp_id_to_module_map[module_id]._module_suspended
+                        for module_id in res[4]]
+            raise ModuleSuspended(self, message, children=children)
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
@@ -129,10 +141,7 @@ class Group(Module):
                                            **{'reset_computed': False})
 
     def is_cacheable(self):
-        for module in self.pipeline.modules.itervalues():
-            if not module.summon().is_cacheable():
-                return False
-        return True
+        return all(m.is_cacheable() for m in self.persistent_modules)
 
 ###############################################################################
 
@@ -225,6 +234,13 @@ def read_vistrail(vt_fname):
     Vistrail.convert(vistrail)
     return vistrail
 
+def read_vistrail_from_db(db_connection, abs_id, version):
+    import vistrails.db.services.io
+    from vistrails.core.vistrail.vistrail import Vistrail
+    vistrail = vistrails.db.services.io.open_vistrail_from_db(db_connection, abs_id, version)
+    Vistrail.convert(vistrail)
+    return vistrail
+
 def get_abs_namespace_info(vistrail):
     annotation_add = None
     annotation_key = '__abstraction_uuid__'
@@ -284,7 +300,7 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     can either be a tag (string) or an id (long)
     """
 
-    if type(vistrail) == type(""):
+    if isinstance(vistrail, basestring):
         vt_fname = vistrail
         vistrail = read_vistrail(vistrail)
     elif vt_fname is None:
@@ -310,11 +326,9 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     output_modules = []
     for module in pipeline.module_list:
         #FIXME make this compare more robust
-        if module.name == 'InputPort' and \
-                module.package == 'edu.utah.sci.vistrails.basic':
+        if module.name == 'InputPort' and module.package == basic_pkg:
             input_modules.append(module)
-        elif module.name == 'OutputPort' and \
-                module.package == 'edu.utah.sci.vistrails.basic':
+        elif module.name == 'OutputPort' and module.package == basic_pkg:
             output_modules.append(module)
     input_ports = []
     output_ports = []
@@ -349,7 +363,7 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     return new_module(Abstraction, name, d, docstring)
 
 def get_abstraction_dependencies(vistrail, internal_version=-1L):
-    if type(vistrail) == type(""):
+    if isinstance(vistrail, basestring):
         vistrail = read_vistrail(vistrail)
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
@@ -364,7 +378,7 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
     return packages
 
 def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
-    if type(vistrail) == type(""):
+    if isinstance(vistrail, basestring):
         vistrail = read_vistrail(os.path.join(pkg.package_dir, vistrail))
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
@@ -436,6 +450,24 @@ def group_signature(pipeline, module, chm):
         sig_list.append(module.pipeline.subpipeline_signature(m_id))
     return Hasher.compound_signature(sig_list)
 
+def parse_abstraction_name(filename, get_all_parts=False):
+    # assume only 1 possible prefix or suffix
+    import re
+    prefixes = ["abstraction_"]
+    suffixes = [".vt", ".xml"]
+    path, fname = os.path.split(filename)
+    hexpat = '[a-fA-F0-9]'
+    uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
+    prepat = '|'.join(prefixes).replace('.','\\.')
+    sufpat = '|'.join(suffixes).replace('.','\\.')
+    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
+    matchobj = pattern.match(fname)
+    prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
+    if get_all_parts:
+        return (path, prefix, absname, uuid[1:-1], suffix)
+    return absname
+
+
 ###############################################################################
 
 def initialize(*args, **kwargs):
@@ -447,6 +479,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(InputPort, "optional", Boolean, True)
     reg.add_input_port(InputPort, "spec", String)
     reg.add_input_port(InputPort, "ExternalPipe", Variant, True)
+    reg.add_input_port(InputPort, "Default", Variant)
     reg.add_output_port(InputPort, "InternalPipe", Variant)
 
     reg.add_module(OutputPort)

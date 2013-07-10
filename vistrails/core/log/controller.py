@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -230,6 +230,8 @@ class LogController(object):
 
     def finish_module_execution(self, module, error, errorTrace=None,
                                 suspended=False):
+        if not hasattr(module,'module_exec'):
+            return False
         module.module_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             module.module_exec.completed = -2
@@ -261,6 +263,8 @@ class LogController(object):
         return group_exec
 
     def finish_group_execution(self, group, error, suspended=False):
+        if not hasattr(group,'group_exec'):
+            return False
         group.group_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             group.group_exec.completed = -2
@@ -291,6 +295,8 @@ class LogController(object):
         return loop_exec
 
     def finish_loop_execution(self, module, error, loop_exec, suspended=True):
+        if not loop_exec:
+            return False
         loop_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             loop_exec.completed = -2

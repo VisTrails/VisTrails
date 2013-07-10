@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 """This package contains a module that generates a .vtl file for the 
 workflow it is contained into."""
 
-identifier = 'edu.utah.sci.vistrails.vtlcreator'
+identifier = 'org.vistrails.vistrails.vtlcreator'
 name = 'vtlCreator'
-version = '0.0.3'
+version = '0.0.4'
+old_identifiers = ['edu.utah.sci.vistrails.vtlcreator']

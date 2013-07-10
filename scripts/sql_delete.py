@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,7 +35,7 @@
 import sys
 if '/vistrails/src/trunk/vistrails' not in sys.path:
     sys.path.append('/vistrails/src/trunk/vistrails')
-import db.services.io
+import vistrails.db.services.io
 import urlparse
 import getpass
 
@@ -62,13 +62,13 @@ def run(url, type, id):
               'user': user, 'db': db_name}
     print config
     try:
-        conn = db.services.io.open_db_connection(config)
+        conn = vistrails.db.services.io.open_db_connection(config)
     except Exception:
         passwd = getpass.getpass()
         config['passwd'] = passwd
-        conn = db.services.io.open_db_connection(config)
+        conn = vistrails.db.services.io.open_db_connection(config)
         
-    db.services.io.delete_from_db(conn, type, id)
+    vistrails.db.services.io.delete_from_db(conn, type, id)
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:

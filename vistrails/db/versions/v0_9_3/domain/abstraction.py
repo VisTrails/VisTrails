@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,7 +40,7 @@ from id_scope import IdScope
 
 class DBAbstraction(_DBAbstraction):
     def __init__(self, *args, **kwargs):
-	_DBAbstraction.__init__(self, *args, **kwargs)
+        _DBAbstraction.__init__(self, *args, **kwargs)
         self.idScope = IdScope(remap={DBAbstractionRef.vtType: DBModule.vtType})
         self.idScope.setBeginId('action', 1)
 

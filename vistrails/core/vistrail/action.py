@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -92,9 +92,9 @@ class Action(DBAction):
         return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
 
     def _set_date(self, date):
-        if type(date) == datetime:
+        if isinstance(date, datetime):
             self.db_date = date
-        elif type(date) == type('') and date.strip() != '':
+        elif isinstance(date, basestring) and date.strip() != '':
             newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
@@ -189,10 +189,10 @@ class Action(DBAction):
 ################################################################################
 # Unit tests
 
-
 class TestAction(unittest.TestCase):
     
     def create_action(self, id_scope=None):
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
         from vistrails.core.vistrail.action import Action
         from vistrails.core.vistrail.module import Module
         from vistrails.core.vistrail.module_function import ModuleFunction
@@ -211,7 +211,7 @@ class TestAction(unittest.TestCase):
                                   parameters=[param])
         m = Module(id=id_scope.getNewId(Module.vtType),
                    name='Float',
-                   package='edu.utah.sci.vistrails.basic',
+                   package=basic_pkg,
                    functions=[function])
 
         add_op = AddOp(id=id_scope.getNewId('operation'),

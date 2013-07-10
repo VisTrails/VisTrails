@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,9 +37,9 @@
 # Enumeration Widget for Web Services
 from PyQt4 import QtCore, QtGui
 import vistrails.core.modules
-from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
+    StandardConstantWidget
 from vistrails.core.modules.basic_modules import Constant, Module
-from vistrails.core.modules.constant_configuration import StandardConstantWidget
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import new_module
 import vistrails.packages.webServices
@@ -60,7 +60,7 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
         QtGui.QComboBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         QtGui.QComboBox.clear(self)
-        listqt = QtCore.QStringList()
+        listqt = []
         for element in self.enumerationlist:
             listqt.append(element)
             

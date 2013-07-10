@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -113,9 +113,9 @@ def home_directory():
     
     """
     if len(os.environ['HOMEPATH']) == 0:
-	return '\\'
+        return '\\'
     else:
-	return os.environ['HOMEDRIVE'] + os.environ['HOMEPATH']
+        return os.environ['HOMEDRIVE'] + os.environ['HOMEPATH']
 
 def remote_copy_program():
     return "pscp -P"
@@ -184,7 +184,7 @@ def executable_is_in_pythonpath(filename):
 
 def list2cmdline(lst):
     for el in lst:
-        assert type(el) in [str,unicode]
+        assert isinstance(el, basestring)
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):
@@ -229,7 +229,7 @@ class TestWindows(unittest.TestCase):
      def test1(self):
          """ Test if guess_total_memory() is returning an int >= 0"""
          result = guess_total_memory()
-         assert type(result) == type(1) or type(result) == type(1L)
+         assert isinstance(result, (int, long))
          assert result >= 0
 
      def test2(self):

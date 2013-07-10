@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,31 +37,30 @@ from vistrails.core.requirements import MissingRequirement
 
 import sys
 import os.path
-import types
 import httplib
 import urllib
 import time
-
-from ZSI.ServiceProxy import ServiceProxy
-from ZSI.generate.wsdl2python import WriteServiceModule
-from ZSI.wstools import WSDLTools
 
 import vistrails.core.modules
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.core.modules.basic_modules import Constant
 import enumeration_widget
 
 import platform
 import cPickle
 
-ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
+ZSI = py_import('ZSI', {'pip': 'zsi',
+                        'linux-debian': 'python-zsi',
+                        'linux-ubuntu': 'python-zsi',
                         'linux-fedora': 'python-ZSI'})
 
-
+from ZSI.ServiceProxy import ServiceProxy
+from ZSI.generate.wsdl2python import WriteServiceModule
+from ZSI.wstools import WSDLTools
 
 
 package_directory = None
@@ -339,7 +338,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
     reg = vistrails.core.modules.module_registry.get_module_registry()
 
     def wrapResponseobj(self,resp,visobj):
-        if type(resp)==types.ListType:
+        if isinstance(resp, list):
             ptype = resp[0].typecode.type[1]
         else:
             if resp.typecode.type[1] == None:
@@ -371,7 +370,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 setattr(visobj,nameattrib,ans)
 
             except KeyError:
-                if type(resp) != types.ListType:
+                if not isinstance(resp, list):
                     namemethod = "get_element_" + namechild
                     try:
                         resp = getattr(resp, namemethod)()
@@ -380,7 +379,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                         sentence = "resp" + "." + namemethod
                         resp = eval(sentence)
 
-                if type(resp) == types.ListType:
+                if isinstance(resp, list):
                     objlist = []
                     for element in resp:
                         ptype = element.typecode.type[1]
@@ -1355,8 +1354,8 @@ def verify_wsdl(wsdlList):
         if remoteHeader != None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
-            httpfile = reg.get_descriptor_by_name('edu.utah.sci.vistrails.http',
-                                                  'HTTPFile').module()
+            httpfile = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.http', 'HTTPFile').module()
             try:
                 isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:
@@ -1378,7 +1377,7 @@ def initialize(*args, **keywords):
         msg = "The Web Services package is deprecated and will be removed from \
 next VisTrails release. Please consider using the new SUDS Web Services package. \
 This message will not be shown again."
-        pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
+        pm.show_error_message(pm.get_package(identifier),msg)
         try:
             from vistrails.gui.application import get_vistrails_application
             if get_vistrails_application() is not None:
@@ -1452,7 +1451,7 @@ The following could not be loaded:\n"""
         error_list.extend(not_loaded)
         for (w,e) in error_list:
             msg += "Url: '%s', error: '%s'\n"%(w,e)
-        pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
+        pm.show_error_message(pm.get_package(identifier),msg)
 
 def handle_missing_module(*args, **kwargs):
     global webServicesmodulesDict
@@ -1530,7 +1529,7 @@ The following could not be loaded:\n"""
                 error_list.extend(not_loaded)
                 for (w,e) in error_list:
                     msg += "Url: '%s', error: '%s'\n"%(w,e)
-                    pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
+                    pm.show_error_message(pm.get_package(identifier),msg)
         except Exception, e:
             print e
             import traceback

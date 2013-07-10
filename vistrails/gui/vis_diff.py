@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 """ This modules builds a widget to interact with vistrail diff
 operation """
 from PyQt4 import QtCore, QtGui
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils.color import ColorByName
 from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -107,8 +108,7 @@ class QParamTable(QtGui.QTableView):
         itemModel = QFunctionItemModel(0, 2, self)
         itemModel.setHeaderData(0, QtCore.Qt.Horizontal, v1Name)
         itemModel.setHeaderData(1, QtCore.Qt.Horizontal, v2Name)
-        # self.setHorizontalHeaderLabels(QtCore.QStringList() << \
-        #                                    v1Name << v2Name)
+        # self.setHorizontalHeaderLabels([v1Name, v2Name])
         self.setModel(itemModel)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)        
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)        
@@ -119,9 +119,7 @@ class QParamTable(QtGui.QTableView):
     def set_names(self, v1_name, v2_name):
         self.model().setHeaderData(0, QtCore.Qt.Horizontal, v1_name)
         self.model().setHeaderData(1, QtCore.Qt.Horizontal, v2_name)
-        # self.setHorizontalHeaderLabels(QtCore.QStringList() << \
-        #                                    v1_name << v2_name)
-
+        # self.setHorizontalHeaderLabels([v1_name, v2_name])
 
 class QParamInspector(QtGui.QWidget):
     """
@@ -423,14 +421,12 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
             if f1[0]!=None:
                 param_model.setData(
                     param_model.index(currentRow, 0),
-                    QtCore.QVariant('%s(%s)' % (f1[0],
-                                                ','.join(v[1] for v in f1[1]))))
+                    '%s(%s)' % (f1[0], ','.join(v[1] for v in f1[1])))
             if f2[0]!=None:
                 param_model.setData(
                     param_model.index(currentRow, 1),
-                    QtCore.QVariant('%s(%s)' % (f2[0],
-                                                ','.join(v[1] for v in f2[1]))))
-            if f1==f2:                
+                    '%s(%s)' % (f2[0], ','.join(v[1] for v in f2[1])))
+            if f1==f2:
                 param_model.disableRow(currentRow)
             currentRow += 1
 
@@ -465,18 +461,9 @@ class QDiffView(QPipelineView):
              })
             
     def set_to_current(self):
-        # change to normal controller hacks
-        #print "AAAAA doing set_to_current"
-        if self.controller.current_pipeline_view is not None:
-            self.disconnect(self.controller,
-                            QtCore.SIGNAL('versionWasChanged'),
-                            self.controller.current_pipeline_view.parent().version_changed)
-        self.controller.current_pipeline_view = self.scene()
+        self.controller.set_pipeline_view(self)
         self.controller.current_diff = self.diff
         self.controller.current_diff_versions = self.diff_versions
-        self.connect(self.controller,
-                     QtCore.SIGNAL('versionWasChanged'),
-                     self.version_changed)
 
     def set_default_layout(self):
         from vistrails.gui.module_palette import QModulePalette
@@ -549,6 +536,8 @@ class QDiffView(QPipelineView):
         
         scene = self.scene()
         scene.clearItems()
+
+        basic_pkg = get_vistrails_basic_pkg_id()
 
 #         # FIXME HACK: We will create a dummy object that looks like a
 #         # controller so that the qgraphicsmoduleitems and the scene
@@ -629,9 +618,9 @@ class QDiffView(QPipelineView):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,
@@ -672,9 +661,9 @@ class QDiffView(QPipelineView):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,
@@ -970,13 +959,11 @@ class QVisualDiff(QtGui.QMainWindow):
             if f1[0]!=None:
                 functions.setData(
                     functions.index(currentRow, 0),
-                    QtCore.QVariant('%s(%s)' % (f1[0],
-                                                ','.join(v[1] for v in f1[1]))))
+                    '%s(%s)' % (f1[0], ','.join(v[1] for v in f1[1])))
             if f2[0]!=None:
                 functions.setData(
                     functions.index(currentRow, 1),
-                    QtCore.QVariant('%s(%s)' % (f2[0],
-                                                ','.join(v[1] for v in f2[1]))))
+                    '%s(%s)' % (f2[0], ','.join(v[1] for v in f2[1])))
             if f1==f2:                
                 functions.disableRow(currentRow)
             currentRow += 1
@@ -1044,6 +1031,8 @@ class QVisualDiff(QtGui.QMainWindow):
         
         scene = self.pipelineView.scene()
         scene.clearItems()
+
+        basic_pkg = get_vistrails_basic_pkg_id()
 
         # FIXME HACK: We will create a dummy object that looks like a
         # controller so that the qgraphicsmoduleitems and the scene
@@ -1124,9 +1113,9 @@ class QVisualDiff(QtGui.QMainWindow):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,
@@ -1165,9 +1154,9 @@ class QVisualDiff(QtGui.QMainWindow):
                     old_port_spec = port_specs[p_key]
                     m1.delete_port_spec(old_port_spec)
                     if old_port_spec.type == 'input':
-                        m_sig = '(edu.utah.sci.vistrails.basic:Module)'
+                        m_sig = '(%s:Module)' % basic_pkg
                     else:
-                        m_sig = '(edu.utah.sci.vistrails.basic:Variant)'
+                        m_sig = '(%s:Variant)' % basic_pkg
                     new_port_spec = PortSpec(id=old_port_spec.id,
                                              name=old_port_spec.name,
                                              type=old_port_spec.type,

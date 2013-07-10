@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -100,7 +100,7 @@ class MashupsManager(object):
                         mashuptrail = Mashuptrail(self.getNewMashuptrailId(), 
                                                   version, id_scope)
                         p_mashup = p_mashuptrail.getMashup(mshpv)
-                        mashup = p_mashup.doCopy()
+                        mashup = p_mashup.do_copy()
                         mashup.id_scope = id_scope
                         mashup.version = version
                         mashup.validateForPipeline(pipeline)
@@ -180,22 +180,22 @@ class MashupsManager(object):
     
     @staticmethod
     def copyVistrailController(vt_controller, view=DummyView()):
-        newvt_controller = VistrailController()
-        current_log = vt_controller.log
         vistrail = vt_controller.vistrail
+        newvt_controller = VistrailController(vistrail, None, 
+                                              pipeline_view=view)
+        current_log = vt_controller.log
         newvt_controller.log = current_log
-        newvt_controller.current_pipeline_view = view.scene()
-        newvt_controller.set_vistrail(vistrail, None)
         newvt_controller.disable_autosave()
         return newvt_controller
     
     @staticmethod
     def copyBaseVistrailController(vt_controller):
-        newvt_controller = BaseVistrailController()
-        current_log = vt_controller.log
         vistrail = vt_controller.vistrail
+        newvt_controller = BaseVistrailController(vistrail, None)
+        current_log = vt_controller.log
         newvt_controller.log = current_log
-        newvt_controller.set_vistrail(vistrail, None)
+        # DAK: why does the base version copy the _mashups but the non-base
+        # version doesn't??
         for m in vt_controller._mashups:
             newvt_controller._mashups.append(copy.copy(m))
         return newvt_controller
@@ -418,8 +418,7 @@ class MashupsManager(object):
                     newmashuptrail.currentVersion = currVersion
                     newmashuptrail.changeTag(currVersion, mtag, maction.user,
                                              maction.date)
-                    newvtcontroller = BaseVistrailController()
-                    newvtcontroller.set_vistrail(vistrail, None)
+                    newvtcontroller = BaseVistrailController(vistrail, None)
                     MashupsManager.addMashuptrailtoVistrailController(newvtcontroller,
                                                                       newmashuptrail)
                     node.set('mashuptrail', str(newmashuptrail.id))
@@ -432,11 +431,13 @@ class MashupsManager(object):
                 (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
                                           suffix='.vt')
                 os.close(fd)
-                fileLocator = FileLocator(name)
-                newvtcontroller.write_vistrail(fileLocator)
-                contents = open(name).read()
-                vtcontent = base64.b64encode(contents)
-                os.unlink(name)
+                try:
+                    fileLocator = FileLocator(name)
+                    newvtcontroller.write_vistrail(fileLocator)
+                    contents = open(name).read()
+                    vtcontent = base64.b64encode(contents)
+                finally:
+                    os.unlink(name)
                 #if not vistrail.db_version:
                 #    vistrail.db_version = currentVersion
                 node.set('vtcontent',vtcontent)

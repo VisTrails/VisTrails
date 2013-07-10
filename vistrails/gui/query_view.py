@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -420,8 +420,9 @@ class QQueryView(QtGui.QWidget, BaseView):
                          self.update_controller)
         self.vt_controller.vistrail_view = self.version_result_view
         self.vt_controller.current_pipeline_view = \
-            self.workflow_result_view.scene()
+            self.workflow_result_view
         # self.vt_controller.vistrail_view.set_controller(self.vt_controller)
+        # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(controller.vistrail, None,
                                         set_log_on_vt=False)
         self.vt_controller.change_selected_version(controller.current_version)
@@ -430,6 +431,7 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.query_controller.set_vistrail_controller(controller)
 
     def update_controller(self):
+        # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(self.controller.vistrail, None,
                                         set_log_on_vt=False)
         self.vt_controller.change_selected_version(
@@ -454,7 +456,7 @@ class QQueryView(QtGui.QWidget, BaseView):
 
         self.stacked_widget = QtGui.QStackedWidget()
         self.pipeline_view = QQueryPipelineView()
-        self.p_controller.current_pipeline_view = self.pipeline_view.scene()
+        self.p_controller.current_pipeline_view = self.pipeline_view
         self.pipeline_view.set_controller(self.p_controller)
         self.pipeline_view.set_query_controller(self.query_controller)
         QQueryView.VISUAL_SEARCH_VIEW = \

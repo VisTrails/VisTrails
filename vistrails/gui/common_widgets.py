@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -202,9 +202,11 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         self.setRootIsDecorated(True)
         self.setDragEnabled(True)
         self.flags = QtCore.Qt.ItemIsDragEnabled
-    
+
+        self._search_was_empty = True
+
     def searchItemName(self, name):
-        """ searchItemName(name: QString) -> None        
+        """ searchItemName(name: QString) -> None
         Search and refine the module tree widget to contain only items
         whose name is 'name'
         
@@ -240,13 +242,20 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             return visible
 
         if str(name)=='':
-            testFunction = lambda x: True
+            testFunction = lambda x: (not hasattr(x, 'is_hidden') or
+                                      not x.is_hidden)
+            if not self._search_was_empty:
+                self.collapseAll()
+                self._search_was_empty = True
         else:
             matchedItems = set(self.findItems(name,
                                               QtCore.Qt.MatchContains |
                                               QtCore.Qt.MatchWrap |
                                               QtCore.Qt.MatchRecursive))
             testFunction = matchedItems.__contains__
+            if self._search_was_empty:
+                self.expandAll()
+                self._search_was_empty = False
         for itemIndex in xrange(self.topLevelItemCount()):
             recursiveSetVisible(self.topLevelItem(itemIndex),
                                 testFunction)
@@ -312,7 +321,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         Return the default search tree
 
         """
-        self.treeWidget.searchItemName(QtCore.QString(''))
+        self.treeWidget.searchItemName('')
 
     def createTreeWidget(self):
         """ createTreeWidget() -> QSearchTreeWidget
@@ -462,7 +471,7 @@ class QStringEdit(QtGui.QFrame):
                                                      self.text(),
                                                      'All files '
                                                      '(*.*)')
-        if not fileName.isEmpty():
+        if fileName:
             self.setText(fileName)
         
 ###############################################################################
@@ -483,7 +492,7 @@ class MultiLineWidget(StandardConstantWidget):
     def keyPressEvent(self, event):
         """ keyPressEvent(event) -> None       
         If this is a string line edit, we can use Ctrl+Enter to enter
-        the file name 	       
+        the file name
 
         """
         k = event.key()
@@ -499,7 +508,7 @@ class MultiLineWidget(StandardConstantWidget):
                                                                'All files '
                                                                '(*.*)')
                 fileName = fileNames.join(',')
-                if not fileName.isEmpty():
+                if fileName:
                     self.setText(fileName)
                     return
         QtGui.QLineEdit.keyPressEvent(self,event)

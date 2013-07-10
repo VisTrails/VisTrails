@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -50,6 +50,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.modules import get_widget_class
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.gui.theme import CurrentTheme
@@ -134,6 +135,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.dw_minval_edit = QtGui.QLineEdit()
         self.dw_maxval_edit = QtGui.QLineEdit()
         self.dw_stepsize_edit = QtGui.QLineEdit()
+        
         l = QtGui.QVBoxLayout()
         l.setMargin(0)
         l.setSpacing(0)
@@ -152,6 +154,9 @@ class QAliasDetailsWidget(QtGui.QWidget):
         l.addWidget(self.dw_stepsize_label)
         l.addWidget(self.dw_stepsize_edit)
         self.dw_slider_layout.addLayout(l)
+        self.dw_seq_toggle = QtGui.QCheckBox("Loop")
+        self.dw_seq_toggle.setToolTip("Enable option to loop through all steps")
+        self.dw_slider_layout.addWidget(self.dw_seq_toggle)
         self.dw_layout.addWidget(self.dw_label)
         self.dw_layout.addWidget(self.dw_combobox)
         self.dw_layout.addLayout(self.dw_slider_layout)
@@ -200,6 +205,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.order_spinbox.valueChanged.connect(self.orderChanged)
         self.dw_minval_edit.editingFinished.connect(self.minvalChanged)
         self.dw_stepsize_edit.editingFinished.connect(self.stepsizeChanged)
+        self.dw_seq_toggle.clicked.connect(self.seqToggled)
         self.dw_maxval_edit.editingFinished.connect(self.maxvalChanged)
         
     def unplugSignals(self):
@@ -243,6 +249,17 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.alias.component.stepSize = new_stepsize
             self.aliasChanged.emit(self.alias)
         
+
+    @pyqtSlot()
+    def seqToggled(self):
+        if self.alias:
+            old_seq = self.alias.component.seq
+            new_seq = self.dw_seq_toggle.isChecked()
+            if old_seq == new_seq:
+                return
+            self.alias.component.seq = new_seq
+            self.aliasChanged.emit(self.alias)
+
     @pyqtSlot()
     def nameChanged(self):
         old_alias = self.alias.name
@@ -287,6 +304,8 @@ Please type a unique name. """ % new_alias)
                 self.set_int_validators()
             elif self.alias and self.alias.component.type == "Float":
                 self.set_float_validators()
+        # show loop option for stepper
+        self.dw_seq_toggle.setVisible(index == 1)
         if self.alias:
             self.alias.component.widget = str(self.dw_combobox.currentText())
             self.aliasChanged.emit(self.alias)
@@ -310,6 +329,7 @@ Please type a unique name. """ % new_alias)
         self.dw_maxval_edit.setVisible(on)
         self.dw_stepsize_label.setVisible(on)
         self.dw_stepsize_edit.setVisible(on)
+        self.dw_seq_toggle.setVisible(on)
         
     def populate_dw_combobox(self):
         self.dw_combobox.currentIndexChanged.disconnect(self.toggle_dw_combobox)
@@ -332,7 +352,7 @@ Please type a unique name. """ % new_alias)
             wtype = self.alias.component.widget
             if wtype == 'text':
                 wtype = "combobox"
-            index = self.dw_combobox.findText(QtCore.QString(wtype))
+            index = self.dw_combobox.findText(wtype)
             if index < 0:
                 index = 0
             self.dw_combobox.setCurrentIndex(index)
@@ -342,11 +362,14 @@ Please type a unique name. """ % new_alias)
             self.dw_minval_edit.setText(self.alias.component.minVal)
             self.dw_maxval_edit.setText(self.alias.component.maxVal)
             self.dw_stepsize_edit.setText(self.alias.component.stepSize)
+            self.dw_seq_toggle.setChecked(self.alias.component.seq)
                 
             if self.dw_combobox.currentIndex() == 0:
                 self.show_dw_contents(False)
             else:
                 self.show_dw_contents(True)
+            # show loop option for stepper
+            self.dw_seq_toggle.setVisible(index == 1)
                 
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
@@ -355,7 +378,7 @@ Please type a unique name. """ % new_alias)
                                 self.widgetContentsChanged)
                 self.dv_widget.deleteLater()
             
-            self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, None)
+            self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, self)
             self.dv_layout.addWidget(self.dv_widget)
             self.connect(self.dv_widget,
                          QtCore.SIGNAL("contentsChanged"),
@@ -404,7 +427,7 @@ Please type a unique name. """ % new_alias)
         v = controller.vtController.vistrail
         p = v.db_get_object(alias.component.vttype, alias.component.vtid)
         if p.identifier == '':
-            idn = 'edu.utah.sci.vistrails.basic'
+            idn = get_vistrails_basic_pkg_id()
         else:
             idn = p.identifier
         reg = get_module_registry()
@@ -562,7 +585,7 @@ class QListEditDialog(QtGui.QDialog):
         vLayout.addWidget(label)
 
         self.table = QtGui.QTableWidget(0, 1, parent)
-        self.table.setHorizontalHeaderLabels(QtCore.QStringList('Values'))
+        self.table.setHorizontalHeaderLabels(['Values'])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setMovable(True)
         
@@ -641,9 +664,9 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         vHeader = self.table.verticalHeader()
-        labels = QtCore.QStringList()        
+        labels = []        
         for i in xrange(self.table.rowCount()):
-            labels << str(vHeader.visualIndex(i)+1)
+            labels.append(str(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 
     def addRow(self, text=''):
@@ -656,7 +679,7 @@ class QListEditDialog(QtGui.QDialog):
         alias.component.val = text
         widget = \
           QAliasDetailsWidget.createAliasWidget(alias, self.controller, None)
-        if type(widget) != StandardConstantWidget:
+        if not isinstance(widget, StandardConstantWidget):
             item = QtGui.QTableWidgetItem()
         else:
             item = QtGui.QTableWidgetItem(text)
@@ -725,7 +748,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        model.setData(index, QtCore.QVariant(editor.contents()))        
+        model.setData(index, editor.contents())        
         self.editor = None
 
     def finishEditing(self):

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -87,13 +87,13 @@ class SourceWidget(PortTableConfigurationWidget):
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = PortTable(self)
-            labels = QtCore.QStringList() << "Input Port Name" << "Type"
+            labels = ["Input Port Name", "Type"]
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.inputPortTable.initializePorts(self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
             self.outputPortTable = PortTable(self)
-            labels = QtCore.QStringList() << "Output Port Name" << "Type"
+            labels = ["Output Port Name", "Type"]
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.outputPortTable.initializePorts(self.module.output_port_specs, 
                                                  True)
@@ -114,7 +114,7 @@ class SourceWidget(PortTableConfigurationWidget):
             if self.sourceEncode:
                 code = urllib.unquote(code)
             self.codeEditor.setPlainText(code)
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.codeEditor.document().setModified(False)
         else:
             self.codeEditor.setModified(False)
@@ -134,7 +134,7 @@ class SourceWidget(PortTableConfigurationWidget):
         
         self.cursorLabel = QtGui.QLabel()
         self.layout().addWidget(self.cursorLabel)
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.connect(self.codeEditor,
                          QtCore.SIGNAL('cursorPositionChanged()'),
                          self.updateCursorLabel)
@@ -145,7 +145,7 @@ class SourceWidget(PortTableConfigurationWidget):
         self.updateCursorLabel()
             
     def updateCursorLabel(self, x=0, y=0):
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             cursor = self.codeEditor.textCursor()
             x = cursor.blockNumber()
             y = cursor.columnNumber()
@@ -190,7 +190,7 @@ class SourceViewerWidget(SourceWidget):
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = QtGui.QTableWidget(1, 2, self)
-            labels = QtCore.QStringList() << "Input Port Name" << "Type"
+            labels = ["Input Port Name", "Type"]
             self.inputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.inputPortTable.horizontalHeader().setMovable(False)
             self.inputPortTable.horizontalHeader().setStretchLastSection(True)
@@ -200,7 +200,7 @@ class SourceViewerWidget(SourceWidget):
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
             self.outputPortTable = QtGui.QTableWidget(1, 2, self)
-            labels = QtCore.QStringList() << "Output Port Name" << "Type"
+            labels = ["Output Port Name", "Type"]
             self.outputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.outputPortTable.horizontalHeader().setMovable(False)
             self.outputPortTable.horizontalHeader().setStretchLastSection(True)
@@ -346,7 +346,7 @@ class SourceConfigurationWidget(SourceWidget):
 
         functions = []
         modified = False
-        if self.codeEditor.__class__.__name__ != '_PythonEditor':
+        if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             modified = self.codeEditor.document().isModified()
         else:
             modified = self.codeEditor.isModified()

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -344,6 +344,9 @@ class PortsList(QtGui.QTreeWidget):
         self.port_spec_items = {}
         self.entry_klass = ParameterEntry
 
+    def setReadOnly(self, read_only):
+        self.setEnabled(not read_only)
+
     def set_entry_klass(self, entry_klass):
         self.entry_klass = entry_klass
         self.update_module(self.module)
@@ -421,7 +424,7 @@ class PortsList(QtGui.QTreeWidget):
             #     baseItem = QMethodTreeWidgetItem(None,
             #                                      None,
             #                                      self,
-            #                                      (QtCore.QStringList()
+            #                                      ([]
             #                                       <<  baseName
             #                                       << ''))
             #     base_items[descriptor] = baseItem
@@ -449,7 +452,7 @@ class PortsList(QtGui.QTreeWidget):
             #         QMethodTreeWidgetItem(module,
             #                               method_spec,
             #                               baseItem,
-            #                               (QtCore.QStringList()
+            #                               ([]
             #                                << method_spec.name
             #                                << sig))
 
@@ -495,7 +498,7 @@ class PortsList(QtGui.QTreeWidget):
                 else:
                     visible_ports.discard(item.port_spec.name)
                 self.controller.flush_delayed_actions()
-                self.controller.current_pipeline_view.recreate_module(
+                self.controller.current_pipeline_scene.recreate_module(
                     self.controller.current_pipeline, self.module.id)
         if col == 2:
             if item.isExpanded():
@@ -541,7 +544,7 @@ class PortsList(QtGui.QTreeWidget):
             # make the scene display the fact that we have a parameter
             # by dimming the port
             # self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.update_module_functions(
+            self.controller.current_pipeline_scene.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
                                             
     def delete_method(self, subitem, port_name, real_id=None):
@@ -555,7 +558,7 @@ class PortsList(QtGui.QTreeWidget):
             # make the scene display the fact that we have lost the
             # parameter by undimming the port
             # self.controller.flush_delayed_actions()
-            self.controller.current_pipeline_view.update_module_functions(
+            self.controller.current_pipeline_scene.update_module_functions(
                 self.controller.current_pipeline, self.module.id)
 
         # how to delete items...x

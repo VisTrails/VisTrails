@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,6 +36,7 @@
 pipeline, change its parameters based on aliases, and execute them on
 the spreadsheet."""
 
-identifier = 'edu.utah.sci.vistrails.pipelineedit'
+identifier = 'org.vistrails.vistrails.pipelineedit'
 name = 'Pipeline Editor'
-version = '0.0.1'
+version = '0.0.2'
+old_identifiers = ['edu.utah.sci.vistrails.pipelineedit']

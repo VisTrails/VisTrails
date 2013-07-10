@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,74 +32,68 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.mashup import XMLObject
+from vistrails.db.domain import DBMashupAlias
 from vistrails.core.mashup.component import Component
-from vistrails.core.system import get_elementtree_library
 
 import unittest
 from vistrails.db.domain import IdScope
 import copy
 
-ElementTree = get_elementtree_library()
-
 ################################################################################
-class Alias(XMLObject):
+class Alias(DBMashupAlias):
     def __init__(self, id, name, component=None):
-        self.id = id
-        self.name = name
-        self.component = component
-
-    def __copy__(self):
-        return Alias.doCopy(self)
+        DBMashupAlias.__init__(self, id, name, component)
     
-    def doCopy(self, new_ids=False, id_scope=None, id_remap=None):
-        """doCopy() -> Alias 
-        returns a clone of itself"""
-        cp = Alias(id=self.id, name=self.name)
-        cp.component = self.component.doCopy(new_ids, id_scope, id_remap)
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId('alias')
-            if 'alias' in id_scope.remap:
-                id_remap[(id_scope.remap['alias'], self.id)] = new_id
-            else:
-                id_remap[('alias', self.id)] = new_id
-            cp.id = new_id
+    id = DBMashupAlias.db_id
+    name = DBMashupAlias.db_name
+    component = DBMashupAlias.db_component
+    
+    @staticmethod
+    def convert(_alias):
+        _alias.__class__ = Alias
+        Component.convert(_alias.component)
+        
+    def __copy__(self):
+        return Alias.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBMashupAlias.do_copy(self, new_ids, id_scope, id_remap)
+        Alias.convert(cp)
         return cp
     
     ##########################################################################
     # Serialization / Unserialization
         
-    def toXml(self, node=None):
-        """toXml(node: ElementTree.Element) -> ElementTree.Element
-            writes itself to xml
-        """
-        if node is None:
-            node = ElementTree.Element('alias')
-
-        #set attributes
-        node.set('id', self.convert_to_str(self.id,'long'))
-        node.set('name', self.convert_to_str(self.name,'str'))
-        child_ = ElementTree.SubElement(node, 'component')
-        self.component.toXml(child_)
-
-        return node
-
-    @staticmethod
-    def fromXml(node):
-        if node.tag != 'alias':
-            return None
-
-        #read attributes
-        data = node.get('id', None)
-        id = Alias.convert_from_str(data, 'long')
-        data = node.get('name', None)
-        name = Alias.convert_from_str(data, 'str')
-        for child in node.getchildren():
-            if child.tag == "component":
-                component = Component.fromXml(child)
-        alias = Alias(id,name,component)
-        return alias
+#    def toXml(self, node=None):
+#        """toXml(node: ElementTree.Element) -> ElementTree.Element
+#            writes itself to xml
+#        """
+#        if node is None:
+#            node = ElementTree.Element('alias')
+#
+#        #set attributes
+#        node.set('id', self.convert_to_str(self.id,'long'))
+#        node.set('name', self.convert_to_str(self.name,'str'))
+#        child_ = ElementTree.SubElement(node, 'component')
+#        self.component.toXml(child_)
+#
+#        return node
+#
+#    @staticmethod
+#    def fromXml(node):
+#        if node.tag != 'alias':
+#            return None
+#
+#        #read attributes
+#        data = node.get('id', None)
+#        id = Alias.convert_from_str(data, 'long')
+#        data = node.get('name', None)
+#        name = Alias.convert_from_str(data, 'str')
+#        for child in node.getchildren():
+#            if child.tag == "component":
+#                component = Component.fromXml(child)
+#        alias = Alias(id,name,component)
+#        return alias
     
     ##########################################################################
     # Operators
@@ -140,12 +134,12 @@ class Alias(XMLObject):
 
 class TestAlias(unittest.TestCase):
     def create_alias(self, id_scope=IdScope()):
-        c1 = Component(id=id_scope.getNewId('component'),
+        c1 = Component(id=id_scope.getNewId('mashup_component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
-        a1 = Alias(id=id_scope.getNewId('alias'), name='alias1', component=c1)
+        a1 = Alias(id=id_scope.getNewId('mashup_alias'), name='alias1', component=c1)
         return a1
     
     def test_copy(self):
@@ -154,16 +148,16 @@ class TestAlias(unittest.TestCase):
         a2 = copy.copy(a1)
         self.assertEqual(a1,a2)
         self.assertEqual(a1.id, a2.id)
-        a3 = a2.doCopy(True, id_scope, {})
+        a3 = a2.do_copy(True, id_scope, {})
         self.assertEqual(a1,a3)
         self.assertNotEqual(a1.id, a3.id)
         
-    def test_serialization(self):
-        a1 = self.create_alias()
-        node = a1.toXml()
-        a2 = Alias.fromXml(node)
-        self.assertEqual(a1, a2)
-        self.assertEqual(a1.id, a2.id)
+#    def test_serialization(self):
+#        a1 = self.create_alias()
+#        node = a1.toXml()
+#        a2 = Alias.fromXml(node)
+#        self.assertEqual(a1, a2)
+#        self.assertEqual(a1.id, a2.id)
         
     def test_str(self):
         a1 = self.create_alias()

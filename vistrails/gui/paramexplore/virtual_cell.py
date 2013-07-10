@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -438,7 +438,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         getConfiguration could be passed directly to
         setConfiguration (the dimensions aren't used).
         """
-        if type(info) == type({}):
+        if isinstance(info, dict):
             result = info
         else:
             rCount, cCount, result = info

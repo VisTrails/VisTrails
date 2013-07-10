@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,5 +34,6 @@
 ###############################################################################
 
 name = "VisTrails Analytics"
-identifier = "edu.utah.sci.vistrails.analytics"
-version = "0.0.1"
+identifier = "org.vistrails.vistrails.analytics"
+version = "0.0.2"
+old_identifiers = ["edu.utah.sci.vistrails.analytics"]

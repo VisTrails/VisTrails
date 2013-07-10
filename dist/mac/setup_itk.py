@@ -18,16 +18,16 @@ plist = dict(
     CFBundleIdentifier='edu.utah.sci.vistrails',
 )
 
-sys.path.append('../../vistrails')
-APP = ['../../vistrails/vistrails.py']
+sys.path.append('../..')
+APP = ['../../vistrails/run.py']
 #comma-separated list of additional data files and
 #folders to include (not for code!)
 #DATA_FILES = ['/usr/local/graphviz-2.12/bin/dot',]
 OPTIONS = {'argv_emulation': True,
-           'iconfile': 'resources/vistrails_icon.icns',
+           'iconfile': 'vistrails/resources/vistrails_icon.icns',
            'includes': 'sip,pylab,xml,netCDF3,netCDF4_utils,netcdftime,\
-			libxml2,libxslt, Cookie, BaseHTTPServer, multifile, shelve,itk, itkBase, itkConfig, itkLazy, itkTypes, itkExtras',
-           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,packages,core,gui,db,numpy,ZSI,api',
+            libxml2,libxslt, Cookie, BaseHTTPServer, multifile, shelve,itk, itkBase, itkConfig, itkLazy, itkTypes, itkExtras',
+           'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,ZSI,api',
            'plist': plist,
            }
 

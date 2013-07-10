@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -832,8 +832,8 @@ class QVistrailList(QtGui.QTreeWidget):
         self.search = None
         self.setColumnCount(1)
         self.setHeaderHidden(True)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionBehavior(self.SelectItems)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
@@ -860,20 +860,17 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-        self.connect(self, 
-                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
-                                   "QTreeWidgetItem*)"),
-                     self.item_changed)
-
         self.connect(self,
                      QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
                      self.item_selected)
+        
         self.setIconSize(QtCore.QSize(16,16))
 
         self.connect(self,
                      QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
                      self.onItemPressed)
         self.updateHideExecutions()
+        self.connect_current_changed()
 
     def setup_closed_files(self):
         self.closedFilesItem = QtGui.QTreeWidgetItem(['My Vistrails'])
@@ -890,7 +887,28 @@ class QVistrailList(QtGui.QTreeWidget):
             item.mashupsItem.setHidden(not item.mashupsItem.childCount())
             item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
-            
+
+    def connect_current_changed(self):
+        # using currentItemChanged makes sure a drag selects the dragged-from
+        # vistrail
+        self.connect(self, 
+                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
+                                   "QTreeWidgetItem*)"),
+                     self.item_changed)
+        # using item_clicked makes sure even selected items can be clicked
+        self.connect(self, 
+                     QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
+                     self.item_changed)
+
+    def disconnect_current_changed(self):
+        self.disconnect(self, 
+                        QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
+                                      "QTreeWidgetItem*)"),
+                        self.item_changed)
+        self.disconnect(self, 
+                        QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
+                        self.item_changed)
+    
     def show_search_results(self):
         self.searchResultsItem = QtGui.QTreeWidgetItem(['Search Results'])
         self.addTopLevelItem(self.searchResultsItem)
@@ -933,12 +951,12 @@ class QVistrailList(QtGui.QTreeWidget):
         if hasattr(widget_item, 'entity') and widget_item.entity is not None:
             entity = widget_item.entity
             locator = entity.locator()
-        elif type(widget_item) == QVistrailListLatestItem and \
+        elif isinstance(widget_item, QVistrailListLatestItem) and \
              hasattr(widget_item.parent().parent(), 'entity') and \
              widget_item.parent().parent().entity is not None:
             entity = widget_item.parent().parent().entity
             locator = entity.locator()
-        elif not type(widget_item) == QVistrailListLatestItem:
+        elif not isinstance(widget_item, QVistrailListLatestItem):
             # no valid item selected
             return
         from vistrails.gui.vistrails_window import _app
@@ -964,7 +982,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 return
             is_execution = False
             version = None
-            if type(widget_item) == QVistrailListLatestItem:
+            if isinstance(widget_item, QVistrailListLatestItem):
                 version = view.controller.vistrail.get_latest_version()
             elif hasattr(widget_item, 'entity'):
                 if hasattr(widget_item, 'executionList'):
@@ -975,7 +993,7 @@ class QVistrailList(QtGui.QTreeWidget):
             if not version:
                 # assume execution
                 version = str(widget_item.parent().text(0))
-            if type(version) == str:
+            if isinstance(version, str):
                 try:
                     version = \
                         view.controller.vistrail.get_version_number(version)
@@ -1026,7 +1044,7 @@ class QVistrailList(QtGui.QTreeWidget):
             # set vistrail name
             #locator._name = widget_item.entity.parent.parent.name
             
-        if type(widget_item) == QVistrailListLatestItem:
+        if isinstance(widget_item, QVistrailListLatestItem):
             # find the latest item (max action id)
             vistrail = widget_item.parent().parent().window.controller.vistrail
             args['version'] = vistrail.get_latest_version()
@@ -1065,7 +1083,7 @@ class QVistrailList(QtGui.QTreeWidget):
         from vistrails.gui.vistrails_window import _app
         view = _app.get_current_view()
         tab = view.get_current_tab()
-        if type(tab) == QDiffView:
+        if isinstance(tab, QDiffView):
             view.add_pipeline_view()
 
     def open_mashup(self, entity):
@@ -1115,7 +1133,7 @@ class QVistrailList(QtGui.QTreeWidget):
         destination = self.itemAt(event.pos())
         if not destination:
             return
-        if type(event.source())==QVistrailList:
+        if isinstance(event.source(), QVistrailList):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 assert len(data.items) == 1
@@ -1126,9 +1144,9 @@ class QVistrailList(QtGui.QTreeWidget):
                 if hasattr(source, 'window') and hasattr(destination, 'window'):
                     # both are vistrails
                     self.merge_vistrails(source, destination)
-                elif (type(source) == QVistrailListLatestItem or
+                elif (isinstance(source, QVistrailListLatestItem) or
                       hasattr(source, 'executionList')) and \
-                     (type(destination) == QVistrailListLatestItem or
+                     (isinstance(destination, QVistrailListLatestItem) or
                       hasattr(destination, 'executionList')):
                     # workflows can be from diff vistrails
                     self.visual_diff(source, destination)
@@ -1461,10 +1479,11 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSelected(vistrail_window)
 
     def setSelected(self, view):
-        for item in self.selectedItems():
-            item.setSelected(False)
+        """ Highlights the vistrail item for the selected item"""
+        self.disconnect_current_changed()
 
         def setBold(parent_item):
+            """ """
             for i in xrange(parent_item.childCount()):
                 item = parent_item.child(i)
                 font = item.font(0)
@@ -1473,13 +1492,12 @@ class QVistrailList(QtGui.QTreeWidget):
                 item.setFont(0, font)
                 if window:
                     item.setText(0, window.get_name())
-                # item.setSelected(view == item.window 
-                #                  if window and view else False)
                 
         if not self.openFilesItem.isHidden():
             setBold(self.openFilesItem)
         elif self.searchMode:
             setBold(self.searchResultsItem)
+        self.connect_current_changed()
             
     def item_changed(self, item, prev_item):
         if not item:

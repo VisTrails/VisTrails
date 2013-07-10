@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,6 +46,8 @@ import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.layout.workflow_layout import WorkflowLayout, \
+    Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from vistrails.core.log.controller import LogControllerFactory, DummyLogController
 from vistrails.core.log.log import Log
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg, \
@@ -58,7 +60,7 @@ from vistrails.core.modules.module_registry import ModuleRegistryException, \
 from vistrails.core.modules.package import Package
 from vistrails.core.modules.sub_module import new_abstraction, read_vistrail, \
     get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
-    get_next_abs_annotation_key, save_abstraction
+    get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
 from vistrails.core.packagemanager import PackageManager, get_package_manager
 import vistrails.core.packagerepository
 from vistrails.core.thumbnails import ThumbnailCache
@@ -79,11 +81,11 @@ from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port import Port
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import IdScope, DBWorkflowExec
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
-
 from vistrails.db.services.vistrail import getSharedRoot
 from vistrails.core.utils import any
 
@@ -106,23 +108,28 @@ def vt_action(description_or_f=None):
     else:
         return get_f(description_or_f)
 
+class CompareThumbnailsError(Exception):
+
+    def __init__(self, msg, first=None, second=None):
+        Exception.__init__(self, msg)
+        self._msg = msg
+        self._first = first
+        self._second = second
+        
+    def __str__(self):
+        return "Comparing thumbnails failed.\n%s\n%s\n%s" % \
+            (self._msg, self._first, self._second)
+
 class VistrailController(object):
-    def __init__(self, vistrail=None, id_scope=None, auto_save=True):
-        self.vistrail = vistrail
-        self.id_scope = id_scope
-        self.current_session = -1
-        self.log = Log()
-        self._auto_save = auto_save
-        if vistrail is not None:
-            self.id_scope = vistrail.idScope
-            self.current_session = vistrail.idScope.getNewId('session')
-            vistrail.current_session = self.current_session
-            vistrail.log = self.log
-        self._current_pipeline = None
+    def __init__(self, vistrail=None, locator=None, abstractions=None, 
+                 thumbnails=None, mashups=None, id_scope=None, 
+                 set_log_on_vt=True, auto_save=True):
+        self.vistrail = None
         self.locator = None
+        self._auto_save = auto_save
         self.name = ''
         self.file_name = ''
-        self._current_version = -1
+        self.is_abstraction = False
         self.changed = False
 
         # if _cache_pipelines is True, cache pipelines to speed up
@@ -136,8 +143,8 @@ class VistrailController(object):
         # if self.search is True, vistrail is currently being searched
         self.search = None
         self.search_str = None
-        # If self.refine is True, search mismatches are hidden instead                              
-        # of ghosted                                                                                
+        # If self.refine is True, search mismatches are hidden instead
+        # of ghosted
         self.refine = False
         self.full_tree = False
 
@@ -156,6 +163,16 @@ class VistrailController(object):
         # this is a reference to the current parameter exploration
         self.current_parameter_exploration = None
         
+        # theme used to estimate module size for layout
+        self.layoutTheme = DefaultCoreTheme()
+        
+        self.set_vistrail(vistrail, locator, 
+                          abstractions=abstractions, 
+                          thumbnails=thumbnails,
+                          mashups=mashups,
+                          id_scope=id_scope, 
+                          set_log_on_vt=set_log_on_vt)
+
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
         return self._current_version
@@ -188,8 +205,12 @@ class VistrailController(object):
         return self.locator
     
     def set_vistrail(self, vistrail, locator, abstractions=None, 
-                     thumbnails=None, mashups=None, set_log_on_vt=True):
+                     thumbnails=None, mashups=None, id_scope=None,
+                     set_log_on_vt=True):
         self.vistrail = vistrail
+        self.id_scope = id_scope
+        self.current_session = -1
+        self.log = Log()
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
@@ -207,7 +228,14 @@ class VistrailController(object):
         if self.locator != locator and self.locator is not None:
             self.locator.clean_temporaries()
         self.locator = locator
-        self.recompute_terse_graph()
+        if self.locator is not None:
+            self.set_file_name(locator.name)
+        else:
+            self.set_file_name('')
+        if self.locator and self.locator.has_temporaries():
+            self.set_changed(True)
+        if self.vistrail is not None:
+            self.recompute_terse_graph()
         
     def close_vistrail(self, locator):
         if not self.vistrail.is_abstraction:
@@ -215,7 +243,10 @@ class VistrailController(object):
         if locator is not None:
             locator.clean_temporaries()
             locator.close()
-            
+
+    def cleanup(self):
+        pass
+
     def set_id_scope(self, id_scope):
         self.id_scope = id_scope
 
@@ -489,6 +520,8 @@ class VistrailController(object):
 
         """
         if action is not None:
+            if self.current_version == -1:
+                self.change_selected_version(0)
             self.vistrail.add_action(action, self.current_version, 
                                      self.current_session)
             if description is not None:
@@ -573,10 +606,10 @@ class VistrailController(object):
     @staticmethod
     def create_connection_static(id_scope, output_module, output_port_spec,
                                  input_module, input_port_spec):     
-        if type(output_port_spec) == type(""):
+        if isinstance(output_port_spec, basestring):
             output_port_spec = \
                 output_module.get_port_spec(output_port_spec, 'output')
-        if type(input_port_spec) == type(""):
+        if isinstance(input_port_spec, basestring):
             input_port_spec = \
                 input_module.get_port_spec(input_port_spec, 'input')            
         if output_port_spec is None:
@@ -905,8 +938,6 @@ class VistrailController(object):
 
     @vt_action
     def add_module_action(self, module):
-        if not self.current_pipeline:
-            raise Exception("No version is selected")
         action = vistrails.core.db.action.create_action([('add', module)])
         return action
 
@@ -956,6 +987,29 @@ class VistrailController(object):
         action = self.create_module_list_deletion_action(self.current_pipeline,
                                                          module_ids)
         return action
+    
+    def move_modules_ops(self, move_list):
+        """ move_module_list(move_list: [(id,x,y)]) -> [operations]        
+        Returns the operations that will move each module to its 
+        specified location
+        
+        """
+        operations = []
+        for (id, x, y) in move_list:
+            module = self.current_pipeline.get_module_by_id(id)
+            if module.location:
+                if module.location.x == x and module.location.y == y:
+                    continue
+            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+            location = Location(id=loc_id, x=x, y=y)
+            if module.location and module.location.id != -1:
+                old_location = module.location
+                operations.append(('change', old_location, location,
+                                    module.vtType, module.id))
+            else:
+                #should probably be an error
+                operations.append(('add', location, module.vtType, module.id))
+        return operations
 
     def move_module_list(self, move_list):
         """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
@@ -963,21 +1017,7 @@ class VistrailController(object):
         allowed to to emit to avoid recursive actions
         
         """
-        action_list = []
-        for (id, x, y) in move_list:
-            module = self.current_pipeline.get_module_by_id(id)
-            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-            location = Location(id=loc_id,
-                                x=x, 
-                                y=y,
-                                )
-            if module.location and module.location.id != -1:
-                old_location = module.location
-                action_list.append(('change', old_location, location,
-                                    module.vtType, module.id))
-            else:
-                # probably should be an error
-                action_list.append(('add', location, module.vtType, module.id))
+        action_list = self.move_modules_ops(move_list)
         action = vistrails.core.db.action.create_action(action_list)
         self.add_new_action(action)
         return self.perform_action(action)
@@ -1096,8 +1136,8 @@ class VistrailController(object):
         moduleId
         
         """
-        assert type(pair[0]) == type('')
-        assert type(pair[1]) == type('')
+        assert isinstance(pair[0], basestring)
+        assert isinstance(pair[1], basestring)
         if pair[0].strip()=='':
             return
 
@@ -1740,23 +1780,6 @@ class VistrailController(object):
                                               namespace, None, module_version)
         return None
 
-    def parse_abstraction_name(self, filename, get_all_parts=False):
-        # assume only 1 possible prefix or suffix
-        import re
-        prefixes = ["abstraction_"]
-        suffixes = [".vt", ".xml"]
-        path, fname = os.path.split(filename)
-        hexpat = '[a-fA-F0-9]'
-        uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
-        prepat = '|'.join(prefixes).replace('.','\\.')
-        sufpat = '|'.join(suffixes).replace('.','\\.')
-        pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
-        matchobj = pattern.match(fname)
-        prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
-        if get_all_parts:
-            return (path, prefix, absname, uuid[1:-1], suffix)
-        return absname
-
     def add_abstraction_to_registry(self, abs_vistrail, abs_fname, name, 
                                     namespace=None, module_version=None,
                                     is_global=True, avail_fnames=[]):
@@ -1847,7 +1870,7 @@ class VistrailController(object):
     def load_abstraction(self, abs_fname, is_global=True, abs_name=None,
                          module_version=None, avail_fnames=[]):
         if abs_name is None:
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
         if abs_fname in self._loaded_abstractions:
             abs_vistrail = self._loaded_abstractions[abs_fname]
         else:
@@ -1871,7 +1894,7 @@ class VistrailController(object):
             
         if module_version is None:
             module_version = str(abs_vistrail.get_latest_version())
-        elif type(module_version) == type(1):
+        elif isinstance(module_version, (int, long)):
             module_version = str(module_version)
         # If an upgraded version has already been created, we want to use that rather than loading the old version.
         # This step also avoid duplication of abstraction upgrades.  Otherwise, when we try to add the old version
@@ -1902,7 +1925,7 @@ class VistrailController(object):
     def unload_abstractions(self):
         reg = vistrails.core.modules.module_registry.get_module_registry()
         for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
-            abs_name = self.parse_abstraction_name(abs_fname)
+            abs_name = parse_abstraction_name(abs_fname)
             # FIXME? do we need to remove all versions (call
             # delete_module over and over?)
             for namespace in get_all_abs_namespaces(abs_vistrail):
@@ -1922,7 +1945,7 @@ class VistrailController(object):
         #         # in the module palette
         #         if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
         #             continue
-        #     abs_name = self.parse_abstraction_name(abs_fname)
+        #     abs_name = parse_abstraction_name(abs_fname)
         #     abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
         #     try:
         #         descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
@@ -1938,7 +1961,7 @@ class VistrailController(object):
 
 #    def update_abstraction(self, abstraction, new_actions):
 #        module_version = abstraction.internal_version
-#        if type(module_version) == type(""):
+#        if isinstance(module_version, basestring):
 #            module_version = int(module_version)
 #        abstraction_uuid = \
 #            abstraction.vistrail.get_annotation('__abstraction_uuid__').value
@@ -2048,7 +2071,7 @@ class VistrailController(object):
         abs_fname = invalid_module.module_descriptor.module.vt_fname
         #print "&&& abs_fname", abs_fname
         (path, prefix, abs_name, abs_namespace, suffix) = \
-            self.parse_abstraction_name(abs_fname, True)
+            parse_abstraction_name(abs_fname, True)
         # abs_vistrail = invalid_module.vistrail
         abs_vistrail = read_vistrail(abs_fname)
         abs_namespace = get_cur_abs_namespace(abs_vistrail)
@@ -2256,28 +2279,33 @@ class VistrailController(object):
                 raise
         except MissingModule, e:
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
-                if (descriptor_tuple[1], '') not in lookup:
+                if (descriptor_tuple[1], None) not in lookup:
                     raise
-                abs_fname = lookup[(descriptor_tuple[1], '')]
+                abs_fnames = lookup[(descriptor_tuple[1], None)]
             else:
-                abs_fname = lookup[(descriptor_tuple[1], descriptor_tuple[2])]
-            new_desc = \
-                self.load_abstraction(abs_fname, False, 
-                                      descriptor_tuple[1],
-                                      descriptor_tuple[4],
-                                      lookup.values())
-            descriptor_tuple = (new_desc.package, new_desc.name, 
-                                new_desc.namespace, new_desc.package_version,
-                                str(new_desc.version))
+                abs_fnames = [lookup[(descriptor_tuple[1], descriptor_tuple[2])]]
+            for abs_fname in abs_fnames:
+                new_desc = \
+                    self.load_abstraction(abs_fname, False, 
+                                          descriptor_tuple[1],
+                                          descriptor_tuple[4],
+                                          [v for k, v in lookup.iteritems()
+                                           if k[1] != None])
+                descriptor_tuple = (new_desc.package, new_desc.name, 
+                                    new_desc.namespace, new_desc.package_version,
+                                    str(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
         return None
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
         for abs_fname in abs_fnames:
-            path, prefix, abs_name, abs_namespace, suffix = self.parse_abstraction_name(abs_fname, True)
+            path, prefix, abs_name, abs_namespace, suffix = parse_abstraction_name(abs_fname, True)
             # abs_name = os.path.basename(abs_fname)[12:-4]
             lookup[(abs_name, abs_namespace)] = abs_fname
+            if (abs_name, None) not in lookup:
+                lookup[(abs_name, None)] = []
+            lookup[(abs_name, None)].append(abs_fname)
             
         # we're going to recurse manually (see
         # add_abstraction_to_regsitry) because we can't call
@@ -2458,8 +2486,8 @@ class VistrailController(object):
         changed = False
         results = []
         for vis in vistrails:
-            (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
-            
+            error = None
+            (locator, version, pipeline, view, aliases, params, reason, sinks, extra_info) = vis
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
                 not extra_info['pathDumpCells']):
@@ -2476,18 +2504,51 @@ class VistrailController(object):
                       'aliases': aliases,
                       'params': params,
                       'reason': reason,
+                      'sinks': sinks,
                       'extra_info': extra_info,
                       }    
+            if self.get_vistrail_variables():
+                kwargs['vistrail_variables'] = \
+                    self.get_vistrail_variable_by_uuid
             result = interpreter.execute(pipeline, **kwargs)
             
             thumb_cache = ThumbnailCache.getInstance()
             
-            if len(result.errors) == 0 and thumb_cache.conf.autoSave:
+            if len(result.errors) == 0 and \
+            (thumb_cache.conf.autoSave or 'compare_thumbnails' in extra_info):
                 old_thumb_name = self.vistrail.get_thumbnail(version)
+                if 'compare_thumbnails' in extra_info:
+                    old_thumb_name = None
                 fname = thumb_cache.add_entry_from_cell_dump(
-                                        extra_info['pathDumpCells'], 
+                                        extra_info['pathDumpCells'],
                                         old_thumb_name)
-                if fname is not None: 
+                if 'compare_thumbnails' in extra_info:
+                    # check thumbnail difference
+                    prev = None
+                    if self.vistrail.has_thumbnail(version):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(version))
+                    elif version in self.vistrail.actionMap and \
+                        int(self.vistrail.get_upgrade(self.vistrail.actionMap[version].parent)) == version and \
+                        self.vistrail.has_thumbnail(self.vistrail.actionMap[version].parent):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(self.vistrail.actionMap[version].parent))
+                    else:
+                        error = CompareThumbnailsError("No thumbnail exist for version %s" % version)
+                    if prev:
+                        if not prev:
+                            error = CompareThumbnailsError("No thumbnail file exist for version %s" % version)
+                        elif not fname:
+                            raise CompareThumbnailsError("No thumbnail generated")
+                        else:
+                            next = thumb_cache.get_abs_name_entry(fname)
+                            if not next:
+                                raise CompareThumbnailsError("No thumbnail file generated for version %s" % version)
+                            else:
+                                min_err = extra_info['compare_thumbnails'](prev, next)
+                                treshold = 0.1
+                                if min_err > treshold:
+                                    raise CompareThumbnailsError("Thumbnails are different with value %s" % min_err, prev, next)
+
+                if fname is not None:
                     self.vistrail.set_thumbnail(version, fname)
                     changed = True
               
@@ -2500,7 +2561,9 @@ class VistrailController(object):
                 changed = True
             
             results.append(result)
-            
+            if error:
+                result.errors[version] = error
+                return ([result], False)
         if self.logging_on():
             self.set_changed(True)
             
@@ -2509,7 +2572,8 @@ class VistrailController(object):
         return (results,changed)
     
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 extra_info=None, reason='Pipeline Execution'):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow(custom_aliases: dict, 
                                      custom_params: list,
                                      extra_info: dict) -> (list, bool)
@@ -2537,6 +2601,7 @@ class VistrailController(object):
                                                 custom_aliases,
                                                 custom_params,
                                                 reason,
+                                                sinks,
                                                 extra_info)])
 
     def recompute_terse_graph(self):
@@ -2867,8 +2932,8 @@ class VistrailController(object):
 
             for identifier, err_list in package_errs.iteritems():
                 try:
-                    pkg = pm.get_package_by_identifier(identifier)
-                except Exception, e:
+                    pkg = pm.get_package(identifier)
+                except MissingPackage:
                     # cannot get the package we need
                     continue
                 details = '\n'.join(str(e) for e in err_list)
@@ -3203,7 +3268,7 @@ class VistrailController(object):
                            'Please contact the developer of that package '
                            'and report a bug.' % err.package.name)
                     debug.critical(msg)
-                elif isinstance(err, PackageManager.MissingPackage):
+                elif isinstance(err, MissingPackage):
                     msg = ('Cannot find package "%s" in '
                            'list of available packages. '
                            'Please install it first.' % err._identifier)
@@ -3240,7 +3305,7 @@ class VistrailController(object):
             # prevent conflicts and copies the abstraction to the new
             # path so save_bundle has a valid file
             path, prefix, absname, old_ns, suffix = \
-                self.parse_abstraction_name(abs_fname, True)
+                parse_abstraction_name(abs_fname, True)
             new_abs_fname = os.path.join(abs_save_dir, 
                                          '%s%s(%s)%s' % (prefix, absname, 
                                                          namespace, suffix))
@@ -3256,7 +3321,7 @@ class VistrailController(object):
                 if abs_module is not None:
                     abs_fname = abs_module.vt_fname
                     path, prefix, abs_name, old_ns, suffix = \
-                        self.parse_abstraction_name(abs_fname, True)
+                        parse_abstraction_name(abs_fname, True)
                     # do our indexing by abstraction name
                     # we know that abstractions with different names
                     # cannot overlap, but those that have the same
@@ -3289,9 +3354,6 @@ class VistrailController(object):
                 if not os.path.exists(abs_fname):
                     # Write vistrail to disk if the file no longer
                     # exists (if temp file was deleted)
-                    if abs_save_dir is None:
-                        abs_save_dir = \
-                            tempfile.mkdtemp(prefix='vt_abs')
                     abs_fname = os.path.join(abs_save_dir, 
                                              abstraction.name + '.xml')
                     save_abstraction(abstraction.vistrail, abs_fname)
@@ -3319,7 +3381,7 @@ class VistrailController(object):
             save_bundle = SaveBundle(self.vistrail.vtType)
             if export:
                 save_bundle.vistrail = self.vistrail.do_copy()
-                if type(locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(locator, vistrails.core.db.locator.DBLocator):
                     save_bundle.vistrail.db_log_filename = None
             else:
                 save_bundle.vistrail = self.vistrail
@@ -3341,7 +3403,7 @@ class VistrailController(object):
             if self.locator != locator:
                 # check for db log
                 log = Log()
-                if type(self.locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
                     connection = self.locator.get_connection()
                     db_log = open_vt_log_from_db(connection, 
                                                  self.vistrail.db_id)
@@ -3364,7 +3426,7 @@ class VistrailController(object):
                     self.locator = locator
                 save_bundle = locator.save_as(save_bundle, version)
                 new_vistrail = save_bundle.vistrail
-                if type(locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(locator, vistrails.core.db.locator.DBLocator):
                     new_vistrail.db_log_filename = None
                     locator.kwargs['obj_id'] = new_vistrail.db_id
                 if not export:
@@ -3391,8 +3453,9 @@ class VistrailController(object):
             # FIXME abstractions only work with FileLocators right now
             if is_abstraction:
                 new_vistrail.is_abstraction = True
-                if ( type(self.locator) == vistrails.core.db.locator.XMLFileLocator or
-                     type(self.locator) == vistrails.core.db.locator.ZIPFileLocator ):
+                if isinstance(self.locator, (
+                        vistrails.core.db.locator.XMLFileLocator,
+                        vistrails.core.db.locator.ZIPFileLocator)):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
                         del self._loaded_abstractions[filename]
@@ -3408,6 +3471,7 @@ class VistrailController(object):
             if not export:
                 if id(self.vistrail) != id(new_vistrail):
                     new_version = new_vistrail.db_currentVersion
+                    # FIXME have to figure out what to do here !!!
                     self.set_vistrail(new_vistrail, locator)
                     self.change_selected_version(new_version)
                     result = True
@@ -3502,3 +3566,153 @@ class VistrailController(object):
 
     def can_undo(self):
         return self.current_version > 0
+
+    def layout_modules(self, old_modules=[], preserve_order=False, 
+               new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):
+        """Lays out modules and returns the new version.
+        
+        If old_modules are not specified, all modules in current pipeline are used.
+        If preserve_order is True, modules in each row will be ordered based on
+            their current x value
+        new_modules ignore preserve_order, and don't need exist yet in the pipeline
+        new_connections associated with new_modules
+        module_size_func is used to determine size of a module. It takes a
+            vistrails.core.layout.workflow_layout.Module object and returns a (width, height)
+            tuple.
+        If no_gaps is True, all connected modules will be at most 1 layer above or
+            below their child or parent respectively
+        """
+        
+        #fixes issue when opening old vistrails that needs upgrade
+        self.flush_delayed_actions()
+        
+        action_list = self.layout_modules_ops(old_modules, preserve_order, 
+                                      new_modules, new_connections, module_size_func, no_gaps)
+        if(len(action_list) > 0):
+            action = vistrails.core.db.action.create_action(action_list)
+            self.add_new_action(action)
+            version = self.perform_action(action)
+            self.change_selected_version(version)
+            return version
+        return self.current_version
+
+    def layout_modules_ops(self, old_modules=[], preserve_order=False, 
+               new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):
+        """Returns operations needed to layout the modules.
+        
+        If old_modules are not specified, all modules in current pipeline are used.
+        If preserve_order is True, modules in each row will be ordered based on
+            their current x value
+        new_modules ignore preserve_order, and don't need exist yet in the pipeline
+        new_connections associated with new_modules
+        module_size_func is used to determine size of a module. It takes a
+            vistrails.core.layout.workflow_layout.Module object and returns a (width, height)
+            tuple.
+        If no_gaps is True, all connected modules will be at most 1 layer above or
+            below their child or parent respectively
+        """
+
+        connected_input_ports = set(
+                c.destination.spec for c in self.current_pipeline.connection_list)
+        connected_input_ports.update(
+                c.destination.spec for c in new_connections)
+        connected_output_ports = set(
+                c.source.spec for c in self.current_pipeline.connection_list)
+        connected_output_ports.update(
+                c.source.spec for c in new_connections)
+        connected_ports = connected_input_ports | connected_output_ports
+
+        def get_visible_port_names(port_list, visible_ports):
+            output_list = []
+            visible_list = []
+            for i, p in enumerate(port_list):
+                if not p.optional:
+                    output_list.append(p.name)
+                elif p.name in visible_ports or p in connected_ports:
+                    visible_list.append(p.name)
+            output_list.extend(visible_list)
+            return output_list
+        
+        if not old_modules or len(old_modules) == 0:
+            old_modules = self.current_pipeline.modules.values()
+        
+        #create layout objects
+        layoutPipeline = LayoutPipeline()
+
+        module_info = {} # {id: (module, layoutModule, in_port_names=[], out_port_names=[])}
+        
+        #add modules to layout, and find their visible ports
+        def _add_layout_module(module, prev_x):
+            in_ports = get_visible_port_names(module.destinationPorts(), 
+                                         module.visible_input_ports)
+            out_ports = get_visible_port_names(module.sourcePorts(),
+                                          module.visible_output_ports)
+            
+            layoutModule = layoutPipeline.createModule(module.id, 
+                                        module.name,
+                                        len(in_ports),
+                                        len(out_ports),
+                                        prev_x)
+            
+            module_info[module.id] = (module, layoutModule, in_ports, out_ports)
+        
+        for module in old_modules:
+            _add_layout_module(module, module.location.x)
+            
+        for module in new_modules:
+            _add_layout_module(module, None)
+        
+        #add connections to layout
+        old_ids = [module.id for module in old_modules]
+        old_conns = self.get_connections_to(self.current_pipeline, old_ids)
+        for conn in old_conns + new_connections:
+            if conn.source.moduleId in module_info:
+                layoutPipeline.createConnection(
+                        module_info[conn.source.moduleId][1],
+                        module_info[conn.source.moduleId][3].index(conn.source.name),
+                        module_info[conn.destination.moduleId][1],
+                        module_info[conn.destination.moduleId][2].index(conn.destination.name))
+            
+        #set default module size function if needed
+        paddedPortWidth = self.layoutTheme.PORT_WIDTH + self.layoutTheme.MODULE_PORT_SPACE
+        def estimate_module_size(module):
+            width = max(len(module.name)*6 + self.layoutTheme.MODULE_LABEL_MARGIN[0] + self.layoutTheme.MODULE_LABEL_MARGIN[1],
+                        len(module_info[module.shortname][2]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE,
+                        len(module_info[module.shortname][3]) * paddedPortWidth + self.layoutTheme.MODULE_PORT_PADDED_SPACE)
+            height = LayoutDefaults.u * 5 #todo, fix these sizes
+            return (width, height)
+        if module_size_func is None:
+            module_size_func = estimate_module_size
+            
+        workflowLayout = WorkflowLayout(layoutPipeline,
+                                        module_size_func,
+                                        self.layoutTheme.MODULE_PORT_MARGIN, 
+                                        (self.layoutTheme.PORT_WIDTH, self.layoutTheme.PORT_HEIGHT), 
+                                        self.layoutTheme.MODULE_PORT_SPACE)
+    
+        #do layout with layer x and y separation of 50
+        workflowLayout.run_all(50,50,preserve_order,no_gaps)
+                
+        #maintain center
+        center_x, center_y = self.get_avg_location([item[0] for item in module_info.values()])
+        new_center_x = sum([m.layout_pos.x for m in layoutPipeline.modules]) / len(layoutPipeline.modules)
+        new_center_y = -sum([m.layout_pos.y for m in layoutPipeline.modules]) / len(layoutPipeline.modules)
+        offset_x = center_x - new_center_x
+        offset_y = center_y - new_center_y
+        
+        #generate module move list
+        moves = []
+        for (module, layoutModule, _, _) in module_info.values():
+            new_x = layoutModule.layout_pos.x+offset_x
+            new_y = -layoutModule.layout_pos.y+offset_y
+            if module.id in self.current_pipeline.modules:
+                moves.append((module.id, new_x, new_y))
+            else:
+                #module doesn't exist in pipeline yet, just change x,y
+                module.location.x = new_x
+                module.location.y = new_y
+                
+        #return module move operations
+        return self.move_modules_ops(moves)
+        
+            

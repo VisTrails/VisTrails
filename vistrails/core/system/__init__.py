@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -90,7 +90,7 @@ def touch(file_name):
     if os.path.isfile(file_name):
         os.utime(file_name, None)
     else:
-        file(file_name, 'w')
+        open(file_name, 'w')
 
 def mkdir(dir_name):
     """mkdir(dir_name) -> None Equivalent to 'mkdir' in a shell except
@@ -118,6 +118,14 @@ __fileDir = os.path.realpath(os.path.join(__rootDir,
                                           '..','examples'))
 
 __defaultFileType = '.vt'
+
+__defaultPkgPrefix = 'org.vistrails.vistrails'
+
+def get_vistrails_default_pkg_prefix():
+    return __defaultPkgPrefix
+
+def get_vistrails_basic_pkg_id():
+    return "%s.basic" % get_vistrails_default_pkg_prefix()
 
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None 
@@ -248,7 +256,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.0'
+    return '2.1 beta'
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
@@ -294,7 +302,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "1b88c3949efd"
+        release = "19514847cab3"
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(['git', 'describe', '--always', '--abbrev=12'],
@@ -352,7 +360,7 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s.%s -- contact@vistrails.org
 
-Copyright (c) 2011-2012 NYU-Poly. Copyright (c) 2006-2011 University of Utah. 
+Copyright (C) 2011-2013 NYU-Poly. Copyright (C) 2006-2011 University of Utah. 
 All rights reserved.
 http://www.vistrails.org
 

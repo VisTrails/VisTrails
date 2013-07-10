@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -68,21 +68,21 @@ class Vec2(object):
         self.x = x
         self.y = y
     def __add__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x + other, self.y + other)
         else:
             return Vec2(self.x + other.x, self.y + other.y)
     def __radd__(self, other):
         return self.__add__(other)
     def __sub__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x - other, self.y - other)
         else:
             return Vec2(self.x - other.x, self.y - other.y)
     def __rsub__(self, other):
         return self.__sub__(other)
     def __mul__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x * other, self.y * other)
         else:
             return Vec2(self.x * other.x, self.y * other.y)
@@ -97,7 +97,7 @@ class Vec2(object):
 
 ####################################################
 
-UNDEFINED_LAYER = -1
+UNDEFINED_LAYER = None
 INPUT_PORT, OUTPUT_PORT = 1,2
 
 class Pipeline(object):
@@ -106,8 +106,8 @@ class Pipeline(object):
         self.modules     = []
         self.connections = []
 
-    def createModule(self, shortname, name, num_input_ports, num_output_ports):
-        mod = Module(self, len(self.modules), shortname, name, num_input_ports, num_output_ports)
+    def createModule(self, shortname, name, num_input_ports, num_output_ports, prev_x=None):
+        mod = Module(self, len(self.modules), shortname, name, num_input_ports, num_output_ports, prev_x)
         self.modules.append(mod)
         return mod
 
@@ -131,7 +131,7 @@ class Pipeline(object):
 
 class Module(object):
 
-    def __init__(self, workflow, key, shortname, name, num_input_ports, num_output_ports):
+    def __init__(self, workflow, key, shortname, name, num_input_ports, num_output_ports, prev_x=None):
 
         self.workflow     = workflow
         self.key          = key
@@ -161,6 +161,8 @@ class Module(object):
 
         self.layout_pos          = Vec2(0,0)
         self.layout_dim          = Vec2(1,1)
+        
+        self.prev_x = prev_x
 
     def clearFlags(self):
         self.flags = 0
@@ -504,8 +506,33 @@ class WorkflowLayout(object):
             #     a = min([succ.layout_layer_number for succ in module.cached_succ]) - 1
             # print "layer of %s = %d" % (module.shortname, module.layout_layer_number)
 
+    def assign_module_to_layers_no_gaps(self):
+        if len(self.wf.modules) == 0:
+            return
+        
+        visited = set()
+        min_layer = [0]
+        def set_module_layer_number(module, layer_number):
+            module.layout_layer_number = layer_number
+            visited.add(module)
+            min_layer[0] = min(min_layer[0], layer_number)
+            for port in module.input_ports:
+                for conn in port.connections:
+                    if conn.source_port.module not in visited:
+                        set_module_layer_number(conn.source_port.module, layer_number-1)
+            for port in module.output_ports:
+                for conn in port.connections:
+                    if conn.target_port.module not in visited:
+                        set_module_layer_number(conn.target_port.module, layer_number+1)
+               
+        set_module_layer_number(self.wf.modules[0], 0)
+                        
+        #adjust all layers numbers so that the min is 0
+        if min_layer[0] < 0:
+            for module in self.wf.modules:
+                module.layout_layer_number -= min_layer[0]
 
-    def assign_module_permutation_to_each_layer(self):
+    def assign_module_permutation_to_each_layer(self, preserve_order=False):
         wf = self.wf
 
         # create layers
@@ -624,9 +651,30 @@ class WorkflowLayout(object):
 
             # break
             break
+        
+        if preserve_order:
+            for layer in layers.layers:                
 
-
-
+                # sort using the last layout_layer_index
+                layer.modules.sort(key=lambda x: x.layout_layer_index)
+            
+                #separate modules that have no previous x value
+                temp = []
+                for i in reversed(range(len(layer.modules))):
+                    if layer.modules[i].prev_x is None:
+                        temp.append((i,layer.modules.pop(i)))
+                
+                #sort on previous x
+                layer.modules.sort(key=lambda x: x.prev_x)
+                
+                #put separated modules back in their original slot
+                for item in reversed(temp):
+                    layer.modules.insert(item[0],item[1])
+                    
+                #reassign index
+                for i in range(len(layer.modules)):
+                    layer.modules[i].layout_layer_index = i
+            
     #
     # this method is "friend" of the classes above in the C++ sense:
     # it can access and modify
@@ -714,6 +762,13 @@ class WorkflowLayout(object):
 
         page = Page(page_x0, page_y0, page_width, page_height)
 
-        # print page
-
         return page
+
+    def run_all(self, layer_x_separation=50, layer_y_separation=50, preserve_order=False, no_gaps=False):
+        self.compute_module_sizes()
+        if no_gaps:
+            self.assign_module_to_layers_no_gaps()
+        else:
+            self.assign_modules_to_layers()
+        self.assign_module_permutation_to_each_layer(preserve_order)
+        self.compute_layout(layer_x_separation, layer_y_separation)

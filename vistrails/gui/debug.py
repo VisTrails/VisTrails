@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -159,7 +159,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         elif visible == QtCore.Qt.Checked:
             visible = True
         for item in [self.list.item(i) for i in xrange(self.list.count())]:
-            if str(item.data(32).toString()).split('\n')[0] == s:
+            if str(item.data(32)).split('\n')[0] == s:
                 self.list.setItemHidden(item, not visible)
 
     def toggleInfo(self, visible):
@@ -175,20 +175,20 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         """ copy selected message to clipboard """
         items = self.list.selectedItems()
         if len(items)>0:
-            text = str(items[0].data(32).toString())
+            text = str(items[0].data(32))
             get_vistrails_application().clipboard().setText(text)
 
     def copyAll(self):
-        """ copy selected message to clipboard """
+        """ copy all messages to clipboard """
         texts = []
         for i in range(self.list.count()):
-            texts.append(str(self.list.item(i).data(32).toString()))
+            texts.append(str(self.list.item(i).data(32)))
         text = '\n'.join(texts)
         get_vistrails_application().clipboard().setText(text)
 
     def showMessage(self, item, olditem):
         """ show item data in a messagebox """
-        s = str(item.data(32).toString())
+        s = str(item.data(32))
         msgs = s.split('\n')
         msgs = [cgi.escape(i) for i in msgs]
         format = {'INFO': 'Message:',
@@ -224,7 +224,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.currentItem = item
         msg_box = self.msg_box
         # update messagebox with data from item
-        s = str(item.data(32).toString())
+        s = str(item.data(32))
         msgs = s.split('\n')
         if msgs[0] == "INFO":
             msg_box.setIcon(QtGui.QMessageBox.Information)
@@ -309,7 +309,14 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         # adds the string s to the list and 
         s = str(s).strip()
         msgs = s.split('\n')
-        text = msgs[3] if len(msgs)>2 else ''
+
+        if len(msgs)<=3:
+            msgs.append('Unknown Error')
+            s += '\n' + msgs[3]
+        if not len(msgs[3].strip()):
+            msgs[3] = "Unknown Error"
+            s = '\n'.join(msgs)
+        text = msgs[3]
         item = QtGui.QListWidgetItem(text)
         item.setData(32, s)
         item.setFlags(item.flags()&~QtCore.Qt.ItemIsEditable)
@@ -366,3 +373,32 @@ critical     = vistrails.core.debug.critical
 warning      = vistrails.core.debug.warning
 log          = vistrails.core.debug.log
 debug        = vistrails.core.debug.debug
+
+class TestDebugView(vistrails.gui.utils.TestVisTrailsGUI):
+
+    def test_messages(self):
+        debugview = DebugView.instance()
+        # test message types
+        examples = ["INFO\ntime\nplace\nShort test message\n"
+                    "Full test message\nmulti-line",
+                    "INFO\ntime\nplace\nShort test message only",
+                    "INFO\ntime\nplace\n", # empty message
+                    "INFO\ntime\nplace" # no message
+                    ]
+        examples += ["%s\ntime\nplace\nShort test message\nFull test message"\
+                     % m for m in ['INFO', 'WARNING', 'CRITICAL', 'DEBUG']]
+        for m in examples:
+            debugview.write(m)
+            item = debugview.list.item(debugview.list.count()-1)
+            debugview.showMessageBox(item)
+        # test message copying
+        debugview.copyMessage()
+        debugview.copyAll()
+        # test button toggling
+        debugview.toggleInfo(False)
+        debugview.toggleInfo(True)
+        debugview.toggleWarning(False)
+        debugview.toggleWarning(True)
+        debugview.toggleCritical(False)
+        debugview.toggleCritical(True)
+        

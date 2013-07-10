@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,10 +35,12 @@
 ################################################################################
 # This describes basic modules used by other VTK module
 ################################################################################
+from itertools import izip
 import vtk
+
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from itertools import izip
+from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 
@@ -149,7 +151,7 @@ class vtkBaseModule(Module):
             if p is None:
                 # None indicates a call with no parameters
                 params = []
-            elif type(p) == tuple:
+            elif isinstance(p, tuple):
                 # A tuple indicates a call with many parameters
                 params = list(p)
             else:
@@ -193,10 +195,10 @@ class vtkBaseModule(Module):
                 function = 'SetInputConnection'
             if function=='AddInputConnection':
                 desc = registry.get_descriptor_by_name(
-                    'edu.utah.sci.vistrails.vtk',
+                    vtk_pkg_identifier,
                     'vtkAlgorithmOutput')
                 for i in xrange(len(paramList)):
-                    if type(paramList[i])==desc.module:
+                    if isinstance(paramList[i], desc.module):
                         paramList[i] = (0, paramList[i])
             for p,connector in izip(paramList, connector_list):
                 # Don't call method
@@ -238,8 +240,8 @@ class vtkBaseModule(Module):
                 if issubclass(retValues.__class__, vtk.vtkObject):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
-                    self.setResult(function, output)                                   
-                elif (type(retValues) in [tuple, list]):
+                    self.setResult(function, output)
+                elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
@@ -256,8 +258,7 @@ class vtkBaseModule(Module):
         Create a wrapper module in VisTrails with a vtk instance
         
         """
-        result = registry.get_descriptor_by_name(
-            'edu.utah.sci.vistrails.vtk',
-            classname).module()
+        result = registry.get_descriptor_by_name(vtk_pkg_identifier,
+                                                 classname).module()
         result.vtkInstance = instance
         return result

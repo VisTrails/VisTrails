@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -67,7 +67,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """
         QtGui.QMainWindow.__init__(self, parent, f)
         self.createEventMap()
-        self.setWindowTitle('VisTrails - Spreadsheet - Untitled')
+        self.setWindowTitle('Untitled - VisTrails Spreadsheet')
         self.shownConfig = False #flag to control the window setup code is done only once
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
@@ -405,10 +405,10 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         # Perform single-click event on the spread sheet
         if (not self.tabController.editingMode and
             eType==QtCore.QEvent.MouseButtonPress):
-            if type(q)==QCellContainer:
+            if isinstance(q, QCellContainer):
                 return q.containedWidget!=None
             p = q
-            while (p and (not p.isModal()) and type(p)!=StandardWidgetSheet):
+            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet)):
                 p = p.parent()
             if p and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
@@ -517,6 +517,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                     if dump_as_pdf == True:
                         file_extension = '.pdf'
                             
+                    # add cell location by default
+                    if not extra_info.has_key('nameDumpCells'):
+                        base_fname = base_fname + "_%d_%d" % (row, col)
                     # make a unique filename
                     filename = base_fname + file_extension
                     counter = 2
@@ -571,7 +574,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.tabController.tabBar().hide()
         self.tabController.clearTabs()
         self.setWindowFlags(QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
-        self.setWindowTitle('Pipeline Review')
+        self.setWindowTitle('Pipeline Review - VisTrails Spreadsheet')
         self.resize(560*vCol, 512)
         self.show()
 

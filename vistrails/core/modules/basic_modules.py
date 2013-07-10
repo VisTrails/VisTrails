@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,7 +38,7 @@ import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
-     NotCacheable, ModuleError
+     Converter, NotCacheable, ModuleError
 from vistrails.core.system import vistrails_version
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -49,8 +49,9 @@ from itertools import izip
 import re
 import os
 import os.path
+import pickle
 import shutil
-import zipfile
+#import zipfile
 import urllib
 
 try:
@@ -62,9 +63,10 @@ except ImportError:
 
 ###############################################################################
 
-version = '1.6'
+version = '2.1'
 name = 'Basic Modules'
-identifier = 'edu.utah.sci.vistrails.basic'
+identifier = 'org.vistrails.vistrails.basic'
+old_identifiers = ['edu.utah.sci.vistrails.basic']
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -148,7 +150,7 @@ class Constant(Module):
             return (value_a != value_b)
         return False
 
-def new_constant(name, py_conversion, default_value, validation,
+def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
                  str_conversion=None, base_class=Constant,
                  compute=None, query_widget_type=None,
@@ -180,11 +182,27 @@ def new_constant(name, py_conversion, default_value, validation,
             base_class.__init__(self)
         return __init__
 
-    d = {'__init__': create_init(base_class),
-         'validate': validation,
-         'translate_to_python': py_conversion,
-         'default_value': default_value,
-         }
+    d = {'__init__': create_init(base_class)}
+
+    if py_conversion is not None:
+        d["translate_to_python"] = py_conversion
+    elif base_class == Constant:
+        raise Exception("Must specify translate_to_python for constant")
+    else:
+        d["translate_to_python"] = staticmethod(base_class.translate_to_python)
+    if validation is not None:
+        d["validate"] = validation
+    elif base_class == Constant:
+        raise Exception("Must specify validation for constant")
+    else:
+        d["validate"] = staticmethod(base_class.validate)
+    if default_value is not None:
+        d["default_value"] = default_value
+    elif base_class == Constant:
+        d["default_value"] = None
+    else:
+        d["default_value"] = base_class.default_value
+
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
     if compute is not None:
@@ -258,28 +276,31 @@ def string_compare(value_a, value_b, query_method):
     return False
 
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
-                       False, staticmethod(lambda x: type(x) == bool),
+                       False, staticmethod(lambda x: isinstance(x, bool)),
                        widget_type=('vistrails.gui.modules.constant_configuration', 
                                     'BooleanWidget'))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
-                       staticmethod(lambda x: type(x) == float),
+                       staticmethod(lambda x: isinstance(x, (int, long, float))),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
                        param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'FloatExploreWidget')])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
-                       staticmethod(lambda x: type(x) == int),
+                       staticmethod(lambda x: isinstance(x, (int, long))),
+                       base_class=Float,
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'NumericQueryWidget'),
                        query_compute=numeric_compare,
                        param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
                                                    'IntegerExploreWidget')])
 String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: type(x) == str),
+                       staticmethod(lambda x: isinstance(x, str)),
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'StringQueryWidget'),
-                       query_compute=string_compare)
+                       query_compute=string_compare,
+                       widget_type=('vistrails.gui.modules.constant_configuration',
+                                    'StringWidget'))
 
 ##############################################################################
 
@@ -571,11 +592,11 @@ class Color(Constant):
 
     @staticmethod
     def translate_to_string(v):
-        return str(v.tuple)[1:-1]
+        return ','.join('%f' % c for c in v.tuple)
 
     @staticmethod
     def validate(x):
-        return type(x) == InstanceObject and hasattr(x, 'tuple')
+        return isinstance(x, InstanceObject) and hasattr(x, 'tuple')
 
     @staticmethod
     def to_string(r, g, b):
@@ -712,12 +733,7 @@ class Tuple(Module):
                         for p in self.input_ports_order])
         self.values = values
         self.setResult("value", values)
-        
-class TestTuple(Module):
-    def compute(self):
-        pair = self.getInputFromPort('tuple')
-        print pair
-        
+
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
     reverses the actions of Tuple.
@@ -760,33 +776,63 @@ class ConcatenateString(Module):
         self.setResult("value", result)
 
 ##############################################################################
+
+class Not(Module):
+    """Not inverts a Boolean.
+    """
+
+    def compute(self):
+        value = self.getInputFromPort('input')
+        self.setResult('value', not value)
+
+##############################################################################
 # List
 
-def list_conv(v):
-    v_list = eval(v)
-    return v_list
+class List(Constant):
+    default_value = []
 
-def list_compute(self):
-    if (not self.hasInputFromPort("value") and 
-        not self.hasInputFromPort("tail") and
-        not self.hasInputFromPort("head")):
-        # fail at getting the value port
-        self.getInputFromPort("value")
-            
-    head, middle, tail = [], [], []
-    if self.hasInputFromPort("value"):
-        # run the regular compute here
-        Constant.compute(self)
-        middle = self.outputPorts['value']
-    if self.hasInputFromPort("head"):
-        head = [self.getInputFromPort("head")]
-    if self.hasInputFromPort("tail"):
-        tail = self.getInputFromPort("tail")
-    self.setResult("value", head + middle + tail)
+    def __init__(self):
+        Constant.__init__(self)
+        self.input_ports_order = []
 
-List = new_constant('List' , staticmethod(list_conv),
-                    [], staticmethod(lambda x: type(x) == list),
-                    compute=list_compute)
+    @staticmethod
+    def validate(x):
+        return isinstance(x, list)
+
+    @staticmethod
+    def translate_to_python(v):
+        return eval(v)
+
+    @staticmethod
+    def translate_to_string(v):
+        return '[%s]' % ', '.join(repr(c) for c in v)
+
+    def compute(self):
+        head, middle, items, tail = [], [], [], []
+        got_value = False
+
+        if self.hasInputFromPort('value'):
+            # run the regular compute here
+            Constant.compute(self)
+            middle = self.outputPorts['value']
+            got_value = True
+        if self.hasInputFromPort('head'):
+            head = self.getInputListFromPort('head')
+            got_value = True
+        if self.input_ports_order:
+            items = [self.getInputFromPort(p)
+                     for p in self.input_ports_order]
+            got_value = True
+        if self.hasInputFromPort('tail'):
+            tail = self.getInputFromPort('tail')
+            got_value = True
+
+        if not got_value:
+            self.getInputFromPort('value')
+        self.setResult('value', head + middle + items + tail)
+
+List._input_ports = [('value', List)]
+List._output_ports = [('value', List)]
 
 ##############################################################################
 # Dictionary
@@ -809,7 +855,7 @@ def dict_compute(self):
     self.setResult("value", d)
         
 Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
-                          {}, staticmethod(lambda x: type(x) == dict),
+                          {}, staticmethod(lambda x: isinstance(x, dict)),
                           compute=dict_compute)
 
 ##############################################################################
@@ -823,19 +869,19 @@ class Null(Module):
 
 ##############################################################################
 
-class PythonSource(NotCacheable, Module):
-    """PythonSource is a Module that executes an arbitrary piece of
-    Python code.
-    
-    It is especially useful for one-off pieces of 'glue' in a
-    pipeline.
-
-    If you want a PythonSource execution to fail, call
-    fail(error_message).
-
-    If you want a PythonSource execution to be cached, call
-    cache_this().
+class Unpickle(Module):
+    """Unpickles a string.
     """
+    def compute(self):
+        value = self.getInputFromPort('input')
+        self.setResult('result', pickle.loads(value))
+
+##############################################################################
+
+class CodeRunnerMixin(object):
+    def __init__(self):
+        self.output_ports_order = []
+        super(CodeRunnerMixin, self).__init__()
 
     def run_code(self, code_str,
                  use_input=False,
@@ -855,9 +901,8 @@ class PythonSource(NotCacheable, Module):
                               for k in self.inputPorts])
             locals_.update(inputDict)
         if use_output:
-            outputDict = dict([(k, None)
-                               for k in self.outputPorts])
-            locals_.update(outputDict)
+            for output_portname in self.output_ports_order:
+                locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         reg = get_module_registry()
         locals_.update({'fail': fail,
@@ -868,9 +913,25 @@ class PythonSource(NotCacheable, Module):
         del locals_['source']
         exec code_str in locals_, locals_
         if use_output:
-            for k in outputDict.iterkeys():
-                if locals_[k] != None:
+            for k in self.output_ports_order:
+                if locals_.get(k) != None:
                     self.setResult(k, locals_[k])
+
+##############################################################################
+
+class PythonSource(CodeRunnerMixin, NotCacheable, Module):
+    """PythonSource is a Module that executes an arbitrary piece of
+    Python code.
+
+    It is especially useful for one-off pieces of 'glue' in a
+    pipeline.
+
+    If you want a PythonSource execution to fail, call
+    fail(error_message).
+
+    If you want a PythonSource execution to be cached, call
+    cache_this().
+    """
 
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
@@ -914,9 +975,8 @@ class SmartSource(NotCacheable, Module):
                               for k in self.inputPorts])
             locals_.update(inputDict)
         if use_output:
-            outputDict = dict([(k, None)
-                               for k in self.outputPorts])
-            locals_.update(outputDict)
+            for output_portname in self.output_ports_order:
+                locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         locals_.update({'fail': fail,
                         'package_manager': _m,
@@ -926,11 +986,11 @@ class SmartSource(NotCacheable, Module):
         exec code_str in locals_, locals_
         if use_output:
             oports = self.registry.get_descriptor(SmartSource).output_ports
-            for k in outputDict.iterkeys():
-                if locals_[k] != None:
+            for k in self.output_ports_order:
+                if locals_.get(k) != None:
                     v = locals_[k]
                     spec = oports.get(k, None)
-                    
+
                     if spec:
                         # See explanation of algo in doc/smart_source_resolution_algo.txt
                         # changed from spec.types()[0]
@@ -981,7 +1041,7 @@ it avoids moving the entire file contents to/from memory."""
                        self._output_filename))
 # zipfile cannot handle big files
 #            import zipfile
-#             output_file = file(self._output_filename, 'w')
+#             output_file = open(self._output_filename, 'w')
 #             zip_file = zipfile.ZipFile(self._archive)
 #             contents = zip_file.read(self._filename_in_archive)
 #             output_file.write(contents)
@@ -1011,6 +1071,30 @@ class Unzip(Module):
         self.setResult("file", output)
 
 ##############################################################################
+
+class Round(Converter):
+    """Turns a Float into an Integer.
+    """
+    def compute(self):
+        fl = self.getInputFromPort('in_value')
+        floor = self.getInputFromPort('floor')
+        if floor:
+            integ = int(fl)         # just strip the decimals
+        else:
+            integ = int(fl + 0.5)   # nearest
+        self.setResult('out_value', integ)
+
+
+class TupleToList(Converter):
+    """Turns a Tuple into a List.
+    """
+    def compute(self):
+        tu = self.getInputFromPort('in_value')
+        if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
+            raise ModuleError(self, "Input is not a tuple")
+        self.setResult('out_value', list(tu.values))
+
+##############################################################################
     
 class Variant(Module):
     """
@@ -1031,20 +1115,29 @@ def initialize(*args, **kwargs):
     reg = get_module_registry()
 
     # !!! is_root should only be set for Module !!!
-    reg.add_module(Module, is_root=True)
+    reg.add_module(Module, is_root=True, abstract=True)
     reg.add_output_port(Module, "self", Module, optional=True)
 
-    reg.add_module(Constant)
+    reg.add_module(Converter, abstract=True)
+    reg.add_input_port(Converter, 'in_value', Module)
+    reg.add_output_port(Converter, 'out_value', Module)
+
+    reg.add_module(Constant, abstract=True)
 
     reg.add_module(Boolean)
     reg.add_module(Float)
     reg.add_module(Integer)
-    reg.add_module(String)
+    reg.add_module(String,
+                   configureWidgetType=("vistrails.gui.modules.string_configure",
+                                        "TextConfigurationWidget"))
     
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
 
-    reg.add_module(List)
+    reg.add_module(List,
+                   configureWidgetType=(
+                           "vistrails.gui.modules.list_configuration",
+                           "ListConfigurationWidget"))
     reg.add_input_port(List, "head", Module)
     reg.add_input_port(List, "tail", List)
 
@@ -1094,9 +1187,6 @@ def initialize(*args, **kwargs):
                                         "TupleConfigurationWidget"))
     reg.add_output_port(Tuple, 'self', Tuple)
 
-    reg.add_module(TestTuple)
-    reg.add_input_port(TestTuple, 'tuple', [Integer, String])
-
     reg.add_module(Untuple, 
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "UntupleConfigurationWidget"))
@@ -1109,11 +1199,21 @@ def initialize(*args, **kwargs):
         reg.add_input_port(ConcatenateString, port, String)
     reg.add_output_port(ConcatenateString, "value", String)
 
+    reg.add_module(Not)
+    reg.add_input_port(Not, 'input', Boolean)
+    reg.add_output_port(Not, 'value', Boolean)
+
     reg.add_module(Dictionary)
     reg.add_input_port(Dictionary, "addPair", [Module, Module])
     reg.add_input_port(Dictionary, "addPairs", List)
 
-    reg.add_module(Null)
+    reg.add_module(Null, hide_descriptor=True)
+
+    reg.add_module(Variant, abstract=True)
+
+    reg.add_module(Unpickle, hide_descriptor=True)
+    reg.add_input_port(Unpickle, 'input', String)
+    reg.add_output_port(Unpickle, 'result', Variant)
 
     reg.add_module(PythonSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
@@ -1131,7 +1231,15 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
 
-    reg.add_module(Variant)
+    reg.add_module(Round, hide_descriptor=True)
+    reg.add_input_port(Round, 'in_value', Float)
+    reg.add_output_port(Round, 'out_value', Integer)
+    reg.add_input_port(Round, 'floor', Boolean, optional=True,
+                       defaults="(True,)")
+
+    reg.add_module(TupleToList, hide_descriptor=True)
+    reg.add_input_port(TupleToList, 'in_value', Tuple)
+    reg.add_output_port(TupleToList, 'out_value', List)
 
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
@@ -1193,3 +1301,212 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               module_remap)
+
+
+###############################################################################
+
+import unittest
+
+class TestConcatenateString(unittest.TestCase):
+    @staticmethod
+    def concatenate(**kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(ConcatenateString, 'value') as results:
+            errors = execute([
+                    ('ConcatenateString', 'org.vistrails.vistrails.basic', [
+                        (name, [('String', value)])
+                        for name, value in kwargs.iteritems()
+                    ]),
+                ])
+            if errors:
+                return None
+        return results
+
+    def test_concatenate(self):
+        """Concatenates strings"""
+        self.assertEqual(self.concatenate(
+                str1="hello ", str2="world"),
+                ["hello world"])
+        self.assertEqual(self.concatenate(
+                str3="hello world"),
+                ["hello world"])
+        self.assertEqual(self.concatenate(
+                str2="hello ", str4="world"),
+                ["hello world"])
+        self.assertEqual(self.concatenate(
+                str1="hello", str3=" ", str4="world"),
+                ["hello world"])
+
+    def test_empty(self):
+        """Runs ConcatenateString with no input"""
+        self.assertEqual(self.concatenate(), [""])
+
+
+class TestNot(unittest.TestCase):
+    def run_pipeline(self, functions):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(Not, 'value') as results:
+            errors = execute([
+                    ('Not', 'org.vistrails.vistrails.basic',
+                     functions),
+                ])
+        return errors, results
+
+    def test_true(self):
+        errors, results = self.run_pipeline([
+                ('input', [('Boolean', 'True')])])
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 1)
+        self.assertIs(results[0], False)
+
+    def test_false(self):
+        errors, results = self.run_pipeline([
+                ('input', [('Boolean', 'False')])])
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 1)
+        self.assertIs(results[0], True)
+
+    def test_notset(self):
+        errors, results = self.run_pipeline([])
+        self.assertTrue(errors)
+
+
+class TestList(unittest.TestCase):
+    @staticmethod
+    def build_list(value=None, head=None, tail=None):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(List, 'value') as results:
+            functions = []
+            def add(n, v, t):
+                if v is not None:
+                    for e in v:
+                        functions.append(
+                                (n, [(t, e)])
+                            )
+            add('value', value, 'List')
+            add('head', head, 'String')
+            add('tail', tail, 'List')
+
+            errors = execute([
+                    ('List', 'org.vistrails.vistrails.basic', functions),
+                ])
+            if errors:
+                return None
+        # List is a Constant, so the interpreter will set the result 'value'
+        # from the 'value' input port automatically
+        # Ignore these first results
+        return results[-1]
+
+    def test_simple(self):
+        """Tests the default ports of the List module"""
+        self.assertEqual(self.build_list(
+                value=['["a", "b", "c"]']),
+                ["a", "b", "c"])
+        self.assertEqual(self.build_list(
+                head=["d"],
+                value=['["a", "b", "c"]']),
+                ["d", "a", "b", "c"])
+        self.assertEqual(self.build_list(
+                head=["d"],
+                value=['["a", "b", "c"]'],
+                tail=['["e", "f"]']),
+                ["d", "a", "b", "c", "e", "f"])
+        self.assertEqual(self.build_list(
+                value=['[]'],
+                tail=['[]']),
+                [])
+
+    def test_multiple(self):
+        """Tests setting multiple values on a port"""
+        # Multiple values on 'head'
+        self.assertEqual(self.build_list(
+                head=["a", "b"]),
+                ["a", "b"])
+        self.assertEqual(self.build_list(
+                head=["a", "b"],
+                value=['["c", "d"]']),
+                ["a", "b", "c", "d"])
+
+        # Multiple values on 'value'
+        res = self.build_list(value=['["a", "b"]', '["c", "d"]'])
+        self.assertIn(res, [["a", "b"], ["c", "d"]])
+
+    def test_items(self):
+        """Tests the multiple 'itemN' ports"""
+        from vistrails.tests.utils import execute, intercept_result
+        def list_with_items(nb_items, **kwargs):
+            with intercept_result(List, 'value') as results:
+                errors = execute([
+                        ('List', 'org.vistrails.vistrails.basic', [
+                            (k, [('String', v)])
+                            for k, v in kwargs.iteritems()
+                        ]),
+                    ],
+                    add_port_specs=[
+                        (0, 'input', 'item%d' % i,
+                         '(org.vistrails.vistrails.basic:Module)')
+                        for i in xrange(nb_items)
+                    ])
+                if errors:
+                    return None
+            return results[-1]
+
+        self.assertEqual(
+                list_with_items(2, head="one", item0="two", item1="three"),
+                ["one", "two", "three"])
+
+        # All 'itemN' ports have to be set
+        self.assertIsNone(
+                list_with_items(3, head="one", item0="two", item2="three"))
+
+
+class TestPythonSource(unittest.TestCase):
+    def test_simple(self):
+        """A simple PythonSource returning a string"""
+        import urllib2
+        from vistrails.tests.utils import execute, intercept_result
+        source = 'customout = "nb is %d" % customin'
+        source = urllib2.quote(source)
+        with intercept_result(PythonSource, 'customout') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', source)]),
+                        ('customin', [('Integer', '42')])
+                    ]),
+                    ('String', 'org.vistrails.vistrails.basic', []),
+                ],
+                [
+                    (0, 'customout', 1, 'value'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'customin',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'customout',
+                     'org.vistrails.vistrails.basic:String'),
+                ]))
+        self.assertEqual(results[-1], "nb is 42")
+
+
+class TestNumericConversions(unittest.TestCase):
+    def test_full(self):
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(Round, 'out_value') as results:
+            self.assertFalse(execute([
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '5')])
+                    ]),
+                    ('Float', 'org.vistrails.vistrails.basic', []),
+                    ('PythonCalc', 'org.vistrails.vistrails.pythoncalc', [
+                        ('value2', [('Float', '2.7')]),
+                        ('op', [('String', '+')]),
+                    ]),
+                    ('Round', 'org.vistrails.vistrails.basic', [
+                        ('floor', [('Boolean', 'True')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 1, 'value'),
+                    (1, 'value', 2, 'value1'),
+                    (2, 'value', 3, 'in_value'),
+                ]))
+        self.assertEqual(results, [7])

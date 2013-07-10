@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,9 +46,9 @@ class Log(Module):
     pass
 
 class ReadVistrail(Module):
-    _input_ports = [('file', '(edu.utah.sci.vistrails.basic:File)')]
-    _output_ports = [('vistrail','(edu.utah.sci.vistrails.analytics:Vistrail)'),
-                      ('log', '(edu.utah.sci.vistrails.analytics:Log)')]
+    _input_ports = [('file', '(basic:File)')]
+    _output_ports = [('vistrail','(Vistrail)'),
+                     ('log', '(Log)')]
 
     def read_vistrail(self, fname):
         # open the .vt bundle specified by the filename "fname"
@@ -91,10 +91,8 @@ class ReadVistrail(Module):
         self.setResult('log', log)
 
 class CountActions(Module):
-    _input_ports = [('vistrail',
-                    '(edu.utah.sci.vistrails.analytics:Vistrail)')]
-    _output_ports = [('counts',
-                    '(edu.utah.sci.vistrails.basic:Dictionary)')]
+    _input_ports = [('vistrail', '(Vistrail)')]
+    _output_ports = [('counts', '(basic:Dictionary)')]
 
     def count_actions(self, vistrail):
     # loop through the actionMap dictionary's (key, value) pairs in
@@ -126,10 +124,8 @@ class CountActions(Module):
         self.setResult('counts', Tally)
 
 class CountExecutedWorkflows(Module):
-    _input_ports = [('log',
-                    '(edu.utah.sci.vistrails.analytics:Log)')]
-    _output_ports = [('completed',
-                    '(edu.utah.sci.vistrails.basic:Dictionary)')]
+    _input_ports = [('log', '(Log)')]
+    _output_ports = [('completed', '(basic:Dictionary)')]
     def count_executed_workflows(self,log):
         users={}
         for workflow_exec in log.workflow_execs:
@@ -146,8 +142,8 @@ class CountExecutedWorkflows(Module):
         self.setResult('completed', users)
 
 class TotalDays(Module):
-    _input_ports = [('vistrail','(edu.utah.sci.vistrails.analytics:Vistrail)')]
-    _output_ports = [('completed','(edu.utah.sci.vistrails.basic:Dictionary)')]
+    _input_ports = [('vistrail','(Vistrail)')]
+    _output_ports = [('completed','(basic:Dictionary)')]
     def calc_time(self, vistrail):
         time = {}
         totals = {}

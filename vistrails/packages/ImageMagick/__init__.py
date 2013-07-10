@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,8 +40,9 @@ operations exposed by the ImageMagick package.
 """
 from vistrails.core.configuration import ConfigurationObject
 
-identifier = 'edu.utah.sci.vistrails.imagemagick'
+identifier = 'org.vistrails.vistrails.imagemagick'
 name = 'ImageMagick'
-version = '0.9.3'
+version = '0.9.4'
+old_identifiers = ['edu.utah.sci.vistrails.imagemagick']
 configuration = ConfigurationObject(quiet=False,
                                     path=(None, str))

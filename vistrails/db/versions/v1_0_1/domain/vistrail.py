@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,7 +42,7 @@ from id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
     def __init__(self, *args, **kwargs):
-	_DBVistrail.__init__(self, *args, **kwargs)
+        _DBVistrail.__init__(self, *args, **kwargs)
         self.idScope = IdScope(remap={DBAdd.vtType: 'operation',
                                       DBChange.vtType: 'operation',
                                       DBDelete.vtType: 'operation',

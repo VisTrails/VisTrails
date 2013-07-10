@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -61,7 +61,7 @@ def bool_conv(st):
 class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
 
     def __init__(self, parent, obj, parent_obj, name, temp_obj, temp_parent_obj):
-        lst = QtCore.QStringList(name)
+        lst = [name]
         t = type(obj)
         if t == bool:
             self._obj_type = bool_conv
@@ -72,18 +72,18 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
         
         self._name = name
         if t == ConfigurationObject:
-            lst << '' << ''
+            lst.extend(['', ''])
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags(self.flags() & ~(QtCore.Qt.ItemIsDragEnabled |
                                            QtCore.Qt.ItemIsSelectable ))
-        elif t == tuple and obj[0] is None and type(obj[1]) == type:
+        elif t == tuple and obj[0] is None and isinstance(obj[1], type):
             self._obj_type = obj[1]
-            lst << '' << obj[1].__name__
+            lst.extend(['', obj[1].__name__])
             QtGui.QTreeWidget.__init__(self, parent, lst)
             self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
                           QtCore.Qt.ItemIsEditable)
         else:
-            lst << str(obj) << type(obj).__name__
+            lst.extend([str(obj), type(obj).__name__])
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
                           QtCore.Qt.ItemIsEditable)
@@ -112,7 +112,7 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """
         # We only allow users to edit the  second column
         if index.column()==1:
-            dataType = str(index.sibling(index.row(), 2).data().toString())
+            dataType = str(index.sibling(index.row(), 2).data())
             
             # Create the editor based on dataType
             if dataType=='int':
@@ -133,8 +133,8 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Set the editor to reflects data at index
         
         """
-        if type(editor)==QtGui.QComboBox:           
-            editor.setCurrentIndex(editor.findText(index.data().toString()))
+        if isinstance(editor, QtGui.QComboBox):
+            editor.setCurrentIndex(editor.findText(index.data()))
         else:
             QtGui.QItemDelegate.setEditorData(self, editor, index)
 
@@ -145,10 +145,10 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        if type(editor)==QtGui.QComboBox:
-            model.setData(index, QtCore.QVariant(editor.currentText()))
-        elif type(editor) == QtGui.QLineEdit:
-            model.setData(index, QtCore.QVariant(editor.text()))
+        if isinstance(editor, QtGui.QComboBox):
+            model.setData(index, editor.currentText())
+        elif isinstance(editor, QtGui.QLineEdit):
+            model.setData(index, editor.text())
         else:
             # Should never get here
             assert False
@@ -160,10 +160,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         QSearchTreeWidget.__init__(self, parent)
         self.setMatchedFlags(QtCore.Qt.ItemIsEditable)
         self.setColumnCount(3)
-        lst = QtCore.QStringList()
-        lst << 'Name'
-        lst << 'Value'
-        lst << 'Type'
+        lst = ['Name', 'Value', 'Type']
         self.setHeaderLabels(lst)
         self.create_tree(persistent_config, temp_config)
 
@@ -171,7 +168,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         def create_item(parent, obj, parent_obj, name, temp_obj, temp_parent_obj):
             item = QConfigurationTreeWidgetItem(parent, obj, parent_obj, 
                                                 name, temp_obj, temp_parent_obj)
-            if type(obj) == ConfigurationObject:
+            if isinstance(obj, ConfigurationObject):
                 for key in sorted(obj.keys()):
                     create_item(item, getattr(obj, key), obj, key, 
                                 getattr(temp_obj, key), temp_obj)
@@ -195,7 +192,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
 
     def change_configuration(self, item, col):
         if item.flags() & QtCore.Qt.ItemIsEditable:
-            new_value = self.indexFromItem(item, col).data().toString()
+            new_value = self.indexFromItem(item, col).data()
             item.change_value(new_value)
             # option-specific code
             if item._name == 'dbDefault':
@@ -912,7 +909,7 @@ hovering tree nodes')
                   "Choose a new directory for storing thumbnail chache files",
                   "",
                   QtGui.QFileDialog.ShowDirsOnly)
-        if not dir.isEmpty():
+        if dir:
             self._thumbs_cache_directory_edt.setText(dir)
             self.thumbs_cache_directory_changed()
             

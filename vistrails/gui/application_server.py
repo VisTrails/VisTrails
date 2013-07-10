@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -402,10 +402,13 @@ class RequestHandler(object):
                 (fd, fname) = tempfile.mkstemp(prefix='vt_tmp',
                                               suffix='.vt')
                 os.close(fd)
-                vt_file = open(fname, "wb")
-                vt_file.write(vt_filepath.data)
-                vt_file.close()
-                locator = ZIPFileLocator(fname).load()
+                try:
+                    vt_file = open(fname, "wb")
+                    vt_file.write(vt_filepath.data)
+                    vt_file.close()
+                    locator = ZIPFileLocator(fname).load()
+                finally:
+                    os.unlink(fname)
 
             # set some crowdlabs id info
             if repository_vt_id != -1:
@@ -444,19 +447,20 @@ class RequestHandler(object):
                                 (host, port, db_name, user, new_vt_filepath,
                                  old_db_vt_id, is_local))
         try:
+            tmp_file = None
             if is_local:
                 new_locator = ZIPFileLocator(new_vt_filepath)
             else:
                 # vt_filepath contains vt file datastream
                 # write to tmp file, read into FileLocator
                 # TODO: can we just read the file stream directly in?
-                (fd, fname) = tempfile.mkstemp(prefix='vt_tmp',
+                (fd, tmp_file) = tempfile.mkstemp(prefix='vt_tmp',
                                               suffix='.vt')
                 os.close(fd)
-                vt_file = open(fname, "wb")
+                vt_file = open(tmp_file, "wb")
                 vt_file.write(new_vt_filepath.data)
                 vt_file.close()
-                new_locator = ZIPFileLocator(fname)
+                new_locator = ZIPFileLocator(tmp_file)
 
             new_bundle = new_locator.load()
             new_locator.save(new_bundle)
@@ -466,6 +470,8 @@ class RequestHandler(object):
             vistrails.db.services.vistrail.merge(old_db_bundle, new_bundle, 'vistrails')
             old_db_locator.save(old_db_bundle)
             new_locator.save(old_db_bundle)
+            if tmp_file is not None:
+                os.unlink(tmp_file)
             return (1, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
@@ -646,7 +652,7 @@ class RequestHandler(object):
                                                              v._component._spec)
                             #making sure the filenames are generated in order
                             mask = '%s'
-                            if type(maxval) in [type(1), type(1L)]:
+                            if isinstance(maxval, (int, long)):
                                 mask = '%0' + str(len(v._component._maxVal)) + 'd'
 
                             while val <= maxval:
@@ -1106,17 +1112,11 @@ class RequestHandler(object):
                                     connection_id=None)
 
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, 
-                                        thumbnails, mashups)
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 controller.change_selected_version(version)
-                p = controller.current_pipeline
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPDF(filename)
-                del pipeline_view
+                controller.updatePipelineScene()
+                controller.current_pipeline_scene.saveToPDF(filename)
             else:
                 self.server_logger.info("found cached pdf: %s" % filename)
 
@@ -1194,17 +1194,11 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 controller.change_selected_version(version)
-                p = controller.current_pipeline
-                pipeline_view.scene().setupScene(p)
-                pipeline_view.scene().saveToPNG(filename)
-                del pipeline_view
+                controller.updatePipelineScene()
+                controller.current_pipeline_scene.saveToPNG(filename)
             else:
                 self.server_logger.info("found cached image: %s" % filename)
             if is_local:
@@ -1304,18 +1298,13 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPNG(filename)
                 del version_view
-                del pipeline_view
             else:
                 self.server_logger.info("Found cached image: %s" % filename)
             if is_local:
@@ -1397,18 +1386,13 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-                controller = VistrailController()
+                controller = VistrailController(v, locator, abstractions, 
+                                                thumbnails, mashups)
                 from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
-                from vistrails.gui.pipeline_view import QPipelineView
-                pipeline_view = QPipelineView()
-                controller.current_pipeline_view = pipeline_view.scene()
-                controller.set_vistrail(v, locator, abstractions, thumbnails,
-                                        mashups)
                 version_view.scene().setupScene(controller)
                 version_view.scene().saveToPDF(filename)
                 del version_view
-                del pipeline_view
             else:
                 self.server_logger.info("Found cached pdf: %s" % filename)
             if is_local:
@@ -1455,11 +1439,13 @@ class RequestHandler(object):
             (fd, name) = tempfile.mkstemp(prefix='vt_tmp',
                                           suffix='.vt')
             os.close(fd)
-            fileLocator = FileLocator(name)
-            fileLocator.save(save_bundle)
-            contents = open(name).read()
-            result = base64.b64encode(contents)
-            os.unlink(name)
+            try:
+                fileLocator = FileLocator(name)
+                fileLocator.save(save_bundle)
+                contents = open(name).read()
+                result = base64.b64encode(contents)
+            finally:
+                os.unlink(name)
             return (result, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
@@ -1693,7 +1679,7 @@ class MedleySimpleGUI(XMLObject):
 
         if has_seq == None:
             self._has_seq = False
-            if type(self._alias_list) == type({}):
+            if isinstance(self._alias_list, dict):
                 for v in self._alias_list.itervalues():
                     if v._component._seq == True:
                         self._has_seq = True

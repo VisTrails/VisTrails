@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 import vtk
+from identifiers import identifier as vtk_pkg_identifier
+
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.basic_modules import File, Integer
@@ -75,9 +77,8 @@ class VTKRenderOffscreen(Module):
 
 def register_self():
     registry = get_module_registry()
-    r = registry.get_descriptor_by_name(
-        'edu.utah.sci.vistrails.vtk',
-        'vtkRenderer').module
+    r = registry.get_descriptor_by_name(vtk_pkg_identifier, 
+                                        'vtkRenderer').module
     registry.add_module(VTKRenderOffscreen)
     registry.add_input_port(VTKRenderOffscreen, 'renderer', r)
     registry.add_input_port(VTKRenderOffscreen, 'width', Integer)

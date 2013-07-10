@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -49,7 +49,9 @@ from vistrails.core import debug
 
 from vistrails.core.bundles import py_import
 try:
-    mpl_dict = {'linux-ubuntu': 'python-suds',
+    mpl_dict = {'pip': 'suds',
+                'linux-debian': 'python-suds',
+                'linux-ubuntu': 'python-suds',
                 'linux-fedora': 'python-suds'}
     suds = py_import('suds', mpl_dict)
 except Exception, e:

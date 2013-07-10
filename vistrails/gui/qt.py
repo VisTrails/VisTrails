@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -195,11 +195,11 @@ def enableSignalDebugging(**kwargs):
     """Call this to enable Qt Signal debugging. This will trap all
     connect, disconnect and emit calls. For example:
 
-	enableSignalDebugging(connectCall=callable1, disconnectCall=callable2,
+    enableSignalDebugging(connectCall=callable1, disconnectCall=callable2,
                           emitCall=callable3)
 
-	will call callable1, 2 and 3 when the respective Qt methods are issued.
-	"""
+    will call callable1, 2 and 3 when the respective Qt methods are issued.
+    """
 
     f = lambda *args: None
     connectCall = kwargs.get('connectCall', f)

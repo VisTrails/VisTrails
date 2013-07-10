@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -39,10 +39,10 @@ class NotModule(Exception):
     imported as a module, that file should have the following lines:
 
     if __name__ != '__main__':
-        import tests
-        raise tests.NotModule('This should not be imported as a module')
+        from vistrails.tests import NotModule
+        raise NotModule('This should not be imported as a module')
 
-    This way, the testing infrastructure will now not to report failure
+    This way, the testing infrastructure will know not to report failure
     to import that file as an error.
     """
 

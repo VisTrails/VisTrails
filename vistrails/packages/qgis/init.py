@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -44,9 +44,9 @@ import itertools
 import os
 
 class RasterLayer(Module):
-    _input_ports = [('file', '(edu.utah.sci.vistrails.basic:File)'), 
-                    ('name', '(edu.utah.sci.vistrails.basic:String)')]
-    _output_ports = [('self', '(edu.utah.sci.vistrails.qgis:RasterLayer)')]
+    _input_ports = [('file', '(basic:File)'), 
+                    ('name', '(basic:String)')]
+    _output_ports = [('self', '(RasterLayer)')]
 
     def __init__(self):
         Module.__init__(self)
@@ -62,9 +62,9 @@ class RasterLayer(Module):
         self.setResult('self', self)
 
 class VectorLayer(Module):
-    _input_ports = [('file', '(edu.utah.sci.vistrails.basic:File)'), 
-                    ('name', '(edu.utah.sci.vistrails.basic:String)')]
-    _output_ports = [('self', '(edu.utah.sci.vistrails.qgis:VectorLayer)')]
+    _input_ports = [('file', '(basic:File)'), 
+                    ('name', '(basic:String)')]
+    _output_ports = [('self', '(VectorLayer)')]
 
     def __init__(self):
         Module.__init__(self)
@@ -84,8 +84,8 @@ class QGISCell(SpreadsheetCell):
     QGISCell is a VisTrails Module that can display QGIS inside a cell
     
     """
-    _input_ports = [('rasterLayers', '(edu.utah.sci.vistrails.qgis:RasterLayer)'),
-                    ('vectorLayers', '(edu.utah.sci.vistrails.qgis:VectorLayer)')]
+    _input_ports = [('rasterLayers', '(RasterLayer)'),
+                    ('vectorLayers', '(VectorLayer)')]
 
     def __init__(self):
         SpreadsheetCell.__init__(self)
@@ -152,7 +152,7 @@ class QGISCellWidget(QCellWidget):
     def grabWindowPixmap(self):
         """ grabWindowPixmap() -> QPixmap
         Widget special grabbing function
- 	       
+        
         """
         # return QtGui.QPixmap.grabWidget(self.figManager.canvas)
         return None

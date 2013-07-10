@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -105,7 +105,7 @@ class LocalPackageRepository(PackageRepository):
         debug.log("package found!")
         # read manifest
         try:
-            f = file(os.path.join(self._path, codepath, 'MANIFEST'))
+            f = open(os.path.join(self._path, codepath, 'MANIFEST'))
         except IOError, e:
             raise InvalidPackage("Package is missing manifest.")
         # create directory
@@ -157,13 +157,15 @@ class HTTPPackageRepository(PackageRepository):
             elif file_type == 'F':
                 fd, name = tempfile.mkstemp()
                 os.close(fd)
-                fout = file(name, 'w')
-                fin = urllib2.urlopen(self._path + '/' + codepath + '/' + l)
-                fout.write(fin.read()) # There should be a better way to do this
-                fin.close()
-                fout.close()
-                self.copy_file(codepath, l, name)
-                os.unlink(name)
+                try:
+                    fout = open(name, 'w')
+                    fin = urllib2.urlopen(self._path + '/' + codepath + '/' + l)
+                    fout.write(fin.read()) # There should be a better way to do this
+                    fin.close()
+                    fout.close()
+                    self.copy_file(codepath, l, name)
+                finally:
+                    os.unlink(name)
 
 ##############################################################################
 

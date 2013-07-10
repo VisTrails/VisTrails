@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -43,7 +43,6 @@ from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.port_spec import PortSpec
 from itertools import izip
 import copy
-import __builtin__
 
 import unittest
 import copy
@@ -66,7 +65,7 @@ class ModuleFunction(DBFunction):
     # Constructors and copy
     
     def __init__(self, *args, **kwargs):
-	DBFunction.__init__(self, *args, **kwargs)
+        DBFunction.__init__(self, *args, **kwargs)
         if self.name is None:
             self.name = ""
         if self.real_id is None:
@@ -98,9 +97,9 @@ class ModuleFunction(DBFunction):
     def convert(_function):
         if _function.__class__ == ModuleFunction:
             return
-	_function.__class__ = ModuleFunction
-	for _parameter in _function.db_get_parameters():
-	    ModuleParam.convert(_parameter)
+        _function.__class__ = ModuleFunction
+        for _parameter in _function.db_get_parameters():
+            ModuleParam.convert(_parameter)
         _function.set_defaults()
 
     ##########################################################################
@@ -141,13 +140,13 @@ class ModuleFunction(DBFunction):
         return len(self.params)
     
     def serialize(self, doc, element):
-	"""serialize(doc, element) -> None - Writes itself in XML """
-	child = doc.createElement('function')
-	child.setAttribute('name',self.name)
-	child.setAttribute('returnType',self.type)
-	for p in self.params:
-		p.serialize(doc,child)
-	element.appendChild(child)
+        """serialize(doc, element) -> None - Writes itself in XML """
+        child = doc.createElement('function')
+        child.setAttribute('name',self.name)
+        child.setAttribute('returnType',self.type)
+        for p in self.params:
+                p.serialize(doc,child)
+        element.appendChild(child)
 
     def get_spec(self, port_type):
         """ get_spec(port_type) -> PortSpec

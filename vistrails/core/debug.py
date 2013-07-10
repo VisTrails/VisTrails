@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -266,9 +266,9 @@ def object_at(desc):
 
     Fetches all live objects, finds the one with given id, and returns
     it.  Warning: THIS IS FOR DEBUGGING ONLY. IT IS SLOW."""
-    if type(desc) == int:
+    if isinstance(desc, int):
         target_id = desc
-    elif type(desc) == str:
+    elif isinstance(desc, basestring):
         target_id = int(desc, 16) # Reads desc as the hex address
     import gc
     for obj in gc.get_objects():

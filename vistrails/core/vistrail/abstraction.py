@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -94,8 +94,8 @@ class Abstraction(DBAbstraction, Module):
         _abstraction.__class__ = Abstraction
         if _abstraction.db_location:
             Location.convert(_abstraction.db_location)
-	for _function in _abstraction.db_functions:
-	    ModuleFunction.convert(_function)
+        for _function in _abstraction.db_functions:
+            ModuleFunction.convert(_function)
         for _annotation in _abstraction.db_get_annotations():
             Annotation.convert(_annotation)
         _abstraction.set_defaults()
@@ -219,7 +219,7 @@ class TestAbstraction(unittest.TestCase):
 #                                   name='value')
 #         m = Module(id=id_scope.getNewId(Module.vtType),
 #                    name='Float',
-#                    package='edu.utah.sci.vistrails.basic',
+#                    package='org.vistrails.vistrails.basic',
 #                    functions=[function])
 
 #         add_op = AddOp(id=id_scope.getNewId('operation'),

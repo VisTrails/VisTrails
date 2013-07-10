@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,12 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import __builtin__
 from itertools import izip
 import operator
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.modules.utils import create_port_spec_string, parse_port_spec_string
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import enum, VistrailsInternalError
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
 from vistrails.db.domain import DBPortSpec
@@ -98,8 +98,8 @@ class PortSpec(DBPortSpec):
 
         if 'optional' not in kwargs:
             kwargs['optional'] = 0 # False
-        elif type(kwargs['optional']) != type(0):
-            if type(kwargs['optional']) == type(True):
+        elif not isinstance(kwargs['optional'], (int, long)):
+            if isinstance(kwargs['optional'], bool):
                 if kwargs['optional']:
                     kwargs['optional'] = 1
                 else:
@@ -228,7 +228,7 @@ class PortSpec(DBPortSpec):
     sigstring = property(_get_sigstring)
 
     def is_mandatory(self):
-        return (min_conns > 0)
+        return (self.min_conns > 0)
 
     def _get_labels(self):
         return [i.label for i in self.port_spec_items]
@@ -334,24 +334,24 @@ class PortSpec(DBPortSpec):
         registry = get_module_registry()
         entries = []
         def canonicalize(sig_item):
-            if type(sig_item) == __builtin__.tuple:
+            if isinstance(sig_item, tuple):
                 # assert len(sig_item) == 2
-                # assert type(sig_item[0]) == __builtin__.type
-                # assert type(sig_item[1]) == __builtin__.str
+                # assert isinstance(sig_item[0], type)
+                # assert isinstance(sig_item[1], str)
                 descriptor = registry.get_descriptor(sig_item[0])
                 label = sig_item[1]
                 return (descriptor, label)
-            elif type(sig_item) == __builtin__.list:
+            elif isinstance(sig_item, list):
                 descriptor = registry.get_descriptor_by_name(
-                    'edu.utah.sci.vistrails.basic', 'List')
+                    get_vistrails_basic_pkg_id(), 'List')
                 return (descriptor, None)
             else:
-                # type(sig_item) == __builtin__.type:
+                # isinstance(sig_item, type):
                 return (registry.get_descriptor(sig_item), None)
 
         # def _add_entry(sig_item):
         ps_items = []
-        if type(signature) != __builtin__.list:
+        if not isinstance(signature, list):
             signature = [signature]
         self._resize_attrs(signature, *attrs)
         for i, item_tuple in enumerate(izip(signature, *attrs)):
@@ -471,7 +471,8 @@ class TestPortSpec(unittest.TestCase):
         port_spec = PortSpec(id=id_scope.getNewId(PortSpec.vtType),
                              name='SetValue',
                              type='input',
-                             sigstring='(edu.utah.sci.vistrails.basic:String)',
+                             sigstring='(%s:String)' % \
+                                 get_vistrails_basic_pkg_id(),
                              )
         return port_spec
 
@@ -503,13 +504,14 @@ class TestPortSpec(unittest.TestCase):
                                         (Float, "z")])
 
     def test_create_from_items(self):
+        basic_pkg = get_vistrails_basic_pkg_id()
         item_a = PortSpecItem(pos=0,
-                              package="edu.utah.sci.vistrails.basic",
+                              package=basic_pkg,
                               module="Integer",
                               label="a",
                               default="123")
         item_b = PortSpecItem(pos=1,
-                              package="edu.utah.sci.vistrails.basic",
+                              package=basic_pkg,
                               module="String",
                               label="b",
                               default="abc")

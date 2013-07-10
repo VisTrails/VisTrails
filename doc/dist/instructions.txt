@@ -1,0 +1,188 @@
+VisTrails Building Binary Releases
+----------------------------------
+
+1. Make sure you can run VisTrails from source on the system you will
+run these instructions. Instructions to build VisTrails from source
+are on build_from_source_mac.txt and build_from_source_windows.txt.
+
+2. Then make sure the system is prepared to package
+VisTrails. Instructions to install the required software are on
+setup_build_system_mac.txt and setup_build_system_windows.txt
+
+3. Now follow the instructions below:
+
+Binary build instructions
+-------------------------
+
+== Preparation ==
+
+These work for making  both Mac and Windows releases and need to be
+done only once before generating them. I think it is easier to do on a
+Mac, commit the changes and load them on the Windows machines.
+
+=== Change in Licensing or Update the look and feel in the Mac .dmg
+file ===
+If you ever need to change the VisTrails license or need to change the
+look and feel of the .dmg file we distribute, you can do that by
+opening dist/mac/vistrails.dmgCanvas. In the project settings you can
+update the license text (that one the is displayed when you open
+the .dmg). Else you can control the background image and other
+settings.
+Usually you don't need to touch this file. So go ahead to the next steps.
+
+
+
+Updating version numbers
+
+If there is a version upgrade from 2.0 to 2.1 you need to update the
+   following files (the variable name that needs to be updated are in parentheses:
+   scripts/release_notes.py (release_name)
+   scripts/create_release_wiki_table.py (VT_VERSION)
+   vistrails/core/system/__init__.py (function vistrails_version())
+   dist/mac/setup.py (VERSION)
+   dist/windows/vistrails.iss (AppVerName)
+   dist/windows/vistrailsx64.iss (AppVerName)
+   dist/windows/custom/*.iss (AppVerName)
+   dist/source/make-vistrails-src-release.py (VT_VERSION)
+   doc/usersguide/conf.py
+   
+The splash screen also needs to be updated: 
+   vistrails/gui/resources/images/vistrails_splash.png
+
+The Adobe Illustrator source file is in the master branch, in
+dist/common/splash folder. You need to install the font file in that
+folder too before opening the .ai file. After the changes, export the
+file to a .png file. Then open it in Photoshop and resize the image to
+546x340 pixels. Then replace the file in 
+  vistrails/gui/resources/images/vistrails_splash.png
+
+Commit and push your changes.
+
+Generating the release notes
+
+Make sure scripts/release_notes.py is configured right: look for the variables inside the #### configuration #### section in the file.
+
+In particular, make sure branch has the right branch and commit_start points to the hash tag used on the last release. Also you might need to change release_name as you see fit.
+
+Then run:
+$ cd path/to/scripts
+$ python release_notes.py
+
+This will checkout the branch, process all commits and match them with the trac tickets. It will ask for your login and password on trac to do that. At the end, it will print out a release notes section. Just copy from Release Name.... down to the last item in Bug fixes. All the log messages that were not identified with <bugfix> or <feature> will be print out at the end but they can be ignored. Sometimes just take a look and see if there is something important there that should go as bugfix ou enhancement.
+
+You should paste the text into the dist/mac/Input/README file, just below
+RELEASE NOTES
+-----------------------
+
+Also take a look if there aren't repeated items... They might happen when there are merges across the branches and the commit messages got repeated.
+
+Then do the same into dist/windows/Input/releaseNotes.txt
+
+Then commit and push your changes. Now you are ready to generate the binaries on each platform.
+
+== Mac Binary Instructions ==
+ALPS
+Make sure the latest version of ALPS will be included in the binary.
+Go to http://archive.comp-phys.org/software/vistrails/ and look for the latest version and update dist/mac/make_app (ALPS_VERSION). If there were any changes, commit and push them before following next instructions.
+
+Updating revision numbers
+
+Run git log to know what is the latest hash tag on the release branch and copy the first 12 characters from it. This will be the revision number. There's probably a way to automate this but I didn't have time to look into it.
+
+Update the following files with the "revision number"
+  vistrails/core/system/__init__.py (function vistrails_revision())
+  dist/mac/Input/README (Release Name...)
+  dist/source/make-vistrails-src-release.py (VT_HASH)
+  dist/windows/Input/releaseNotes.txt
+  scripts/create_release_wiki_table.py
+  scripts/release_notes.py
+add and commit the changes. This will be the version released.
+
+Update usersguide paths
+
+Make sure the generated users guide is saved to the correct path by
+editing the following file:
+scripts/build_usersguide.py
+By default it is configured for mac
+
+Now run the following:
+$ cd dist/mac/
+$ ./make_app vistrails-mac-10.6-intel-[VER]-[REV]
+where [VER] should be the vistrails version, and [REV] the revision hash.
+
+at the end you should have a file called vistrails-mac-10.6-intel-[VER]-[REV].dmg that can be tested and uploaded to SourceForge.
+You should have created the folder of the new release on source forge before running the command below
+
+$ scp vistrails-mac-10.6-intel-[VER]-[REV].dmg [SFUSER]@frs.sourceforge.net:/home/frs/project/vistrails/vistrails/v[VER]
+where [SFUSER] is your sourceforge user.
+
+== Windows 32-bit Binary Instructions ==
+Update your local copy so you get the newest changes you pushed from
+the Mac.
+VisTrails needs to be run on Windows before the release so it builds
+all the *.pyc files before hand. This can be done by running:
+$ python -m compileall .
+Also, as we are running both 32-bit and 64-bit versions on the same
+system, make sure the PATH variables are set accordingly to use the
+32-bit version of python, vtk, etc. (if you run vistrails 32-bit) or
+the 64-bit version of python, vtk, etc. (if you run vistrails 64-bit).
+
+ALPS
+Make sure the latest version of ALPS will be included in the binary.
+Go to http://archive.comp-phys.org/software/vistrails/
+Download and uncompress the alps package for windows 32 bit available on  http://archive.comp-phys.org/software/vistrails/  into dist/windows/Input/x86/alps_libs folder (it will create a bin and a vistrails folder inside it)
+
+Open dist\windows\vistrails.iss by double-clicking it
+This will launch InnoSetup
+Press the compile script button
+When it finishes a file called dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
+Upload the file to sourceForge (I use WinFTP for this).
+
+Custom 32-bit builds
+For every vistrails-*.iss file in dist/windows/custom folder, run
+InnoSetup. Binaries will be generated in custom/Output folder. Rename it according to the release name and create a zip file from it.
+Upload the file to sourceForge (I use WinFTP for this). 
+
+== Windows 64-bit Binary Instructions ==
+
+ALPS
+Make sure the latest version of ALPS will be included in the binary.
+Go to http://archive.comp-phys.org/software/vistrails/
+Download and uncompress the alps package for windows 64 bit available on http://archive.comp-phys.org/software/vistrails/  into dist/windows/Input/x64/alps_libs folder (it will create a bin and a vistrails folder inside it)
+
+Open dist\windows\vistrails_x64.iss by double-clicking it
+This will launch InnoSetup
+Press the compile script button
+When it finishes a file called dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
+Upload the file to sourceForge (I use WinFTP for this).
+
+Custom 64-bit builds
+For every vistrailsx64-*.iss file in dist/windows/custom folder, run
+InnoSetup. Binaries will be generated in custom/Output folder. Rename it according to the release name and create a zip file from it.
+Upload the file to sourceForge (I use WinFTP for this). 
+
+
+== Source Distribution Instructions ==
+cd path/to/dist/source
+make sure make-vistrails-src-release.py is updated with the right
+branch VT_BRANCH, VT_VERSION and VT_HASH.
+Also update the SF_USERNAME with the vistrails build username if you
+want to upload directly from the script. I usually don't because I
+don't want to commit the vistrails username to the repository so I
+skip the upload to source forge step and use the scp command line above to
+upload the file using my own user.
+
+All the files you need to upload to source forge using the vistrails
+username are in the vistrails server machine. In the cron directory,
+you can look how it is configured so the nightly builds are uploaded
+every night when there are changes.
+
+to generate the tarball:
+$ python make-vistrails-src-release.py
+It will checkout the hash code defined in the file and rename the
+tarball apropriately.
+
+== Update "Check For Updates" ==
+
+If this is a new stable version, log in to vistrails.org and update the version number in:
+/srv/wiki/vistrails/downloads/dist/release_version.txt

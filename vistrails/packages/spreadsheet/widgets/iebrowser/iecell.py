@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -95,9 +95,9 @@ class IECellWidget(QCellWidget):
         elif fileValue:
             self.urlSrc = QtCore.QUrl.fromLocalFile(fileValue.name)
         if self.urlSrc!=None:
-            self.browser.dynamicCall('Navigate(const QString&)', self.urlSrc.toString())
+            self.browser.dynamicCall('Navigate(const QString&)', self.urlSrc)
         else:
-            self.browser.dynamicCall('Navigate(const QString&)', QtCore.QString('about:blank'))
+            self.browser.dynamicCall('Navigate(const QString&)', 'about:blank')
 
     def dumpToFile(self, filename):
         if self.urlSrc is not None:

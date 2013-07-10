@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,34 +35,36 @@
 ################################################################################
 # VTK Package for VisTrails
 ################################################################################
-from vistrails.core.bundles import py_import
 
-from vistrails.core.utils import all, any, VistrailsInternalError, InstanceObject
+from vistrails.core.bundles import py_import
 from vistrails.core.debug import debug
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
-     Variant, Color, Boolean, identifier as basic_pkg
+     Color, identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import new_module, ModuleError
+from vistrails.core.system import get_vistrails_default_pkg_prefix
+from identifiers import identifier as vtk_pkg_identifier
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.utils import all, any, InstanceObject
 from vistrails.core.vistrail.connection import Connection
+
+from hasher import vtk_hasher
+from itertools import izip
+import os.path
+import re
+import warnings
+
+vtk = py_import('vtk', {'linux-debian': 'python-vtk',
+                        'linux-ubuntu': 'python-vtk',
+                        'linux-fedora': 'vtk-python'})
+
 from base_module import vtkBaseModule
 from class_tree import ClassTree
-from vtk_parser import VTKMethodParser
-import re
-import os.path
-from itertools import izip
-import tf_widget
-import offscreen
 import fix_classes
 import inspectors
-from hasher import vtk_hasher
-import operator
-import re
-import sys
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-
-import warnings
-vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
-                        'linux-fedora': 'vtk-python'})
+import offscreen
+import tf_widget
+from vtk_parser import VTKMethodParser
 
 
 #TODO: Change the Core > Module > Registry > Add Input : To support vector as type.
@@ -140,7 +142,7 @@ def typeMap(name, package=None):
     """
     if package is None:
         package = identifier
-    if type(name) == tuple:
+    if isinstance(name, tuple):
         return [typeMap(x, package) for x in name]
     if name in typeMapDict:
         return typeMapDict[name]
@@ -210,7 +212,7 @@ def get_method_signature(method, docum='', name=''):
                         arg = tuple(arg)
                     else:
                         arg = arg[0]
-                if type(arg) == str:
+                if isinstance(arg, str):
                     arg = [arg]
 
             sig.append(([ret], arg))
@@ -238,16 +240,16 @@ def prune_signatures(module, name, signatures, output=False):
         if type_ is None:
             return []
         def convert(entry):
-            if type(entry) == tuple:
+            if isinstance(entry, tuple):
                 return list(entry)
-            elif type(entry) == str:  
+            elif isinstance(entry, str):
                 return [entry]
             else:
                 result = []
                 first = True
                 lastList = True
                 for e in entry:
-                    if (type(e) == list):
+                    if (isinstance(e, list)):
                         if lastList == False: result[len(result)] = result[len(result)] + ']'  
                         aux = e
                         aux.reverse()
@@ -259,7 +261,7 @@ def prune_signatures(module, name, signatures, output=False):
                         if first: e = '[' + e
                         result.append(e)
                         lastList = False
-                        first = False                                                             
+                        first = False
                 return result
         result = []
         for entry in type_:
@@ -322,18 +324,18 @@ def prune_signatures(module, name, signatures, output=False):
     def removeBracts(signatures):
         result = []
         stack = list(signatures)
-        while (len(stack) != 0):            
+        while (len(stack) != 0):
             curr = stack.pop(0)
-            if (type(curr) == String or type(curr) == str):
+            if (isinstance(curr, (String, str))):
                 c = curr.replace('[', '')
                 c = c.replace(']', '')
                 result.append(c)
             elif (curr == None):
                 result.append(curr)
-            elif (type(curr) == list):
+            elif (isinstance(curr, list)):
                 curr.reverse()
                 for c in curr: stack.insert(0, c)
-            elif (type(curr) == tuple):
+            elif (isinstance(curr, tuple)):
                 cc = list(curr)
                 cc.reverse()
                 for c in cc: stack.insert(0, c)
@@ -407,7 +409,7 @@ def addAlgorithmPorts(module):
                 pass
             else:
                 reg = get_module_registry()
-                des = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
+                des = reg.get_descriptor_by_name(vtk_pkg_identifier,
                                                       'vtkAlgorithmOutput')
                 for i in xrange(0,instance.GetNumberOfInputPorts()):
                     reg.add_input_port(module, 'SetInputConnection%d'%i,
@@ -495,7 +497,8 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 # be too slow.
                 # Workaround: delay the addition of the port by storing
                 # the information in a list
-                if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
+                if registry.has_module('%s.spreadsheet' % \
+                                       get_vistrails_default_pkg_prefix(),
                                        'SpreadsheetCell'):
                     from vtkcell import VTKCell
                     # FIXME add documentation
@@ -708,7 +711,7 @@ def addOtherPorts(module, other_list):
                     paramsList = list(params)
                     while (len(paramsList) != 0):
                         p = paramsList.pop(0)
-                        if type(p) == list: 
+                        if isinstance(p, list): 
                             for aux in p: paramsList.insert(0, aux)
                         else:
                           types.append(typeMap(p))
@@ -781,16 +784,15 @@ def addPorts(module, delayed):
     addOtherPorts(module, parser.get_other_methods())             
     # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
     # FIXME Add documentation
+    basic_pkg = '%s.basic' % get_vistrails_default_pkg_prefix()
     if klass==vtk.vtkAlgorithm:
         registry.add_input_port(module, 'AddInputConnection',
                                 typeMap('vtkAlgorithmOutput'))
     # vtkWriters have a custom File port
     elif klass==vtk.vtkWriter:
-        registry.add_output_port(module, 'file', 
-                                 typeMap('File','edu.utah.sci.vistrails.basic'))
+        registry.add_output_port(module, 'file', typeMap('File', basic_pkg))
     elif klass==vtk.vtkImageWriter:
-        registry.add_output_port(module, 'file', 
-                                 typeMap('File','edu.utah.sci.vistrails.basic'))
+        registry.add_output_port(module, 'file', typeMap('File', basic_pkg))
     elif klass==vtk.vtkVolumeProperty:
         registry.add_input_port(module, 'SetTransferFunction',
                                 typeMap('TransferFunction'))
@@ -1128,35 +1130,6 @@ def createAllModules(g):
                 createModule(vtkObjectBase, child)
 
 
-##############################################################################
-# Convenience methods
-
-def extract_vtk_instance(vistrails_obj):
-    """extract_vtk_instance(vistrails_obj) -> vtk_object
-
-    takes an instance of a VisTrails module that is a subclass
-    of the vtkObjectBase module and returns the corresponding
-    instance."""
-    global identifier
-    vtkObjectBase = registry.get_descriptor_by_name(identifier,
-                                                    'vtkObjectBase').module
-    assert isinstance(vistrails_obj, vtkObjectBase)
-    return vistrails_obj.vtkInstance
-
-def wrap_vtk_instance(vtk_obj):
-    """wrap_vtk_instance(vtk_object) -> VisTrails module
-
-    takes a vtk instance and returns a corresponding
-    wrapped instance of a VisTrails module"""
-    global identifier
-
-    assert isinstance(vtk_obj, vtk.vtkObjectBase)
-    m = registry.get_descriptor_by_name(identifier,
-                                        vtk_obj.GetClassName())
-    result = m.module()
-    result.vtkInstance = vtk_obj
-    return result
-
 ################################################################################
 
 def initialize():
@@ -1188,7 +1161,8 @@ def initialize():
                 delayed)
 
     # Register the VTKCell and VTKHandler type if the spreadsheet is up
-    if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
+    if registry.has_module('%s.spreadsheet' % \
+                           get_vistrails_default_pkg_prefix(),
                            'SpreadsheetCell'):
         import vtkhandler
         import vtkcell
@@ -1213,10 +1187,10 @@ def initialize():
     registry.add_module(tf_widget.vtkScaledTransferFunction)
     # FIXME Add documentation
     registry.add_input_port(tf_widget.vtkScaledTransferFunction,
-                            'Input', getter('edu.utah.sci.vistrails.vtk',
+                            'Input', getter(vtk_pkg_identifier,
                                             'vtkAlgorithmOutput').module)
     registry.add_input_port(tf_widget.vtkScaledTransferFunction,
-                            'Dataset', getter ('edu.utah.sci.vistrails.vtk',
+                            'Dataset', getter (vtk_pkg_identifier,
                                                'vtkDataObject').module)
     registry.add_input_port(tf_widget.vtkScaledTransferFunction,
                             'Range', [Float, Float])
@@ -1228,11 +1202,11 @@ def initialize():
                              tf_widget.TransferFunctionConstant)
     registry.add_output_port(tf_widget.vtkScaledTransferFunction,
                              'vtkPiecewiseFunction',
-                             getter('edu.utah.sci.vistrails.vtk', 
+                             getter(vtk_pkg_identifier, 
                                     'vtkPiecewiseFunction').module)
     registry.add_output_port(tf_widget.vtkScaledTransferFunction,
                              'vtkColorTransferFunction',
-                             getter('edu.utah.sci.vistrails.vtk', 
+                             getter(vtk_pkg_identifier, 
                                     'vtkColorTransferFunction').module)
 
     inspectors.initialize()

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -165,8 +165,8 @@ class SQLDAO:
         comma = ''
         values = []
         for column, value in columnMap.iteritems():
-# 	    if value is None:
-# 		value = 'NULL'
+#            if value is None:
+#                value = 'NULL'
             setStr += '%s%s = %%s' % (comma, column)
             comma = ', '
             values.append(value)

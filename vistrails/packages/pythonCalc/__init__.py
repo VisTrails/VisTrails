@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,6 +41,7 @@ should also consult the documentation in the User's Guide and in
 core/modules/vistrails_module.py.
 """
 
-identifier = 'edu.utah.sci.vistrails.pythoncalc'
+identifier = 'org.vistrails.vistrails.pythoncalc'
 name = 'PythonCalc'
-version = '0.9.0'
+version = '0.9.1'
+old_identifiers = ['edu.utah.sci.vistrails.pythoncalc']

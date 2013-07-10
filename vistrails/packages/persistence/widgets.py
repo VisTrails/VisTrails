@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
+## Copyright (C) 2011-2013, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,8 +41,10 @@ from vistrails.core.modules.basic_modules import Path
 from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
-from db_utils import DatabaseAccessSingleton
 
+from db_utils import DatabaseAccessSingleton
+from identifiers import identifier as persistence_pkg
+import repo
 
 class IntegerWrapper(object):
     def __init__(self, idx):
@@ -127,14 +129,14 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         if section in self.cols:
-            return QtCore.QVariant(self.headers[self.cols[section]])
-        return QtCore.QVariant()
+            return self.headers[self.cols[section]]
+        return None
     
     def data(self, index, role):
         if not index.isValid() or role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         # if index.parent().isValid():
         #     print 'data', index.row(), index.column(), index.parent().row()
         if index.parent().isValid():
@@ -149,19 +151,19 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
             # want to have the earliest created date and latest modified date
             if index.column() == self.idxs['date_created']:
                 dates = [l[index.column()] for l in id_list]
-                return QtCore.QVariant(min(dates))
+                return min(dates)
             if index.column() == self.idxs['date_modified']:
                 dates = [l[index.column()] for l in id_list]
-                return QtCore.QVariant(max(dates))
+                return max(dates)
             if index.column() == self.idxs['version'] or \
                     index.column() == self.idxs['signature'] or \
                     index.column() == self.idxs['content_hash'] or \
                     index.column() == self.idxs['user']:
-                return QtCore.QVariant()
+                return None
 
         if index.column() < len(data):
-            return QtCore.QVariant(data[index.column()])
-        return QtCore.QVariant()
+            return data[index.column()]
+        return None
     
     def parent(self, index):
         # print 'calling parent() method'
@@ -505,7 +507,7 @@ class PersistentRefDialog(QtGui.QDialog):
                                               'Use File...',
                                               self.current_file,
                                               'All files (*.*)')
-        if chosen_file and not chosen_file.isEmpty():
+        if chosen_file:
             self.current_file = chosen_file
             self.filename_edit.setText(self.current_file)
     
@@ -579,7 +581,7 @@ class PathChooserLayout(QtGui.QHBoxLayout):
                                                   self.pathname_edit.text(),
                                                   'All files (*.*)')
 
-        if chosen_path and not chosen_path.isEmpty():
+        if chosen_path and chosen_path:
             self.pathname_edit.setText(chosen_path)
             self.emit(QtCore.SIGNAL('pathnameChanged()'))
 
@@ -826,8 +828,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
-                                       'PersistentRef').module
+            reg.get_descriptor_by_name(persistence_pkg, 'PersistentRef').module
 
         def func_to_bool(function):
             try:
@@ -913,8 +914,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         from vistrails.core.modules.module_registry import get_module_registry
         reg = get_module_registry()
         PersistentRef = \
-            reg.get_descriptor_by_name('edu.utah.sci.vistrails.persistence', 
-                                       'PersistentRef').module
+            reg.get_descriptor_by_name(persistence_pkg, 'PersistentRef').module
 
         functions = []
         if self.new_file and self.new_file.get_path() and \
@@ -1060,7 +1060,6 @@ class PersistentConfiguration(QtGui.QDialog):
         return QtCore.QSize(800,320)
 
     def write(self):
-        from init import PersistentPath
         info_list = self.ref_search.ref_widget.get_info_list()
         if len(info_list) < 1:
             return
@@ -1068,26 +1067,26 @@ class PersistentConfiguration(QtGui.QDialog):
             # save single file/dir
             info = info_list[0]
             name = info[2]
-            chosen_path = str(QtGui.QFileDialog.getSaveFileName(self,
-                                                                'Save...',
-                                                                name))
+            chosen_path = QtGui.QFileDialog.getSaveFileName(
+                    self,
+                    'Save...',
+                    name)
             if not chosen_path:
                 return
 
             # FIXME really should move this calls to a higher level so
             # we don't need to instantiate a module
-            git_util = PersistentPath()
             if info[1] is None:
                 version = "HEAD"
             else:
                 version = info[1]
-            git_util.git_get_path(info[0], version, None, chosen_path)
+            repo.get_current_repo().get_path(info[0], version, None, 
+                                             chosen_path)
         else:
             # have multiple files/dirs
-            get_dir = QtGui.QFileDialog.getExistingDirectory
-            chosen_path = str(get_dir(self,
-                                      'Save All to Directory...'))
-            git_util = PersistentPath()
+            chosen_path = QtGui.QFileDialog.getExistingDirectory(
+                    self,
+                    'Save All to Directory...')
             has_overwrite = False
             # if untitled (no name, use the uuid)
             for info in info_list:
@@ -1120,7 +1119,8 @@ class PersistentConfiguration(QtGui.QDialog):
                 else:
                     name = info[0]
                 full_path = os.path.join(chosen_path, name)
-                git_util.git_get_path(info[0], version, None, full_path)
+                repo.get_current_repo().git_get_path(info[0], version, None, 
+                                                     full_path)
             
     def delete(self):
         from init import PersistentPath
