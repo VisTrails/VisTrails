@@ -136,6 +136,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -291,6 +292,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_suspended_hook = fetch('module_suspended_hook', [])
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
+        stop_on_error = fetch('stop_on_error', True)
         # parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
@@ -435,6 +437,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         # Update new sinks
         for obj in persistent_sinks:
             runner.add(obj)
+        # TODO : stop_on_error == False
         try:
             runner.execute_tasks()
         except ModuleErrors, mes:
@@ -604,6 +607,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '

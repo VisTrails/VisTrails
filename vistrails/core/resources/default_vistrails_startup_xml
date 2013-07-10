@@ -11,6 +11,7 @@
     <package name="dialogs"/>
     <package name="HTTP"/>
     <package name="controlflow"/>
+    <package name="tabledata"/>
   </packages>
   <disabledpackages/>
 </startup>
