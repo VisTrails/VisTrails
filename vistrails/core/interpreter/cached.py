@@ -33,26 +33,25 @@
 ##
 ###############################################################################
 import base64
-from vistrails.core import modules
-from vistrails.core.common import *
-from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.log.controller import DummyLogController
-from vistrails.core.modules.basic_modules import identifier as basic_pkg
-from vistrails.core.modules.vistrails_module import ModuleConnector, \
-    ModuleError, ModuleBreakpoint, ModuleErrors
-from vistrails.core.utils import DummyView
 import copy
+import cPickle
+import gc
+
+from vistrails.core import modules
+from vistrails.core.common import InstanceObject, lock_method
+from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.interpreter.base
 import vistrails.core.interpreter.utils
+from vistrails.core.log.controller import DummyLogController
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import ModuleConnector, \
+    ModuleError, ModuleBreakpoint, ModuleErrors
+from vistrails.core.utils import DummyView, VistrailsInternalError
 import vistrails.core.system
-import vistrails.core.vistrail.pipeline
-import gc
-import cPickle
-
-import unittest
 from vistrails.core.task_system import TaskRunner
+import vistrails.core.vistrail.pipeline
 
-# from core.modules.module_utils import FilePool
 
 ##############################################################################
 
@@ -142,12 +141,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to setup_pipeline: %s' % kwargs)
 
+        reg = get_module_registry()
+        Null_desc = reg.get_descriptor_by_name(basic_pkg, 'Null')
         def create_null():
             """Creates a Null value"""
-            getter = modules.module_registry.registry.get_descriptor_by_name
-            descriptor = getter(basic_pkg, 'Null')
-            return descriptor.module()
-        
+            return Null_desc.module()
+
         def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
             reg = modules.module_registry.get_module_registry()
@@ -761,6 +760,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
 ##############################################################################
 # Testing
+
+import unittest
 
 
 class TestCachedInterpreter(unittest.TestCase):
