@@ -905,6 +905,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = self.windows[view]
             window.close()
         QWorkspaceWindow.instance().remove_vt_window(view)
+        self.current_view = None
 
     def view_triggered(self, action):
         #print "VIEW_TRIGGERED", action
