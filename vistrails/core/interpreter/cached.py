@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import base64
+import contextlib
 import copy
 import cPickle
 import gc
@@ -54,6 +55,11 @@ import vistrails.core.vistrail.pipeline
 
 
 ##############################################################################
+
+class ExecutionAborted(Exception):
+    """Raised internally by the task hook to stop the TaskRunner.
+    """
+
 
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
@@ -436,22 +442,33 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         # Update new sinks
         for obj in persistent_sinks:
             runner.add(obj)
-        # TODO : stop_on_error == False
-        try:
-            runner.execute_tasks()
-        except ModuleErrors, mes:
-            for me in mes.module_errors:
-                me.module.logging.end_update(me.module, me.msg)
-                errors[me.module.id] = me
-        except ModuleError, me:
-            me.module.logging.end_update(me.module, me.msg, me.errorTrace)
-            errors[me.module.id] = me
-        except ModuleBreakpoint, mb:
-            mb.module.logging.end_update(mb.module)
-            errors[mb.module.id] = mb
 
-        runner.close()
-        runner = None
+        @contextlib.contextmanager
+        def catch_module_error():
+            try:
+                yield
+            except ModuleErrors, mes:
+                for me in mes.module_errors:
+                    me.module.logging.end_update(me.module, me.msg)
+                    errors[me.module.id] = me
+            except ModuleError, me:
+                me.module.logging.end_update(me.module, me.msg, me.errorTrace)
+                errors[me.module.id] = me
+            except ModuleBreakpoint, mb:
+                mb.module.logging.end_update(mb.module)
+                errors[mb.module.id] = mb
+            else:
+                return
+            if stop_on_error:
+                raise ExecutionAborted
+
+        try:
+            runner.execute_tasks(task_hook=catch_module_error)
+        except ExecutionAborted:
+            pass
+        finally:
+            runner.close()
+            runner = None
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)

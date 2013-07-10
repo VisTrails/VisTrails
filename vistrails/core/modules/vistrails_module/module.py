@@ -360,7 +360,6 @@ context."""
                     self.removeInputConnector(iport, connector)
 
         if self.suspended:
-            self.done()
             return
         if self.upToDate:
             if not self.computed:
@@ -389,13 +388,13 @@ context."""
         The base implementation calls 'compute' if present or compute() and
         catches error classes to set status.
         """
-        self.done()
         try:
             if compute is not None:
                 compute()
             else:
                 self.compute()
             self.computed = True
+            self.done()
         except ModuleSuspended, e:
             self.suspended = e.msg
             self._module_suspended = e
