@@ -1,6 +1,6 @@
 --#############################################################################
 --
--- Copyright (C) 2011-2012, NYU-Poly.
+-- Copyright (C) 2011-2013, NYU-Poly.
 -- Copyright (C) 2006-2011, University of Utah. 
 -- All rights reserved.
 -- Contact: contact@vistrails.org
@@ -132,12 +132,34 @@ CREATE TABLE group_tbl(
 ) engine=InnoDB;
 
 CREATE TABLE log_tbl(
-    id char(36),
+    id char(36) not null auto_increment primary key,
     entity_type char(16),
     version char(16),
     name varchar(255),
     last_modified datetime,
     vistrail_id char(36)
+) engine=InnoDB;
+
+CREATE TABLE mashup_alias(
+    id char(36),
+    name varchar(255),
+    parent_id char(36),
+    entity_id char(36),
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE mashup(
+    id char(36),
+    name varchar(255),
+    version int,
+    type varchar(255),
+    vtid char(36),
+    layout mediumtext,
+    geometry mediumtext,
+    has_seq int,
+    parent_id char(36),
+    entity_id char(36),
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE port_spec_item(
@@ -258,7 +280,7 @@ CREATE TABLE abstraction(
 ) engine=InnoDB;
 
 CREATE TABLE workflow(
-    id char(36),
+    id char(36) not null auto_increment primary key,
     entity_id char(36),
     entity_type char(16),
     name varchar(255),
@@ -268,13 +290,55 @@ CREATE TABLE workflow(
     parent_id char(36)
 ) engine=InnoDB;
 
-CREATE TABLE registry(
+CREATE TABLE mashup_action(
     id char(36),
+    prev_id char(36),
+    date datetime,
+    user varchar(255),
+    parent_id char(36),
+    entity_id char(36),
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE mashuptrail(
+    id int not null auto_increment primary key,
+    name varchar(255),
+    version char(16),
+    vt_version char(36),
+    last_modified datetime,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE registry(
+    id char(36) not null auto_increment primary key,
     entity_type char(16),
     version char(16),
     root_descriptor_id char(36),
     name varchar(255),
     last_modified datetime
+) engine=InnoDB;
+
+CREATE TABLE mashup_component(
+    id char(36),
+    vtid char(36),
+    vttype varchar(255),
+    vtparent_type char(32),
+    vtparent_id int,
+    vtpos int,
+    vtmid char(36),
+    pos int,
+    type varchar(255),
+    val mediumtext,
+    minVal varchar(255),
+    maxVal varchar(255),
+    stepSize varchar(255),
+    strvaluelist mediumtext,
+    widget varchar(255),
+    seq int,
+    parent varchar(255),
+    alias_id char(36),
+    entity_id char(36),
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE annotation(
@@ -317,7 +381,7 @@ CREATE TABLE group_exec(
 ) engine=InnoDB;
 
 CREATE TABLE package(
-    id char(36),
+    id char(36) not null auto_increment primary key,
     name varchar(255),
     identifier varchar(1023),
     codepath varchar(1023),
@@ -373,6 +437,18 @@ CREATE TABLE loop_exec(
     parent_id char(36)
 ) engine=InnoDB;
 
+CREATE TABLE mashup_action_annotation(
+    id char(36),
+    akey varchar(255),
+    value varchar(8191),
+    action_id char(36),
+    date datetime,
+    user varchar(255),
+    parent_id char(36),
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
 CREATE TABLE connection_tbl(
     id char(36),
     parent_type char(32),
@@ -404,7 +480,7 @@ CREATE TABLE delete_tbl(
 ) engine=InnoDB;
 
 CREATE TABLE vistrail(
-    id char(36),
+    id char(36) not null auto_increment primary key,
     entity_type char(16),
     version char(16),
     name varchar(255),
