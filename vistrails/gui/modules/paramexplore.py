@@ -157,7 +157,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
         
-        self.setText(QtCore.QChar(0x25bc)) # Down triangle
+        self.setText(unichr(0x25bc)) # Down triangle
 
         self.actionGroup = QtGui.QActionGroup(self)
 
