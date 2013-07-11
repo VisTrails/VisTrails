@@ -866,6 +866,62 @@ class DBProvDocumentXMLDAOBase(XMLDAO):
         
         return node
 
+class DBOpmAccountXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'account':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'str')
+        
+        value = None
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'value':
+                _data = self.convertFromStr(child.text,'str')
+                value = _data
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBOpmAccount(id=id,
+                           value=value)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, opm_account, node=None):
+        if node is None:
+            node = ElementTree.Element('account')
+        
+        # set attributes
+        node.set('id',self.convertToStr(opm_account.db_id, 'str'))
+        
+        # set elements
+        value = opm_account.db_value
+        if (value is not None) and (value != ""):
+            childNode = ElementTree.SubElement(node, 'value')
+            childNode.text = self.convertToStr(value, 'str')
+        
+        return node
+
 class DBOpmProcessesXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -3434,7 +3490,7 @@ class DBVtConnectionXMLDAOBase(XMLDAO):
         
         return node
 
-class DBOpmAccountXMLDAOBase(XMLDAO):
+class DBMashupComponentXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
@@ -3447,46 +3503,87 @@ class DBOpmAccountXMLDAOBase(XMLDAO):
             node_tag = node.tag.split("}")[1]
         else:
             node_tag = node.tag
-        if node_tag != 'account':
+        if node_tag != 'component':
             return None
         
         # read attributes
         data = node.get('id', None)
-        id = self.convertFromStr(data, 'str')
+        id = self.convertFromStr(data, 'long')
+        data = node.get('vtid', None)
+        vtid = self.convertFromStr(data, 'long')
+        data = node.get('vttype', None)
+        vttype = self.convertFromStr(data, 'str')
+        data = node.get('vtparent_type', None)
+        vtparent_type = self.convertFromStr(data, 'str')
+        data = node.get('vtparent_id', None)
+        vtparent_id = self.convertFromStr(data, 'long')
+        data = node.get('vtpos', None)
+        vtpos = self.convertFromStr(data, 'long')
+        data = node.get('vtmid', None)
+        vtmid = self.convertFromStr(data, 'long')
+        data = node.get('pos', None)
+        pos = self.convertFromStr(data, 'long')
+        data = node.get('type', None)
+        type = self.convertFromStr(data, 'str')
+        data = node.get('val', None)
+        val = self.convertFromStr(data, 'str')
+        data = node.get('minVal', None)
+        minVal = self.convertFromStr(data, 'str')
+        data = node.get('maxVal', None)
+        maxVal = self.convertFromStr(data, 'str')
+        data = node.get('stepSize', None)
+        stepSize = self.convertFromStr(data, 'str')
+        data = node.get('valueList', None)
+        strvaluelist = self.convertFromStr(data, 'str')
+        data = node.get('widget', None)
+        widget = self.convertFromStr(data, 'str')
+        data = node.get('seq', None)
+        seq = self.convertFromStr(data, 'int')
+        data = node.get('parent', None)
+        parent = self.convertFromStr(data, 'str')
         
-        value = None
-        
-        # read children
-        for child in node.getchildren():
-            if child.tag[0] == "{":
-                child_tag = child.tag.split("}")[1]
-            else:
-                child_tag = child.tag
-            if child_tag == 'value':
-                _data = self.convertFromStr(child.text,'str')
-                value = _data
-            elif child.text is None or child.text.strip() == '':
-                pass
-            else:
-                print '*** ERROR *** tag = %s' % child.tag
-        
-        obj = DBOpmAccount(id=id,
-                           value=value)
+        obj = DBMashupComponent(id=id,
+                                vtid=vtid,
+                                vttype=vttype,
+                                vtparent_type=vtparent_type,
+                                vtparent_id=vtparent_id,
+                                vtpos=vtpos,
+                                vtmid=vtmid,
+                                pos=pos,
+                                type=type,
+                                val=val,
+                                minVal=minVal,
+                                maxVal=maxVal,
+                                stepSize=stepSize,
+                                strvaluelist=strvaluelist,
+                                widget=widget,
+                                seq=seq,
+                                parent=parent)
         obj.is_dirty = False
         return obj
     
-    def toXML(self, opm_account, node=None):
+    def toXML(self, mashup_component, node=None):
         if node is None:
-            node = ElementTree.Element('account')
+            node = ElementTree.Element('component')
         
         # set attributes
-        node.set('id',self.convertToStr(opm_account.db_id, 'str'))
-        
-        # set elements
-        value = opm_account.db_value
-        if (value is not None) and (value != ""):
-            childNode = ElementTree.SubElement(node, 'value')
-            childNode.text = self.convertToStr(value, 'str')
+        node.set('id',self.convertToStr(mashup_component.db_id, 'long'))
+        node.set('vtid',self.convertToStr(mashup_component.db_vtid, 'long'))
+        node.set('vttype',self.convertToStr(mashup_component.db_vttype, 'str'))
+        node.set('vtparent_type',self.convertToStr(mashup_component.db_vtparent_type, 'str'))
+        node.set('vtparent_id',self.convertToStr(mashup_component.db_vtparent_id, 'long'))
+        node.set('vtpos',self.convertToStr(mashup_component.db_vtpos, 'long'))
+        node.set('vtmid',self.convertToStr(mashup_component.db_vtmid, 'long'))
+        node.set('pos',self.convertToStr(mashup_component.db_pos, 'long'))
+        node.set('type',self.convertToStr(mashup_component.db_type, 'str'))
+        node.set('val',self.convertToStr(mashup_component.db_val, 'str'))
+        node.set('minVal',self.convertToStr(mashup_component.db_minVal, 'str'))
+        node.set('maxVal',self.convertToStr(mashup_component.db_maxVal, 'str'))
+        node.set('stepSize',self.convertToStr(mashup_component.db_stepSize, 'str'))
+        node.set('valueList',self.convertToStr(mashup_component.db_strvaluelist, 'str'))
+        node.set('widget',self.convertToStr(mashup_component.db_widget, 'str'))
+        node.set('seq',self.convertToStr(mashup_component.db_seq, 'int'))
+        node.set('parent',self.convertToStr(mashup_component.db_parent, 'str'))
         
         return node
 
@@ -3643,103 +3740,6 @@ class DBProvEntityXMLDAOBase(XMLDAO):
             if (is_part_of is not None) and (is_part_of != ""):
                 childNode = ElementTree.SubElement(node, 'dcterms:isPartOf')
                 self.getDao('is_part_of').toXML(is_part_of, childNode)
-        
-        return node
-
-class DBMashupComponentXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'component':
-            return None
-        
-        # read attributes
-        data = node.get('id', None)
-        id = self.convertFromStr(data, 'long')
-        data = node.get('vtid', None)
-        vtid = self.convertFromStr(data, 'long')
-        data = node.get('vttype', None)
-        vttype = self.convertFromStr(data, 'str')
-        data = node.get('vtparent_type', None)
-        vtparent_type = self.convertFromStr(data, 'str')
-        data = node.get('vtparent_id', None)
-        vtparent_id = self.convertFromStr(data, 'long')
-        data = node.get('vtpos', None)
-        vtpos = self.convertFromStr(data, 'long')
-        data = node.get('vtmid', None)
-        vtmid = self.convertFromStr(data, 'long')
-        data = node.get('pos', None)
-        pos = self.convertFromStr(data, 'long')
-        data = node.get('type', None)
-        type = self.convertFromStr(data, 'str')
-        data = node.get('val', None)
-        val = self.convertFromStr(data, 'str')
-        data = node.get('minVal', None)
-        minVal = self.convertFromStr(data, 'str')
-        data = node.get('maxVal', None)
-        maxVal = self.convertFromStr(data, 'str')
-        data = node.get('stepSize', None)
-        stepSize = self.convertFromStr(data, 'str')
-        data = node.get('valueList', None)
-        strvaluelist = self.convertFromStr(data, 'str')
-        data = node.get('widget', None)
-        widget = self.convertFromStr(data, 'str')
-        data = node.get('seq', None)
-        seq = self.convertFromStr(data, 'int')
-        data = node.get('parent', None)
-        parent = self.convertFromStr(data, 'str')
-        
-        obj = DBMashupComponent(id=id,
-                                vtid=vtid,
-                                vttype=vttype,
-                                vtparent_type=vtparent_type,
-                                vtparent_id=vtparent_id,
-                                vtpos=vtpos,
-                                vtmid=vtmid,
-                                pos=pos,
-                                type=type,
-                                val=val,
-                                minVal=minVal,
-                                maxVal=maxVal,
-                                stepSize=stepSize,
-                                strvaluelist=strvaluelist,
-                                widget=widget,
-                                seq=seq,
-                                parent=parent)
-        obj.is_dirty = False
-        return obj
-    
-    def toXML(self, mashup_component, node=None):
-        if node is None:
-            node = ElementTree.Element('component')
-        
-        # set attributes
-        node.set('id',self.convertToStr(mashup_component.db_id, 'long'))
-        node.set('vtid',self.convertToStr(mashup_component.db_vtid, 'long'))
-        node.set('vttype',self.convertToStr(mashup_component.db_vttype, 'str'))
-        node.set('vtparent_type',self.convertToStr(mashup_component.db_vtparent_type, 'str'))
-        node.set('vtparent_id',self.convertToStr(mashup_component.db_vtparent_id, 'long'))
-        node.set('vtpos',self.convertToStr(mashup_component.db_vtpos, 'long'))
-        node.set('vtmid',self.convertToStr(mashup_component.db_vtmid, 'long'))
-        node.set('pos',self.convertToStr(mashup_component.db_pos, 'long'))
-        node.set('type',self.convertToStr(mashup_component.db_type, 'str'))
-        node.set('val',self.convertToStr(mashup_component.db_val, 'str'))
-        node.set('minVal',self.convertToStr(mashup_component.db_minVal, 'str'))
-        node.set('maxVal',self.convertToStr(mashup_component.db_maxVal, 'str'))
-        node.set('stepSize',self.convertToStr(mashup_component.db_stepSize, 'str'))
-        node.set('valueList',self.convertToStr(mashup_component.db_strvaluelist, 'str'))
-        node.set('widget',self.convertToStr(mashup_component.db_widget, 'str'))
-        node.set('seq',self.convertToStr(mashup_component.db_seq, 'int'))
-        node.set('parent',self.convertToStr(mashup_component.db_parent, 'str'))
         
         return node
 
@@ -5568,6 +5568,8 @@ class XMLDAOListBase(dict):
             self['opm_role'] = DBOpmRoleXMLDAOBase(self)
         if 'prov_document' not in self:
             self['prov_document'] = DBProvDocumentXMLDAOBase(self)
+        if 'opm_account' not in self:
+            self['opm_account'] = DBOpmAccountXMLDAOBase(self)
         if 'opm_processes' not in self:
             self['opm_processes'] = DBOpmProcessesXMLDAOBase(self)
         if 'ref_prov_activity' not in self:
@@ -5646,12 +5648,10 @@ class XMLDAOListBase(dict):
             self['registry'] = DBRegistryXMLDAOBase(self)
         if 'vt_connection' not in self:
             self['vt_connection'] = DBVtConnectionXMLDAOBase(self)
-        if 'opm_account' not in self:
-            self['opm_account'] = DBOpmAccountXMLDAOBase(self)
-        if 'prov_entity' not in self:
-            self['prov_entity'] = DBProvEntityXMLDAOBase(self)
         if 'mashup_component' not in self:
             self['mashup_component'] = DBMashupComponentXMLDAOBase(self)
+        if 'prov_entity' not in self:
+            self['prov_entity'] = DBProvEntityXMLDAOBase(self)
         if 'annotation' not in self:
             self['annotation'] = DBAnnotationXMLDAOBase(self)
         if 'change' not in self:
