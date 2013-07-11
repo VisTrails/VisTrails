@@ -1,0 +1,45 @@
+<vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2013-07-03 14:13:00" id="1" prevId="0" session="0" user="Remi">
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0" name="WaiterThread" namespace="" package="org.vistrails.tests.multithreading" version="0.1" />
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="0" x="-35.0" y="65.0" />
+    </add>
+  </action>
+  <action date="2013-07-03 14:13:12" id="2" prevId="0" session="0" user="Remi">
+    <add id="2" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="StandaloneDoubler" namespace="" package="org.vistrails.tests.multithreading" version="0.1" />
+    </add>
+    <add id="3" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="-99.0" y="56.0" />
+    </add>
+  </action>
+  <action date="2013-07-03 14:13:16" id="3" prevId="2" session="0" user="Remi">
+    <add id="4" objectId="0" parentObjId="1" parentObjType="module" what="function">
+      <function id="0" name="value" pos="0" />
+    </add>
+    <add id="5" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="21" />
+    </add>
+  </action>
+  <action date="2013-07-03 14:13:20" id="4" prevId="3" session="0" user="Remi">
+    <add id="6" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="StandardOutput" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="7" objectId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="2" x="-1.0" y="-65.0" />
+    </add>
+  </action>
+  <action date="2013-07-03 14:13:20" id="5" prevId="4" session="0" user="Remi">
+    <add id="8" objectId="0" parentObjId="" parentObjType="" what="connection">
+      <connection id="0" />
+    </add>
+    <add id="9" objectId="0" parentObjId="0" parentObjType="connection" what="port">
+      <port id="0" moduleId="1" moduleName="StandaloneDoubler" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+    </add>
+    <add id="10" objectId="1" parentObjId="0" parentObjType="connection" what="port">
+      <port id="1" moduleId="2" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+</vistrail>
