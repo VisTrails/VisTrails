@@ -359,6 +359,7 @@ context."""
         try:
             if self.is_breakpoint:
                 raise ModuleBreakpoint(self)
+            import time; time.sleep(1)
             self.compute()
             self.computed = True
         except ModuleSuspended, e:
