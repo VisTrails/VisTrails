@@ -72,15 +72,6 @@ def disable_lion_restore():
         os.system('rm -rf "%s"' % ssPath)
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
-def setNewPyQtAPI():
-    try:
-        import sip
-        # We now use the new PyQt API - IPython needs it
-        sip.setapi('QString', 2)
-        sip.setapi('QVariant', 2)
-    except:
-        print "Could not set PyQt API, is PyQt4 installed?"
-
 
 def enable_user_base():
     # USER_BASE and USER_SITE in site.py is not set when running from py2app,
@@ -124,7 +115,6 @@ if __name__ == '__main__':
     import vistrails.core.requirements
     import vistrails.gui.bundles.installbundle
 
-    setNewPyQtAPI()
     try:
         vistrails.core.requirements.require_python_module('PyQt4.QtGui')
         vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
@@ -135,7 +125,6 @@ if __name__ == '__main__':
              'linux-fedora': ['PyQt4']})
         if not r:
             raise req
-        setNewPyQtAPI()
 
     from vistrails.gui.QtWrapper import QtGui
     import vistrails.gui.application

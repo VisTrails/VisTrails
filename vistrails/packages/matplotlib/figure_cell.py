@@ -178,8 +178,8 @@ class MplFigureCellWidget(QCellWidget):
         self.canvas.keyReleaseEvent(event)
 
     def deleteLater(self):
-        """ deleteLater() -> None        
-        Overriding PyQt deleteLater to free up resources
+        """ deleteLater() -> None
+        Overriding Qt's deleteLater to free up resources
         
         """
         # Destroy the old one if possible

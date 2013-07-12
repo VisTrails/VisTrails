@@ -179,7 +179,7 @@ class QVTKViewWidget(QCellWidget):
     def deleteLater(self):
         """ deleteLater() -> None        
         Make sure to free render window resource when
-        deallocating. Overriding PyQt deleteLater to free up
+        deallocating. Overriding Qt's deleteLater to free up
         resources
         
         """
@@ -252,7 +252,7 @@ class QVTKViewWidget(QCellWidget):
                 try:
                     vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
                 except TypeError:
-                    #This was change for PyQt4.2
+                    #This was changed for PyQt4.2
                     if isinstance(QtGui.QX11Info.display(),QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
                         vp = '_%s_void_p' % (hex(display)[2:])
