@@ -35,12 +35,12 @@
 from vistrails.core.requirements import MissingRequirement, require_python_module
 import vistrails.core.bundles.installbundle
 
-def check_pyqt4():
-    # checks for the presence of pyqt4, which is more important than the rest,
-    # since using pyqt requires a qapplication.
+def check_qt():
+    # checks for the presence of Qt, which is more important than the rest,
+    # since using Qt requires a qapplication.
     try:
-        require_python_module('PyQt4.QtGui')
-        require_python_module('PyQt4.QtOpenGL')
+        require_python_module('vistrails.gui.QtWrapper.QtGui')
+        require_python_module('vistrails.gui.QtWrapper.QtOpenGL')
     except MissingRequirement:
         r = vistrails.core.bundles.installbundle.install(
             {'linux-ubuntu': ['python-qt4',

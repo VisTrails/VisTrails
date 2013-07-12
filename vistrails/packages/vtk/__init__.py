@@ -52,7 +52,8 @@ def package_requirements():
     import vistrails.core.requirements
     if not vistrails.core.requirements.python_module_exists('vtk'):
         raise vistrails.core.requirements.MissingRequirement('vtk')
-    if not vistrails.core.requirements.python_module_exists('PyQt4'):
+    if not vistrails.core.requirements.python_module_exists(
+            'vistrails.gui.QtWrapper'):
         from vistrails.core import debug
         debug.warning('Qt is not available. There will be no interaction '
                       'between VTK and the spreadsheet.')
