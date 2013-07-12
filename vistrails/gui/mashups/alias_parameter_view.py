@@ -39,7 +39,7 @@ of parameters
 QAliasParameterView
 """
 from vistrails.gui.QtWrapper import QtCore, QtGui
-from vistrails.gui.QtWrapper.QtCore import pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper.QtCore import Signal, Slot
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
@@ -145,7 +145,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
     
     """
     #signals
-    aliasChanged = pyqtSignal(InstanceObject)
+    aliasChanged = Signal(InstanceObject)
     
     def __init__(self, parent=None):
         """ QAliasParameterTreeWidget(parent: QWidget) -> QParameterTreeWidget
@@ -239,7 +239,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                 if moduleItem:
                     moduleItem.setExpanded(True)
                     
-    @pyqtSlot(QtGui.QTreeWidgetItem, int)    
+    @Slot(QtGui.QTreeWidgetItem, int)    
     def changeAlias(self, item, column ):
         """ itemClicked(item:  , column: int) -> None        
         If mouse click on the item, show up a dialog to change/add

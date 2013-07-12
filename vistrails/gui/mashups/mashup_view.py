@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 from vistrails.gui.QtWrapper import QtCore, QtGui
-from vistrails.gui.QtWrapper.QtCore import pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper.QtCore import Signal, Slot
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.mashups.mashups_manager import MashupsManager
@@ -42,7 +42,7 @@ from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON, CANCEL_BUT
 
 class QMashupView(QtGui.QMainWindow, BaseView):
     #signals
-    #mashupChanged = pyqtSignal()
+    #mashupChanged = Signal()
     
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
@@ -213,7 +213,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.button_to_tab_idx[closeButton] = tab_idx
         self.tabBar.setCurrentIndex(tab_idx)
         
-    @pyqtSlot()
+    @Slot()
     def closePreviewTab(self):
         closeButton = self.sender()
         tab_idx = self.button_to_tab_idx[closeButton]
@@ -256,7 +256,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                     self.stack.removeWidget(self.stack.widget(idx))
             tab_idx -= 1
         
-    @pyqtSlot(int)    
+    @Slot(int)    
     def switchTab(self, index):
         try:
             self.stack.setCurrentIndex(self.tab_to_stack_idx[index])

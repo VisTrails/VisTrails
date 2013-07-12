@@ -36,7 +36,7 @@
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
 from vistrails.gui.QtWrapper import QtCore, QtGui
-from vistrails.gui.QtWrapper.QtCore import pyqtSlot, pyqtSignal
+from vistrails.gui.QtWrapper.QtCore import Slot, Signal
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.core.system import systemType
@@ -810,7 +810,7 @@ class QMouseTabBar(QtGui.QTabBar):
     receives a mouse event. For now only doubleclick events are
     emitted."""
     #signals
-    tabDoubleClicked = pyqtSignal(int,QtCore.QPoint)
+    tabDoubleClicked = Signal(int,QtCore.QPoint)
     
     def __init__(self, parent=None):
         QtGui.QTabBar.__init__(self, parent)

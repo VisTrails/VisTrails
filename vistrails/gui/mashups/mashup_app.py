@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 from vistrails.gui.QtWrapper import QtCore, QtGui
-from vistrails.gui.QtWrapper.QtCore import pyqtSignal
+from vistrails.gui.QtWrapper.QtCore import Signal
 
 from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
@@ -46,7 +46,7 @@ spreadsheetController = spreadsheet.spreadsheet_controller.spreadsheetController
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
     #signals
-    appWasClosed = pyqtSignal(QtGui.QMainWindow)
+    appWasClosed = Signal(QtGui.QMainWindow)
     
     def __init__(self, parent=None, vistrail_view=None, dumpcells=False, 
                  controller=None, version=-1):

@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.gui.QtWrapper.QtCore import QObject, pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper.QtCore import QObject, Signal, Slot
 
 from vistrails.core.mashup.controller import MashupController as BaseController
 from vistrails.core.mashup.alias import Alias
@@ -40,8 +40,8 @@ from vistrails.gui.utils import show_warning
 
 class MashupController(BaseController, QObject):
     #signals
-    stateChanged = pyqtSignal()
-    versionChanged = pyqtSignal(int)
+    stateChanged = Signal()
+    versionChanged = Signal(int)
     
     def __init__(self, originalController, vt_controller, vt_version, mshptrail=None):
         QObject.__init__(self)
@@ -68,11 +68,11 @@ class MashupController(BaseController, QObject):
         else:
             return True
         
-    @pyqtSlot(str)
+    @Slot(str)
     def removeAlias(self, name):
         BaseController.removeAlias(self, name)
     
-    @pyqtSlot(Alias)
+    @Slot(Alias)
     def updateAlias(self, alias):
         BaseController.updateAlias(self, alias)
         

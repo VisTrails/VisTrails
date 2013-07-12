@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 from vistrails.gui.QtWrapper import QtCore, QtGui
-from vistrails.gui.QtWrapper.QtCore import pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper.QtCore import Signal, Slot
 import vistrails.core.system
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.mashups.mashups_manager import MashupsManager
@@ -48,7 +48,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
     
     """
     #signals
-    mashupChanged = pyqtSignal()
+    mashupChanged = Signal()
     def __init__(self, controller=None, parent=None):
         """ QMashupsInspector(controller: MashupController,
                             parent: QWidget) -> QMashupsInspector
@@ -331,7 +331,7 @@ class QMashupsListPanel(QtGui.QWidget):
                         
         self.mashupsList.itemSelectionChanged.connect(self.changeSelection)
     
-    @pyqtSlot()
+    @Slot()
     def changeSelection(self):
         items = self.mashupsList.selectedItems()
         if len(items) == 1:
