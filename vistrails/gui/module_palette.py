@@ -39,7 +39,7 @@ QModulePalette
 QModuleTreeWidget
 QModuleTreeWidgetItem
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core import get_vistrails_application
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import systemType

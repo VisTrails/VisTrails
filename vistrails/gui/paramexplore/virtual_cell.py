@@ -34,7 +34,7 @@
 ###############################################################################
 """ This file describe the virtual cell layout widget used in
 Parameter Exploration Tab """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView

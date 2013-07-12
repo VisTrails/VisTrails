@@ -38,7 +38,7 @@
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
 import vtk
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 import sip
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry

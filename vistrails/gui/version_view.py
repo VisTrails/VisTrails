@@ -44,7 +44,7 @@ QGraphicsVersionItem
 QVersionTreeScene
 QVersionTreeView
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.gui.base_view import BaseView

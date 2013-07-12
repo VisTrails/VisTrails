@@ -61,7 +61,8 @@
 
 # ##############################################################################
 
-# from PyQt4 import Qt, QtCore, QtGui
+# sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
+# from vistrails.gui.QtWrapper import Qt, QtCore, QtGui
 
 # class GUIInstallProgress(InstallProgress):
 #     def __init__(self, pbar, status_label):

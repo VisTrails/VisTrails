@@ -36,7 +36,7 @@
 """Widgets to display/edit configuration objects."""
 import os
 import os.path
-from PyQt4 import QtGui, QtCore
+from vistrails.gui.QtWrapper import QtGui, QtCore
 
 from vistrails.core import debug
 from vistrails.core.configuration import ConfigurationObject, \

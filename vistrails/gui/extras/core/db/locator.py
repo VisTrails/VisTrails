@@ -39,7 +39,7 @@ from vistrails.core.db.locator import DBLocator, FileLocator
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
 import vistrails.db.services.io
-from PyQt4 import QtGui, QtCore
+from vistrails.gui.QtWrapper import QtGui, QtCore
 import vistrails.core.system
 import os
 

@@ -49,10 +49,10 @@ from io import StringIO
 
 def has_qt():
     try:
-        import PyQt4.QtGui
+        from vistrails.gui.QtWrapper import QtCore, QtGui
         # Must import this on Ubuntu linux, because PyQt4 doesn't come with
-        # PyQt4.QtOpenGL by default
-        import PyQt4.QtOpenGL
+        # QtOpenGL by default
+        from vistrails.gui.QtWrapper import QtOpenGL
         return True
     except ImportError:
         return False
@@ -164,7 +164,7 @@ def pip_install(package_name):
 
 def show_question(which_files, has_distro_pkg, has_pip):
     if has_qt():
-        from PyQt4 import QtCore, QtGui
+        from vistrails.gui.QtWrapper import QtCore, QtGui
         if isinstance(which_files, str):
             which_files = [which_files]
         dialog = QtGui.QDialog()

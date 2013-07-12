@@ -38,7 +38,7 @@
 #   QCellWidget
 #   QCellToolBar
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 import datetime
 import os
 from vistrails.core import system, debug

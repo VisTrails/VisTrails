@@ -37,7 +37,7 @@
 # interactions to the spreadsheet:
 #   SpreadsheetController
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from spreadsheet_window import SpreadsheetWindow
 
 ################################################################################

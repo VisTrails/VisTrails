@@ -99,7 +99,7 @@ class HSVColorInterpolator(BaseColorInterpolator):
             # Use QtGui.QColor as easy converter between rgb and hsv
             # FIXME: we should not use QtGui here
             try:
-                from PyQt4 import QtGui
+                from vistrails.gui.QtWrapper import QtGui
             except:
                 debug.critical("HSVColorInterpolator cannot be used without QtGui")
                 return 

@@ -37,7 +37,7 @@ import copy
 import os
 import tempfile
 import uuid
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.gui.vistrail_controller import VistrailController
 import vistrails.core.db.action
 from vistrails.core.vistrail.controller import VistrailController as BaseVistrailController

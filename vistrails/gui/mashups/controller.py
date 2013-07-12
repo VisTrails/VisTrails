@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from vistrails.core.mashup.controller import MashupController as BaseController
 from vistrails.core.mashup.alias import Alias

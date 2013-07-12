@@ -147,7 +147,7 @@ import vistrails.gui
 def extract_text(escaped_html_str):
     notes = xml.sax.saxutils.unescape(escaped_html_str)
     try:
-        from PyQt4 import QtGui
+        from vistrails.gui.QtWrapper import QtGui
     except ImportError:
         return str(notes)
     else:

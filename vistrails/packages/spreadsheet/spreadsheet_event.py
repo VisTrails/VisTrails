@@ -35,7 +35,7 @@
 ################################################################################
 # This file contains all Spreadsheet special Qt event classes
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 
 ################################################################################
 

@@ -35,7 +35,7 @@
 from vistrails.core.modules.vistrails_module import Module
 from getpass import getuser
 
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
 from vistrails.gui.theme import CurrentTheme

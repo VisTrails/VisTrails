@@ -37,7 +37,7 @@
 ################################################################################
 from vistrails.core.modules.basic_modules import File
 from vistrails.core.modules.vistrails_module import Module
-from PyQt4 import QtCore, QtGui, QtSvg
+from vistrails.gui.QtWrapper import QtCore, QtGui, QtSvg
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_base import StandardSingleCellSheetReference
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController

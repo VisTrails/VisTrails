@@ -50,7 +50,7 @@ import urllib
 import xmlrpclib
 import ConfigParser
 
-from PyQt4 import QtGui, QtCore
+from vistrails.gui.QtWrapper import QtGui, QtCore
 import SocketServer
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 from datetime import date, datetime

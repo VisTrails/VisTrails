@@ -137,7 +137,7 @@ if __name__ == '__main__':
             raise req
         setNewPyQtAPI()
 
-    from PyQt4 import QtGui
+    from vistrails.gui.QtWrapper import QtGui
     import vistrails.gui.application
     try:
         v = vistrails.gui.application.start_application()

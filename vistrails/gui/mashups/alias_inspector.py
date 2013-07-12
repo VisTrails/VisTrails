@@ -46,8 +46,8 @@ QListEditItemDelegate
 
 """
 import copy
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper import QtCore, QtGui
+from vistrails.gui.QtWrapper.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_basic_pkg_id

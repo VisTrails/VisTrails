@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 
 class BaseView(object):
     """ BaseView is the base class for the views in VisTrails.

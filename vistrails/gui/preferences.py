@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtGui, QtCore
+from vistrails.gui.QtWrapper import QtGui, QtCore
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.modules.package import Package
@@ -638,7 +638,7 @@ class QPreferencesDialog(QtGui.QDialog):
         we guarantee the changes were saved before VisTrails crashes.
         
         """
-        from PyQt4 import QtCore
+        from vistrails.gui.QtWrapper import QtCore
         from vistrails.gui.application import get_vistrails_application
         get_vistrails_application().save_configuration()
 

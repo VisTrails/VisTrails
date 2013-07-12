@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core import system, debug
 from vistrails.core.utils import PortAlreadyExists
 from vistrails.core.vistrail.module_function import ModuleFunction

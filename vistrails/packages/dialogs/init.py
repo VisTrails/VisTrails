@@ -38,7 +38,7 @@ import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 import vistrails.core.system
 import vistrails.gui.application
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 
 ##############################################################################
 

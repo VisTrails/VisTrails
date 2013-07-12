@@ -36,7 +36,7 @@
 the user selects a module's "Edit Configuration"
 
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 from vistrails.gui.modules.module_configure import DefaultModuleConfigurationWidget

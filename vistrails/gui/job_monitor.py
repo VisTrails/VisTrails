@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 
 from vistrails.core import debug, configuration
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface

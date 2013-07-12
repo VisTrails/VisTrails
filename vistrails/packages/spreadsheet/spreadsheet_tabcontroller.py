@@ -37,7 +37,7 @@
 #   StandardWidgetTabController
 ################################################################################
 import os.path
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.db.services.io import SaveBundle

@@ -37,7 +37,7 @@
 # assignPipelineCellLocations
 # executePipelineWithProgress
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.inspector import PipelineInspector

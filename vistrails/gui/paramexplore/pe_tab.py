@@ -36,7 +36,7 @@
 
 QParameterExplorationTab
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape
 from vistrails.core import debug

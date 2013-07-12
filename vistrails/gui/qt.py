@@ -45,7 +45,7 @@ from setting okToCreateQObjects directly.
 As the python saying goes, 'we are all consenting adults here'."""
 
 import inspect
-from PyQt4 import QtGui, QtCore
+from vistrails.gui.QtWrapper import QtGui, QtCore
 import types
 
 ################################################################################

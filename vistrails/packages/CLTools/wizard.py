@@ -38,7 +38,7 @@ import os
 import json
 import subprocess
 import platform
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
                ['\xe2\x80\x9d', '"'],

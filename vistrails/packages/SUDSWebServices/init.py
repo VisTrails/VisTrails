@@ -836,7 +836,7 @@ def loadVistrailFileHook(vistrail, temp_dir):
 def callContextMenu(signature):
     global webServicesDict
     if signature == name:
-        from PyQt4 import QtGui 
+        from vistrails.gui.QtWrapper import QtGui
         wsdl, ret = QtGui.QInputDialog.getText(None, 'Add Web Service',
                                            'Enter the location of the WSDL:')
         wsdl = str(wsdl)
@@ -855,7 +855,7 @@ def callContextMenu(signature):
             configuration.wsdlList = ';'.join(wsdlList)
     elif signature.startswith('SUDS#'):
         address = toAddress(signature)
-        from PyQt4 import QtGui 
+        from vistrails.gui.QtWrapper import QtGui
         res = QtGui.QMessageBox.question(None,
                            'Remove the following web service from vistrails?',
                            address,

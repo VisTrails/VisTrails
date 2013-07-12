@@ -32,8 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper import QtCore, QtGui
+from vistrails.gui.QtWrapper.QtCore import pyqtSignal, pyqtSlot
 import vistrails.core.system
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.mashups.mashups_manager import MashupsManager

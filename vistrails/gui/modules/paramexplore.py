@@ -37,7 +37,7 @@ exploration. This allows user-defined constants to be used as dimensions
 in parameter exploration, provided the user implements the appropriate
 API in the classes.
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \

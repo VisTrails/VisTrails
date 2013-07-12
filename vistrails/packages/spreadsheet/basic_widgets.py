@@ -44,7 +44,7 @@ from spreadsheet_base import (StandardSheetReference,
                               StandardSingleCellSheetReference)
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_event import DisplayCellEvent
-from PyQt4 import QtCore
+from vistrails.gui.QtWrapper import QtCore
 
 ################################################################################
 

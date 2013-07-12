@@ -37,7 +37,7 @@ vistrail views and tools
 
 QViewManager
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.vistrail_view import QVistrailView

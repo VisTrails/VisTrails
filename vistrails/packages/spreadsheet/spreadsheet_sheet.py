@@ -39,7 +39,7 @@
 #   StandardWidgetItemDelegate
 #   StandardWidgetSheet
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from spreadsheet_helpers import CellHelpers, CellResizer
 
 ################################################################################

@@ -39,7 +39,7 @@
 #   StandardSingleCellSheetReference
 #   StandardSingleCellSheetTab
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from spreadsheet_helpers import CellHelpers
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetSheetTab,

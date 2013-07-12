@@ -35,7 +35,7 @@
 """ This containing a subclassed QGraphicsView that allows View the
 pipeline in a specific way in the parameter exploration window
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.pipeline_view import QPipelineView, QGraphicsModuleItem

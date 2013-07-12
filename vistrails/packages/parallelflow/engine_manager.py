@@ -11,7 +11,7 @@ from vistrails.core.system import vistrails_root_directory
 
 
 try:
-    from PyQt4 import QtCore, QtGui
+    from vistrails.gui.QtWrapper import QtCore, QtGui
     QtGui.QDialog
 except Exception:
     qt_available = False
@@ -90,7 +90,7 @@ class EngineManager(object):
             self.profile = 'default'
         elif not qt_available:
             raise ValueError("'default' IPython profile does not exist "
-                             "and PyQt4 is not available")
+                             "and Qt is not available")
         else:
             self.profile = choose_profile(profiles)
 

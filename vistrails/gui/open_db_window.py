@@ -42,7 +42,7 @@ QDBObjectListItem
 QConnectionDBSetupWindow
 
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
 from vistrails.core.external_connection import ExtConnectionList, DBConnection

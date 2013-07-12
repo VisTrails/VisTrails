@@ -35,7 +35,7 @@
 from vistrails.core.bundles.pyimport import py_import
 import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
-from vistrails.gui.QtWrapper import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui, get_qt_binding_name
 from vistrails.gui.theme import CurrentTheme
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
@@ -127,7 +127,7 @@ def PythonEditor(parent=None):
 
 def NewPythonEditor(parent):
     vistrails.core.requirements.require_python_module('PyQt4.Qsci')
-    from PyQt4.Qsci import QsciScintilla, QsciLexerPython
+    from vistrails.gui.QtWrapper.Qsci import QsciScintilla, QsciLexerPython
     class _PythonEditor(QsciScintilla):
     
         def __init__(self, parent=None):

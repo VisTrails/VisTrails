@@ -35,7 +35,7 @@
 ################################################################################
 # Spreadsheet Package for VisTrails
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry

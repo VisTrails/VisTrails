@@ -43,8 +43,8 @@ QAliasList
 
 """
 import copy
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot, pyqtSignal
+from vistrails.gui.QtWrapper import QtCore, QtGui
+from vistrails.gui.QtWrapper.QtCore import pyqtSlot, pyqtSignal
 
 
 from vistrails.core.data_structures.bijectivedict import Bidict

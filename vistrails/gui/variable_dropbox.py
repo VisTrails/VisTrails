@@ -42,7 +42,7 @@ QVariableInputForm
 QDragVariableLabel
 QHoverVariableLabel
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam

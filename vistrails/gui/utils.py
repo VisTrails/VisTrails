@@ -35,7 +35,7 @@
 
 """ Utilities for creating simple dialogs, notifications in Vistrails
 without exposing Qt codes """
-from PyQt4 import QtGui, QtCore
+from vistrails.gui.QtWrapper import QtGui, QtCore
 from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.theme
 from vistrails.core.system import systemType

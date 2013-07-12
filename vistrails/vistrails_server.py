@@ -60,7 +60,7 @@ if __name__ == '__main__':
     import vistrails.gui.requirements
     vistrails.gui.requirements.check_pyqt4()
 
-    from PyQt4 import QtGui
+    from vistrails.gui.QtWrapper import QtGui
     import vistrails.gui.application_server
     import sys
     import os

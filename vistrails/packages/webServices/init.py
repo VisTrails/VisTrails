@@ -45,7 +45,7 @@ import vistrails.core.modules
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.core.modules.basic_modules import Constant
 import enumeration_widget

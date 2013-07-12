@@ -37,7 +37,7 @@
 # web browser view implementation
 ############################################################################
 from vistrails.core.modules.vistrails_module import Module
-from PyQt4 import QtCore, QtGui, QtWebKit
+from vistrails.gui.QtWrapper import QtCore, QtGui, QtWebKit
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import shutil

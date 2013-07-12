@@ -38,8 +38,8 @@ of parameters
 
 QAliasParameterView
 """
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from vistrails.gui.QtWrapper import QtCore, QtGui
+from vistrails.gui.QtWrapper.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget

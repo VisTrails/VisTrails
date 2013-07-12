@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 from vistrails.core.bundles import py_import
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 import urllib
 
 from vistrails.core import debug

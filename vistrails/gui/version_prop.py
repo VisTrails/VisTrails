@@ -46,7 +46,7 @@ QVersionMashups
 """
 import re
 import os.path
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.gui.theme import CurrentTheme

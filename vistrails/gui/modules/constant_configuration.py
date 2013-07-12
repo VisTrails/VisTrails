@@ -39,7 +39,7 @@ used as a template for creating a configuration widget for other custom
 constants.
 
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.utils import any, expression
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme

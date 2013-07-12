@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 """ This modules builds a widget to visualize workflow execution logs """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.group_exec import GroupExec

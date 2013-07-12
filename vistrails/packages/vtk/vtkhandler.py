@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.modules.basic_modules import String
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
 from vistrails.core.modules.module_registry import get_module_registry

@@ -37,13 +37,15 @@
 # Installs a package through APT, showing progress.
 import apt
 import apt_pkg
+import os
 import sys
 import time
 
 from apt_pkg import gettext as _
 from apt.progress.base import InstallProgress, OpProgress, AcquireProgress
 
-from PyQt4 import QtCore, QtGui
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
+from vistrails.gui.QtWrapper import QtCore, QtGui
 
 if __name__ != '__main__':
     import vistrails.tests

@@ -42,7 +42,7 @@
 #   StandardWidgetTabBarEditor
 #   StandardWidgetToolBar
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 import os.path
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet

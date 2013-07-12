@@ -34,7 +34,7 @@
 ###############################################################################
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 import vistrails.api
 
 class QPythonCalc(QtGui.QWidget):

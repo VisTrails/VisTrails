@@ -45,7 +45,7 @@ QGraphicsModuleItem
 QPipelineScene
 QPipelineView
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.db.action import create_action

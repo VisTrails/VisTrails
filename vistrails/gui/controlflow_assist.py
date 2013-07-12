@@ -36,7 +36,7 @@
 
 QControlFlowAssistDialog
 """
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.gui.utils import show_info
 
 ################################################################################

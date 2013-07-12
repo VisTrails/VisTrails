@@ -40,7 +40,7 @@ QInteractiveGraphicsView
 QPIPGraphicsView
 """
 from vistrails.core import debug
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.system

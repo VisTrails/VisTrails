@@ -35,7 +35,7 @@
 ################################################################################
 # ImageViewer widgets/toolbar implementation
 ################################################################################
-from PyQt4 import QtCore, QtGui
+from vistrails.gui.QtWrapper import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar

@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtGui, QtCore
+from vistrails.gui.QtWrapper import QtGui, QtCore
 
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
