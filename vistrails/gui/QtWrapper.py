@@ -67,12 +67,18 @@ else:
 
 if binding == 'PySide':
     from PySide import QtCore, QtGui, QtNetwork, QtSvg
+    sys.modules[__name__ + '.QtCore'] = QtCore
+    sys.modules[__name__ + '.QtGui'] = QtGui
+    sys.modules[__name__ + '.QtNetwork'] = QtNetwork
+    sys.modules[__name__ + '.QtSvg'] = QtSvg
     try:
         from PySide import QtOpenGL
+        sys.modules[__name__ + '.QtOpenGL'] = QtOpenGL
     except ImportError:
         pass
     try:
         from PySide import QtWebKit
+        sys.modules[__name__ + '.QtWebKit'] = QtWebKit
     except ImportError:
         pass
     # This will be passed on to new versions of matplotlib
@@ -87,13 +93,19 @@ if binding == 'PySide':
         return result
 elif binding == 'PyQt4':
     set_sip_api()
-    from PyQt4 import QtGui, QtCore, QtNetwork, QtSvg
+    from PyQt4 import QtCore, QtGui, QtNetwork, QtSvg
+    sys.modules[__name__ + '.QtCore'] = QtCore
+    sys.modules[__name__ + '.QtGui'] = QtGui
+    sys.modules[__name__ + '.QtNetwork'] = QtNetwork
+    sys.modules[__name__ + '.QtSvg'] = QtSvg
     try:
         from PyQt4 import QtOpenGL
+        sys.modules[__name__ + '.QtOpenGL'] = QtOpenGL
     except ImportError:
         pass
     try:
         from PyQt4 import QtWebKit
+        sys.modules[__name__ + '.QtWebKit'] = QtWebKit
     except ImportError:
         pass
     QtCore.Signal = QtCore.pyqtSignal
