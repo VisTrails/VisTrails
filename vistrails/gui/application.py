@@ -36,7 +36,7 @@
 initializations to the theme, packages and the builder...
 
 """
-from vistrails.gui.QtWrapper import QtGui, QtCore, QtNetwork
+from vistrails.gui.QtWrapper import QtGui, QtCore, QtNetwork, get_qt_binding_name
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
 from vistrails.core import command_line
@@ -92,7 +92,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # code for single instance of the application
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
-        if QtCore.QT_VERSION >= 0x40400:
+        if QtCore.QT_VERSION >= 0x40400 and get_qt_binding_name() == 'PyQt4':
             self.timeout = 10000
             self._unique_key = os.path.join(system.home_directory(),
                                             "vistrails-single-instance-check-%s"%getpass.getuser())
