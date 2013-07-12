@@ -79,7 +79,7 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
         elif t == tuple and obj[0] is None and isinstance(obj[1], type):
             self._obj_type = obj[1]
             lst.extend(['', obj[1].__name__])
-            QtGui.QTreeWidget.__init__(self, parent, lst)
+            QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
                           QtCore.Qt.ItemIsEditable)
         else:
