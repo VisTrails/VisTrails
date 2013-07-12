@@ -349,7 +349,7 @@ parameters from other instances")
         Instantiate the GUI for interactive mode
         
         """
-        if self.temp_configuration.check('showSplash'):
+        if get_qt_binding_name() == 'PyQt4' and self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
             debug.DebugPrint.getInstance().register_splash(None)
             self.splashScreen = None
@@ -491,7 +491,7 @@ parameters from other instances")
         Create the splash-screen at startup
         
         """
-        if self.temp_configuration.check('showSplash'):
+        if get_qt_binding_name() == 'PyQt4' and self.temp_configuration.check('showSplash'):
             splashPath = (system.vistrails_root_directory() +
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
