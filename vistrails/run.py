@@ -112,19 +112,9 @@ if __name__ == '__main__':
     disable_lion_restore()
     enable_user_base()
 
-    import vistrails.core.requirements
-    import vistrails.gui.bundles.installbundle
+    import vistrails.gui.requirements
 
-    try:
-        vistrails.core.requirements.require_python_module('PyQt4.QtGui')
-        vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
-    except vistrails.core.requirements.MissingRequirement, req:
-        r = vistrails.gui.bundles.installbundle.install(
-            {'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-fedora': ['PyQt4']})
-        if not r:
-            raise req
+    vistrails.gui.requirements.check_pyqt4()
 
     from vistrails.gui.QtWrapper import QtGui
     import vistrails.gui.application
