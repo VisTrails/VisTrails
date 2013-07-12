@@ -73,8 +73,8 @@ class QToolWindow(QtGui.QDockWidget):
         self.toolbar = QtGui.QToolBar(self.mwindow)
         self.pinButton = QtGui.QAction(CurrentTheme.UNPINNED_PALETTE_ICON,
                                        "", self.toolbar,checkable=True,
-                                       checked=False,
-                                       toggled=self.pinStatusChanged)
+                                       checked=False)
+        self.pinButton.toggled.connect(self.pinStatusChanged)
         
         self.pinButton.setToolTip("Pin this on the Tab Bar")
         spacer = QtGui.QWidget()
