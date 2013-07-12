@@ -48,12 +48,12 @@ import vistrails.gui.qt
 ################################################################################
 
 def _create_configure_shape(w, h):
-    poly = QtGui.QPolygon(3)
-    poly.setPoint(0, 0, 0)
-    poly.setPoint(1, 0, h)
-    poly.setPoint(2, w, h/2)
+    poly = QtGui.QPolygon()
+    poly.append(QtCore.QPoint(0, 0))
+    poly.append(QtCore.QPoint(0, h))
+    poly.append(QtCore.QPoint(w, h/2))
     return QtGui.QPolygonF(poly)
-    
+
 
 class DefaultTheme(DefaultCoreTheme):
     """
