@@ -642,9 +642,7 @@ class QCLToolsWizard(QtGui.QWidget):
         args = self.parse(text)
         title = "Import arguments from man page for '%s'" % command
         self.manpageImport = QManpageImport(title, args, self)
-        self.connect(self.manpageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.manpageImport.importArgs.connect(self.importArgs)
         self.manpageImport.show()
 
     def generateFromHelpPage(self):
@@ -660,9 +658,7 @@ class QCLToolsWizard(QtGui.QWidget):
 
         title = "Import arguments from help page (-h) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.connect(self.helppageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.helppageImport.importArgs.connect(self.importArgs)
         self.helppageImport.show()
 
     def generateFromHelpPage2(self):
@@ -678,9 +674,7 @@ class QCLToolsWizard(QtGui.QWidget):
 
         title = "Import arguments from help page (--help) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.connect(self.helppageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.helppageImport.importArgs.connect(self.importArgs)
         self.helppageImport.show()
 
     def viewManPage(self):
@@ -978,6 +972,8 @@ class QManpageDialog(QtGui.QDialog):
         self.resize(800,600)
 
 class QManpageImport(QtGui.QDialog):
+    importArgs = QtCore.Signal(object)
+
     def __init__(self, title, args, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
@@ -1053,7 +1049,7 @@ class QManpageImport(QtGui.QDialog):
             w.layout().itemAt(1).widget().hide()
             self.argLayout.removeItem(w)
 
-        self.emit(QtCore.SIGNAL('importArgs(PyQt_PyObject)'), args)
+        self.importArgs.emit(args)
 
 class QCLToolsWizardWindow(QtGui.QMainWindow):
 

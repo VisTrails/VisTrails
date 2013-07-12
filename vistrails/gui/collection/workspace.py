@@ -506,6 +506,9 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         Collection.getInstance().commit()
 
 class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
+    vistrailChanged = QtCore.Signal(object)
+    detachVistrail = QtCore.Signal(object)
+
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
@@ -1511,8 +1514,7 @@ class QVistrailList(QtGui.QTreeWidget):
         #print "*** item clicked", id(vistrail.window)
 
         self.setSelected(vistrail.window)
-        self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
-                           vistrail.window)
+        self.parent().vistrailChanged.emit(vistrail.window)
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:

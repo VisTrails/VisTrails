@@ -1109,13 +1109,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                     
         if self.palette_window:
             self.palette_window.hide()
-                        
-        self.connect(QWorkspaceWindow.instance(), 
-                     QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"),
-                     self.change_view)
-        self.connect(QWorkspaceWindow.instance(), 
-                     QtCore.SIGNAL("detachVistrail"),
-                     self.detach_view)
+
+        QWorkspaceWindow.instance().vistrailChanged.connect(self.change_view)
+        QWorkspaceWindow.instance().detachVistrail.connect(self.detach_view)
 
     def dock_palettes(self):
         window = QtGui.QApplication.activeWindow()
