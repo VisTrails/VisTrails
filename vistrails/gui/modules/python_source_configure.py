@@ -35,7 +35,7 @@
 from vistrails.core.bundles.pyimport import py_import
 import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
-from vistrails.gui.QtWrapper import QtCore, QtGui
+from PyQt4 import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
