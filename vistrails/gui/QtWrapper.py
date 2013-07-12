@@ -81,6 +81,8 @@ if binding == 'PySide':
         sys.modules[__name__ + '.QtWebKit'] = QtWebKit
     except ImportError:
         pass
+    QtCore.QT_VERSION_STR = QtCore.__version__
+    QtCore.QT_VERSION = tuple(int(c) for c in QtCore.__version__.split('.'))
     # This will be passed on to new versions of matplotlib
     os.environ['QT_API'] = 'pyside'
     def QtLoadUI(uifile):
