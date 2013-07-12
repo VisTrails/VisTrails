@@ -33,13 +33,14 @@
 ##
 ###############################################################################
 from vistrails.core.bundles.pyimport import py_import
-import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.QtWrapper import QtCore, QtGui, get_qt_binding_name
 from vistrails.gui.theme import CurrentTheme
 
 def TextEditor(parent=None):
     try:
+        if get_qt_binding_name() != 'PyQt4':
+            raise ImportError
         py_import('PyQt4.Qsci', {'linux-ubuntu': 'python-qscintilla2'})
     except ImportError:
         return OldTextEditor(parent)
@@ -47,8 +48,7 @@ def TextEditor(parent=None):
         return NewTextEditor(parent)
 
 def NewTextEditor(parent):
-    vistrails.core.requirements.require_python_module('PyQt4.Qsci')
-    from vistrails.gui.QtWrapper.Qsci import QsciScintilla
+    from PyQt4.Qsci import QsciScintilla
     class _TextEditor(QsciScintilla):
     
         def __init__(self, parent=None):
