@@ -66,7 +66,15 @@ else:
 
 
 if binding == 'PySide':
-    from PySide import QtCore, QtGui
+    from PySide import QtCore, QtGui, QtNetwork, QtSvg
+    try:
+        from PySide import QtOpenGL
+    except ImportError:
+        pass
+    try:
+        from PySide import QtWebKit
+    except ImportError:
+        pass
     # This will be passed on to new versions of matplotlib
     os.environ['QT_API'] = 'pyside'
     def QtLoadUI(uifile):
@@ -79,7 +87,15 @@ if binding == 'PySide':
         return result
 elif binding == 'PyQt4':
     set_sip_api()
-    from PyQt4 import QtGui, QtCore
+    from PyQt4 import QtGui, QtCore, QtNetwork, QtSvg
+    try:
+        from PyQt4 import QtOpenGL
+    except ImportError:
+        pass
+    try:
+        from PyQt4 import QtWebKit
+    except ImportError:
+        pass
     QtCore.Signal = QtCore.pyqtSignal
     QtCore.Slot = QtCore.pyqtSlot
     QtCore.Property = QtCore.pyqtProperty
