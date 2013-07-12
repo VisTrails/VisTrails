@@ -597,7 +597,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.toolBar = StandardWidgetToolBar(self)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
-        self.vLayout.setMargin(0)
+        self.vLayout.setContentsMargins(0, 0, 0, 0)
         self.vLayout.addWidget(self.toolBar, 0)
         self.vLayout.addWidget(self.sheet, 1)
         self.setLayout(self.vLayout)

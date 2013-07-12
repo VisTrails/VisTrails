@@ -398,7 +398,7 @@ class QParameterExplorationTable(QPromptWidget):
         
         vLayout = QtGui.QVBoxLayout(self)
         vLayout.setSpacing(0)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(vLayout)
 
@@ -618,7 +618,7 @@ class QDimensionLabel(QtGui.QWidget):
                            QtGui.QSizePolicy.Maximum)
 
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)        
 
@@ -698,7 +698,7 @@ class QDimensionLabelIcon(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
 
@@ -788,7 +788,7 @@ class QParameterSetEditor(QtGui.QWidget):
             size = 1
         
         vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
 
@@ -834,7 +834,7 @@ class QParameterSetLabel(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)        
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
@@ -873,7 +873,7 @@ class QParameterWidget(QtGui.QWidget):
         self.prevWidget = 0
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 
@@ -952,7 +952,7 @@ class QDimensionSelector(QtGui.QWidget):
                            QtGui.QSizePolicy.Maximum)
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 

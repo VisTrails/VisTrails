@@ -257,7 +257,7 @@ class MashupsManager(object):
                 self.setMashupsList(mashup_trail)
                 
                 hlayout = QtGui.QHBoxLayout()
-                hlayout.setMargin(5)
+                hlayout.setContentsMargins(5, 5, 5, 5)
                 hlayout.setSpacing(5)
                 hlayout.addWidget(self.mashupsList)
                 hlayout.addStretch()

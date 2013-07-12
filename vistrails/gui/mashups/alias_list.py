@@ -79,7 +79,7 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
         self.inspector = QAliasInspector(self.aliases)
         self.updateController(controller)
         self.setLayout(layout)
-        #self.layout().setMargin(0)
+        #self.layout().setContentsMargins(0, 0, 0, 0)
         #self.layout().setSpacing(1)
         self.splitter = QtGui.QSplitter()
         layout.addWidget(self.splitter)

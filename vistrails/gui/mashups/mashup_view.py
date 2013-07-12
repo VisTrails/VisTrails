@@ -58,7 +58,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.button_to_tab_idx = Bidict()
         widget = QtGui.QWidget(self)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.tabBar = QtGui.QTabBar(self)
         self.tabBar.setDocumentMode(True)
@@ -194,7 +194,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         previewApp.appWasClosed.connect(self.previewTabWasClosed)
         
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         #layout.addWidget(self.refreshButton, QtCore.Qt.AlignLeft)
         layout.addWidget(previewApp)

@@ -84,7 +84,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
         ######################################################################
         # Detail Table
         bottom_layout = QtGui.QVBoxLayout(bottom)
-        bottom_layout.setMargin(2)
+        bottom_layout.setContentsMargins(2, 2, 2, 2)
         bottom_layout.setSpacing(2)
 
         # Show what workflows are unrunnble on the repository
@@ -703,7 +703,7 @@ class QRepositoryDialog(QtGui.QDialog):
         self.setWindowTitle('Push vistrail to Web Repository')
 
         l = QtGui.QVBoxLayout(self)
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
 
         widget = QtGui.QWidget(self)

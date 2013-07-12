@@ -62,7 +62,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         # Central widget
         centralWidget = QtGui.QWidget()
         self.mainLayout = QtGui.QVBoxLayout()
-        self.mainLayout.setMargin(0)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(5)
         centralWidget.setLayout(self.mainLayout)
         self.setCentralWidget(centralWidget)
@@ -129,7 +129,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                                    QtGui.QSizePolicy.Preferred)
         buttonLayout = QtGui.QGridLayout()
         buttonWidget.setLayout(buttonLayout)
-        buttonLayout.setMargin(5)
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update", self.centralWidget())
         self.cb_auto_update.setChecked(False)
         self.cb_loop_sequence = QtGui.QCheckBox("Render all steps in '%s'" % self.sequenceOption.alias.name, self.centralWidget())
@@ -167,7 +167,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         buttonLayout.setColumnStretch(0, 1)
         if self.sequenceOption:
             sequenceLayout = QtGui.QHBoxLayout()
-            sequenceLayout.setMargin(5)
+            sequenceLayout.setContentsMargins(5, 5, 5, 5)
             sequenceLayout.addWidget(self.cb_loop_int)
             sequenceLayout.addWidget(self.cb_loop_sequence)
             buttonLayout.addLayout(sequenceLayout, 0, 0, QtCore.Qt.AlignRight)

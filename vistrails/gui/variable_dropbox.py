@@ -195,7 +195,7 @@ class QVerticalWidget(QPromptWidget):
         QPromptWidget.__init__(self, parent)
         self.setPromptText("Drag a constant from the Modules panel to create a variable")
         self.setLayout(QtGui.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(5)
         self.layout().setAlignment(QtCore.Qt.AlignTop)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -327,7 +327,7 @@ class QVariableInputForm(QtGui.QGroupBox):
         """
         QtGui.QGroupBox.__init__(self, parent)
         self.setLayout(QtGui.QGridLayout())
-        self.layout().setMargin(5)
+        self.layout().setContentsMargins(5, 5, 5, 5)
         self.layout().setSpacing(5)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,

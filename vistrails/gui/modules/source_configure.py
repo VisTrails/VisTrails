@@ -74,7 +74,7 @@ class SourceWidget(PortTableConfigurationWidget):
         self.codeEditor = editor_class(parent)
         self.setWindowTitle('%s Configuration' % module.name)
         self.setLayout(QtGui.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
         self.has_inputs = has_inputs
         self.has_outputs = has_outputs
@@ -289,7 +289,7 @@ class SourceConfigurationWidget(SourceWidget):
         
         """
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.detachButton = QtGui.QPushButton("Show read-only window")
         self.buttonLayout.addWidget(self.detachButton)
         self.buttonLayout.addStretch()

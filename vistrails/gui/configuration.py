@@ -257,7 +257,7 @@ class QGeneralConfiguration(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(10)
+        layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
         self.setLayout(layout)
         self._configuration = None
@@ -605,7 +605,7 @@ class QThumbnailConfiguration(QtGui.QWidget):
         
         """
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(10)
+        layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
         self.setLayout(layout)
         

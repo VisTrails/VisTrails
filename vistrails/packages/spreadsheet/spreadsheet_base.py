@@ -165,7 +165,7 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         self.tabWidget = tabWidget
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
-        self.vLayout.setMargin(0)
+        self.vLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.vLayout)
         self.cell = QtGui.QWidget()
         self.layout().addWidget(self.cell)

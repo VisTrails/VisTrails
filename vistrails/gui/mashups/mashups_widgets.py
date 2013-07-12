@@ -59,7 +59,7 @@ class QAliasSliderWidget(QtGui.QWidget):
                      self.contents_changed)
         
         hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(8)
+        hbox.setContentsMargins(8, 8, 8, 8)
         hbox.addWidget(label)
         hbox.addWidget(self.value)
         self.setLayout(hbox)
@@ -163,7 +163,7 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
                      self.contents_changed)
         
         hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(8)
+        hbox.setContentsMargins(8, 8, 8, 8)
         hbox.addWidget(label)
         hbox.addWidget(self.value)
         self.setLayout(hbox)    
@@ -259,7 +259,7 @@ class QDropDownWidget(QtGui.QWidget):
         self.dropdownbtn.setPopupMode(QtGui.QToolButton.InstantPopup)
             
         hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(8)
+        hbox.setContentsMargins(8, 8, 8, 8)
         hbox.addWidget(label)
         hbox.addWidget(self.value)
         hbox.addWidget(self.dropdownbtn)
@@ -271,7 +271,7 @@ class QDropDownWidget(QtGui.QWidget):
                                 QtGui.QSizePolicy.Maximum)
         mbox = QtGui.QVBoxLayout()
         mbox.setSpacing(1)
-        mbox.setMargin(2)
+        mbox.setContentsMargins(2, 2, 2, 2)
         self.menu_widgets = {}   
         valuelist = self.alias.component.valueList
        
@@ -372,7 +372,7 @@ class QMenuValueItem(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.widget = widget
         vlayout = QtGui.QVBoxLayout()
-        vlayout.setMargin(0)
+        vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.setSpacing(0)
         vlayout.addWidget(self.widget)
         self.setLayout(vlayout)

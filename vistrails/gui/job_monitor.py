@@ -63,7 +63,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
 #        self.layout.setContentsMargins(5, 5, 0, 0)
 
         buttonsLayout = QtGui.QHBoxLayout()
-        #buttonsLayout.setMargin(5)
+        #buttonsLayout.setContentsMargins(5, 5, 5, 5)
         #buttonsLayout.setSpacing(5)
         run_now = QDockPushButton("Check now")
         run_now.setToolTip("Check all jobs now")

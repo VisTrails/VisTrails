@@ -515,7 +515,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
 #        self.workspace_list = QtGui.QComboBox()
 #        self.titleWidget = QtGui.QWidget()
 #        self.titleLayout = QtGui.QHBoxLayout()
-#        self.titleLayout.setMargin(0)
+#        self.titleLayout.setContentsMargins(0, 0, 0, 0)
 #        self.titleLayout.setSpacing(5)
 #        self.titleLayout.addWidget(QtGui.QLabel('Project:'), 0)
 #        self.titleLayout.addWidget(self.workspace_list, 1)
@@ -528,7 +528,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
 #                     QtCore.SIGNAL("currentIndexChanged(QString)"),
 #                     self.workspace_changed)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 #        self.search_box = QSearchBox(True, False, self)
 #        layout.addWidget(self.search_box)
@@ -707,7 +707,7 @@ class QExplorerDialog(QToolWindow, QToolWindowInterface):
                      QtCore.SIGNAL("currentIndexChanged(QString)"),
                      self.workspace_changed)
         layout = QtGui.QVBoxLayout()
-#        layout.setMargin(0)
+#        layout.setContentsMargins(0, 0, 0, 0)
 #        layout.setSpacing(5)
         self.search_box = QSearchBox(True, False, self)
         layout.addWidget(self.search_box)

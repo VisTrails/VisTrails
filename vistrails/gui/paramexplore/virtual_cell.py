@@ -201,7 +201,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         self.setFrameShape(QtGui.QFrame.StyledPanel)
         self.setWindowTitle('Spreadsheet Virtual Cell')
         vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(2)
+        vLayout.setContentsMargins(2, 2, 2, 2)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
@@ -213,7 +213,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         vLayout.addWidget(label)
 
         hLayout = QtGui.QVBoxLayout()
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         vLayout.addLayout(hLayout)
         self.config = QVirtualCellConfiguration()
@@ -471,7 +471,7 @@ class QVirtualCellLabel(QtGui.QLabel):
 
         """
         QtGui.QLabel.__init__(self, parent)
-        self.setMargin(2)
+        self.setContentsMargins(2, 2, 2, 2)
         self.cellType = None
         self.setCellData(label, id)
         self.setAcceptDrops(True)

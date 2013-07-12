@@ -73,7 +73,7 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Add ok/cancel buttons
         buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.okButton = QtGui.QPushButton('&OK', self)
         self.okButton.setAutoDefault(False)
         self.okButton.setFixedWidth(100)

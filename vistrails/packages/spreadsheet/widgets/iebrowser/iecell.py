@@ -77,7 +77,7 @@ class IECellWidget(QCellWidget):
         """
         QCellWidget.__init__(self, parent)
         vbox = QtGui.QVBoxLayout(self)
-        vbox.setMargin(0)
+        vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)
         self.browser = QAxContainer.QAxWidget(self)
         self.browser.setFocusPolicy(QtCore.Qt.StrongFocus)

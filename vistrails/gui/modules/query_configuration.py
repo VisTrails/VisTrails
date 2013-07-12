@@ -97,7 +97,7 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
         self.contents_widget = contents_klass(param)
         self.contents_widget.setContents(contents)
 
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.op_button)
         layout.addWidget(self.contents_widget)

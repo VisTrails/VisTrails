@@ -109,7 +109,7 @@ class QGISCellWidget(QCellWidget):
         QCellWidget.__init__(self, parent)
         centralLayout = QtGui.QVBoxLayout()
         self.setLayout(centralLayout)
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
 
     def updateContents(self, inputPorts):

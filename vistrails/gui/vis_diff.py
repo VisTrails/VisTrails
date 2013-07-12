@@ -142,7 +142,7 @@ class QParamInspector(QtGui.QWidget):
         self.setWindowTitle('Parameter Inspector - None')
         self.firstTime = True        
         self.boxLayout = QtGui.QVBoxLayout()
-        self.boxLayout.setMargin(0)
+        self.boxLayout.setContentsMargins(0, 0, 0, 0)
         self.boxLayout.setSpacing(0)
         self.tabWidget = QtGui.QTabWidget()
         self.tabWidget.setTabPosition(QtGui.QTabWidget.North)
@@ -213,7 +213,7 @@ class QLegendWindow(QtGui.QWidget):
         self.setWindowTitle('Visual Diff Legend')
         self.firstTime = True
         self.gridLayout = QtGui.QGridLayout(self)
-        self.gridLayout.setMargin(10)
+        self.gridLayout.setContentsMargins(10, 10, 10, 10)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
@@ -281,12 +281,12 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         self.set_title("Diff Properties")
  
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.legend = QLegendWindow()
         legend_group = QtGui.QGroupBox("Legend")
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.legend)
         legend_group.setLayout(g_layout)
@@ -295,7 +295,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         self.params = QParamTable()
         params_group = QtGui.QGroupBox("Parameter Changes")
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.params)
         params_group.setLayout(g_layout)

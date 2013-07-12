@@ -287,7 +287,7 @@ class QQueryBox(QtGui.QWidget):
 
     def build_widget(self):
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(4)
+        layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(2)
         self.searchBox = QSearchBox(True, False, self)
         layout.addWidget(self.searchBox)
@@ -439,7 +439,7 @@ class QQueryView(QtGui.QWidget, BaseView):
 
     def build_widget(self):
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
         self.query_controller = QueryController(self)

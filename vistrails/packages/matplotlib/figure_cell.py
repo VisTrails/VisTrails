@@ -84,7 +84,7 @@ class MplFigureCellWidget(QCellWidget):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         centralLayout = QtGui.QVBoxLayout()
         self.setLayout(centralLayout)
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)        
         # self.figManager = pylab.get_current_fig_manager()
         # self.figManager = None

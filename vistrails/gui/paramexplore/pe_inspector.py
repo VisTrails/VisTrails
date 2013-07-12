@@ -47,13 +47,13 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         self.set_title("Explore Inspector")
 
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(3)
 
         self.pe_properties = QParamExpProperties()
         p_prop_group = QtGui.QGroupBox(self.pe_properties.windowTitle())
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.pe_properties)
         p_prop_group.setLayout(g_layout)
@@ -61,7 +61,7 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         self.virtual_cell = QVirtualCellWindow()
         v_cell_group = QtGui.QGroupBox(self.virtual_cell.windowTitle())
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.virtual_cell)
         v_cell_group.setLayout(g_layout)
@@ -121,7 +121,7 @@ class QParamExpProperties(QtGui.QWidget):
         self.forwardAction = None
         vLayout = QtGui.QVBoxLayout()
         self.setLayout(vLayout)
-        vLayout.setMargin(3)
+        vLayout.setContentsMargins(3, 3, 3, 3)
         vLayout.setSpacing(3)
         gLayout = QtGui.QGridLayout()
         gLayout.setColumnMinimumWidth(1,5)
@@ -130,7 +130,7 @@ class QParamExpProperties(QtGui.QWidget):
         gLayout.setRowMinimumHeight(2,24)
         gLayout.setRowMinimumHeight(3,24)        
         vLayout.addLayout(gLayout)
-        gLayout.setMargin(3)
+        gLayout.setContentsMargins(3, 3, 3, 3)
         gLayout.setSpacing(3)
         
         #vtVersionLabel = QtGui.QLabel('Workflow:', self)

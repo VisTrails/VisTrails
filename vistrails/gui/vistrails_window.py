@@ -1987,7 +1987,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         dlg = QtGui.QDialog(self, QtCore.Qt.FramelessWindowHint)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         bgimage = About(dlg)
         bgimage.setPixmap(CurrentTheme.DISCLAIMER_IMAGE)

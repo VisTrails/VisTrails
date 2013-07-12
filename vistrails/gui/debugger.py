@@ -53,7 +53,7 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
         self.app = vistrails.gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.inspector)
         self.setLayout(layout)

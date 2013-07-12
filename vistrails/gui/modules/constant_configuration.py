@@ -293,7 +293,7 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
     def __init__(self, param, parent=None):
         QtGui.QWidget.__init__(self)
         self.setLayout(QtGui.QHBoxLayout())
-        self.layout().setMargin(5)
+        self.layout().setContentsMargins(5, 5, 5, 5)
         self.layout().setSpacing(5)
 
         self._widget = None
@@ -513,7 +513,7 @@ class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         layout = QtGui.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = self.create_browse_button()
-        layout.setMargin(5)
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
         layout.addWidget(self.line_edit)
         layout.addWidget(self.browse_button)
@@ -724,7 +724,7 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
                      QtCore.SIGNAL("color_selected"),
                      self.update_parent)
         self._last_contents = contents
-        layout.setMargin(5)
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
         layout.addWidget(self.color_indicator)
         layout.addStretch(1)

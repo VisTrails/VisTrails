@@ -80,7 +80,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         
         self.controller = controller
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
 

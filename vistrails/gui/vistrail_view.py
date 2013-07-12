@@ -80,7 +80,7 @@ class QVistrailView(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         layout = QtGui.QVBoxLayout(self)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.is_executing = False
         self.is_abstraction = False

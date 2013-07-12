@@ -613,7 +613,7 @@ class PersistentRefViewSearch(QtGui.QGroupBox):
         layout.addWidget(self.search_ref)
         self.ref_widget = PersistentRefView(path_type, self)
         layout.addWidget(self.ref_widget)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
     def search_string(self, str):
@@ -648,7 +648,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.current_path = ""
 
         layout = QtGui.QVBoxLayout()
-#         layout.setMargin(0)
+#         layout.setContentsMargins(0, 0, 0, 0)
 #         layout.setSpacing(0)
 
         if not is_input:
@@ -980,7 +980,7 @@ class PersistentRefInlineWidget(QtGui.QWidget, ConstantWidgetMixin):
         button.setMaximumWidth(100)
         self.connect(button, QtCore.SIGNAL('clicked()'), self.run_dialog)
         layout.addWidget(button)
-        layout.setMargin(5)
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
         self.setLayout(layout)
         

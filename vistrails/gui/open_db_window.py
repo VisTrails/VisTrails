@@ -105,7 +105,7 @@ class QOpenDBWindow(QtGui.QDialog):
         self.removeButton.setEnabled(False)
         
         panelButtonsLayout = QtGui.QHBoxLayout()
-        panelButtonsLayout.setMargin(0)
+        panelButtonsLayout.setContentsMargins(0, 0, 0, 0)
         panelButtonsLayout.setSpacing(0)
         panelButtonsLayout.addWidget(self.addButton)
         panelButtonsLayout.addWidget(self.removeButton)

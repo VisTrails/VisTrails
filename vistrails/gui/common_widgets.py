@@ -296,7 +296,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         self.setWindowTitle('Search Tree')
         
         vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
@@ -407,7 +407,7 @@ class QStringEdit(QtGui.QFrame):
         """
         QtGui.QFrame.__init__(self, parent)        
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 
@@ -562,7 +562,7 @@ class QSearchBox(QtGui.QWidget):
         self.setWindowTitle('Search')
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(2)
         self.setLayout(hLayout)
 
@@ -599,7 +599,7 @@ class QSearchBox(QtGui.QWidget):
             pix = CurrentTheme.QUERY_VIEW_ICON.pixmap(QtCore.QSize(16,16))
             self.searchLabel.setPixmap(pix)
             self.searchLabel.setAlignment(QtCore.Qt.AlignCenter)
-            self.searchLabel.setMargin(4)
+            self.searchLabel.setContentsMargins(4, 4, 4, 4)
             hLayout.addWidget(self.searchLabel)
         
         hLayout.addWidget(self.searchEdit)

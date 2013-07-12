@@ -533,7 +533,7 @@ class QPreferencesDialog(QtGui.QDialog):
         self._status_bar = QtGui.QStatusBar(self)
         self.setWindowTitle('VisTrails Preferences')
         layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
 

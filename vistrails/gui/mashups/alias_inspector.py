@@ -137,19 +137,19 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.dw_stepsize_edit = QtGui.QLineEdit()
         
         l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_minval_label)
         l.addWidget(self.dw_minval_edit)
         self.dw_slider_layout.addLayout(l)
         l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_maxval_label)
         l.addWidget(self.dw_maxval_edit)
         self.dw_slider_layout.addLayout(l)
         l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_stepsize_label)
         l.addWidget(self.dw_stepsize_edit)
@@ -464,7 +464,7 @@ class QValuesListEditor(QtGui.QWidget):
         self.controller = controller
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
         
@@ -572,7 +572,7 @@ class QListEditDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self._alias = alias
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.controller = controller
         self.setLayout(vLayout)
@@ -580,7 +580,7 @@ class QListEditDialog(QtGui.QDialog):
         label = QtGui.QLabel("Please enter values in boxes below. "
                              "'Add' appends an empty value to the list. "
                              "And 'Del' removes the selected values.")
-        label.setMargin(5)
+        label.setContentsMargins(5, 5, 5, 5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 

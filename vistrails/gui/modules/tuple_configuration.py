@@ -262,7 +262,7 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
@@ -367,7 +367,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
 
         # Add an empty vertical layout
         centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.setLayout(centralLayout)
         
@@ -476,7 +476,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
 
         # Add an empty vertical layout
         centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.setLayout(centralLayout)
         

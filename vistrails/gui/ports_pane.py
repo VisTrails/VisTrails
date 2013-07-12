@@ -157,7 +157,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
         h_layout = QtGui.QHBoxLayout()
         h_layout.insertSpacing(0, 10)
-        h_layout.setMargin(2)
+        h_layout.setContentsMargins(2, 2, 2, 2)
         h_layout.setSpacing(2)
 
         v_layout = QtGui.QVBoxLayout()
@@ -192,7 +192,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         self.my_labels = []
         self.group_box = QtGui.QGroupBox()
         layout = QtGui.QGridLayout()
-        layout.setMargin(5)
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
         layout.setColumnStretch(1,1)
         self.group_box.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -599,7 +599,7 @@ class QPortsPane(QtGui.QWidget, QToolWindowInterface):
     def build_widget(self):
         self.tree_widget = PortsList(self.port_type)
         layout = QtGui.QHBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.tree_widget)
         self.setLayout(layout)
         self.setWindowTitle('%s Ports' % self.port_type.capitalize())

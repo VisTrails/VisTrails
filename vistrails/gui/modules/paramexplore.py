@@ -86,7 +86,7 @@ class QParameterEditor(QtGui.QWidget):
         self.defaultValue = param_info.value
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
@@ -223,7 +223,7 @@ def make_interpolator(widget_class, interpolator_class, name):
             self.type = param_info.spec.descriptor.name
 
             hLayout = QtGui.QHBoxLayout(self)
-            hLayout.setMargin(0)
+            hLayout.setContentsMargins(0, 0, 0, 0)
             hLayout.setSpacing(0)
             self.setLayout(hLayout)
 
@@ -312,7 +312,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         self.type = param_info.spec.descriptor.name
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
         
@@ -427,7 +427,7 @@ class QListEditDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.pType = pType
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
@@ -435,7 +435,7 @@ class QListEditDialog(QtGui.QDialog):
                              "rows up and down to arrange your list values. "
                              "'Add' appends an empty value to the list. "
                              "And 'Del' removes the selected values.")
-        label.setMargin(5)
+        label.setContentsMargins(5, 5, 5, 5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 
@@ -626,7 +626,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         self.function = self.defaultFunction()
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
         
@@ -760,7 +760,7 @@ class QUserFunctionDialog(QtGui.QDialog):
         """
         QtGui.QDialog.__init__(self, parent)
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         self.setWindowTitle('User-defined Function')
@@ -769,7 +769,7 @@ class QUserFunctionDialog(QtGui.QDialog):
                              "'value(i)' function will be iteratively called "
                              "for <step count> numbers. For each step, "
                              "it should return a value of parameter type.")
-        label.setMargin(5)
+        label.setContentsMargins(5, 5, 5, 5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 

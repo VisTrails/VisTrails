@@ -260,7 +260,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.sheet = sheet
         self.row = -1
         self.col = -1
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
         self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
@@ -636,7 +636,7 @@ class QCellContainer(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.containedWidget = None
         self.setWidget(widget)
@@ -694,7 +694,7 @@ class QCellPresenter(QtGui.QLabel):
         QtGui.QLabel.__init__(self, parent)        
         self.setAutoFillBackground(True)
         self.setScaledContents(True)
-        self.setMargin(0)
+        self.setContentsMargins(0, 0, 0, 0)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.cellWidget = None
 
@@ -827,7 +827,7 @@ class QPipelineInfo(QtGui.QFrame):
         
         topLayout = QtGui.QVBoxLayout(self)
         topLayout.setSpacing(0)
-        topLayout.setMargin(0)
+        topLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(topLayout)
 
         hLine = QtGui.QFrame()
@@ -837,7 +837,7 @@ class QPipelineInfo(QtGui.QFrame):
 
         layout = QtGui.QGridLayout()
         layout.setSpacing(2)
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         topLayout.addLayout(layout)
 
         self.edits = []
@@ -892,7 +892,7 @@ class QCellManipulator(QtGui.QFrame):
         
         layout = QtGui.QVBoxLayout(self)
         layout.setSpacing(0)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         layout.addStretch()
@@ -1134,7 +1134,7 @@ class QCellDragLabel(QtGui.QLabel):
         
         """
         QtGui.QLabel.__init__(self, parent)
-        self.setMargin(0)
+        self.setContentsMargins(0, 0, 0, 0)
         self.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
         self.setPixmap(pixmap)
         self.setScaledContents(True)

@@ -99,7 +99,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
                                                    parent)
        
         self.setLayout(QtGui.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
         self.scrollArea = QtGui.QScrollArea(self)
         self.layout().addWidget(self.scrollArea)
@@ -113,7 +113,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.outputDict = {}
         self.constructList()
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
