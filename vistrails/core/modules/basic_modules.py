@@ -688,22 +688,6 @@ class Color(Constant):
 
 ##############################################################################
 
-# class OutputWindow(Module):
-    
-#     def compute(self):
-#         v = self.getInputFromPort("value")
-#         from PyQt4 import QtCore, QtGui
-#         QtGui.QMessageBox.information(None,
-#                                       "VisTrails",
-#                                       str(v))
-
-#Removing Output Window because it does not work with current threading
-#reg.add_module(OutputWindow)
-#reg.add_input_port(OutputWindow, "value",
-#                               Module)
-
-##############################################################################
-
 class StandardOutput(NotCacheable, Module):
     """StandardOutput is a VisTrails Module that simply prints the
     value connected on its port to standard output. It is intended
