@@ -831,3 +831,26 @@ class QDockPushButton(QtGui.QPushButton):
         QtGui.QPushButton.__init__(self, text, parent) 
         if systemType in ['Darwin']:
             self.setMinimumHeight(32)
+
+###############################################################################
+
+class QElideLabel(QtGui.QLabel):
+    def paintEvent(self, event):
+        fm = QtGui.QFontMetrics(self.font())
+        was_elided = False
+        if fm.width(self.text()) > self.contentsRect().width():
+            old_text = self.text()
+            elided_text = self.fontMetrics().elidedText(self.text(),
+                                                        QtCore.Qt.ElideRight,
+                                                    self.contentsRect().width())
+            self.setText(elided_text)
+            was_elided = True
+        QtGui.QLabel.paintEvent(self, event)
+        if was_elided:
+            self.setText(old_text)
+
+    def sizeHint(self):
+        return QtCore.QSize(10, QtGui.QLabel.sizeHint(self).height())
+
+    def minimumSizeHint(self):
+        return QtCore.QSize(10, QtGui.QLabel.minimumSizeHint(self).height())

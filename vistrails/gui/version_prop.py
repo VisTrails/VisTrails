@@ -50,7 +50,7 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.common_widgets import QSearchBox
+from vistrails.gui.common_widgets import QSearchBox, QElideLabel
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.core.utils import all
 from vistrails.core import debug
@@ -123,7 +123,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         idLabel = QtGui.QLabel('ID:', self)
         gLayout.addWidget(idLabel, 3, 0, 1, 1)
         
-        self.idEdit = QtGui.QLabel('', self)
+        self.idEdit = QElideLabel('', self)
         gLayout.addWidget(self.idEdit, 3, 2, 1, 1)
 
         self.notesLabel = QtGui.QLabel('Notes:')
@@ -176,7 +176,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.tagEdit.setText(name)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
-                self.idEdit.setText(unicode(action.id))
+                self.idEdit.setText(action.id)
                 self.tagEdit.setEnabled(True)
                 return
             else:
