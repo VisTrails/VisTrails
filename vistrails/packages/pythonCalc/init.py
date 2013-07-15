@@ -120,7 +120,8 @@ def initialize(*args, **keywords):
     reg.add_input_port(PythonCalc, "value2",
                        (vistrails.core.modules.basic_modules.Float, 'the second argument'))
     reg.add_input_port(PythonCalc, "op",
-                       (vistrails.core.modules.basic_modules.String, 'the operation'))
+                       (vistrails.core.modules.basic_modules.String, 'the operation'),
+                       entry_types=['enum'], values=["['+', '-', '*', '/']"])
     reg.add_output_port(PythonCalc, "value",
                         (vistrails.core.modules.basic_modules.Float, 'the result'))
 

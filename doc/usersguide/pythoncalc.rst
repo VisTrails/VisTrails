@@ -60,8 +60,11 @@
                           (core.modules.basic_modules.Float, 'the first argument'))
        reg.add_input_port(PythonCalc, "value2",
                           (core.modules.basic_modules.Float, 'the second argument'))
+       # We declare this port as an enum, so that the user may only select one of
+       # the listed values
        reg.add_input_port(PythonCalc, "op",
-                          (core.modules.basic_modules.String, 'the operation'))
+                          (core.modules.basic_modules.String, 'the operation'),
+                          entry_types=['enum'], values=["['+', '-', '*', '/']"])
        reg.add_output_port(PythonCalc, "value",
                           (core.modules.basic_modules.Float, 'the result'))
 
