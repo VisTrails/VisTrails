@@ -5,8 +5,8 @@ import time
 import contextlib
 
 
-class SafeClient(Client):
-    """Subclass of IPython.parallel.Client adding callbacks for AsyncResults.
+class SafeClient(object):
+    """Wrapper for IPython.parallel.Client adding callbacks for AsyncResults.
 
     This adds an add_callback() method that can be used to safely get called
     back once a result becomes available. It is safe to wait on different
