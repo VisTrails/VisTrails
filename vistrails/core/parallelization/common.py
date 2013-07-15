@@ -161,26 +161,31 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
                 errors.append(msg)
 
         # Get the execution log from the controller
-        module_outputs = []
         for module_log in controller.log.workflow_execs[0].item_execs:
-            # Get the requested output values
-            annotations = module_log.annotations
-            for annotation in annotations:
-                if annotation.key == 'output':
-                    module_outputs = annotation.value
-                    break
-
-            if module_outputs:
+            if module_log.module_id == moduleId:
                 machine = controller.log.machine_list[0]
                 xml_log = serialize(module_log)
                 machine_log = serialize(machine)
-                break
 
-        # Store the output values in the order they were requested
+                break
+        else:
+            errors.append("Module log not found")
+            return dict(errors=errors)
+
+        # Get the output values
         outputs = {}
-        for m_output in module_outputs:
-            if m_output[0] in output_ports:
-                outputs[m_output[0]] = m_output[1]
+        for executed_module in execution[0][0].executed:
+            if executed_module != moduleId:
+                continue
+            executed_module = execution[0][0].objects[executed_module]
+            try:
+                for port in output_ports:
+                    outputs[port] = executed_module.get_output(port)
+                break
+            except ModuleError, e:
+                errors.append("Output port not found: %s (%s)" % (port, e.msg))
+        else:
+            errors.append("Module not found")
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
@@ -218,10 +223,6 @@ def module_to_serialized_pipeline(module):
 
         group.pipeline = pipeline_db_module.pipeline
         pipeline_db_module = group
-
-    # store output data
-    annotation = Annotation(key='annotate_output', value=True)
-    pipeline_db_module.add_annotation(annotation)
 
     # serializing module
     wf = _serialize_module(pipeline_db_module)
