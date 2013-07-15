@@ -571,8 +571,19 @@ class DirectorySink(NotCacheable, Module):
                 (input_dir.name, full_path)
             raise ModuleError(self, msg + '\n' + str(e))
 
+##############################################################################
 
-        
+class WriteFile(Converter):
+    """Writes a String to a temporary File.
+    """
+    def compute(self):
+        contents = self.getInputFromPort('in_value')
+        suffix = self.forceGetInputFromPort('suffix', '')
+        result = self.interpreter.filePool.create_file(suffix=suffix)
+        with open(result.name, 'wb') as fp:
+            fp.write(contents)
+        self.setResult('out_value', result)
+
 ##############################################################################
 
 class Color(Constant):
@@ -1158,6 +1169,11 @@ def initialize(*args, **kwargs):
     reg.add_input_port(DirectorySink, "outputPath", OutputPath)
     reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
                        defaults="(True,)")
+
+    reg.add_module(WriteFile)
+    reg.add_input_port(WriteFile, 'in_value', String)
+    reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
+    reg.add_output_port(WriteFile, 'out_value', File)
 
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)
