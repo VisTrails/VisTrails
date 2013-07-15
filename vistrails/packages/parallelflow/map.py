@@ -105,6 +105,7 @@ def execute_wf(wf, output_port):
             output = executed_module.get_output(output_port)
         except ModuleError, e:
             errors.append("Output port not found: %s" % output_port)
+            return dict(errors=errors)
         reg = vistrails.core.modules.module_registry.get_module_registry()
         base_classes = inspect.getmro(type(output))
         if Module in base_classes:
