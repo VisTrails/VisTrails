@@ -44,7 +44,18 @@
        # we can refer to it in a shorter way.
        reg = core.modules.module_registry.registry
 
+       # VisTrails cannot currently automatically detect your derived
+       # classes, and the ports that they support as input and
+       # output. Because of this, you as a module developer need to let
+       # VisTrails know that you created a new module. This is done by calling
+       # function addModule:
        reg.add_module(PythonCalc)
+
+       # In a similar way, you need to report the ports the module wants
+       # to make available. This is done by calling addInputPort and
+       # addOutputPort appropriately. These calls only show how to set up
+       # one-parameter ports. We'll see in later tutorials how to set up
+       # multiple-parameter plots.
        reg.add_input_port(PythonCalc, "value1", 
                           (core.modules.basic_modules.Float, 'the first argument'))
        reg.add_input_port(PythonCalc, "value2",
@@ -60,7 +71,7 @@
    ###############################################################################
    ##
    ## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah.
+   ## Copyright (C) 2006-2011, University of Utah.
    ## All rights reserved.
    ## Contact: contact@vistrails.org
    ##
