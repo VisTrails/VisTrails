@@ -98,34 +98,20 @@ def execute_wf(wf, output_port):
         xml_log = serialize(module_log)
         machine_log = serialize(machine)
 
-        # Get the requested output values
-        module_outputs = []
-        annotations = module_log.annotations
-        for annotation in annotations:
-            if annotation.key == 'output':
-                module_outputs = annotation.value
-                break
-
-        # Store the output values in the order they were requested
-        reg = vistrails.core.modules.module_registry.get_module_registry()
-        output = None
-        serializable = None
-        found = False
-        for m_output in module_outputs:
-            if m_output[0] == output_port:
-                # checking if output port needs to be serialized
-                base_classes = inspect.getmro(type(m_output[1]))
-                if Module in base_classes:
-                    output = m_output[1].serialize()
-                    serializable = reg.get_descriptor(type(m_output[1])).sigstring
-                else:
-                    output = m_output[1]
-                    serializable = None
-                found = True
-                break
-
-        if not found:
+        # Get the output value
+        executed_module, = execution[0][0].executed
+        executed_module = execution[0][0].objects[executed_module]
+        try:
+            output = executed_module.get_output(output_port)
+        except ModuleError, e:
             errors.append("Output port not found: %s" % output_port)
+        reg = vistrails.core.modules.module_registry.get_module_registry()
+        base_classes = inspect.getmro(type(output))
+        if Module in base_classes:
+            serializable = reg.get_descriptor(type(output)).sigstring
+            output = output.serialize()
+        else:
+            serializable = None
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
@@ -286,10 +272,6 @@ class Map(Module, NotCacheable):
 
                     mod_function.add_parameter(mod_param)
                     pipeline_db_module.add_function(mod_function)
-
-                # store output data
-                annotation = Annotation(key='annotate_output', value=True)
-                pipeline_db_module.add_annotation(annotation)
 
                 # serializing module
                 wf = self.serialize_module(pipeline_db_module)
