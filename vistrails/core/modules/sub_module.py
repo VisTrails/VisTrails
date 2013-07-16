@@ -35,6 +35,7 @@
 
 """ Define facilities for setting up SubModule Module in VisTrails """
 from itertools import izip
+import operator
 import random
 import uuid
 
@@ -42,12 +43,12 @@ from vistrails.core.cache.hasher import Hasher
 from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
 from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
-    NotCacheable, identifier as basic_pkg
-from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError, ModuleSuspended
-from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
+    identifier as basic_pkg
+from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
+    new_module, ModuleError, ModuleSuspended
+from vistrails.core.modules.vistrails_module.parallel import RemoteExecution
+from vistrails.core.utils import VistrailsInternalError
 import os.path
-import vistrails.db
 
 try:
     import hashlib
@@ -78,7 +79,7 @@ class OutputPort(Module):
     def compute(self):
         inPipe = self.getInputFromPort('InternalPipe')
         self.setResult('ExternalPipe', inPipe)
-    
+
 ###############################################################################
 
 class Group(Module):
@@ -88,27 +89,15 @@ class Group(Module):
         self.persistent_modules = []
 
     def compute(self):
-        if not hasattr(self, 'pipeline') or self.pipeline is None:
-            raise VistrailsInternalError("%s cannot execute--" % \
-                                             self.__class__.__name__ + \
-                                         "pipeline doesn't exist")
-        elif not hasattr(self, 'input_remap') or self.input_remap is None or \
-                not hasattr(self, 'output_remap') or self.output_remap is None:
-            raise VistrailsInternalError("%s cannot execute--" % \
-                                             self.__class__.__name__ + \
-                                         "remap dictionaries don't exist")
-            
-        res = self.interpreter.setup_pipeline(self.pipeline)
-        self.persistent_modules = res[0].values()
-        if len(res[5]) > 0:
-            raise ModuleError(self, 'Error(s) inside group:\n' +
-                              '\n'.join(me.msg for me in res[5].itervalues()))
-        tmp_id_to_module_map = res[0]
+        tmp_id_to_module_map = self.setup_result[0]
+
+        # Connect Group's external input ports to internal InputPort modules
         for iport_name, conn in self.inputPorts.iteritems():
             iport_module = self.input_remap[iport_name]
             iport_obj = tmp_id_to_module_map[iport_module.id]
             iport_obj.set_input_port('ExternalPipe', conn[0])
-        
+
+        # Execute pipeline
         kwargs = {'logger': self.logging.log, 'clean_pipeline': True,
                   'current_version': self.moduleInfo['version']}
         module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
@@ -119,29 +108,79 @@ class Group(Module):
 #         if hasattr(self, 'group_exec'):
 #             kwargs['parent_exec'] = self.group_exec
 
-        res = self.interpreter.execute_pipeline(self.pipeline, *(res[:2]), 
+        res = self.interpreter.execute_pipeline(self.pipeline,
+                                                *(self.setup_result[:2]),
                                                 **kwargs)
+
+        # Check and propagate errors
         if len(res[2]) > 0:
             raise ModuleError(self, 'Error(s) inside group:\n' +
-                              '\n '.join(me.module.__class__.__name__ + ': ' + \
-                                            me.msg for me in res[2].itervalues()))
+                              '\n '.join(me.module.__class__.__name__ + ': ' +
+                                         me.msg for me in res[2].itervalues()))
+
+        # Check and propagate ModuleSuspended exceptions
         if len(res[4]) > 0:
-            # extract messages and previous ModuleSuspended exceptions
             message = '\n'.join([msg for msg in res[4].itervalues()])
             children = [tmp_id_to_module_map[module_id]._module_suspended
                         for module_id in res[4]]
             raise ModuleSuspended(self, message, children=children)
-            
+
+        # Connect internal OutputPort modules to Group's external output ports
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
-                # oport_module = self.output_remap[oport_name]
                 oport_obj = tmp_id_to_module_map[oport_module.id]
-                self.setResult(oport_name, oport_obj.get_output('ExternalPipe'))
+                self.setResult(oport_name,
+                               oport_obj.get_output('ExternalPipe'))
+
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1],
                                            **{'reset_computed': False})
 
     def is_cacheable(self):
         return all(m.is_cacheable() for m in self.persistent_modules)
+
+    def update(self):
+        self.logging.begin_update(self)
+        self.updateUpstream(callback=self.setup_pipeline, priority=40)
+
+    def setup_pipeline(self, connectors):
+        # Check required attributes
+        if not hasattr(self, 'pipeline') or self.pipeline is None:
+            raise VistrailsInternalError(
+                    "%s cannot execute -- pipeline doesn't exist" %
+                    self.__class__.__name__)
+        elif (not hasattr(self, 'output_remap') or self.output_remap is None or
+                not hasattr(self, 'input_remap') or self.input_remap is None):
+            raise VistrailsInternalError(
+                    "%s cannot execute -- remap dictionaries don't exist" %
+                    self.__class__.__name__)
+
+        # Setup pipeline for execution
+        res = self.interpreter.setup_pipeline(self.pipeline)
+        self.persistent_modules = res[0].values()
+        if len(res[5]) > 0:
+            raise ModuleError(self, 'Error(s) inside group:\n' +
+                              '\n'.join(me.msg for me in res[5].itervalues()))
+        self.setup_result = res
+
+        ports = set(m.id for m in self.input_remap.itervalues())
+        ports.update(m.id for m in self.output_remap.itervalues())
+
+        # Determine acceptable execution targets
+        tmp_id_to_module_map = res[0]
+        if all(hasattr(module, 'remote_execution')
+               for i, module in tmp_id_to_module_map.iteritems()
+               if i not in ports):
+            self.remote_execution = reduce(
+                    operator.or_,
+                    (module.remote_execution
+                     for i, module in tmp_id_to_module_map.iteritems()
+                     if i not in ports))
+            self.on_upstream_ready(connectors)
+        else:
+            # Some modules are not parallelizable: go to low priority then
+            # execute serially
+            self._runner.add(lambda r: self.on_upstream_ready(connectors),
+                             priority=self.COMPUTE_PRIORITY)
 
 ###############################################################################
 
