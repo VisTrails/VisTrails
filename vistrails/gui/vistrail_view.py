@@ -833,7 +833,8 @@ class QVistrailView(QtGui.QWidget):
             self.controller.reset_redo_stack()
         if view and not isinstance(view, QDiffView):
             if view not in self.detached_views:
-                view.set_title(self.controller.get_pipeline_name())
+                view.set_title("Pipeline: %s" %
+                               self.controller.get_pipeline_name())
             else:
                 view.set_title(view.get_long_title())
                 view.window().setWindowTitle(view.get_long_title())

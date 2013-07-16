@@ -59,6 +59,12 @@ class InternalTuple(Task):
 
 ##############################################################################
 
+class AbortExecution(Exception):
+    """Internal exception raised to signal the interpreter it should stop.
+    """
+
+##############################################################################
+
 class BaseInterpreter(object):
 
     def __init__(self):

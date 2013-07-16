@@ -38,7 +38,6 @@ from ctypes import CDLL, c_void_p
 from vistrails.core.system.unix import executable_is_in_path,\
      executable_is_in_pythonpath, list2cmdline, execute_cmdline, \
      get_executable_path, execute_piped_cmdlines
-from vistrails.core.bundles import py_import
 
 import unittest
 
@@ -124,6 +123,7 @@ def get_libX11():
     different machines. Right now, libX11.so.6 is used.
     
     """
+    from vistrails.core.bundles import py_import
     ctypes = py_import('ctypes', {
             'pip': 'ctypes',
             'linux-debian': 'python-ctypes',
@@ -144,6 +144,7 @@ def XDestroyWindow(displayId, windowId):
     Qt widget
     
     """
+    from vistrails.core.bundles import py_import
     ctypes = py_import('ctypes', {
             'pip': 'ctypes',
             'linux-debian': 'python-ctypes',

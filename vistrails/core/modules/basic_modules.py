@@ -572,8 +572,19 @@ class DirectorySink(NotCacheable, Module):
                 (input_dir.name, full_path)
             raise ModuleError(self, msg + '\n' + str(e))
 
+##############################################################################
 
-        
+class WriteFile(Converter):
+    """Writes a String to a temporary File.
+    """
+    def compute(self):
+        contents = self.getInputFromPort('in_value')
+        suffix = self.forceGetInputFromPort('suffix', '')
+        result = self.interpreter.filePool.create_file(suffix=suffix)
+        with open(result.name, 'wb') as fp:
+            fp.write(contents)
+        self.setResult('out_value', result)
+
 ##############################################################################
 
 class Color(Constant):
@@ -686,22 +697,6 @@ class Color(Constant):
         if query_method is None:
             query_method = '2.3'
         return diff < float(query_method)
-
-##############################################################################
-
-# class OutputWindow(Module):
-    
-#     def compute(self):
-#         v = self.getInputFromPort("value")
-#         from PyQt4 import QtCore, QtGui
-#         QtGui.QMessageBox.information(None,
-#                                       "VisTrails",
-#                                       str(v))
-
-#Removing Output Window because it does not work with current threading
-#reg.add_module(OutputWindow)
-#reg.add_input_port(OutputWindow, "value",
-#                               Module)
 
 ##############################################################################
 
@@ -879,23 +874,10 @@ class Unpickle(Module):
 
 ##############################################################################
 
-class PythonSource(NotCacheable, Module):
-    """PythonSource is a Module that executes an arbitrary piece of
-    Python code.
-    
-    It is especially useful for one-off pieces of 'glue' in a
-    pipeline.
-
-    If you want a PythonSource execution to fail, call
-    fail(error_message).
-
-    If you want a PythonSource execution to be cached, call
-    cache_this().
-    """
-
+class CodeRunnerMixin(object):
     def __init__(self):
-        Module.__init__(self)
         self.output_ports_order = []
+        super(CodeRunnerMixin, self).__init__()
 
     def run_code(self, code_str,
                  use_input=False,
@@ -930,6 +912,22 @@ class PythonSource(NotCacheable, Module):
             for k in self.output_ports_order:
                 if locals_.get(k) != None:
                     self.setResult(k, locals_[k])
+
+##############################################################################
+
+class PythonSource(CodeRunnerMixin, NotCacheable, Module):
+    """PythonSource is a Module that executes an arbitrary piece of
+    Python code.
+
+    It is especially useful for one-off pieces of 'glue' in a
+    pipeline.
+
+    If you want a PythonSource execution to fail, call
+    fail(error_message).
+
+    If you want a PythonSource execution to be cached, call
+    cache_this().
+    """
 
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
@@ -1194,6 +1192,11 @@ def initialize(*args, **kwargs):
     reg.add_input_port(DirectorySink, "outputPath", OutputPath)
     reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
                        defaults="(True,)")
+
+    reg.add_module(WriteFile)
+    reg.add_input_port(WriteFile, 'in_value', String)
+    reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
+    reg.add_output_port(WriteFile, 'out_value', File)
 
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)

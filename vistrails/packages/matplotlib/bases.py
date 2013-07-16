@@ -37,7 +37,7 @@ import time
 import urllib
 
 import vistrails.core.modules
-from vistrails.core.modules.basic_modules import PythonSource
+from vistrails.core.modules.basic_modules import CodeRunnerMixin
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import File, String, Boolean
@@ -117,8 +117,8 @@ class MplPlot(NotCacheable, Module):
     #             else:
     #                 kwargs[port] = val
     #     return kwargs
-            
-class MplSource(MplPlot):
+
+class MplSource(CodeRunnerMixin, MplPlot):
     """
     MplSource is a module similar to PythonSource. The user can enter
     Matplotlib code into this module. This will then get connected to
@@ -130,23 +130,15 @@ class MplSource(MplPlot):
     """
     _input_ports = [('source', '(basic:String)')]
 
-    run_code = PythonSource.run_code
     def compute(self):
-        """ compute() -> None        
-        
+        """ compute() -> None
         """
         source = self.getInputFromPort('source')
         s = ('from pylab import *\n' +
              'from numpy import *\n' +
              urllib.unquote(source))
 
-        # FIXME there is probably a better way of doing this but
-        # cannot use multiple inheritance because of the single parent
-        # descriptor issue in the registry (InvalidModuleClass exc)
-        old_class = self.__class__
-        self.__class__ = PythonSource
-        PythonSource.run_code(self, s, use_input=True, use_output=True)
-        self.__class__ = old_class
+        self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):
     # _input_ports = [("addPlot", "(MplPlot)"),

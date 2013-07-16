@@ -43,6 +43,7 @@ from vistrails.core.modules.vistrails_module import ModuleConnector, \
 from vistrails.core.utils import DummyView
 import copy
 import vistrails.core.interpreter.base
+from vistrails.core.interpreter.base import AbortExecution
 import vistrails.core.interpreter.utils
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -437,6 +438,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             runner.add(obj)
         try:
             runner.execute_tasks()
+        except AbortExecution:
+            pass
         except ModuleErrors, mes:
             for me in mes.module_errors:
                 me.module.logging.end_update(me.module, me.msg)
