@@ -52,6 +52,7 @@ class SafeClient(object):
         while True:
             self._callback_condition.acquire()
             if self.client._closed:
+                self._callback_condition.release()
                 break
             if not self._callbacks:
                 self._callback_condition.wait()
