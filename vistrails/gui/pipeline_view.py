@@ -3294,7 +3294,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def get_long_title(self):
         pip_name = self.controller.get_pipeline_name()
         vt_name = self.controller.name
-        self.long_title = "%s from %s"%(pip_name,vt_name)
+        self.long_title = "Pipeline %s from %s" % (pip_name,vt_name)
         return self.long_title
     
     def get_controller(self):
