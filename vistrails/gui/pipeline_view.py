@@ -57,13 +57,13 @@ from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
-from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
@@ -75,7 +75,6 @@ import operator
 
 import vistrails.api
 import vistrails.gui.utils
-import vistrails.core
 
 ##############################################################################
 # 2008-06-24 cscheid
@@ -601,6 +600,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.changeModuleLabelAct)
         menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
+        menu.addAction(self.runModuleAct)
         menu.addAction(self.setErrorAct)
         if module.is_abstraction() and not module.is_latest_version():
             menu.addAction(self.upgradeAbstractionAct)
@@ -641,6 +641,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.setWatchedAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_watched)
+        self.runModuleAct = QtGui.QAction("Run this module", self.scene())
+        self.runModuleAct.setStatusTip("Run this module")
+        QtCore.QObject.connect(self.runModuleAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.run_module)
         self.setErrorAct = QtGui.QAction("Show Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
@@ -651,6 +656,9 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.upgradeAbstractionAct,
                    QtCore.SIGNAL("triggered()"),
                    self.upgradeAbstraction)
+
+    def run_module(self):
+        self.scene().parent().execute(target=self.moduleId)
 
     def set_breakpoint(self):
         """ set_breakpoint() -> None
@@ -931,7 +939,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
             selectedItems = self.scene().selectedItems()
             selectedModules = False
             for item in selectedItems:
-                if type(item)==QGraphicsModuleItem:
+                if isinstance(item, QGraphicsModuleItem):
                     selectedModules = True
                     break
             if selectedModules:
@@ -2146,7 +2154,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         for item in self.items(pos):
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 return item
         return None
 
@@ -2317,9 +2325,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Set to accept drops from the module palette
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if not self.read_only_mode:
                 if hasattr(data, 'items'):
@@ -2340,9 +2348,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Set to accept drag move event from the module palette
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 if get_vistrails_configuration().check('autoConnect'):
@@ -2381,7 +2389,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             event.ignore()
 
     def dragLeaveEvent(self, event):
-        if (self.controller and type(event.source())==QModuleTreeWidget):
+        if (self.controller and isinstance(event.source(), QModuleTreeWidget)):
             if self.tmp_output_conn:
                 self.tmp_output_conn.disconnect(True)
                 self.removeItem(self.tmp_output_conn)
@@ -2390,7 +2398,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 self.tmp_input_conn.disconnect(True)
                 self.removeItem(self.tmp_input_conn)
                 self.tmp_input_conn = None
-        elif type(event.source()) == QDragVariableLabel:
+        elif isinstance(event.source(), QDragVariableLabel):
             data = event.mimeData()
             if hasattr(data, 'variableData'):
                 if self._var_selected_port is not None:
@@ -2546,9 +2554,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Accept drop event to add a new module
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 assert len(data.items) == 1
@@ -2676,10 +2684,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connection_ids = {}
         module_ids = {}
         for item in selectedItems:
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 module_ids[item.module.id] = 1
         for item in selectedItems:
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 for connItem in item.dependingConnectionItems().itervalues():
                     conn = connItem.connection
                     if not conn.id in connection_ids:
@@ -2920,12 +2928,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 'Are you sure you want to abort the execution?',
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No)
-            if r==QtGui.QMessageBox.Yes:
-                raise Exception("Execution aborted by user")
+            if r == QtGui.QMessageBox.Yes:
+                raise AbortExecution("Execution aborted by user")
             else:
-                self.progress.reset()
-                self.progress.setValue(self.progress.new_value)
-        
+                self.progress.goOn()
+
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
@@ -2970,8 +2977,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.progress:
             self.cancel_progress()
-            self.progress.new_value = self.progress.value() + 1 
-            self.progress.setValue(self.progress.new_value)
+            self.progress.setValue(self.progress.value() + 1)
             self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
@@ -3150,7 +3156,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             return self.pipeline_non_empty(self.controller.current_pipeline)
         return False
     
-    def execute(self):
+    def execute(self, target=None):
         # view.checkModuleConfigPanel()
         # reset job view
         from vistrails.gui.job_monitor import QJobView
@@ -3166,8 +3172,13 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             progress = ExecutionProgressDialog(modules)
             self.scene().progress = progress
             progress.show()
-            
-            self.controller.execute_current_workflow()
+
+            if target is not None:
+                self.controller.execute_current_workflow(
+                        sinks=[target],
+                        reason="Execute specific module")
+            else:
+                self.controller.execute_current_workflow()
 
             progress.setValue(modules)
             #progress.hide()
@@ -3283,7 +3294,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def get_long_title(self):
         pip_name = self.controller.get_pipeline_name()
         vt_name = self.controller.name
-        self.long_title = "%s from %s"%(pip_name,vt_name)
+        self.long_title = "Pipeline %s from %s" % (pip_name,vt_name)
         return self.long_title
     
     def get_controller(self):
@@ -3321,12 +3332,21 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
     def __init__(self, modules):
-        QtGui.QProgressDialog.__init__(self, 'Starting Workflow execution',
+        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
                                        0, modules)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
-        self.new_value = 0
+        self._last_set_value = 0
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(ExecutionProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
 ################################################################################
 # Testing

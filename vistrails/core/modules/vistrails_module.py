@@ -468,7 +468,7 @@ Makes sure input port 'name' is filled."""
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
         for conn in self.inputPorts[inputPort]:
-            if type(conn.obj)==InputPort:
+            if isinstance(conn.obj, InputPort):
                 return conn()
         return self.inputPorts[inputPort][0]()
 
@@ -503,7 +503,7 @@ Makes sure input port 'name' is filled."""
         from vistrails.core.modules.sub_module import InputPort
         fromInputPortModule = [connector()
                                for connector in self.inputPorts[inputPort]
-                               if type(connector.obj)==InputPort]
+                               if isinstance(connector.obj, InputPort)]
         if len(fromInputPortModule)>0:
             return fromInputPortModule
         return [connector() for connector in self.inputPorts[inputPort]]
@@ -584,6 +584,7 @@ class ModuleConnector(object):
     def __init__(self, obj, port, spec=None):
         self.obj = obj
         self.port = port
+        self.spec = spec
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""
@@ -591,7 +592,34 @@ class ModuleConnector(object):
         self.port = None
     
     def __call__(self):
-        return self.obj.get_output(self.port)
+        result = self.obj.get_output(self.port)
+        if self.spec is not None:
+            descs = self.spec.descriptors()
+            if len(descs) == 1:
+                mod = descs[0].module
+                if hasattr(mod, 'validate') and not mod.validate(result):
+                    raise ModuleError(self.obj, "Type passed on Variant port "
+                                      "%s does not match destination type "
+                                      "%s" % (self.port, descs[0].name))
+            else:
+                if not isinstance(result, tuple):
+                    raise ModuleError(self.obj, "Type passed on Variant port "
+                                      "%s is not a tuple" % self.port)
+                elif len(result) != len(descs):
+                    raise ModuleError(self.obj, "Object passed on Variant "
+                                      "port %s does not have the correct "
+                                      "length (%d, expected %d)" % (
+                                      len(result), len(descs)))
+                for i, desc in enumerate(descs):
+                    mod = desc.module
+                    if hasattr(mod, 'validate'):
+                        if not mod.validate(result[i]):
+                            raise ModuleError(
+                                    self.obj,
+                                    "Element %d of tuple passed on Variant "
+                                    "port %s does not match the destination "
+                                    "type %s" % (i, self.port, desc.name))
+        return result
 
 def new_module(baseModule, name, dict={}, docstring=None):
     """new_module(baseModule or [baseModule list],

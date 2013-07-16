@@ -1131,8 +1131,8 @@ class VistrailController(object):
         moduleId
         
         """
-        assert type(pair[0]) == type('')
-        assert type(pair[1]) == type('')
+        assert isinstance(pair[0], basestring)
+        assert isinstance(pair[1], basestring)
         if pair[0].strip()=='':
             return
 
@@ -2482,7 +2482,7 @@ class VistrailController(object):
         results = []
         for vis in vistrails:
             error = None
-            (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
+            (locator, version, pipeline, view, aliases, params, reason, sinks, extra_info) = vis
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
                 not extra_info['pathDumpCells']):
@@ -2499,6 +2499,7 @@ class VistrailController(object):
                       'aliases': aliases,
                       'params': params,
                       'reason': reason,
+                      'sinks': sinks,
                       'extra_info': extra_info,
                       }    
             if self.get_vistrail_variables():
@@ -2566,7 +2567,8 @@ class VistrailController(object):
         return (results,changed)
     
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 extra_info=None, reason='Pipeline Execution'):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow(custom_aliases: dict, 
                                      custom_params: list,
                                      extra_info: dict) -> (list, bool)
@@ -2594,6 +2596,7 @@ class VistrailController(object):
                                                 custom_aliases,
                                                 custom_params,
                                                 reason,
+                                                sinks,
                                                 extra_info)])
 
     def recompute_terse_graph(self):
@@ -3259,7 +3262,7 @@ class VistrailController(object):
                            'Please contact the developer of that package '
                            'and report a bug.' % err.package.name)
                     debug.critical(msg)
-                elif isinstance(err, PackageManager.MissingPackage):
+                elif isinstance(err, MissingPackage):
                     msg = ('Cannot find package "%s" in '
                            'list of available packages. '
                            'Please install it first.' % err._identifier)
@@ -3394,7 +3397,7 @@ class VistrailController(object):
             if self.locator != locator:
                 # check for db log
                 log = Log()
-                if type(self.locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
                     connection = self.locator.get_connection()
                     db_log = open_vt_log_from_db(connection, 
                                                  self.vistrail.db_id)
@@ -3444,8 +3447,9 @@ class VistrailController(object):
             # FIXME abstractions only work with FileLocators right now
             if is_abstraction:
                 new_vistrail.is_abstraction = True
-                if ( type(self.locator) == vistrails.core.db.locator.XMLFileLocator or
-                     type(self.locator) == vistrails.core.db.locator.ZIPFileLocator ):
+                if isinstance(self.locator, (
+                        vistrails.core.db.locator.XMLFileLocator,
+                        vistrails.core.db.locator.ZIPFileLocator)):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
                         del self._loaded_abstractions[filename]

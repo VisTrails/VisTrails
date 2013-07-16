@@ -222,7 +222,8 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
                     package_item.get_namespace(namespace.split('|'))
 
             item = QModuleTreeWidgetItem(descriptor, parent_item,
-                                         [descriptor.name])
+                                         [descriptor.name],
+                                         descriptor.is_hidden)
             if descriptor.is_hidden:
                 item.setHidden(True)
         if recurse:
@@ -428,7 +429,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     
     """
     
-    def __init__(self, descriptor, parent, labelList):
+    def __init__(self, descriptor, parent, labelList, is_hidden):
         """ QModuleTreeWidgetItem(descriptor: ModuleDescriptor
                                     (or None for top-level),
                                   parent: QTreeWidgetItem
@@ -447,6 +448,8 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
 
         # This is necessary since we override setFlags
         self.setFlags(self._real_flags)
+
+        self.is_hidden = is_hidden
 
     def added_input_port(self):
         self.setFlags(self._real_flags)
@@ -507,7 +510,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
 
 class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
     def __init__(self, parent, labelList):
-        QModuleTreeWidgetItem.__init__(self, None, parent, labelList)
+        QModuleTreeWidgetItem.__init__(self, None, parent, labelList, False)
         self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDragEnabled)
         self.namespaces = {}
 

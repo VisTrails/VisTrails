@@ -246,7 +246,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
         the alias name
         
         """
-        if type(item.parameter) == InstanceObject:
+        if isinstance(item.parameter, InstanceObject):
             (text, ok) = QtGui.QInputDialog.getText(self,
                                                     'Set Parameter Alias',
                                                     'Enter the parameter alias',
@@ -365,9 +365,9 @@ class QAliasParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
         """
         self.parameter = info
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
-        if type(self.parameter)==int:
+        if isinstance(self.parameter, int):
             self.setData(0, QtCore.Qt.UserRole+1, self.parameter)
-        elif type(self.parameter) == tuple:
+        elif isinstance(self.parameter, tuple):
             for param in self.parameter[1]:
                 label = ['']
                 item = QAliasParameterTreeWidgetItem(param, self, label)
@@ -377,7 +377,7 @@ class QAliasParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
             self.setExpanded(True)
     
     def updateAlias(self):    
-        if type(self.parameter) == InstanceObject:
+        if isinstance(self.parameter, InstanceObject):
             if self.parameter.alias != '':
                 self.setText(0,'%s(%s):%s'%(self.parameter.alias, 
                                           self.parameter.type,

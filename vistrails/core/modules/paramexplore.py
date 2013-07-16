@@ -31,12 +31,11 @@
 ## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
-##############################################################################
-import traceback
+###############################################################################
+
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Color
 
-import unittest
 
 class BaseLinearInterpolator(object):
     def __init__(self, ptype, mn, mx, steps):
@@ -44,27 +43,32 @@ class BaseLinearInterpolator(object):
         self._mn = mn
         self._mx = mx
         self._steps = steps
+
     def get_values(self):
         cast = self._ptype
         begin = self._mn
         end = self._mx
         size = self._steps
-        if size<=1:
+        if size <= 1:
             return [begin]
-        result = [cast(begin + (((end-begin)*i) / cast(size-1)))
+        result = [cast(begin + ((end - begin) * i / cast(size - 1)))
                   for i in xrange(size)]
         return result
+
 
 class IntegerLinearInterpolator(BaseLinearInterpolator):
     def __init__(self, mn, mx, steps):
         BaseLinearInterpolator.__init__(self, int, mn, mx, steps)
 
+
 class FloatLinearInterpolator(BaseLinearInterpolator):
     def __init__(self, mn, mx, steps):
         BaseLinearInterpolator.__init__(self, float, mn, mx, steps)
 
-class BaseColorInterpolator(object):
 
+###############################################################################
+
+class BaseColorInterpolator(object):
     def __init__(self, ifunc, begin, end, size):
         self._ifunc = ifunc
         self.begin = begin
@@ -78,8 +82,8 @@ class BaseColorInterpolator(object):
                   for i in xrange(self.size)]
         return result
 
-class RGBColorInterpolator(BaseColorInterpolator):
 
+class RGBColorInterpolator(BaseColorInterpolator):
     def __init__(self, begin, end, size):
         def fun(b, e, s, i):
             b = [float(x) for x in b.split(',')]
@@ -89,38 +93,129 @@ class RGBColorInterpolator(BaseColorInterpolator):
             return Color.to_string(r, g, b)
         BaseColorInterpolator.__init__(self, fun, begin, end, size)
 
+
+def rgb2hsv(rgb):
+    """Converts RGB to HSV.
+
+    Note that H may be None when S is 0 (for grey colors).
+    """
+    r, g, b = rgb
+    minimum = min(r, g, b)
+    maximum = max(r, g, b)
+
+    v = maximum
+
+    delta = maximum - minimum
+
+    if delta != 0:
+        s = delta / maximum
+    else:
+        # h is undefined
+        s = 0
+        h = None
+        return (h, s, v)
+
+    if r == maximum:
+        h = (g - b) / delta     # between yellow & magenta
+    elif g == maximum:
+        h = 2 + (b - r) / delta # between cyan & yellow
+    else:
+        h = 4 + (r - g) / delta # between magenta & cyan
+
+    h *= 60 # degrees
+
+    if h < 0:
+        h += 360
+
+    return (h, s, v)
+
+
+def hsv2rgb(hsv):
+    """Converts HSV to RGB.
+
+    Accepts H=None when S=0.
+    """
+    h, s, v = hsv
+
+    if s == 0:
+        return (v, v, v)
+
+    h /= 60
+    i = int(h)
+    f = h - i   # factorial part
+    p = v * (1 - s)
+    q = v * (1 - s * f)
+    t = v * (1 - s * (1 - f))
+
+    if i == 0:
+        return (v, t, p)
+    elif i == 1:
+        return (q, v, p)
+    elif i == 2:
+        return (p, v, t)
+    elif i == 3:
+        return (p, q, v)
+    elif i == 4:
+        return (t, p, v)
+    else: # i == 5
+        return (v, p, q)
+
+
 class HSVColorInterpolator(BaseColorInterpolator):
     def __init__(self, begin, end, size):
-        def fun(b, e, s, i):
-            b = [float(x) for x in b.split(',')]
-            e = [float(x) for x in e.split(',')]
-            u = float(i) / (float(s) - 1.0)
+        BaseColorInterpolator.__init__(self, None, begin, end, size)
 
-            # Use QtGui.QColor as easy converter between rgb and hsv
-            # FIXME: we should not use QtGui here
-            try:
-                from PyQt4 import QtGui
-            except:
-                debug.critical("HSVColorInterpolator cannot be used without QtGui")
-                return 
-            color_b = QtGui.QColor(int(b[0] * 255),
-                                   int(b[1] * 255),
-                                   int(b[2] * 255))
-            color_e = QtGui.QColor(int(e[0] * 255),
-                                   int(e[1] * 255),
-                                   int(e[2] * 255))
+    def get_values(self):
+        b = [float(x) for x in self.begin.split(',')]
+        e = [float(x) for x in self.end.split(',')]
 
-            b_hsv = [color_b.hueF(), color_b.saturationF(), color_b.valueF()]
-            e_hsv = [color_e.hueF(), color_e.saturationF(), color_e.valueF()]
+        b_hsv = rgb2hsv(b)
+        e_hsv = rgb2hsv(e)
 
-            [new_h, new_s, new_v] = [b_hsv[i] + u * (e_hsv[i] - b_hsv[i])
-                                     for i in [0,1,2]]
-            new_color = QtGui.QColor()
-            new_color.setHsvF(new_h, new_s, new_v)
-            return Color.to_string(new_color.redF(),
-                                   new_color.greenF(),
-                                   new_color.blueF())
-        BaseColorInterpolator.__init__(self, fun, begin, end, size)
+        size_fact = 1.0 / (float(self.size) - 1.0)
+
+        # Ignore the undefined hues
+        if b_hsv[0] is None:
+            b_hsv[0] = e_hsv[0]
+        elif e_hsv[0] is None:
+            e_hsv[0] = b_hsv[0]
+
+        if b_hsv[0] is None:
+            # There is no hue at all!
+            b_hsv[0] = e_hsv[0] = 0.0 # unused value
+            hue_step = 0.0
+        else:
+            # Compute hue
+            # Because the hue is an angle, there is two ways to interpolate it;
+            # choose the shorter path
+            diff1 = e_hsv[0] - b_hsv[0]
+            diff2 = e_hsv[0] - b_hsv[0] + 360.0
+            if diff2 >= 360.0:
+                diff2 -= 360.0
+            assert 0.0 <= diff2 < 360.0
+            if abs(diff1) < abs(diff2):
+                hue_step = diff1
+            else:
+                hue_step = diff2
+
+        colors = []
+        for i in xrange(self.size):
+            u = i * size_fact
+            hue = b_hsv[0] + u * hue_step
+            if hue < 0.0:
+                hue += 360.0
+            elif hue > 360.0:
+                hue -= 360.0
+            colors.append(Color.to_string(*hsv2rgb((
+                    hue,
+                    b_hsv[1] + u * (e_hsv[1] - b_hsv[1]),
+                    b_hsv[2] + u * (e_hsv[2] - b_hsv[2])
+                ))))
+
+        return colors
+
+
+###############################################################################
 
 class UserDefinedFunctionInterpolator(object):
     def __init__(self, ptype, code, steps):
@@ -146,7 +241,7 @@ class UserDefinedFunctionInterpolator(object):
                     return str(e)
             return [evaluate(i) for i in xrange(self._steps)]
         result = get()
-        
+
         if not all(self._ptype.validate(x) for x in result):
             try:
                 # FIXME: We should throw an error here instead
@@ -164,11 +259,13 @@ class UserDefinedFunctionInterpolator(object):
             return None
         return result
 
+
 ################################################################################
+
+import unittest
 
 
 class TestLinearInterpolator(unittest.TestCase):
-
     def test_int(self):
         x = BaseLinearInterpolator(int, 0, 999, 1000)
         assert x.get_values() == range(1000)
@@ -193,4 +290,61 @@ class TestLinearInterpolator(unittest.TestCase):
             v4 = random.randint(0, s-1)
         r1 = (v2 - v1) / (x[v2] - x[v1])
         r2 = (v4 - v3) / (x[v4] - x[v3])
-        assert abs(r1 - r2) < 1e-6        
+        assert abs(r1 - r2) < 1e-6
+
+
+class TestColorConversion(unittest.TestCase):
+    colors = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 0.8, 0.3),
+              (0.9, 0.0, 0.6), (0.4, 0.4, 0.4), (1.0, 1.0, 1.0)]
+
+    def test_hsv_conversions(self):
+        for color in self.colors:
+            res = hsv2rgb(rgb2hsv(color))
+            for i in xrange(3):
+                self.assertAlmostEqual(color[i], res[i])
+
+    def test_hsv_with_qt(self):
+        try:
+            from PyQt4 import QtGui
+        except ImportError:
+            self.skipTest("QtGui not available")
+        for color in self.colors:
+            our_hsv = rgb2hsv(color)
+            qcolor = QtGui.QColor(*[int(color[i]*255) for i in xrange(3)])
+            qt_hsv = [qcolor.hueF(), qcolor.saturationF(), qcolor.valueF()]
+            if qt_hsv[0] == -1.0:
+                qt_hsv[0] = None
+            else:
+                self.assertAlmostEqual(our_hsv[0], qt_hsv[0] * 360.0,
+                                       delta=0.2)
+            self.assertAlmostEqual(our_hsv[1], qt_hsv[1], delta=0.005)
+            self.assertAlmostEqual(our_hsv[2], qt_hsv[2], delta=0.005)
+
+
+class TestColorInterpolation(unittest.TestCase):
+    def test_rgb_interpolation(self):
+        interp = RGBColorInterpolator('0.5,0.7,0.8', '0.5,0.9,0.3', 6)
+        self.assertEqual(interp.get_values(),
+                         ['0.5,0.7,0.8', '0.5,0.74,0.7', '0.5,0.78,0.6',
+                          '0.5,0.82,0.5', '0.5,0.86,0.4', '0.5,0.9,0.3'])
+
+    def test_hsv_interpolation(self):
+        tests = [((120.0, 0.8, 0.2), (170.0, 0.5, 0.2),
+                  [(120.0, 0.8, 0.2), (130.0, 0.74, 0.2), (140.0, 0.68, 0.2),
+                   (150.0, 0.62, 0.2), (160.0, 0.56, 0.2), (170.0, 0.5, 0.2)]),
+                 ((260.0, 0.2, 0.7), (40.0, 0.8, 0.1),
+                  [(260.0, 0.2, 0.7), (288.0, 0.32, 0.58), (316.0, 0.44, 0.46),
+                   (344.0, 0.56, 0.34), (12.0, 0.68, 0.22), (40.0, 0.8, 0.1)])]
+
+        for b, e, expected in tests:
+            b = hsv2rgb(b)
+            e = hsv2rgb(e)
+            interp = HSVColorInterpolator(','.join(str(c) for c in b),
+                                          ','.join(str(c) for c in e),
+                                          6)
+            for i, color in enumerate(interp.get_values()):
+                color = [float(e) for e in color.split(',')]
+                color = rgb2hsv(color)
+                self.assertAlmostEqual(color[0], expected[i][0], delta=0.2)
+                self.assertAlmostEqual(color[1], expected[i][1], delta=0.005)
+                self.assertAlmostEqual(color[2], expected[i][2], delta=0.005)

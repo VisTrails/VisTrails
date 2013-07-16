@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import copy
+from itertools import chain
 import os
 import re
 import sys
@@ -407,7 +408,6 @@ class Package(DBPackage):
                 self._initial_configuration = \
                     copy.copy(self._module.configuration)
             self.load_persistent_configuration()
-            self.create_startup_package_node()
 
         self.set_properties()
 
@@ -437,7 +437,8 @@ class Package(DBPackage):
                                      'can_handle_identifier',
                                      'can_handle_vt_file']
                 for attr in module_attributes:
-                    if hasattr(self._module, attr):
+                    if (hasattr(self._module, attr) and
+                            not hasattr(self._init_module, attr)):
                         setattr(self._init_module, attr, getattr(self._module, attr))
                 self._module = self._init_module
 
@@ -618,54 +619,57 @@ class Package(DBPackage):
     ##########################################################################
     # Configuration
 
-    def find_disabledpackage_element(self, doc):
-        """find_disabledpackage_element(documentElement) -> Node or None
-
-        Returns the package's disabledpackage element, if
-        present. Returns None otherwise.
-
-        """
-        packages = enter_named_element(doc, 'disabledpackages')
-        assert packages
+    def _get_package_node(self, dom, create):
+        doc = dom.documentElement
+        packages = enter_named_element(doc, 'packages')
         for package_node in named_elements(packages, 'package'):
-            if str(package_node.attributes['name'].value) == self.codepath:
-                return package_node
-        return None
+            if package_node.attributes['name'].value == self.codepath:
+                return package_node, 'enabled'
+        oldpackages = enter_named_element(doc, 'disabledpackages')
+        for package_node in named_elements(oldpackages, 'package'):
+            if package_node.attributes['name'].value == self.codepath:
+                return package_node, 'disabled'
+
+        if create is None:
+            return None, None
+        else:
+            package_node = dom.createElement('package')
+            package_node.setAttribute('name', self.codepath)
+            if create == 'enabled':
+                packages.appendChild(package_node)
+            elif create == 'disabled':
+                oldpackages.appendChild(package_node)
+            else:
+                raise ValueError
+            get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
+            return package_node, create
+
+    def _move_package_node(self, dom, where, node):
+        doc = dom.documentElement
+        packages = enter_named_element(doc, 'packages')
+        oldpackages = enter_named_element(doc, 'disabledpackages')
+        if where == 'enabled':
+            oldpackages.removeChild(node)
+            packages.appendChild(node)
+        elif where == 'disabled':
+            packages.removeChild(node)
+            oldpackages.appendChild(node)
+        else:
+            raise ValueError
+        get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
 
     def remove_own_dom_element(self):
-        """remove_own_dom_element() -> None
-
-        Opens the startup DOM, looks for the element that belongs to the package.
-        If it is there and there's a configuration, moves it to disabledpackages
-        node. This is done as part of package disable.
-
+        """Moves the node to the <disabledpackages> section.
         """
-        startup = get_vistrails_application().vistrailsStartup
-        dom = startup.startup_dom()
-        doc = dom.documentElement
+        dom = get_vistrails_application().vistrailsStartup.startup_dom()
 
-        def find_it():
-            packages = enter_named_element(doc, 'packages')
-            for package_node in named_elements(packages, 'package'):
-                if str(package_node.attributes['name'].value) == self.codepath:
-                    return package_node
-
-        package_node = find_it()
-        oldpackage_element = self.find_disabledpackage_element(doc)
-
-        assert oldpackage_element is None
-        packages = enter_named_element(doc, 'packages')
-        disabledpackages = enter_named_element(doc, 'disabledpackages')
-        try:
-            packages.removeChild(package_node)
-            disabledpackages.appendChild(package_node)
-        except xml.dom.NotFoundErr:
-            pass
-        startup.write_startup_dom(dom)
+        node, section = self._get_package_node(dom, create='disabled')
+        if section == 'enabled':
+            self._move_package_node(dom, 'disabled', node)
 
     def reset_configuration(self):
-        """Reset_configuration() -> Resets configuration to original
-        package settings."""
+        """Reset package configuration to original package settings.
+        """
 
         (dom, element) = self.find_own_dom_element()
         doc = dom.documentElement
@@ -681,24 +685,13 @@ class Package(DBPackage):
         """find_own_dom_element() -> (DOM, Node)
 
         Opens the startup DOM, looks for the element that belongs to the package,
-        and returns DOM and node. Creates a new one if element is not there.
-
+        and returns DOM and node. Creates a new one in the <disabledpackages>
+        section if none is found.
         """
         dom = get_vistrails_application().vistrailsStartup.startup_dom()
-        doc = dom.documentElement
-        packages = enter_named_element(doc, 'packages')
-        for package_node in named_elements(packages, 'package'):
-            if str(package_node.attributes['name'].value) == self.codepath:
-                return (dom, package_node)
 
-        # didn't find anything, create a new node
-
-        package_node = dom.createElement("package")
-        package_node.setAttribute('name', self.codepath)
-        packages.appendChild(package_node)
-
-        get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
-        return (dom, package_node)
+        node, section = self._get_package_node(dom, create='disabled')
+        return (dom, node)
 
     def load_persistent_configuration(self):
         (dom, element) = self.find_own_dom_element()
@@ -718,22 +711,18 @@ class Package(DBPackage):
         dom.unlink()
 
     def create_startup_package_node(self):
-        (dom, element) = self.find_own_dom_element()
-        doc = dom.documentElement
-        disabledpackages = enter_named_element(doc, 'disabledpackages')
-        packages = enter_named_element(doc, 'packages')
+        """Writes the node to the <packages> section.
 
-        oldpackage = self.find_disabledpackage_element(doc)
+        If it was in the <disabledpackages> section, move it, else, create it.
+        """
+        dom = get_vistrails_application().vistrailsStartup.startup_dom()
 
-        if oldpackage is not None:
-            # Must remove element from oldpackages,
-            # _and_ the element that was just created in find_own_dom_element()
-            disabledpackages.removeChild(oldpackage)
-            packages.removeChild(element)
-            packages.appendChild(oldpackage)
-            configuration = enter_named_element(oldpackage, 'configuration')
-            if configuration:
-                self.configuration.set_from_dom_node(configuration)
-            get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
+        node, section = self._get_package_node(dom, create='enabled')
+        if section == 'disabled':
+            self._move_package_node(dom, 'enabled', node)
+
+        configuration = enter_named_element(node, 'configuration')
+        if configuration:
+            self.configuration.set_from_dom_node(configuration)
+
         dom.unlink()
-

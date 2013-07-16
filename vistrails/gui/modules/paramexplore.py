@@ -38,7 +38,6 @@ in parameter exploration, provided the user implements the appropriate
 API in the classes.
 """
 from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator
@@ -70,8 +69,7 @@ class QParameterEditor(QtGui.QWidget):
     """
     QParameterEditor specifies the method used for interpolating
     parameter values. It suppports Linear Interpolation, List and
-    User-define function. There are only 4 types that can be editable
-    with this editor: Integer, Float, String and Boolean
+    User-define function.
     
     """
     def __init__(self, param_info, size, parent=None):
@@ -123,8 +121,8 @@ class QParameterEditor(QtGui.QWidget):
         stacked widget
         
         """
-        widgetIdx = action.data()[0]
-        if widgetIdx<self.stackedEditors.count():
+        widgetIdx = action.data()
+        if widgetIdx < self.stackedEditors.count():
             self.stackedEditors.setCurrentIndex(widgetIdx)
 
     def selectInterpolator(self, type):
@@ -157,7 +155,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
         
-        self.setText(QtCore.QChar(0x25bc)) # Down triangle
+        self.setText(unichr(0x25bc)) # Down triangle
 
         self.actionGroup = QtGui.QActionGroup(self)
 

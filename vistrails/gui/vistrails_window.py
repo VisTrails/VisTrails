@@ -359,7 +359,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         if self.view is not None:
             self.setCentralWidget(view)
             self.view.setVisible(True)
-            self.setWindowTitle(self.view.get_name())
+            self.setWindowTitle('%s - VisTrails' % self.view.get_name())
 
     def close_vistrail(self):
         global _app
@@ -429,7 +429,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
 
     def set_title(self, title):
-        self.setWindowTitle(title)
+        self.setWindowTitle('%s - VisTrails' % title)
         
     def get_name(self):
         return self.windowTitle()
@@ -920,6 +920,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = self.windows[view]
             window.close()
         QWorkspaceWindow.instance().remove_vt_window(view)
+        self.current_view = None
 
     def view_triggered(self, action):
         #print "VIEW_TRIGGERED", action
@@ -1761,25 +1762,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         if not self.quit():
             e.ignore()
-            
-    def stopIPythonController(self):
-        """ stopIPythonController() -> None
-        Stops the IPython controller, in case it is still running.
-        
-        """
-        try:
-            from vistrails.packages.parallelflow.init import ipythonSet
-            if ipythonSet:
-                ipythonSet.stop_engines()
-                ipythonSet.stop_controller()
-        except:
-            pass
-        
+
     def quit(self):
         self._is_quitting = True
         if self.close_all_vistrails():
-            # stopping IPython controller, in case there is one running
-            self.stopIPythonController()
             QtCore.QCoreApplication.quit()
             # In case the quit() failed (when Qt doesn't have the main
             # event loop), we have to return True still

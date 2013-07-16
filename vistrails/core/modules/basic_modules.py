@@ -49,6 +49,7 @@ from itertools import izip
 import re
 import os
 import os.path
+import pickle
 import shutil
 #import zipfile
 import urllib
@@ -570,8 +571,19 @@ class DirectorySink(NotCacheable, Module):
                 (input_dir.name, full_path)
             raise ModuleError(self, msg + '\n' + str(e))
 
+##############################################################################
 
-        
+class WriteFile(Converter):
+    """Writes a String to a temporary File.
+    """
+    def compute(self):
+        contents = self.getInputFromPort('in_value')
+        suffix = self.forceGetInputFromPort('suffix', '')
+        result = self.interpreter.filePool.create_file(suffix=suffix)
+        with open(result.name, 'wb') as fp:
+            fp.write(contents)
+        self.setResult('out_value', result)
+
 ##############################################################################
 
 class Color(Constant):
@@ -591,7 +603,7 @@ class Color(Constant):
 
     @staticmethod
     def translate_to_string(v):
-        return str(v.tuple)[1:-1]
+        return ','.join('%f' % c for c in v.tuple)
 
     @staticmethod
     def validate(x):
@@ -684,22 +696,6 @@ class Color(Constant):
         if query_method is None:
             query_method = '2.3'
         return diff < float(query_method)
-
-##############################################################################
-
-# class OutputWindow(Module):
-    
-#     def compute(self):
-#         v = self.getInputFromPort("value")
-#         from PyQt4 import QtCore, QtGui
-#         QtGui.QMessageBox.information(None,
-#                                       "VisTrails",
-#                                       str(v))
-
-#Removing Output Window because it does not work with current threading
-#reg.add_module(OutputWindow)
-#reg.add_input_port(OutputWindow, "value",
-#                               Module)
 
 ##############################################################################
 
@@ -802,6 +798,10 @@ class List(Constant):
     def translate_to_python(v):
         return eval(v)
 
+    @staticmethod
+    def translate_to_string(v):
+        return '[%s]' % ', '.join(repr(c) for c in v)
+
     def compute(self):
         head, middle, items, tail = [], [], [], []
         got_value = False
@@ -864,23 +864,19 @@ class Null(Module):
 
 ##############################################################################
 
-class PythonSource(NotCacheable, Module):
-    """PythonSource is a Module that executes an arbitrary piece of
-    Python code.
-    
-    It is especially useful for one-off pieces of 'glue' in a
-    pipeline.
-
-    If you want a PythonSource execution to fail, call
-    fail(error_message).
-
-    If you want a PythonSource execution to be cached, call
-    cache_this().
+class Unpickle(Module):
+    """Unpickles a string.
     """
+    def compute(self):
+        value = self.getInputFromPort('input')
+        self.setResult('result', pickle.loads(value))
 
+##############################################################################
+
+class CodeRunnerMixin(object):
     def __init__(self):
-        Module.__init__(self)
         self.output_ports_order = []
+        super(CodeRunnerMixin, self).__init__()
 
     def run_code(self, code_str,
                  use_input=False,
@@ -915,6 +911,22 @@ class PythonSource(NotCacheable, Module):
             for k in self.output_ports_order:
                 if locals_.get(k) != None:
                     self.setResult(k, locals_[k])
+
+##############################################################################
+
+class PythonSource(CodeRunnerMixin, NotCacheable, Module):
+    """PythonSource is a Module that executes an arbitrary piece of
+    Python code.
+
+    It is especially useful for one-off pieces of 'glue' in a
+    pipeline.
+
+    If you want a PythonSource execution to fail, call
+    fail(error_message).
+
+    If you want a PythonSource execution to be cached, call
+    cache_this().
+    """
 
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
@@ -1158,6 +1170,11 @@ def initialize(*args, **kwargs):
     reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
                        defaults="(True,)")
 
+    reg.add_module(WriteFile)
+    reg.add_input_port(WriteFile, 'in_value', String)
+    reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
+    reg.add_output_port(WriteFile, 'out_value', File)
+
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)
     reg.add_output_port(Color, "value", Color)
@@ -1190,7 +1207,13 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Dictionary, "addPair", [Module, Module])
     reg.add_input_port(Dictionary, "addPairs", List)
 
-    reg.add_module(Null)
+    reg.add_module(Null, hide_descriptor=True)
+
+    reg.add_module(Variant, abstract=True)
+
+    reg.add_module(Unpickle, hide_descriptor=True)
+    reg.add_input_port(Unpickle, 'input', String)
+    reg.add_output_port(Unpickle, 'result', Variant)
 
     reg.add_module(PythonSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
@@ -1208,15 +1231,13 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
 
-    reg.add_module(Variant, abstract=True)
-
-    reg.add_module(Round)
+    reg.add_module(Round, hide_descriptor=True)
     reg.add_input_port(Round, 'in_value', Float)
     reg.add_output_port(Round, 'out_value', Integer)
     reg.add_input_port(Round, 'floor', Boolean, optional=True,
                        defaults="(True,)")
 
-    reg.add_module(TupleToList)
+    reg.add_module(TupleToList, hide_descriptor=True)
     reg.add_input_port(TupleToList, 'in_value', Tuple)
     reg.add_output_port(TupleToList, 'out_value', List)
 

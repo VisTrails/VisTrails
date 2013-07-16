@@ -246,6 +246,23 @@ class Vistrail(DBVistrail):
             return self.get_tag(version)
         return ""
 
+    def get_pipeline_name(self, version):
+        tag_map = self.get_tagMap()
+        action_map = self.actionMap
+        count = 0
+        while True:
+            if version in tag_map or version <= 0:
+                if version in tag_map:
+                    name = tag_map[version]
+                else:
+                    name = "ROOT"
+                count_str = ""
+                if count > 0:
+                    count_str = " + " + str(count)
+                return name + count_str
+            version = action_map[version].parent
+            count += 1
+
     def get_version_count(self):
         """get_version_count() -> Integer
         Returns the total number of versions in this vistrail.
@@ -1120,10 +1137,10 @@ class Vistrail(DBVistrail):
         Returns the log object for this vistrail if available
         """
         log = Log()
-        if type(self.locator) == vistrails.core.db.locator.ZIPFileLocator:
+        if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
             if self.db_log_filename is not None:
                 log = open_log_from_xml(self.db_log_filename, True)
-        if type(self.locator) == vistrails.core.db.locator.DBLocator:
+        if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
             connection = self.locator.get_connection()
             log = open_vt_log_from_db(connection, self.db_id)
         Log.convert(log)

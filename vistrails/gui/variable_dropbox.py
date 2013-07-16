@@ -85,7 +85,7 @@ class QVariableDropBox(QtGui.QScrollArea):
         Set to accept drops from the module palette
         
         """
-        if type(event.source())==QModuleTreeWidget:
+        if isinstance(event.source(), QModuleTreeWidget):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
@@ -97,7 +97,7 @@ class QVariableDropBox(QtGui.QScrollArea):
         Set to accept drag move event from the module palette
         
         """
-        if type(event.source())==QModuleTreeWidget:
+        if isinstance(event.source(), QModuleTreeWidget):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
@@ -107,7 +107,7 @@ class QVariableDropBox(QtGui.QScrollArea):
         Accept drop event to add a new variable
         
         """
-        if type(event.source())==QModuleTreeWidget:
+        if isinstance(event.source(), QModuleTreeWidget):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()

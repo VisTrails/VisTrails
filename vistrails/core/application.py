@@ -177,9 +177,13 @@ The builder window can be accessed by a spreadsheet menu option.")
             default = None,
             help=("Save evolution graph in specified directory without running "
                   "any workflow (only valid in console mode)."))
-        add ("-g", "--noSingleInstance", action="store_true",
-             help=("Run VisTrails without the single instance restriction."))
-        
+        add("-g", "--noSingleInstance", action="store_true",
+            help=("Run VisTrails without the single instance restriction."))
+        add("--no-bundleinstall", action='store_false',
+            dest='installBundles',
+            help=("Do not try to install missing Python packages "
+                  "automatically"))
+
         if args != None:
             command_line.CommandLineParser.parse_options(args=args)
         else:
@@ -276,6 +280,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.detachHistoryView = bool(get('detachHistoryView'))
         if get('noSingleInstance')!=None:
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
+        if get('installBundles')!=None:
+            self.temp_configuration.installBundles = bool(get('installBundles'))
         self.input = command_line.CommandLineParser().positional_arguments()
     def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)

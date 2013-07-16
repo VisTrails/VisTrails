@@ -1,6 +1,4 @@
-import vistrails.core
 import vistrails.core.db.action
-import vistrails.core.application
 import vistrails.db.versions
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.utils
@@ -100,34 +98,21 @@ def execute_wf(wf, output_port):
         xml_log = serialize(module_log)
         machine_log = serialize(machine)
 
-        # Get the requested output values
-        module_outputs = []
-        annotations = module_log.annotations
-        for annotation in annotations:
-            if annotation.key == 'output':
-                module_outputs = annotation.value
-                break
-
-        # Store the output values in the order they were requested
-        reg = vistrails.core.modules.module_registry.get_module_registry()
-        output = None
-        serializable = None
-        found = False
-        for m_output in module_outputs:
-            if m_output[0] == output_port:
-                # checking if output port needs to be serialized
-                base_classes = inspect.getmro(type(m_output[1]))
-                if Module in base_classes:
-                    output = m_output[1].serialize()
-                    serializable = reg.get_descriptor(type(m_output[1])).sigstring
-                else:
-                    output = m_output[1]
-                    serializable = None
-                found = True
-                break
-
-        if not found:
+        # Get the output value
+        executed_module, = execution[0][0].executed
+        executed_module = execution[0][0].objects[executed_module]
+        try:
+            output = executed_module.get_output(output_port)
+        except ModuleError, e:
             errors.append("Output port not found: %s" % output_port)
+            return dict(errors=errors)
+        reg = vistrails.core.modules.module_registry.get_module_registry()
+        base_classes = inspect.getmro(type(output))
+        if Module in base_classes:
+            serializable = reg.get_descriptor(type(output)).sigstring
+            output = output.serialize()
+        else:
+            serializable = None
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
@@ -288,10 +273,6 @@ class Map(Module, NotCacheable):
 
                     mod_function.add_parameter(mod_param)
                     pipeline_db_module.add_function(mod_function)
-
-                # store output data
-                annotation = Annotation(key='annotate_output', value=True)
-                pipeline_db_module.add_annotation(annotation)
 
                 # serializing module
                 wf = self.serialize_module(pipeline_db_module)
@@ -485,7 +466,7 @@ class Map(Module, NotCacheable):
                 p_modules = module.moduleInfo['pipeline'].modules
                 p_module = p_modules[module.moduleInfo['moduleId']]
                 port_spec = p_module.get_port_spec(inputPort, 'input')
-                v_module = create_module(element, port_spec.signature)
+                v_module = get_module(element, port_spec.signature)
                 if v_module is not None:
                     if not self.compare(port_spec, v_module, inputPort):
                         raise ModuleError(self,
@@ -501,13 +482,13 @@ class Map(Module, NotCacheable):
         """
     `   Function used to create a signature, given v_module, for a port spec.
         """
-        if type(v_module)==tuple:
+        if isinstance(v_module, tuple):
             v_module_class = []
             for module_ in v_module:
                 v_module_class.append(self.createSignature(module_))
             return v_module_class
         else:
-            return v_module.__class__
+            return v_module
 
     def compare(self, port_spec, v_module, port):
         """
@@ -551,44 +532,32 @@ def create_constant(value):
     constant.setValue(value)
     return constant
 
-def create_module(value, signature):
+def get_module(value, signature):
     """
     Creates a module for value, in order to do the type checking.
     """
 
-    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, File, List
+    from vistrails.core.modules.basic_modules import Boolean, String, Integer, Float, List
 
-    if type(value)==bool:
-        v_module = Boolean()
-        return v_module
-    elif type(value)==str:
-        v_module = String()
-        return v_module
-    elif type(value)==int:
-        if type(signature)==list:
-            signature = signature[0]
-        if signature[0]==Float().__class__:
-            v_module = Float()
-        else:
-            v_module = Integer()
-        return v_module
-    elif type(value)==float:
-        v_module = Float()
-        return v_module
-    elif type(value)==list:
-        v_module = List()
-        return v_module
-    elif type(value)==file:
-        v_module = File()
-        return v_module
-    elif type(value)==tuple:
+    if isinstance(value, Constant):
+        return type(value)
+    elif isinstance(value, bool):
+        return Boolean
+    elif isinstance(value, str):
+        return String
+    elif isinstance(value, int):
+        return Integer
+    elif isinstance(value, float):
+        return Float
+    elif isinstance(value, list):
+        return List
+    elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (create_module(value[element], signature[element]),)
+            v_modules += (get_module(value[element], signature[element]))
         return v_modules
     else:
         from vistrails.core import debug
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside Map module.")
         return None
-

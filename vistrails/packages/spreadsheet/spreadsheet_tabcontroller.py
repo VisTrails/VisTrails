@@ -272,7 +272,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Actual code to create export an image
         
         """
-        if type(action)!=bool and action.text()=='Separately':
+        if not isinstance(action, bool) and action.text() == 'Separately':
             dir = QtGui.QFileDialog.getExistingDirectory(
                 self, 'Select a Directory to Export Images', ".",
                 QtGui.QFileDialog.ShowDirsOnly)
@@ -559,7 +559,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         else:
             displayName = 'Untitled'
         self.emit(QtCore.SIGNAL('needChangeTitle'),
-                  'VisTrails - Spreadsheet - %s' % displayName)
+                  '%s - VisTrails Spreadsheet' % displayName)
 
     def pipelineId(self, pipelineInfo):
         return (pipelineInfo['controller'], pipelineInfo['version'])
@@ -697,8 +697,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      '',
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)')
-        if not fileName:
-            (root,ext) = os.path.splitext(fileName)
+        if fileName:
+            (root, ext) = os.path.splitext(fileName)
             if ext=='':
                 fileName += '.vss'
             self.saveSpreadsheet(fileName)

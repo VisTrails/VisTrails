@@ -351,7 +351,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution'):
+                                 reason='Pipeline Execution', sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -369,6 +369,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          custom_aliases,
                                          custom_params,
                                          reason,
+                                         sinks,
                                          None)])
         return ([], False)
     
@@ -441,7 +442,7 @@ class VistrailController(QtCore.QObject, BaseController):
 #                         'Package "%s" failed during initialization. '
 #                         'Please contact the developer of that package '
 #                         'and report a bug.' % err.package.name)
-#                 elif isinstance(err, PackageManager.MissingPackage):
+#                 elif isinstance(err, MissingPackage):
 #                     QtGui.QMessageBox.critical(
 #                         get_vistrails_application().builderWindow,
 #                         'Unavailable package',
@@ -966,25 +967,11 @@ class VistrailController(QtCore.QObject, BaseController):
         self.invalidate_version_tree(False)
 
     def get_pipeline_name(self, version=None):
-        tag_map = self.vistrail.get_tagMap()
-        action_map = self.vistrail.actionMap
         if version == None:
             version = self.current_version
-        count = 0
-        while True:
-            if version in tag_map or version <= 0:
-                if version in tag_map:
-                    name = tag_map[version]
-                else:
-                    name = "ROOT"
-                count_str = ""
-                if count > 0:
-                    count_str = " + " + str(count)
-                return "Pipeline: " + name + count_str
-            version = action_map[version].parent
-            count += 1
+        return self.vistrail.get_pipeline_name(version)
 
-    ################################################################################
+    ###########################################################################
     # Clipboard, copy/paste
 
     def get_selected_item_ids(self):
