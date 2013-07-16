@@ -159,10 +159,8 @@ class QExecutionListWidget(QtGui.QTreeWidget):
         if workflow_exec.db_name:
             workflow_exec.db_name = workflow_exec.db_name + '*'
         else:
-            get_pipeline_name = self.controller.get_pipeline_name
-            workflow_exec.db_name = \
-                get_pipeline_name(workflow_exec.parent_version)[10:]
-        
+            workflow_exec.db_name = self.controller.get_pipeline_name(
+                workflow_exec.parent_version)        
         self.addTopLevelItem(QExecutionItem(workflow_exec))
        
     
@@ -314,8 +312,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
                 # set workflow names
-                e.db_name = controller.get_pipeline_name(
-                                        e.parent_version)[10:]
+                e.db_name = controller.get_pipeline_name(e.parent_version)
                 self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
         self.executionList.set_log(self.log)
@@ -429,8 +426,7 @@ class QLogView(QPipelineView):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
                 # set workflow names
-                e.db_name = controller.get_pipeline_name(
-                                        e.parent_version)[10:]
+                e.db_name = controller.get_pipeline_name(e.parent_version)
                 self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
 

@@ -571,8 +571,19 @@ class DirectorySink(NotCacheable, Module):
                 (input_dir.name, full_path)
             raise ModuleError(self, msg + '\n' + str(e))
 
+##############################################################################
 
-        
+class WriteFile(Converter):
+    """Writes a String to a temporary File.
+    """
+    def compute(self):
+        contents = self.getInputFromPort('in_value')
+        suffix = self.forceGetInputFromPort('suffix', '')
+        result = self.interpreter.filePool.create_file(suffix=suffix)
+        with open(result.name, 'wb') as fp:
+            fp.write(contents)
+        self.setResult('out_value', result)
+
 ##############################################################################
 
 class Color(Constant):
@@ -685,22 +696,6 @@ class Color(Constant):
         if query_method is None:
             query_method = '2.3'
         return diff < float(query_method)
-
-##############################################################################
-
-# class OutputWindow(Module):
-    
-#     def compute(self):
-#         v = self.getInputFromPort("value")
-#         from PyQt4 import QtCore, QtGui
-#         QtGui.QMessageBox.information(None,
-#                                       "VisTrails",
-#                                       str(v))
-
-#Removing Output Window because it does not work with current threading
-#reg.add_module(OutputWindow)
-#reg.add_input_port(OutputWindow, "value",
-#                               Module)
 
 ##############################################################################
 
@@ -1174,6 +1169,11 @@ def initialize(*args, **kwargs):
     reg.add_input_port(DirectorySink, "outputPath", OutputPath)
     reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
                        defaults="(True,)")
+
+    reg.add_module(WriteFile)
+    reg.add_input_port(WriteFile, 'in_value', String)
+    reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
+    reg.add_output_port(WriteFile, 'out_value', File)
 
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)

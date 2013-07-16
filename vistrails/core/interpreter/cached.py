@@ -46,6 +46,7 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.vistrail import Vistrail
 import copy
 import vistrails.core.interpreter.base
+from vistrails.core.interpreter.base import AbortExecution
 import vistrails.core.interpreter.utils
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -439,6 +440,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for obj in persistent_sinks:
             try:
                 obj.update()
+            except AbortExecution:
+                pass
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)

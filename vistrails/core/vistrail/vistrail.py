@@ -246,6 +246,23 @@ class Vistrail(DBVistrail):
             return self.get_tag(version)
         return ""
 
+    def get_pipeline_name(self, version):
+        tag_map = self.get_tagMap()
+        action_map = self.actionMap
+        count = 0
+        while True:
+            if version in tag_map or version == Vistrail.ROOT_VERSION:
+                if version in tag_map:
+                    name = tag_map[version]
+                else:
+                    name = "ROOT"
+                count_str = ""
+                if count > 0:
+                    count_str = " + " + str(count)
+                return name + count_str
+            version = action_map[version].parent
+            count += 1
+
     def get_version_count(self):
         """get_version_count() -> Integer
         Returns the total number of versions in this vistrail.

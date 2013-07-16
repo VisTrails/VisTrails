@@ -57,13 +57,13 @@ from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
-from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
@@ -75,7 +75,6 @@ import operator
 
 import vistrails.api
 import vistrails.gui.utils
-import vistrails.core
 
 ##############################################################################
 # 2008-06-24 cscheid
@@ -2933,12 +2932,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 'Are you sure you want to abort the execution?',
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No)
-            if r==QtGui.QMessageBox.Yes:
-                raise Exception("Execution aborted by user")
+            if r == QtGui.QMessageBox.Yes:
+                raise AbortExecution("Execution aborted by user")
             else:
-                self.progress.reset()
-                self.progress.setValue(self.progress.new_value)
-        
+                self.progress.goOn()
+
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
@@ -2983,8 +2981,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.progress:
             self.cancel_progress()
-            self.progress.new_value = self.progress.value() + 1 
-            self.progress.setValue(self.progress.new_value)
+            self.progress.setValue(self.progress.value() + 1)
             self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
@@ -3301,7 +3298,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def get_long_title(self):
         pip_name = self.controller.get_pipeline_name()
         vt_name = self.controller.name
-        self.long_title = "%s from %s"%(pip_name,vt_name)
+        self.long_title = "Pipeline %s from %s" % (pip_name,vt_name)
         return self.long_title
     
     def get_controller(self):
@@ -3339,12 +3336,21 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
     def __init__(self, modules):
-        QtGui.QProgressDialog.__init__(self, 'Starting Workflow execution',
+        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
                                        0, modules)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
-        self.new_value = 0
+        self._last_set_value = 0
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(ExecutionProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
 ################################################################################
 # Testing
