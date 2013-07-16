@@ -5774,7 +5774,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             user = self.convertFromDB(row[1], 'str', 'varchar(255)')
             ip = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            session = self.convertFromDB(row[3], 'long', 'int')
+            session = self.convertFromDB(row[3], 'str', 'char(36)')
             vt_version = self.convertFromDB(row[4], 'str', 'varchar(255)')
             ts_start = self.convertFromDB(row[5], 'datetime', 'datetime')
             ts_end = self.convertFromDB(row[6], 'datetime', 'datetime')
@@ -5819,7 +5819,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             user = self.convertFromDB(row[1], 'str', 'varchar(255)')
             ip = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            session = self.convertFromDB(row[3], 'long', 'int')
+            session = self.convertFromDB(row[3], 'str', 'char(36)')
             vt_version = self.convertFromDB(row[4], 'str', 'varchar(255)')
             ts_start = self.convertFromDB(row[5], 'datetime', 'datetime')
             ts_end = self.convertFromDB(row[6], 'datetime', 'datetime')
@@ -5878,7 +5878,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_ip, 'str', 'varchar(255)')
         if hasattr(obj, 'db_session') and obj.db_session is not None:
             columnMap['session'] = \
-                self.convertToDB(obj.db_session, 'long', 'int')
+                self.convertToDB(obj.db_session, 'str', 'char(36)')
         if hasattr(obj, 'db_vt_version') and obj.db_vt_version is not None:
             columnMap['vt_version'] = \
                 self.convertToDB(obj.db_vt_version, 'str', 'varchar(255)')
@@ -5942,7 +5942,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_ip, 'str', 'varchar(255)')
         if hasattr(obj, 'db_session') and obj.db_session is not None:
             columnMap['session'] = \
-                self.convertToDB(obj.db_session, 'long', 'int')
+                self.convertToDB(obj.db_session, 'str', 'char(36)')
         if hasattr(obj, 'db_vt_version') and obj.db_vt_version is not None:
             columnMap['vt_version'] = \
                 self.convertToDB(obj.db_vt_version, 'str', 'varchar(255)')

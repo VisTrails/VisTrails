@@ -397,7 +397,7 @@ CREATE TABLE workflow_exec(
     id char(36),
     user varchar(255),
     ip varchar(255),
-    session int,
+    session char(36),
     vt_version varchar(255),
     ts_start datetime,
     ts_end datetime,
