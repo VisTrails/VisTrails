@@ -243,19 +243,13 @@ class UserDefinedFunctionInterpolator(object):
         result = get()
 
         if not all(self._ptype.validate(x) for x in result):
-            try:
-                # FIXME: We should throw an error here instead
-                from vistrails.gui.utils import show_warning
-                show_warning('Failed Validation',
-                             'One of the <i>%s</i>\'s user defined '
-                             'functions has failed validation, '
-                             'which usually means it generated a '
-                             'value of a type different '
-                             'than that specified by the '
-                             'parameter. Parameter Exploration '
-                             'aborted.' % self._ptype)
-            except:
-                pass
+            # FIXME: We should throw an error here instead
+            debug.critical(
+                    'Failed Validation',
+                    'One of the <i>%s</i>\'s user defined functions has '
+                    'failed validation, which usually means it generated a '
+                    'value of a type different than that specified by the '
+                    'parameter. Parameter Exploration aborted.' % self._ptype)
             return None
         return result
 
