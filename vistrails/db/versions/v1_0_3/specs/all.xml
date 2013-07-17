@@ -917,11 +917,6 @@
       <xml nodeType="xs:element"/>
     </property>
 
-    <property ref="true" object="machine" cascade="false" type="list" 
-	      mapping="one-to-many">
-      <xml nodeType="xs:element"/>
-    </property>
-
     <property name="vistrail_id" type="long" foreignKey="true" object="vistrail">
       <xml nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
@@ -974,7 +969,8 @@
       <sql column="vt_id" type="int"/>
     </property>
 
-    <property ref="true" object="log" type="long" mapping="many-to-one" 
+    <property ref="true" object="workflow_exec" type="long" 
+	      mapping="many-to-one" 
 	      inverse="true">
       <sql column="log_id" type="int"/>
     </property>
@@ -2211,6 +2207,10 @@
       <xml nodeType="xs:element"/>
     </property>
 
+    <property ref="true" object="machine" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
     <choice name="item_exec" type="list" mapping="one-to-many">
       <property name="module_exec" ref="true" object="module_exec">
 	<xml nodeType="xs:element"/>
@@ -2297,7 +2297,7 @@
     </property>
 
   </object>
-  
+
   <!--++++++++++++++++++++++++++-->
   <!-- MASHUP_ACTION +++++++++++-->
   <!--++++++++++++++++++++++++++-->
@@ -2669,7 +2669,7 @@
       <sql type="char(16)"/>
     </property>
   </object>
-
+  
   <!--++++++++++++++++++++++++++-->
   <!-- OPM_GRAPH +++++++++++++++-->
   <!--++++++++++++++++++++++++++-->
