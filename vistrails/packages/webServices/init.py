@@ -45,6 +45,7 @@ import vistrails.core.modules
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
+import vistrails.core.system
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.core.modules.basic_modules import Constant
@@ -989,8 +990,8 @@ be loaded again." % w
             continue
 
         #create a directory for each webservice if it does not exist
-        package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                        "webServices")
+        package_directory = os.path.join(vistrails.core.system.current_dot_vistrails(),
+                                         "webServices")
         sys.path.append(package_directory)
         directoryname = urllib.quote_plus(w)
         directoryname = directoryname.replace(".","_")
@@ -1084,7 +1085,7 @@ be loaded again: %s"% w
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
 
-        package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
+        package_directory = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                          "webServices")
         sys.path.append(package_directory)
         package_subdirectory = os.path.join(package_directory,
@@ -1292,7 +1293,7 @@ be loaded again: %s"% w
         webServicesmodulesDict[dictkey] = complexsdict        
     #Write modules.conf file that will contain the types and methods
     #dictionary of the web services.
-    namefile = os.path.join(vistrails.core.system.default_dot_vistrails(),
+    namefile = os.path.join(vistrails.core.system.current_dot_vistrails(),
                             'webServices',
                             'modules.conf')    
     try:
@@ -1339,7 +1340,7 @@ def verify_wsdl(wsdlList):
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = os.path.join(vistrails.core.system.default_dot_vistrails(),
+        package_subdirectory = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                             "webServices",
                                             directoryname)
         wsm = WriteServiceModule(wsdl)
@@ -1394,7 +1395,7 @@ This message will not be shown again."
 
     #Create a directory for the webServices package
     global package_directory
-    package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
+    package_directory = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                      "webServices")
     if not os.path.isdir(package_directory):
         try:
@@ -1405,7 +1406,7 @@ This message will not be shown again."
             print "'%s' does not exist and parent directory is writable"
             sys.exit(1)
 
-    pathfile = os.path.join(vistrails.core.system.default_dot_vistrails(),
+    pathfile = os.path.join(vistrails.core.system.current_dot_vistrails(),
                             "webServices",
                             "modules.conf")
     outdated_list = []
@@ -1477,7 +1478,7 @@ def handle_missing_module(*args, **kwargs):
         updated_list = []
         error_list = []
         print "Downloading %s and adding to the Module list..."%wsdl
-        pathfile = os.path.join(vistrails.core.system.default_dot_vistrails(),
+        pathfile = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                 "webServices",
                                 "modules.conf")
         if os.path.isfile(pathfile):
