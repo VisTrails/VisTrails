@@ -384,8 +384,8 @@ def add_tool(path):
 def initialize(*args, **keywords):
     if "CLTools" == name:
         # this is the original package 
-        location = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                     "CLTools")
+        location = os.path.join(vistrails.core.system.current_dot_vistrails(),
+                                "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
             try:
@@ -421,8 +421,8 @@ def reload_scripts():
         reg.delete_module(identifier, tool_name)
     if "CLTools" == name:
         # this is the original package 
-        location = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                     "CLTools")
+        location = os.path.join(vistrails.core.system.current_dot_vistrails(),
+                                "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
             try:

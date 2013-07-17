@@ -582,7 +582,7 @@ class QVistrailView(QtGui.QWidget):
             #if none of the detached views is active we will assume that the
             #window containing this vistrail has focus
             widget = self.stack.currentWidget()
-            if not query_top_level and type(widget) == QQueryView:
+            if not query_top_level and isinstance(widget, QQueryView):
                 widget = widget.get_current_view()
             return widget
         
@@ -597,7 +597,7 @@ class QVistrailView(QtGui.QWidget):
         
     def get_tab(self, stack_idx):
         widget = self.stack.widget(stack_idx)
-        if type(widget) == QQueryView:
+        if isinstance(widget, QQueryView):
             widget = widget.get_current_view()
         return widget
 
@@ -839,7 +839,8 @@ class QVistrailView(QtGui.QWidget):
             self.controller.reset_redo_stack()
         if view and not isinstance(view, QDiffView):
             if view not in self.detached_views:
-                view.set_title(self.controller.get_pipeline_name())
+                view.set_title("Pipeline: %s" %
+                               self.controller.get_pipeline_name())
             else:
                 view.set_title(view.get_long_title())
                 view.window().setWindowTitle(view.get_long_title())

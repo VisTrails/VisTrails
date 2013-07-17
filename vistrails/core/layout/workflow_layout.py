@@ -68,21 +68,21 @@ class Vec2(object):
         self.x = x
         self.y = y
     def __add__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x + other, self.y + other)
         else:
             return Vec2(self.x + other.x, self.y + other.y)
     def __radd__(self, other):
         return self.__add__(other)
     def __sub__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x - other, self.y - other)
         else:
             return Vec2(self.x - other.x, self.y - other.y)
     def __rsub__(self, other):
         return self.__sub__(other)
     def __mul__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x * other, self.y * other)
         else:
             return Vec2(self.x * other.x, self.y * other.y)

@@ -49,7 +49,8 @@ from vistrails.core import debug
 
 from vistrails.core.bundles import py_import
 try:
-    mpl_dict = {'linux-debian': 'python-suds',
+    mpl_dict = {'pip': 'suds',
+                'linux-debian': 'python-suds',
                 'linux-ubuntu': 'python-suds',
                 'linux-fedora': 'python-suds'}
     suds = py_import('suds', mpl_dict)
@@ -138,8 +139,8 @@ def initialize(*args, **keywords):
     global package_cache
 
     #Create a directory for the SUDSWebServices package
-    location = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                     "SUDSWebServices")
+    location = os.path.join(vistrails.core.system.current_dot_vistrails(),
+                            "SUDSWebServices")
     if not os.path.isdir(location):
         try:
             debug.log("Creating SUDS cache directory...")

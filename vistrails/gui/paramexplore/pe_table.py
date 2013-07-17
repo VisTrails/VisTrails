@@ -92,7 +92,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         Set to accept drops from the parameter list
         
         """
-        if type(event.source())==QParameterTreeWidget:            
+        if isinstance(event.source(), QParameterTreeWidget):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
@@ -104,7 +104,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         Accept drop event to add a new method
         
         """
-        if type(event.source())==QParameterTreeWidget:
+        if isinstance(event.source(), QParameterTreeWidget):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
@@ -142,7 +142,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.table.label.getCounts()), str(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
         for i in xrange(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 firstParam = True
                 for paramWidget in pEditor.paramWidgets:
                     paramInfo = paramWidget.param
@@ -179,7 +179,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         functions = []
         for i in xrange(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 function = None
                 firstParam = True
                 for paramWidget in pEditor.paramWidgets:
@@ -426,7 +426,7 @@ class QParameterExplorationTable(QPromptWidget):
         params = paramInfo[1]
         for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 subset = True
                 for p in params:
                     if not (p in pEditor.info[1]):
@@ -444,7 +444,7 @@ class QParameterExplorationTable(QPromptWidget):
         for p in xrange(len(params)):
             for i in xrange(self.layout().count()):
                 pEditor = self.layout().itemAt(i).widget()
-                if pEditor and type(pEditor)==QParameterSetEditor:
+                if pEditor and isinstance(pEditor, QParameterSetEditor):
                     if params[p] in pEditor.info[1]:
                         widget = newEditor.paramWidgets[p]
                         widget.setDimension(4)
@@ -467,7 +467,7 @@ class QParameterExplorationTable(QPromptWidget):
         # Restore disabled parameter
         for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 for p in xrange(len(pEditor.info[1])):
                     param = pEditor.info[1][p]
                     widget = pEditor.paramWidgets[p]                    
@@ -488,7 +488,7 @@ class QParameterExplorationTable(QPromptWidget):
         counts = self.label.getCounts()
         for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 for paramWidget in pEditor.paramWidgets:
                     dim = paramWidget.getDimension()
                     if dim in [0, 1, 2, 3]:
@@ -506,7 +506,7 @@ class QParameterExplorationTable(QPromptWidget):
         """
         for i in reversed(range(self.layout().count())):
             pEditor = self.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 pEditor.table = None
                 self.layout().removeWidget(pEditor)
                 pEditor.hide()
@@ -524,7 +524,7 @@ class QParameterExplorationTable(QPromptWidget):
             to_be_deleted = []
             for i in xrange(self.layout().count()):
                 pEditor = self.layout().itemAt(i).widget()
-                if pEditor and type(pEditor)==QParameterSetEditor:
+                if pEditor and isinstance(pEditor, QParameterSetEditor):
                     for param in pEditor.info[1]:
                         # We no longer require the parameter to exist
                         # we check if the module still exists
@@ -551,7 +551,7 @@ class QParameterExplorationTable(QPromptWidget):
         counts = self.label.getCounts()
         for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 for paramWidget in pEditor.paramWidgets:
                     editor = paramWidget.editor
                     interpolator = editor.stackedEditors.currentWidget()
@@ -580,7 +580,7 @@ class QParameterExplorationTable(QPromptWidget):
                             desc = getter(paramInfo.identifier,
                                           paramInfo.type,
                                           paramInfo.namespace)
-                            if type(v) != str:
+                            if not isinstance(v, str):
                                 str_value = desc.module.translate_to_string(v)
                             else:
                                 str_value = v

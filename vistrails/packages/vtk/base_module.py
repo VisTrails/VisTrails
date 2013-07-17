@@ -151,7 +151,7 @@ class vtkBaseModule(Module):
             if p is None:
                 # None indicates a call with no parameters
                 params = []
-            elif type(p) == tuple:
+            elif isinstance(p, tuple):
                 # A tuple indicates a call with many parameters
                 params = list(p)
             else:
@@ -198,7 +198,7 @@ class vtkBaseModule(Module):
                     vtk_pkg_identifier,
                     'vtkAlgorithmOutput')
                 for i in xrange(len(paramList)):
-                    if type(paramList[i])==desc.module:
+                    if isinstance(paramList[i], desc.module):
                         paramList[i] = (0, paramList[i])
             for p,connector in izip(paramList, connector_list):
                 # Don't call method
@@ -240,8 +240,8 @@ class vtkBaseModule(Module):
                 if issubclass(retValues.__class__, vtk.vtkObject):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
-                    self.setResult(function, output)                                   
-                elif (type(retValues) in [tuple, list]):
+                    self.setResult(function, output)
+                elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):

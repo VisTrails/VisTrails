@@ -108,8 +108,7 @@ class QParamTable(QtGui.QTableView):
         itemModel = QFunctionItemModel(0, 2, self)
         itemModel.setHeaderData(0, QtCore.Qt.Horizontal, v1Name)
         itemModel.setHeaderData(1, QtCore.Qt.Horizontal, v2Name)
-        # self.setHorizontalHeaderLabels(QtCore.QStringList() << \
-        #                                    v1Name << v2Name)
+        # self.setHorizontalHeaderLabels([v1Name, v2Name])
         self.setModel(itemModel)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)        
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)        
@@ -120,9 +119,7 @@ class QParamTable(QtGui.QTableView):
     def set_names(self, v1_name, v2_name):
         self.model().setHeaderData(0, QtCore.Qt.Horizontal, v1_name)
         self.model().setHeaderData(1, QtCore.Qt.Horizontal, v2_name)
-        # self.setHorizontalHeaderLabels(QtCore.QStringList() << \
-        #                                    v1_name << v2_name)
-
+        # self.setHorizontalHeaderLabels([v1_name, v2_name])
 
 class QParamInspector(QtGui.QWidget):
     """
@@ -424,14 +421,12 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
             if f1[0]!=None:
                 param_model.setData(
                     param_model.index(currentRow, 0),
-                    QtCore.QVariant('%s(%s)' % (f1[0],
-                                                ','.join(v[1] for v in f1[1]))))
+                    '%s(%s)' % (f1[0], ','.join(v[1] for v in f1[1])))
             if f2[0]!=None:
                 param_model.setData(
                     param_model.index(currentRow, 1),
-                    QtCore.QVariant('%s(%s)' % (f2[0],
-                                                ','.join(v[1] for v in f2[1]))))
-            if f1==f2:                
+                    '%s(%s)' % (f2[0], ','.join(v[1] for v in f2[1])))
+            if f1==f2:
                 param_model.disableRow(currentRow)
             currentRow += 1
 
@@ -964,13 +959,11 @@ class QVisualDiff(QtGui.QMainWindow):
             if f1[0]!=None:
                 functions.setData(
                     functions.index(currentRow, 0),
-                    QtCore.QVariant('%s(%s)' % (f1[0],
-                                                ','.join(v[1] for v in f1[1]))))
+                    '%s(%s)' % (f1[0], ','.join(v[1] for v in f1[1])))
             if f2[0]!=None:
                 functions.setData(
                     functions.index(currentRow, 1),
-                    QtCore.QVariant('%s(%s)' % (f2[0],
-                                                ','.join(v[1] for v in f2[1]))))
+                    '%s(%s)' % (f2[0], ','.join(v[1] for v in f2[1])))
             if f1==f2:                
                 functions.disableRow(currentRow)
             currentRow += 1

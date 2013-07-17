@@ -48,6 +48,7 @@ QPipelineView
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
+from vistrails.core.db.action import create_action
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
@@ -56,13 +57,13 @@ from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
-from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
@@ -74,7 +75,6 @@ import operator
 
 import vistrails.api
 import vistrails.gui.utils
-import vistrails.core
 
 ##############################################################################
 # 2008-06-24 cscheid
@@ -358,25 +358,32 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.tmp_connection_item.setCurrentPos(event.scenePos())
             snapPort = None
             snapModule = self.scene().findModuleUnder(event.scenePos())
+            converters = []
             if snapModule and snapModule != self.parentItem():
                 if self.port.type == 'output':
                     portMatch = self.scene().findPortMatch(
                         [self], snapModule.inputPorts.values(),
-                        fixed_out_pos=event.scenePos())
+                        fixed_out_pos=event.scenePos(),
+                        allow_conversion=True, out_converters=converters)
                     if portMatch[1] is not None:
                         snapPort = portMatch[1]
                 elif self.port.type == 'input':
                     portMatch = self.scene().findPortMatch(
                         snapModule.outputPorts.values(), [self],
-                        fixed_in_pos=event.scenePos())
+                        fixed_in_pos=event.scenePos(),
+                        allow_conversion=True, out_converters=converters)
                     if portMatch[0] is not None:
                         snapPort = portMatch[0]
             self.tmp_connection_item.setSnapPort(snapPort)
             if snapPort:
                 tooltip = self.tmp_connection_item.snapPortItem.toolTip()
+                if converters:
+                    tooltip = ('<strong>conversion required</strong><br/>\n'
+                               '%s' % tooltip)
                 QtGui.QToolTip.showText(event.screenPos(), tooltip)
             else:
                 QtGui.QToolTip.hideText()
+            self.tmp_connection_item.setConverting(snapPort and converters)
         QtGui.QAbstractGraphicsShapeItem.mouseMoveEvent(self, event)
         
     def findSnappedPort(self, pos):
@@ -396,12 +403,12 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             return None
         
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: value) -> value
         Do not allow port to be selected
 
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
-            return QtCore.QVariant(False)
+        if change==QtGui.QGraphicsItem.ItemSelectedChange and value:
+            return False
         return QtGui.QAbstractGraphicsShapeItem.itemChange(self, change, value)
 
 ##############################################################################
@@ -593,6 +600,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.changeModuleLabelAct)
         menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
+        menu.addAction(self.runModuleAct)
         menu.addAction(self.setErrorAct)
         if module.is_abstraction() and not module.is_latest_version():
             menu.addAction(self.upgradeAbstractionAct)
@@ -633,6 +641,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.setWatchedAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_watched)
+        self.runModuleAct = QtGui.QAction("Run this module", self.scene())
+        self.runModuleAct.setStatusTip("Run this module")
+        QtCore.QObject.connect(self.runModuleAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.run_module)
         self.setErrorAct = QtGui.QAction("Show Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
@@ -643,6 +656,9 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.upgradeAbstractionAct,
                    QtCore.SIGNAL("triggered()"),
                    self.upgradeAbstraction)
+
+    def run_module(self):
+        self.scene().parent().execute(target=self.moduleId)
 
     def set_breakpoint(self):
         """ set_breakpoint() -> None
@@ -762,6 +778,12 @@ class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
     def hide(self):
         self.disconnect(True)
         QtGui.QGraphicsLineItem.hide(self)
+
+    def setConverting(self, converting):
+        if converting:
+            self.setPen(CurrentTheme.CONNECTION_SELECTED_CONVERTING_PEN)
+        else:
+            self.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
 
 ##############################################################################
 # QGraphicsConnectionItem
@@ -904,7 +926,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         return path
 
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: value) -> value
         If modules are selected, only allow connections between 
         selected modules 
 
@@ -917,7 +939,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
             selectedItems = self.scene().selectedItems()
             selectedModules = False
             for item in selectedItems:
-                if type(item)==QGraphicsModuleItem:
+                if isinstance(item, QGraphicsModuleItem):
                     selectedModules = True
                     break
             if selectedModules:
@@ -925,13 +947,13 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
                 # modules to be deselected
                 if (self.connectingModules[0].isSelected() and
                     self.connectingModules[1].isSelected()):
-                    if not value.toBool():
-                        return QtCore.QVariant(True)
+                    if not value:
+                        return True
                 # Don't allow a connection to be selected if
                 # it is not between selected modules
                 else:
-                    if value.toBool():
-                        return QtCore.QVariant(False)
+                    if value:
+                        return False
         self.useSelectionRules = True
         return QtGui.QGraphicsPathItem.itemChange(self, change, value)    
 
@@ -1692,7 +1714,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 yield (item, True)
 
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: value) -> value
         Capture move event to also move the connections.  Also unselect any
         connections between unselected modules
         
@@ -1701,7 +1723,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if change==QtGui.QGraphicsItem.ItemPositionChange and \
                 self.handlePositionChanges:
             oldPos = self.pos()
-            newPos = value.toPointF()
+            newPos = value
             dis = newPos - oldPos
             for connectionItem, s in self.dependingConnectionItemsWithDir():
                 # If both modules are selected, both of them will
@@ -1745,7 +1767,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             for item in self.dependingConnectionItems().itervalues():
                 # Select any connections between self and other selected modules
                 (srcModule, dstModule) = item.connectingModules
-                if value.toBool():
+                if value:
                     if (srcModule==self and dstModule.isSelected() or
                         dstModule==self and srcModule.isSelected()):
                         # Because we are setting a state variable in the
@@ -1771,35 +1793,53 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self._needs_state_updated = True
         return QtGui.QGraphicsItem.itemChange(self, change, value)
 
-    def getClosestPort(self, pos, port, port_dict, port_order_f):
-        result = None
-        min_dis = None
-        registry = get_module_registry()
-        for (other_port, other_item) in port_dict.iteritems():
-            if (registry.ports_can_connect(*port_order_f([port, other_port])) \
-                    and other_item.isVisible()):
-                vector = (pos - other_item.getPosition())
-                dis = vector.x()*vector.x() + vector.y()*vector.y()
-                if result is None or dis < min_dis:
-                    min_dis = dis
-                    result = other_item
-        return result
+def choose_converter(converters, parent=None):
+    """Chooses a converter among a list.
+    """
+    if len(converters) == 1:
+        return converters[0]
 
-    def getDestPort(self, pos, srcPort):
-        """ getDestPort(self, pos: QPointF, srcPort: Port) -> QGraphicsPortItem
-        Look for the destination port match 'port' and closest to pos
-        
-        """
-        return self.getClosestPort(pos, srcPort, self.inputPorts, 
-                                   lambda x: x)
+    class ConverterItem(QtGui.QListWidgetItem):
+        def __init__(self, converter):
+            QtGui.QListWidgetItem.__init__(self, converter.name)
+            self.converter = converter
 
-    def getSourcePort(self, pos, dstPort):
-        """ getSourcePort(self, pos: QPointF, dstPort: Port)
-                          -> QGraphicsPortItem
-        Look for the source port match 'port' and closest to pos
-        
-        """
-        return self.getClosestPort(pos, dstPort, self.outputPorts, reversed)
+    dialog = QtGui.QDialog(parent)
+    dialog.setWindowTitle("Automatic conversion")
+    layout = QtGui.QVBoxLayout()
+
+    label = QtGui.QLabel(
+            "You are connecting two incompatible ports, however there are "
+            "matching Converter modules. Please choose which Converter should "
+            "be inserted on this connection:")
+    label.setWordWrap(True)
+    layout.addWidget(label)
+    list_widget = QtGui.QListWidget()
+    list_widget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    for converter in sorted(converters, key=lambda c: c.name):
+        list_widget.addItem(ConverterItem(converter))
+    layout.addWidget(list_widget)
+
+    buttons = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel,
+            QtCore.Qt.Horizontal)
+    QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
+                           dialog, QtCore.SLOT('accept()'))
+    QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
+                           dialog, QtCore.SLOT('reject()'))
+    layout.addWidget(buttons)
+
+    ok = buttons.button(QtGui.QDialogButtonBox.Ok)
+    ok.setEnabled(False)
+    QtCore.QObject.connect(
+            list_widget, QtCore.SIGNAL('itemSelectionChanged()'),
+            lambda: ok.setEnabled(True))
+
+    dialog.setLayout(layout)
+    if dialog.exec_() == QtGui.QDialog.Accepted:
+        return list_widget.selectedItems()[0].converter
+    else:
+        return None
 
 ##############################################################################
 # QPipelineScene
@@ -1908,7 +1948,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         items = self.selectedItems()
         modules = [x.id
                    for x in items
-                   if type(x) == QGraphicsModuleItem]
+                   if isinstance(x, QGraphicsModuleItem)]
         return self.controller.current_pipeline.graph.subgraph(modules)
 
 #     def create_abstraction(self):
@@ -2114,7 +2154,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         for item in self.items(pos):
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 return item
         return None
 
@@ -2188,7 +2228,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         return near_ports
 
     def findPortMatch(self, output_ports, input_ports, x_trans=0, 
-                      fixed_out_pos=None, fixed_in_pos=None):
+                      fixed_out_pos=None, fixed_in_pos=None,
+                      allow_conversion=False, out_converters=None):
         """findPortMatch(output_ports:  list(QAbstractGraphicsPortItem),
                          input_ports:   list(QAbstractGraphicsPortItem),
                          x_trans:       int,
@@ -2200,14 +2241,23 @@ class QPipelineScene(QInteractiveGraphicsScene):
         input_ports where the ports are compatible and the distance
         between these ports is minimal with respect to compatible
         ports
+
+        If allow_conversion is True, we also search for ports that are not
+        directly matched but can be connected if a Converter module is used. In
+        this case, we extend the optional 'out_converters' list with the
+        possible Converters' ModuleDescriptors.
         """
 
         reg = get_module_registry()
         result = (None, None)
         min_dis = None
+        selected_convs = None
         for o_item in output_ports:
             for i_item in input_ports:
-                if reg.ports_can_connect(o_item.port, i_item.port):
+                convs = []
+                if reg.ports_can_connect(o_item.port, i_item.port,
+                                         allow_conversion=True,
+                                         out_converters=convs):
                     if fixed_out_pos is not None:
                         out_pos = fixed_out_pos
                     else:
@@ -2222,6 +2272,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     if result[0] is None or dis < min_dis:
                         min_dis = dis
                         result = (o_item, i_item)
+                        selected_convs = convs
+        if selected_convs and out_converters is not None:
+            out_converters.extend(selected_convs)
         return result
 
     def updateTmpConnection(self, pos, tmp_connection_item, tmp_module_ports, 
@@ -2272,9 +2325,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Set to accept drops from the module palette
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if not self.read_only_mode:
                 if hasattr(data, 'items'):
@@ -2295,9 +2348,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Set to accept drag move event from the module palette
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 if get_vistrails_configuration().check('autoConnect'):
@@ -2336,7 +2389,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             event.ignore()
 
     def dragLeaveEvent(self, event):
-        if (self.controller and type(event.source())==QModuleTreeWidget):
+        if (self.controller and isinstance(event.source(), QModuleTreeWidget)):
             if self.tmp_output_conn:
                 self.tmp_output_conn.disconnect(True)
                 self.removeItem(self.tmp_output_conn)
@@ -2345,7 +2398,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 self.tmp_input_conn.disconnect(True)
                 self.removeItem(self.tmp_input_conn)
                 self.tmp_input_conn = None
-        elif type(event.source()) == QDragVariableLabel:
+        elif isinstance(event.source(), QDragVariableLabel):
             data = event.mimeData()
             if hasattr(data, 'variableData'):
                 if self._var_selected_port is not None:
@@ -2373,12 +2426,51 @@ class QPipelineScene(QInteractiveGraphicsScene):
         else:
             src_module_id = src_port_item.parentItem().id
             dst_module_id = module.id
-        
-        conn = self.controller.add_connection(src_module_id,
-                                              src_port_item.port,
-                                              dst_module_id,
-                                              dst_port_item.port)
-        self.addConnection(conn)
+
+        reg = get_module_registry()
+
+        if reg.ports_can_connect(src_port_item.port, dst_port_item.port):
+            # Direct connection
+            conn = self.controller.add_connection(src_module_id,
+                                                  src_port_item.port,
+                                                  dst_module_id,
+                                                  dst_port_item.port)
+            self.addConnection(conn)
+        else:
+            # Add a converter module
+            converters = reg.get_converters(src_port_item.port.descriptors(),
+                                            dst_port_item.port.descriptors())
+            converter = choose_converter(converters)
+            if converter is None:
+                return
+
+            src_pos = src_port_item.getPosition()
+            dst_pos = dst_port_item.getPosition()
+            mod_x = (src_pos.x() + dst_pos.x())/2.0
+            mod_y = (src_pos.y() + dst_pos.y())/2.0
+            mod = self.controller.create_module_from_descriptor(
+                    converter,
+                    x=mod_x,
+                    y=-mod_y)
+            conn1 = self.controller.create_connection(
+                    self.controller.current_pipeline.modules[src_module_id],
+                    src_port_item.port,
+                    mod,
+                    'in_value')
+            conn2 = self.controller.create_connection(
+                    mod, 'out_value',
+                    self.controller.current_pipeline.modules[dst_module_id],
+                    dst_port_item.port)
+            operations = [('add', mod), ('add', conn1), ('add', conn2)]
+
+            action = create_action(operations)
+            self.controller.add_new_action(action)
+            self.controller.perform_action(action)
+
+            graphics_mod = self.addModule(mod)
+            graphics_mod.update()
+            self.addConnection(conn1)
+            self.addConnection(conn2)
 
     def addConnectionFromTmp(self, tmp_connection_item, module, start_is_src):
         self.createConnectionFromTmp(tmp_connection_item, module, start_is_src)
@@ -2462,9 +2554,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Accept drop event to add a new module
         
         """
-        if (self.controller and
-            (type(event.source())==QModuleTreeWidget or
-             type(event.source())==QDragVariableLabel)):
+        if (self.controller and (
+                isinstance(event.source(), QModuleTreeWidget) or
+                isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
                 assert len(data.items) == 1
@@ -2572,7 +2664,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def get_selected_module_ids(self):
         module_ids = []
         for item in self.selectedItems():
-            if type(item) == QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 module_ids.append(item.module.id)
         return module_ids
 
@@ -2592,10 +2684,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connection_ids = {}
         module_ids = {}
         for item in selectedItems:
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 module_ids[item.module.id] = 1
         for item in selectedItems:
-            if type(item)==QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 for connItem in item.dependingConnectionItems().itervalues():
                     conn = connItem.connection
                     if not conn.id in connection_ids:
@@ -2675,7 +2767,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.controller and not self.read_only_mode:
             cb = QtGui.QApplication.clipboard()        
-            text = str(cb.text().toAscii())
+            text = cb.text()
             if text=='' or not text.startswith("<workflow"): return
             ids = self.controller.paste_modules_and_connections(text, center)
             self.setupScene(self.controller.current_pipeline)
@@ -2815,7 +2907,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                                     QtGui.QLineEdit.Normal,
                                                     currentLabel)
             if ok:
-                if text.isEmpty():
+                if not text:
                     if module.has_annotation_with_key('__desc__'):
                         self.controller.delete_annotation('__desc__', id)
                         self.recreate_module(self.controller.current_pipeline, id)
@@ -2836,12 +2928,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 'Are you sure you want to abort the execution?',
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No)
-            if r==QtGui.QMessageBox.Yes:
-                raise Exception("Execution aborted by user")
+            if r == QtGui.QMessageBox.Yes:
+                raise AbortExecution("Execution aborted by user")
             else:
-                self.progress.reset()
-                self.progress.setValue(self.progress.new_value)
-        
+                self.progress.goOn()
+
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
@@ -2884,27 +2975,26 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
+        if self.progress:
+            self.cancel_progress()
+            self.progress.setValue(self.progress.value() + 1)
+            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
-        if self.progress:
-            self.cancel_progress()
-            self.progress.new_value = self.progress.value() + 1 
-            self.progress.setValue(self.progress.new_value)
-            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         
     def set_module_progress(self, moduleId, progress=0.0):
         """ set_module_computing(moduleId: int, progress: float) -> None
         Post an event to the scene (self) for updating the module color
         
         """
+        if self.progress:
+            self.cancel_progress()
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
                                                         '%d%% Completed' % int(progress*100),
                                                         progress))
         QtCore.QCoreApplication.processEvents()
-        if self.progress:
-            self.cancel_progress()
 
     def set_module_persistent(self, moduleId):
         QtGui.QApplication.postEvent(self,
@@ -2916,13 +3006,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        msg = error if type(error) == str else error.msg
+        msg = error if isinstance(error, str) else error.msg
         text = "Module is suspended, reason: %s" % msg
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, text))
         QtCore.QCoreApplication.processEvents()
         # add to suspended modules dialog
-        if type(error) == str:
+        if isinstance(error, str):
             return
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
@@ -3067,7 +3157,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             return self.pipeline_non_empty(self.controller.current_pipeline)
         return False
     
-    def execute(self):
+    def execute(self, target=None):
         # view.checkModuleConfigPanel()
         # reset job view
         from vistrails.gui.job_monitor import QJobView
@@ -3083,8 +3173,13 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             progress = ExecutionProgressDialog(modules)
             self.scene().progress = progress
             progress.show()
-            
-            self.controller.execute_current_workflow()
+
+            if target is not None:
+                self.controller.execute_current_workflow(
+                        sinks=[target],
+                        reason="Execute specific module")
+            else:
+                self.controller.execute_current_workflow()
 
             progress.setValue(modules)
             #progress.hide()
@@ -3155,7 +3250,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def clipboard_non_empty(self):
         clipboard = QtGui.QApplication.clipboard()
         clipboard_text = clipboard.text()
-        return not clipboard_text.isEmpty() #and \
+        return bool(clipboard_text) #and \
         #    str(clipboard_text).startswith("<workflow")
 
     def pipeline_non_empty(self, pipeline):
@@ -3200,7 +3295,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def get_long_title(self):
         pip_name = self.controller.get_pipeline_name()
         vt_name = self.controller.name
-        self.long_title = "%s from %s"%(pip_name,vt_name)
+        self.long_title = "Pipeline %s from %s" % (pip_name,vt_name)
         return self.long_title
     
     def get_controller(self):
@@ -3246,12 +3341,21 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
     def __init__(self, modules):
-        QtGui.QProgressDialog.__init__(self, 'Starting Workflow execution',
+        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
                                        0, modules)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
-        self.new_value = 0
+        self._last_set_value = 0
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(ExecutionProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
 
 ################################################################################

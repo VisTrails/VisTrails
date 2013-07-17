@@ -57,7 +57,7 @@ def moduleConnection(conn):
         iport = conn.destination.name
         oport = conn.source.name
         src.enableOutputPort(oport)
-        dst.set_input_port(iport, ModuleConnector(src, oport))
+        dst.set_input_port(iport, ModuleConnector(src, oport, conn.destination.spec))
     return theFunction
 
 ################################################################################

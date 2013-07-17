@@ -159,10 +159,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
 
         # Update the aliases
         if len(pipeline.aliases)>0:
-            aliasRoot = QParameterTreeWidgetItem(None, self,
-                                                 QtCore.QStringList('Aliases'))
-            aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled,
-                               )
+            aliasRoot = QParameterTreeWidgetItem(None, self, ['Aliases'])
+            aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled)
             for (alias, info) in pipeline.aliases.iteritems():
                 ptype, pId, parentType, parentId, mId = info
                 parameter = pipeline.db_get_object(ptype, pId)
@@ -170,7 +168,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                 v = parameter.strValue
                 port_spec = function.get_spec('input')
                 port_spec_item = port_spec.port_spec_items[parameter.pos]
-                label = QtCore.QStringList('%s = %s' % (alias, v))
+                label = ['%s = %s' % (alias, v)]
                 pInfo = ParameterInfo(module_id=mId,
                                       name=function.name,
                                       pos=parameter.pos,
@@ -182,7 +180,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
             aliasRoot.setExpanded(True)
 
         vistrailVarsRoot = QParameterTreeWidgetItem(None, self,
-                                      QtCore.QStringList('Vistrail Variables'))
+                                      ['Vistrail Variables'])
         vistrailVarsRoot.setHidden(True)
 
         # Now go through all modules and functions
@@ -207,7 +205,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                 vv = controller.get_vistrail_variable_by_uuid(
                                         module.get_vistrail_var())
 
-                label = QtCore.QStringList('%s = %s' % (vv.name, vv.value))
+                label = ['%s = %s' % (vv.name, vv.value)]
                 pList = [ParameterInfo(module_id=mId,
                                        name=port_spec.name,
                                        pos=port_spec.port_spec_items[pId].pos,
@@ -222,7 +220,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                 
             function_names = {}
             # Add existing parameters
-            mLabel = QtCore.QStringList(module.name)
+            mLabel = [module.name]
             moduleItem = None
             if len(module.functions)>0:
                 for fId in xrange(len(module.functions)):
@@ -238,7 +236,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                             moduleItem = QParameterTreeWidgetItem(None,
                                                                   self, mLabel)
                     v = ', '.join([p.strValue for p in function.params])
-                    label = QtCore.QStringList('%s(%s)' % (function.name, v))
+                    label = ['%s(%s)' % (function.name, v)]
                     
                     try:
                         port_spec = function.get_spec('input')
@@ -285,7 +283,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                             moduleItem = QParameterTreeWidgetItem(None, self,
                                                                   mLabel, False)
                     v = ', '.join([p.module for p in port_spec.port_spec_items])
-                    label = QtCore.QStringList('%s(%s)' % (port_spec.name, v))
+                    label = ['%s(%s)' % (port_spec.name, v)]
                     pList = [ParameterInfo(module_id=mId,
                                            name=port_spec.name,
                                            pos=port_spec.port_spec_items[pId].pos,
@@ -347,7 +345,7 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
             font.setBold(True)
             painter.setFont(font)
             text = option.fontMetrics.elidedText(
-                model.data(index, QtCore.Qt.DisplayRole).toString(),
+                model.data(index, QtCore.Qt.DisplayRole),
                 QtCore.Qt.ElideMiddle, 
                 textrect.width()-10)
             style.drawItemText(painter,
@@ -365,13 +363,13 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
                              textrect.bottom()-1)
 
             annotatedId = model.data(index, QtCore.Qt.UserRole+1)            
-            if annotatedId.isValid():
+            if annotatedId:
                 idRect = QtCore.QRect(
                     QtCore.QPoint(textrect.left()+size.width()+5,
                                   textrect.top()),
                     textrect.bottomRight())
                 QAnnotatedPipelineView.drawId(painter, idRect,
-                                              annotatedId.toInt()[0],
+                                              annotatedId,
                                               QtCore.Qt.AlignLeft |
                                               QtCore.Qt.AlignVCenter)
         else:
@@ -394,7 +392,7 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, info, parent, labelList, isSet=True):
         """ QParameterTreeWidgetItem(info: (str, []),
                                      parent: QTreeWidgetItem
-                                     labelList: QStringList,
+                                     labelList: string,
                                      isSet: bool)
                                      -> QParameterTreeWidget
                                      
@@ -408,8 +406,8 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
         """
         self.parameter = info
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
-        if type(self.parameter)==int:
+        if isinstance(self.parameter, int):
             self.setData(0, QtCore.Qt.UserRole+1,
-                         QtCore.QVariant(self.parameter))
+                         self.parameter)
         self.isSet = isSet
 

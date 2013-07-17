@@ -479,7 +479,7 @@ class TestModule(unittest.TestCase):
             registry = get_module_registry()
             c = x.summon()
             m = registry.get_descriptor_by_name(basic_pkg, 'String').module
-            assert type(c) == m
+            assert isinstance(c, m)
         except NoSummon:
             msg = "Expected to get a String object, got a NoSummon exception"
             self.fail(msg)

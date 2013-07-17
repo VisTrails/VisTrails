@@ -1,7 +1,7 @@
 import contextlib
 
 
-def execute(modules, connections=[], add_port_specs=[]):
+def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
     """Build a pipeline and execute it.
 
     This is useful to simply build a pipeline in a test case, and run it. When
@@ -58,7 +58,7 @@ def execute(modules, connections=[], add_port_specs=[]):
         ]))
     """
     from vistrails.core.db.locator import XMLFileLocator
-    from vistrails.core.interpreter.default import get_default_interpreter
+    from vistrails.core.modules.module_registry import MissingPackage
     from vistrails.core.packagemanager import get_package_manager
     from vistrails.core.utils import DummyView
     from vistrails.core.vistrail.connection import Connection
@@ -86,7 +86,16 @@ def execute(modules, connections=[], add_port_specs=[]):
     module_list = []
     for i, (name, identifier, functions) in enumerate(modules):
         function_list = []
-        pkg = pm.get_package_by_identifier(identifier)
+        try:
+            pkg = pm.get_package(identifier)
+        except MissingPackage:
+            if not enable_pkg:
+                raise
+            pkg = pm.identifier_is_available(identifier)
+            if pkg:
+                pm.late_enable_package(pkg.codepath)
+                pkg = pm.get_package(identifier)
+
         for func_name, params in functions:
             param_list = []
             for param_type, param_val in params:

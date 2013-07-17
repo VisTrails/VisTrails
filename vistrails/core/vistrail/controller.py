@@ -603,10 +603,10 @@ class VistrailController(object):
     @staticmethod
     def create_connection_static(id_scope, output_module, output_port_spec,
                                  input_module, input_port_spec):     
-        if type(output_port_spec) == type(""):
+        if isinstance(output_port_spec, basestring):
             output_port_spec = \
                 output_module.get_port_spec(output_port_spec, 'output')
-        if type(input_port_spec) == type(""):
+        if isinstance(input_port_spec, basestring):
             input_port_spec = \
                 input_module.get_port_spec(input_port_spec, 'input')            
         if output_port_spec is None:
@@ -1131,8 +1131,8 @@ class VistrailController(object):
         moduleId
         
         """
-        assert type(pair[0]) == type('')
-        assert type(pair[1]) == type('')
+        assert isinstance(pair[0], basestring)
+        assert isinstance(pair[1], basestring)
         if pair[0].strip()=='':
             return
 
@@ -1889,7 +1889,7 @@ class VistrailController(object):
             
         if module_version is None:
             module_version = str(abs_vistrail.get_latest_version())
-        elif type(module_version) == type(1):
+        elif isinstance(module_version, (int, long)):
             module_version = str(module_version)
         # If an upgraded version has already been created, we want to use that rather than loading the old version.
         # This step also avoid duplication of abstraction upgrades.  Otherwise, when we try to add the old version
@@ -1956,7 +1956,7 @@ class VistrailController(object):
 
 #    def update_abstraction(self, abstraction, new_actions):
 #        module_version = abstraction.internal_version
-#        if type(module_version) == type(""):
+#        if isinstance(module_version, basestring):
 #            module_version = int(module_version)
 #        abstraction_uuid = \
 #            abstraction.vistrail.get_annotation('__abstraction_uuid__').value
@@ -2482,7 +2482,7 @@ class VistrailController(object):
         results = []
         for vis in vistrails:
             error = None
-            (locator, version, pipeline, view, aliases, params, reason, extra_info) = vis
+            (locator, version, pipeline, view, aliases, params, reason, sinks, extra_info) = vis
             temp_folder_used = False
             if (not extra_info or not extra_info.has_key('pathDumpCells') or 
                 not extra_info['pathDumpCells']):
@@ -2499,6 +2499,7 @@ class VistrailController(object):
                       'aliases': aliases,
                       'params': params,
                       'reason': reason,
+                      'sinks': sinks,
                       'extra_info': extra_info,
                       }    
             if self.get_vistrail_variables():
@@ -2566,7 +2567,8 @@ class VistrailController(object):
         return (results,changed)
     
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 extra_info=None, reason='Pipeline Execution'):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow(custom_aliases: dict, 
                                      custom_params: list,
                                      extra_info: dict) -> (list, bool)
@@ -2594,6 +2596,7 @@ class VistrailController(object):
                                                 custom_aliases,
                                                 custom_params,
                                                 reason,
+                                                sinks,
                                                 extra_info)])
 
     def recompute_terse_graph(self):
@@ -2924,8 +2927,8 @@ class VistrailController(object):
 
             for identifier, err_list in package_errs.iteritems():
                 try:
-                    pkg = pm.get_package_by_identifier(identifier)
-                except Exception, e:
+                    pkg = pm.get_package(identifier)
+                except MissingPackage:
                     # cannot get the package we need
                     continue
                 details = '\n'.join(str(e) for e in err_list)
@@ -3259,7 +3262,7 @@ class VistrailController(object):
                            'Please contact the developer of that package '
                            'and report a bug.' % err.package.name)
                     debug.critical(msg)
-                elif isinstance(err, PackageManager.MissingPackage):
+                elif isinstance(err, MissingPackage):
                     msg = ('Cannot find package "%s" in '
                            'list of available packages. '
                            'Please install it first.' % err._identifier)
@@ -3372,7 +3375,7 @@ class VistrailController(object):
             save_bundle = SaveBundle(self.vistrail.vtType)
             if export:
                 save_bundle.vistrail = self.vistrail.do_copy()
-                if type(locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(locator, vistrails.core.db.locator.DBLocator):
                     save_bundle.vistrail.db_log_filename = None
             else:
                 save_bundle.vistrail = self.vistrail
@@ -3394,7 +3397,7 @@ class VistrailController(object):
             if self.locator != locator:
                 # check for db log
                 log = Log()
-                if type(self.locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
                     connection = self.locator.get_connection()
                     db_log = open_vt_log_from_db(connection, 
                                                  self.vistrail.db_id)
@@ -3417,7 +3420,7 @@ class VistrailController(object):
                     self.locator = locator
                 save_bundle = locator.save_as(save_bundle, version)
                 new_vistrail = save_bundle.vistrail
-                if type(locator) == vistrails.core.db.locator.DBLocator:
+                if isinstance(locator, vistrails.core.db.locator.DBLocator):
                     new_vistrail.db_log_filename = None
                     locator.kwargs['obj_id'] = new_vistrail.db_id
                 if not export:
@@ -3444,8 +3447,9 @@ class VistrailController(object):
             # FIXME abstractions only work with FileLocators right now
             if is_abstraction:
                 new_vistrail.is_abstraction = True
-                if ( type(self.locator) == vistrails.core.db.locator.XMLFileLocator or
-                     type(self.locator) == vistrails.core.db.locator.ZIPFileLocator ):
+                if isinstance(self.locator, (
+                        vistrails.core.db.locator.XMLFileLocator,
+                        vistrails.core.db.locator.ZIPFileLocator)):
                     filename = self.locator.name
                     if filename in self._loaded_abstractions:
                         del self._loaded_abstractions[filename]

@@ -141,20 +141,18 @@
 import xml.sax.saxutils
 
 from vistrails.core.utils import memo_method
-import vistrails.gui
 
 # convenience method that does the full html extract if PyQt is loaded
 def extract_text(escaped_html_str):
-    from vistrails.core.application import is_running_gui
     notes = xml.sax.saxutils.unescape(escaped_html_str)
-    if is_running_gui():
+    try:
         from PyQt4 import QtGui
-        from PyQt4.QtCore import QString
-        fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
-        return str(fragment.toPlainText())
-    else:
+    except ImportError:
         return str(notes)
- 
+    else:
+        fragment = QtGui.QTextDocumentFragment.fromHtml(notes)
+        return str(fragment.toPlainText())
+
 # The queries are old and are preserved for reference.  Some code is
 # quite old (references to vis_application, for example).
 

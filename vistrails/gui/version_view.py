@@ -243,12 +243,12 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
             painter.drawLine(line)
 
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: variant) -> variant
         Do not allow link to be selected with version shape
         
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
-            return QtCore.QVariant(False)
+        if change==QtGui.QGraphicsItem.ItemSelectedChange and value:
+            return False
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 
 
@@ -376,7 +376,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
-        if not self.updatingTag and QtCore.QString.compare(self.label, self.toPlainText()) != 0:
+        if not self.updatingTag and self.label != self.toPlainText():
             self.updatingTag = True
             if (self.label == str(self.toPlainText()) or 
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
@@ -662,7 +662,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QAbstractGraphicsShapeI
             data.versionId!=self.id) or \
            (hasattr(data, 'items') and 
             len(data.items) == 1 and
-            type(data.items[0]) == QParamExplorationEntityItem):
+            isinstance(data.items[0], QParamExplorationEntityItem)):
             event.accept()
         else:
             event.ignore()
@@ -682,7 +682,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QAbstractGraphicsShapeI
             # visDiff.show()
         elif (hasattr(data, 'items') and 
               len(data.items) == 1 and
-              type(data.items[0]) == QParamExplorationEntityItem):
+              isinstance(data.items[0], QParamExplorationEntityItem)):
             # apply this parameter exploration to the new version, validate it and switch to PE view
             from vistrails.gui.vistrails_window import _app
             view = _app.get_current_view()
@@ -1079,7 +1079,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         """        
         selectedItems = self.selectedItems()
         versions = [item.id for item in selectedItems 
-                    if type(item)==QGraphicsVersionItem
+                    if isinstance(item, QGraphicsVersionItem)
                     and not item.text.hasFocus()] 
         if (self.controller and len(versions)>0 and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
@@ -1224,7 +1224,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
-                if type(item) == vistrails.gui.version_view.QGraphicsVersionItem:
+                if isinstance(item, vistrails.gui.version_view.QGraphicsVersionItem):
                     item.text.clearFocus()
         qt_super(QVersionTreeView, self).selectModules()
                 

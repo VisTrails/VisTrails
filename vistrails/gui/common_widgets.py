@@ -242,7 +242,8 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             return visible
 
         if str(name)=='':
-            testFunction = lambda x: True
+            testFunction = lambda x: (not hasattr(x, 'is_hidden') or
+                                      not x.is_hidden)
             if not self._search_was_empty:
                 self.collapseAll()
                 self._search_was_empty = True
@@ -320,7 +321,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         Return the default search tree
 
         """
-        self.treeWidget.searchItemName(QtCore.QString(''))
+        self.treeWidget.searchItemName('')
 
     def createTreeWidget(self):
         """ createTreeWidget() -> QSearchTreeWidget
@@ -470,7 +471,7 @@ class QStringEdit(QtGui.QFrame):
                                                      self.text(),
                                                      'All files '
                                                      '(*.*)')
-        if not fileName.isEmpty():
+        if fileName:
             self.setText(fileName)
         
 ###############################################################################
@@ -507,7 +508,7 @@ class MultiLineWidget(StandardConstantWidget):
                                                                'All files '
                                                                '(*.*)')
                 fileName = fileNames.join(',')
-                if not fileName.isEmpty():
+                if fileName:
                     self.setText(fileName)
                     return
         QtGui.QLineEdit.keyPressEvent(self,event)

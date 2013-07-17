@@ -46,6 +46,7 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.vistrail import Vistrail
 import copy
 import vistrails.core.interpreter.base
+from vistrails.core.interpreter.base import AbortExecution
 import vistrails.core.interpreter.utils
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -425,19 +426,22 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 obj.moduleInfo['actions'] = actions
 
         ## Checking 'sinks' from kwargs to resolve only requested sinks
+        # Note that we accept any module in 'sinks', even if it's not actually
+        # a sink in the graph
         if sinks is not None:
-            requestedSinks = sinks
             persistent_sinks = [tmp_id_to_module_map[sink]
-                                for sink in pipeline.graph.sinks()
-                                if sink in requestedSinks]
+                                for sink in sinks
+                                if sink in tmp_id_to_module_map]
         else:
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
-                                        
+
         # Update new sinks
         for obj in persistent_sinks:
             try:
                 obj.update()
+            except AbortExecution:
+                pass
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
@@ -643,9 +647,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         """
         d = {}
         d["__reason__"] = reason
-        if aliases is not None and type(aliases) == dict:
+        if aliases is not None and isinstance(aliases, dict):
             d["__aliases__"] = cPickle.dumps(aliases)
-        if params is not None and type(params) == list:
+        if params is not None and isinstance(params, list):
             d["__params__"] = cPickle.dumps(params)
         logger.insert_workflow_exec_annotations(d)
         

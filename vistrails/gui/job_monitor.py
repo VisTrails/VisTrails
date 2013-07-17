@@ -146,8 +146,11 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 try:
                     # call queue
                     job.jobFinished = job.queue.finished()
-                    if type(job.jobFinished) != bool:
+                    # old version of BatchQ needs to call .val()
+                    if not isinstance(job.jobFinished, bool):
                         job.jobFinished = job.jobFinished.val()
+                    if job.jobFinished:
+                        job.setText(1, "Finished")
                 except Exception, e:
                     debug.critical("Error checking job %s: %s" %
                                    (workflow.name, str(e)))
@@ -158,6 +161,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                          sum(j.jobFinished for j in workflow.jobs.itervalues())
             if workflow.workflowFinished:
                 workflow.setIcon(0, theme.get_current_theme().JOB_FINISHED)
+                workflow.setText(1, "Finished")
             workflow.countJobs()
             if workflow.workflowFinished:
                 if self.autorun.isChecked():
@@ -166,8 +170,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     self.updating_now = True
                     continue
                 ret = QtGui.QMessageBox.information(self, "Job Ready",
-                        'Pending Jobs in workflow "%s" has finished, do you want '
-                        'to continue the execution now?' % workflow.name,
+                        'Pending Jobs in workflow "%s" have finished, '
+                        'continue execution now?' % workflow.name,
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                 if ret == QtGui.QMessageBox.Ok:
                     self.updating_now = False
@@ -187,7 +191,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             if len(items) == 1:
                 index = self.jobView.indexOfTopLevelItem(items[0])
                 if index>=0:
-                    self.delete_job(items[0].controller)
+                    self.delete_job(items[0].controller, items[0].version)
         else:
             QtGui.QWidget.keyPressEvent(self, event)
 
@@ -223,7 +227,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         conf_jobs.append(str(url))
                         conf.runningJobsList = ';'.join(conf_jobs)
                         configuration.get_vistrails_persistent_configuration(
-                            ).runningJobsList = conf.runningJobsList
+                                      ).runningJobsList = conf.runningJobsList
             else:
                 workflow = self.workflowItems[(name, version_id)]
         job_name = ((prev+'.') if prev else '') + error.module.__class__.__name__
@@ -257,7 +261,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     added = True
         return added
                         
-    def delete_job(self, controller, version_id=None, all=True):
+    def delete_job(self, controller, version_id=None, all=False):
         if all:
             for k in self.workflowItems.keys():
                 workflow = self.workflowItems[k]
@@ -266,7 +270,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         self.jobView.indexOfTopLevelItem(
                             self.workflowItems[k]))
                     del self.workflowItems[k]
-                
+            return
         if not version_id:
             version_id = controller.current_version
         if controller.locator:
@@ -297,47 +301,58 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             del self.workflowItems[(name, version_id)]
 
     def item_selected(self, item):
-        if type(item) == QWorkflowItem:
+        if isinstance(item, QWorkflowItem):
             item.goto()
 
     def load_running_jobs(self):
         conf = configuration.get_vistrails_configuration()
         if conf.has('runningJobsList') and conf.runningJobsList:
-            result = QtGui.QMessageBox.question(self, "Running Jobs Found",
-                "Running Jobs Found. Do you want to continue running the jobs from the previous session?",
-                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            if result == QtGui.QMessageBox.Yes:
-                for url in conf.runningJobsList.split(';'):
-                    loc, version = url.split('?')
-                    locator = BaseLocator.from_url(loc)
+            for url in conf.runningJobsList.split(';'):
+                loc, version = url.split('?')
+                locator = BaseLocator.from_url(loc)
+                msgBox = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+                                           "Running Job Found",
+                                           "Running Job Found:\n    %s\n"
+                                           "Continue now?" % url)
+                msgBox.addButton("Later", msgBox.ActionRole)
+                delete = msgBox.addButton("Delete", msgBox.ActionRole)
+                yes = msgBox.addButton("Yes", msgBox.ActionRole)
+                msgBox.exec_()
+                if msgBox.clickedButton() == yes:
                     from vistrails.gui.vistrails_window import _app
-                    _app.open_vistrail_without_prompt(locator, int(version.split('=')[1]))
+                    _app.open_vistrail_without_prompt(locator,
+                                                   int(version.split('=')[1]))
                     _app.get_current_view().execute()
-            else:
-                conf.runningJobsList = ''
-                configuration.get_vistrails_persistent_configuration(
-                            ).runningJobsList = conf.runningJobsList
-                
+                if msgBox.clickedButton() == delete:
+                    conf_jobs = conf.runningJobsList.split(';')
+                    conf_jobs.remove(url)
+                    conf.runningJobsList = ';'.join(conf_jobs)
+                    configuration.get_vistrails_persistent_configuration(
+                                      ).runningJobsList = conf.runningJobsList
+        else:
+            conf.runningJobsList = ''
+            configuration.get_vistrails_persistent_configuration(
+                                      ).runningJobsList = conf.runningJobsList
+
 
 class QWorkflowItem(QtGui.QTreeWidgetItem):
     """ The workflow that was suspended """
     def __init__(self, controller, error, parent):
         if controller.vistrail.locator:
             self.name = "%s:%s" % (controller.vistrail.locator.short_name,
-                                    controller.get_pipeline_name()[10:])
+                                    controller.get_pipeline_name())
         else:
-            self.name = "Untitled.vt:%s" % controller.get_pipeline_name()[10:]
+            self.name = "Untitled.vt:%s" % controller.get_pipeline_name()
             
         QtGui.QTreeWidgetItem.__init__(self, parent,
-                    [self.name, error if type(error)==str else error.msg])
+                    [self.name, error if isinstance(error, str) else error.msg])
         self.setToolTip(0, "Double-Click to View Pipeline")
-        self.setToolTip(1, error if type(error)==str else error.msg)
+        self.setToolTip(1, error if isinstance(error, str) else error.msg)
         
         self.controller = controller
         self.version = controller.current_version
         self.has_queue = True
         self.setIcon(0, theme.get_current_theme().JOB_CHECKING)
-        self.setToolTip(0, "This Job has a method to check if it has finished.")
         self.workflowFinished = False
         self.jobs = {}
         from vistrails.gui.vistrails_window import _app

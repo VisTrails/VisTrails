@@ -652,7 +652,7 @@ class RequestHandler(object):
                                                              v._component._spec)
                             #making sure the filenames are generated in order
                             mask = '%s'
-                            if type(maxval) in [type(1), type(1L)]:
+                            if isinstance(maxval, (int, long)):
                                 mask = '%0' + str(len(v._component._maxVal)) + 'd'
 
                             while val <= maxval:
@@ -1679,7 +1679,7 @@ class MedleySimpleGUI(XMLObject):
 
         if has_seq == None:
             self._has_seq = False
-            if type(self._alias_list) == type({}):
+            if isinstance(self._alias_list, dict):
                 for v in self._alias_list.itervalues():
                     if v._component._seq == True:
                         self._has_seq = True

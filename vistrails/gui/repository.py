@@ -262,7 +262,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
         else:
             self.repository_supports_vt = True
             # get packages supported by VisTrails repository
-            server = self.serverCombo.itemData(index).toList()[1].toString()
+            server = self.serverCombo.itemData(index)[1]
             packages_url = "%s/packages/supported_packages/%s" % \
                     (self.config.webRepositoryURL, server)
 
@@ -440,7 +440,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             # upload vistrail temp file to repository
             register_openers(cookiejar=self.dialog.cookiejar)
-            project = self.serverCombo.itemData(self.serverCombo.currentIndex()).toList()[0].toString()
+            project = self.serverCombo.itemData(self.serverCombo.currentIndex())[0]
             if project == "Default": project = ""
 
             params = {'vistrail_file': open(filename, 'rb'),

@@ -57,6 +57,16 @@ _this_dir = os.path.dirname(os.path.realpath(__file__))
 root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
 sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
 
+def setNewPyQtAPI():
+    try:
+        import sip
+        # We now use the new PyQt API - IPython needs it
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+    except:
+        print "Could not set PyQt API, is PyQt4 installed?"
+setNewPyQtAPI()
+
 import vistrails.tests
 import vistrails.core
 import vistrails.core.db.io
@@ -116,6 +126,13 @@ parser.add_option("-e", "--examples", action="store_true",
 parser.add_option("-i", "--images", action="store_true",
                   default=False,
                   help="perform image comparisons")
+parser.add_option("--installbundles", action='store_true',
+                  default=False,
+                  help=("Attempt to install missing Python packages "
+                        "automatically"))
+parser.add_option("-S", "--startup", action="store", type="str", default=None,
+                  dest="dotVistrails",
+                  help="Set startup file (default is ~/.vistrails)")
 
 (options, args) = parser.parse_args()
 # remove empty strings
@@ -123,9 +140,19 @@ args = filter(len, args)
 verbose = options.verbose
 test_examples = options.examples
 test_images = options.images
+installbundles = options.installbundles
+dotVistrails = options.dotVistrails
 test_modules = None
 if len(args) > 0:
-    test_modules = set(args)
+    test_modules = args
+
+def module_filter(name):
+    if test_modules is None:
+        return True
+    for mod in test_modules:
+        if name.startswith(mod):
+            return True
+    return False
 
 ###############################################################################
 # reinitializing arguments and options so VisTrails does not try parsing them
@@ -134,10 +161,14 @@ sys.argv = sys.argv[:1]
 # creates the app so that testing can happen
 
 # We need the windows so we can test events, etc.
-v = vistrails.gui.application.start_application({'interactiveMode': True,
-                                       'nologger': True,
-                                       'singleInstance': False,
-                                       'fixedSpreadsheetCells': True})
+v = vistrails.gui.application.start_application({
+        'interactiveMode': True,
+        'nologger': True,
+        'singleInstance': False,
+        'fixedSpreadsheetCells': True,
+        'installBundles': installbundles,
+        'dotVistrails': dotVistrails,
+    })
 if v != 0:
     app = vistrails.gui.application.get_vistrails_application()
     if app:
@@ -182,9 +213,11 @@ for (p, subdirs, files) in os.walk(root_directory):
         if module.endswith('__init__'):
             module = module[:-9]
 
-        if test_modules and not module in test_modules:
+        if not module_filter(module):
             continue
         if module.startswith('vistrails.tests.run'):
+            continue
+        if module.startswith('vistrails.tests.resources'):
             continue
         if ('system' in module and not
             module.endswith('__init__')):
@@ -227,7 +260,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         if suite.countTestCases() == 0 and verbose >= 1:
             print msg, "WARNING: %s has no tests!" % filename
         elif verbose >= 2:
-            print msg, "Ok: %s test cases." % len(suite.countTestCases())
+            print msg, "Ok: %d test cases." % suite.countTestCases()
 
 sub_print("Imported modules. Running %d tests..." %
           main_test_suite.countTestCases(),
@@ -297,7 +330,7 @@ if not test_modules or test_images:
 
 ############## RUN TEST SUITE ####################
 
-result = unittest.TextTestRunner().run(main_test_suite)
+result = unittest.TextTestRunner(verbosity=max(verbose, 1)).run(main_test_suite)
 
 if not result.wasSuccessful():
     tests_passed = False

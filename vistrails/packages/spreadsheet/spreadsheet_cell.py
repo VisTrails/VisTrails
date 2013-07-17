@@ -77,8 +77,8 @@ class QCellWidget(QtGui.QWidget):
         self._currentFrame = 0
         self._playing = False
         # cell can be captured if it re-implements saveToPNG
-        self._capturingEnabled = type(self) is not QCellWidget and \
-                                 'saveToPNG' in  type(self).__dict__
+        self._capturingEnabled = (not isinstance(self, QCellWidget) and
+                                  hasattr(self, 'saveToPNG'))
         self.connect(self._playerTimer,
                      QtCore.SIGNAL('timeout()'),
                      self.playNextFrame)

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
 ## Copyright (C) 2011-2013, NYU-Poly.
@@ -35,16 +36,16 @@
 
 # This runs on crowdlabs only!!!
 # the input file format should follow this:
-#   path=/vistrails/vistrails.py
+#   url=http://www.crowdlabs.org
 #   wfid=598
+#   vtid=34
+#   pdf=true
+#   workflow=true
 #   buildalways=true
 #   other=width=0.45\linewidth 
 #
-# if path is not provided we will run on crowdlabs
-# the buildalways and port lines are optional
-# at least a version or a tag must be provided
-# please notice that the tag has precedence over version. If a tag is passed
-# we will query the database to get the latest version number.
+# buildalways, workflow and pdf are optional
+# at least one of wfid or vtid must be provided
 
 import sys
 import os.path
@@ -53,7 +54,18 @@ from httplib import HTTP
 from urlparse import urlparse
 import urllib2
 import re
-                     
+import logging
+
+debug = True
+logger = None
+             
+###############################################################################
+
+def log(msg):
+    global debug, logger
+    if debug:
+        logger.debug(msg)
+        
 ###############################################################################
 
 def usage():
@@ -118,6 +130,7 @@ def generate_latex(server_url, wfid, path_to_figures, graphics_options):
         This generates a piece of latex code containing the \href command and
         a \includegraphics command for each image generated.
     """
+    log("generate_latex")
     url_params = "details/%s/" % wfid
     url_params = url_params.replace("%","\%")
     url = "%s%s"%(server_url,url_params)
@@ -146,92 +159,59 @@ def generate_latex_error(error_msg):
 %s
 }{vistrails}""" % error_msg
     return s
-###############################################################################
-
-def run_vistrails_locally(path_to_vistrails, host, db_name, vt_id,
-                          version, port, path_to_figures, build_always=False,
-                          tag='', execute=False, showspreadsheetonly=False):
-    """run_vistrails_locally(path_to_vistrails: str, host: str,
-                             db_name: str, vt_id: str, version: str, port: str,
-                             path_to_figures: str) -> tuple(bool, str)
-        Run vistrails and returns a tuple containing a boolean saying if it was
-        successful or not and the latex code.
-    """
-    cmd_line = build_vistrails_cmd_line(path_to_vistrails, host, db_name, vt_id,
-                                        version, port, path_to_figures)
     
-    if not os.path.exists(path_to_figures):
-        os.makedirs(path_to_figures)
-        result = os.system(cmd_line)
-        if result != 0:
-            os.rmdir(path_to_figures)
-            msg = "See vistrails.log for more information."
-            return (False, generate_latex_error(msg))
-        
-    else:
-        if build_always or not path_exists_and_not_empty(path_to_figures):
-            result = os.system(cmd_line)
-            if result != 0:
-                os.rmdir(path_to_figures)
-                msg = "See vistrails.log for more information."
-                return (False, generate_latex_error(msg))
+###############################################################################
 
-    return (True, generate_latex(host, db_name, vt_id, version, port, tag,
-                                 execute, showspreadsheetonly,
-                                 path_to_figures, graphics_options))
+def download(url,filename):
+    try:
+        furl = urllib2.urlopen(url)
+        f = file(filename,'wb')
+        f.write(furl.read())
+        f.close()
+        return True
+    except:
+        return False
+        
+###############################################################################    
+
+def download_as_text(url):
+    try:
+        furl = urllib2.urlopen(url)
+        s = furl.read()
+        return s
+    except:
+        return None
 
 ###############################################################################
 
-def run_vistrails_remotely(path_to_vistrails, wfid, path_to_figures,
-                           build_always=False):
-    """run_vistrails_remotely(path_to_vistrails: str, host: str,
-                              db_name: str, vt_id: str, version: str, port: str,
-                              path_to_figures: str, build_always: bool,
-                              tag:str, execute: bool, showspreadsheetonly: bool)
+def download_workflow(url_crowdlabs, wfid, path_to_figures, wgraph=False,
+                      pdf=False, build_always=False):
+    """download_workflow(url_crowdlabs: str, wfid: str, path_to_figures: str, 
+                         wgraph: bool, pdf: bool, build_always: bool)
                                    -> tuple(bool, str)
-        Run vistrails and returns a tuple containing a boolean saying if it was
-        successful or not and the latex code.
-    """
-    def check_url(url):
-        try:
-            p = urlparse(url)
-            h = HTTP(p[1])
-            h.putrequest('HEAD', p[2])
-            h.endheaders()
-            if h.getreply()[0] == 200:
-                return True
-            else:
-                return False
-        except:
-            return False
-        
-    def download(url,filename):
-        try:
-            furl = urllib2.urlopen(url)
-            f = file(filename,'wb')
-            f.write(furl.read())
-            f.close()
-            return True
-        except:
-            return False
-        
-    def download_as_text(url):
-        try:
-            furl = urllib2.urlopen(url)
-            s = furl.read()
-            return s
-        except:
-            return None
-    
+        Try to download image from url and returns a tuple containing a boolean 
+        saying if it was successful or not and the latex code.
+    """    
+    log("download_workflow")
     if not path_exists_and_not_empty(path_to_figures) or build_always:
         if not os.path.exists(path_to_figures):
             os.makedirs(path_to_figures)
         
-        if check_url(path_to_vistrails):
-            website = "://".join(urlparse(path_to_vistrails)[:2])
-            request = "generate_visualization_image/%s/"%wfid
-            url = path_to_vistrails + request
-            #print url
+        if check_url(url_crowdlabs):
+            website = "://".join(urlparse(url_crowdlabs)[:2])
+            if not wgraph:
+                if not pdf:
+                    request = "/vistrails/workflows/generate_visualization_image/%s/"%wfid
+                else:
+                    request = "/vistrails/workflows/generate_visualization_pdf/%s/"%wfid
+            else:
+                if not pdf:
+                    request = "/vistrails/workflows/generate_pipeline_image/%s/"%wfid
+                else:
+                    request = "/vistrails/workflows/generate_pipeline_pdf/%s/"%wfid
+
+            url = url_crowdlabs + request
+            log("from %s"%url)
             try:
                 page = download_as_text(url)
                 # we will look for a list of comma separated in the html
@@ -251,41 +231,116 @@ def run_vistrails_remotely(path_to_vistrails, wfid, path_to_figures,
                                    img
                             failed = True
                     if not failed:
-                        return (True, generate_latex(path_to_vistrails, wfid,
+                        log("success")
+                        return (True, generate_latex(url_crowdlabs + "/vistrails/workflows/",
+                                                     wfid,
                                                      path_to_figures,
                                                      graphics_options))
                     else:
+                        log("failed: %s"%msg)
                         return (False, generate_latex_error(msg))
                 else:
                     msg = "Web server returned: %s" % page
+                    log("failed: %s"%msg)
                     return (False, generate_latex_error(msg))
             
             except Exception, e:
+                log("failed with exception: %s"%str(e))
                 return (False, generate_latex_error(str(e)))
         else:
-            msg = "Invalid url: %s" % path_to_vistrails
+            msg = "Invalid url: %s" % url_crowdlabs
             return (False, generate_latex_error(msg))
     else:
-        return (True, generate_latex(path_to_vistrails, wfid,
+        log("using cached images")
+        return (True, generate_latex(url_crowdlabs  + "/vistrails/workflows/", 
+                                     wfid,
+                                     path_to_figures, 
+                                     graphics_options))
+    
+###############################################################################
+
+def download_tree(url_crowdlabs, vtid, path_to_figures, pdf=False,
+                  build_always=False):
+    """download_tree(url_crowdlabs: str, vtid: str, path_to_figures: str, 
+                     pdf: bool, build_always: bool)
+                                   -> tuple(bool, str)
+        Try to download tree from url and returns a tuple containing a boolean 
+        saying if it was successful or not and the latex code.
+    """
+    log("download_tree")
+    if not path_exists_and_not_empty(path_to_figures) or build_always:
+        if not os.path.exists(path_to_figures):
+            os.makedirs(path_to_figures)
+        
+        if check_url(url_crowdlabs):
+            website = "://".join(urlparse(url_crowdlabs)[:2])
+            if not pdf:
+                request = "/vistrails/generate_provenance_image/%s/"%vtid
+            else:
+                request = "/vistrails/generate_provenance_pdf/%s/"%vtid
+            url = url_crowdlabs + request
+            log("from %s"%url)
+            try:
+                page = download_as_text(url)
+                # we will look for a list of comma separated in the html
+                images = page.split(",")
+                if len(images) > 0:
+                    failed = False
+                    for i in images:
+                        msg = ''
+                        pngfile = i.strip()
+                        if not check_url(pngfile):
+                            img = website + pngfile
+                        else:
+                            img = pngfile
+                        if not download(img, os.path.join(path_to_figures,
+                                        os.path.basename(img))):
+                            msg += "Error when download image: %s. <return>" %\
+                                   img
+                            failed = True
+                    if not failed:
+                        log("success")
+                        return (True, generate_latex(url_crowdlabs + "/vistrails/", vtid,
+                                                     path_to_figures,
+                                                     graphics_options))
+                    else:
+                        log("failed: %s"%msg)
+                        return (False, generate_latex_error(msg))
+                else:
+                    msg = "Web server returned: %s" % page
+                    log("failed: %s"%msg)
+                    return (False, generate_latex_error(msg))
+            
+            except Exception, e:
+                log("failed with exception: %s"%str(e))
+                return (False, generate_latex_error(str(e)))
+        else:
+            msg = "Invalid url: %s" % url_crowdlabs
+            log("failed: %s"%msg)
+            return (False, generate_latex_error(msg))
+    else:
+        log("using cached images")
+        return (True, generate_latex(url_crowdlabs + "/vistrails/", vtid,
                                      path_to_figures, graphics_options))
     
     
 ###############################################################################
 
-def check_path(path):
-    """check_path(path:str) -> bool
-    Checks if it's a valid path.
-    If path is valid, we will update it to be a realpath.
-    
+def check_url(url):
+    """check_url(url:str) -> bool
+    Check if a URL exists using the url's header.
     """
-    result = False
-    new_path = os.path.realpath(path)
-    if os.path.isfile(new_path):
-        path = new_path
-        result = True
-    else:
-        result = False
-    return result
+    try:
+        p = urlparse(url)
+        h = HTTP(p[1])
+        h.putrequest('HEAD', p[2])
+        h.endheaders()
+        if h.getreply()[0] == 200:
+            return True
+        else:
+            return False
+    except:
+        return False
 
 ###############################################################################
 
@@ -294,10 +349,25 @@ try:
     options_file = open(sys.argv[1])
 except IndexError:
     usage()
-    
+
+if debug:
+    logger = logging.getLogger("crowdLabsLatex")
+    handler = logging.FileHandler('crowdlabs.log')
+    handler.setFormatter(logging.Formatter('crowdLabsLatex - %(asctime)s %(message)s'))
+    handler.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+    log("***********************************")
+    log("********* SESSION START ***********")
+        
 lines = options_file.readlines()
-path_to_vistrails = None
+urlcrowdlabs = None
 wfid = None
+vtid = None
+pdf = False
+wgraph = False
+tree = False
+
 graphics_options = None
 build_always = False
 run_locally = True
@@ -306,41 +376,59 @@ for line in lines:
     args = line.split("=")
     if len(args) > 2:
         args[1] = "=".join(args[1:])
-    if args[0] == "path":
-        path_to_vistrails = args[1].strip(" \n")
+    if args[0] == "url":
+        urlcrowdlabs = args[1].strip(" \n")
     elif args[0] == "wfid":
         wfid = args[1].strip(" \n")
+    elif args[0] == "vtid":
+        vtid = args[1].strip(" \n")
+        tree = True
+    elif args[0] == 'pdf':
+        pdf = bool_conv(args[1].strip(" \n"))    
+    elif args[0] == 'workflow':
+        wgraph = bool_conv(args[1].strip(" \n"))
     elif args[0] == "buildalways":
         build_always = bool_conv(args[1].strip(" \n"))
     elif args[0] == "other":
         graphics_options = args[1].strip(" \n")
 
-# then we use the combination wfid to
+# then we use the combination wf_wfid or vt_vtid to
 # create a unique folder. 
 # TODO: Maybe we should use a hash of this. For now let's keep it
 # legible.
+out_type = "png"
+if pdf:
+    out_type = 'pdf'
 
-path_to_figures = os.path.join("vistrails_images",
-                               "%s" % wfid)
+if check_url(urlcrowdlabs):
+    
+    if wfid is not None:
+        folder_suffix = ""
+        if wgraph:
+            folder_suffix = "_graph"
+        path_to_figures = os.path.join("crowdlabs_images",
+                                       "wf_%s_%s%s" %(wfid, out_type,folder_suffix))
+        log(path_to_figures)
+        result, latex = download_workflow(urlcrowdlabs, wfid,
+                                          path_to_figures, wgraph, pdf, build_always)        
 
-# if the path_to_vistrails point to a file that exists on disk, we will use
-# it, else let's assume it's a url (we still check if the url is valid inside
-# the run_vistrails_remotely function)
-
-run_locally = check_path(path_to_vistrails)
-
-if run_locally:
-    result, latex = run_vistrails_locally(path_to_vistrails, host, db_name,
-                                          vt_id, version, port, path_to_figures,
-                                          build_always, version_tag, execute,
-                                          showspreadsheetonly)
+    elif vtid is not None:
+        path_to_figures = os.path.join("crowdlabs_images",
+                                       "vt_%s_%s" %(vtid, out_type))
+        log(path_to_figures)
+        result, latex = download_tree(urlcrowdlabs, vtid,
+                                          path_to_figures, pdf, build_always)
+        
 else:
-    result, latex = run_vistrails_remotely(path_to_vistrails, wfid,
-                                           path_to_figures, build_always)
+    result, latex = (False, generate_latex_error("Invalid url %s." % urlcrowdlabs))
     
 # the printed answer will be included inline by the latex compiler.
 print latex
 if result == True:
+    log("********** SESSION END ************")
+    log("***********************************")
     sys.exit(0)
 else:
+    log("********** SESSION END ************")
+    log("***********************************")
     sys.exit(1)

@@ -44,11 +44,13 @@ from vistrails.core.utils import PortAlreadyExists
 from vistrails.gui.theme import CurrentTheme
 
 MySQLdb = py_import('MySQLdb', {
+        'pip': 'mysql-python',
         'linux-debian': 'python-mysqldb',
         'linux-ubuntu': 'python-mysqldb',
         'linux-fedora': 'MySQL-python'})
 
 psycopg2 = py_import('psycopg2', {
+        'pip': 'psycopg2',
         'linux-debian':'python-psycopg2',
         'linux-ubuntu':'python-psycopg2',
         'linux-fedora':'python-psycopg2'})

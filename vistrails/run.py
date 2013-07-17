@@ -37,7 +37,6 @@
 import os
 import sys
 
-
 # Allows the userpackages directory to be overridden through an environment
 # variable
 # As this variable is set by the package manager, this also allows
@@ -73,6 +72,16 @@ def disable_lion_restore():
         os.system('rm -rf "%s"' % ssPath)
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
+def setNewPyQtAPI():
+    try:
+        import sip
+        # We now use the new PyQt API - IPython needs it
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+    except:
+        print "Could not set PyQt API, is PyQt4 installed?"
+
+
 def enable_user_base():
     # USER_BASE and USER_SITE in site.py is not set when running from py2app,
     # this is neded by at least scipy.weave
@@ -84,35 +93,38 @@ def enable_user_base():
     site.USER_BASE = mac_site.getuserbase()
     site.USER_SITE = mac_site.getusersitepackages()
 
-if __name__ == '__main__':
+
+def fix_paths():
+    import site
+    if not hasattr(site, "USER_BASE"): return # We are running py2app
+
     # Fix import path: add parent directory(so that we can
     # import vistrails.[gui|...] and remove other paths below it (we might have
     # been started from a subdir)
-
-    # DAK: the deletes screw things up in the binary (definitely for
-    #   Mac) and since subdir is unlikely, I'm commenting them out. A
-    #   better solution is probably to move run.py up a
-    #   directory in the repo
+    # A better solution is probably to move run.py up a
+    # directory in the repo
+    print "file:", __file__
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-    # i = 0
-    # print "vistrails_dir:", vistrails_dir
-    # while i < len(sys.path):
-    #     rpath = os.path.realpath(sys.path[i])
-    #     if rpath.startswith(vistrails_dir):
-    #         print " deleting", rpath, sys.path[i]
-    #         del sys.path[i]
-    #     else:
-    #         i += 1
+    i = 0
+    print "vistrails_dir:", vistrails_dir
+    while i < len(sys.path):
+        rpath = os.path.realpath(sys.path[i])
+        if rpath.startswith(vistrails_dir):
+            print "deleting", sys.path[i]
+            del sys.path[i]
+        else:
+            i += 1
     sys.path.insert(0, vistrails_dir)
 
+if __name__ == '__main__':
+    fix_paths()
     disable_lion_restore()
     enable_user_base()
-    # does not work because it checks if gui already running
-    #import gui.requirements
-    #gui.requirements.check_pyqt4()
 
     import vistrails.core.requirements
     import vistrails.gui.bundles.installbundle
+
+    setNewPyQtAPI()
     try:
         vistrails.core.requirements.require_python_module('PyQt4.QtGui')
         vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
@@ -123,6 +135,7 @@ if __name__ == '__main__':
              'linux-fedora': ['PyQt4']})
         if not r:
             raise req
+        setNewPyQtAPI()
 
     from PyQt4 import QtGui
     import vistrails.gui.application

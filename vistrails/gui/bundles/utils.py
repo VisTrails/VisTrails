@@ -38,6 +38,7 @@ from vistrails.core import debug
 import vistrails.core.system
 import os
 import platform
+import sys
 
 ##############################################################################
 
@@ -46,30 +47,43 @@ def guess_graphical_sudo():
 
     Returns: (sudo, escape)
     Where:
-      sudo is the command to be used to gain root privileges
+      sudo is the command to be used to gain root privileges, it 
+           should contain %s where the actual command will be inserted
       escape is True if the rest of the line needs to be escaped
     """
-    if vistrails.core.system.executable_is_in_path('kdesu'):
-        return 'kdesu -c', True
+    if sys.platform == 'win32':
+        return '%s', False
+    # sudo needs -E so that the Xauthority file is found and root can connect
+    # to the user's X server
+    if vistrails.core.system.executable_is_in_path('kdesudo'):
+        return 'kdesudo %s', True
+    elif vistrails.core.system.executable_is_in_path('kdesu'):
+        return 'kdesu %s', False
     elif vistrails.core.system.executable_is_in_path('gksu'):
-        return 'gksu', False
+        return 'gksu %s', False
     elif (vistrails.core.system.executable_is_in_path('sudo') and
           vistrails.core.system.executable_is_in_path('zenity')):
         # This is a reasonably convoluted hack to only prompt for the password
         # if user has not recently entered it
-        return ('((echo "" | sudo -v -S -p "") || ' +
-                '(zenity --entry --title "sudo password prompt" --text "Please enter your password '
-                'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -S -p ""',
-                False)
+        return ('((echo "" | sudo -v -S -p "") || '
+                '(zenity --entry --title "sudo password prompt" --text '
+                '"Please enter your password to give the system install '
+                'authorization." --hide-text="" | sudo -v -S -p "")); '
+                'sudo -E -S -p "" %s',
+               False)
+        # graphical sudo for osx
+    elif vistrails.core.system.executable_is_in_path('osascript'):
+        return "osascript -e " \
+               "'do shell script %s with administrator privileges'", True
     else:
         debug.warning("Could not find a graphical sudo-like command.")
 
         if vistrails.core.system.get_executable_path('sudo'):
             debug.warning("Will use regular sudo")
-            return "sudo", False
+            return "sudo -E %s", False
         else:
             debug.warning("Will use regular su")
-            return "su -c", True
+            return "su --preserve-environment -c %s", True
 
 ##############################################################################
 
@@ -83,7 +97,7 @@ class System_guesser(object):
             raise Exception("test for '%s' already present." % system_name)
         if system_name == 'UNKNOWN':
             raise Exception("Invalid system name")
-        assert type(system_name) == str
+        assert isinstance(system_name, str)
         self._callable_dict[system_name] = test
 
     def guess_system(self):

@@ -142,7 +142,7 @@ def typeMap(name, package=None):
     """
     if package is None:
         package = identifier
-    if type(name) == tuple:
+    if isinstance(name, tuple):
         return [typeMap(x, package) for x in name]
     if name in typeMapDict:
         return typeMapDict[name]
@@ -212,7 +212,7 @@ def get_method_signature(method, docum='', name=''):
                         arg = tuple(arg)
                     else:
                         arg = arg[0]
-                if type(arg) == str:
+                if isinstance(arg, str):
                     arg = [arg]
 
             sig.append(([ret], arg))
@@ -240,16 +240,16 @@ def prune_signatures(module, name, signatures, output=False):
         if type_ is None:
             return []
         def convert(entry):
-            if type(entry) == tuple:
+            if isinstance(entry, tuple):
                 return list(entry)
-            elif type(entry) == str:  
+            elif isinstance(entry, str):
                 return [entry]
             else:
                 result = []
                 first = True
                 lastList = True
                 for e in entry:
-                    if (type(e) == list):
+                    if (isinstance(e, list)):
                         if lastList == False: result[len(result)] = result[len(result)] + ']'  
                         aux = e
                         aux.reverse()
@@ -261,7 +261,7 @@ def prune_signatures(module, name, signatures, output=False):
                         if first: e = '[' + e
                         result.append(e)
                         lastList = False
-                        first = False                                                             
+                        first = False
                 return result
         result = []
         for entry in type_:
@@ -324,18 +324,18 @@ def prune_signatures(module, name, signatures, output=False):
     def removeBracts(signatures):
         result = []
         stack = list(signatures)
-        while (len(stack) != 0):            
+        while (len(stack) != 0):
             curr = stack.pop(0)
-            if (type(curr) == String or type(curr) == str):
+            if (isinstance(curr, (String, str))):
                 c = curr.replace('[', '')
                 c = c.replace(']', '')
                 result.append(c)
             elif (curr == None):
                 result.append(curr)
-            elif (type(curr) == list):
+            elif (isinstance(curr, list)):
                 curr.reverse()
                 for c in curr: stack.insert(0, c)
-            elif (type(curr) == tuple):
+            elif (isinstance(curr, tuple)):
                 cc = list(curr)
                 cc.reverse()
                 for c in cc: stack.insert(0, c)
@@ -711,7 +711,7 @@ def addOtherPorts(module, other_list):
                     paramsList = list(params)
                     while (len(paramsList) != 0):
                         p = paramsList.pop(0)
-                        if type(p) == list: 
+                        if isinstance(p, list): 
                             for aux in p: paramsList.insert(0, aux)
                         else:
                           types.append(typeMap(p))

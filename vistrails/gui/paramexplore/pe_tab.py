@@ -132,7 +132,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.peWidget.table.label.getCounts()), str(self.virtualCell.getConfiguration()[2]), timestamp, timestamp)
         for i in xrange(self.peWidget.table.layout().count()):
             pEditor = self.peWidget.table.layout().itemAt(i).widget()
-            if pEditor and type(pEditor)==QParameterSetEditor:
+            if pEditor and isinstance(pEditor, QParameterSetEditor):
                 firstParam = True
                 for paramWidget in pEditor.paramWidgets:
                     paramInfo = paramWidget.param

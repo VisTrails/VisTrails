@@ -588,8 +588,8 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 
@@ -626,8 +626,8 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
-            ascii_key = e.text().toLatin1()[0]
+        if len(e.text())>0:
+            ascii_key = e.text()[0]
         else:
             ascii_key = chr(0)
 
@@ -968,11 +968,11 @@ class QVTKWidget(QCellWidget):
                                                "Save file as...",
                                                "screenshot.png",
                                                "Images (*.png);;PDF files (*.pdf)")
-        if fn.isNull():
+        if not fn or fn == '':
             return
-        if fn.endsWith(QtCore.QString("png"), QtCore.Qt.CaseInsensitive):
+        if fn.endswith("png", QtCore.Qt.CaseInsensitive):
             self.saveToPNG(str(fn))
-        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+        elif fn.endswith("pdf", QtCore.Qt.CaseInsensitive):
             self.saveToPDF(str(fn))
         
     def grabWindowPixmap(self):

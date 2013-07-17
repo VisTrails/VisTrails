@@ -44,6 +44,7 @@ QVersionThumbs
 QVersionMashups
 
 """
+import re
 import os.path
 from PyQt4 import QtCore, QtGui
 from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
@@ -124,8 +125,14 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.dateEdit = QtGui.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
 
+        idLabel = QtGui.QLabel('ID:', self)
+        gLayout.addWidget(idLabel, 3, 0, 1, 1)
+        
+        self.idEdit = QtGui.QLabel('', self)
+        gLayout.addWidget(self.idEdit, 3, 2, 1, 1)
+
         self.notesLabel = QtGui.QLabel('Notes:')
-        gLayout.addWidget(self.notesLabel, 3, 0, 1, 1)
+        gLayout.addWidget(self.notesLabel, 4, 0, 1, 1)
 
         self.versionNotes = QVersionNotes()
         vLayout.addWidget(self.versionNotes)
@@ -193,6 +200,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.tagEdit.setText(name)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
+                self.idEdit.setText(unicode(action.id))
                 self.tagEdit.setEnabled(True)
                 return
             else:
@@ -202,6 +210,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.tagEdit.setText('')
         self.userEdit.setText('')
         self.dateEdit.setText('')
+        self.idEdit.setText('')
 
     def tagFinished(self):
         """ tagFinished() -> None
@@ -336,7 +345,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.tag_label.palette().setBrush(QtGui.QPalette.Text,
                                           CurrentTheme.VERSION_PROPERTIES_PEN)
         self.tag_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.tag_label.setText(QtCore.QString("Tag:"))
+        self.tag_label.setText("Tag:")
 
         self.tag = QtGui.QLabel()
         self.tag.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -345,7 +354,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.description_label.palette().setBrush(QtGui.QPalette.Text,
                                                   CurrentTheme.VERSION_PROPERTIES_PEN)
         self.description_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.description_label.setText(QtCore.QString("Action:"))
+        self.description_label.setText("Action:")
 
         self.description = QtGui.QLabel()
         self.description.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -354,7 +363,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.user_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.user_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.user_label.setText(QtCore.QString("User:"))
+        self.user_label.setText("User:")
 
         self.user = QtGui.QLabel()
         self.user.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -363,7 +372,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.date_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.date_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.date_label.setText(QtCore.QString("Date:"))
+        self.date_label.setText("Date:")
         
         self.date = QtGui.QLabel()
         self.date.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -372,7 +381,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.notes_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.notes_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.notes_label.setText(QtCore.QString("Notes:"))
+        self.notes_label.setText("Notes:")
 
         self.notes = QtGui.QLabel()
         self.notes.setTextFormat(QtCore.Qt.PlainText)
@@ -441,13 +450,13 @@ class QVersionPropOverlay(QtGui.QFrame):
                 action = self.controller.vistrail.actionMap[versionNumber]
                 name = self.controller.vistrail.getVersionName(versionNumber)
                 description = self.controller.vistrail.get_description(versionNumber)
-                self.tag.setText(self.truncate(QtCore.QString(name)))
-                self.description.setText(self.truncate(QtCore.QString(description)))
-                self.user.setText(self.truncate(QtCore.QString(action.user)))
-                self.date.setText(self.truncate(QtCore.QString(action.date)))
+                self.tag.setText(self.truncate(name))
+                self.description.setText(self.truncate(description))
+                self.user.setText(self.truncate(action.user))
+                self.date.setText(self.truncate(action.date))
                 notes = self.controller.vistrail.get_notes(action.id)
                 if notes:
-                    s = self.convertHtmlToText(QtCore.QString(notes))
+                    s = self.convertHtmlToText(notes)
                     self.notes.setText(self.truncate(s))
                 else:
                     self.notes.setText('')
@@ -466,21 +475,20 @@ class QVersionPropOverlay(QtGui.QFrame):
         
         """
         # Some text we want to ignore lives outside brackets in the header
-        str.replace(QtCore.QRegExp("<head>.*</head>"), "")
+        str = re.sub(r"<head>.*</head>", r"", str)
         # Remove all other tags
-        str.replace(QtCore.QRegExp("<[^>]*>"), "")
+        str = re.sub(r"<[^>]*>", r"", str)
         # Remove newlines
-        str.replace(QtCore.QRegExp("\n"), " ")
+        str = re.sub(r"\n", r"", str)
         return str
 
     def truncate(self, str):
-        """ truncate(str: QString) -> QString
+        """ truncate(str: string) -> string
         Shorten string to fit in smaller space
         
         """
-        if (str.size() > 24):
-            str.truncate(22)
-            str.append("...")
+        if len(str) > 24:
+            str = str[:22] + "..."
         return str
 
     def openNotes(self):
@@ -643,7 +651,7 @@ class QNotesDialog(QtGui.QDialog):
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 name = self.controller.vistrail.getVersionName(versionNumber)
-                title = QtCore.QString("Notes: "+name)
+                title = "Notes: "+name
                 self.setWindowTitle(title)
             else:
                 self.setWindowTitle("Notes")
@@ -806,7 +814,7 @@ class QVersionMashups(QtGui.QWidget):
                 
     def mashupSelected(self):
         action = self.sender()
-        version, ok = action.data().toInt()
+        version, ok = action.data()
         self.openMashup(version)
 
     def openMashup(self, version):

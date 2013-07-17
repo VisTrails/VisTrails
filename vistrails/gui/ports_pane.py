@@ -437,7 +437,7 @@ class PortsList(QtGui.QTreeWidget):
             #     baseItem = QMethodTreeWidgetItem(None,
             #                                      None,
             #                                      self,
-            #                                      (QtCore.QStringList()
+            #                                      ([]
             #                                       <<  baseName
             #                                       << ''))
             #     base_items[descriptor] = baseItem
@@ -465,7 +465,7 @@ class PortsList(QtGui.QTreeWidget):
             #         QMethodTreeWidgetItem(module,
             #                               method_spec,
             #                               baseItem,
-            #                               (QtCore.QStringList()
+            #                               ([]
             #                                << method_spec.name
             #                                << sig))
 

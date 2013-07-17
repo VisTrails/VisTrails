@@ -33,12 +33,16 @@
 ##
 ###############################################################################
 
-import dulwich
-from dulwich._compat import make_sha
-from dulwich.errors import NotCommitError, NotGitRepository 
+from vistrails.core.bundles import py_import
+py_import('dulwich', {
+        'pip': 'dulwich',
+        'linux-debian': 'python-dulwich',
+        'linux-ubuntu': 'python-dulwich',
+        'linux-fedora': 'python-dulwich'})
+
+from dulwich.errors import NotCommitError, NotGitRepository
 from dulwich.repo import Repo
-# from dulwich.object_store import object_class
-from dulwich.objects import Commit, Blob, Tree, Tag, object_header
+from dulwich.objects import Commit, Blob, Tree, object_header
 from dulwich.pack import iter_sha1
 from dulwich.walk import Walker
 from itertools import chain

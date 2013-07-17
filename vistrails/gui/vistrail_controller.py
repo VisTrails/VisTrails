@@ -327,7 +327,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Parameters
         ----------
 
-        - notes : 'QtCore.QString'
+        - notes : 'string'
         
         """
         self.flush_delayed_actions()
@@ -351,7 +351,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution'):
+                                 reason='Pipeline Execution', sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -369,6 +369,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          custom_aliases,
                                          custom_params,
                                          reason,
+                                         sinks,
                                          None)])
         return ([], False)
     
@@ -441,7 +442,7 @@ class VistrailController(QtCore.QObject, BaseController):
 #                         'Package "%s" failed during initialization. '
 #                         'Please contact the developer of that package '
 #                         'and report a bug.' % err.package.name)
-#                 elif isinstance(err, PackageManager.MissingPackage):
+#                 elif isinstance(err, MissingPackage):
 #                     QtGui.QMessageBox.critical(
 #                         get_vistrails_application().builderWindow,
 #                         'Unavailable package',
@@ -966,25 +967,11 @@ class VistrailController(QtCore.QObject, BaseController):
         self.invalidate_version_tree(False)
 
     def get_pipeline_name(self, version=None):
-        tag_map = self.vistrail.get_tagMap()
-        action_map = self.vistrail.actionMap
         if version == None:
             version = self.current_version
-        count = 0
-        while True:
-            if version in tag_map or version <= 0:
-                if version in tag_map:
-                    name = tag_map[version]
-                else:
-                    name = "ROOT"
-                count_str = ""
-                if count > 0:
-                    count_str = " + " + str(count)
-                return "Pipeline: " + name + count_str
-            version = action_map[version].parent
-            count += 1
+        return self.vistrail.get_pipeline_name(version)
 
-    ################################################################################
+    ###########################################################################
     # Clipboard, copy/paste
 
     def get_selected_item_ids(self):
@@ -1110,7 +1097,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 name)
-        if ok and not text.isEmpty():
+        if ok and text:
             return str(text).strip().rstrip()
         if not ok:
             return None
@@ -1133,7 +1120,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 '')
-        if ok and not text.isEmpty():
+        if ok and not text:
             return str(text).strip().rstrip()
         return ''
             
@@ -1141,7 +1128,7 @@ class VistrailController(QtCore.QObject, BaseController):
         dialog = QtGui.QFileDialog.getExistingDirectory
         dir_name = dialog(None, "Save Subworkflows...",
                           vistrails.core.system.vistrails_file_directory())
-        if dir_name.isEmpty():
+        if dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
         setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
@@ -1324,9 +1311,9 @@ class VistrailController(QtCore.QObject, BaseController):
     # analogies
 
     def add_analogy(self, analogy_name, version_from, version_to):
-        assert type(analogy_name) == str
-        assert type(version_from) == int or type(version_from) == long
-        assert type(version_to) == int or type(version_to) == long
+        assert isinstance(analogy_name, str)
+        assert isinstance(version_from, (int, long))
+        assert isinstance(version_to, (int, long))
         if analogy_name in self.analogy:
             raise VistrailsInternalError("duplicated analogy name '%s'" %
                                          analogy_name)

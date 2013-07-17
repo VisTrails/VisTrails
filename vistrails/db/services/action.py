@@ -38,7 +38,8 @@ import copy
 
 def create_delete_op_chain(object, parent=(None, None)):
     opChain = []
-    for (obj, parentType, parentId) in object.db_children(parent):
+    for (obj, parentType, parentId) in object.db_children(parent, 
+                                                          for_action=True):
         op = DBDelete(id=-1,
                       what=obj.vtType,
                       objectId=obj.db_id,
@@ -51,7 +52,7 @@ def create_delete_op_chain(object, parent=(None, None)):
 def create_add_op_chain(object, parent=(None, None)):
     opChain = []
     object = copy.copy(object)
-    adds = object.db_children(parent, True)
+    adds = object.db_children(parent, True, for_action=True)
     adds.reverse()
     for (obj, parentType, parentId) in adds:
         op = DBAdd(id=-1,
@@ -67,7 +68,7 @@ def create_add_op_chain(object, parent=(None, None)):
 def create_change_op_chain(old_obj, new_obj, parent=(None,None)):
     opChain = []
     new_obj = copy.copy(new_obj)
-    deletes = old_obj.db_children(parent)
+    deletes = old_obj.db_children(parent, for_action=True)
     deletes.pop()
     for (obj, parentType, parentId) in deletes:
         op = DBDelete(id=-1,
@@ -78,7 +79,7 @@ def create_change_op_chain(old_obj, new_obj, parent=(None,None)):
                       )
         opChain.append(op)
 
-    adds = new_obj.db_children(parent, True)
+    adds = new_obj.db_children(parent, True, for_action=True)
     (obj, parentType, parentId) = adds.pop()
     op = DBChange(id=-1,
                   what=obj.vtType,
@@ -106,7 +107,7 @@ def create_copy_op_chain(object, parent=(None,None), id_scope=None):
     id_remap = {}
     object = copy.copy(object)
 
-    adds = object.db_children(parent, True)
+    adds = object.db_children(parent, True, for_action=True)
     adds.reverse()
     for (obj, parentType, parentId) in adds:
         if parentId is not None:

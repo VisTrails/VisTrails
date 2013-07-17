@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import __builtin__
 from itertools import izip, chain
 import copy
 import os
@@ -64,13 +63,13 @@ import unittest
 # This is used by add_module to make sure the fringe specifications
 # make sense
 def _check_fringe(fringe):
-    assert type(fringe) == list
+    assert isinstance(fringe, list)
     assert len(fringe) >= 1
     for v in fringe:
-        assert type(v) == tuple
+        assert isinstance(v, tuple)
         assert len(v) == 2
-        assert type(v[0]) == float
-        assert type(v[1]) == float
+        assert isinstance(v[0], float)
+        assert isinstance(v[1], float)
 
 def _toposort_modules(module_list):
     """_toposort_modules([class]) -> [class]
@@ -83,12 +82,12 @@ def _toposort_modules(module_list):
 
     g = Graph()
     for m in module_list:
-        if type(m) == tuple:
+        if isinstance(m, tuple):
             g.add_vertex(m[0], m)
         else:
             g.add_vertex(m, m)
     for m in module_list:
-        if type(m) == tuple:
+        if isinstance(m, tuple):
             m = m[0]
         for subclass in m.mro()[1:]: # skip self
             if subclass in g.vertices:
@@ -114,20 +113,16 @@ def _toposort_abstractions(package, abstraction_list):
     from vistrails.core.modules.sub_module import find_internal_abstraction_refs
     g = Graph()
     for a in abstraction_list:
-        if type(a) == tuple:
-            if type(a[1]) == dict and 'name' in a[1]:
-                name = a[1]['name']
-                if 'namespace' in a[1]:
-                    name = (name, namespace)
-                else:
-                    name = (name, '')
+        if isinstance(a, tuple):
+            if isinstance(a[1], dict) and 'name' in a[1]:
+                name = (a[1]['name'], a[1].get('namespace', ''))
             else:
                 name = (_parse_abstraction_name(a[0]), '')
             g.add_vertex(name, a)
         else:
             g.add_vertex((_parse_abstraction_name(a), ''), a)
     for a in abstraction_list:
-        if type(a) == tuple:
+        if isinstance(a, tuple):
             a = a[0]
         for ref in find_internal_abstraction_refs(package, a):
             if ref in g.vertices:
@@ -501,6 +496,9 @@ class ModuleRegistry(DBRegistry):
             kwargs['root_descriptor_id'] = -1
         DBRegistry.__init__(self, *args, **kwargs)
 
+        self._conversions = dict()
+        self._converters = set()
+
         self.set_defaults()
 
     def __copy__(self):
@@ -825,7 +823,7 @@ class ModuleRegistry(DBRegistry):
         class that subclasses from modules.vistrails_module.Module)
 
         """
-        # assert type(module) == type
+        # assert isinstance(module, type)
         # assert issubclass(module, core.modules.vistrails_module.Module)
         # assert self._module_key_map.has_key(module)
         k = self._module_key_map[module]
@@ -964,6 +962,12 @@ class ModuleRegistry(DBRegistry):
                                       )
         self.add_descriptor(descriptor, package)
 
+        # invalidate the map of converters
+        if issubclass(module,
+                vistrails.core.modules.vistrails_module.Converter):
+            self._conversions = dict()
+            self._converters.add(descriptor)
+
         if module is not None:
             self._module_key_map[module] = (identifier, name, namespace,
                                             package_version, version)
@@ -979,7 +983,7 @@ class ModuleRegistry(DBRegistry):
             if port_key in module.__dict__:
                 for port_info in module.__dict__[port_key]:
                     added = False
-                    if type(port_info) == PortSpec:
+                    if isinstance(port_info, PortSpec):
                         # force port type to match list it occurs in
                         # we just need "input" or "output"
                         port_info.type = port_key[1:-6]
@@ -989,7 +993,7 @@ class ModuleRegistry(DBRegistry):
                     elif len(port_info) >= 2:
                         port_name, port_sig = port_info[:2]
                         if len(port_info) > 2 and \
-                                type(port_info[2]) == dict:
+                                isinstance(port_info[2], dict):
                             kwargs = port_info[2]
                             adder_f(module, port_name, port_sig, **kwargs)
                             added = True
@@ -1008,12 +1012,12 @@ class ModuleRegistry(DBRegistry):
         to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        if type(module) == type:
+        if isinstance(module, type):
             return self.add_module(module)
-        elif (type(module) == tuple and
+        elif (isinstance(module, tuple) and
               len(module) == 2 and
-              type(module[0]) == type and
-              type(module[1]) == dict):
+              isinstance(module[0], type) and
+              isinstance(module[1], dict)):
             descriptor = self.add_module(module[0], **module[1])
             return descriptor
         else:
@@ -1230,12 +1234,12 @@ class ModuleRegistry(DBRegistry):
         return descriptor
 
     def auto_add_subworkflow(self, subworkflow):
-        if type(subworkflow) == str:
+        if isinstance(subworkflow, str):
             return self.add_subworkflow(subworkflow)
-        elif (type(subworkflow) == tuple and
+        elif (isinstance(subworkflow, tuple) and
               len(subworkflow) == 2 and
-              type(subworkflow[0]) == str and
-              type(subworkflow[1]) == dict):
+              isinstance(subworkflow[0], str) and
+              isinstance(subworkflow[1], dict)):
             descriptor = self.add_subworkflow(subworkflow[0], **subworkflow[1])
             return descriptor
         else:
@@ -1458,7 +1462,7 @@ class ModuleRegistry(DBRegistry):
         doc/module_registry.txt. Optionally, it receives whether the
         input port is optional."""
         descriptor = self.get_descriptor(module)
-        if type(portSignature) == type(""):
+        if isinstance(portSignature, basestring):
             self.add_port(descriptor, portName, 'input', None, portSignature, 
                           optional, sort_key, labels, defaults, values,
                           entry_types, docstring, shape, min_conns, max_conns)
@@ -1487,7 +1491,7 @@ class ModuleRegistry(DBRegistry):
         in doc/module_registry.txt. Optionally, it receives whether
         the output port is optional."""
         descriptor = self.get_descriptor(module)
-        if type(portSignature) == type(""):
+        if isinstance(portSignature, basestring):
             self.add_port(descriptor, portName, 'output', None, portSignature, 
                           optional, sort_key, None, None, None, None, 
                           docstring, shape, min_conns, max_conns)
@@ -1516,12 +1520,12 @@ class ModuleRegistry(DBRegistry):
             # Perform auto-initialization
             if hasattr(package.module, '_modules'):
                 modules = package.module._modules
-                if type(modules) == dict:
+                if isinstance(modules, dict):
                     module_list = []
                     for namespace, m_list in modules.iteritems():
                         for module in m_list:
                             m_dict = {'namespace': namespace}
-                            if type(module) == tuple:
+                            if isinstance(module, tuple):
                                 m_dict.update(module[1])
                                 module_list.append((module[0], m_dict))
                             else:
@@ -1566,6 +1570,14 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.get_descriptor_by_name(identifier, module_name, 
                                                  namespace)
         assert len(descriptor.children) == 0
+
+        # invalidate the map of converters
+        converter_desc = self.get_descriptor(
+                vistrails.core.modules.vistrails_module.Converter)
+        if self.is_descriptor_subclass(descriptor, converter_desc):
+            self._conversions = dict()
+            self._converters.remove(descriptor)
+
         self.signals.emit_deleted_module(descriptor)
         if self.is_abstraction(descriptor):
             self.signals.emit_deleted_abstraction(descriptor)
@@ -1695,13 +1707,16 @@ class ModuleRegistry(DBRegistry):
             return True
         return self.are_specs_matched(port, port_spec)
 
-    def ports_can_connect(self, sourceModulePort, destinationModulePort):
+    def ports_can_connect(self, sourceModulePort, destinationModulePort,
+                          allow_conversion=False, out_converters=None):
         """ports_can_connect(sourceModulePort,destinationModulePort) ->
         Boolean returns true if there could exist a connection
         connecting these two ports."""
         if sourceModulePort.type == destinationModulePort.type:
             return False
-        return self.are_specs_matched(sourceModulePort, destinationModulePort)
+        return self.are_specs_matched(sourceModulePort, destinationModulePort,
+                                      allow_conversion=allow_conversion,
+                                      out_converters=out_converters)
 
     def is_port_sub_type(self, sub, super):
         """ is_port_sub_type(sub: Port, super: Port) -> bool        
@@ -1715,12 +1730,56 @@ class ModuleRegistry(DBRegistry):
             return False
         return self.are_specs_matched(sub, super)
 
-    def are_specs_matched(self, sub, super):
+    def get_converters(self, sub_descs, super_descs):
+        key = (tuple(sub_descs), tuple(super_descs))
+
+        # Get the result from the cache
+        try:
+            return self._conversions[key]
+        except KeyError:
+            pass
+
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        converters = []
+
+        # Compute the result
+        for converter in self._converters:
+            if converter.module is (
+                    vistrails.core.modules.vistrails_module.Converter):
+                continue
+
+            in_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'in_value', 'input')
+            if not check_types(sub_descs, in_port.descriptors()):
+                continue
+            out_port = self.get_port_spec_from_descriptor(
+                    converter,
+                    'out_value', 'output')
+            if not check_types(out_port.descriptors(), super_descs):
+                continue
+
+            converters.append(converter)
+
+        # Store in the cache that there was no result
+        self._conversions[key] = converters
+        return converters
+
+    def are_specs_matched(self, sub, super, allow_conversion=False,
+                          out_converters=None):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
         """
-        variantType = vistrails.core.modules.basic_modules.Variant
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         # sometimes sub is coming None
@@ -1741,13 +1800,26 @@ class ModuleRegistry(DBRegistry):
             return True
         if len(sub_descs) != len(super_descs):
             return False
-        
-        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-            if (sub_desc == variant_desc or super_desc == variant_desc):
-                continue
-            if not self.is_descriptor_subclass(sub_desc, super_desc):
-                return False
-        return True
+
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not self.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        if check_types(sub_descs, super_descs):
+            return True
+
+        if allow_conversion:
+            converters = self.get_converters(sub_descs, super_descs)
+            if converters:
+                if out_converters is not None:
+                    out_converters.extend(converters)
+                return True
+
+        return False
 
     def get_module_hierarchy(self, descriptor):
         """get_module_hierarchy(descriptor) -> [klass].
@@ -1828,7 +1900,7 @@ class ModuleRegistry(DBRegistry):
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
         klass = descriptor.configuration_widget()
-        if type(klass) == tuple:
+        if isinstance(klass, tuple):
             (path, klass_name) = klass
             module = __import__(path, globals(), locals(), [klass_name])
             klass = getattr(module, klass_name)            

@@ -85,7 +85,7 @@ class DBOpmProcessIdEffect(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -190,7 +190,7 @@ class DBVistrailVariable(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -375,7 +375,7 @@ class DBProvAgent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -613,30 +613,30 @@ class DBOpmWasGeneratedBy(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -844,18 +844,18 @@ class DBOpmAccounts(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_overlapss:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -992,7 +992,7 @@ class DBRefProvAgent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -1053,7 +1053,7 @@ class DBPortSpec(object):
         if self._db_portSpecItems is None:
             cp._db_portSpecItems = []
         else:
-            cp._db_portSpecItems = [v.do_copy() for v in self._db_portSpecItems]
+            cp._db_portSpecItems = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecItems]
         
         # set new ids
         if new_ids:
@@ -1128,8 +1128,13 @@ class DBPortSpec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
-        return [(self, parent[0], parent[1])]
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        children = []
+        if not for_action:
+            for child in self.db_portSpecItems:
+                children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+        children.append((self, parent[0], parent[1]))
+        return children
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_portSpecItems)
@@ -1452,29 +1457,29 @@ class DBModule(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_location is not None:
-            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_function(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_portSpecs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -1861,11 +1866,11 @@ class DBModuleDescriptor(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_portSpecs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -2083,7 +2088,7 @@ class DBTag(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -2167,7 +2172,7 @@ class DBOpmRole(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -2387,53 +2392,53 @@ class DBProvDocument(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_prov_entitys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_entity(child)
         to_del = []
         for child in self.db_prov_activitys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_activity(child)
         to_del = []
         for child in self.db_prov_agents:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_agent(child)
         to_del = []
         for child in self.db_vt_connections:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_vt_connection(child)
         to_del = []
         for child in self.db_prov_usages:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_usage(child)
         to_del = []
         for child in self.db_prov_generations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_generation(child)
         to_del = []
         for child in self.db_prov_associations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -2713,6 +2718,97 @@ class DBProvDocument(object):
     
 
 
+class DBOpmAccount(object):
+
+    vtType = 'opm_account'
+
+    def __init__(self, id=None, value=None):
+        self._db_id = id
+        self._db_value = value
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBOpmAccount.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBOpmAccount(id=self._db_id,
+                          value=self._db_value)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBOpmAccount()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'value' in class_dict:
+            res = class_dict['value'](old_obj, trans_dict)
+            new_obj.db_value = res
+        elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
+            new_obj.db_value = old_obj.db_value
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_value(self):
+        return self._db_value
+    def __set_db_value(self, value):
+        self._db_value = value
+        self.is_dirty = True
+    db_value = property(__get_db_value, __set_db_value)
+    def db_add_value(self, value):
+        self._db_value = value
+    def db_change_value(self, value):
+        self._db_value = value
+    def db_delete_value(self, value):
+        self._db_value = None
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
 class DBOpmProcesses(object):
 
     vtType = 'opm_processes'
@@ -2777,11 +2873,11 @@ class DBOpmProcesses(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_processs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -2893,7 +2989,7 @@ class DBRefProvActivity(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -2965,7 +3061,7 @@ class DBOpmAccountId(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -3072,7 +3168,7 @@ class DBPort(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -3210,7 +3306,7 @@ class DBRefProvPlan(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -3314,15 +3410,15 @@ class DBOpmArtifact(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3557,22 +3653,22 @@ class DBGroup(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_location is not None:
-            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_function(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3938,18 +4034,18 @@ class DBLog(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_workflow_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_workflow_exec(child)
         to_del = []
         for child in self.db_machines:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -4206,10 +4302,10 @@ class DBMashupAlias(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_component is not None:
-            children.extend(self._db_component.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_component.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_component = None
         children.append((self, parent[0], parent[1]))
@@ -4334,11 +4430,11 @@ class DBOpmAgents(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_agents:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -4523,11 +4619,11 @@ class DBMashup(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_aliases:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -4744,7 +4840,7 @@ class DBOpmProcessIdCause(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -4842,14 +4938,14 @@ class DBProvGeneration(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_prov_entity is not None:
-            children.extend(self._db_prov_entity.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_prov_entity.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_entity = None
         if self._db_prov_activity is not None:
-            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         children.append((self, parent[0], parent[1]))
@@ -5017,7 +5113,7 @@ class DBPortSpecItem(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -5229,7 +5325,7 @@ class DBMachine(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -5468,10 +5564,10 @@ class DBAdd(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_data is not None:
-            children.extend(self._db_data.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_data.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_data = None
         children.append((self, parent[0], parent[1]))
@@ -5631,7 +5727,7 @@ class DBOther(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -5742,7 +5838,7 @@ class DBLocation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -5853,11 +5949,11 @@ class DBOpmOverlaps(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_opm_account_ids:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -5963,11 +6059,11 @@ class DBOpmArtifacts(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_artifacts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6113,11 +6209,11 @@ class DBOpmDependencies(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_dependencys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6240,7 +6336,7 @@ class DBParameter(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -6452,30 +6548,30 @@ class DBOpmUsed(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6652,7 +6748,7 @@ class DBPluginData(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -6774,11 +6870,11 @@ class DBFunction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_parameters:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6965,7 +7061,7 @@ class DBActionAnnotation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -7208,22 +7304,22 @@ class DBAbstraction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_location is not None:
-            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_function(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -7667,39 +7763,39 @@ class DBWorkflow(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_connections:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_connection(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_plugin_datas:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_plugin_data(child)
         to_del = []
         for child in self.db_others:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_other(child)
         to_del = []
         for child in self.db_modules:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -8078,7 +8174,7 @@ class DBOpmArtifactIdCause(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -8150,7 +8246,7 @@ class DBRefProvEntity(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -8290,10 +8386,10 @@ class DBProvActivity(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_is_part_of is not None:
-            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_is_part_of = None
         children.append((self, parent[0], parent[1]))
@@ -8528,10 +8624,10 @@ class DBMashupAction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_mashup is not None:
-            children.extend(self._db_mashup.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_mashup.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_mashup = None
         children.append((self, parent[0], parent[1]))
@@ -8692,14 +8788,14 @@ class DBProvUsage(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_prov_activity is not None:
-            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         if self._db_prov_entity is not None:
-            children.extend(self._db_prov_entity.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_prov_entity.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_entity = None
         children.append((self, parent[0], parent[1]))
@@ -8826,10 +8922,10 @@ class DBOpmArtifactValue(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))
@@ -8911,7 +9007,7 @@ class DBOpmArtifactIdEffect(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -9045,26 +9141,26 @@ class DBOpmGraph(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_accounts is not None:
-            children.extend(self._db_accounts.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_accounts.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_accounts = None
         if self._db_processes is not None:
-            children.extend(self._db_processes.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_processes.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_processes = None
         if self._db_artifacts is not None:
-            children.extend(self._db_artifacts.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_artifacts.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_artifacts = None
         if self._db_agents is not None:
-            children.extend(self._db_agents.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_agents.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_agents = None
         if self._db_dependencies is not None:
-            children.extend(self._db_dependencies.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_dependencies.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_dependencies = None
         children.append((self, parent[0], parent[1]))
@@ -9329,25 +9425,25 @@ class DBMashuptrail(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_actions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_action(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_actionAnnotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -9705,11 +9801,11 @@ class DBRegistry(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_packages:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -9947,7 +10043,7 @@ class DBVtConnection(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -10046,428 +10142,6 @@ class DBVtConnection(object):
         self._db_vt_dest_signature = vt_dest_signature
     def db_delete_vt_dest_signature(self, vt_dest_signature):
         self._db_vt_dest_signature = None
-    
-    def getPrimaryKey(self):
-        return self._db_id
-
-class DBOpmAccount(object):
-
-    vtType = 'opm_account'
-
-    def __init__(self, id=None, value=None):
-        self._db_id = id
-        self._db_value = value
-        self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBOpmAccount.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBOpmAccount(id=self._db_id,
-                          value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
-        # recreate indices and set flags
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBOpmAccount()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'id' in class_dict:
-            res = class_dict['id'](old_obj, trans_dict)
-            new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
-            new_obj.db_id = old_obj.db_id
-        if 'value' in class_dict:
-            res = class_dict['value'](old_obj, trans_dict)
-            new_obj.db_value = res
-        elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
-            new_obj.db_value = old_obj.db_value
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False):
-        return [(self, parent[0], parent[1])]
-    def db_deleted_children(self, remove=False):
-        children = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        return False
-    def __get_db_id(self):
-        return self._db_id
-    def __set_db_id(self, id):
-        self._db_id = id
-        self.is_dirty = True
-    db_id = property(__get_db_id, __set_db_id)
-    def db_add_id(self, id):
-        self._db_id = id
-    def db_change_id(self, id):
-        self._db_id = id
-    def db_delete_id(self, id):
-        self._db_id = None
-    
-    def __get_db_value(self):
-        return self._db_value
-    def __set_db_value(self, value):
-        self._db_value = value
-        self.is_dirty = True
-    db_value = property(__get_db_value, __set_db_value)
-    def db_add_value(self, value):
-        self._db_value = value
-    def db_change_value(self, value):
-        self._db_value = value
-    def db_delete_value(self, value):
-        self._db_value = None
-    
-    def getPrimaryKey(self):
-        return self._db_id
-
-class DBProvEntity(object):
-
-    vtType = 'prov_entity'
-
-    def __init__(self, id=None, prov_type=None, prov_label=None, prov_value=None, vt_id=None, vt_type=None, vt_desc=None, vt_package=None, vt_version=None, vt_cache=None, vt_location_x=None, vt_location_y=None, is_part_of=None):
-        self._db_id = id
-        self._db_prov_type = prov_type
-        self._db_prov_label = prov_label
-        self._db_prov_value = prov_value
-        self._db_vt_id = vt_id
-        self._db_vt_type = vt_type
-        self._db_vt_desc = vt_desc
-        self._db_vt_package = vt_package
-        self._db_vt_version = vt_version
-        self._db_vt_cache = vt_cache
-        self._db_vt_location_x = vt_location_x
-        self._db_vt_location_y = vt_location_y
-        self.db_deleted_is_part_of = []
-        self._db_is_part_of = is_part_of
-        self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBProvEntity.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBProvEntity(id=self._db_id,
-                          prov_type=self._db_prov_type,
-                          prov_label=self._db_prov_label,
-                          prov_value=self._db_prov_value,
-                          vt_id=self._db_vt_id,
-                          vt_type=self._db_vt_type,
-                          vt_desc=self._db_vt_desc,
-                          vt_package=self._db_vt_package,
-                          vt_version=self._db_vt_version,
-                          vt_cache=self._db_vt_cache,
-                          vt_location_x=self._db_vt_location_x,
-                          vt_location_y=self._db_vt_location_y)
-        if self._db_is_part_of is not None:
-            cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
-        # recreate indices and set flags
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBProvEntity()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'id' in class_dict:
-            res = class_dict['id'](old_obj, trans_dict)
-            new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
-            new_obj.db_id = old_obj.db_id
-        if 'prov_type' in class_dict:
-            res = class_dict['prov_type'](old_obj, trans_dict)
-            new_obj.db_prov_type = res
-        elif hasattr(old_obj, 'db_prov_type') and old_obj.db_prov_type is not None:
-            new_obj.db_prov_type = old_obj.db_prov_type
-        if 'prov_label' in class_dict:
-            res = class_dict['prov_label'](old_obj, trans_dict)
-            new_obj.db_prov_label = res
-        elif hasattr(old_obj, 'db_prov_label') and old_obj.db_prov_label is not None:
-            new_obj.db_prov_label = old_obj.db_prov_label
-        if 'prov_value' in class_dict:
-            res = class_dict['prov_value'](old_obj, trans_dict)
-            new_obj.db_prov_value = res
-        elif hasattr(old_obj, 'db_prov_value') and old_obj.db_prov_value is not None:
-            new_obj.db_prov_value = old_obj.db_prov_value
-        if 'vt_id' in class_dict:
-            res = class_dict['vt_id'](old_obj, trans_dict)
-            new_obj.db_vt_id = res
-        elif hasattr(old_obj, 'db_vt_id') and old_obj.db_vt_id is not None:
-            new_obj.db_vt_id = old_obj.db_vt_id
-        if 'vt_type' in class_dict:
-            res = class_dict['vt_type'](old_obj, trans_dict)
-            new_obj.db_vt_type = res
-        elif hasattr(old_obj, 'db_vt_type') and old_obj.db_vt_type is not None:
-            new_obj.db_vt_type = old_obj.db_vt_type
-        if 'vt_desc' in class_dict:
-            res = class_dict['vt_desc'](old_obj, trans_dict)
-            new_obj.db_vt_desc = res
-        elif hasattr(old_obj, 'db_vt_desc') and old_obj.db_vt_desc is not None:
-            new_obj.db_vt_desc = old_obj.db_vt_desc
-        if 'vt_package' in class_dict:
-            res = class_dict['vt_package'](old_obj, trans_dict)
-            new_obj.db_vt_package = res
-        elif hasattr(old_obj, 'db_vt_package') and old_obj.db_vt_package is not None:
-            new_obj.db_vt_package = old_obj.db_vt_package
-        if 'vt_version' in class_dict:
-            res = class_dict['vt_version'](old_obj, trans_dict)
-            new_obj.db_vt_version = res
-        elif hasattr(old_obj, 'db_vt_version') and old_obj.db_vt_version is not None:
-            new_obj.db_vt_version = old_obj.db_vt_version
-        if 'vt_cache' in class_dict:
-            res = class_dict['vt_cache'](old_obj, trans_dict)
-            new_obj.db_vt_cache = res
-        elif hasattr(old_obj, 'db_vt_cache') and old_obj.db_vt_cache is not None:
-            new_obj.db_vt_cache = old_obj.db_vt_cache
-        if 'vt_location_x' in class_dict:
-            res = class_dict['vt_location_x'](old_obj, trans_dict)
-            new_obj.db_vt_location_x = res
-        elif hasattr(old_obj, 'db_vt_location_x') and old_obj.db_vt_location_x is not None:
-            new_obj.db_vt_location_x = old_obj.db_vt_location_x
-        if 'vt_location_y' in class_dict:
-            res = class_dict['vt_location_y'](old_obj, trans_dict)
-            new_obj.db_vt_location_y = res
-        elif hasattr(old_obj, 'db_vt_location_y') and old_obj.db_vt_location_y is not None:
-            new_obj.db_vt_location_y = old_obj.db_vt_location_y
-        if 'is_part_of' in class_dict:
-            res = class_dict['is_part_of'](old_obj, trans_dict)
-            new_obj.db_is_part_of = res
-        elif hasattr(old_obj, 'db_is_part_of') and old_obj.db_is_part_of is not None:
-            obj = old_obj.db_is_part_of
-            new_obj.db_add_is_part_of(DBIsPartOf.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_is_part_of') and hasattr(new_obj, 'db_deleted_is_part_of'):
-            for obj in old_obj.db_deleted_is_part_of:
-                n_obj = DBIsPartOf.update_version(obj, trans_dict)
-                new_obj.db_deleted_is_part_of.append(n_obj)
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False):
-        children = []
-        if self._db_is_part_of is not None:
-            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan))
-            if orphan:
-                self._db_is_part_of = None
-        children.append((self, parent[0], parent[1]))
-        return children
-    def db_deleted_children(self, remove=False):
-        children = []
-        children.extend(self.db_deleted_is_part_of)
-        if remove:
-            self.db_deleted_is_part_of = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        if self._db_is_part_of is not None and self._db_is_part_of.has_changes():
-            return True
-        return False
-    def __get_db_id(self):
-        return self._db_id
-    def __set_db_id(self, id):
-        self._db_id = id
-        self.is_dirty = True
-    db_id = property(__get_db_id, __set_db_id)
-    def db_add_id(self, id):
-        self._db_id = id
-    def db_change_id(self, id):
-        self._db_id = id
-    def db_delete_id(self, id):
-        self._db_id = None
-    
-    def __get_db_prov_type(self):
-        return self._db_prov_type
-    def __set_db_prov_type(self, prov_type):
-        self._db_prov_type = prov_type
-        self.is_dirty = True
-    db_prov_type = property(__get_db_prov_type, __set_db_prov_type)
-    def db_add_prov_type(self, prov_type):
-        self._db_prov_type = prov_type
-    def db_change_prov_type(self, prov_type):
-        self._db_prov_type = prov_type
-    def db_delete_prov_type(self, prov_type):
-        self._db_prov_type = None
-    
-    def __get_db_prov_label(self):
-        return self._db_prov_label
-    def __set_db_prov_label(self, prov_label):
-        self._db_prov_label = prov_label
-        self.is_dirty = True
-    db_prov_label = property(__get_db_prov_label, __set_db_prov_label)
-    def db_add_prov_label(self, prov_label):
-        self._db_prov_label = prov_label
-    def db_change_prov_label(self, prov_label):
-        self._db_prov_label = prov_label
-    def db_delete_prov_label(self, prov_label):
-        self._db_prov_label = None
-    
-    def __get_db_prov_value(self):
-        return self._db_prov_value
-    def __set_db_prov_value(self, prov_value):
-        self._db_prov_value = prov_value
-        self.is_dirty = True
-    db_prov_value = property(__get_db_prov_value, __set_db_prov_value)
-    def db_add_prov_value(self, prov_value):
-        self._db_prov_value = prov_value
-    def db_change_prov_value(self, prov_value):
-        self._db_prov_value = prov_value
-    def db_delete_prov_value(self, prov_value):
-        self._db_prov_value = None
-    
-    def __get_db_vt_id(self):
-        return self._db_vt_id
-    def __set_db_vt_id(self, vt_id):
-        self._db_vt_id = vt_id
-        self.is_dirty = True
-    db_vt_id = property(__get_db_vt_id, __set_db_vt_id)
-    def db_add_vt_id(self, vt_id):
-        self._db_vt_id = vt_id
-    def db_change_vt_id(self, vt_id):
-        self._db_vt_id = vt_id
-    def db_delete_vt_id(self, vt_id):
-        self._db_vt_id = None
-    
-    def __get_db_vt_type(self):
-        return self._db_vt_type
-    def __set_db_vt_type(self, vt_type):
-        self._db_vt_type = vt_type
-        self.is_dirty = True
-    db_vt_type = property(__get_db_vt_type, __set_db_vt_type)
-    def db_add_vt_type(self, vt_type):
-        self._db_vt_type = vt_type
-    def db_change_vt_type(self, vt_type):
-        self._db_vt_type = vt_type
-    def db_delete_vt_type(self, vt_type):
-        self._db_vt_type = None
-    
-    def __get_db_vt_desc(self):
-        return self._db_vt_desc
-    def __set_db_vt_desc(self, vt_desc):
-        self._db_vt_desc = vt_desc
-        self.is_dirty = True
-    db_vt_desc = property(__get_db_vt_desc, __set_db_vt_desc)
-    def db_add_vt_desc(self, vt_desc):
-        self._db_vt_desc = vt_desc
-    def db_change_vt_desc(self, vt_desc):
-        self._db_vt_desc = vt_desc
-    def db_delete_vt_desc(self, vt_desc):
-        self._db_vt_desc = None
-    
-    def __get_db_vt_package(self):
-        return self._db_vt_package
-    def __set_db_vt_package(self, vt_package):
-        self._db_vt_package = vt_package
-        self.is_dirty = True
-    db_vt_package = property(__get_db_vt_package, __set_db_vt_package)
-    def db_add_vt_package(self, vt_package):
-        self._db_vt_package = vt_package
-    def db_change_vt_package(self, vt_package):
-        self._db_vt_package = vt_package
-    def db_delete_vt_package(self, vt_package):
-        self._db_vt_package = None
-    
-    def __get_db_vt_version(self):
-        return self._db_vt_version
-    def __set_db_vt_version(self, vt_version):
-        self._db_vt_version = vt_version
-        self.is_dirty = True
-    db_vt_version = property(__get_db_vt_version, __set_db_vt_version)
-    def db_add_vt_version(self, vt_version):
-        self._db_vt_version = vt_version
-    def db_change_vt_version(self, vt_version):
-        self._db_vt_version = vt_version
-    def db_delete_vt_version(self, vt_version):
-        self._db_vt_version = None
-    
-    def __get_db_vt_cache(self):
-        return self._db_vt_cache
-    def __set_db_vt_cache(self, vt_cache):
-        self._db_vt_cache = vt_cache
-        self.is_dirty = True
-    db_vt_cache = property(__get_db_vt_cache, __set_db_vt_cache)
-    def db_add_vt_cache(self, vt_cache):
-        self._db_vt_cache = vt_cache
-    def db_change_vt_cache(self, vt_cache):
-        self._db_vt_cache = vt_cache
-    def db_delete_vt_cache(self, vt_cache):
-        self._db_vt_cache = None
-    
-    def __get_db_vt_location_x(self):
-        return self._db_vt_location_x
-    def __set_db_vt_location_x(self, vt_location_x):
-        self._db_vt_location_x = vt_location_x
-        self.is_dirty = True
-    db_vt_location_x = property(__get_db_vt_location_x, __set_db_vt_location_x)
-    def db_add_vt_location_x(self, vt_location_x):
-        self._db_vt_location_x = vt_location_x
-    def db_change_vt_location_x(self, vt_location_x):
-        self._db_vt_location_x = vt_location_x
-    def db_delete_vt_location_x(self, vt_location_x):
-        self._db_vt_location_x = None
-    
-    def __get_db_vt_location_y(self):
-        return self._db_vt_location_y
-    def __set_db_vt_location_y(self, vt_location_y):
-        self._db_vt_location_y = vt_location_y
-        self.is_dirty = True
-    db_vt_location_y = property(__get_db_vt_location_y, __set_db_vt_location_y)
-    def db_add_vt_location_y(self, vt_location_y):
-        self._db_vt_location_y = vt_location_y
-    def db_change_vt_location_y(self, vt_location_y):
-        self._db_vt_location_y = vt_location_y
-    def db_delete_vt_location_y(self, vt_location_y):
-        self._db_vt_location_y = None
-    
-    def __get_db_is_part_of(self):
-        return self._db_is_part_of
-    def __set_db_is_part_of(self, is_part_of):
-        self._db_is_part_of = is_part_of
-        self.is_dirty = True
-    db_is_part_of = property(__get_db_is_part_of, __set_db_is_part_of)
-    def db_add_is_part_of(self, is_part_of):
-        self._db_is_part_of = is_part_of
-    def db_change_is_part_of(self, is_part_of):
-        self._db_is_part_of = is_part_of
-    def db_delete_is_part_of(self, is_part_of):
-        if not self.is_new:
-            self.db_deleted_is_part_of.append(self._db_is_part_of)
-        self._db_is_part_of = None
     
     def getPrimaryKey(self):
         return self._db_id
@@ -10630,7 +10304,7 @@ class DBMashupComponent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -10863,6 +10537,337 @@ class DBMashupComponent(object):
     def getPrimaryKey(self):
         return self._db_id
 
+class DBProvEntity(object):
+
+    vtType = 'prov_entity'
+
+    def __init__(self, id=None, prov_type=None, prov_label=None, prov_value=None, vt_id=None, vt_type=None, vt_desc=None, vt_package=None, vt_version=None, vt_cache=None, vt_location_x=None, vt_location_y=None, is_part_of=None):
+        self._db_id = id
+        self._db_prov_type = prov_type
+        self._db_prov_label = prov_label
+        self._db_prov_value = prov_value
+        self._db_vt_id = vt_id
+        self._db_vt_type = vt_type
+        self._db_vt_desc = vt_desc
+        self._db_vt_package = vt_package
+        self._db_vt_version = vt_version
+        self._db_vt_cache = vt_cache
+        self._db_vt_location_x = vt_location_x
+        self._db_vt_location_y = vt_location_y
+        self.db_deleted_is_part_of = []
+        self._db_is_part_of = is_part_of
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBProvEntity.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBProvEntity(id=self._db_id,
+                          prov_type=self._db_prov_type,
+                          prov_label=self._db_prov_label,
+                          prov_value=self._db_prov_value,
+                          vt_id=self._db_vt_id,
+                          vt_type=self._db_vt_type,
+                          vt_desc=self._db_vt_desc,
+                          vt_package=self._db_vt_package,
+                          vt_version=self._db_vt_version,
+                          vt_cache=self._db_vt_cache,
+                          vt_location_x=self._db_vt_location_x,
+                          vt_location_y=self._db_vt_location_y)
+        if self._db_is_part_of is not None:
+            cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBProvEntity()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'prov_type' in class_dict:
+            res = class_dict['prov_type'](old_obj, trans_dict)
+            new_obj.db_prov_type = res
+        elif hasattr(old_obj, 'db_prov_type') and old_obj.db_prov_type is not None:
+            new_obj.db_prov_type = old_obj.db_prov_type
+        if 'prov_label' in class_dict:
+            res = class_dict['prov_label'](old_obj, trans_dict)
+            new_obj.db_prov_label = res
+        elif hasattr(old_obj, 'db_prov_label') and old_obj.db_prov_label is not None:
+            new_obj.db_prov_label = old_obj.db_prov_label
+        if 'prov_value' in class_dict:
+            res = class_dict['prov_value'](old_obj, trans_dict)
+            new_obj.db_prov_value = res
+        elif hasattr(old_obj, 'db_prov_value') and old_obj.db_prov_value is not None:
+            new_obj.db_prov_value = old_obj.db_prov_value
+        if 'vt_id' in class_dict:
+            res = class_dict['vt_id'](old_obj, trans_dict)
+            new_obj.db_vt_id = res
+        elif hasattr(old_obj, 'db_vt_id') and old_obj.db_vt_id is not None:
+            new_obj.db_vt_id = old_obj.db_vt_id
+        if 'vt_type' in class_dict:
+            res = class_dict['vt_type'](old_obj, trans_dict)
+            new_obj.db_vt_type = res
+        elif hasattr(old_obj, 'db_vt_type') and old_obj.db_vt_type is not None:
+            new_obj.db_vt_type = old_obj.db_vt_type
+        if 'vt_desc' in class_dict:
+            res = class_dict['vt_desc'](old_obj, trans_dict)
+            new_obj.db_vt_desc = res
+        elif hasattr(old_obj, 'db_vt_desc') and old_obj.db_vt_desc is not None:
+            new_obj.db_vt_desc = old_obj.db_vt_desc
+        if 'vt_package' in class_dict:
+            res = class_dict['vt_package'](old_obj, trans_dict)
+            new_obj.db_vt_package = res
+        elif hasattr(old_obj, 'db_vt_package') and old_obj.db_vt_package is not None:
+            new_obj.db_vt_package = old_obj.db_vt_package
+        if 'vt_version' in class_dict:
+            res = class_dict['vt_version'](old_obj, trans_dict)
+            new_obj.db_vt_version = res
+        elif hasattr(old_obj, 'db_vt_version') and old_obj.db_vt_version is not None:
+            new_obj.db_vt_version = old_obj.db_vt_version
+        if 'vt_cache' in class_dict:
+            res = class_dict['vt_cache'](old_obj, trans_dict)
+            new_obj.db_vt_cache = res
+        elif hasattr(old_obj, 'db_vt_cache') and old_obj.db_vt_cache is not None:
+            new_obj.db_vt_cache = old_obj.db_vt_cache
+        if 'vt_location_x' in class_dict:
+            res = class_dict['vt_location_x'](old_obj, trans_dict)
+            new_obj.db_vt_location_x = res
+        elif hasattr(old_obj, 'db_vt_location_x') and old_obj.db_vt_location_x is not None:
+            new_obj.db_vt_location_x = old_obj.db_vt_location_x
+        if 'vt_location_y' in class_dict:
+            res = class_dict['vt_location_y'](old_obj, trans_dict)
+            new_obj.db_vt_location_y = res
+        elif hasattr(old_obj, 'db_vt_location_y') and old_obj.db_vt_location_y is not None:
+            new_obj.db_vt_location_y = old_obj.db_vt_location_y
+        if 'is_part_of' in class_dict:
+            res = class_dict['is_part_of'](old_obj, trans_dict)
+            new_obj.db_is_part_of = res
+        elif hasattr(old_obj, 'db_is_part_of') and old_obj.db_is_part_of is not None:
+            obj = old_obj.db_is_part_of
+            new_obj.db_add_is_part_of(DBIsPartOf.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_is_part_of') and hasattr(new_obj, 'db_deleted_is_part_of'):
+            for obj in old_obj.db_deleted_is_part_of:
+                n_obj = DBIsPartOf.update_version(obj, trans_dict)
+                new_obj.db_deleted_is_part_of.append(n_obj)
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        children = []
+        if self._db_is_part_of is not None:
+            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_is_part_of = None
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_is_part_of)
+        if remove:
+            self.db_deleted_is_part_of = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        if self._db_is_part_of is not None and self._db_is_part_of.has_changes():
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_prov_type(self):
+        return self._db_prov_type
+    def __set_db_prov_type(self, prov_type):
+        self._db_prov_type = prov_type
+        self.is_dirty = True
+    db_prov_type = property(__get_db_prov_type, __set_db_prov_type)
+    def db_add_prov_type(self, prov_type):
+        self._db_prov_type = prov_type
+    def db_change_prov_type(self, prov_type):
+        self._db_prov_type = prov_type
+    def db_delete_prov_type(self, prov_type):
+        self._db_prov_type = None
+    
+    def __get_db_prov_label(self):
+        return self._db_prov_label
+    def __set_db_prov_label(self, prov_label):
+        self._db_prov_label = prov_label
+        self.is_dirty = True
+    db_prov_label = property(__get_db_prov_label, __set_db_prov_label)
+    def db_add_prov_label(self, prov_label):
+        self._db_prov_label = prov_label
+    def db_change_prov_label(self, prov_label):
+        self._db_prov_label = prov_label
+    def db_delete_prov_label(self, prov_label):
+        self._db_prov_label = None
+    
+    def __get_db_prov_value(self):
+        return self._db_prov_value
+    def __set_db_prov_value(self, prov_value):
+        self._db_prov_value = prov_value
+        self.is_dirty = True
+    db_prov_value = property(__get_db_prov_value, __set_db_prov_value)
+    def db_add_prov_value(self, prov_value):
+        self._db_prov_value = prov_value
+    def db_change_prov_value(self, prov_value):
+        self._db_prov_value = prov_value
+    def db_delete_prov_value(self, prov_value):
+        self._db_prov_value = None
+    
+    def __get_db_vt_id(self):
+        return self._db_vt_id
+    def __set_db_vt_id(self, vt_id):
+        self._db_vt_id = vt_id
+        self.is_dirty = True
+    db_vt_id = property(__get_db_vt_id, __set_db_vt_id)
+    def db_add_vt_id(self, vt_id):
+        self._db_vt_id = vt_id
+    def db_change_vt_id(self, vt_id):
+        self._db_vt_id = vt_id
+    def db_delete_vt_id(self, vt_id):
+        self._db_vt_id = None
+    
+    def __get_db_vt_type(self):
+        return self._db_vt_type
+    def __set_db_vt_type(self, vt_type):
+        self._db_vt_type = vt_type
+        self.is_dirty = True
+    db_vt_type = property(__get_db_vt_type, __set_db_vt_type)
+    def db_add_vt_type(self, vt_type):
+        self._db_vt_type = vt_type
+    def db_change_vt_type(self, vt_type):
+        self._db_vt_type = vt_type
+    def db_delete_vt_type(self, vt_type):
+        self._db_vt_type = None
+    
+    def __get_db_vt_desc(self):
+        return self._db_vt_desc
+    def __set_db_vt_desc(self, vt_desc):
+        self._db_vt_desc = vt_desc
+        self.is_dirty = True
+    db_vt_desc = property(__get_db_vt_desc, __set_db_vt_desc)
+    def db_add_vt_desc(self, vt_desc):
+        self._db_vt_desc = vt_desc
+    def db_change_vt_desc(self, vt_desc):
+        self._db_vt_desc = vt_desc
+    def db_delete_vt_desc(self, vt_desc):
+        self._db_vt_desc = None
+    
+    def __get_db_vt_package(self):
+        return self._db_vt_package
+    def __set_db_vt_package(self, vt_package):
+        self._db_vt_package = vt_package
+        self.is_dirty = True
+    db_vt_package = property(__get_db_vt_package, __set_db_vt_package)
+    def db_add_vt_package(self, vt_package):
+        self._db_vt_package = vt_package
+    def db_change_vt_package(self, vt_package):
+        self._db_vt_package = vt_package
+    def db_delete_vt_package(self, vt_package):
+        self._db_vt_package = None
+    
+    def __get_db_vt_version(self):
+        return self._db_vt_version
+    def __set_db_vt_version(self, vt_version):
+        self._db_vt_version = vt_version
+        self.is_dirty = True
+    db_vt_version = property(__get_db_vt_version, __set_db_vt_version)
+    def db_add_vt_version(self, vt_version):
+        self._db_vt_version = vt_version
+    def db_change_vt_version(self, vt_version):
+        self._db_vt_version = vt_version
+    def db_delete_vt_version(self, vt_version):
+        self._db_vt_version = None
+    
+    def __get_db_vt_cache(self):
+        return self._db_vt_cache
+    def __set_db_vt_cache(self, vt_cache):
+        self._db_vt_cache = vt_cache
+        self.is_dirty = True
+    db_vt_cache = property(__get_db_vt_cache, __set_db_vt_cache)
+    def db_add_vt_cache(self, vt_cache):
+        self._db_vt_cache = vt_cache
+    def db_change_vt_cache(self, vt_cache):
+        self._db_vt_cache = vt_cache
+    def db_delete_vt_cache(self, vt_cache):
+        self._db_vt_cache = None
+    
+    def __get_db_vt_location_x(self):
+        return self._db_vt_location_x
+    def __set_db_vt_location_x(self, vt_location_x):
+        self._db_vt_location_x = vt_location_x
+        self.is_dirty = True
+    db_vt_location_x = property(__get_db_vt_location_x, __set_db_vt_location_x)
+    def db_add_vt_location_x(self, vt_location_x):
+        self._db_vt_location_x = vt_location_x
+    def db_change_vt_location_x(self, vt_location_x):
+        self._db_vt_location_x = vt_location_x
+    def db_delete_vt_location_x(self, vt_location_x):
+        self._db_vt_location_x = None
+    
+    def __get_db_vt_location_y(self):
+        return self._db_vt_location_y
+    def __set_db_vt_location_y(self, vt_location_y):
+        self._db_vt_location_y = vt_location_y
+        self.is_dirty = True
+    db_vt_location_y = property(__get_db_vt_location_y, __set_db_vt_location_y)
+    def db_add_vt_location_y(self, vt_location_y):
+        self._db_vt_location_y = vt_location_y
+    def db_change_vt_location_y(self, vt_location_y):
+        self._db_vt_location_y = vt_location_y
+    def db_delete_vt_location_y(self, vt_location_y):
+        self._db_vt_location_y = None
+    
+    def __get_db_is_part_of(self):
+        return self._db_is_part_of
+    def __set_db_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+        self.is_dirty = True
+    db_is_part_of = property(__get_db_is_part_of, __set_db_is_part_of)
+    def db_add_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+    def db_change_is_part_of(self, is_part_of):
+        self._db_is_part_of = is_part_of
+    def db_delete_is_part_of(self, is_part_of):
+        if not self.is_new:
+            self.db_deleted_is_part_of.append(self._db_is_part_of)
+        self._db_is_part_of = None
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
 class DBAnnotation(object):
 
     vtType = 'annotation'
@@ -10923,7 +10928,7 @@ class DBAnnotation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -11132,10 +11137,10 @@ class DBChange(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_data is not None:
-            children.extend(self._db_data.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_data.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_data = None
         children.append((self, parent[0], parent[1]))
@@ -11370,30 +11375,30 @@ class DBOpmWasDerivedFrom(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -11659,37 +11664,37 @@ class DBOpmWasControlledBy(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_starts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_start(child)
         to_del = []
         for child in self.db_ends:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -11886,7 +11891,7 @@ class DBOpmAgentId(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -12083,18 +12088,18 @@ class DBGroupExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_item_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -12396,7 +12401,7 @@ class DBOpmTime(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -12561,11 +12566,11 @@ class DBPackage(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_module_descriptors:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -12911,18 +12916,18 @@ class DBWorkflowExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_item_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -13304,11 +13309,11 @@ class DBParameterExploration(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -13581,11 +13586,11 @@ class DBLoopExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_item_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -13811,7 +13816,7 @@ class DBMashupActionAnnotation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -13974,11 +13979,11 @@ class DBConnection(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_ports:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -14143,15 +14148,15 @@ class DBOpmProcess(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -14272,7 +14277,7 @@ class DBIsPartOf(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -14418,30 +14423,30 @@ class DBOpmWasTriggeredBy(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -14631,10 +14636,10 @@ class DBOpmProcessValue(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))
@@ -14807,18 +14812,18 @@ class DBAction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_operations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15075,11 +15080,11 @@ class DBOpmAgent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15226,7 +15231,7 @@ class DBDelete(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
         children = []
@@ -15391,18 +15396,18 @@ class DBProvAssociation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         if self._db_prov_activity is not None:
-            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         if self._db_prov_agent is not None:
-            children.extend(self._db_prov_agent.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_prov_agent.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_agent = None
         if self._db_prov_plan is not None:
-            children.extend(self._db_prov_plan.db_children((self.vtType, self.db_id), orphan))
+            children.extend(self._db_prov_plan.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_plan = None
         children.append((self, parent[0], parent[1]))
@@ -15720,46 +15725,46 @@ class DBVistrail(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_actions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_action(child)
         to_del = []
         for child in self.db_tags:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_tag(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_vistrailVariables:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_vistrailVariable(child)
         to_del = []
         for child in self.db_parameter_explorations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_parameter_exploration(child)
         to_del = []
         for child in self.db_actionAnnotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -16316,18 +16321,18 @@ class DBModuleExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False):
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_loop_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:

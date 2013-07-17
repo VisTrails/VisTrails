@@ -51,9 +51,9 @@ class ActionAnnotation(DBMashupActionAnnotation):
         return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
 
     def _set_date(self, date):
-        if type(date) == datetime:
+        if isinstance(date, datetime):
             self.db_date = date
-        elif type(date) == type('') and date.strip() != '':
+        elif isinstance(date, basestring) and date.strip() != '':
             newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)

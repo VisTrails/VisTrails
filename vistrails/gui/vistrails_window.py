@@ -126,7 +126,7 @@ class QBaseViewWindow(QtGui.QMainWindow):
                     parent.addSeparator()
                 continue
             name, title, options = data
-            if type(options) == list:
+            if isinstance(options, list):
                 # menu
                 if parent is not None:
                     qmenu = parent.addMenu(title)
@@ -365,7 +365,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         if self.view is not None:
             self.setCentralWidget(view)
             self.view.setVisible(True)
-            self.setWindowTitle(self.view.get_name())
+            self.setWindowTitle('%s - VisTrails' % self.view.get_name())
 
     def close_vistrail(self):
         global _app
@@ -435,7 +435,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
 
     def set_title(self, title):
-        self.setWindowTitle(title)
+        self.setWindowTitle('%s - VisTrails' % title)
         
     def get_name(self):
         return self.windowTitle()
@@ -927,6 +927,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = self.windows[view]
             window.close()
         QWorkspaceWindow.instance().remove_vt_window(view)
+        self.current_view = None
 
     def view_triggered(self, action):
         #print "VIEW_TRIGGERED", action
@@ -1059,9 +1060,9 @@ class QVistrailsWindow(QVistrailViewWindow):
             first_added = None
             for p_klass in p_group:
                 notifications = []
-                if type(p_klass) == tuple:
+                if isinstance(p_klass, tuple):
                     p_klass, visible = p_klass
-                    if type(p_klass) == tuple:
+                    if isinstance(p_klass, tuple):
                         notifications = visible
                         p_klass, visible = p_klass
                 #print "generating instance", p_klass
@@ -1070,7 +1071,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.palettes.append(palette)
                 for n_tuple in notifications:
                     #print "n_tuple:", n_tuple
-                    if type(n_tuple) == tuple:
+                    if isinstance(n_tuple, tuple):
                         if len(n_tuple) > 1:
                             n_id, method_name = n_tuple
                         else:
@@ -1131,9 +1132,9 @@ class QVistrailsWindow(QVistrailViewWindow):
             for dock_area, p_group in self.palette_layout:
                 for p_klass in p_group:
                 
-                    if type(p_klass) == tuple:
+                    if isinstance(p_klass, tuple):
                         p_klass, visible = p_klass
-                        if type(p_klass) == tuple:
+                        if isinstance(p_klass, tuple):
                             notifications = visible
                             p_klass, visible = p_klass      
                     palette = p_klass.instance()
@@ -1340,7 +1341,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def change_view(self, view):
         #print 'changing view', id(view), view
-        if type(view) == QVistrailView or view is None:
+        if isinstance(view, QVistrailView) or view is None:
             if view and view not in self.windows:
                 if self.stack.currentWidget() != view:
                     self.stack.setCurrentWidget(view)
@@ -1770,25 +1771,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         if not self.quit():
             e.ignore()
-            
-    def stopIPythonController(self):
-        """ stopIPythonController() -> None
-        Stops the IPython controller, in case it is still running.
-        
-        """
-        try:
-            from vistrails.packages.parallelflow.init import ipythonSet
-            if ipythonSet:
-                ipythonSet.stop_engines()
-                ipythonSet.stop_controller()
-        except:
-            pass
-        
+
     def quit(self):
         self._is_quitting = True
         if self.close_all_vistrails():
-            # stopping IPython controller, in case there is one running
-            self.stopIPythonController()
             QtCore.QCoreApplication.quit()
             # In case the quit() failed (when Qt doesn't have the main
             # event loop), we have to return True still
@@ -2404,7 +2390,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 name)
-        if ok and not text.isEmpty():
+        if ok and text:
             return str(text).strip().rstrip()
         if not ok:
             return None

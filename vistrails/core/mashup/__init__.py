@@ -39,27 +39,27 @@ from time import strptime
 ################################################################################                           
 
 def conv_to_bool(x):
-    if type(x) == str:
+    if isinstance(x, str):
         s = str(x).upper()
         if s == 'TRUE':
             return True
         if s == 'FALSE':
             return False
-    elif type(x) == int:
+    elif isinstance(x, (int, long)):
         if x == 0:
             return False
         else:
             return True
-    elif type(x) == bool:
+    elif isinstance(x, bool):
         return x
         
 def conv_from_bool(x):
-    if type(x) == bool:
+    if isinstance(x, bool):
         if x == True:
             return 1
         else:
             return 0
-    elif type(x) == int:
+    elif isinstance(x, (int, long)):
         return x
     
 def convert_symbols(val):

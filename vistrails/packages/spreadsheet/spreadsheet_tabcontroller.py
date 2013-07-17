@@ -293,17 +293,17 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Actual code to create export an image
         
         """
-        if type(action)!=bool and action.text()=='Separately':
+        if not isinstance(action, bool) and action.text() == 'Separately':
             dir = QtGui.QFileDialog.getExistingDirectory(
                 self, 'Select a Directory to Export Images', ".",
                 QtGui.QFileDialog.ShowDirsOnly)
-            if not dir.isNull():
-                self.currentWidget().exportSheetToImages(str(dir))
+            if not dir:
+                self.currentWidget().exportSheetToImages(dir)
         else:
             file = QtGui.QFileDialog.getSaveFileName(
                 self, "Select a File to Export the Sheet",
                 ".", "Images (*.png *.xpm *.jpg)")
-            if not file.isNull():
+            if not file:
                 self.currentWidget().exportSheetToImage(str(file))
         
     def newSheetActionTriggered(self, checked=False):
@@ -569,7 +569,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         for idx in xrange(self.operatingWidget.count()):
             t = self.operatingWidget.widget(idx)
             action = menu.addAction(t.windowTitle())
-            action.setData(QtCore.QVariant(idx))
+            action.setData(idx)
             if t==self.operatingWidget.currentWidget():
                 action.setIcon(QtGui.QIcon(':/images/ok.png'))
         menu.addAction(self.parent().parent().fullScreenAction())
@@ -586,7 +586,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.showPrevTabAction().setEnabled(True)
         if not action: return
         if not action in self.actions():
-            self.operatingWidget.setCurrentIndex(action.data().toInt()[0])
+            self.operatingWidget.setCurrentIndex(action.data()[0])
         menu.deleteLater()
 
     def changeSpreadsheetFileName(self, fileName):
@@ -601,7 +601,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         else:
             displayName = 'Untitled'
         self.emit(QtCore.SIGNAL('needChangeTitle'),
-                  'VisTrails - Spreadsheet - %s' % displayName)
+                  '%s - VisTrails Spreadsheet' % displayName)
 
     def pipelineId(self, pipelineInfo):
         return (pipelineInfo['controller'], pipelineInfo['version'])
@@ -739,9 +739,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      '',
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)')
-        if not fileName.isNull():
-            fileName = str(fileName)
-            (root,ext) = os.path.splitext(fileName)
+        if fileName:
+            (root, ext) = os.path.splitext(fileName)
             if ext=='':
                 fileName += '.vss'
             self.saveSpreadsheet(fileName)
@@ -845,7 +844,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)',
                                                      )
-        if not fileName.isNull():
+        if not fileName:
             self.openSpreadsheet(fileName)
 
     def cleanup(self):

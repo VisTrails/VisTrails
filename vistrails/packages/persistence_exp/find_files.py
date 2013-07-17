@@ -52,7 +52,7 @@ def find_files(filename, version=None):
     log = vistrails.db.services.io.open_log_from_xml(log_fname, True)
 
     if version:
-        if type(version) == type(""):
+        if isinstance(version, basestring):
             # need to lookup version number
             if version in vistrail.db_tags_name_index:
                 version = vistrail.db_tags_name_index[version].db_id

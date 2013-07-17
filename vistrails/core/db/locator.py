@@ -38,7 +38,7 @@ import os.path
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
-                        default_connections_file, default_dot_vistrails
+                        default_connections_file
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -162,7 +162,7 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
     ##########################################################################
 
     def __eq__(self, other):
-        if type(other) != XMLFileLocator:
+        if not isinstance(other, XMLFileLocator):
             return False
         return self._name == other._name
 
@@ -192,9 +192,6 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 #        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
 
 class DBLocator(_DBLocator, CoreLocator):
-    
-    __list = ExtConnectionList.getInstance(default_connections_file())
-    
     class getKeyChain(object):
         def set_key(self, key, passwd):
             get_vistrails_application().keyChain.set_key(key,passwd)
@@ -206,9 +203,9 @@ class DBLocator(_DBLocator, CoreLocator):
     
     def __init__(self, host, port, database, user, passwd, name=None,
                  **kwargs):
-        
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
                             **kwargs)
+        self.__list = ExtConnectionList.getInstance(default_connections_file())
         self.ext_connection_id = -1
 
     def load(self, klass=None):
@@ -510,7 +507,7 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
     ##########################################################################
 
     def __eq__(self, other):
-        if type(other) != ZIPFileLocator:
+        if not isinstance(other, ZIPFileLocator):
             return False
         return self._name == other._name
 

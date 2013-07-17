@@ -292,7 +292,7 @@ class SaveTemporariesMixin(object):
         if config:
             dot_vistrails = config.dotVistrails
         else:
-            dot_vistrails = vistrails.core.system.default_dot_vistrails()
+            dot_vistrails = vistrails.core.system.current_dot_vistrails()
         auto_save_dir = os.path.join(dot_vistrails, "autosave")
         if not os.path.exists(auto_save_dir):
             # !!! we assume dot_vistrails exists !!!
@@ -625,7 +625,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     # Operators
 
     def __eq__(self, other):
-        if type(other) != XMLFileLocator:
+        if not isinstance(other, XMLFileLocator):
             return False
         return self._name == other._name
 
@@ -677,7 +677,7 @@ class ZIPFileLocator(XMLFileLocator):
     # Operators
 
     def __eq__(self, other):
-        if type(other) != ZIPFileLocator:
+        if not isinstance(other, ZIPFileLocator):
             return False
         return self._name == other._name
 

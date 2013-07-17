@@ -169,8 +169,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
 
         # Update the aliases
 #        if len(pipeline.aliases)>0:
-#            aliasRoot = QParameterTreeWidgetItem(None, self,
-#                                                 QtCore.QStringList('Aliases'))
+#            aliasRoot = QParameterTreeWidgetItem(None, self, ['Aliases'])
 #            aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled,
 #                               )
 #            for (alias, info) in pipeline.aliases.iteritems():
@@ -180,7 +179,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
 #                aType = parameter.type
 #                aIdentifier = parameter.identifier
 #                aNamespace = parameter.namespace
-#                label = QtCore.QStringList('%s = %s' % (alias, v))
+#                label = ['%s = %s' % (alias, v)]
 #                pInfo = InstanceObject(type=aType,
 #                                      identifier=aIdentifier,
 #                                      namespace=aNamespace,
@@ -202,7 +201,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                                key=lambda item: item[1].name)
         for mId, module in sortedModules:
             if len(module.functions)>0:
-                mLabel = QtCore.QStringList(module.name)
+                mLabel = [module.name]
                 moduleItem = None
                 for fId in xrange(len(module.functions)):
                     function = module.functions[fId]
@@ -216,7 +215,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                             moduleItem = QAliasParameterTreeWidgetItem(None,
                                                                   self, mLabel)
                     #v = ', '.join([p.strValue for p in function.params])
-                    label = QtCore.QStringList('%s'%function.name)
+                    label = ['%s'%function.name]
                     
                     pList = [InstanceObject(type=function.params[pId].type,
                                            identifier=function.params[pId].identifier,
@@ -246,7 +245,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
         the alias name
         
         """
-        if type(item.parameter) == InstanceObject:
+        if isinstance(item.parameter, InstanceObject):
             (text, ok) = QtGui.QInputDialog.getText(self,
                                                     'Set Parameter Alias',
                                                     'Enter the parameter alias',
@@ -305,7 +304,7 @@ class QAliasParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
             font.setBold(True)
             painter.setFont(font)
             text = option.fontMetrics.elidedText(
-                model.data(index, QtCore.Qt.DisplayRole).toString(),
+                model.data(index, QtCore.Qt.DisplayRole),
                 QtCore.Qt.ElideMiddle, 
                 textrect.width()-10)
             style.drawItemText(painter,
@@ -323,13 +322,13 @@ class QAliasParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
             #                 textrect.bottom()-1)
 
             annotatedId = model.data(index, QtCore.Qt.UserRole+1)            
-            if annotatedId.isValid():
+            if annotatedId:
                 idRect = QtCore.QRect(
                     QtCore.QPoint(textrect.left()+size.width()+5,
                                   textrect.top()),
                     textrect.bottomRight())
                 QAnnotatedPipelineView.drawId(painter, idRect,
-                                              annotatedId.toInt()[0],
+                                              annotatedId,
                                               QtCore.Qt.AlignLeft |
                                               QtCore.Qt.AlignVCenter)
         else:
@@ -352,7 +351,7 @@ class QAliasParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, info, parent, labelList):
         """ QAliasParameterTreeWidgetItem(info: (str, []),
                                      parent: QTreeWidgetItem
-                                     labelList: QStringList)
+                                     labelList: string)
                                      -> QParameterTreeWidget
                                      
         Create a new tree widget item with a specific parent and
@@ -365,12 +364,11 @@ class QAliasParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
         """
         self.parameter = info
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
-        if type(self.parameter)==int:
-            self.setData(0, QtCore.Qt.UserRole+1,
-                         QtCore.QVariant(self.parameter))
-        elif type(self.parameter) == tuple:
+        if isinstance(self.parameter, int):
+            self.setData(0, QtCore.Qt.UserRole+1, self.parameter)
+        elif isinstance(self.parameter, tuple):
             for param in self.parameter[1]:
-                label = QtCore.QStringList('')
+                label = ['']
                 item = QAliasParameterTreeWidgetItem(param, self, label)
                 item.setFlags(QtCore.Qt.ItemIsEnabled|
                               QtCore.Qt.ItemIsSelectable)
@@ -378,7 +376,7 @@ class QAliasParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
             self.setExpanded(True)
     
     def updateAlias(self):    
-        if type(self.parameter) == InstanceObject:
+        if isinstance(self.parameter, InstanceObject):
             if self.parameter.alias != '':
                 self.setText(0,'%s(%s):%s'%(self.parameter.alias, 
                                           self.parameter.type,

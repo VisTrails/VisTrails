@@ -102,7 +102,7 @@ class Collection(object):
                 if config:
                     self.dotVistrails = config.dotVistrails
                 else:
-                    self.dotVistrails = vistrails.core.system.default_dot_vistrails()
+                    self.dotVistrails = vistrails.core.system.current_dot_vistrails()
 
                 config = get_vistrails_configuration()
                 path = os.path.join(self.dotVistrails, "index.db")

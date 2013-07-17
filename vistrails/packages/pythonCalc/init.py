@@ -76,19 +76,6 @@ on its inputs."""
         # clear in further examples that use these more complicated data.
         self.setResult("value", self.op(v1, v2))
 
-        if self.hasInputFromPort("mat1"):
-            m1 = self.getInputFromPort("mat1")
-            m2 = self.getInputFromPort("mat2")
-            self.setResult("mat_value", self.mat_op(v1, v2))
-
-
-    def mat_op(self, v1, v2):
-        reg = vistrails.core.modules_module_registry.get_module_registry()
-        Matrix = reg.get_descriptor_by_name(identifier, 'Matrix').module
-        result = Matrix()
-        matr
-        op = self.getInputFromPort("op")
-
     def op(self, v1, v2):
         op = self.getInputFromPort("op")
         if op == '+':
@@ -129,11 +116,12 @@ def initialize(*args, **keywords):
     # one-parameter ports. We'll see in later tutorials how to set up
     # multiple-parameter plots.
     reg.add_input_port(PythonCalc, "value1",
-                     (vistrails.core.modules.basic_modules.Float, 'the first argument'))
+                       (vistrails.core.modules.basic_modules.Float, 'the first argument'))
     reg.add_input_port(PythonCalc, "value2",
-                     (vistrails.core.modules.basic_modules.Float, 'the second argument'))
+                       (vistrails.core.modules.basic_modules.Float, 'the second argument'))
     reg.add_input_port(PythonCalc, "op",
-                     (vistrails.core.modules.basic_modules.String, 'the operation'))
+                       (vistrails.core.modules.basic_modules.String, 'the operation'),
+                       entry_types=['enum'], values=["['+', '-', '*', '/']"])
     reg.add_output_port(PythonCalc, "value",
-                      (vistrails.core.modules.basic_modules.Float, 'the result'))
+                        (vistrails.core.modules.basic_modules.Float, 'the result'))
 

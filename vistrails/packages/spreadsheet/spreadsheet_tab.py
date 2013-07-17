@@ -352,7 +352,7 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         oldCell = self.getCell(row, col)
-        if type(oldCell)!=cellType:
+        if cellType is None or not isinstance(oldCell, cellType):
             if cellType:
                 newCell = cellType(self)
                 self.setCellByWidget(row, col, newCell)
@@ -1215,7 +1215,7 @@ class StandardTabDockWidget(QtGui.QDockWidget):
         
         """
         for c in self.children():
-            if type(c)==QtGui.QAbstractButton:
+            if isinstance(c, QtGui.QAbstractButton):
                 return c
         return None
 

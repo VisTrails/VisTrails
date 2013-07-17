@@ -62,14 +62,14 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
 
         # find parent workflow or group
         if parent is not None:
-            while parent.parent() is not None and \
-                  type(parent.execution) != GroupExec:
+            while (parent.parent() is not None and
+                   not isinstance(parent.execution, GroupExec)):
                 parent = parent.parent()
             self.wf_execution = parent.execution
         else:
             self.wf_execution = execution
 
-        if type(execution) == WorkflowExec:
+        if isinstance(execution, WorkflowExec):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == -2:
@@ -83,7 +83,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 self.setText(0, execution.db_name)
             else:
                 self.setText(0, 'Version #%s' % execution.parent_version )
-        if type(execution) == ModuleExec:
+        if isinstance(execution, ModuleExec):
             for loop_exec in execution.loop_execs:
                 QExecutionItem(loop_exec, self)
             if execution.completed == 1:
@@ -99,7 +99,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, '%s' % execution.module_name)
-        if type(execution) == GroupExec:
+        if isinstance(execution, GroupExec):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == 1:
@@ -115,7 +115,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Group')
-        if type(execution) == LoopExec:
+        if isinstance(execution, LoopExec):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == 1:
@@ -159,7 +159,7 @@ class QExecutionListWidget(QtGui.QTreeWidget):
         workflow_exec.db_name = workflow_exec.db_name + '*' \
                              if workflow_exec.db_name \
           else '%s*' % self.controller.get_pipeline_name(
-                        int(workflow_exec.parent_version))[10:]
+                  workflow_exec.parent_version)
         
         self.addTopLevelItem(QExecutionItem(workflow_exec))
        
@@ -289,7 +289,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         if self.isDoubling:
             self.isDoubling = False
             return
-        if type(item.wf_execution) == GroupExec:
+        if isinstance(item.wf_execution, GroupExec):
             self.backButton.show()
         else:
             self.backButton.hide()
@@ -312,8 +312,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
                 # set workflow names
-                e.db_name = controller.get_pipeline_name(
-                                        e.parent_version)[10:]
+                e.db_name = controller.get_pipeline_name(e.parent_version)
                 self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
         self.executionList.set_log(self.log)
@@ -352,7 +351,7 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         if self.isDoubling:
             self.isDoubling = False
             return
-        if type(item.wf_execution) == GroupExec:
+        if isinstance(item.wf_execution, GroupExec):
             self.backButton.show()
         else:
             self.backButton.hide()
@@ -361,18 +360,18 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
     def doubleClick(self, item, col):
         # only difference here is that we should show contents of GroupExecs 
         self.isDoubling = True
-        if type(item.wf_execution) == GroupExec:
+        if isinstance(item.wf_execution, GroupExec):
             self.backButton.show()
         else:
             self.backButton.hide()
-        if type(item.execution) == GroupExec:
+        if isinstance(item.execution, GroupExec):
             # use itself as the workflow
             self.notify_app(item.execution, item.execution)
         else:
             self.notify_app(item.wf_execution, item.execution)
 
     def goBack(self):
-        if type(self.parentExecution) != GroupExec:
+        if not isinstance(self.parentExecution, GroupExec):
             self.backButton.hide()
         self.notify_app(self.parentExecution.item.wf_execution,
                         self.parentExecution)
@@ -427,8 +426,7 @@ class QLogView(QPipelineView):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
                 # set workflow names
-                e.db_name = controller.get_pipeline_name(
-                                        e.parent_version)[10:]
+                e.db_name = controller.get_pipeline_name(e.parent_version)
                 self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
 
@@ -480,12 +478,12 @@ class QLogView(QPipelineView):
 
     def get_execution_pipeline(self, execution):
         """ Recursively finds pipeline through layers of groupExecs """
-        if type(execution) == WorkflowExec:
+        if isinstance(execution, WorkflowExec):
             version = execution.parent_version
             # change the current version to this as well
 
             return self.controller.vistrail.getPipeline(version)
-        if type(execution) == GroupExec:
+        if isinstance(execution, GroupExec):
             parent = execution.item.wf_execution
             parent_pipeline = self.get_execution_pipeline(parent)
             return parent_pipeline.db_get_module_by_id(
@@ -572,8 +570,8 @@ class QLogView(QPipelineView):
         # avoid module update signal
         self.isUpdating = True
         module = None
-        if (type(self.execution) == ModuleExec or \
-            (type(self.execution) == GroupExec and
+        if (isinstance(self.execution, ModuleExec) or \
+            (isinstance(self.execution, GroupExec) and
              self.execution == self.parentExecution)) and \
           not self.execution.module.isSelected():
             self.execution.module.setSelected(True)
