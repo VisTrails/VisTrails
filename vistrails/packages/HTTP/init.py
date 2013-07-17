@@ -46,6 +46,7 @@ from vistrails.core.modules.vistrails_module import Module
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
+from vistrails.core.system import current_dot_vistrails
 import vistrails.gui.repository
 
 import datetime
@@ -424,7 +425,7 @@ def initialize(*args, **keywords):
                         (basic.String, 'Checksum'), optional=True)
 
     global package_directory
-    dotVistrails = get_vistrails_persistent_configuration().dotVistrails
+    dotVistrails = current_dot_vistrails()
     package_directory = os.path.join(dotVistrails, "HTTP")
 
     if not os.path.isdir(package_directory):
