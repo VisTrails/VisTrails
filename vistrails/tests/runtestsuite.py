@@ -130,6 +130,9 @@ parser.add_option("--installbundles", action='store_true',
                   default=False,
                   help=("Attempt to install missing Python packages "
                         "automatically"))
+parser.add_option("-S", "--startup", action="store", type="str", default=None,
+                  dest="dotVistrails",
+                  help="Set startup file (default is ~/.vistrails)")
 
 (options, args) = parser.parse_args()
 # remove empty strings
@@ -138,6 +141,7 @@ verbose = options.verbose
 test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles
+dotVistrails = options.dotVistrails
 test_modules = None
 if len(args) > 0:
     test_modules = args
@@ -163,6 +167,7 @@ v = vistrails.gui.application.start_application({
         'singleInstance': False,
         'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
+        'dotVistrails': dotVistrails,
     })
 if v != 0:
     app = vistrails.gui.application.get_vistrails_application()

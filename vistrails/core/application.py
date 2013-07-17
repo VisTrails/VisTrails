@@ -319,7 +319,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # VistrailsStartup will load. This updates self.temp_configuration
         self.read_dotvistrails_option()
         
-        if optionsDict and 'dotVistrails' in optionsDict.keys():
+        if optionsDict and optionsDict.get('dotVistrails'):
             self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
 
         # the problem here is that if the user pointed to a new .vistrails
