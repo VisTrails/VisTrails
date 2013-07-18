@@ -332,8 +332,6 @@ def current_ip():
         for i in info:
             if len(i[4][0]) <= 15:
                 return i[4][0]
-            else:
-                return '0.0.0.0'
     except:
         return '0.0.0.0'
 
