@@ -36,17 +36,16 @@
 """
 import copy
 from vistrails.db.domain import DBConnection
-import vistrails.core.modules.module_registry
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleConnector
-from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.port import PortEndPoint, Port
 
 import unittest
 from vistrails.db.domain import IdScope
 
-registry = vistrails.core.modules.module_registry.registry
-
 ################################################################################
+
+Variant_desc = None
 
 def moduleConnection(conn):
     """moduleConnection(conn)-> function 
@@ -54,10 +53,20 @@ def moduleConnection(conn):
 
     """
     def theFunction(src, dst):
+        global Variant_desc
+        if Variant_desc is None:
+            reg = get_module_registry()
+            Variant_desc = reg.get_descriptor_by_name(
+                    'org.vistrails.vistrails.basic', 'Variant')
+
         iport = conn.destination.name
         oport = conn.source.name
         src.enableOutputPort(oport)
-        dst.set_input_port(iport, ModuleConnector(src, oport, conn.destination.spec))
+        typecheck = [desc is Variant_desc
+                     for desc in conn.source.spec.descriptors()]
+        dst.set_input_port(
+                iport,
+                ModuleConnector(src, oport, conn.destination.spec, typecheck))
     return theFunction
 
 ################################################################################

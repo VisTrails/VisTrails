@@ -581,10 +581,13 @@ class Converter(Module):
 ################################################################################
 
 class ModuleConnector(object):
-    def __init__(self, obj, port, spec=None):
+    def __init__(self, obj, port, spec=None, typecheck=None):
+        # typecheck is a list of booleans indicating which descriptors to
+        # typecheck
         self.obj = obj
         self.port = port
         self.spec = spec
+        self.typecheck = typecheck
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""
@@ -593,15 +596,23 @@ class ModuleConnector(object):
     
     def __call__(self):
         result = self.obj.get_output(self.port)
-        if self.spec is not None:
+        if self.spec is not None and self.typecheck is not None:
             descs = self.spec.descriptors()
+            typecheck = self.typecheck
             if len(descs) == 1:
+                if not typecheck[0]:
+                    return result
                 mod = descs[0].module
                 if hasattr(mod, 'validate') and not mod.validate(result):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s does not match destination type "
                                       "%s" % (self.port, descs[0].name))
             else:
+                if len(typecheck) == 1:
+                    if typecheck[0]:
+                        typecheck = [True] * len(descs)
+                    else:
+                        return result
                 if not isinstance(result, tuple):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s is not a tuple" % self.port)
@@ -609,8 +620,10 @@ class ModuleConnector(object):
                     raise ModuleError(self.obj, "Object passed on Variant "
                                       "port %s does not have the correct "
                                       "length (%d, expected %d)" % (
-                                      len(result), len(descs)))
+                                      self.port, len(result), len(descs)))
                 for i, desc in enumerate(descs):
+                    if not typecheck[i]:
+                        continue
                     mod = desc.module
                     if hasattr(mod, 'validate'):
                         if not mod.validate(result[i]):
