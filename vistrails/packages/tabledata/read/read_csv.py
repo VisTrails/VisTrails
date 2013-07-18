@@ -151,10 +151,20 @@ class CSVTestCase(unittest.TestCase):
                             ('column_name', [('String', 'col 2')]),
                             ('numeric', [('Boolean', 'True')]),
                         ]),
+                        ('PythonSource', 'org.vistrails.vistrails.basic', [
+                            ('source', [('String', '')]),
+                        ]),
                     ],
                     [
                         (0, 'self', 1, 'table'),
+                        (1, 'value', 2, 'l'),
+                    ],
+                    add_port_specs=[
+                        (2, 'input', 'l',
+                         'org.vistrails.vistrails.basic:List'),
                     ]))
+                # Here we use a PythonSource just to check that a numpy array
+                # can be passed on a List port
         self.assertEqual(columns, [3])
         self.assertEqual(len(results), 1)
         self.assertEqual(list(results[0]), [2.0, 3.0, 14.5])
