@@ -98,13 +98,8 @@ class Collection(object):
     class CollectionSingleton():
         def __call__(self, *args, **kw):
             if Collection._instance is None:
-                config = get_vistrails_configuration()
-                if config:
-                    self.dotVistrails = config.dotVistrails
-                else:
-                    self.dotVistrails = vistrails.core.system.current_dot_vistrails()
+                self.dotVistrails = vistrails.core.system.current_dot_vistrails()
 
-                config = get_vistrails_configuration()
                 path = os.path.join(self.dotVistrails, "index.db")
                 obj = Collection(path)
                 Collection._instance = obj
@@ -358,7 +353,6 @@ class Collection(object):
 #            debug.critical("Locator is not valid!")
 
 def main():
-    from vistrails.db.services.locator import BaseLocator
     import sys
     sys.path.append('/home/tommy/git/vistrails/vistrails')
 

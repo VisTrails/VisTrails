@@ -161,14 +161,16 @@ sys.argv = sys.argv[:1]
 # creates the app so that testing can happen
 
 # We need the windows so we can test events, etc.
-v = vistrails.gui.application.start_application({
+optionsDict = {
         'interactiveMode': True,
         'nologger': True,
         'singleInstance': False,
         'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
-        'dotVistrails': dotVistrails,
-    })
+    }
+if dotVistrails:
+    optionsDict['dotVistrails'] = dotVistrails
+v = vistrails.gui.application.start_application(optionsDict)
 if v != 0:
     app = vistrails.gui.application.get_vistrails_application()
     if app:

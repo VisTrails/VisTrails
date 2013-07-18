@@ -329,13 +329,16 @@ def current_ip():
     Gets current IP address trying to avoid the IPv6 interface """
     try:
         info = socket.getaddrinfo(socket.gethostname(), None)
+        # Try to find an IPv4
         for i in info:
-            if len(i[4][0]) <= 15:
+            if i[0] == socket.AF_INET:
                 return i[4][0]
-            else:
-                return '0.0.0.0'
+        # Return any address
+        for i in info:
+            if i[0] in (socket.AF_INET, socket.AF_INET6):
+                return i[4][0]
     except:
-        return '0.0.0.0'
+        return ''
 
 def current_time():
     """current_time() -> datetime.datetime
