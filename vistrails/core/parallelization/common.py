@@ -265,7 +265,7 @@ def set_results(module, results):
 
     orig_pipeline = module.moduleInfo['pipeline']
     moduleId = module.moduleInfo['moduleId']
-    vtType = orig_pipeline.modules[moduleId]
+    vtType = orig_pipeline.modules[moduleId].vtType
 
     # including execution logs
     log = results['xml_log']
