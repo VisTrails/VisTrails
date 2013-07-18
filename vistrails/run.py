@@ -129,10 +129,11 @@ if __name__ == '__main__':
         vistrails.core.requirements.require_python_module('PyQt4.QtGui')
         vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
     except vistrails.core.requirements.MissingRequirement, req:
-        r = vistrails.gui.bundles.installbundle.install(
-            {'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-fedora': ['PyQt4']})
+        r = vistrails.gui.bundles.installbundle.install({
+            'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-fedora': ['PyQt4'],
+            'pip': ['PyQt<5.0']})
         if not r:
             raise req
         setNewPyQtAPI()
