@@ -138,6 +138,15 @@ if __name__ == '__main__':
             raise req
         setNewPyQtAPI()
 
+    try:
+        vistrails.core.requirements.require_python_module('concurrent.futures')
+    except vistrails.core.requirements.MissingRequirement, req:
+        r = vistrails.gui.bundles.installbundle.install({
+            'linux-debian': ['python-concurrent.futures'],
+            'linux-ubuntu': ['python-concurrent.futures'],
+            'linux-fedora': ['python-futures'],
+            'pip': ['futures']})
+
     from PyQt4 import QtGui
     import vistrails.gui.application
     try:
