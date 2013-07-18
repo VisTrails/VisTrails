@@ -1592,8 +1592,6 @@ class DBLogSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_workflow_execs:
             child.db_log = obj.db_id
-        for child in obj.db_machines:
-            child.db_log = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'log_tbl'
@@ -2208,7 +2206,7 @@ class DBMachineSQLDAOBase(SQLDAO):
             processor = self.convertFromDB(row[4], 'str', 'varchar(255)')
             ram = self.convertFromDB(row[5], 'int', 'bigint')
             vistrailId = self.convertFromDB(row[6], 'long', 'int')
-            log = self.convertFromDB(row[7], 'long', 'int')
+            workflow_exec = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
             
@@ -2219,7 +2217,7 @@ class DBMachineSQLDAOBase(SQLDAO):
                                 ram=ram,
                                 id=id)
             machine.db_vistrailId = vistrailId
-            machine.db_log = log
+            machine.db_workflow_exec = workflow_exec
             machine.db_entity_id = entity_id
             machine.db_entity_type = entity_type
             machine.is_dirty = False
@@ -2243,7 +2241,7 @@ class DBMachineSQLDAOBase(SQLDAO):
             processor = self.convertFromDB(row[4], 'str', 'varchar(255)')
             ram = self.convertFromDB(row[5], 'int', 'bigint')
             vistrailId = self.convertFromDB(row[6], 'long', 'int')
-            log = self.convertFromDB(row[7], 'long', 'int')
+            workflow_exec = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
             
@@ -2254,7 +2252,7 @@ class DBMachineSQLDAOBase(SQLDAO):
                                 ram=ram,
                                 id=id)
             machine.db_vistrailId = vistrailId
-            machine.db_log = log
+            machine.db_workflow_exec = workflow_exec
             machine.db_entity_id = entity_id
             machine.db_entity_type = entity_type
             machine.is_dirty = False
@@ -2262,8 +2260,8 @@ class DBMachineSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        if ('log', obj.db_log) in all_objects:
-            p = all_objects[('log', obj.db_log)]
+        if ('workflow_exec', obj.db_workflow_exec) in all_objects:
+            p = all_objects[('workflow_exec', obj.db_workflow_exec)]
             p.db_add_machine(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
@@ -2298,9 +2296,9 @@ class DBMachineSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_vistrailId') and obj.db_vistrailId is not None:
             columnMap['vt_id'] = \
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
-        if hasattr(obj, 'db_log') and obj.db_log is not None:
+        if hasattr(obj, 'db_workflow_exec') and obj.db_workflow_exec is not None:
             columnMap['log_id'] = \
-                self.convertToDB(obj.db_log, 'long', 'int')
+                self.convertToDB(obj.db_workflow_exec, 'long', 'int')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'long', 'int')
@@ -2347,9 +2345,9 @@ class DBMachineSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_vistrailId') and obj.db_vistrailId is not None:
             columnMap['vt_id'] = \
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
-        if hasattr(obj, 'db_log') and obj.db_log is not None:
+        if hasattr(obj, 'db_workflow_exec') and obj.db_workflow_exec is not None:
             columnMap['log_id'] = \
-                self.convertToDB(obj.db_log, 'long', 'int')
+                self.convertToDB(obj.db_workflow_exec, 'long', 'int')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'long', 'int')
@@ -5991,6 +5989,8 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
+        for child in obj.db_machines:
+            child.db_workflow_exec = obj.db_id
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id

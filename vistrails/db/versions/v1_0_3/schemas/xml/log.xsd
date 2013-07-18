@@ -40,7 +40,6 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element name="workflow_exec" ref="workflowExec" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element ref="machine" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="version" type="xs:string"/>
@@ -52,6 +51,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="machine" minOccurs="0" maxOccurs="unbounded"/>
         <xs:choice>
           <xs:element name="module_exec" ref="moduleExec" minOccurs="0" maxOccurs="1"/>
           <xs:element name="group_exec" ref="groupExec" minOccurs="0" maxOccurs="1"/>
@@ -72,6 +72,13 @@
       <xs:attribute name="name" type="xs:string"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="annotation">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="key" type="xs:string"/>
+      <xs:attribute name="value" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="machine">
     <xs:complexType>
       <xs:attribute name="id" type="xs:int"/>
@@ -80,13 +87,6 @@
       <xs:attribute name="architecture" type="xs:string"/>
       <xs:attribute name="processor" type="xs:string"/>
       <xs:attribute name="ram" type="xs:long"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="annotation">
-    <xs:complexType>
-      <xs:attribute name="id" type="xs:int"/>
-      <xs:attribute name="key" type="xs:string"/>
-      <xs:attribute name="value" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="moduleExec">

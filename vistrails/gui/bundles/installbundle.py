@@ -42,7 +42,6 @@ from vistrails.core.system import systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 import subprocess
-import os
 import sys
 from io import StringIO
 ##############################################################################
@@ -50,9 +49,6 @@ from io import StringIO
 def has_qt():
     try:
         import PyQt4.QtGui
-        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
-        # PyQt4.QtOpenGL by default
-        import PyQt4.QtOpenGL
         return True
     except ImportError:
         return False
@@ -105,17 +101,16 @@ def run_install_command_as_root(graphical, cmd, args):
     p = subprocess.Popen(sucmd, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
                                 shell=True)
-    lines = ''
+    lines = []
     try:
-        for line in iter(p.stdout.readline, ""):
-            lines += line
-	    print StringIO(unicode(line), newline=None).read(),
+        for line in iter(p.stdout.readline, ''):
+            lines.append(line)
     except IOError, e:
         print "Ignoring IOError:", str(e)
     result = p.wait()
 
     if result != 0:
-        debug.critical("Error running: %s" % cmd, lines)
+        debug.critical("Error running: %s" % cmd, ''.join(lines))
                 
     return result == 0 # 0 indicates success
 

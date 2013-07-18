@@ -292,7 +292,7 @@ class SaveTemporariesMixin(object):
         if config:
             dot_vistrails = config.dotVistrails
         else:
-            dot_vistrails = vistrails.core.system.default_dot_vistrails()
+            dot_vistrails = vistrails.core.system.current_dot_vistrails()
         auto_save_dir = os.path.join(dot_vistrails, "autosave")
         if not os.path.exists(auto_save_dir):
             # !!! we assume dot_vistrails exists !!!

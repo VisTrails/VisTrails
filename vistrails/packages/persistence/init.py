@@ -46,7 +46,7 @@ from vistrails.core.modules.basic_modules import Path, File, Directory, Boolean,
 from vistrails.core.modules.module_registry import get_module_registry, MissingModule, \
     MissingPackageVersion, MissingModuleVersion
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from vistrails.core.system import default_dot_vistrails, execute_cmdline2, \
+from vistrails.core.system import current_dot_vistrails, execute_cmdline2, \
     execute_piped_cmdlines, systemType, \
     current_user, current_time, get_executable_path
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
@@ -548,7 +548,7 @@ def initialize():
         if not os.path.exists(local_db):
             raise Exception('local_db "%s" does not exist' % local_db)
     else:
-        local_db = os.path.join(default_dot_vistrails(), 'persistent_files')
+        local_db = os.path.join(current_dot_vistrails(), 'persistent_files')
         if not os.path.exists(local_db):
             try:
                 os.mkdir(local_db)

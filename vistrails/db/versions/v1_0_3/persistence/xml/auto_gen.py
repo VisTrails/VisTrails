@@ -1324,7 +1324,6 @@ class DBLogXMLDAOBase(XMLDAO):
         vistrail_id = self.convertFromStr(data, 'long')
         
         workflow_execs = []
-        machines = []
         
         # read children
         for child in node.getchildren():
@@ -1335,9 +1334,6 @@ class DBLogXMLDAOBase(XMLDAO):
             if child_tag == 'workflowExec':
                 _data = self.getDao('workflow_exec').fromXML(child)
                 workflow_execs.append(_data)
-            elif child_tag == 'machine':
-                _data = self.getDao('machine').fromXML(child)
-                machines.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -1347,7 +1343,6 @@ class DBLogXMLDAOBase(XMLDAO):
                     version=version,
                     name=name,
                     workflow_execs=workflow_execs,
-                    machines=machines,
                     vistrail_id=vistrail_id)
         obj.is_dirty = False
         return obj
@@ -1368,11 +1363,6 @@ class DBLogXMLDAOBase(XMLDAO):
             if (workflow_execs is not None) and (workflow_execs != ""):
                 childNode = ElementTree.SubElement(node, 'workflowExec')
                 self.getDao('workflow_exec').toXML(workflow_exec, childNode)
-        machines = log.db_machines
-        for machine in machines:
-            if (machines is not None) and (machines != ""):
-                childNode = ElementTree.SubElement(node, 'machine')
-                self.getDao('machine').toXML(machine, childNode)
         
         return node
 
@@ -4428,6 +4418,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         name = self.convertFromStr(data, 'str')
         
         annotations = []
+        machines = []
         item_execs = []
         
         # read children
@@ -4439,6 +4430,9 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             if child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'machine':
+                _data = self.getDao('machine').fromXML(child)
+                machines.append(_data)
             elif child_tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 item_execs.append(_data)
@@ -4466,7 +4460,8 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                              parent_version=parent_version,
                              completed=completed,
                              name=name,
-                             annotations=annotations)
+                             annotations=annotations,
+                             machines=machines)
         obj.is_dirty = False
         return obj
     
@@ -4494,6 +4489,11 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        machines = workflow_exec.db_machines
+        for machine in machines:
+            if (machines is not None) and (machines != ""):
+                childNode = ElementTree.SubElement(node, 'machine')
+                self.getDao('machine').toXML(machine, childNode)
         item_execs = workflow_exec.db_item_execs
         for item_exec in item_execs:
             if item_exec.vtType == 'module_exec':

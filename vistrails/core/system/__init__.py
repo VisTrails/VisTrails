@@ -233,16 +233,25 @@ def default_options_file():
 
 def default_dot_vistrails():
     """ default_dot_vistrails() -> str 
-    Returns VisTrails per-user directory.
+    Returns the default VisTrails per-user directory.
 
     """
     return os.path.join(home_directory(), '.vistrails')
+
+def current_dot_vistrails():
+    """ current_dot_vistrails() -> str
+    Returns the VisTrails per-user directory.
+
+    """
+    from vistrails.core.configuration import get_vistrails_configuration
+    return get_vistrails_configuration().dotVistrails
+
 def default_connections_file():
     """ default_connections_file() -> str
     Returns default Vistrails per-user connections file
 
     """
-    return os.path.join(default_dot_vistrails(), 'connections.xml')
+    return os.path.join(current_dot_vistrails(), 'connections.xml')
 
 def python_version():
     """python_version() -> (major, minor, micro, release, serial)
