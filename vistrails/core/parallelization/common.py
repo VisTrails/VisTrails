@@ -163,7 +163,7 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
         # Get the execution log from the controller
         for module_log in controller.log.workflow_execs[0].item_execs:
             if module_log.module_id == moduleId:
-                machine = controller.log.machine_list[0]
+                machine = controller.log.workflow_execs[0].machine_list[0]
                 xml_log = serialize(module_log)
                 machine_log = serialize(machine)
 
@@ -289,7 +289,7 @@ def set_results(module, results):
         # before adding the execution log, we need to get the machine information
         machine = unserialize(results['machine_log'], Machine)
         machine.id = module.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-        module.logging.log.log.add_machine(machine)
+        module.logging.log.workflow_exec.add_machine(machine)
 
         # recursively add machine information to execution items
         def add_machine_recursive(exec_):
