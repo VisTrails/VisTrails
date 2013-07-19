@@ -1,5 +1,7 @@
 import contextlib
 
+from vistrails.core.modules.vistrails_module import Module
+
 
 def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
     """Build a pipeline and execute it.
@@ -171,3 +173,26 @@ def intercept_result(module, output_name):
         yield results
     finally:
         module.setResult = old_setResult
+
+
+def intercept_results(*args):
+    """This calls intercept_result() several times.
+
+    You can pass it multiple modules and port names and it will nest the
+    managers, for instance:
+    with intercept_results(ModOne, 'one1', 'one2', ModTwo, 'two1', 'two2') as (
+            one1, one2, two1, two2):
+        self.assertFalse(execute(...))
+    """
+    ctx = []
+    current_module = None
+    for arg in args:
+        if isinstance(arg, type) and issubclass(arg, Module):
+            current_module = arg
+        elif isinstance(arg, basestring):
+            if current_module is None:
+                raise ValueError
+            ctx.append(intercept_result(current_module, arg))
+        else:
+            raise TypeError
+    return contextlib.nested(*ctx)
