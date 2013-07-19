@@ -33,7 +33,6 @@
 ##
 ###############################################################################
 from vistrails.db import VistrailsDBException
-from vistrails.db.services.io import get_db_lib
 from vistrails.core import debug
 
 import sqlalchemy
@@ -181,35 +180,42 @@ class SQLDAO:
         """ Executes a command consisting of multiple SELECT statements
             It returns a list of results from the SELECT statements
         """
-        data = []
         # break up into bundles
         BUNDLE_SIZE = 10000
+        data = []
         num_commands = len(dbCommandList)
-        n = 0
-        while n<num_commands:
-            dbCommands = dbCommandList[n:(n+BUNDLE_SIZE)]
-            commandString = ''
-            for prepared, values in dbCommands:
-                command = prepared % \
-                              db.escape(values, get_db_lib().converters.conversions)
-                commandString += command
-            cur = db.cursor()
+        for start in xrange(0,num_commands, BUNDLE_SIZE):
+            cmds_str = ""
+            params = []
+            for i in xrange(start, min(num_commands, start+BUNDLE_SIZE)):
+                cmd = dbCommandList[i]
+                compiled_cmd = cmd.compile(dialect=db.dialect)
+                cmds_str += compiled_cmd.string + ";\n"
+                for k in compiled_cmd.positiontup:
+                    v = compiled_cmd.params[k]
+                    params.append(v)
+            cur = db.connection.cursor()
             try:
-                result = cur.execute(commandString)
+                result = cur.execute(cmds_str, params)
                 while True:
                     r = cur.fetchall() if isFetch else cur.lastrowid
                     data.append(r)
                     next = cur.nextset()
                     if not next:
                         break
-            except Exception, e:
-                raise VistrailsDBException('Command failed: %s -- """ %s """' % 
-                                           (e, commandString))
             finally:
                 cur.close()
-            
-            n += BUNDLE_SIZE
         return data
+
+    def executeSQLCommands(self, db, dbCommandList, isFetch):
+        if db.dialect.name == 'mysql':
+            return self.executeSQLGroup(db, dbCommandList, isFetch)
+        else:
+            results = []
+            for cmd in dbCommandList:
+                res = self.executeSQL(db, cmd, isFetch)
+                results.append(res)
+            return results
 
     def start_transaction(self, db):
         db.begin()
