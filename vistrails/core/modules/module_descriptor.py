@@ -98,6 +98,10 @@ class ModuleDescriptor(DBModuleDescriptor):
             self.module = kwargs['module']
             if 'name' not in kwargs:
                 kwargs['name'] = self.module.__name__
+            if hasattr(self.module, 'remote_execution'):
+                self.remote_execution = self.module.remote_execution
+            else:
+                self.remote_execution = None
             del kwargs['module']
         else:
             self.module = None
