@@ -908,7 +908,7 @@ class QArgWidget(QtGui.QWidget):
 
     def getValues(self):
         """ get the values from the widgets and store them """
-        self.klass = self.klassList.itemData(self.klassList.currentIndex())
+        self.klass = str(self.klassList.itemData(self.klassList.currentIndex()).toString())
         if self.argtype == 'constant':
             self.name = ''
         else:
@@ -970,14 +970,14 @@ class QArgWidget(QtGui.QWidget):
     def klassChanged(self, index=None):
         if self.argtype in self.stdTypes:
             return
-        klass = self.klassList.itemData(self.klassList.currentIndex())
+        klass = str(self.klassList.itemData(self.klassList.currentIndex()).toString())
         self.listLabel.setVisible(klass == "list" and type == 'input')
         self.subtype.setVisible(klass == "list" and type == 'input')
 
     def typeChanged(self, index=None):
         if self.argtype in self.stdTypes:
             return
-        type = self.typeList.itemData(self.typeList.currentIndex())
+        type = str(self.typeList.itemData(self.typeList.currentIndex()).toString())
         if index is not None and type == self.argtype:
             return
         self.argtype = type
