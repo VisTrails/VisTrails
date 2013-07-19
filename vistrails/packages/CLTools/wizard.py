@@ -499,27 +499,27 @@ class QCLToolsWizard(QtGui.QWidget):
 
         if 'stdin' in conf:
             name, type, options = conf['stdin']
-            optional = 'required' not in options
-            intext.append("%s: %s%s" % (name, type, "" if optional else " (visible)"))
+            optional = " (visible)" if "required" in options else ""
+            intext.append("%s: %s%s" % (name, type, optional))
         if 'stdout' in conf:
             name, type, options = conf['stdout']
-            optional = 'required' not in options
-            outtext.append("%s: %s%s" % (name, type, "" if optional else " (visible)"))
+            optional = " (visible)" if "required" in options else ""
+            outtext.append("%s: %s%s" % (name, type, optional))
         if 'stderr' in conf:
             name, type, options = conf['stderr']
-            optional = 'required' not in options
-            outtext.append("%s: %s%s" % (name, type, "" if optional else " (visible)"))
+            optional = " (visible)" if "required" in options else ""
+            outtext.append("%s: %s%s" % (name, type, optional))
         if 'options' in conf and 'env_port' in conf['options']:
             intext.append('env: String')
         for type, name, klass, options in conf['args']:
-            optional = 'required' not in options
+            optional = " (visible)" if "required" in options else ""
             if 'input' == type.lower():
-                intext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+                intext.append("%s: %s%s" % (name, klass, optional))
             elif 'output' == type.lower():
-                outtext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+                outtext.append("%s: %s%s" % (name, klass, optional))
             elif 'inputoutput' == type.lower():
-                intext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
-                outtext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
+                intext.append("%s: %s%s" % (name, 'File', optional))
+                outtext.append("%s: %s%s" % (name, 'File', optional))
         
         intext = ''.join(['Input %s. %s\n' % (i+1, t)
                           for i, t in zip(xrange(len(intext)), intext)])
