@@ -162,17 +162,27 @@ def intercept_result(module, output_name):
         self.assertFalse(execute(...))
     self.assertEqual(results, [42])
     """
-    old_setResult = module.setResult
+    actual_setResult = module.setResult
+    old_setResult = module.__dict__.get('setResult', None)
     results = []
+    modules_index = {}  # Maps a Module to an index in the list, so a module
+            # can change its result
     def new_setResult(self, name, value):
         if name == output_name:
-            results.append(value)
-        old_setResult(self, name, value)
+            if self in modules_index:
+                results[modules_index[self]] = value
+            else:
+                modules_index[self] = len(results)
+                results.append(value)
+        actual_setResult(self, name, value)
     module.setResult = new_setResult
     try:
         yield results
     finally:
-        module.setResult = old_setResult
+        if old_setResult is not None:
+            module.setResult = old_setResult
+        else:
+            del module.setResult
 
 
 def intercept_results(*args):
