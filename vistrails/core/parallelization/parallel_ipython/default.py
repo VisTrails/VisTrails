@@ -1,7 +1,7 @@
 from IPython.parallel.error import RemoteError
 
-from vistrails.core.modules.vistrails_module.parallel import SchemeType, \
-    register_parallelization_scheme, ParallelizationScheme
+from vistrails.core.parallelization import SchemeType, Parallelization, \
+    ParallelizationScheme
 from vistrails.core.parallelization.common import get_pickled_module_inputs, \
     execute_serialized_pipeline, module_to_serialized_pipeline, set_results
 from vistrails.core.modules.vistrails_module.errors import ModuleError
@@ -98,4 +98,4 @@ class IPythonScheme(ParallelizationScheme):
         EngineManager.cleanup()
 
 
-register_parallelization_scheme(IPythonScheme)
+Parallelization.register_parallelization_scheme(IPythonScheme)

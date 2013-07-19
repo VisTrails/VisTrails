@@ -48,8 +48,7 @@ from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
-from vistrails.core.parallelization import setup_parallelization_schemes, \
-    finalize_parallelization_schemes
+from vistrails.core.parallelization import Parallelization
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
@@ -357,7 +356,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.vistrailsStartup.set_registry(reg)
 
         # Register parallelization schemes
-        setup_parallelization_schemes()
+        Parallelization.setup_parallelization_schemes()
 
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
@@ -373,7 +372,7 @@ after self.init()"""
         if hasattr(self, 'vistrailsStartup'):
             self.vistrailsStartup.destroy()
 
-        finalize_parallelization_schemes()
+        Parallelization.finalize_parallelization_schemes()
 
     def __del__(self):
         """ __del__() -> None

@@ -15,7 +15,7 @@ from vistrails.core.modules.basic_modules import Unpickle
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.sub_module import InputPort
 from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.core.modules.vistrails_module.parallel import set_is_subprocess
+from vistrails.core.parallelization import Parallelization
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.group import Group
@@ -95,7 +95,7 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
     if get_vistrails_application() is None:
         vistrails.core.application.init(args=[])
 
-    set_is_subprocess()
+    Parallelization.set_is_subprocess()
 
     # Save the workflow in a temporary file
     temp_wf_fd, temp_wf = tempfile.mkstemp()

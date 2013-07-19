@@ -1,8 +1,8 @@
 import concurrent.futures
 import multiprocessing
 
-from vistrails.core.modules.vistrails_module.parallel import SchemeType, \
-    register_parallelization_scheme, ParallelizationScheme
+from vistrails.core.parallelization import SchemeType, Parallelization, \
+    ParallelizationScheme
 from vistrails.core.parallelization.common import get_pickled_module_inputs, \
     execute_serialized_pipeline, module_to_serialized_pipeline, set_results
 
@@ -62,4 +62,4 @@ class ProcessScheme(ParallelizationScheme):
             self._process_pool = None
 
 
-register_parallelization_scheme(ProcessScheme)
+Parallelization.register_parallelization_scheme(ProcessScheme)

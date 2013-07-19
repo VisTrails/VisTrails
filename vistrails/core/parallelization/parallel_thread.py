@@ -1,8 +1,8 @@
 import concurrent.futures
 import multiprocessing
 
-from vistrails.core.modules.vistrails_module.parallel import SchemeType, \
-    register_parallelization_scheme, ParallelizationScheme
+from vistrails.core.parallelization import SchemeType, Parallelization, \
+    ParallelizationScheme
 
 
 @apply
@@ -51,4 +51,4 @@ class ThreadScheme(ParallelizationScheme):
             self._thread_pool = None
 
 
-register_parallelization_scheme(ThreadScheme)
+Parallelization.register_parallelization_scheme(ThreadScheme)
