@@ -46,7 +46,6 @@ from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
     identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     new_module, ModuleError, ModuleSuspended
-from vistrails.core.modules.vistrails_module.parallel import RemoteExecution
 from vistrails.core.utils import VistrailsInternalError
 import os.path
 
@@ -185,7 +184,6 @@ class Group(Module):
 ###############################################################################
 
 def coalesce_port_specs(neighbors, type):
-    from vistrails.core.modules.basic_modules import identifier as basic_pkg
     reg = module_registry.get_module_registry()
     cur_descs = None
     if type == 'input':

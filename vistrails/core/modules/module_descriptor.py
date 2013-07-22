@@ -35,8 +35,7 @@
 import copy
 
 from vistrails.core.utils import VistrailsInternalError
-from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
-import vistrails.core.debug
+from vistrails.core.vistrail.port_spec import PortSpec
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.utils import create_descriptor_string
 from vistrails.db.domain import DBModuleDescriptor
@@ -391,22 +390,6 @@ class ModuleDescriptor(DBModuleDescriptor):
                         optional=optional,
                         sort_key=sort_key)
 
-    def add_input_port(self, name, signature, optional):
-        # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
-        result = self.new_port_spec(name, 'input', signature=signature, 
-                                    optional=optional, sort_key=sort_key)
-        self.add_port_spec(result)
-        return result
-        
-    def add_output_port(self, name, signature, optional):
-        # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
-        result = self.new_port_spec(name, 'output', signature=signature, 
-                                    optional=optional, sort_key=sort_key)
-        self.add_port_spec(result)
-        return result
-        
     def delete_input_port(self, name):
         key = (name, 'input')
         if key in self.port_specs:

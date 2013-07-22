@@ -36,11 +36,9 @@
 pipelines."""
 import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
 from vistrails.core.modules.vistrails_module.parallel import RemoteExecution
-from vistrails.core.system import vistrails_version
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 

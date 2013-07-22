@@ -34,7 +34,6 @@
 ###############################################################################
 
 import copy
-import sys
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.task_system import Task
