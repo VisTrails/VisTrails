@@ -1271,60 +1271,59 @@ def initialize(*args, **kwargs):
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-   from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-   reg = get_module_registry()
+    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+    reg = get_module_registry()
 
-   def outputName_remap(old_conn, new_module):
-       ops = []
-       old_src_module = pipeline.modules[old_conn.source.moduleId]
-       op_desc = reg.get_descriptor(OutputPath)
-       new_x = (old_src_module.location.x + new_module.location.x) / 2.0
-       new_y = (old_src_module.location.y + new_module.location.y) / 2.0
-       op_module = \
-           controller.create_module_from_descriptor(op_desc, new_x, new_y)
-       ops.append(('add', op_module))
-       create_new_connection = UpgradeWorkflowHandler.create_new_connection
-       new_conn_1 = create_new_connection(controller,
-                                          old_src_module,
-                                          old_conn.source,
-                                          op_module,
-                                          "name")
-       ops.append(('add', new_conn_1))
-       new_conn_2 = create_new_connection(controller,
-                                          op_module,
-                                          "value",
-                                          new_module,
-                                          "outputPath")
-       ops.append(('add', new_conn_2))
-       return ops
+    def outputName_remap(old_conn, new_module):
+        ops = []
+        old_src_module = pipeline.modules[old_conn.source.moduleId]
+        op_desc = reg.get_descriptor(OutputPath)
+        new_x = (old_src_module.location.x + new_module.location.x) / 2.0
+        new_y = (old_src_module.location.y + new_module.location.y) / 2.0
+        op_module = \
+            controller.create_module_from_descriptor(op_desc, new_x, new_y)
+        ops.append(('add', op_module))
+        create_new_connection = UpgradeWorkflowHandler.create_new_connection
+        new_conn_1 = create_new_connection(controller,
+                                           old_src_module,
+                                           old_conn.source,
+                                           op_module,
+                                           "name")
+        ops.append(('add', new_conn_1))
+        new_conn_2 = create_new_connection(controller,
+                                           op_module,
+                                           "value",
+                                           new_module,
+                                           "outputPath")
+        ops.append(('add', new_conn_2))
+        return ops
 
-   module_remap = {'FileSink':
-                       [(None, '1.6', None,
-                         {'dst_port_remap':
-                              {'overrideFile': 'overwrite',
-                               'outputName': outputName_remap},
-                          'function_remap':
-                              {'overrideFile': 'overwrite',
-                               'outputName': 'outputPath'}})],
-                   'GetItemsFromDirectory':
-                       [(None, '1.6', 'Directory',
-                         {'dst_port_remap':
-                              {'dir': 'value'},
-                          'src_port_remap':
-                              {'itemlist': 'itemList'},
-                          })],
-                   'InputPort':
-                       [(None, '1.6', None,
-                         {'dst_port_remap': {'old_name': None}})],
-                   'OutputPort':
-                       [(None, '1.6', None,
-                         {'dst_port_remap': {'old_name': None}})],
-                   'PythonSource':
-                       [(None, '1.6', None, {})],
+    module_remap = {'FileSink':
+                        [(None, '1.6', None,
+                          {'dst_port_remap':
+                               {'overrideFile': 'overwrite',
+                                'outputName': outputName_remap},
+                           'function_remap':
+                               {'overrideFile': 'overwrite',
+                                'outputName': 'outputPath'}})],
+                    'GetItemsFromDirectory':
+                        [(None, '1.6', 'Directory',
+                          {'dst_port_remap':
+                               {'dir': 'value'},
+                           'src_port_remap':
+                               {'itemlist': 'itemList'}})],
+                    'InputPort':
+                        [(None, '1.6', None,
+                          {'dst_port_remap': {'old_name': None}})],
+                    'OutputPort':
+                        [(None, '1.6', None,
+                          {'dst_port_remap': {'old_name': None}})],
+                    'PythonSource':
+                        [(None, '1.6', None, {})],
                    }
 
-   return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
-                                              module_remap)
+    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                               module_remap)
 
 
 ###############################################################################
