@@ -47,7 +47,7 @@ import subprocess
 import sys
 import tempfile
 import getopt
-from parser import AutoGenParser
+from auto_gen_parser import AutoGenParser
 import xml_gen_objects
 import sql_gen_objects
 
