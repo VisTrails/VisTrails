@@ -628,23 +628,22 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             vistrail = None
 
         self.parent_execs = [None]
-        logger.start_workflow_execution(vistrail, pipeline, current_version)
-        self.annotate_workflow_execution(logger, reason, aliases, params)
+        logger.start_workflow_execution(vistrail, pipeline, current_version, reason)
+        self.annotate_workflow_execution(logger, aliases, params)
         result = self.unlocked_execute(pipeline, **new_kwargs)
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
         self.parent_execs = [None]
 
         return result
 
-    def annotate_workflow_execution(self, logger, reason, aliases, params):
-        """annotate_workflow_Execution(logger: LogController, reason:str,
+    def annotate_workflow_execution(self, logger, aliases, params):
+        """annotate_workflow_Execution(logger: LogController,
                                         aliases:dict, params:list)-> None
-        It will annotate the workflow execution in logger with the reason,
-        aliases and params.
+        It will annotate the workflow execution in logger with the aliases and
+        params.
         
         """
         d = {}
-        d["__reason__"] = reason
         if aliases is not None and isinstance(aliases, dict):
             d["__aliases__"] = cPickle.dumps(aliases)
         if params is not None and isinstance(params, list):

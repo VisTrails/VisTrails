@@ -336,6 +336,8 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
             text += 'Cached: %s\n' % ("Yes" if execution.cached else 'No')
         text += 'Completed: %s\n' % {'0':'No', '1':'Yes'}.get(
                                     str(execution.completed), 'No')
+        if hasattr(execution, 'reason'):
+            text += 'Reason: %s\n' % execution.reason
         if hasattr(execution, 'error') and execution.error:
             text += 'Error: %s\n' % execution.error
         annotations = execution.db_annotations \

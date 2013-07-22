@@ -60,6 +60,7 @@
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="user" type="xs:string"/>
+      <xs:attribute name="reason" type="xs:string"/>
       <xs:attribute name="session" type="xs:int"/>
       <xs:attribute name="vtVersion" type="xs:string"/>
       <xs:attribute name="tsStart" type="xs:dateTime"/>

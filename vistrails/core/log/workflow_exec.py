@@ -85,6 +85,7 @@ class WorkflowExec(DBWorkflowExec):
     parent_version = DBWorkflowExec.db_parent_version
     name = DBWorkflowExec.db_name
     completed = DBWorkflowExec.db_completed
+    reason = DBWorkflowExec.db_reason
 
     def _get_duration(self):
         if self.db_ts_end is not None:

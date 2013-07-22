@@ -100,7 +100,7 @@ class LogController(object):
         self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
             
     def start_workflow_execution(self, vistrail=None, pipeline=None, 
-                                 currentVersion=None):
+                                 currentVersion=None, reason=None):
         if vistrail is not None:
             parent_type = Vistrail.vtType
             parent_id = vistrail.id
@@ -123,7 +123,8 @@ class LogController(object):
                                           parent_version=currentVersion,
                                           completed=0,
                                           session=session,
-                                          machines=[copy.copy(self.machine)])
+                                          machines=[copy.copy(self.machine)],
+                                          reason=reason)
         self.log.add_workflow_exec(self.workflow_exec)
 
     def finish_workflow_execution(self, errors, suspended=False):

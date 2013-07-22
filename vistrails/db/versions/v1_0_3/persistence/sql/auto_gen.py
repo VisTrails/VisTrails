@@ -5760,7 +5760,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'user', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'user', 'reason', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -5771,20 +5771,22 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
             user = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            session = self.convertFromDB(row[2], 'long', 'int')
-            vt_version = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            ts_start = self.convertFromDB(row[4], 'datetime', 'datetime')
-            ts_end = self.convertFromDB(row[5], 'datetime', 'datetime')
-            parent_id = self.convertFromDB(row[6], 'long', 'int')
-            parent_type = self.convertFromDB(row[7], 'str', 'varchar(255)')
-            parent_version = self.convertFromDB(row[8], 'long', 'int')
-            completed = self.convertFromDB(row[9], 'int', 'int')
-            name = self.convertFromDB(row[10], 'str', 'varchar(255)')
-            log = self.convertFromDB(row[11], 'long', 'int')
-            entity_id = self.convertFromDB(row[12], 'long', 'int')
-            entity_type = self.convertFromDB(row[13], 'str', 'char(16)')
+            reason = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            session = self.convertFromDB(row[3], 'long', 'int')
+            vt_version = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            ts_start = self.convertFromDB(row[5], 'datetime', 'datetime')
+            ts_end = self.convertFromDB(row[6], 'datetime', 'datetime')
+            parent_id = self.convertFromDB(row[7], 'long', 'int')
+            parent_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
+            parent_version = self.convertFromDB(row[9], 'long', 'int')
+            completed = self.convertFromDB(row[10], 'int', 'int')
+            name = self.convertFromDB(row[11], 'str', 'varchar(255)')
+            log = self.convertFromDB(row[12], 'long', 'int')
+            entity_id = self.convertFromDB(row[13], 'long', 'int')
+            entity_type = self.convertFromDB(row[14], 'str', 'char(16)')
             
             workflow_exec = DBWorkflowExec(user=user,
+                                           reason=reason,
                                            session=session,
                                            vt_version=vt_version,
                                            ts_start=ts_start,
@@ -5803,7 +5805,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'user', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'user', 'reason', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -5814,20 +5816,22 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
             user = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            session = self.convertFromDB(row[2], 'long', 'int')
-            vt_version = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            ts_start = self.convertFromDB(row[4], 'datetime', 'datetime')
-            ts_end = self.convertFromDB(row[5], 'datetime', 'datetime')
-            parent_id = self.convertFromDB(row[6], 'long', 'int')
-            parent_type = self.convertFromDB(row[7], 'str', 'varchar(255)')
-            parent_version = self.convertFromDB(row[8], 'long', 'int')
-            completed = self.convertFromDB(row[9], 'int', 'int')
-            name = self.convertFromDB(row[10], 'str', 'varchar(255)')
-            log = self.convertFromDB(row[11], 'long', 'int')
-            entity_id = self.convertFromDB(row[12], 'long', 'int')
-            entity_type = self.convertFromDB(row[13], 'str', 'char(16)')
+            reason = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            session = self.convertFromDB(row[3], 'long', 'int')
+            vt_version = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            ts_start = self.convertFromDB(row[5], 'datetime', 'datetime')
+            ts_end = self.convertFromDB(row[6], 'datetime', 'datetime')
+            parent_id = self.convertFromDB(row[7], 'long', 'int')
+            parent_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
+            parent_version = self.convertFromDB(row[9], 'long', 'int')
+            completed = self.convertFromDB(row[10], 'int', 'int')
+            name = self.convertFromDB(row[11], 'str', 'varchar(255)')
+            log = self.convertFromDB(row[12], 'long', 'int')
+            entity_id = self.convertFromDB(row[13], 'long', 'int')
+            entity_type = self.convertFromDB(row[14], 'str', 'char(16)')
             
             workflow_exec = DBWorkflowExec(user=user,
+                                           reason=reason,
                                            session=session,
                                            vt_version=vt_version,
                                            ts_start=ts_start,
@@ -5853,7 +5857,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'user', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'user', 'reason', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -5867,6 +5871,9 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_user') and obj.db_user is not None:
             columnMap['user'] = \
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_reason') and obj.db_reason is not None:
+            columnMap['reason'] = \
+                self.convertToDB(obj.db_reason, 'str', 'varchar(255)')
         if hasattr(obj, 'db_session') and obj.db_session is not None:
             columnMap['session'] = \
                 self.convertToDB(obj.db_session, 'long', 'int')
@@ -5914,7 +5921,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'user', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'user', 'reason', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -5928,6 +5935,9 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_user') and obj.db_user is not None:
             columnMap['user'] = \
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_reason') and obj.db_reason is not None:
+            columnMap['reason'] = \
+                self.convertToDB(obj.db_reason, 'str', 'varchar(255)')
         if hasattr(obj, 'db_session') and obj.db_session is not None:
             columnMap['session'] = \
                 self.convertToDB(obj.db_session, 'long', 'int')

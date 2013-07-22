@@ -4396,6 +4396,8 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         id = self.convertFromStr(data, 'long')
         data = node.get('user', None)
         user = self.convertFromStr(data, 'str')
+        data = node.get('reason', None)
+        reason = self.convertFromStr(data, 'str')
         data = node.get('session', None)
         session = self.convertFromStr(data, 'long')
         data = node.get('vtVersion', None)
@@ -4448,6 +4450,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         obj = DBWorkflowExec(item_execs=item_execs,
                              id=id,
                              user=user,
+                             reason=reason,
                              session=session,
                              vt_version=vt_version,
                              ts_start=ts_start,
@@ -4469,6 +4472,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         # set attributes
         node.set('id',self.convertToStr(workflow_exec.db_id, 'long'))
         node.set('user',self.convertToStr(workflow_exec.db_user, 'str'))
+        node.set('reason',self.convertToStr(workflow_exec.db_reason, 'str'))
         node.set('session',self.convertToStr(workflow_exec.db_session, 'long'))
         node.set('vtVersion',self.convertToStr(workflow_exec.db_vt_version, 'str'))
         node.set('tsStart',self.convertToStr(workflow_exec.db_ts_start, 'datetime'))

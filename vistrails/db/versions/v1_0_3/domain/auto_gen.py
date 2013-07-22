@@ -12659,7 +12659,7 @@ class DBWorkflowExec(object):
 
     vtType = 'workflow_exec'
 
-    def __init__(self, item_execs=None, id=None, user=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None, annotations=None, machines=None):
+    def __init__(self, item_execs=None, id=None, user=None, reason=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None, annotations=None, machines=None):
         self.db_deleted_item_execs = []
         self.db_item_execs_id_index = {}
         if item_execs is None:
@@ -12670,6 +12670,7 @@ class DBWorkflowExec(object):
                 self.db_item_execs_id_index[v.db_id] = v
         self._db_id = id
         self._db_user = user
+        self._db_reason = reason
         self._db_session = session
         self._db_vt_version = vt_version
         self._db_ts_start = ts_start
@@ -12704,6 +12705,7 @@ class DBWorkflowExec(object):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBWorkflowExec(id=self._db_id,
                             user=self._db_user,
+                            reason=self._db_reason,
                             session=self._db_session,
                             vt_version=self._db_vt_version,
                             ts_start=self._db_ts_start,
@@ -12784,6 +12786,11 @@ class DBWorkflowExec(object):
             new_obj.db_user = res
         elif hasattr(old_obj, 'db_user') and old_obj.db_user is not None:
             new_obj.db_user = old_obj.db_user
+        if 'reason' in class_dict:
+            res = class_dict['reason'](old_obj, trans_dict)
+            new_obj.db_reason = res
+        elif hasattr(old_obj, 'db_reason') and old_obj.db_reason is not None:
+            new_obj.db_reason = old_obj.db_reason
         if 'session' in class_dict:
             res = class_dict['session'](old_obj, trans_dict)
             new_obj.db_session = res
@@ -12970,6 +12977,19 @@ class DBWorkflowExec(object):
         self._db_user = user
     def db_delete_user(self, user):
         self._db_user = None
+    
+    def __get_db_reason(self):
+        return self._db_reason
+    def __set_db_reason(self, reason):
+        self._db_reason = reason
+        self.is_dirty = True
+    db_reason = property(__get_db_reason, __set_db_reason)
+    def db_add_reason(self, reason):
+        self._db_reason = reason
+    def db_change_reason(self, reason):
+        self._db_reason = reason
+    def db_delete_reason(self, reason):
+        self._db_reason = None
     
     def __get_db_session(self):
         return self._db_session
