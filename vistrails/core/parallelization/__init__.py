@@ -45,7 +45,7 @@ class ParallelizationScheme(object):
         pass
 
 
-class RemoteExecution(object):
+class SupportedExecution(object):
     """This defines what a Module supports as execution target.
 
     It knows how to select, among the currently available schemes, the best
@@ -83,7 +83,7 @@ class RemoteExecution(object):
                 sy[system] = True
         n['systems'] = sy
 
-        return RemoteExecution(**n)
+        return SupportedExecution(**n)
 
     def __eq__(self, other):
         return self.parallelizable == other.parallelizable
@@ -106,7 +106,7 @@ class RemoteExecution(object):
             return
 
         for priority, scheme in Parallelization._parallelization_schemes:
-            if scheme.supports(**module.remote_execution.parallelizable):
+            if scheme.supports(**module.supported_execution.parallelizable):
                 scheme.do_compute(module)
                 return
 
@@ -159,17 +159,17 @@ class Parallelization(object):
 import unittest
 
 
-class TestRemoteExecution(unittest.TestCase):
+class TestSupportedExecution(unittest.TestCase):
     def test_intersection(self):
         self.assertEqual(
-                RemoteExecution(thread=True, process=False, remote=True) |
-                RemoteExecution(thread=False, process=True, remote=True),
-                RemoteExecution(thread=False, process=False, remote=True,
+                SupportedExecution(thread=True, process=False, remote=True) |
+                SupportedExecution(thread=False, process=True, remote=True),
+                SupportedExecution(thread=False, process=False, remote=True,
                                 standalone=False))
 
         self.assertEqual(
-                RemoteExecution(systems={'one': True, 'two': True}) |
-                RemoteExecution(systems={'one': False, 'three': False}),
-                RemoteExecution(thread=False, process=False, remote=False,
+                SupportedExecution(systems={'one': True, 'two': True}) |
+                SupportedExecution(systems={'one': False, 'three': False}),
+                SupportedExecution(thread=False, process=False, remote=False,
                                 standalone=False,
                                 systems={'one': False, 'three': False}))

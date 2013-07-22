@@ -166,12 +166,12 @@ class Group(Module):
 
         # Determine acceptable execution targets
         tmp_id_to_module_map = res[0]
-        if all(hasattr(module, 'remote_execution')
+        if all(hasattr(module, 'supported_execution')
                for i, module in tmp_id_to_module_map.iteritems()
                if i not in ports):
-            self.remote_execution = reduce(
+            self.supported_execution = reduce(
                     operator.or_,
-                    (module.remote_execution
+                    (module.supported_execution
                      for i, module in tmp_id_to_module_map.iteritems()
                      if i not in ports))
             self.on_upstream_ready(connectors)

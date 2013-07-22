@@ -38,7 +38,7 @@ import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
-from vistrails.core.modules.vistrails_module.parallel import RemoteExecution
+from vistrails.core.modules.vistrails_module.parallel import SupportedExecution
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 
@@ -944,7 +944,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
         if execution_targets:
             self.COMPUTE_PRIORITY = Module.COMPUTE_BACKGROUND_PRIORITY
-            self.remote_execution = RemoteExecution(
+            self.supported_execution = SupportedExecution(
                     systems={system: True for system in execution_targets})
 
         other_connectors = []

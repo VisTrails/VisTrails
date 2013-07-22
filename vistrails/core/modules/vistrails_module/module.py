@@ -371,8 +371,8 @@ context."""
         self.logging.begin_compute(self)
         if self.is_breakpoint:
             raise ModuleBreakpoint(self)
-        if hasattr(self, 'remote_execution'):
-            self.remote_execution.do_compute(self)
+        if hasattr(self, 'supported_execution'):
+            self.supported_execution.do_compute(self)
         else:
             self.do_compute()
 

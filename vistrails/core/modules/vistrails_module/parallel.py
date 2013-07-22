@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from vistrails.core.parallelization import RemoteExecution
+from vistrails.core.parallelization import SupportedExecution
 
 from .module import Module
 
@@ -82,7 +82,7 @@ def parallelizable(thread=True, process=False, remote=False, standalone=False,
             raise TypeError("parallelizable should be used on Module "
                             "subclasses, not '%s'" % klass)
         klass.COMPUTE_PRIORITY = Module.COMPUTE_BACKGROUND_PRIORITY
-        klass.remote_execution = RemoteExecution(
+        klass.supported_execution = SupportedExecution(
                 thread=thread,
                 process=process,
                 remote=remote,
