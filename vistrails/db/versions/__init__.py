@@ -146,6 +146,9 @@ def translate_workflow(workflow, version=None, target_version=None):
     return translate_object(workflow, 'translateWorkflow', version, 
                             target_version)
 
+def translate_execution_configuration(config, version=None, target_version=None):
+    return translate_object(config, 'translateExecConfig', version, target_version)
+
 def translate_log(log, version=None, target_version=None):
     return translate_object(log, 'translateLog', version, target_version)
 

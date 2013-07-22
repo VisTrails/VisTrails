@@ -55,9 +55,9 @@ import tempfile
 import copy
 
 from vistrails.db import VistrailsDBException
-from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
+from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, \
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
-    DBMashuptrail
+    DBMashuptrail, DBExecutionConfiguration
 import vistrails.db.services.abstraction
 import vistrails.db.services.log
 import vistrails.db.services.opm
@@ -65,8 +65,10 @@ import vistrails.db.services.prov
 import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
-from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
-    translate_vistrail, translate_workflow, translate_log, translate_registry
+from vistrails.db.versions import getVersionDAO, getVersionSchemaDir, \
+    currentVersion, \
+    translate_vistrail, translate_workflow, translate_log, \
+    translate_registry, translate_execution_configuration
 
 import unittest
 import vistrails.core.system
@@ -120,6 +122,7 @@ class SaveBundle(object):
         self.bundle_type = bundle_type
         self.vistrail = None
         self.workflow = None
+        self.execution_configuration = None
         self.log = None
         self.registry = None
         self.opm_graph = None
@@ -153,6 +156,7 @@ class SaveBundle(object):
         cp = SaveBundle(self.bundle_type)
         cp.vistrail = copy.copy(self.vistrail)
         cp.workflow = copy.copy(self.workflow)
+        cp.execution_configuration = copy.copy(self.execution_configuration)
         cp.log = copy.copy(self.log)
         cp.registry = copy.copy(self.registry)
         cp.opm_graph = copy.copy(self.opm_graph)
@@ -542,6 +546,8 @@ def open_from_xml(filename, type):
         return open_vistrail_from_xml(filename)
     elif type == DBWorkflow.vtType:
         return open_workflow_from_xml(filename)
+    elif type == DBExecutionConfiguration.vtType:
+        return open_execution_configuration_from_xml(filename)
     elif type == DBLog.vtType:
         return open_log_from_xml(filename)
     elif type == DBRegistry.vtType:
@@ -555,6 +561,8 @@ def save_to_xml(obj, filename, version=None):
         return save_vistrail_to_xml(obj, filename, version)
     elif obj.vtType == DBWorkflow.vtType:
         return save_workflow_to_xml(obj, filename, version)
+    elif obj.vtType == DBExecutionConfiguration.vtType:
+        return save_execution_configuration_to_xml(obj, filename, version)
     elif obj.vtType == DBLog.vtType:
         return save_log_to_xml(obj, filename, version)
     elif obj.vtType == DBRegistry.vtType:
@@ -714,7 +722,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
         raise VistrailsDBException("Unzip of '%s' failed" % filename)
 
     vistrail = None
-    log = None
+    execution_configuration_filename = None
     log_fname = None
     abstraction_files = []
     unknown_files = []
@@ -725,13 +733,10 @@ def open_vistrail_bundle_from_zip_xml(filename):
             for fname in files:
                 if fname == 'vistrail' and root == vt_save_dir:
                     vistrail = open_vistrail_from_xml(os.path.join(root, fname))
+                elif fname == 'execution_configuration' and root == vt_save_dir:
+                    execution_configuration_filename = os.path.join(root, fname)
                 elif fname == 'log' and root == vt_save_dir:
-                    # FIXME read log to get execution info
-                    # right now, just ignore the file
-                    log = None 
                     log_fname = os.path.join(root, fname)
-                    # log = open_log_from_xml(os.path.join(root, fname))
-                    # objs.append(DBLog.vtType, log)
                 elif fname.startswith('abstraction_'):
                     abstraction_file = os.path.join(root, fname)
                     abstraction_files.append(abstraction_file)
@@ -760,6 +765,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
                                        unknown_files)
     if vistrail is None:
         raise VistrailsDBException("vt file does not contain vistrail")
+    vistrail.db_execution_configuration_filename = execution_configuration_filename
     vistrail.db_log_filename = log_fname
 
     # call package hooks
@@ -768,8 +774,8 @@ def open_vistrail_bundle_from_zip_xml(filename):
     for package in pm.enabled_package_list():
         package.loadVistrailFileHook(vistrail, vt_save_dir)
 
-    save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
-                             abstractions=abstraction_files, 
+    save_bundle = SaveBundle(DBVistrail.vtType, vistrail,
+                             abstractions=abstraction_files,
                              thumbnails=thumbnail_files, mashups=mashups)
     return (save_bundle, vt_save_dir)
 
@@ -885,6 +891,21 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     # Save Vistrail
     xml_fname = os.path.join(vt_save_dir, 'vistrail')
     save_vistrail_to_xml(save_bundle.vistrail, xml_fname, version)
+
+    # Save ExecutionConfiguration
+    if save_bundle.vistrail.db_execution_configuration_filename is not None:
+        xml_fname = os.path.join(vt_save_dir, 'execution_configuration')
+        if save_bundle.vistrail.db_execution_configuration_filename != xml_fname:
+            shutil.copyfile(
+                    save_bundle.vistrail.db_execution_configuration_filename,
+                    xml_fname)
+
+    if save_bundle.execution_configuration is not None:
+        xml_fname = os.path.join(vt_save_dir, 'execution_configuration')
+        save_execution_configuration_to_xml(
+                save_bundle.execution_configuration,
+                xml_fname, version)
+        save_bundle.vistrail.db_execution_configuration_filename = xml_fname
 
     # Save Log
     if save_bundle.vistrail.db_log_filename is not None:
@@ -1182,6 +1203,30 @@ def get_saved_workflows(vistrail, db_connection):
     ids = [i[0] for i in c.fetchall()]
     c.close()
     return ids
+
+##############################################################################
+# Execution configuration I/O
+
+def open_execution_configuration_from_xml(filename):
+    tree = ElementTree.parse(filename)
+    version = get_version_for_xml(tree.getroot())
+    daoList = getVersionDAO(version)
+    config = daoList.open_from_xml(filename, DBExecutionConfiguration.vtType, tree)
+    config = translate_execution_configuration(config, version)
+    return config
+
+def save_execution_configuration_to_xml(config, filename, version=None):
+    if version is None:
+        version = currentVersion
+    if not config.db_version:
+        config.db_version = currentVersion
+    config = translate_execution_configuration(config, config.db_version, version)
+
+    daoList = getVersionDAO(version)
+    tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance'}
+    daoList.save_to_xml(config, filename, tags, version)
+    config = translate_execution_configuration(config, version)
+    return config
 
 ##############################################################################
 # Logging I/O

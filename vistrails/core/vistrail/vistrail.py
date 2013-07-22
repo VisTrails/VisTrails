@@ -40,11 +40,13 @@ import random
 import unittest
 
 from vistrails.db.domain import DBVistrail
-from vistrails.db.services.io import open_vt_log_from_db, open_log_from_xml
+from vistrails.db.services.io import open_vt_log_from_db, open_log_from_xml, \
+    open_execution_configuration_from_xml
 from vistrails.core.log.log import Log
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.io
+from vistrails.core.parallelization.preferences import ExecutionConfiguration
 from vistrails.core.paramexplore.paramexplore import ParameterExploration
 from vistrails.core.utils import VistrailsInternalError, \
      InvalidPipeline
@@ -300,7 +302,23 @@ class Vistrail(DBVistrail):
 
         """
         try:
-            return Vistrail.getPipelineDispatcher[type(version)](self, version)
+            pipeline = Vistrail.getPipelineDispatcher[type(version)](self, version)
+
+            # Label each module with the execution preference
+            preferences = self.get_persisted_execution_preferences()
+
+            from vistrails.core.vistrail.group import Group
+            def label_pipeline_with_exec_pref(pipeline, prefix=()):
+                for module in pipeline.module_list:
+                    if isinstance(module, Group):
+                        label_pipeline_with_exec_pref(
+                                module.pipeline, prefix + (module.id,))
+                    module.execution_preference = (
+                            preferences.get_module_preference(
+                                    prefix + (module.id,)))
+            label_pipeline_with_exec_pref(pipeline)
+
+            return pipeline
         except Exception, e:
             raise InvalidPipeline([e])
     
@@ -323,6 +341,15 @@ class Vistrail(DBVistrail):
         """
         workflow = vistrails.core.db.io.get_workflow(self, version)
         return workflow
+
+    def get_persisted_execution_preferences(self):
+        config = ExecutionConfiguration()
+        if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
+            if self.db_execution_configuration_filename is not None:
+                config = open_execution_configuration_from_xml(
+                        self.db_execution_configuration_filename)
+        ExecutionConfiguration.convert(config)
+        return config
 
     def get_pipeline_diff_with_connections(self, v1, v2):
         """like get_pipeline_diff but returns connection info

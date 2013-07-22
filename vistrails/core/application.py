@@ -356,7 +356,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.vistrailsStartup.set_registry(reg)
 
         # Register parallelization schemes
-        Parallelization.setup_parallelization_schemes()
+        Parallelization.init()
 
     def get_python_environment(self):
         """get_python_environment(): returns an environment that

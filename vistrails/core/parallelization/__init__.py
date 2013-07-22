@@ -130,7 +130,8 @@ class Parallelization(object):
         """
         self.is_subprocess = sub
 
-    def setup_parallelization_schemes(self):
+    def init(self):
+        # Setup parallelization schemes
         import parallel_thread
         import parallel_process
         import parallel_ipython
