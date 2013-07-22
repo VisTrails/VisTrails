@@ -1,5 +1,11 @@
+from vistrails.core.bundles import py_import
 
-import sqlalchemy
+sqlalchemy = py_import('sqlalchemy', 
+                       {'pip': 'SQLAlchemy',
+                        'linux-debian': 'python-sqlalchemy',
+                        'linux-ubuntu': 'python-sqlalchemy',
+                        'linux-fedora': 'python-sqlalchemy'})
+
 import sqlalchemy.types
 
 metadata = sqlalchemy.MetaData()

@@ -32,11 +32,27 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 from __future__ import with_statement
 
-from datetime import datetime
-from vistrails.core import debug
 from vistrails.core.bundles import py_import
+
+sqlalchemy = py_import('sqlalchemy', 
+                       {'pip': 'SQLAlchemy',
+                        'linux-debian': 'python-sqlalchemy',
+                        'linux-ubuntu': 'python-sqlalchemy',
+                        'linux-fedora': 'python-sqlalchemy'})
+
+import copy
+from datetime import datetime
+import inspect
+import os
+import shutil
+import sys
+import tempfile
+import unittest
+
+from vistrails.core import debug
 from vistrails.core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline, systemType, get_executable_path
 from vistrails.core.utils import Chdir
@@ -44,17 +60,11 @@ from vistrails.core.log.log import Log
 from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
     parse_abstraction_name, read_vistrail_from_db
-
 import vistrails.core.requirements
-
-import sys
-import os
-import os.path
-import shutil
-import tempfile
-import copy
-
+import vistrails.core.system
 from vistrails.db import VistrailsDBException
+from vistrails.db.persistence import sql
+alchemy = sql.alchemy
 from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
     DBMashuptrail
@@ -65,31 +75,11 @@ import vistrails.db.services.prov
 import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
-from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
-    translate_vistrail, translate_workflow, translate_log, translate_registry
-
-import unittest
-import vistrails.core.system
+from vistrails.db.versions import getVersionDAO, currentVersion, \
+    get_sql_schema, getVersionSchemaDir, translate_vistrail, \
+    translate_workflow, translate_log, translate_registry
 
 ElementTree = get_elementtree_library()
-
-
-_db_lib = None
-def get_db_lib():
-    global _db_lib
-    if _db_lib is None:
-        MySQLdb = py_import('MySQLdb', {
-                'pip': 'mysql-python',
-                'linux-debian': 'python-mysqldb',
-                'linux-ubuntu': 'python-mysqldb',
-                'linux-fedora': 'MySQL-python'})
-        # import sqlite3
-        _db_lib = MySQLdb
-    return _db_lib
-def set_db_lib(lib):
-    global _db_lib
-    _db_lib = lib
-
 
 class SaveBundle(object):
     """Transient bundle of objects to be saved or loaded.
@@ -164,37 +154,42 @@ class SaveBundle(object):
         
         return cp
 
-def format_prepared_statement(statement):
-    """format_prepared_statement(statement: str) -> str
-    Formats a prepared statement for compatibility with the currently
-    loaded database library's paramstyle.
-
-    Currently only supports 'qmark' and 'format' paramstyles.
-    May be expanded later to allow for more compatibility options
-    on input and output.  See PEP 249 for more info.
-
-    """
-    style = get_db_lib().paramstyle
-    if style == 'format':
-        return statement.replace("?", "%s")
-    elif style == 'qmark':
-        return statement.replace("%s", "?")
-    return statement
-
 def open_db_connection(config):
+    # FIXME need to make this more general (just connect_str) here so
+    # that it is more straightforward to support other types of
+    # databases
 
     if config is None:
         msg = "You need to provide valid config dictionary"
         raise VistrailsDBException(msg)
+    if type(config) == dict:
+        if config["passwd"] is not None:
+            passwd = ":%s" % config["passwd"]
+        else:
+            passwd = ""
+        if config["port"] is not None:
+            port = ":%s" % config["port"]
+        else:
+            port = ""
+        connect_str = 'mysql+mysqldb://%s%s@%s%s/%s' % (config["user"],
+                                                        passwd, config["host"],
+                                                        port, config["db"])
+    else:
+        connect_str = config
     try:
+        connection = sqlalchemy.create_engine(connect_str).connect()
+        return connection
+    except Exception:
+        raise
+
         # FIXME allow config to be kwargs and args?
-        db_connection = get_db_lib().connect(**config)
-        #db_connection = get_db_lib().connect(config)
-        return db_connection
-    except get_db_lib().Error, e:
-        # should have a DB exception type
-        msg = "cannot open connection (%d: %s)" % (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
+    #     db_connection = get_db_lib().connect(**config)
+    #     #db_connection = get_db_lib().connect(config)
+    #     return db_connection
+    # except get_db_lib().Error, e:
+    #     # should have a DB exception type
+    #     msg = "cannot open connection (%d: %s)" % (e.args[0], e.args[1])
+    #     raise VistrailsDBException(msg)
 
 def close_db_connection(db_connection):
     if db_connection is not None:
@@ -205,14 +200,10 @@ def test_db_connection(config):
     Tests a connection raising an exception in case of error.
     
     """
-    #print "Testing config", config
     try:
-        db_connection = get_db_lib().connect(**config)
+        db_connection = open_db_connection(config)
         close_db_connection(db_connection)
-    except get_db_lib().Error, e:
-        msg = "connection test failed (%d: %s)" % (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    except TypeError, e:
+    except Exception, e:
         msg = "connection test failed (%s)" %str(e)
         raise VistrailsDBException(msg)
 
@@ -222,12 +213,15 @@ def ping_db_connection(db_connection):
     It returns True if it is, False otherwise. 
     This can be used for preventing the "MySQL Server has gone away" error. 
     """
+
+    # CHECK not sure if this works
+    c = db_connection.connection.cursor()
     try:
-        db_connection.ping()
-    except get_db_lib().OperationalError:
+        c.execute("SELECT 1")
+    except:
         return False
     return True
-    
+
 def translate_to_tbl_name(obj_type):
     map = {DBVistrail.vtType: 'vistrail',
            DBWorkflow.vtType: 'workflow',
@@ -239,6 +233,17 @@ def translate_to_tbl_name(obj_type):
            }
     return map[obj_type]
 
+def get_table(obj_klass_or_type):
+    if inspect.isclass(obj_klass_or_type):
+        obj_type = obj_klass_or_type.vtType
+    else:
+        obj_type = obj_klass_or_type
+        
+    return alchemy.metadata.tables[translate_to_tbl_name(obj_type)]
+
+def get_table_by_name(table_name):
+    return alchemy.metadata.tables[table_name]
+
 def date_to_str(date):
     return date.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -247,163 +252,88 @@ def get_db_object_list(config, obj_type):
     result = []    
     db = open_db_connection(config)
 
-    #FIXME Create a DBGetVistrailListSQLDAOBase for this
-    # and maybe there's another way to build this query
-    command = """SELECT o.id, o.name, o.last_modified
-    FROM %s o ORDER BY o.name"""
-
-    # if it is a vistrail we need to remove abstractions
+    obj = get_table(obj_type)
+    cmd = sqlalchemy.select([obj.c.id, obj.c.name, obj.c.last_modified])
     if obj_type == DBVistrail.vtType:
-        id_key = '__abstraction_uuid__'
-        command = """SELECT o.id, o.name, o.last_modified
-        FROM %s o"""
-        command += """ WHERE o.id not in ( SELECT o.id
-          FROM %s o, %s a
-          WHERE o.id = a.parent_id AND '%s' = a.parent_type AND a.akey = '%s')
-        ORDER BY o.name""" % (translate_to_tbl_name(obj_type),
-                              translate_to_tbl_name(DBAnnotation.vtType),
-                              translate_to_tbl_name(obj_type),
-                              id_key)
-#     command = """SELECT o.id, v.name, a.date, a.user
-#     FROM %s o, action a,
-#     (SELECT a.entity_id, MAX(a.date) as recent, a.user
-#     FROM action a
-#     GROUP BY entity_id) latest
-#     WHERE o.id = latest.entity_id 
-#     AND a.entity_id = o.id
-#     AND a.date = latest.recent 
-#     """ % obj_type
+        annotation = get_table(DBAnnotation)
+        cmd = cmd.where(obj.c.id.notin_(sqlalchemy.select([obj.c.id]).where(
+            sqlalchemy.sql.and_(obj.c.id == annotation.c.parent_id, 
+                                annotation.c.parent_type == \
+                                    translate_to_tbl_name(obj_type),
+                                annotation.c.akey == '__abstraction_uuid__'))))
+    cmd = cmd.order_by(obj.c.name)
 
-    try:
-        c = db.cursor()
-        c.execute(command % translate_to_tbl_name(obj_type))
-        rows = c.fetchall()
-        result = rows
-        c.close()
-        close_db_connection(db)
-        
-    except get_db_lib().Error, e:
-        msg = "Couldn't get list of vistrails objects from db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    return result
+    result = db.execute(cmd)
+    data = result.fetchall()
+    close_db_connection(db)
+
+    return data
 
 def get_db_object_modification_time(db_connection, obj_id, obj_type):
-    command = """
-    SELECT o.last_modified
-    FROM %s o
-    WHERE o.id = %s
-    """
+    obj = get_table(obj_type)
+    cmd = sqlalchemy.select([obj.c.last_modified]).where(obj.c.id == obj_id)
 
-    try:
-        db_connection.begin()
-        c = db_connection.cursor()
-        c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
-        db_connection.commit()
-        time = c.fetchall()[0][0]
-        c.close()
-    except get_db_lib().Error, e:
-        msg = "Couldn't get object modification time from db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    return time
+    result = db_connection.execute(cmd)
+    row = result.first()
+    if row is not None:
+        return row[0]
+    return None
 
 def get_db_object_version(db_connection, obj_id, obj_type):
-    command = """
-    SELECT o.version
-    FROM %s o
-    WHERE o.id = %s
-    """
+    obj = get_table(obj_type)
+    cmd = sqlalchemy.select([obj.c.version]).where(obj.c.id == obj_id)
 
-    try:
-        c = db_connection.cursor()
-        #print command % (translate_to_tbl_name(obj_type), obj_id)
-        c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
-        version = c.fetchall()[0][0]
-        c.close()
-    except get_db_lib().Error, e:
-        msg = "Couldn't get object version from db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    return version
+    result = db_connection.execute(cmd)
+    row = result.first()
+    if row is not None:
+        return row[0]
+    return None
 
 def get_db_version(db_connection):
-    command = """
-    SELECT `version`
-    FROM `vistrails_version`
-    """
-
+    vistrails_version = get_table_by_name("vistrails_version")
+    cmd = sqlalchemy.select([vistrails_version.columns["version"]])
     try:
-        c = db_connection.cursor()
-        c.execute(command)
-        version = c.fetchall()[0][0]
-        c.close()
-    except get_db_lib().Error, e:
-        # just return None if we hit an error
+        result = db_connection.execute(cmd)
+        version = result.first()[0]
+        return version
+    except Exception, e:
+        debug.critical("Cannot obtain current db version: %s" % str(e))
         return None
-    return version
 
 def get_db_id_from_name(db_connection, obj_type, name):
-    command = """
-    SELECT o.id 
-    FROM %s o
-    WHERE o.name = '%s'
-    """
+    obj = get_table(obj_type)
+    cmd = sqlalchemy.select([obj.c.id]).where(obj.c.name == name)
 
-    try:
-        c = db_connection.cursor()
-        c.execute(command % (translate_to_tbl_name(obj_type), name))
-        rows = c.fetchall()
-        if len(rows) != 1:
-            if len(rows) == 0:
-                c.close()
-                msg = "Cannot find object of type '%s' named '%s'" % \
-                    (obj_type, name)
-                raise VistrailsDBException(msg)
-            elif len(rows) > 1:
-                c.close()
-                msg = "Found more than one object of type '%s' named '%s'" % \
-                    (obj_type, name)
-                raise VistrailsDBException(msg)
-        else:
-            c.close()
-            return int(rows[0][0])
-    except get_db_lib().Error, e:
-        c.close()
-        msg = "Connection error when trying to get db id from name"
+    result = db_connection.execute(cmd)
+    rows = result.fetchall()
+    if len(rows) == 0:
+        msg = "Cannot find object of type '%s' named '%s'" % \
+              (obj_type, name)
         raise VistrailsDBException(msg)
-
+    elif len(rows) > 1:
+        msg = "Found more than one object of type '%s' named '%s'" % \
+              (obj_type, name)
+        raise VistrailsDBException(msg)
+    
+    return rows[0][0]
+    
 def get_db_abstraction_modification_time(db_connection, abstraction):
-    id_key = '__abstraction_vistrail_id__'
-    command = """
-    SELECT o.last_modified
-    FROM %s o, %s a
-    WHERE o.id = %s AND
-          o.id = a.parent_id AND
-          '%s' = a.parent_type AND
-          a.akey = '""" + id_key + """' AND
-          a.value = '%s'
-    """
-
     if abstraction.db_has_annotation_with_key(id_key):
         id_value = abstraction.db_get_annotation_by_key(id_key).db_value
     else:
         return None
 
-    try:
-        c = db_connection.cursor()
-        c.execute(command % (translate_to_tbl_name(DBVistrail.vtType), 
-                             translate_to_tbl_name(DBAnnotation.vtType),
-                             abstraction.db_id,
-                             translate_to_tbl_name(DBVistrail.vtType),
-                             id_value))
-        modtime = c.fetchall()[0][0]
-        c.close()
-    except get_db_lib().Error, e:
-        msg = "Couldn't get modification time from db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    return modtime
+    vistrail_tbl_type = translate_to_tbl_name(DBVistrail.vtType)
+    vistrail = get_table(DBVistrail)
+    annotation = get_table(DBAnnotation)
+    cmd = sqlalchemy.select([vistrail.last_modified]).where(
+        sqlalchemy.sql.and_(vistrail.c.id == abstraction.db_id,
+                            vistrail.c.id == annotation.c.parent_id,
+                            annotation.c.parent_type == vistrail_tbl_type,
+                            annotation.c.akey == '__abstraction_vistrail_id__',
+                            annotation.c.value == id_value))
+    result = db_connection.execute(cmd)
+    return result.first()[0]
 
 def get_db_abstraction_ids_from_vistrail(db_connection, vt_id):
     """ get_db_abstractions_from_vistrail(db_connection: DBConnection,
@@ -427,20 +357,20 @@ def get_db_ids_from_vistrail(db_connection, vt_id, id_key):
                                  vt_id: int, id_key: str): List
         Returns object ids associated with a vistrail by an annotation
     """
-    command = """
-    SELECT a.parent_id FROM %s a
-    WHERE a.akey = '%s' AND a.value = '%s'"""
+    annotation = get_table(DBAnnotation)
+    cmd = sqlalchemy.select([annotation.c.parent_id]).where(
+        sqlalchemy.sql.and_(annotation.c.akey == id_key,
+                            annotation.c.value == vt_id))
 
-    try:
-        c = db_connection.cursor()
-        c.execute(command%(translate_to_tbl_name(DBAnnotation.vtType), id_key, vt_id))
-        abs_ids = c.fetchall()
-        c.close()
-    except get_db_lib().Error, e:
-        msg = "Couldn't get object ids from db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    return [i[0] for i in abs_ids]
+    result = db_connection.execute(cmd)
+    return [row[0] for row in result.fetchall()]
+
+def get_db_ids_from_log(db_connection, vt_id):
+    log = get_table(DBLog)
+    cmd = sqlalchemy.select([log.c.id]).where(log.c.vistrail_id == vt_id)
+    
+    result = db_connection.execute(cmd)
+    return [row[0] for row in result.fetchall()]
 
 def get_matching_abstraction_id(db_connection, abstraction):
     last_action_id = -1
@@ -450,89 +380,88 @@ def get_matching_abstraction_id(db_connection, abstraction):
             last_action_id = action.db_id
             last_action = action
 
-    command = """
-    SELECT g.id 
-    FROM abstraction g, action a
-    WHERE g.name = '%s'
-    AND a.entity_type = 'abstraction'
-    AND a.entity_id = g.id
-    AND a.user = '%s'
-    AND a.date = '%s'
-    AND a.id = %s
-    """
-    
-    id = None
-    try:
-        c = db_connection.cursor()
-        c.execute(command % (abstraction.db_name,
-                             last_action.db_user,
-                             date_to_str(last_action.db_date),
-                             last_action.db_id))
-        result = c.fetchall()
-        c.close()
-        if len(result) > 0:
-            #print 'got result:', result
-            id = result[0][0]
-    except get_db_lib().Error, e:
-        msg = "Couldn't get object modification time from db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    return id
+    abs_tbl = get_table(DBAbstraction)
+    action = get_table(DBAction)
+    cmd = sqlalchemy.select([abs_tbl.c.id]).where(
+        sqlalchemy.sql.and_(abs_tbl.c.name == abstraction.db_name,
+                            action.c.entity_type == 'abstraction',
+                            action.c.entity_id == abs_tbl.c.id,
+                            action.c.user == last_action.db_user,
+                            action.c.date == last_action.db_date,
+                            action.c.id == last_action.db_id))
+
+    result = db_connection.execute(cmd)
+    ids = result.fetchall()
+    if len(ids) > 0:
+        return ids[0][0]
+    return None
 
 def setup_db_tables(db_connection, version=None, old_version=None):
+    if old_version is None:
+        try:
+            old_version = get_db_version(db_connection)
+        except Exception:
+            old_version = version
     if version is None:
         version = currentVersion
-    if old_version is None:
-        old_version = version
-    try:
-        def execute_file(c, f):
-            cmd = ""
-#             auto_inc_str = 'auto_increment'
-#             not_null_str = 'not null'
-#             engine_str = 'engine=InnoDB;'
-            for line in f:
-#                 if line.find(auto_inc_str) > 0:
-#                     num = line.find(auto_inc_str)
-#                     line = line[:num] + line[num+len(auto_inc_str):]
-#                 if line.find(not_null_str) > 0:
-#                     num = line.find(not_null_str)
-#                     line = line[:num] + line[num+len(not_null_str):]
-                line = line.strip()
-                if cmd or not line.startswith('--'):
-                    cmd += line
-                    ending = line
-                else:
-                    ending = None
-                if ending and ending[-1] == ';':
-                    # FIXME engine stuff switch for MySQLdb, sqlite3
-                    cmd = cmd.rstrip()
-#                     if cmd.endswith(engine_str):
-#                         cmd = cmd[:-len(engine_str)] + ';'
-                    #print cmd
-                    c.execute(cmd)
-                    cmd = ""
 
-        # delete tables
-        c = db_connection.cursor()
-        schemaDir = getVersionSchemaDir(old_version)
-        f = open(os.path.join(schemaDir, 'vistrails_drop.sql'))
-        execute_file(c, f)
-#         db_script = f.read()
-#         c.execute(db_script)
-        c.close()
-        f.close()
+    old_schema = get_sql_schema(old_version)
+    current_schema = get_sql_schema(version)
+    trans = db_connection.begin()
+    old_schema.metadata.drop_all(db_connection)
+    current_schema.metadata.create_all(db_connection)
+    trans.commit()
 
-        # create tables        
-        c = db_connection.cursor()
-        schemaDir = getVersionSchemaDir(version)
-        f = open(os.path.join(schemaDir, 'vistrails.sql'))
-        execute_file(c, f)
-#         db_script = f.read()
-#         c.execute(db_script)
-        f.close()
-        c.close()
-    except get_db_lib().Error, e:
-        raise VistrailsDBException("unable to create tables: " + str(e))
+#     if old
+#     try:
+#         def execute_file(c, f):
+#             cmd = ""
+# #             auto_inc_str = 'auto_increment'
+# #             not_null_str = 'not null'
+# #             engine_str = 'engine=InnoDB;'
+#             for line in f:
+# #                 if line.find(auto_inc_str) > 0:
+# #                     num = line.find(auto_inc_str)
+# #                     line = line[:num] + line[num+len(auto_inc_str):]
+# #                 if line.find(not_null_str) > 0:
+# #                     num = line.find(not_null_str)
+# #                     line = line[:num] + line[num+len(not_null_str):]
+#                 line = line.strip()
+#                 if cmd or not line.startswith('--'):
+#                     cmd += line
+#                     ending = line
+#                 else:
+#                     ending = None
+#                 if ending and ending[-1] == ';':
+#                     # FIXME engine stuff switch for MySQLdb, sqlite3
+#                     cmd = cmd.rstrip()
+# #                     if cmd.endswith(engine_str):
+# #                         cmd = cmd[:-len(engine_str)] + ';'
+#                     #print cmd
+#                     c.execute(cmd)
+#                     cmd = ""
+
+#         # delete tables
+#         c = db_connection.cursor()
+#         schemaDir = getVersionSchemaDir(old_version)
+#         f = open(os.path.join(schemaDir, 'vistrails_drop.sql'))
+#         execute_file(c, f)
+# #         db_script = f.read()
+# #         c.execute(db_script)
+#         c.close()
+#         f.close()
+
+#         # create tables        
+#         c = db_connection.cursor()
+#         schemaDir = getVersionSchemaDir(version)
+#         f = open(os.path.join(schemaDir, 'vistrails.sql'))
+#         execute_file(c, f)
+# #         db_script = f.read()
+# #         c.execute(db_script)
+#         f.close()
+#         c.close()
+#     except get_db_lib().Error, e:
+#         raise VistrailsDBException("unable to create tables: " + str(e))
 
 ##############################################################################
 # General I/O
@@ -1036,7 +965,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
 
     dao_list = getVersionDAO(version)
 
-    # db_connection.begin()
+    trans = db_connection.begin()
     
     # current_action holds the current action id 
     # (used by the controller--write_vistrail)
@@ -1063,7 +992,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
 
     vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
     # get saved workflows from db
-    workflowIds = get_saved_workflows(vistrail, db_connection)
+    workflowIds = get_saved_workflows(db_connection, vistrail.db_id)
     #print "Workflows already saved:", workflowIds
     dao_list.save_to_db(db_connection, vistrail, do_copy)
     vistrail = translate_vistrail(vistrail, version)
@@ -1089,7 +1018,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             #print "done"
     if wfToSave:
         dao_list.save_many_to_db(db_connection, wfToSave, True)
-    db_connection.commit()
+    trans.commit()
     return vistrail
 
 ##############################################################################
@@ -1157,10 +1086,10 @@ def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
     workflow = translate_workflow(workflow, workflow.db_version, version)
     dao_list = getVersionDAO(version)
 
-    db_connection.begin()
+    trans = db_connection.begin()
     workflow.db_last_modified = get_current_time(db_connection)
     dao_list.save_to_db(db_connection, workflow, do_copy)
-    db_connection.commit()
+    trans.commit()
     workflow = translate_workflow(workflow, version)
     return workflow
 
@@ -1173,15 +1102,17 @@ def save_workflow_bundle_to_db(save_bundle, db_connection, do_copy=False,
                                    version)
     return SaveBundle(DBWorkflow.vtType, workflow=workflow)
 
-def get_saved_workflows(vistrail, db_connection):
-    """ Returns list of action id:s representing populated workflows """
-    if not vistrail.db_id:
+def get_saved_workflows(db_connection, vistrail_id):
+    """ Returns list of action ids representing populated workflows """
+    if not vistrail_id:
         return []
-    c = db_connection.cursor()
-    c.execute("SELECT parent_id FROM workflow WHERE vistrail_id=%s;", (vistrail.db_id,))
-    ids = [i[0] for i in c.fetchall()]
-    c.close()
-    return ids
+
+    workflow = get_table(DBWorkflow)
+    cmd = sqlalchemy.select([workflow.c.parent_id]).where(
+        workflow.c.vistrail_id == vistrail_id)
+
+    result = db_connection.execute(cmd)
+    return [row[0] for row in result.fetchall()]
 
 ##############################################################################
 # Logging I/O
@@ -1243,14 +1174,7 @@ def open_vt_log_from_db(db_connection, vt_id, version=None):
     dao_list = getVersionDAO(version)
     ids = []
     if db_connection is not None:
-        try:
-            c = db_connection.cursor()
-            # FIXME MySQL versus sqlite3
-            res = c.execute("SELECT id FROM log_tbl WHERE vistrail_id=%s;", (vt_id,))
-            ids = [i[0] for i in c.fetchall()]
-            c.close()
-        except get_db_lib().Error, e:
-            debug.critical("Error getting log id:s %d: %s" % (e.args[0], e.args[1]))
+        ids = get_db_ids_from_log(db_connection, vt_id)
     log = DBLog()
     if hasattr(dao_list, 'open_many_from_db'): # does not exist pre 1.0.2
         logs = dao_list.open_many_from_db(db_connection, DBLog.vtType, ids)
@@ -1311,10 +1235,10 @@ def save_log_to_db(log, db_connection, do_copy=False, version=None):
     log = translate_log(log, log.db_version, version)
     dao_list = getVersionDAO(version)
 
-    db_connection.begin()
+    trans = db_connection.begin()
     log.db_last_modified = get_current_time(db_connection)
     dao_list.save_to_db(db_connection, log, do_copy)
-    db_connection.commit()
+    trans.commit()
     log = translate_log(log, version)
     return log
 
@@ -1434,10 +1358,10 @@ def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
     registry = translate_registry(registry, registry.db_version, version)
     dao_list = getVersionDAO(version)
 
-    db_connection.begin()
+    trans = db_connection.begin()
     registry.db_last_modified = get_current_time(db_connection)
     dao_list.save_to_db(db_connection, registry, do_copy)
-    db_connection.commit()
+    trans.commit()
     registry = translate_registry(registry, version)
     return registry
 
@@ -1475,7 +1399,7 @@ def open_abstraction_from_db(db_connection, id, lock=False):
 
 def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
     """ DEPRECATED """
-    db_connection.begin()
+    trans = db_connection.begin()
     if abstraction.db_last_modified is None:
         do_copy = True
     if not do_copy:
@@ -1505,7 +1429,7 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
         abstraction.db_id = None
     abstraction.db_last_modified = get_current_time(db_connection)
     write_sql_objects(db_connection, [abstraction], do_copy)
-    db_connection.commit()
+    trans.commit()
     return abstraction
 
 def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
@@ -1544,14 +1468,61 @@ def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
                 abs.db_version = currentVersion
             abs = translate_vistrail(abs, abs.db_version, version)
             # Always copy for now
+            trans = db_connection.begin()
             getVersionDAO(version).save_to_db(db_connection, abs, True)
-            db_connection.commit()
+            trans.commit()
 
         except Exception, e:
             debug.critical('Could not save abstraction to db: %s' % str(e))
 
 ##############################################################################
 # Thumbnail I/O
+
+def get_thumbnail_fnames_from_db(db_connection, obj_id, obj_type):
+    annotation = get_table(DBAnnotation)
+    cmd = sqlalchmey.select([annotation.c.value]).where(
+        sqlalchemy.sql.and_(annotation.c.akey == '__thumb___',
+                            annotation.c.entity_id == obj_id,
+                            annotation.c.entity_type == obj_type))
+    
+    result = db_connection.execute(cmd)
+    return [row[0] for row in result.fetchall()]
+
+def get_thumbnail_data_from_db(db_connection, fname):
+    thumbnail = get_table_by_name("thumbnail")
+    cmd = sqlalchemy.select([thumbnail.c.image_bytes]).where(
+        thumbnail.c.file_name == fname)
+
+    result = db_connection.execute(cmd)
+    rows = result.first()
+    if rows is None:
+        return None
+    else:
+        return rows[0]
+
+def get_existing_thumbnails_in_db(db_connection, fnames):
+    thumbnail = get_table_by_name("thumbnail")
+    cmd = sqlalchemy.select([thumbnail.c.file_name]).where(
+        thumbnail.c.file_name.in_(fnames))
+
+    result = db_connection.execute(cmd)
+    return [row[0] for row in result.fetchall()]
+
+def insert_thumbnails_into_db(db_connection, abs_fnames):
+    thumbnail = get_table_by_name("thumbnail")
+    cmd = thumbnail.insert()
+    BUNDLE_SIZE = 50
+    for start in xrange(0, len(abs_fnames), BUNDLE_SIZE):
+        values = []
+        for i in xrange(start, min(len(abs_fnames), start+BUNDLE_SIZE)):
+            abs_fname = abs_fnames[i]
+            image_file = open(abs_fname, 'rb')
+            image_bytes = image_file.read()
+            image_file.close()
+            values.append({'file_name': os.path.basename(abs_fname),
+                           'image_bytes': image_bytes,
+                           'last_modified': get_current_time(db_connection)})
+        db_connection.execute(cmd, values)
 
 def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
     """open_thumbnails_from_db(db_connection, obj_type: DB*,
@@ -1573,54 +1544,24 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
         return []
 
     # First get associated file names from annotation table
-    prepared_statement = format_prepared_statement(
-    """
-    SELECT a.value
-    FROM annotation a
-    WHERE a.akey = '__thumb__' AND a.entity_id = ? AND a.entity_type = ?
-    """)
-    try:
-        c = db_connection.cursor()
-        c.execute(prepared_statement, (obj_id, obj_type))
-        file_names = [file_name for (file_name,) in c.fetchall()]
-        c.close()
-    except get_db_lib().Error, e:
-        msg = "Couldn't get thumbnails list from db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
+    file_names = get_thumbnail_fnames_from_db(db_connection, obj_id, obj_type)
 
     # Next get all thumbnails from the db that aren't already in tmp_dir
-    get_db_file_names = [fname for fname in file_names if fname not in os.listdir(tmp_dir)]
+    get_db_file_names = [fname for fname in file_names 
+                         if fname not in os.listdir(tmp_dir)]
     for file_name in get_db_file_names:
-        prepared_statement = format_prepared_statement(
-        """
-        SELECT t.image_bytes
-        FROM thumbnail t
-        WHERE t.file_name = ?
-        """)
-        try:
-            c = db_connection.cursor()
-            c.execute(prepared_statement, (file_name,))
-            row = c.fetchone()
-            c.close()
-        except get_db_lib().Error, e:
-            msg = "Couldn't get thumbnail from db (%d : %s)" % \
-                (e.args[0], e.args[1])
-            raise VistrailsDBException(msg)
-        if row is not None:
-            image_bytes = row[0]
-            try:
-                absfname = os.path.join(tmp_dir, file_name)
-                image_file = open(absfname, 'wb')
-                image_file.write(image_bytes)
-                image_file.close()
-            except IOError, e:
-                msg = "Couldn't write thumbnail file to disk: %s" % absfname
-                raise VistrailsDBException(msg)
+        image_bytes = get_thumbnail_data_from_db(db_connection, file_name)
+        if image_bytes is not None:
+            absfname = os.path.join(tmp_dir, file_name)
+            image_file = open(absfname, 'wb')
+            image_file.write(image_bytes)
+            image_file.close()
         else:
-            debug.warning("db: Referenced thumbnail not found locally or in the database: '%s'" % file_name)
+            debug.warning("db: Referenced thumbnail not found locally or "
+                          "in the database: '%s'" % file_name)
     # Return only thumbnails that now exist locally
-    return [os.path.join(tmp_dir, file_name) for file_name in file_names if file_name in os.listdir(tmp_dir)]
+    return [os.path.join(tmp_dir, file_name) for file_name in file_names 
+            if file_name in os.listdir(tmp_dir)]
 
 def save_thumbnails_to_db(absfnames, db_connection):
     """save_thumbnails_to_db(absfnames: list, db_connection) -> None
@@ -1635,48 +1576,14 @@ def save_thumbnails_to_db(absfnames, db_connection):
         return None
 
     # Determine which thumbnails already exist in db
-    statement = """
-    SELECT t.file_name
-    FROM thumbnail t
-    WHERE t.file_name IN %s
-    """
-    check_file_names = [os.path.basename(absfname).replace("'", "''").replace("\\", "\\\\") for absfname in absfnames]
-    # SQL syntax needs SOMETHING if list is empty - use filename that's illegal on all platforms
-    check_file_names.append(':/')
-    sql_in_token = str(tuple(check_file_names))
-    try:
-        c = db_connection.cursor()
-        c.execute(statement % sql_in_token)
-        db_file_names = [file_name for (file_name,) in c.fetchall()]
-        c.close()
-    except get_db_lib().Error, e:
-        msg = "Couldn't check which thumbnails already exist in db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
-    insert_absfnames = [absfname for absfname in absfnames if os.path.basename(absfname) not in db_file_names]
+    db_file_names = get_existing_thumbnails_in_db(db_connection, 
+                        [os.path.basename(absfname) for absfname in absfnames])
 
     # Save any thumbnails that don't already exist in db
-    prepared_statement = format_prepared_statement(
-    """
-    INSERT INTO thumbnail(file_name, image_bytes, last_modified)
-    VALUES (?, ?, ?)
-    """)
-    try:
-        c = db_connection.cursor()
-        for absfname in insert_absfnames:
-            image_file = open(absfname, 'rb')
-            image_bytes = image_file.read()
-            image_file.close()
-            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, get_current_time(db_connection).strftime('%Y-%m-%d %H:%M:%S')))
-            db_connection.commit()
-        c.close()
-    except IOError, e:
-        msg = "Couldn't read thumbnail file for writing to db: %s" % absfname
-        raise VistrailsDBException(msg)
-    except get_db_lib().Error, e:
-        msg = "Couldn't insert thumbnail into db (%d : %s)" % \
-            (e.args[0], e.args[1])
-        raise VistrailsDBException(msg)
+    insert_absfnames = [absfname for absfname in absfnames 
+                        if os.path.basename(absfname) not in db_file_names]
+    insert_thumbnails_into_db(db_connection, insert_absfnames)
+
     return None
 ##############################################################################
 # Mashup I/O
@@ -1775,8 +1682,9 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
             #FIXME: This must be enabled at some point
             #mashuptrail = translate_vistrail(mashuptrail, mashuptrail.db_version, version)
             # Always copy for now
+            trans = db_connection.begin()
             getVersionDAO(version).save_to_db(db_connection, mashuptrail, True)
-            db_connection.commit()
+            trans.commit()
 
         except Exception, e:
             debug.critical('Could not save mashuptrail to db: %s' % str(e))
@@ -1792,8 +1700,9 @@ def delete_entity_from_db(db_connection, type, obj_id):
     if version is None:
         version = currentVersion
     dao_list = getVersionDAO(version)
+    trans = db_connection.begin()
     dao_list.delete_from_db(db_connection, type, obj_id)
-    db_connection.commit()
+    trans.commit()
     
 def get_version_for_xml(root):
     version = root.get('version', None)
@@ -1809,18 +1718,12 @@ def get_current_time(db_connection=None):
     timestamp = datetime.now()
     if db_connection is not None:
         try:
-            c = db_connection.cursor()
-            # FIXME MySQL versus sqlite3
-            c.execute("SELECT NOW();")
-            # c.execute("SELECT DATETIME('NOW');")
-            row = c.fetchone()
-            if row:
-                # FIXME MySQL versus sqlite3
-                timestamp = row[0]
-                # timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
-            c.close()
-        except get_db_lib().Error, e:
-            debug.critical("Logger Error %d: %s" % (e.args[0], e.args[1]))
+            cmd = sqlalchemy.select([sqlalchemy.func.current_timestamp()])
+            result = db_connection.execute(cmd)
+            timestamp = result.first()[0]
+            print "time:", timestamp
+        except Exception, e:
+            debug.critical("Cannot obtain current time: %s" % str(e))
 
     return timestamp
 
@@ -1851,47 +1754,125 @@ def remove_temp_folder(temp_dir):
 
 
 class TestDBIO(unittest.TestCase):
-    def test1(self):
-        """test importing an xml file"""
+    # def test1(self):
+    #     """test importing an xml file"""
 
-        vistrail = open_vistrail_from_xml( \
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy.xml'))
-        assert vistrail is not None
+    #     vistrail = open_vistrail_from_xml( \
+    #         os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                      'tests/resources/dummy.xml'))
+    #     assert vistrail is not None
         
-    def test2(self):
-        """test importing an xml file"""
+    # def test2(self):
+    #     """test importing an xml file"""
 
-        vistrail = open_vistrail_from_xml( \
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy_new.xml'))
-        assert vistrail is not None
+    #     vistrail = open_vistrail_from_xml( \
+    #         os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                      'tests/resources/dummy_new.xml'))
+    #     assert vistrail is not None
 
-    def test3(self):
-        """test importing a vt file"""
+    # def test3(self):
+    #     """test importing a vt file"""
 
-        # FIXME include abstractions
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
-            DBVistrail.vtType,
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy_new.vt'))
-        assert save_bundle.vistrail is not None
+    #     # FIXME include abstractions
+    #     (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
+    #         DBVistrail.vtType,
+    #         os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                      'tests/resources/dummy_new.vt'))
+    #     assert save_bundle.vistrail is not None
 
-    def test4(self):
-        """ test saving a vt file """
+    # def test4(self):
+    #     """ test saving a vt file """
 
-        # FIXME include abstractions
-        filename = os.path.join(vistrails.core.system.vistrails_root_directory(),
-                                'tests/resources/dummy_new_temp.vt')
+    #     # FIXME include abstractions
+    #     filename = os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                             'tests/resources/dummy_new_temp.vt')
     
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
-            DBVistrail.vtType,
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy_new.vt'))
-        try:
-            save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
-            if os.path.isfile(filename):
-                os.unlink(filename)
-        except Exception, e:
-            self.fail(str(e))
+    #     (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
+    #         DBVistrail.vtType,
+    #         os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                      'tests/resources/dummy_new.vt'))
+    #     try:
+    #         save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
+    #         if os.path.isfile(filename):
+    #             os.unlink(filename)
+    #     except Exception, e:
+    #         self.fail(str(e))
 
+    @classmethod
+    def setUpClass(cls):
+        conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+        setup_db_tables(conn, currentVersion)
+        close_db_connection(conn)
+
+    @classmethod
+    def tearDownClass(cls):
+        conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+        schema = get_sql_schema(currentVersion)
+        schema.metadata.drop_all(conn)
+        close_db_connection(conn)
+
+    MYSQL_TEST_CONFIG = {"user": "vt_test",
+                         "passwd": None,
+                         "host": "localhost",
+                         "port": None,
+                         "db": "vt_test"}
+
+    def get_sqlite3_config(self):
+        import os
+        import tempfile
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
+        os.close(h)
+        test_db = 'sqlite:///%s' % fname
+        return (test_db, fname)
+
+    def test_open_connection(self):
+        conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+
+    def test_save_vistrail_to_db(self):
+        config, db_fname = self.get_sqlite3_config()
+        in_fname = '/vistrails/src/git/examples/terminator.vt'
+        # conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+        conn = open_db_connection(config)
+        alchemy.metadata.create_all(conn)
+        (bundle, _) = open_vistrail_bundle_from_zip_xml(in_fname)
+        save_vistrail_bundle_to_db(bundle, conn, True)
+        close_db_connection(conn)
+        os.unlink(db_fname)
+
+    def test_get_db_object_list(self):
+        print get_db_object_list(TestDBIO.MYSQL_TEST_CONFIG, DBVistrail.vtType)
+
+    def test_get_db_object_modification_time(self):
+        conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+        print "OBJ TIME:", get_db_object_modification_time(conn, 14, DBVistrail.vtType)
+        close_db_connection(conn)
+
+    def test_get_db_object_version(self):
+        conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+        print "OBJ VERSION:", get_db_object_version(conn, 14, DBVistrail.vtType)
+        close_db_connection(conn)
+        
+    def test_get_db_id_from_name(self):
+        conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+        print "OBJ ID:", get_db_id_from_name(conn, DBVistrail.vtType, 
+                                                  None)
+        close_db_connection(conn)
+
+    def test_get_db_abstraction_modification_time(self):
+        raise Exception("Need to implement this test")
+
+    def test_get_db_ids_from_vistrail(self):
+        raise Exception("Need to implement this test")
+
+    def test_get_matching_abstraction_id(self):
+        raise Exception("Need to implement this test")
+        
+    def test_get_saved_workflows(self):
+        conn = open_db_connection(TestDBIO.MYSQL_TEST_CONFIG)
+        print "SAVED WORKFLOWS:", get_saved_workflows(conn, 57)
+        close_db_connection(conn)
+            
+if __name__ == '__main__':
+    import vistrails.core.application
+    vistrails.core.application.init()
+    unittest.main()

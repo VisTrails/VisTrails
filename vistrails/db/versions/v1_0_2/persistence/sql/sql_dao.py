@@ -32,8 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+import MySQLdb
+
 from vistrails.db import VistrailsDBException
-from vistrails.db.services.io import get_db_lib
 from vistrails.core import debug
 
 class SQLDAO:
@@ -225,7 +227,7 @@ class SQLDAO:
             commandString = ''
             for prepared, values in dbCommands:
                 command = prepared % \
-                              db.escape(values, get_db_lib().converters.conversions)
+                              db.escape(values, MySQLdb.converters.conversions)
                 commandString += command
             cur = db.cursor()
             try:

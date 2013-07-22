@@ -33,7 +33,13 @@
 ##
 ###############################################################################
 
-import sqlalchemy
+from vistrails.core.bundles import py_import
+
+sqlalchemy = py_import('sqlalchemy', 
+                       {'pip': 'SQLAlchemy',
+                        'linux-debian': 'python-sqlalchemy',
+                        'linux-ubuntu': 'python-sqlalchemy',
+                        'linux-fedora': 'python-sqlalchemy'})
 import sqlalchemy.types
 
 metadata = sqlalchemy.MetaData()
@@ -45,7 +51,7 @@ tables = {'vistrails_version': \
                            # autoincrement defaults to True
                            sqlalchemy.Column('id', sqlalchemy.Integer, primary_key=True),
                            sqlalchemy.Column('file_name', sqlalchemy.String(255)),
-                           sqlalchemy.Column('image_bytes', sqlalchemy.LargeBinary(2 ** 24 + 3)),
+                           sqlalchemy.Column('image_bytes', sqlalchemy.LargeBinary(2 ** 24)),
                            sqlalchemy.Column('last_modified', sqlalchemy.DateTime())),
 % for obj in objs:
           '${obj.getName()}': \

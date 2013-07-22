@@ -40,6 +40,19 @@ from vistrails.db import VistrailsDBException
 
 currentVersion = '1.0.3'
 
+def get_sql_schema(version=None):
+    if version is None:
+        version = currentVersion
+    try:
+        pkg_name = 'vistrails.db.versions.' + get_version_name(version) + \
+                   '.persistence.sql.alchemy'
+        schema = __import__(pkg_name, {}, {}, [''])
+    except ImportError as e:
+        if str(e).startswith('No module named v'):
+            msg = "Cannot find schema for version '%s'" % version
+            raise VistrailsDBException(msg)
+    return schema
+
 def getVersionDAO(version=None):
     if version is None:
         version = currentVersion
