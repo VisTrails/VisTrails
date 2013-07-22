@@ -396,7 +396,6 @@ CREATE TABLE package(
 CREATE TABLE workflow_exec(
     id int,
     user varchar(255),
-    ip varchar(255),
     session int,
     vt_version varchar(255),
     ts_start datetime,

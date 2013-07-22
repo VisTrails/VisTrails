@@ -115,7 +115,6 @@ class LogController(object):
             session = None
         self.workflow_exec = WorkflowExec(id=wf_exec_id,
                                           user=vistrails.core.system.current_user(),
-                                          ip=vistrails.core.system.current_ip(),
                                           vt_version= \
                                               vistrails.core.system.vistrails_version(),
                                           ts_start=vistrails.core.system.current_time(),

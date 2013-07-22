@@ -76,7 +76,6 @@ class WorkflowExec(DBWorkflowExec):
 
     id = DBWorkflowExec.db_id
     user = DBWorkflowExec.db_user
-    ip = DBWorkflowExec.db_ip
     session = DBWorkflowExec.db_session
     vt_version = DBWorkflowExec.db_vt_version
     ts_start = DBWorkflowExec.db_ts_start
