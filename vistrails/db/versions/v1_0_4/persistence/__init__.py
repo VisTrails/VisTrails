@@ -258,7 +258,7 @@ class DAOList(dict):
 
         result_idx = 0
         dbCommandList = []
-        next_obj_written = []
+        sub_obj_written = []
         for children, global_props, was_written in \
             izip(obj_children, global_props_list, obj_written):
 
@@ -286,26 +286,28 @@ class DAOList(dict):
             
             # list of all children
             # process remaining children
+            subchildren_written = []
             for (child, _, _) in children:
                 dbCommand = self['sql'][child.vtType].set_sql_command(
                                 db_connection, child, global_props, do_copy)
                 if dbCommand is not None:
                     dbCommandList.append(dbCommand)
-                    next_obj_written.append(True)
+                    subchildren_written.append(True)
                 else:
-                    next_obj_written.append(False)
+                    subchildren_written.append(False)
                 self['sql'][child.vtType].to_sql_fast(child, do_copy)
+            sub_obj_written.append(subchildren_written)
 
         # Execute all child insert/update statements
         results = self['sql'][children[0][0].vtType].executeSQLCommands(
                                                         db_connection,
                                                         dbCommandList, False)
 
-        obj_written = next_obj_written
+        obj_written = sub_obj_written
         result_idx = 0
-        for children, global_props, was_written in \
+        for children, global_props, sub_was_written in \
             izip(obj_children, global_props_list, obj_written):
-            for (child, _, _) in children:
+            for (child, _, _), was_written in izip(children, sub_was_written):
                 if was_written:
                     self['sql'][child.vtType].set_sql_process(
                         child, global_props, results[result_idx])

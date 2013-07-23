@@ -151,9 +151,9 @@ class SQLDAO:
 
     def createSQLUpdate(self, table, columnMap, whereMap):
         sql_table = self.metadata.tables[table]
-        cmd = sql_table.update([sql_table.columns[c] for c in columnMap])
-        cmd = cmd.where(sqlalchemy.sql.and_(sql_table.columns[c] == v
-                                            for c,v in whereMap.iteritems()))
+        cmd = sql_table.update()
+        cmd = cmd.where(sqlalchemy.sql.and_(*[sql_table.columns[c] == v
+                                              for c,v in whereMap.iteritems()]))
         cmd = cmd.values(columnMap)
         return cmd
 
