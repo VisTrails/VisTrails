@@ -33,10 +33,12 @@
 ##
 ###############################################################################
 from vistrails.db import VistrailsDBException
-from vistrails.db.services.io import open_db_connection, close_db_connection, get_db_lib
+from vistrails.db.services.io import open_db_connection, close_db_connection
 
 def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
         toTime=None, user=None, offset=0, limit=100, modules=[], thumbs=None):
+    import MySQLdb
+
     # returns list of workflows:
     #         (vistrail name, vistrail id, id, name, date, user, thumb)
     result = []
@@ -57,22 +59,22 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
             where_part += " AND v.id=%s" % int(vistrail)
         except ValueError:
             where_part += " AND v.name=%s" % \
-                   db.escape(vistrail, get_db_lib().converters.conversions)
+                   db.escape(vistrail, MySQLdb.converters.conversions)
     if version:
         try:
             where_part += " AND w.parent_id=%s" % int(version)
         except ValueError:
             where_part += " AND a1.value=%s" % \
-                   db.escape(version, get_db_lib().converters.conversions)
+                   db.escape(version, MySQLdb.converters.conversions)
     if fromTime:
         where_part += " AND w.last_modified>%s" % \
-               db.escape(fromTime, get_db_lib().converters.conversions)
+               db.escape(fromTime, MySQLdb.converters.conversions)
     if toTime:
         where_part += " AND w.last_modified<%s" % \
-               db.escape(toTime, get_db_lib().converters.conversions)
+               db.escape(toTime, MySQLdb.converters.conversions)
     if user:
         where_part += " AND action.user=%s" % \
-               db.escape(user, get_db_lib().converters.conversions)
+               db.escape(user, MySQLdb.converters.conversions)
     next_port = 1
     old_alias = None
     for i, module, connected in zip(range(1,len(modules)+1), *zip(*modules)):
@@ -83,7 +85,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
                 ({0}.parent_id=w.id AND {0}.entity_type=w.entity_type AND
                  {0}.name={1})
         """.format(alias,
-                   db.escape(module, get_db_lib().converters.conversions))
+                   db.escape(module, MySQLdb.converters.conversions))
         if connected:
             p1_alias, p2_alias=("port%s"%next_port), ("port%s"%(next_port+1))
             next_port += 2
@@ -126,7 +128,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
         rows = c.fetchall()
         result = rows
         c.close()
-    except get_db_lib().Error, e:
+    except MySQLdb.Error, e:
         msg = "Couldn't perform query on db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -142,7 +144,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
             res = c.fetchall()
             result= (result, res[0][0])
             c.close()
-        except get_db_lib().Error, e:
+        except MySQLdb.Error, e:
             msg = "Couldn't perform query on db (%d : %s)" % \
                 (e.args[0], e.args[1])
             raise VistrailsDBException(msg)
@@ -153,6 +155,8 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
 def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
              user=None, completed=None, offset=0, limit=100, modules=[],
              thumbs=None):
+    import MySQLdb
+
     # returns list of workflow executions:
     #         (vistrail name, vistrail id, log id, workflow id, workflow name,
     #          execution id, start time, end time, user, completed, thumb)
@@ -179,22 +183,22 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
             where_part += " AND v.id=%s" % int(vistrail)
         except ValueError:
             where_part += " AND v.name=%s" % \
-                   db.escape(vistrail, get_db_lib().converters.conversions)
+                   db.escape(vistrail, MySQLdb.converters.conversions)
     if version:
         try:
             where_part += " AND w.parent_version=%s" % int(version)
         except ValueError:
             where_part += " AND a1.value=%s" % \
-                   db.escape(version, get_db_lib().converters.conversions)
+                   db.escape(version, MySQLdb.converters.conversions)
     if fromTime:
         where_part += " AND w.ts_end>%s" % \
-               db.escape(fromTime, get_db_lib().converters.conversions)
+               db.escape(fromTime, MySQLdb.converters.conversions)
     if toTime:
         where_part += " AND w.ts_start<%s" % \
-               db.escape(toTime, get_db_lib().converters.conversions)
+               db.escape(toTime, MySQLdb.converters.conversions)
     if user:
         where_part += " AND w.user=%s" % \
-               db.escape(user, get_db_lib().converters.conversions)
+               db.escape(user, MySQLdb.converters.conversions)
     completed_dict = {'no':0, 'yes':1, 'ok':1}
     if completed is not None:
         try:
@@ -224,7 +228,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
         where_part += \
         """ AND %s.parent_type='workflow_exec'
             AND %s.module_name=%s """ % (alias, alias,
-              db.escape(module.lower(), get_db_lib().converters.conversions) )
+              db.escape(module.lower(), MySQLdb.converters.conversions) )
         if mCompleted is not None:
             mCompleted = completed_dict.get(str(mCompleted).lower(), -1)
             where_part += """ AND %s.completed=%s""" % (alias, mCompleted)
@@ -237,7 +241,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
         rows = c.fetchall()
         result = rows
         c.close()
-    except get_db_lib().Error, e:
+    except MySQLdb.Error, e:
         msg = "Couldn't perform query on db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -253,7 +257,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
             res = c.fetchall()
             result= (result, res[0][0])
             c.close()
-        except get_db_lib().Error, e:
+        except MySQLdb.Error, e:
             msg = "Couldn't perform query on db (%d : %s)" % \
                 (e.args[0], e.args[1])
             raise VistrailsDBException(msg)
