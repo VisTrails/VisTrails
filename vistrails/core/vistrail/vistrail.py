@@ -32,35 +32,32 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.paramexplore.paramexplore import ParameterExploration
 
 import copy
 import datetime
 import getpass
+import random
+import unittest
 
 from vistrails.db.domain import DBVistrail
 from vistrails.db.services.io import open_vt_log_from_db, open_log_from_xml
-from vistrails.core.db.locator import DBLocator
 from vistrails.core.log.log import Log
 from vistrails.core.data_structures.graph import Graph
-from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 import vistrails.core.db.io
+from vistrails.core.paramexplore.paramexplore import ParameterExploration
 from vistrails.core.utils import VistrailsInternalError, \
      InvalidPipeline
 from vistrails.core.vistrail.action import Action
 from vistrails.core.vistrail.action_annotation import ActionAnnotation
-from vistrails.core.vistrail.vistrailvariable import VistrailVariable
 from vistrails.core.vistrail.annotation import Annotation
+import vistrails.core.vistrail.connection
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from vistrails.core.vistrail.plugin_data import PluginData
-
-import unittest
-import copy
-import random
+from vistrails.core.vistrail.vistrailvariable import VistrailVariable
 
 """ This file contains the definition of the class Vistrail """
 
