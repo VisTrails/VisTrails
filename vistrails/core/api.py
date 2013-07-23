@@ -362,10 +362,13 @@ class VisTrailsAPI(object):
     def get_packages(self):
         if self._packages is None:
             self._packages = {}
+            self._old_package_ids = {}
             reg = get_module_registry()
             for package in reg.package_list:
                 pkg = Package(package.identifier, package.version)
                 self._packages[package.identifier] = pkg
+                for old_name in package.old_identifiers:
+                    self._old_package_ids[old_name] = pkg
         return self._packages
 
     def list_packages(self):
@@ -374,7 +377,10 @@ class VisTrailsAPI(object):
 
     def get_package(self, identifier):
         packages = self.get_packages()
-        return packages[identifier]
+        if identifier not in packages and identifier in self._old_package_ids:
+            return self._old_package_ids[identifier]
+        else:
+            return packages[identifier]
 
     def load_package(self, identifier, codepath):
         packages = self.get_packages()

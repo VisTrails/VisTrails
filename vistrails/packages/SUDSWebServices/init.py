@@ -139,8 +139,8 @@ def initialize(*args, **keywords):
     global package_cache
 
     #Create a directory for the SUDSWebServices package
-    location = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                     "SUDSWebServices")
+    location = os.path.join(vistrails.core.system.current_dot_vistrails(),
+                            "SUDSWebServices")
     if not os.path.isdir(location):
         try:
             debug.log("Creating SUDS cache directory...")

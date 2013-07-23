@@ -233,16 +233,25 @@ def default_options_file():
 
 def default_dot_vistrails():
     """ default_dot_vistrails() -> str 
-    Returns VisTrails per-user directory.
+    Returns the default VisTrails per-user directory.
 
     """
     return os.path.join(home_directory(), '.vistrails')
+
+def current_dot_vistrails():
+    """ current_dot_vistrails() -> str
+    Returns the VisTrails per-user directory.
+
+    """
+    from vistrails.core.configuration import get_vistrails_configuration
+    return get_vistrails_configuration().dotVistrails
+
 def default_connections_file():
     """ default_connections_file() -> str
     Returns default Vistrails per-user connections file
 
     """
-    return os.path.join(default_dot_vistrails(), 'connections.xml')
+    return os.path.join(current_dot_vistrails(), 'connections.xml')
 
 def python_version():
     """python_version() -> (major, minor, micro, release, serial)
@@ -320,13 +329,16 @@ def current_ip():
     Gets current IP address trying to avoid the IPv6 interface """
     try:
         info = socket.getaddrinfo(socket.gethostname(), None)
+        # Try to find an IPv4
         for i in info:
-            if len(i[4][0]) <= 15:
+            if i[0] == socket.AF_INET:
                 return i[4][0]
-            else:
-                return '0.0.0.0'
+        # Return any address
+        for i in info:
+            if i[0] in (socket.AF_INET, socket.AF_INET6):
+                return i[4][0]
     except:
-        return '0.0.0.0'
+        return ''
 
 def current_time():
     """current_time() -> datetime.datetime
