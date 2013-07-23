@@ -672,6 +672,52 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
+  <!-- EXECUTION_CONFIGURATION +-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="execution_configuration">
+    <layout>
+      <xml name="executionConfiguration"/>
+    </layout>
+
+    <property name="vt_version" type="str">
+      <xml name="vtVersion" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property ref="true" object="execution_preference" type="list"
+        mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="module_execution_preference" type="list"
+        mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- EXECUTION_PREFERENCE ++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="execution_preference">
+    <layout>
+      <xml name="executionPreference"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+    </property>
+
+    <property name="system" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
   <!-- FUNCTION ++++++++++++++++-->
   <!--++++++++++++++++++++++++++-->
 
@@ -1374,6 +1420,25 @@
       <sql type="char(16)"/>
     </property>
 
+  </object>
+
+  <!--++++++++++++++++++++++++++++++-->
+  <!-- MODULE_EXECUTION_PREFERENCE +-->
+  <!--++++++++++++++++++++++++++++++-->
+
+  <object name="module_execution_preference">
+    <layout>
+      <xml name="moduleExecutionPreference"/>
+    </layout>
+
+    <property name="module_id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="string"/>
+    </property>
+
+    <property name="preference" type="long" foreignKey="true"
+        object="execution_preference">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+    </property>
   </object>
 
   <!--++++++++++++++++++++++++++-->

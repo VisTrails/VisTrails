@@ -866,6 +866,73 @@ class DBProvDocumentXMLDAOBase(XMLDAO):
         
         return node
 
+class DBExecutionConfigurationXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'executionConfiguration':
+            return None
+        
+        # read attributes
+        data = node.get('vtVersion', None)
+        vt_version = self.convertFromStr(data, 'str')
+        
+        execution_preferences = []
+        module_execution_preferences = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'executionPreference':
+                _data = self.getDao('execution_preference').fromXML(child)
+                execution_preferences.append(_data)
+            elif child_tag == 'moduleExecutionPreference':
+                _data = self.getDao('module_execution_preference').fromXML(child)
+                module_execution_preferences.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBExecutionConfiguration(vt_version=vt_version,
+                                       execution_preferences=execution_preferences,
+                                       module_execution_preferences=module_execution_preferences)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, execution_configuration, node=None):
+        if node is None:
+            node = ElementTree.Element('executionConfiguration')
+        
+        # set attributes
+        node.set('vtVersion',self.convertToStr(execution_configuration.db_vt_version, 'str'))
+        
+        # set elements
+        execution_preferences = execution_configuration.db_execution_preferences
+        for execution_preference in execution_preferences:
+            if (execution_preferences is not None) and (execution_preferences != ""):
+                childNode = ElementTree.SubElement(node, 'executionPreference')
+                self.getDao('execution_preference').toXML(execution_preference, childNode)
+        module_execution_preferences = execution_configuration.db_module_execution_preferences
+        for module_execution_preference in module_execution_preferences:
+            if (module_execution_preferences is not None) and (module_execution_preferences != ""):
+                childNode = ElementTree.SubElement(node, 'moduleExecutionPreference')
+                self.getDao('module_execution_preference').toXML(module_execution_preference, childNode)
+        
+        return node
+
 class DBOpmAccountXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -1087,6 +1154,43 @@ class DBPortXMLDAOBase(XMLDAO):
         node.set('moduleName',self.convertToStr(port.db_moduleName, 'str'))
         node.set('name',self.convertToStr(port.db_name, 'str'))
         node.set('signature',self.convertToStr(port.db_signature, 'str'))
+        
+        return node
+
+class DBModuleExecutionPreferenceXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'moduleExecutionPreference':
+            return None
+        
+        # read attributes
+        data = node.get('module_id', None)
+        module_id = self.convertFromStr(data, 'str')
+        data = node.get('preference', None)
+        preference = self.convertFromStr(data, 'long')
+        
+        obj = DBModuleExecutionPreference(module_id=module_id,
+                                          preference=preference)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, module_execution_preference, node=None):
+        if node is None:
+            node = ElementTree.Element('moduleExecutionPreference')
+        
+        # set attributes
+        node.set('module_id',self.convertToStr(module_execution_preference.db_module_id, 'str'))
+        node.set('preference',self.convertToStr(module_execution_preference.db_preference, 'long'))
         
         return node
 
@@ -4973,6 +5077,67 @@ class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
         
         return node
 
+class DBExecutionPreferenceXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'executionPreference':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('system', None)
+        system = self.convertFromStr(data, 'str')
+        
+        annotations = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'annotation':
+                _data = self.getDao('annotation').fromXML(child)
+                annotations.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBExecutionPreference(id=id,
+                                    system=system,
+                                    annotations=annotations)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, execution_preference, node=None):
+        if node is None:
+            node = ElementTree.Element('executionPreference')
+        
+        # set attributes
+        node.set('id',self.convertToStr(execution_preference.db_id, 'long'))
+        node.set('system',self.convertToStr(execution_preference.db_system, 'str'))
+        
+        # set elements
+        annotations = execution_preference.db_annotations
+        for annotation in annotations:
+            if (annotations is not None) and (annotations != ""):
+                childNode = ElementTree.SubElement(node, 'annotation')
+                self.getDao('annotation').toXML(annotation, childNode)
+        
+        return node
+
 class DBOpmProcessValueXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -5568,6 +5733,8 @@ class XMLDAOListBase(dict):
             self['opm_role'] = DBOpmRoleXMLDAOBase(self)
         if 'prov_document' not in self:
             self['prov_document'] = DBProvDocumentXMLDAOBase(self)
+        if 'execution_configuration' not in self:
+            self['execution_configuration'] = DBExecutionConfigurationXMLDAOBase(self)
         if 'opm_account' not in self:
             self['opm_account'] = DBOpmAccountXMLDAOBase(self)
         if 'opm_processes' not in self:
@@ -5578,6 +5745,8 @@ class XMLDAOListBase(dict):
             self['opm_account_id'] = DBOpmAccountIdXMLDAOBase(self)
         if 'port' not in self:
             self['port'] = DBPortXMLDAOBase(self)
+        if 'module_execution_preference' not in self:
+            self['module_execution_preference'] = DBModuleExecutionPreferenceXMLDAOBase(self)
         if 'ref_prov_plan' not in self:
             self['ref_prov_plan'] = DBRefProvPlanXMLDAOBase(self)
         if 'opm_artifact' not in self:
@@ -5684,6 +5853,8 @@ class XMLDAOListBase(dict):
             self['is_part_of'] = DBIsPartOfXMLDAOBase(self)
         if 'opm_was_triggered_by' not in self:
             self['opm_was_triggered_by'] = DBOpmWasTriggeredByXMLDAOBase(self)
+        if 'execution_preference' not in self:
+            self['execution_preference'] = DBExecutionPreferenceXMLDAOBase(self)
         if 'opm_process_value' not in self:
             self['opm_process_value'] = DBOpmProcessValueXMLDAOBase(self)
         if 'action' not in self:
