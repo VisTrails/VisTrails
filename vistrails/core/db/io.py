@@ -42,7 +42,10 @@ import vistrails.db.services.action
 from xml.dom.minidom import parse, getDOMImplementation
 
 def get_db_vistrail_list(config):
-    return vistrails.db.services.io.get_db_object_list(config,'vistrail')
+    db_connection = vistrails.db.services.io.open_db_connection(config)
+    res = vistrails.db.services.io.get_db_object_list(db_connection,'vistrail')
+    vistrails.db.services.io.close_db_connection(db_connection)
+    return res
 
 def get_workflow(vt, version):
     from vistrails.core.vistrail.pipeline import Pipeline

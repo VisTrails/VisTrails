@@ -47,8 +47,14 @@ def setup_tables(host, port, user, passwd, db):
               'db': db}
 
     try:
+        # we close and re-open the connection because the schema
+        # version may change
         db_connection = io.open_db_connection(config)
-        io.setup_db_tables(db_connection)
+        io.drop_db_tables(db_connection)
+        io.close_db_connection(db_connection)
+        db_connection = io.open_db_connection(config)
+        io.create_db_tables(db_connection)
+        io.close_db_connection(db_connection)
     except Exception, e:
         print e
 

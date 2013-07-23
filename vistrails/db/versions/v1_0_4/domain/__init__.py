@@ -33,4 +33,9 @@
 ##
 ###############################################################################
 
-from vistrails.db.versions.v1_0_4.persistence import *
+from auto_gen import *
+from registry import DBRegistry
+from workflow import DBWorkflow
+from vistrail import DBVistrail
+from log import DBLog
+from id_scope import IdScope

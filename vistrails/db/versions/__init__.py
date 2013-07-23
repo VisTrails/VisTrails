@@ -38,7 +38,7 @@ import os
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
 
-currentVersion = '1.0.3'
+currentVersion = '1.0.4'
 
 def get_sql_schema(version=None):
     if version is None:
@@ -52,6 +52,21 @@ def get_sql_schema(version=None):
             msg = "Cannot find schema for version '%s'" % version
             raise VistrailsDBException(msg)
     return schema
+
+def get_sql_utils(version=None):
+    if version is None:
+        version = currentVersion
+    try:
+        pkg_name = 'vistrails.db.versions.' + get_version_name(version) + \
+                   '.persistence.sql.utils'
+        utils = __import__(pkg_name, {}, {}, [''])
+    except ImportError as e:
+        import traceback
+        traceback.print_exc()
+        if str(e).startswith('No module named v'):
+            msg = "Cannot find utils for version '%s'" % version
+            raise VistrailsDBException(msg)
+    return utils
 
 def getVersionDAO(version=None):
     if version is None:
@@ -93,9 +108,11 @@ def translate_object(obj, method_name, version=None, target_version=None):
         '1.0.0': '1.0.1',
         '1.0.1': '1.0.2',
         '1.0.2': '1.0.3',
+        '1.0.3': '1.0.4',
         }
 
     rev_version_map = {
+        '1.0.4': '1.0.3',
         '1.0.3': '1.0.2',
         '1.0.2': '1.0.1',
         '1.0.1': '1.0.0',
@@ -153,7 +170,7 @@ def translate_object(obj, method_name, version=None, target_version=None):
 
 def translate_vistrail(vistrail, version=None, target_version=None):
     return translate_object(vistrail, 'translateVistrail', version, 
-                            target_version)
+                           target_version)
 
 def translate_workflow(workflow, version=None, target_version=None):
     return translate_object(workflow, 'translateWorkflow', version, 

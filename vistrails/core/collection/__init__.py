@@ -287,12 +287,15 @@ class Collection(object):
 
     def update_from_database(self, db_locator):
         # db_conn = db_locator.get_connection()
-        config = (('host', db_locator._host),
-                  ('port', int(db_locator._port)),
-                  ('db', db_locator._db),
-                  ('user', db_locator._user),
-                  ('passwd', db_locator._passwd))
-        rows = vistrails.db.services.io.get_db_object_list(dict(config), 'vistrail')
+        config = {'host': db_locator._host,
+                  'port': int(db_locator._port),
+                  'db': db_locator._db,
+                  'user': db_locator._user,
+                  'passwd': db_locator._passwd}
+        db_connection = vistrails.db.services.io.open_db_connection(config)
+        rows = vistrails.db.services.io.get_db_object_list(db_connection, 
+                                                           'vistrail')
+        vistrails.db.services.io.close_db_connection(db_connection)
         for row in rows:
             if row[0] in [1,]:
                 continue

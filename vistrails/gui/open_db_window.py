@@ -553,7 +553,10 @@ class QDBConnectionList(QtGui.QListWidget):
             del config['name']
             config_id = config['id']
             del config['id']
-        vt_list = vistrails.db.services.io.get_db_object_list(config, obj_type)
+        db_connection = vistrails.db.services.io.open_db_connection(config)
+        vt_list = vistrails.db.services.io.get_db_object_list(db_connection, 
+                                                              obj_type)
+        vistrails.db.services.io.close_db_connection(db_connection)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name
             config['id'] = config_id

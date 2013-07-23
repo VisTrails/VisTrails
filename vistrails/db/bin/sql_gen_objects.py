@@ -161,7 +161,10 @@ class SQLProperty (Property):
     
     def getType(self):
         try:
-            return self.specs[SQL_TYPE]['type']
+            sql_type = self.specs[SQL_TYPE]['type']
+            if sql_type.upper() == 'MEDIUMTEXT':
+                sql_type = 'TEXT(2 ** 24)'
+            return sql_type
         except KeyError:
             pass
         return 'int'

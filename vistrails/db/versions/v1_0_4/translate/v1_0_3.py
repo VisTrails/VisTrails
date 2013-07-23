@@ -32,5 +32,33 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.db.versions.v1_0_4.domain import DBVistrail, \
+    DBWorkflow, DBLog, DBRegistry, IdScope, DBAbstraction, \
+    DBModule, DBGroup
 
-from vistrails.db.versions.v1_0_4.persistence import *
+def update_workflow(old_obj, translate_dict):
+    return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
+
+def translateVistrail(_vistrail):
+    translate_dict = {'DBGroup': {'workflow': update_workflow}}
+    vistrail = DBVistrail.update_version(_vistrail, translate_dict)
+    vistrail.db_version = '1.0.4'
+    return vistrail
+
+def translateWorkflow(_workflow):
+    translate_dict = {'DBGroup': {'workflow': update_workflow}}
+    workflow = DBWorkflow.update_version(_workflow, translate_dict)
+    workflow.db_version = '1.0.4'
+    return workflow
+
+def translateLog(_log):
+    translate_dict = {}
+    log = DBLog.update_version(_log, translate_dict)
+    log.db_version = '1.0.4'
+    return log
+
+def translateRegistry(_registry):
+    translate_dict = {}
+    registry = DBRegistry.update_version(_registry, translate_dict)
+    registry.db_version = '1.0.4'
+    return registry
