@@ -116,6 +116,12 @@ class BaseLocator(object):
     def has_temporaries(self):
         return self.get_temporary() is not None
 
+    def clean_temporaries(self):
+        pass
+
+    def save_temporary(self, obj):
+        pass
+
     def serialize(self, dom, element):
         """Serializes this locator to XML.
 

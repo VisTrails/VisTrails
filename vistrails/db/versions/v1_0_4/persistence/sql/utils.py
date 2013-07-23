@@ -300,7 +300,7 @@ def get_saved_workflows(db_connection, vistrail_id):
 
 def get_thumbnail_fnames_from_db(db_connection, obj_id, obj_type):
     annotation = get_table(DBAnnotation)
-    cmd = sqlalchmey.select([annotation.c.value]).where(
+    cmd = sqlalchemy.select([annotation.c.value]).where(
         sqlalchemy.sql.and_(annotation.c.akey == '__thumb___',
                             annotation.c.entity_id == obj_id,
                             annotation.c.entity_type == obj_type))

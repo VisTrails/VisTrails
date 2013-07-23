@@ -174,9 +174,13 @@ def default_open_db_connection(config):
                                         config.get("host"), 
                                         config.get("port"), 
                                         config.get("db"))
-        connection = sqlalchemy.create_engine(url).connect()
+        engine = sqlalchemy.create_engine(url)
     else:
-        connection = sqlalchemy.create_engine(config).connect()
+        engine = sqlalchemy.create_engine(config)
+    try:
+        connection = engine.connect()
+    except Exception, e:
+        raise VistrailsDBException("Unable to open db connection: %s" % str(e))
     return connection
 
 def get_db_version_from_db(db_connection):
