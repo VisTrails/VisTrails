@@ -86,8 +86,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.setWindowTitle('Mashup')
 
         # Assign "hidden" shortcut
-        self.editingModeAct = QtGui.QAction("Chang&e Layout", self, shortcut="Ctrl+E",
-               statusTip="Change the layout of the widgets", triggered=self.toggleEditingMode)
+        self.editingModeAct = QtGui.QAction("Chang&e Layout",
+                                 self, shortcut="Ctrl+E",
+                                 statusTip="Change the layout of the widgets",
+                                 triggered=self.toggleEditingMode)
         #self.editingModeShortcut = QtGui.QShortcut(QtGui.QKeySequence('Ctrl+E'), self)
         #self.connect(self.editingModeShortcut, QtCore.SIGNAL('activated()'),
         #             self.toggleEditingMode)
@@ -105,7 +107,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.initCells(cellEvents)
         if len(errors) > 0:
             show_warning("VisTrails::Mashup Preview", 
-                         "There was a problem executing the pipeline: %s."%errors)
+                         "There was a problem executing the pipeline: %s." %
+                         errors)
         # Construct the controllers for aliases
         self.controlDocks = {}
         self.cellControls = {}
@@ -118,7 +121,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         
         if self.currentMashup.geometry != None:
             self.restoreGeometry(QtCore.QByteArray.fromPercentEncoding(
-                                QtCore.QByteArray(self.currentMashup.geometry)))
+                              QtCore.QByteArray(self.currentMashup.geometry)))
         else:
             self.resize(self.sizeHint())
                     
@@ -130,18 +133,25 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         buttonLayout = QtGui.QGridLayout()
         buttonWidget.setLayout(buttonLayout)
         buttonLayout.setMargin(5)
-        self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update", self.centralWidget())
+        self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update",
+                                              self.centralWidget())
         self.cb_auto_update.setChecked(False)
-        self.cb_loop_sequence = QtGui.QCheckBox("Render all steps in '%s'" % self.sequenceOption.alias.name, self.centralWidget())
+        self.cb_loop_sequence = QtGui.QCheckBox("Render all steps in '%s'" % \
+           (self.sequenceOption.alias.name if self.sequenceOption else 'None'),
+            self.centralWidget())
         self.cb_loop_sequence.setChecked(False)
         self.cb_loop_sequence.setVisible(self.sequenceOption is not False)
-        self.cb_loop_sequence.setToolTip("Render each step of this stepper for fast switching")
-        self.cb_loop_int = QtGui.QCheckBox("Interactive Steps", self.centralWidget())
+        self.cb_loop_sequence.setToolTip(
+                        "Render each step of this stepper for fast switching")
+        self.cb_loop_int = QtGui.QCheckBox("Interactive Steps",
+                                           self.centralWidget())
         self.cb_loop_int.setChecked(False)
         self.cb_loop_int.setVisible(False)
-        self.cb_loop_int.setToolTip("Show complete result of each step instead of static images")
+        self.cb_loop_int.setToolTip(
+                 "Show complete result of each step instead of static images")
         self.cb_loop_sequence.clicked.connect(self.cb_loop_int.setVisible)
-        self.cb_keep_camera = QtGui.QCheckBox("Keep camera position", self.centralWidget())
+        self.cb_keep_camera = QtGui.QCheckBox("Keep camera position",
+                                              self.centralWidget())
         self.cb_keep_camera.setChecked(True)
         self.connect(self.cb_auto_update,
                      QtCore.SIGNAL("stateChanged(int)"),
