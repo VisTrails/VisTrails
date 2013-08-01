@@ -33,7 +33,8 @@
 ##
 ###############################################################################
 
-from auto_gen import DBRegistry as _DBRegistry
+from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
+    DBPortSpec
 from id_scope import IdScope
 
 class DBRegistry(_DBRegistry):
