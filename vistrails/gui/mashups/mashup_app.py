@@ -37,7 +37,7 @@ from PyQt4.QtCore import pyqtSignal
 
 from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
-from vistrails.gui.utils import show_warning
+from vistrails.gui.utils import show_warning, TestVisTrailsGUI
 
 spreadsheet = __import__('vistrails.packages.spreadsheet', globals(), locals(), 
                          ['spreadsheet_controller'], -1) 
@@ -597,3 +597,18 @@ class QCustomDockWidget(QtGui.QDockWidget):
             self.hideTitleBar()
         else:
             self.showTitleBar()
+
+################################################################################
+# Testing
+
+
+class TestMashupApp(TestVisTrailsGUI):
+
+    def test_load_mashup(self):
+        import vistrails.core.system
+        filename = (vistrails.core.system.vistrails_root_directory() + 
+                    '/tests/resources/spx_loop.vt')
+        view = vistrails.api.open_vistrail_from_file(filename)
+        id = "d5026457-de6c-11e2-b074-3c07543dba07"
+        view.open_mashup_from_mashuptrail_id(id, "loop")
+        view.open_mashup_from_mashuptrail_id(id, "no loop")
