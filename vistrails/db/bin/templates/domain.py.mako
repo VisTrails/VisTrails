@@ -64,6 +64,7 @@ def shouldIgnoreIndexDelete(index):
 """generated automatically by auto_dao.py"""
 
 import copy
+from itertools import izip
 
 % for obj in objs:
 class ${obj.getClassName()}(object):
@@ -197,6 +198,35 @@ class ${obj.getClassName()}(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        % for field in obj.getPythonFields():
+        alternate_key = (self.__class__.__name__, '${field.getFieldName()}')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            % if field.isReference():
+            % if field.isPlural():
+            test_obj.assertEqual(len(self.${field.getFieldName()}), 
+                             len(other.${field.getFieldName()}))
+            for obj1, obj2 in izip(sorted(self.${field.getFieldName()}, key=lambda x: x.db_id), 
+                                   sorted(other.${field.getFieldName()}, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+            % else:
+            if self.${field.getFieldName()} is not None and other.${field.getFieldName()} is not None:
+                    self.${field.getFieldName()}.deep_eq_test(other.${field.getFieldName()}, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.${field.getFieldName()}, 
+                                       other.${field.getFieldName()})
+            % endif
+            % else:
+            test_obj.assertEqual(self.${field.getFieldName()}, 
+                                   other.${field.getFieldName()})
+            % endif
+        % endfor
 
     ## create static update_version
     @staticmethod

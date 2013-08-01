@@ -40,6 +40,36 @@ from vistrails.db import VistrailsDBException
 
 currentVersion = '1.0.4'
 
+version_map = {
+    '0.3.0': '0.3.1',
+    '0.3.1': '0.6.0',
+    '0.5.0': '0.6.0',
+    '0.6.0': '0.7.0',
+    '0.7.0': '0.8.0',
+    '0.8.0': '0.8.1',
+    '0.8.1': '0.9.0',
+    '0.9.0': '0.9.1',
+    '0.9.1': '0.9.3',
+    '0.9.2': '0.9.3',
+    '0.9.3': '0.9.4',
+    '0.9.4': '0.9.5',
+    '0.9.5': '1.0.0',
+    '1.0.0': '1.0.1',
+    '1.0.1': '1.0.2',
+    '1.0.2': '1.0.3',
+    '1.0.3': '1.0.4',
+    }
+
+rev_version_map = {
+    '1.0.4': '1.0.3',
+    '1.0.3': '1.0.2',
+    '1.0.2': '1.0.1',
+    '1.0.1': '1.0.0',
+    '1.0.0': '0.9.5',
+    '0.9.5': '0.9.4',
+    '0.9.4': '0.9.3',
+    }
+
 def get_sql_schema(version=None):
     if version is None:
         version = currentVersion
@@ -85,41 +115,31 @@ def getVersionDAO(version=None):
         raise VistrailsDBException(traceback.format_exc())
     return persistence.DAOList()
 
+def get_version_path(version, target_version):
+    old_tuple = version.split('.')
+    new_tuple = target_version.split('.')
+    used_map = version_map
+    for i, j in izip(old_tuple, new_tuple):
+        if i < j:
+            # forward
+            break
+        elif i > j:
+            # reverse
+            used_map = rev_version_map
+            break
+    
+    path = []
+    while version != target_version:
+        next_version = used_map[version]
+        path.append((version, next_version))
+        version = next_version
+    return path
+
 def translate_object(obj, method_name, version=None, target_version=None):
     if version is None:
         version = obj.version
     if target_version is None:
         target_version = currentVersion
-
-    version_map = {
-        '0.3.0': '0.3.1',
-        '0.3.1': '0.6.0',
-        '0.5.0': '0.6.0',
-        '0.6.0': '0.7.0',
-        '0.7.0': '0.8.0',
-        '0.8.0': '0.8.1',
-        '0.8.1': '0.9.0',
-        '0.9.0': '0.9.1',
-        '0.9.1': '0.9.3',
-        '0.9.2': '0.9.3',
-        '0.9.3': '0.9.4',
-        '0.9.4': '0.9.5',
-        '0.9.5': '1.0.0',
-        '1.0.0': '1.0.1',
-        '1.0.1': '1.0.2',
-        '1.0.2': '1.0.3',
-        '1.0.3': '1.0.4',
-        }
-
-    rev_version_map = {
-        '1.0.4': '1.0.3',
-        '1.0.3': '1.0.2',
-        '1.0.2': '1.0.1',
-        '1.0.1': '1.0.0',
-        '1.0.0': '0.9.5',
-        '0.9.5': '0.9.4',
-        '0.9.4': '0.9.3',
-        }
 
     def get_translate_module(map, start_version, end_version):
         translate_dir = 'vistrails.db.versions.' + \
@@ -127,7 +147,6 @@ def translate_object(obj, method_name, version=None, target_version=None):
             get_version_name(start_version)
         return __import__(translate_dir, {}, {}, [''])
 
-    path = []
     old_tuple = version.split('.')
     new_tuple = target_version.split('.')
     map = version_map

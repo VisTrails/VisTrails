@@ -36,6 +36,7 @@
 """generated automatically by auto_dao.py"""
 
 import copy
+from itertools import izip
 
 class DBOpmProcessIdEffect(object):
 
@@ -68,6 +69,17 @@ class DBOpmProcessIdEffect(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -148,6 +160,57 @@ class DBVistrailVariable(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_uuid')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_uuid, 
+                                 other.db_uuid)
+        alternate_key = (self.__class__.__name__, 'db_package')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_package, 
+                                 other.db_package)
+        alternate_key = (self.__class__.__name__, 'db_module')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_module, 
+                                 other.db_module)
+        alternate_key = (self.__class__.__name__, 'db_namespace')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_namespace, 
+                                 other.db_namespace)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -323,6 +386,73 @@ class DBProvAgent(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_vt_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_id, 
+                                 other.db_vt_id)
+        alternate_key = (self.__class__.__name__, 'db_prov_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_type, 
+                                 other.db_prov_type)
+        alternate_key = (self.__class__.__name__, 'db_prov_label')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_label, 
+                                 other.db_prov_label)
+        alternate_key = (self.__class__.__name__, 'db_vt_machine_os')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_machine_os, 
+                                 other.db_vt_machine_os)
+        alternate_key = (self.__class__.__name__, 'db_vt_machine_architecture')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_machine_architecture, 
+                                 other.db_vt_machine_architecture)
+        alternate_key = (self.__class__.__name__, 'db_vt_machine_processor')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_machine_processor, 
+                                 other.db_vt_machine_processor)
+        alternate_key = (self.__class__.__name__, 'db_vt_machine_ram')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_machine_ram, 
+                                 other.db_vt_machine_ram)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -549,6 +679,64 @@ class DBOpmWasGeneratedBy(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_effect')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_effect is not None and other.db_effect is not None:
+                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_effect, 
+                                     other.db_effect)
+        alternate_key = (self.__class__.__name__, 'db_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_role is not None and other.db_role is not None:
+                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_role, 
+                                     other.db_role)
+        alternate_key = (self.__class__.__name__, 'db_cause')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_cause is not None and other.db_cause is not None:
+                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_cause, 
+                                     other.db_cause)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_opm_times')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_opm_times), 
+                                 len(other.db_opm_times))
+            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
+                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -811,6 +999,31 @@ class DBOpmAccounts(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_opm_overlapss')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_opm_overlapss), 
+                                 len(other.db_opm_overlapss))
+            for obj1, obj2 in izip(sorted(self.db_opm_overlapss, key=lambda x: x.db_id), 
+                                   sorted(other.db_opm_overlapss, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -976,6 +1189,17 @@ class DBRefProvAgent(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_ref')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_ref, 
+                                 other.db_prov_ref)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -1070,6 +1294,76 @@ class DBPortSpec(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_type, 
+                                 other.db_type)
+        alternate_key = (self.__class__.__name__, 'db_optional')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_optional, 
+                                 other.db_optional)
+        alternate_key = (self.__class__.__name__, 'db_sort_key')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_sort_key, 
+                                 other.db_sort_key)
+        alternate_key = (self.__class__.__name__, 'db_portSpecItems')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_portSpecItems), 
+                                 len(other.db_portSpecItems))
+            for obj1, obj2 in izip(sorted(self.db_portSpecItems, key=lambda x: x.db_id), 
+                                   sorted(other.db_portSpecItems, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_min_conns')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_min_conns, 
+                                 other.db_min_conns)
+        alternate_key = (self.__class__.__name__, 'db_max_conns')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_max_conns, 
+                                 other.db_max_conns)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -1372,6 +1666,101 @@ class DBModule(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_cache')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_cache, 
+                                 other.db_cache)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_namespace')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_namespace, 
+                                 other.db_namespace)
+        alternate_key = (self.__class__.__name__, 'db_package')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_package, 
+                                 other.db_package)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_location')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_location is not None and other.db_location is not None:
+                self.db_location.deep_eq_test(other.db_location, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_location, 
+                                     other.db_location)
+        alternate_key = (self.__class__.__name__, 'db_functions')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_functions), 
+                                 len(other.db_functions))
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+                                   sorted(other.db_functions, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_portSpecs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_portSpecs), 
+                                 len(other.db_portSpecs))
+            for obj1, obj2 in izip(sorted(self.db_portSpecs, key=lambda x: x.db_id), 
+                                   sorted(other.db_portSpecs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -1809,6 +2198,76 @@ class DBModuleDescriptor(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_package')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_package, 
+                                 other.db_package)
+        alternate_key = (self.__class__.__name__, 'db_namespace')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_namespace, 
+                                 other.db_namespace)
+        alternate_key = (self.__class__.__name__, 'db_package_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_package_version, 
+                                 other.db_package_version)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_base_descriptor_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_base_descriptor_id, 
+                                 other.db_base_descriptor_id)
+        alternate_key = (self.__class__.__name__, 'db_portSpecs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_portSpecs), 
+                                 len(other.db_portSpecs))
+            for obj1, obj2 in izip(sorted(self.db_portSpecs, key=lambda x: x.db_id), 
+                                   sorted(other.db_portSpecs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -2067,6 +2526,25 @@ class DBTag(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -2155,6 +2633,17 @@ class DBOpmRole(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -2303,6 +2792,86 @@ class DBProvDocument(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_entitys')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_prov_entitys), 
+                                 len(other.db_prov_entitys))
+            for obj1, obj2 in izip(sorted(self.db_prov_entitys, key=lambda x: x.db_id), 
+                                   sorted(other.db_prov_entitys, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_prov_activitys')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_prov_activitys), 
+                                 len(other.db_prov_activitys))
+            for obj1, obj2 in izip(sorted(self.db_prov_activitys, key=lambda x: x.db_id), 
+                                   sorted(other.db_prov_activitys, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_prov_agents')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_prov_agents), 
+                                 len(other.db_prov_agents))
+            for obj1, obj2 in izip(sorted(self.db_prov_agents, key=lambda x: x.db_id), 
+                                   sorted(other.db_prov_agents, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_vt_connections')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_vt_connections), 
+                                 len(other.db_vt_connections))
+            for obj1, obj2 in izip(sorted(self.db_vt_connections, key=lambda x: x.db_id), 
+                                   sorted(other.db_vt_connections, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_prov_usages')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_prov_usages), 
+                                 len(other.db_prov_usages))
+            for obj1, obj2 in izip(sorted(self.db_prov_usages, key=lambda x: x.db_id), 
+                                   sorted(other.db_prov_usages, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_prov_generations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_prov_generations), 
+                                 len(other.db_prov_generations))
+            for obj1, obj2 in izip(sorted(self.db_prov_generations, key=lambda x: x.db_id), 
+                                   sorted(other.db_prov_generations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_prov_associations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_prov_associations), 
+                                 len(other.db_prov_associations))
+            for obj1, obj2 in izip(sorted(self.db_prov_associations, key=lambda x: x.db_id), 
+                                   sorted(other.db_prov_associations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -2750,6 +3319,25 @@ class DBOpmAccount(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -2850,6 +3438,20 @@ class DBOpmProcesses(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_processs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_processs), 
+                                 len(other.db_processs))
+            for obj1, obj2 in izip(sorted(self.db_processs, key=lambda x: x.db_id), 
+                                   sorted(other.db_processs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -2973,6 +3575,17 @@ class DBRefProvActivity(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_ref')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_ref, 
+                                 other.db_prov_ref)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -3044,6 +3657,17 @@ class DBOpmAccountId(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -3126,6 +3750,57 @@ class DBPort(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_type, 
+                                 other.db_type)
+        alternate_key = (self.__class__.__name__, 'db_moduleId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_moduleId, 
+                                 other.db_moduleId)
+        alternate_key = (self.__class__.__name__, 'db_moduleName')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_moduleName, 
+                                 other.db_moduleName)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_signature')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_signature, 
+                                 other.db_signature)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -3290,6 +3965,17 @@ class DBRefProvPlan(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_ref')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_ref, 
+                                 other.db_prov_ref)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -3372,6 +4058,39 @@ class DBOpmArtifact(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_value is not None and other.db_value is not None:
+                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_value, 
+                                     other.db_value)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -3569,6 +4288,101 @@ class DBGroup(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_workflow')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_workflow is not None and other.db_workflow is not None:
+                self.db_workflow.deep_eq_test(other.db_workflow, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_workflow, 
+                                     other.db_workflow)
+        alternate_key = (self.__class__.__name__, 'db_cache')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_cache, 
+                                 other.db_cache)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_namespace')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_namespace, 
+                                 other.db_namespace)
+        alternate_key = (self.__class__.__name__, 'db_package')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_package, 
+                                 other.db_package)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_location')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_location is not None and other.db_location is not None:
+                self.db_location.deep_eq_test(other.db_location, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_location, 
+                                     other.db_location)
+        alternate_key = (self.__class__.__name__, 'db_functions')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_functions), 
+                                 len(other.db_functions))
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+                                   sorted(other.db_functions, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -3971,6 +4785,79 @@ class DBLog(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_entity_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_entity_type, 
+                                 other.db_entity_type)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_last_modified')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_last_modified, 
+                                 other.db_last_modified)
+        alternate_key = (self.__class__.__name__, 'db_workflow_execs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_workflow_execs), 
+                                 len(other.db_workflow_execs))
+            for obj1, obj2 in izip(sorted(self.db_workflow_execs, key=lambda x: x.db_id), 
+                                   sorted(other.db_workflow_execs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_machines')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_machines), 
+                                 len(other.db_machines))
+            for obj1, obj2 in izip(sorted(self.db_machines, key=lambda x: x.db_id), 
+                                   sorted(other.db_machines, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_vistrail_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vistrail_id, 
+                                 other.db_vistrail_id)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -4271,6 +5158,36 @@ class DBMashupAlias(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_component')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_component is not None and other.db_component is not None:
+                self.db_component.deep_eq_test(other.db_component, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_component, 
+                                     other.db_component)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -4407,6 +5324,20 @@ class DBOpmAgents(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_agents')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_agents), 
+                                 len(other.db_agents))
+            for obj1, obj2 in izip(sorted(self.db_agents, key=lambda x: x.db_id), 
+                                   sorted(other.db_agents, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -4556,6 +5487,84 @@ class DBMashup(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_aliases')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_aliases), 
+                                 len(other.db_aliases))
+            for obj1, obj2 in izip(sorted(self.db_aliases, key=lambda x: x.db_id), 
+                                   sorted(other.db_aliases, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_type, 
+                                 other.db_type)
+        alternate_key = (self.__class__.__name__, 'db_vtid')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vtid, 
+                                 other.db_vtid)
+        alternate_key = (self.__class__.__name__, 'db_layout')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_layout, 
+                                 other.db_layout)
+        alternate_key = (self.__class__.__name__, 'db_geometry')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_geometry, 
+                                 other.db_geometry)
+        alternate_key = (self.__class__.__name__, 'db_has_seq')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_has_seq, 
+                                 other.db_has_seq)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -4824,6 +5833,17 @@ class DBOpmProcessIdCause(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -4901,6 +5921,39 @@ class DBProvGeneration(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_entity')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_prov_entity is not None and other.db_prov_entity is not None:
+                self.db_prov_entity.deep_eq_test(other.db_prov_entity, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_prov_entity, 
+                                     other.db_prov_entity)
+        alternate_key = (self.__class__.__name__, 'db_prov_activity')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_prov_activity is not None and other.db_prov_activity is not None:
+                self.db_prov_activity.deep_eq_test(other.db_prov_activity, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_prov_activity, 
+                                     other.db_prov_activity)
+        alternate_key = (self.__class__.__name__, 'db_prov_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_role, 
+                                 other.db_prov_role)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -5056,6 +6109,81 @@ class DBPortSpecItem(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_pos')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_pos, 
+                                 other.db_pos)
+        alternate_key = (self.__class__.__name__, 'db_module')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_module, 
+                                 other.db_module)
+        alternate_key = (self.__class__.__name__, 'db_package')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_package, 
+                                 other.db_package)
+        alternate_key = (self.__class__.__name__, 'db_namespace')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_namespace, 
+                                 other.db_namespace)
+        alternate_key = (self.__class__.__name__, 'db_label')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_label, 
+                                 other.db_label)
+        alternate_key = (self.__class__.__name__, 'db_default')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_default, 
+                                 other.db_default)
+        alternate_key = (self.__class__.__name__, 'db_values')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_values, 
+                                 other.db_values)
+        alternate_key = (self.__class__.__name__, 'db_entry_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_entry_type, 
+                                 other.db_entry_type)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -5284,6 +6412,57 @@ class DBMachine(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_os')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_os, 
+                                 other.db_os)
+        alternate_key = (self.__class__.__name__, 'db_architecture')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_architecture, 
+                                 other.db_architecture)
+        alternate_key = (self.__class__.__name__, 'db_processor')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_processor, 
+                                 other.db_processor)
+        alternate_key = (self.__class__.__name__, 'db_ram')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ram, 
+                                 other.db_ram)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -5460,6 +6639,60 @@ class DBAdd(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_data')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_data is not None and other.db_data is not None:
+                self.db_data.deep_eq_test(other.db_data, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_data, 
+                                     other.db_data)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_what')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_what, 
+                                 other.db_what)
+        alternate_key = (self.__class__.__name__, 'db_objectId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_objectId, 
+                                 other.db_objectId)
+        alternate_key = (self.__class__.__name__, 'db_parentObjId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parentObjId, 
+                                 other.db_parentObjId)
+        alternate_key = (self.__class__.__name__, 'db_parentObjType')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parentObjType, 
+                                 other.db_parentObjType)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -5701,6 +6934,33 @@ class DBOther(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_key')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_key, 
+                                 other.db_key)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -5811,6 +7071,33 @@ class DBLocation(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_x')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_x, 
+                                 other.db_x)
+        alternate_key = (self.__class__.__name__, 'db_y')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_y, 
+                                 other.db_y)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -5927,6 +7214,20 @@ class DBOpmOverlaps(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_opm_account_ids')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_opm_account_ids), 
+                                 len(other.db_opm_account_ids))
+            for obj1, obj2 in izip(sorted(self.db_opm_account_ids, key=lambda x: x.db_id), 
+                                   sorted(other.db_opm_account_ids, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -6036,6 +7337,20 @@ class DBOpmArtifacts(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_artifacts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_artifacts), 
+                                 len(other.db_artifacts))
+            for obj1, obj2 in izip(sorted(self.db_artifacts, key=lambda x: x.db_id), 
+                                   sorted(other.db_artifacts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -6164,6 +7479,20 @@ class DBOpmDependencies(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_dependencys')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_dependencys), 
+                                 len(other.db_dependencys))
+            for obj1, obj2 in izip(sorted(self.db_dependencys, key=lambda x: x.db_id), 
+                                   sorted(other.db_dependencys, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -6294,6 +7623,57 @@ class DBParameter(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_pos')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_pos, 
+                                 other.db_pos)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_type, 
+                                 other.db_type)
+        alternate_key = (self.__class__.__name__, 'db_val')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_val, 
+                                 other.db_val)
+        alternate_key = (self.__class__.__name__, 'db_alias')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_alias, 
+                                 other.db_alias)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -6484,6 +7864,64 @@ class DBOpmUsed(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_effect')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_effect is not None and other.db_effect is not None:
+                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_effect, 
+                                     other.db_effect)
+        alternate_key = (self.__class__.__name__, 'db_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_role is not None and other.db_role is not None:
+                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_role, 
+                                     other.db_role)
+        alternate_key = (self.__class__.__name__, 'db_cause')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_cause is not None and other.db_cause is not None:
+                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_cause, 
+                                     other.db_cause)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_opm_times')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_opm_times), 
+                                 len(other.db_opm_times))
+            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
+                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -6727,6 +8165,25 @@ class DBPluginData(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_data')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_data, 
+                                 other.db_data)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -6832,6 +8289,44 @@ class DBFunction(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_pos')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_pos, 
+                                 other.db_pos)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_parameters')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_parameters), 
+                                 len(other.db_parameters))
+            for obj1, obj2 in izip(sorted(self.db_parameters, key=lambda x: x.db_id), 
+                                   sorted(other.db_parameters, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -7019,6 +8514,57 @@ class DBActionAnnotation(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_key')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_key, 
+                                 other.db_key)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
+        alternate_key = (self.__class__.__name__, 'db_action_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_action_id, 
+                                 other.db_action_id)
+        alternate_key = (self.__class__.__name__, 'db_date')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_date, 
+                                 other.db_date)
+        alternate_key = (self.__class__.__name__, 'db_user')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_user, 
+                                 other.db_user)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -7225,6 +8771,98 @@ class DBAbstraction(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_cache')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_cache, 
+                                 other.db_cache)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_namespace')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_namespace, 
+                                 other.db_namespace)
+        alternate_key = (self.__class__.__name__, 'db_package')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_package, 
+                                 other.db_package)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_internal_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_internal_version, 
+                                 other.db_internal_version)
+        alternate_key = (self.__class__.__name__, 'db_location')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_location is not None and other.db_location is not None:
+                self.db_location.deep_eq_test(other.db_location, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_location, 
+                                     other.db_location)
+        alternate_key = (self.__class__.__name__, 'db_functions')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_functions), 
+                                 len(other.db_functions))
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+                                   sorted(other.db_functions, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -7654,6 +9292,112 @@ class DBWorkflow(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_modules')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_modules), 
+                                 len(other.db_modules))
+            for obj1, obj2 in izip(sorted(self.db_modules, key=lambda x: x.db_id), 
+                                   sorted(other.db_modules, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_entity_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_entity_type, 
+                                 other.db_entity_type)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_last_modified')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_last_modified, 
+                                 other.db_last_modified)
+        alternate_key = (self.__class__.__name__, 'db_connections')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_connections), 
+                                 len(other.db_connections))
+            for obj1, obj2 in izip(sorted(self.db_connections, key=lambda x: x.db_id), 
+                                   sorted(other.db_connections, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_plugin_datas')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_plugin_datas), 
+                                 len(other.db_plugin_datas))
+            for obj1, obj2 in izip(sorted(self.db_plugin_datas, key=lambda x: x.db_id), 
+                                   sorted(other.db_plugin_datas, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_others')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_others), 
+                                 len(other.db_others))
+            for obj1, obj2 in izip(sorted(self.db_others, key=lambda x: x.db_id), 
+                                   sorted(other.db_others, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_vistrail_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vistrail_id, 
+                                 other.db_vistrail_id)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -8158,6 +9902,17 @@ class DBOpmArtifactIdCause(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -8229,6 +9984,17 @@ class DBRefProvEntity(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_ref')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_ref, 
+                                 other.db_prov_ref)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -8319,6 +10085,92 @@ class DBProvActivity(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_startTime')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_startTime, 
+                                 other.db_startTime)
+        alternate_key = (self.__class__.__name__, 'db_endTime')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_endTime, 
+                                 other.db_endTime)
+        alternate_key = (self.__class__.__name__, 'db_vt_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_id, 
+                                 other.db_vt_id)
+        alternate_key = (self.__class__.__name__, 'db_vt_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_type, 
+                                 other.db_vt_type)
+        alternate_key = (self.__class__.__name__, 'db_vt_cached')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_cached, 
+                                 other.db_vt_cached)
+        alternate_key = (self.__class__.__name__, 'db_vt_completed')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_completed, 
+                                 other.db_vt_completed)
+        alternate_key = (self.__class__.__name__, 'db_vt_machine_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_machine_id, 
+                                 other.db_vt_machine_id)
+        alternate_key = (self.__class__.__name__, 'db_vt_error')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_error, 
+                                 other.db_vt_error)
+        alternate_key = (self.__class__.__name__, 'db_is_part_of')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_is_part_of is not None and other.db_is_part_of is not None:
+                self.db_is_part_of.deep_eq_test(other.db_is_part_of, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_is_part_of, 
+                                     other.db_is_part_of)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -8583,6 +10435,52 @@ class DBMashupAction(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_prevId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prevId, 
+                                 other.db_prevId)
+        alternate_key = (self.__class__.__name__, 'db_date')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_date, 
+                                 other.db_date)
+        alternate_key = (self.__class__.__name__, 'db_user')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_user, 
+                                 other.db_user)
+        alternate_key = (self.__class__.__name__, 'db_mashup')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_mashup is not None and other.db_mashup is not None:
+                self.db_mashup.deep_eq_test(other.db_mashup, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_mashup, 
+                                     other.db_mashup)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -8752,6 +10650,39 @@ class DBProvUsage(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_activity')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_prov_activity is not None and other.db_prov_activity is not None:
+                self.db_prov_activity.deep_eq_test(other.db_prov_activity, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_prov_activity, 
+                                     other.db_prov_activity)
+        alternate_key = (self.__class__.__name__, 'db_prov_entity')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_prov_entity is not None and other.db_prov_entity is not None:
+                self.db_prov_entity.deep_eq_test(other.db_prov_entity, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_prov_entity, 
+                                     other.db_prov_entity)
+        alternate_key = (self.__class__.__name__, 'db_prov_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_role, 
+                                 other.db_prov_role)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -8894,6 +10825,20 @@ class DBOpmArtifactValue(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_value is not None and other.db_value is not None:
+                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_value, 
+                                     other.db_value)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -8991,6 +10936,17 @@ class DBOpmArtifactIdEffect(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -9079,6 +11035,64 @@ class DBOpmGraph(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_accounts is not None and other.db_accounts is not None:
+                self.db_accounts.deep_eq_test(other.db_accounts, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_accounts, 
+                                     other.db_accounts)
+        alternate_key = (self.__class__.__name__, 'db_processes')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_processes is not None and other.db_processes is not None:
+                self.db_processes.deep_eq_test(other.db_processes, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_processes, 
+                                     other.db_processes)
+        alternate_key = (self.__class__.__name__, 'db_artifacts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_artifacts is not None and other.db_artifacts is not None:
+                self.db_artifacts.deep_eq_test(other.db_artifacts, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_artifacts, 
+                                     other.db_artifacts)
+        alternate_key = (self.__class__.__name__, 'db_agents')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_agents is not None and other.db_agents is not None:
+                self.db_agents.deep_eq_test(other.db_agents, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_agents, 
+                                     other.db_agents)
+        alternate_key = (self.__class__.__name__, 'db_dependencies')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_dependencies is not None and other.db_dependencies is not None:
+                self.db_dependencies.deep_eq_test(other.db_dependencies, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_dependencies, 
+                                     other.db_dependencies)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -9355,6 +11369,82 @@ class DBMashuptrail(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_vtVersion')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vtVersion, 
+                                 other.db_vtVersion)
+        alternate_key = (self.__class__.__name__, 'db_last_modified')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_last_modified, 
+                                 other.db_last_modified)
+        alternate_key = (self.__class__.__name__, 'db_actions')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_actions), 
+                                 len(other.db_actions))
+            for obj1, obj2 in izip(sorted(self.db_actions, key=lambda x: x.db_id), 
+                                   sorted(other.db_actions, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_actionAnnotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_actionAnnotations), 
+                                 len(other.db_actionAnnotations))
+            for obj1, obj2 in izip(sorted(self.db_actionAnnotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_actionAnnotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -9749,6 +11839,68 @@ class DBRegistry(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_entity_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_entity_type, 
+                                 other.db_entity_type)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_root_descriptor_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_root_descriptor_id, 
+                                 other.db_root_descriptor_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_last_modified')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_last_modified, 
+                                 other.db_last_modified)
+        alternate_key = (self.__class__.__name__, 'db_packages')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_packages), 
+                                 len(other.db_packages))
+            for obj1, obj2 in izip(sorted(self.db_packages, key=lambda x: x.db_id), 
+                                   sorted(other.db_packages, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -9997,6 +12149,65 @@ class DBVtConnection(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_vt_source')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_source, 
+                                 other.db_vt_source)
+        alternate_key = (self.__class__.__name__, 'db_vt_dest')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_dest, 
+                                 other.db_vt_dest)
+        alternate_key = (self.__class__.__name__, 'db_vt_source_port')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_source_port, 
+                                 other.db_vt_source_port)
+        alternate_key = (self.__class__.__name__, 'db_vt_dest_port')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_dest_port, 
+                                 other.db_vt_dest_port)
+        alternate_key = (self.__class__.__name__, 'db_vt_source_signature')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_source_signature, 
+                                 other.db_vt_source_signature)
+        alternate_key = (self.__class__.__name__, 'db_vt_dest_signature')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_dest_signature, 
+                                 other.db_vt_dest_signature)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -10207,6 +12418,145 @@ class DBMashupComponent(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_vtid')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vtid, 
+                                 other.db_vtid)
+        alternate_key = (self.__class__.__name__, 'db_vttype')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vttype, 
+                                 other.db_vttype)
+        alternate_key = (self.__class__.__name__, 'db_vtparent_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vtparent_type, 
+                                 other.db_vtparent_type)
+        alternate_key = (self.__class__.__name__, 'db_vtparent_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vtparent_id, 
+                                 other.db_vtparent_id)
+        alternate_key = (self.__class__.__name__, 'db_vtpos')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vtpos, 
+                                 other.db_vtpos)
+        alternate_key = (self.__class__.__name__, 'db_vtmid')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vtmid, 
+                                 other.db_vtmid)
+        alternate_key = (self.__class__.__name__, 'db_pos')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_pos, 
+                                 other.db_pos)
+        alternate_key = (self.__class__.__name__, 'db_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_type, 
+                                 other.db_type)
+        alternate_key = (self.__class__.__name__, 'db_val')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_val, 
+                                 other.db_val)
+        alternate_key = (self.__class__.__name__, 'db_minVal')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_minVal, 
+                                 other.db_minVal)
+        alternate_key = (self.__class__.__name__, 'db_maxVal')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_maxVal, 
+                                 other.db_maxVal)
+        alternate_key = (self.__class__.__name__, 'db_stepSize')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_stepSize, 
+                                 other.db_stepSize)
+        alternate_key = (self.__class__.__name__, 'db_strvaluelist')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_strvaluelist, 
+                                 other.db_strvaluelist)
+        alternate_key = (self.__class__.__name__, 'db_widget')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_widget, 
+                                 other.db_widget)
+        alternate_key = (self.__class__.__name__, 'db_seq')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_seq, 
+                                 other.db_seq)
+        alternate_key = (self.__class__.__name__, 'db_parent')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parent, 
+                                 other.db_parent)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -10593,6 +12943,116 @@ class DBProvEntity(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_prov_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_type, 
+                                 other.db_prov_type)
+        alternate_key = (self.__class__.__name__, 'db_prov_label')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_label, 
+                                 other.db_prov_label)
+        alternate_key = (self.__class__.__name__, 'db_prov_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_value, 
+                                 other.db_prov_value)
+        alternate_key = (self.__class__.__name__, 'db_vt_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_id, 
+                                 other.db_vt_id)
+        alternate_key = (self.__class__.__name__, 'db_vt_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_type, 
+                                 other.db_vt_type)
+        alternate_key = (self.__class__.__name__, 'db_vt_desc')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_desc, 
+                                 other.db_vt_desc)
+        alternate_key = (self.__class__.__name__, 'db_vt_package')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_package, 
+                                 other.db_vt_package)
+        alternate_key = (self.__class__.__name__, 'db_vt_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_version, 
+                                 other.db_vt_version)
+        alternate_key = (self.__class__.__name__, 'db_vt_cache')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_cache, 
+                                 other.db_vt_cache)
+        alternate_key = (self.__class__.__name__, 'db_vt_location_x')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_location_x, 
+                                 other.db_vt_location_x)
+        alternate_key = (self.__class__.__name__, 'db_vt_location_y')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_location_y, 
+                                 other.db_vt_location_y)
+        alternate_key = (self.__class__.__name__, 'db_is_part_of')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_is_part_of is not None and other.db_is_part_of is not None:
+                self.db_is_part_of.deep_eq_test(other.db_is_part_of, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_is_part_of, 
+                                     other.db_is_part_of)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -10902,6 +13362,33 @@ class DBAnnotation(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_key')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_key, 
+                                 other.db_key)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -11028,6 +13515,68 @@ class DBChange(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_data')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_data is not None and other.db_data is not None:
+                self.db_data.deep_eq_test(other.db_data, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_data, 
+                                     other.db_data)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_what')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_what, 
+                                 other.db_what)
+        alternate_key = (self.__class__.__name__, 'db_oldObjId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_oldObjId, 
+                                 other.db_oldObjId)
+        alternate_key = (self.__class__.__name__, 'db_newObjId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_newObjId, 
+                                 other.db_newObjId)
+        alternate_key = (self.__class__.__name__, 'db_parentObjId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parentObjId, 
+                                 other.db_parentObjId)
+        alternate_key = (self.__class__.__name__, 'db_parentObjType')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parentObjType, 
+                                 other.db_parentObjType)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -11312,6 +13861,64 @@ class DBOpmWasDerivedFrom(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_effect')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_effect is not None and other.db_effect is not None:
+                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_effect, 
+                                     other.db_effect)
+        alternate_key = (self.__class__.__name__, 'db_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_role is not None and other.db_role is not None:
+                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_role, 
+                                     other.db_role)
+        alternate_key = (self.__class__.__name__, 'db_cause')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_cause is not None and other.db_cause is not None:
+                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_cause, 
+                                     other.db_cause)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_opm_times')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_opm_times), 
+                                 len(other.db_opm_times))
+            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
+                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -11589,6 +14196,75 @@ class DBOpmWasControlledBy(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_effect')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_effect is not None and other.db_effect is not None:
+                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_effect, 
+                                     other.db_effect)
+        alternate_key = (self.__class__.__name__, 'db_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_role is not None and other.db_role is not None:
+                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_role, 
+                                     other.db_role)
+        alternate_key = (self.__class__.__name__, 'db_cause')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_cause is not None and other.db_cause is not None:
+                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_cause, 
+                                     other.db_cause)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_starts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_starts), 
+                                 len(other.db_starts))
+            for obj1, obj2 in izip(sorted(self.db_starts, key=lambda x: x.db_id), 
+                                   sorted(other.db_starts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_ends')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_ends), 
+                                 len(other.db_ends))
+            for obj1, obj2 in izip(sorted(self.db_ends, key=lambda x: x.db_id), 
+                                   sorted(other.db_ends, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -11875,6 +14551,17 @@ class DBOpmAgentId(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -11992,6 +14679,111 @@ class DBGroupExec(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_item_execs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_item_execs), 
+                                 len(other.db_item_execs))
+            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id), 
+                                   sorted(other.db_item_execs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_ts_start')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_start, 
+                                 other.db_ts_start)
+        alternate_key = (self.__class__.__name__, 'db_ts_end')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_end, 
+                                 other.db_ts_end)
+        alternate_key = (self.__class__.__name__, 'db_cached')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_cached, 
+                                 other.db_cached)
+        alternate_key = (self.__class__.__name__, 'db_module_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_module_id, 
+                                 other.db_module_id)
+        alternate_key = (self.__class__.__name__, 'db_group_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_group_name, 
+                                 other.db_group_name)
+        alternate_key = (self.__class__.__name__, 'db_group_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_group_type, 
+                                 other.db_group_type)
+        alternate_key = (self.__class__.__name__, 'db_completed')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_completed, 
+                                 other.db_completed)
+        alternate_key = (self.__class__.__name__, 'db_error')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_error, 
+                                 other.db_error)
+        alternate_key = (self.__class__.__name__, 'db_machine_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_machine_id, 
+                                 other.db_machine_id)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -12375,6 +15167,33 @@ class DBOpmTime(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_no_later_than')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_no_later_than, 
+                                 other.db_no_later_than)
+        alternate_key = (self.__class__.__name__, 'db_no_earlier_than')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_no_earlier_than, 
+                                 other.db_no_earlier_than)
+        alternate_key = (self.__class__.__name__, 'db_clock_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_clock_id, 
+                                 other.db_clock_id)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -12508,6 +15327,76 @@ class DBPackage(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_identifier')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_identifier, 
+                                 other.db_identifier)
+        alternate_key = (self.__class__.__name__, 'db_codepath')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_codepath, 
+                                 other.db_codepath)
+        alternate_key = (self.__class__.__name__, 'db_load_configuration')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_load_configuration, 
+                                 other.db_load_configuration)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_description')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_description, 
+                                 other.db_description)
+        alternate_key = (self.__class__.__name__, 'db_module_descriptors')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_module_descriptors), 
+                                 len(other.db_module_descriptors))
+            for obj1, obj2 in izip(sorted(self.db_module_descriptors, key=lambda x: x.db_id), 
+                                   sorted(other.db_module_descriptors, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -12810,6 +15699,127 @@ class DBWorkflowExec(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_item_execs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_item_execs), 
+                                 len(other.db_item_execs))
+            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id), 
+                                   sorted(other.db_item_execs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_user')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_user, 
+                                 other.db_user)
+        alternate_key = (self.__class__.__name__, 'db_ip')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ip, 
+                                 other.db_ip)
+        alternate_key = (self.__class__.__name__, 'db_session')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_session, 
+                                 other.db_session)
+        alternate_key = (self.__class__.__name__, 'db_vt_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_vt_version, 
+                                 other.db_vt_version)
+        alternate_key = (self.__class__.__name__, 'db_ts_start')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_start, 
+                                 other.db_ts_start)
+        alternate_key = (self.__class__.__name__, 'db_ts_end')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_end, 
+                                 other.db_ts_end)
+        alternate_key = (self.__class__.__name__, 'db_parent_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parent_id, 
+                                 other.db_parent_id)
+        alternate_key = (self.__class__.__name__, 'db_parent_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parent_type, 
+                                 other.db_parent_type)
+        alternate_key = (self.__class__.__name__, 'db_parent_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parent_version, 
+                                 other.db_parent_version)
+        alternate_key = (self.__class__.__name__, 'db_completed')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_completed, 
+                                 other.db_completed)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -13252,6 +16262,76 @@ class DBParameterExploration(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_action_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_action_id, 
+                                 other.db_action_id)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_date')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_date, 
+                                 other.db_date)
+        alternate_key = (self.__class__.__name__, 'db_user')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_user, 
+                                 other.db_user)
+        alternate_key = (self.__class__.__name__, 'db_dims')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_dims, 
+                                 other.db_dims)
+        alternate_key = (self.__class__.__name__, 'db_layout')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_layout, 
+                                 other.db_layout)
+        alternate_key = (self.__class__.__name__, 'db_functions')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_functions), 
+                                 len(other.db_functions))
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+                                   sorted(other.db_functions, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -13522,6 +16602,68 @@ class DBLoopExec(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_item_execs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_item_execs), 
+                                 len(other.db_item_execs))
+            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id), 
+                                   sorted(other.db_item_execs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_ts_start')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_start, 
+                                 other.db_ts_start)
+        alternate_key = (self.__class__.__name__, 'db_ts_end')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_end, 
+                                 other.db_ts_end)
+        alternate_key = (self.__class__.__name__, 'db_iteration')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_iteration, 
+                                 other.db_iteration)
+        alternate_key = (self.__class__.__name__, 'db_completed')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_completed, 
+                                 other.db_completed)
+        alternate_key = (self.__class__.__name__, 'db_error')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_error, 
+                                 other.db_error)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -13775,6 +16917,57 @@ class DBMashupActionAnnotation(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_key')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_key, 
+                                 other.db_key)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
+        alternate_key = (self.__class__.__name__, 'db_action_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_action_id, 
+                                 other.db_action_id)
+        alternate_key = (self.__class__.__name__, 'db_date')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_date, 
+                                 other.db_date)
+        alternate_key = (self.__class__.__name__, 'db_user')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_user, 
+                                 other.db_user)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -13952,6 +17145,28 @@ class DBConnection(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_ports')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_ports), 
+                                 len(other.db_ports))
+            for obj1, obj2 in izip(sorted(self.db_ports, key=lambda x: x.db_id), 
+                                   sorted(other.db_ports, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -14111,6 +17326,39 @@ class DBOpmProcess(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_value is not None and other.db_value is not None:
+                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_value, 
+                                     other.db_value)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -14261,6 +17509,17 @@ class DBIsPartOf(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_ref')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_ref, 
+                                 other.db_prov_ref)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -14359,6 +17618,64 @@ class DBOpmWasTriggeredBy(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_effect')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_effect is not None and other.db_effect is not None:
+                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_effect, 
+                                     other.db_effect)
+        alternate_key = (self.__class__.__name__, 'db_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_role is not None and other.db_role is not None:
+                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_role, 
+                                     other.db_role)
+        alternate_key = (self.__class__.__name__, 'db_cause')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_cause is not None and other.db_cause is not None:
+                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_cause, 
+                                     other.db_cause)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_opm_times')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_opm_times), 
+                                 len(other.db_opm_times))
+            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
+                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -14603,6 +17920,20 @@ class DBOpmProcessValue(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_value is not None and other.db_value is not None:
+                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_value, 
+                                     other.db_value)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -14741,6 +18072,71 @@ class DBAction(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_operations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_operations), 
+                                 len(other.db_operations))
+            for obj1, obj2 in izip(sorted(self.db_operations, key=lambda x: x.db_id), 
+                                   sorted(other.db_operations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_prevId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prevId, 
+                                 other.db_prevId)
+        alternate_key = (self.__class__.__name__, 'db_date')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_date, 
+                                 other.db_date)
+        alternate_key = (self.__class__.__name__, 'db_session')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_session, 
+                                 other.db_session)
+        alternate_key = (self.__class__.__name__, 'db_user')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_user, 
+                                 other.db_user)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -15048,6 +18444,36 @@ class DBOpmAgent(object):
             cp.is_new = self.is_new
         return cp
 
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_value')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_value, 
+                                 other.db_value)
+        alternate_key = (self.__class__.__name__, 'db_accounts')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_accounts), 
+                                 len(other.db_accounts))
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
@@ -15194,6 +18620,49 @@ class DBDelete(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_what')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_what, 
+                                 other.db_what)
+        alternate_key = (self.__class__.__name__, 'db_objectId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_objectId, 
+                                 other.db_objectId)
+        alternate_key = (self.__class__.__name__, 'db_parentObjId')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parentObjId, 
+                                 other.db_parentObjId)
+        alternate_key = (self.__class__.__name__, 'db_parentObjType')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_parentObjType, 
+                                 other.db_parentObjType)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -15349,6 +18818,50 @@ class DBProvAssociation(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_prov_activity')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_prov_activity is not None and other.db_prov_activity is not None:
+                self.db_prov_activity.deep_eq_test(other.db_prov_activity, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_prov_activity, 
+                                     other.db_prov_activity)
+        alternate_key = (self.__class__.__name__, 'db_prov_agent')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_prov_agent is not None and other.db_prov_agent is not None:
+                self.db_prov_agent.deep_eq_test(other.db_prov_agent, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_prov_agent, 
+                                     other.db_prov_agent)
+        alternate_key = (self.__class__.__name__, 'db_prov_plan')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            if self.db_prov_plan is not None and other.db_prov_plan is not None:
+                self.db_prov_plan.deep_eq_test(other.db_prov_plan, test_obj, alternate_tests)
+            else:
+                test_obj.assertEqual(self.db_prov_plan, 
+                                     other.db_prov_plan)
+        alternate_key = (self.__class__.__name__, 'db_prov_role')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_prov_role, 
+                                 other.db_prov_role)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -15622,6 +19135,115 @@ class DBVistrail(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_entity_type')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_entity_type, 
+                                 other.db_entity_type)
+        alternate_key = (self.__class__.__name__, 'db_version')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_version, 
+                                 other.db_version)
+        alternate_key = (self.__class__.__name__, 'db_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_name, 
+                                 other.db_name)
+        alternate_key = (self.__class__.__name__, 'db_last_modified')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_last_modified, 
+                                 other.db_last_modified)
+        alternate_key = (self.__class__.__name__, 'db_actions')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_actions), 
+                                 len(other.db_actions))
+            for obj1, obj2 in izip(sorted(self.db_actions, key=lambda x: x.db_id), 
+                                   sorted(other.db_actions, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_tags')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_tags), 
+                                 len(other.db_tags))
+            for obj1, obj2 in izip(sorted(self.db_tags, key=lambda x: x.db_id), 
+                                   sorted(other.db_tags, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_vistrailVariables')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_vistrailVariables), 
+                                 len(other.db_vistrailVariables))
+            for obj1, obj2 in izip(sorted(self.db_vistrailVariables, key=lambda x: x.db_id), 
+                                   sorted(other.db_vistrailVariables, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_parameter_explorations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_parameter_explorations), 
+                                 len(other.db_parameter_explorations))
+            for obj1, obj2 in izip(sorted(self.db_parameter_explorations, key=lambda x: x.db_id), 
+                                   sorted(other.db_parameter_explorations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_actionAnnotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_actionAnnotations), 
+                                 len(other.db_actionAnnotations))
+            for obj1, obj2 in izip(sorted(self.db_actionAnnotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_actionAnnotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -16242,6 +19864,103 @@ class DBModuleExec(object):
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
         return cp
+
+    def deep_eq_test(self, other, test_obj, alternate_tests={}):
+        test_obj.assertEqual(self.__class__, other.__class__)
+        alternate_key = (self.__class__.__name__, 'db_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_id, 
+                                 other.db_id)
+        alternate_key = (self.__class__.__name__, 'db_ts_start')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_start, 
+                                 other.db_ts_start)
+        alternate_key = (self.__class__.__name__, 'db_ts_end')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_ts_end, 
+                                 other.db_ts_end)
+        alternate_key = (self.__class__.__name__, 'db_cached')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_cached, 
+                                 other.db_cached)
+        alternate_key = (self.__class__.__name__, 'db_module_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_module_id, 
+                                 other.db_module_id)
+        alternate_key = (self.__class__.__name__, 'db_module_name')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_module_name, 
+                                 other.db_module_name)
+        alternate_key = (self.__class__.__name__, 'db_completed')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_completed, 
+                                 other.db_completed)
+        alternate_key = (self.__class__.__name__, 'db_error')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_error, 
+                                 other.db_error)
+        alternate_key = (self.__class__.__name__, 'db_machine_id')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_machine_id, 
+                                 other.db_machine_id)
+        alternate_key = (self.__class__.__name__, 'db_annotations')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_annotations), 
+                                 len(other.db_annotations))
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+                                   sorted(other.db_annotations, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
+        alternate_key = (self.__class__.__name__, 'db_loop_execs')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(len(self.db_loop_execs), 
+                                 len(other.db_loop_execs))
+            for obj1, obj2 in izip(sorted(self.db_loop_execs, key=lambda x: x.db_id), 
+                                   sorted(other.db_loop_execs, key=lambda x: x.db_id)):
+                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
