@@ -34,7 +34,7 @@
 ###############################################################################
 import copy
 from vistrails.db.versions.v0_9_5.domain import DBVistrail, DBWorkflow, DBLog, \
-    DBRegistry
+    DBRegistry, DBModuleExec, DBGroupExec
 
 def translateVistrail(_vistrail):
     def update_workflow(old_obj, translate_dict):
@@ -53,7 +53,18 @@ def translateWorkflow(_workflow):
     return workflow
 
 def translateLog(_log):
-    translate_dict = {}
+    def update_items(old_obj, translate_dict):
+        new_items = []
+        for obj in old_obj.db_item_execs:
+            if obj.vtType == 'module_exec':
+                new_items.append(DBModuleExec.update_version(obj, translate_dict))
+            elif obj.vtType == 'group_exec':
+                new_items.append(DBGroupExec.update_version(obj, translate_dict))
+            elif obj.vtType == 'loop_exec':
+                # cannot handle loop execs
+                pass
+        return new_items
+    translate_dict = {'DBWorkflowExec': {'items': update_items}}
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '0.9.5'
     return log

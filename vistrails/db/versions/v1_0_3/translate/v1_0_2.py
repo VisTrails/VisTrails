@@ -83,7 +83,7 @@ def update_portSpec(old_obj, translate_dict):
     for i, (sig, default, label) in enumerate(izip(sigs, defaults, labels)):
         module = None
         package = None
-        namespace = None
+        namespace = ''
         if len(sig) == 1:
             module = sig[0]
         else:
@@ -97,7 +97,9 @@ def update_portSpec(old_obj, translate_dict):
                               package=package,
                               namespace=namespace, 
                               label=label, 
-                              default=label)
+                              default=default)
+        item.db_values = ''
+        item.db_entry_type = ''
         new_obj.db_add_portSpecItem(item)
     return new_obj
 
