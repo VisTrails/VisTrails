@@ -1618,6 +1618,121 @@ class TestDBIO(unittest.TestCase):
             
     pass
 
+# helper function for translation tests
+def get_alternate_tests(version):
+    from vistrails.db.versions import get_version_path
+    def test_actionAnnotations(vt1, vt2, test_class, alternate_tests):
+        vt1_action_annotations = {}
+        for a in vt1.db_actionAnnotations:
+            a_t = (a.db_key, a.db_action_id)
+            if a_t in vt1_action_annotations:
+                raise AssertionError("Action annotation %s duplicated" %
+                                     unicode(a_t))
+            vt1_action_annotations[a_t] = a
+        for a2 in vt2.db_actionAnnotations:
+            a_t = (a2.db_key, a2.db_action_id)
+            if a_t not in vt1_action_annotations:
+                raise AssertionError("Action annotation %s not matched" % 
+                                     unicode(a_t))
+            a1 = vt1_action_annotations[a_t]
+            a1.deep_eq_test(a2, test_class, alternate_tests)
+            del vt1_action_annotations[a_t]
+        if len(vt1_action_annotations) > 0:
+            a_t = vt_action_annotations.iterkeys().next()
+            raise AssertionError("Action annotation %s not matched" % 
+                                 unicode(a_t))
+
+    # this works around the fact that sql backend needs to persist the
+    # workflow with an id while the xml version doesn't
+    def test_group_workflow(g1, g2, test_class, alternate_tests):
+        self_func = alternate_tests[('DBGroup', 'db_workflow')]
+        del alternate_tests[('DBGroup', 'db_workflow')]
+
+        sql_only_fields = ['db_id', 'db_entity_type', 'db_entity_id']
+        old_tests = {}
+        for field in sql_only_fields:
+            field_t = ('DBWorkflow', field)
+            if field_t in alternate_tests:
+                old_tests[field] = alternate_tests[field_t]
+            alternate_tests[field_t] = None
+        try:
+            g1.deep_eq_test(g2, test_class, alternate_tests)
+        finally:
+            alternate_tests[('DBGroup', 'db_workflow')] = self_func
+            for field in sql_only_fields:
+                if field in old_tests:
+                    alternate_tests[('DBWorkflow', field)] = old_tests[field]
+                else:
+                    del alternate_tests[('DBWorkflow', field)]
+        
+    alternate_dict = {('1.0.3', '1.0.4'):
+                      {('DBVistrail', 'db_entity_type'): None,
+                       ('DBGroup', 'db_workflow'): test_group_workflow},
+                      ('1.0.2', '1.0.3'): 
+                      {('DBPortSpecItem', 'db_id'): None,
+                       ('DBPortSpec', 'db_min_conns'): None,
+                       ('DBPortSpec', 'db_max_conns'): None,
+                       ('DBVistrail', 'db_parameter_explorations'): None},
+                      ('1.0.1', '1.0.2'):
+                      {('DBActionAnnotation', 'db_date'): None,
+                       ('DBActionAnnotation', 'db_user'): None,
+                       ('DBActionAnnotation', 'db_id'): None,
+                       ('DBVistrail', 'db_actionAnnotations'): \
+                           test_actionAnnotations,
+                       ('DBWorkflowExec', 'db_annotations'): None},
+                      ('1.0.0', '1.0.1'):
+                      {('DBPortSpecItem', 'db_default'): None,
+                       ('DBPortSpecItem', 'db_label'): None},
+                      ('0.9.4', '0.9.5'):
+                      # FIXME should really test the module execs...
+                      {('DBWorkflowExec', 'db_item_execs'): None},
+                      ('0.9.3', '0.9.4'):
+                      {('DBPortSpec', 'db_sort_key'): None,
+                       ('DBAbstraction', 'db_namespace'): None,
+                       ('DBAbstraction', 'db_package'): None,
+                       ('DBAbstraction', 'db_version'): None}
+                      }
+
+    path = get_version_path(version, currentVersion)
+    alternate_tests = {}
+    for t in path:
+        if t in alternate_dict:
+            alternate_tests.update(alternate_dict[t])
+    return alternate_tests
+
+class TestXMLFile(object):
+    def get_version(self):
+        raise NotImplementedError("Subclass should implement get_version")
+
+    def get_filename(self):
+        from vistrails.core.system import vistrails_root_directory
+        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources', 
+                             'test_basics.vt')
+        return fname
+        # return '/vistrails/src/git/examples/terminator.vt'
+
+    def test_save_vistrail_and_reload(self):
+        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+        vt1 = bundle.vistrail
+
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+        os.close(h)
+
+        try:
+            save_vistrail_to_xml(vt1, fname, self.get_version())
+            vt2 = open_vistrail_from_xml(fname)
+            vt1.deep_eq_test(vt2, self, get_alternate_tests(self.get_version()))
+        finally:
+            os.unlink(fname)
+
+class TestXMLFile_v0_9_3(TestXMLFile, unittest.TestCase):
+    def get_version(self):
+        return '0.9.3'
+
+class TestXMLFile_v1_0_2(TestXMLFile, unittest.TestCase):
+    def get_version(self):
+        return '1.0.2'
+
 class TestSQLDatabase(object):
     conn = None
 
@@ -1636,11 +1751,27 @@ class TestSQLDatabase(object):
         close_db_connection(cls.conn)
         cls.conn = None
 
-    def test_save_vistrail(self):
-        in_fname = '/vistrails/src/git/examples/terminator.vt'
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(in_fname)
+    def get_filename(self):
+        from vistrails.core.system import vistrails_root_directory
+        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources', 
+                             'test_basics.vt')
+        return fname
+        # return '/vistrails/src/git/examples/terminator.vt'
+
+    def test_save_bundle(self):
+        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
         save_vistrail_bundle_to_db(bundle, self.conn, True)
         
+    def test_save_vistrail_and_reload(self):
+        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+        vt1 = bundle.vistrail
+        # vt1.db_version = currentVersion
+        vt_id = save_vistrail_to_db(vt1, self.conn, True).db_id
+        vt1.db_id = vt_id
+        vt2 = open_vistrail_from_db(self.conn, vt_id)
+        vt1.deep_eq_test(vt2, self, 
+                         get_alternate_tests(self.get_config()["version"]))
+
     def test_z_get_db_object_list(self):
         print get_db_object_list(self.conn, DBVistrail.vtType)
     
@@ -1708,82 +1839,40 @@ class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
         os.unlink(cls.db_fname)
 
 class TestTranslations(unittest.TestCase):
-    def get_alternate_tests(self, version):
-        from vistrails.db.versions import get_version_path
-        def test_actionAnnotations(vt1, vt2, test_class, alternate_tests):
-            vt1_action_annotations = {}
-            for a in vt1.db_actionAnnotations:
-                a_t = (a.db_key, a.db_action_id)
-                if a_t in vt1_action_annotations:
-                    raise AssertionError("Action annotation %s duplicated" %
-                                         unicode(a_t))
-                vt1_action_annotations[a_t] = a
-            for a2 in vt2.db_actionAnnotations:
-                a_t = (a2.db_key, a2.db_action_id)
-                if a_t not in vt1_action_annotations:
-                    raise AssertionError("Action annotation %s not matched" % 
-                                         unicode(a_t))
-                a1 = vt1_action_annotations[a_t]
-                a1.deep_eq_test(a2, test_class, alternate_tests)
-                del vt1_action_annotations[a_t]
-            if len(vt1_action_annotations) > 0:
-                a_t = vt_action_annotations.iterkeys().next()
-                raise AssertionError("Action annotation %s not matched" % 
-                                     unicode(a_t))
-        alternate_dict = {('1.0.2', '1.0.3'): 
-                          {('DBPortSpecItem', 'db_id'): None,
-                           ('DBPortSpec', 'db_min_conns'): None,
-                           ('DBPortSpec', 'db_max_conns'): None},
-                          ('1.0.1', '1.0.2'):
-                          {('DBActionAnnotation', 'db_date'): None,
-                           ('DBActionAnnotation', 'db_user'): None,
-                           ('DBActionAnnotation', 'db_id'): None,
-                           ('DBVistrail', 'db_actionAnnotations'): \
-                               test_actionAnnotations,
-                           ('DBWorkflowExec', 'db_annotations'): None},
-                          ('1.0.0', '1.0.1'):
-                          {('DBPortSpecItem', 'db_default'): None,
-                           ('DBPortSpecItem', 'db_label'): None},
-                          ('0.9.3', '0.9.4'):
-                          {('DBPortSpec', 'db_sort_key'): None}
-                          }
-        
-        path = get_version_path(version, currentVersion)
-        alternate_tests = {}
-        for t in path:
-            if t in alternate_dict:
-                alternate_tests.update(alternate_dict[t])
-        return alternate_tests
-        
+    def get_filename(self):
+        from vistrails.core.system import vistrails_root_directory
+        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources', 
+                             'test_basics.vt')
+        return fname
+        # return '/vistrails/src/git/examples/terminator.vt'
+
     def run_vistrail_translation_test(self, version):
-        in_fname = '/vistrails/src/git/examples/terminator.vt'
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(in_fname)
+        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
         vt1 = bundle.vistrail
         vt2 = translate_vistrail(vt1, currentVersion, version)
         vt2 = translate_vistrail(vt2, version, currentVersion)
-        vt1.deep_eq_test(vt2, self, self.get_alternate_tests(version))
+        vt1.deep_eq_test(vt2, self, get_alternate_tests(version))
 
     def run_workflow_translation_test(self, version):
-        in_fname = '/vistrails/src/git/examples/terminator.vt'
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(in_fname)
+        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
         vt = bundle.vistrail
-        # 258 is Image Slices HW
-        wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, 258)
+        # 258 is Image Slices HW in terminator.vt
+        # 20 is the executed version in test_basics.vt
+        wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, 20)
         # FIXME may set db_version in materializeWorkflow?
         wf1.db_version = '1.0.4'
         wf2 = translate_workflow(wf1, currentVersion, version)
         wf2 = translate_workflow(wf2, version, currentVersion)
-        wf1.deep_eq_test(wf2, self, self.get_alternate_tests(version))
+        wf1.deep_eq_test(wf2, self, get_alternate_tests(version))
 
     def run_log_translation_test(self, version):
-        in_fname = '/vistrails/src/git/examples/terminator.vt'
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(in_fname)
+        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
         log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True)
         # FIXME may need to update db_version in open_log_from_xml?
         log1.db_version = '1.0.4'
         log2 = translate_log(log1, currentVersion, version)
         log2 = translate_log(log2, version, currentVersion)
-        log1.deep_eq_test(log2, self, self.get_alternate_tests(version))
+        log1.deep_eq_test(log2, self, get_alternate_tests(version))
 
     def run_registry_translation_test(self, version):
         from vistrails.core.modules.module_registry import get_module_registry
@@ -1795,7 +1884,7 @@ class TestTranslations(unittest.TestCase):
             reg1 = open_registry_from_xml(fname)
             reg2 = translate_registry(reg1, currentVersion, version)
             reg2 = translate_registry(reg2, version, currentVersion)
-            reg1.deep_eq_test(reg2, self, self.get_alternate_tests(version))
+            reg1.deep_eq_test(reg2, self, get_alternate_tests(version))
         finally:
             os.unlink(fname)
 
@@ -1804,6 +1893,9 @@ class TestTranslations(unittest.TestCase):
 
     def test_v0_9_3_workflow(self):
         self.run_workflow_translation_test('0.9.3')
+
+    def test_v0_9_5_log(self):
+        self.run_log_translation_test('0.9.5')
 
     def test_v0_9_3_log(self):
         self.run_log_translation_test('0.9.3')

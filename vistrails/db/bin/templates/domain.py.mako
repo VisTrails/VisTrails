@@ -212,19 +212,34 @@ class ${obj.getClassName()}(object):
             % if field.isPlural():
             test_obj.assertEqual(len(self.${field.getFieldName()}), 
                              len(other.${field.getFieldName()}))
-            for obj1, obj2 in izip(sorted(self.${field.getFieldName()}, key=lambda x: x.db_id), 
-                                   sorted(other.${field.getFieldName()}, key=lambda x: x.db_id)):
+            % if field.getReferencedObject().getKey() is not None:
+            for obj1, obj2 in izip(sorted(self.${field.getFieldName()}, key=lambda x: x.${field.getReferencedObject().getKey().getFieldName()}), 
+                                   sorted(other.${field.getFieldName()}, key=lambda x: x.${field.getReferencedObject().getKey().getFieldName()})):
+            % else:
+            for obj1, obj2 in izip(self.${field.getFieldName()}, 
+                                   other.${field.getFieldName()}):
+            % endif
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
             % else:
             if self.${field.getFieldName()} is not None and other.${field.getFieldName()} is not None:
                     self.${field.getFieldName()}.deep_eq_test(other.${field.getFieldName()}, test_obj, alternate_tests)
             else:
+                % if field.getType() == 'float':
+                test_obj.assertAlmostEqual(self.${field.getFieldName()}, 
+                                           other.${field.getFieldName()})
+                % else:
                 test_obj.assertEqual(self.${field.getFieldName()}, 
                                        other.${field.getFieldName()})
+                % endif
             % endif
+            % else:
+            % if field.getType() == 'float':
+            test_obj.assertAlmostEqual(self.${field.getFieldName()}, 
+                                       other.${field.getFieldName()})
             % else:
             test_obj.assertEqual(self.${field.getFieldName()}, 
                                    other.${field.getFieldName()})
+            % endif
             % endif
         % endfor
 

@@ -723,8 +723,8 @@ class DBOpmWasGeneratedBy(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
@@ -734,8 +734,8 @@ class DBOpmWasGeneratedBy(object):
         else:
             test_obj.assertEqual(len(self.db_opm_times), 
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
-                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_opm_times, 
+                                   other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -1020,8 +1020,8 @@ class DBOpmAccounts(object):
         else:
             test_obj.assertEqual(len(self.db_opm_overlapss), 
                                  len(other.db_opm_overlapss))
-            for obj1, obj2 in izip(sorted(self.db_opm_overlapss, key=lambda x: x.db_id), 
-                                   sorted(other.db_opm_overlapss, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_opm_overlapss, 
+                                   other.db_opm_overlapss):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -2847,8 +2847,8 @@ class DBProvDocument(object):
         else:
             test_obj.assertEqual(len(self.db_prov_usages), 
                                  len(other.db_prov_usages))
-            for obj1, obj2 in izip(sorted(self.db_prov_usages, key=lambda x: x.db_id), 
-                                   sorted(other.db_prov_usages, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_prov_usages, 
+                                   other.db_prov_usages):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_prov_generations')
         if alternate_key in alternate_tests:
@@ -2858,8 +2858,8 @@ class DBProvDocument(object):
         else:
             test_obj.assertEqual(len(self.db_prov_generations), 
                                  len(other.db_prov_generations))
-            for obj1, obj2 in izip(sorted(self.db_prov_generations, key=lambda x: x.db_id), 
-                                   sorted(other.db_prov_generations, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_prov_generations, 
+                                   other.db_prov_generations):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_prov_associations')
         if alternate_key in alternate_tests:
@@ -2869,8 +2869,8 @@ class DBProvDocument(object):
         else:
             test_obj.assertEqual(len(self.db_prov_associations), 
                                  len(other.db_prov_associations))
-            for obj1, obj2 in izip(sorted(self.db_prov_associations, key=lambda x: x.db_id), 
-                                   sorted(other.db_prov_associations, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_prov_associations, 
+                                   other.db_prov_associations):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -4088,8 +4088,8 @@ class DBOpmArtifact(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -7088,16 +7088,16 @@ class DBLocation(object):
             if alternate_tests[alternate_key] is not None:
                 alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_x, 
-                                 other.db_x)
+            test_obj.assertAlmostEqual(self.db_x, 
+                                       other.db_x)
         alternate_key = (self.__class__.__name__, 'db_y')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
                 alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_y, 
-                                 other.db_y)
+            test_obj.assertAlmostEqual(self.db_y, 
+                                       other.db_y)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -7224,8 +7224,8 @@ class DBOpmOverlaps(object):
         else:
             test_obj.assertEqual(len(self.db_opm_account_ids), 
                                  len(other.db_opm_account_ids))
-            for obj1, obj2 in izip(sorted(self.db_opm_account_ids, key=lambda x: x.db_id), 
-                                   sorted(other.db_opm_account_ids, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_opm_account_ids, 
+                                   other.db_opm_account_ids):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -7490,8 +7490,8 @@ class DBOpmDependencies(object):
         else:
             test_obj.assertEqual(len(self.db_dependencys), 
                                  len(other.db_dependencys))
-            for obj1, obj2 in izip(sorted(self.db_dependencys, key=lambda x: x.db_id), 
-                                   sorted(other.db_dependencys, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_dependencys, 
+                                   other.db_dependencys):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -7908,8 +7908,8 @@ class DBOpmUsed(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
@@ -7919,8 +7919,8 @@ class DBOpmUsed(object):
         else:
             test_obj.assertEqual(len(self.db_opm_times), 
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
-                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_opm_times, 
+                                   other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -13904,8 +13904,8 @@ class DBOpmWasDerivedFrom(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
@@ -13915,8 +13915,8 @@ class DBOpmWasDerivedFrom(object):
         else:
             test_obj.assertEqual(len(self.db_opm_times), 
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
-                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_opm_times, 
+                                   other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -14240,8 +14240,8 @@ class DBOpmWasControlledBy(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_starts')
         if alternate_key in alternate_tests:
@@ -14251,8 +14251,8 @@ class DBOpmWasControlledBy(object):
         else:
             test_obj.assertEqual(len(self.db_starts), 
                                  len(other.db_starts))
-            for obj1, obj2 in izip(sorted(self.db_starts, key=lambda x: x.db_id), 
-                                   sorted(other.db_starts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_starts, 
+                                   other.db_starts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_ends')
         if alternate_key in alternate_tests:
@@ -14262,8 +14262,8 @@ class DBOpmWasControlledBy(object):
         else:
             test_obj.assertEqual(len(self.db_ends), 
                                  len(other.db_ends))
-            for obj1, obj2 in izip(sorted(self.db_ends, key=lambda x: x.db_id), 
-                                   sorted(other.db_ends, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_ends, 
+                                   other.db_ends):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -17355,8 +17355,8 @@ class DBOpmProcess(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -17662,8 +17662,8 @@ class DBOpmWasTriggeredBy(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
@@ -17673,8 +17673,8 @@ class DBOpmWasTriggeredBy(object):
         else:
             test_obj.assertEqual(len(self.db_opm_times), 
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(sorted(self.db_opm_times, key=lambda x: x.db_id), 
-                                   sorted(other.db_opm_times, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_opm_times, 
+                                   other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -18470,8 +18470,8 @@ class DBOpmAgent(object):
         else:
             test_obj.assertEqual(len(self.db_accounts), 
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
-                                   sorted(other.db_accounts, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(self.db_accounts, 
+                                   other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -19219,8 +19219,8 @@ class DBVistrail(object):
         else:
             test_obj.assertEqual(len(self.db_vistrailVariables), 
                                  len(other.db_vistrailVariables))
-            for obj1, obj2 in izip(sorted(self.db_vistrailVariables, key=lambda x: x.db_id), 
-                                   sorted(other.db_vistrailVariables, key=lambda x: x.db_id)):
+            for obj1, obj2 in izip(sorted(self.db_vistrailVariables, key=lambda x: x.db_name), 
+                                   sorted(other.db_vistrailVariables, key=lambda x: x.db_name)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_parameter_explorations')
         if alternate_key in alternate_tests:
