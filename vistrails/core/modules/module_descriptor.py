@@ -370,42 +370,6 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     def delete_port_spec(self, port_spec):
         self.db_delete_portSpec(port_spec)
-
-    def new_port_spec(self, name, type, signature=None, sigstring=None,
-                      optional=False, sort_key=-1):
-        # DEPRECATED: create using ModuleRegistry
-        if signature is None and sigstring is None:
-            raise VistrailsInternalError("new_port_spec: signature and "
-                                         "sigstring cannot both be None")
-        if sigstring is not None:
-            return PortSpec(id=-1,
-                            name=name,
-                            type=type,
-                            sigstring=sigstring,
-                            optional=optional,
-                            sort_key=sort_key)
-        return PortSpec(id=-1,
-                        name=name,
-                        type=type,
-                        signature=signature,
-                        optional=optional,
-                        sort_key=sort_key)
-
-    def add_input_port(self, name, signature, optional):
-        # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
-        result = self.new_port_spec(name, 'input', signature=signature, 
-                                    optional=optional, sort_key=sort_key)
-        self.add_port_spec(result)
-        return result
-        
-    def add_output_port(self, name, signature, optional):
-        # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
-        result = self.new_port_spec(name, 'output', signature=signature, 
-                                    optional=optional, sort_key=sort_key)
-        self.add_port_spec(result)
-        return result
         
     def delete_input_port(self, name):
         key = (name, 'input')

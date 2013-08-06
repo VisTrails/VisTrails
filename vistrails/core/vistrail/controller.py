@@ -80,6 +80,7 @@ from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port import Port
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.port_spec_item import PortSpecItem
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
@@ -740,6 +741,9 @@ class VistrailController(object):
                              sigstring=port_sigstring,
                              sort_key=port_sort_key,
                              )
+        # don't know how many port spec items are created until after...
+        for psi in port_spec.port_spec_items:
+            psi.id = id_scope.getNewId(PortSpecItem.vtType)
         return port_spec
 
     def get_module_connection_ids(self, module_ids, graph):
@@ -1221,6 +1225,9 @@ class VistrailController(object):
                              name=port_tuple[1],
                              sigstring=port_tuple[2],
                              )
+        # don't know how many port spec items are created until after...
+        for psi in port_spec.port_spec_items:
+            psi.id = self.vistrail.idScope.getNewId(PortSpecItem.vtType)
         action = vistrails.core.db.action.create_action([('add', port_spec,
                                                 module.vtType, module.id)])
         return action
