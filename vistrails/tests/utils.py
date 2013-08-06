@@ -75,14 +75,18 @@ def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
     pm = get_package_manager()
 
     port_spec_per_module = {} # mod_id -> [portspec: PortSpec]
+    j = 0
     for i, (mod_id, inout, name, sig) in enumerate(add_port_specs):
         mod_specs = port_spec_per_module.setdefault(mod_id, [])
-        mod_specs.append(PortSpec(
-                id=i,
-                name=name,
-                type=inout,
-                sigstring=sig,
-                sort_key=-1))
+        ps = PortSpec(id=i,
+                      name=name,
+                      type=inout,
+                      sigstring=sig,
+                      sort_key=-1)
+        for psi in ps.port_spec_items:
+            psi.id = j
+            j += 1
+        mod_specs.append(ps)
 
     pipeline = Pipeline()
     module_list = []

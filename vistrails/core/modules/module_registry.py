@@ -53,6 +53,7 @@ from vistrails.core.system import vistrails_root_directory, vistrails_version, \
     get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.port_spec_item import PortSpecItem
 import vistrails.core.cache.hasher
 from vistrails.db.domain import DBRegistry
 
@@ -1383,6 +1384,10 @@ class ModuleRegistry(DBRegistry):
                         shape=shape,
                         min_conns=min_conns,
                         max_conns=max_conns)
+
+        # don't know how many port spec items are created until after...
+        for psi in spec.port_spec_items:
+            psi.id = self.idScope.getNewId(PortSpecItem.vtType)
         return spec
 
     def add_port_spec(self, descriptor, spec):
