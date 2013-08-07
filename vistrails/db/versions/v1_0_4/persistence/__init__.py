@@ -153,7 +153,7 @@ class DAOList(dict):
         daoList = []
         # selects should contain dbCommand values
         selects = []
-        global_props = {}
+        global_props_dict = {}
         for id, data in izip(ids, results):
             res_objects = dao.process_sql_columns(data, global_props)
             if len(res_objects) > 1:
@@ -167,7 +167,11 @@ class DAOList(dict):
             all_objects = {}
             all_objects_dict[id] = all_objects
             all_objects.update(res_objects)
-            objects.append(res_objects.values()[0])
+            res = res_objects.values()[0]
+            objects.append(res)
+            global_props = {'entity_id': res.db_id,
+                            'entity_type': res.vtType}
+            global_props_dict[id] = global_props
             # collect all commands so that they can be executed together
         
             # generate SELECT statements for children
@@ -186,14 +190,14 @@ class DAOList(dict):
         # process results
         for (id, dao_type, dao), data in izip(daoList, results):                
             all_objects = all_objects_dict[id]
-            current_objs = dao.process_sql_columns(data, global_props)
+            current_objs = dao.process_sql_columns(data, global_props_dict[id])
             all_objects.update(current_objs)
 
             if dao_type == DBGroup.vtType:
                 for key, obj in current_objs.iteritems():
                     new_props = {'parent_id': key[1],
-                                 'entity_id': global_props['entity_id'],
-                                 'entity_type': global_props['entity_type']}
+                                 'entity_id': global_props_dict[id]['entity_id'],
+                                 'entity_type': global_props_dict[id]['entity_type']}
                     res_obj = self.open_from_db(db_connection, 
                                                 DBWorkflow.vtType, 
                                                 None, lock, new_props)
@@ -316,7 +320,6 @@ class DAOList(dict):
                 self['sql'][child.vtType].to_sql_fast(child, do_copy)
                 if child.vtType == DBGroup.vtType:
                     if child.db_workflow:
-                        # print '*** entity_type:', global_props['entity_type']
                         new_props = {'entity_id': global_props['entity_id'],
                                      'entity_type': global_props['entity_type']}
                         is_dirty = child.db_workflow.is_dirty
