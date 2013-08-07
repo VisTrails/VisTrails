@@ -815,11 +815,11 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail, save_bundle.log, thumbnails=saved_thumbnails, abstractions=saved_abstractions)
     return (save_bundle, vt_save_dir)
 
-def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None):
+def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None, save_wfs=True):
     if save_bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_db failed, '
                                    'bundle does not contain a vistrail')
-    vistrail = save_vistrail_to_db(save_bundle.vistrail, db_connection, do_copy, version)
+    vistrail = save_vistrail_to_db(save_bundle.vistrail, db_connection, do_copy, version, save_wfs)
     log = None
     if save_bundle.vistrail.db_log_filename is not None:
         if save_bundle.log is not None:
@@ -838,7 +838,8 @@ def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, versio
     save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
     return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))
 
-def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
+def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None,
+                        save_wfs=True):
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
         raise VistrailsDBException(msg)
@@ -885,27 +886,28 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     vistrail = translate_vistrail(vistrail, version)
     vistrail.db_currentVersion = current_action
 
-    # update all missing tagged workflows
-    tagMap = {}
-    for annotation in vistrail.db_actionAnnotations:
-        if annotation.db_key == '__tag__':
-            tagMap[annotation.db_action_id] = annotation.db_value
-    wfToSave = []
-    for id, name in tagMap.iteritems():
-        if id not in workflowIds:
-            #print "creating workflow", vistrail.db_id, id, name,
-            workflow = vistrails.db.services.vistrail.materializeWorkflow(vistrail, id)
-            workflow.db_id = None
-            workflow.db_vistrail_id = vistrail.db_id
-            workflow.db_parent_id = id
-            workflow.db_group = id
-            workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
-            workflow.db_name = name
-            workflow = translate_workflow(workflow, currentVersion, version)
-            wfToSave.append(workflow)
-            #print "done"
-    if wfToSave:
-        dao_list.save_many_to_db(db_connection, wfToSave, True)
+    if save_wfs:
+        # update all missing tagged workflows
+        tagMap = {}
+        for annotation in vistrail.db_actionAnnotations:
+            if annotation.db_key == '__tag__':
+                tagMap[annotation.db_action_id] = annotation.db_value
+        wfToSave = []
+        for id, name in tagMap.iteritems():
+            if id not in workflowIds:
+                #print "creating workflow", vistrail.db_id, id, name,
+                workflow = vistrails.db.services.vistrail.materializeWorkflow(vistrail, id)
+                workflow.db_id = None
+                workflow.db_vistrail_id = vistrail.db_id
+                workflow.db_parent_id = id
+                workflow.db_group = id
+                workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
+                workflow.db_name = name
+                workflow = translate_workflow(workflow, currentVersion, version)
+                wfToSave.append(workflow)
+                #print "done"
+        if wfToSave:
+            dao_list.save_many_to_db(db_connection, wfToSave, True)
     utils.commit_transaction(db_connection, trans)
     return vistrail
 
@@ -1665,7 +1667,7 @@ def get_alternate_tests(version):
                 else:
                     del alternate_tests[('DBWorkflow', field)]
         
-    alternate_dict = {('1.0.3', '1.0.4'):
+    alternate_dict = {None:
                       {('DBVistrail', 'db_entity_type'): None,
                        ('DBGroup', 'db_workflow'): test_group_workflow},
                       ('1.0.2', '1.0.3'): 
@@ -1695,6 +1697,7 @@ def get_alternate_tests(version):
 
     path = get_version_path(version, currentVersion)
     alternate_tests = {}
+    alternate_tests.update(alternate_dict[None])
     for t in path:
         if t in alternate_dict:
             alternate_tests.update(alternate_dict[t])
@@ -1712,7 +1715,8 @@ class TestXMLFile(object):
         # return '/vistrails/src/git/examples/terminator.vt'
 
     def test_save_vistrail_and_reload(self):
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+        (bundle, tmp_save_dir) = \
+                open_vistrail_bundle_from_zip_xml(self.get_filename())
         vt1 = bundle.vistrail
 
         (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
@@ -1724,6 +1728,7 @@ class TestXMLFile(object):
             vt1.deep_eq_test(vt2, self, get_alternate_tests(self.get_version()))
         finally:
             os.unlink(fname)
+            close_zip_xml(tmp_save_dir)
 
 class TestXMLFile_v0_9_3(TestXMLFile, unittest.TestCase):
     def get_version(self):
@@ -1759,44 +1764,53 @@ class TestSQLDatabase(object):
         # return '/vistrails/src/git/examples/terminator.vt'
 
     def test_save_bundle(self):
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
-        save_vistrail_bundle_to_db(bundle, self.conn, True)
+        (bundle, tmp_save_dir) = \
+                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        try:
+            save_vistrail_bundle_to_db(bundle, self.conn, True, save_wfs=False)
+        finally:
+            close_zip_xml(tmp_save_dir)
         
     def test_save_vistrail_and_reload(self):
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
-        vt1 = bundle.vistrail
-        # vt1.db_version = currentVersion
-        vt_id = save_vistrail_to_db(vt1, self.conn, True).db_id
-        vt1.db_id = vt_id
-        vt2 = open_vistrail_from_db(self.conn, vt_id)
-        vt1.deep_eq_test(vt2, self, 
-                         get_alternate_tests(self.get_config()["version"]))
+        (bundle, tmp_save_dir) = \
+                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        try:
+            vt1 = bundle.vistrail
+            # vt1.db_version = currentVersion
+            vt_id = save_vistrail_to_db(vt1, self.conn, True, 
+                                        save_wfs=False).db_id
+            vt1.db_id = vt_id
+            vt2 = open_vistrail_from_db(self.conn, vt_id)
+            vt1.deep_eq_test(vt2, self, 
+                             get_alternate_tests(self.get_config()["version"]))
+        finally:
+            close_zip_xml(tmp_save_dir)
 
-    def test_z_get_db_object_list(self):
-        print get_db_object_list(self.conn, DBVistrail.vtType)
+    # def test_z_get_db_object_list(self):
+    #     print get_db_object_list(self.conn, DBVistrail.vtType)
     
-    def test_z_get_db_object_modification_time(self):
-        print "OBJ MOD TIME:", \
-            get_db_object_modification_time(self.conn, 1, DBVistrail.vtType)
+    # def test_z_get_db_object_modification_time(self):
+    #     print "OBJ MOD TIME:", \
+    #         get_db_object_modification_time(self.conn, 1, DBVistrail.vtType)
 
-    def test_z_get_db_object_version(self):
-        print "OBJ VERSION:", \
-            get_db_object_version(self.conn, 1, DBVistrail.vtType)
+    # def test_z_get_db_object_version(self):
+    #     print "OBJ VERSION:", \
+    #         get_db_object_version(self.conn, 1, DBVistrail.vtType)
 
-    def test_z_get_saved_workflows(self):
-        print get_saved_workflows(self.conn, 1)
+    # def test_z_get_saved_workflows(self):
+    #     print get_saved_workflows(self.conn, 1)
         
-    def test_z_get_db_id_from_name(self):
-        raise Exception("Need to implement this test")
+    # def test_z_get_db_id_from_name(self):
+    #     raise Exception("Need to implement this test")
 
-    def test_z_get_db_abstraction_modification_time(self):
-        raise Exception("Need to implement this test")
+    # def test_z_get_db_abstraction_modification_time(self):
+    #     raise Exception("Need to implement this test")
 
-    def test_z_get_db_ids_from_vistrail(self):
-        raise Exception("Need to implement this test")
+    # def test_z_get_db_ids_from_vistrail(self):
+    #     raise Exception("Need to implement this test")
 
-    def test_z_get_matching_abstraction_id(self):
-        raise Exception("Need to implement this test")
+    # def test_z_get_matching_abstraction_id(self):
+    #     raise Exception("Need to implement this test")
 
 class TestMySQLDatabase(TestSQLDatabase):
     db_version = None
@@ -1823,14 +1837,19 @@ class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
     db_fname = None
 
     @classmethod
+    def get_db_fname(cls):
+        if cls.db_fname is None:
+            import os
+            import tempfile
+            (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
+            os.close(h)
+            cls.db_fname = fname
+        return cls.db_fname
+
+    @classmethod
     def get_config(cls):
-        import os
-        import tempfile
-        (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
-        os.close(h)
-        cls.db_fname = fname
         return {"dialect": "sqlite",
-                "db": fname,
+                "db": cls.get_db_fname(),
                 "version": "1.0.4"}
 
     @classmethod
@@ -1847,32 +1866,44 @@ class TestTranslations(unittest.TestCase):
         # return '/vistrails/src/git/examples/terminator.vt'
 
     def run_vistrail_translation_test(self, version):
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
-        vt1 = bundle.vistrail
-        vt2 = translate_vistrail(vt1, currentVersion, version)
-        vt2 = translate_vistrail(vt2, version, currentVersion)
-        vt1.deep_eq_test(vt2, self, get_alternate_tests(version))
-
+        (bundle, tmp_save_dir) = \
+                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        try:
+            vt1 = bundle.vistrail
+            vt2 = translate_vistrail(vt1, currentVersion, version)
+            vt2 = translate_vistrail(vt2, version, currentVersion)
+            vt1.deep_eq_test(vt2, self, get_alternate_tests(version))
+        finally:
+            close_zip_xml(tmp_save_dir)
+            
     def run_workflow_translation_test(self, version):
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
-        vt = bundle.vistrail
-        # 258 is Image Slices HW in terminator.vt
-        # 20 is the executed version in test_basics.vt
-        wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, 20)
-        # FIXME may set db_version in materializeWorkflow?
-        wf1.db_version = '1.0.4'
-        wf2 = translate_workflow(wf1, currentVersion, version)
-        wf2 = translate_workflow(wf2, version, currentVersion)
-        wf1.deep_eq_test(wf2, self, get_alternate_tests(version))
+        (bundle, tmp_save_dir) = \
+                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        try:
+            vt = bundle.vistrail
+            # 258 is Image Slices HW in terminator.vt
+            # 20 is the executed version in test_basics.vt
+            wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, 20)
+            # FIXME may set db_version in materializeWorkflow?
+            wf1.db_version = '1.0.4'
+            wf2 = translate_workflow(wf1, currentVersion, version)
+            wf2 = translate_workflow(wf2, version, currentVersion)
+            wf1.deep_eq_test(wf2, self, get_alternate_tests(version))
+        finally:
+            close_zip_xml(tmp_save_dir)
 
     def run_log_translation_test(self, version):
-        (bundle, _) = open_vistrail_bundle_from_zip_xml(self.get_filename())
-        log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True)
-        # FIXME may need to update db_version in open_log_from_xml?
-        log1.db_version = '1.0.4'
-        log2 = translate_log(log1, currentVersion, version)
-        log2 = translate_log(log2, version, currentVersion)
-        log1.deep_eq_test(log2, self, get_alternate_tests(version))
+        (bundle, tmp_save_dir) = \
+                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        try:
+            log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True)
+            # FIXME may need to update db_version in open_log_from_xml?
+            log1.db_version = '1.0.4'
+            log2 = translate_log(log1, currentVersion, version)
+            log2 = translate_log(log2, version, currentVersion)
+            log1.deep_eq_test(log2, self, get_alternate_tests(version))
+        finally:
+            close_zip_xml(tmp_save_dir)
 
     def run_registry_translation_test(self, version):
         from vistrails.core.modules.module_registry import get_module_registry
