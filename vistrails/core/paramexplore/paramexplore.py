@@ -139,8 +139,8 @@ class ParameterExploration(DBParameterExploration):
         added_functions = {}
         vistrail_vars = []
         function_actions = []
-        for i in xrange(len(self.PEFunctions)):
-            pe_function = self.PEFunctions[i]
+        for i in xrange(len(self.functions)):
+            pe_function = self.functions[i]
             module = pipeline.db_get_object(Module.vtType, pe_function.module_id)
             # collect overridden vistrail vars
             if module.is_vistrail_var():
@@ -148,7 +148,7 @@ class ParameterExploration(DBParameterExploration):
             port_spec = reg.get_input_port_spec(module, pe_function.port_name)
             tmp_f_id = -1L
             tmp_p_id = -1L
-            for param in pe_function.PEParameters:
+            for param in pe_function.parameters:
                 port_spec_item = port_spec.port_spec_items[param.pos]
                 dim = param.dimension
                 if dim not in [0, 1, 2, 3]:
@@ -212,10 +212,10 @@ class ParameterExploration(DBParameterExploration):
                                         type=psi.descriptor.sigstring) 
                             params.append(parameter)
                             tmp_p_id -= 1
-                        function =ModuleFunction(id=tmp_f_id,
-                                                 pos=module.getNumFunctions(),
-                                                 name=port_spec.name,
-                                                 parameters=params)
+                        function = ModuleFunction(id=tmp_f_id,
+                                                  pos=module.getNumFunctions(),
+                                                  name=port_spec.name,
+                                                  parameters=params)
                         tmp_f_id -= 1
                         added_functions[(module.id, port_spec.name)]=function 
                         action = vistrails.core.db.action.create_action([('add',
@@ -236,7 +236,7 @@ class ParameterExploration(DBParameterExploration):
                     new_param = ModuleParam(id=tmp_p_id,
                                             pos=old_param.pos,
                                             name=old_param.name,
-                                            alias=pe_function.pos,
+                                            alias=pe_function.is_alias,
                                             val=str_value,
                                             type=old_param.type)
                     tmp_p_id -= 1

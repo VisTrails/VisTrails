@@ -2232,13 +2232,13 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
-  <!-- PEPARAMETER +++++++++++++-->
+  <!-- PE_PARAMETER ++++++++++++-->
   <!--++++++++++++++++++++++++++-->
 
-  <object name="PEParameter">
+  <object name="pe_parameter" className="DBPEParameter">
     <layout>
-      <xml name="peparameter" nodeType="xs:element"/>
-      <sql table="peparameter"/>
+      <xml name="peParameter" nodeType="xs:element"/>
+      <sql table="pe_parameter"/>
     </layout>
     
     <property name="id" type="long" primaryKey="true">
@@ -2270,7 +2270,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <property ref="true" type="long" object="PEFunction" inverse="true" 
+    <property ref="true" type="long" object="pe_function" inverse="true" 
 	      mapping="many-to-one">
       <sql column="parent_id" type="int"/>
     </property>
@@ -2286,13 +2286,13 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
-  <!-- PEFUNCTION ++++++++++++++-->
+  <!-- PE_FUNCTION +++++++++++++-->
   <!--++++++++++++++++++++++++++-->
 
-  <object name="PEFunction">
+  <object name="pe_function" className="DBPEFunction">
     <layout>
-      <xml name="pefunction" nodeType="xs:element"/>
-      <sql table="pefunction"/>
+      <xml name="peFunction" nodeType="xs:element"/>
+      <sql table="pe_function"/>
     </layout>
 
     <property name="id" type="long" primaryKey="true">
@@ -2315,7 +2315,8 @@
       <sql type="int"/>
     </property>
 
-    <property ref="true" name="parameter" object="PEParameter" type="list" mapping="one-to-many">
+    <property ref="true" name="parameter" object="pe_parameter" type="list" 
+	      mapping="one-to-many">
       <xml nodeType="xs:element"/>
     </property>
 
@@ -2323,8 +2324,8 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <property ref="true" type="long" object="parameter_exploration" inverse="true" 
-	      mapping="many-to-one">
+    <property ref="true" type="long" object="parameter_exploration" 
+	      inverse="true" mapping="many-to-one">
       <sql column="parent_id" type="int"/>
     </property>
 
@@ -2344,7 +2345,7 @@
 
   <object name="parameter_exploration">
     <layout>
-      <xml name="parameter_exploration" nodeType="xs:element"/>
+      <xml name="parameterExploration" nodeType="xs:element"/>
       <sql table="parameter_exploration"/>
     </layout>
 
@@ -2382,8 +2383,8 @@
       <sql type="varchar(255)"/>
     </property>
 
-    <property ref="true" name="function" object="PEFunction" type="list" mapping="one-to-many"
-	      index="key">
+    <property ref="true" name="function" object="pe_function" type="list" 
+	      mapping="one-to-many" index="key">
       <xml nodeType="xs:element"/>
     </property>
 

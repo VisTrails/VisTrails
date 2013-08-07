@@ -213,7 +213,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                       layout=repr(palette.virtual_cell.getConfiguration()[2]),
                       date=current_time().strftime('%Y-%m-%d %H:%M:%S'),
                       user=getuser(),
-                      PEFunctions=functions)
+                      functions=functions)
         return pe
 
     def setParameterExploration(self, pe, update_inspector=True):
