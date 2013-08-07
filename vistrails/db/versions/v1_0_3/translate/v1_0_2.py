@@ -37,7 +37,7 @@ from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, 
                                       DBAdd, DBChange, DBDelete, \
                                       DBPortSpec, DBPortSpecItem, \
                                       DBParameterExploration, \
-                                      DBParameter, DBFunction, \
+                                      DBPEParameter, DBPEFunction, \
                                       IdScope, DBAbstraction, \
                                       DBModule, DBGroup, DBAnnotation, \
                                       DBActionAnnotation
@@ -168,16 +168,18 @@ def createParameterExploration(action_id, xmlString, vistrail):
             elif p_intType == 'User-defined Function':
                 # Set function code
                 value = str(p.attributes['code'].value)
-            param = DBParameter(id=int(p.attributes['dim'].value),
-                                pos=p_pos,
-                                type=p_intType,
-                                val=value)
+            param = DBPEParameter(id=vistrail.idScope.getNewId(DBPEParameter.vtType),
+                                  pos=p_pos,
+                                  interpolator=p_intType,
+                                  value=value,
+                                  dimension=int(p.attributes['dim'].value))
             parameters.append(param)
         f_is_alias = (str(f.attributes['alias'].value) == 'True')
-        function = DBFunction(id=module_id,
-                              name=f_name,
-                              pos=1 if f_is_alias else 0,
-                              parameters=parameters)
+        function = DBPEFunction(id=vistrail.idScope.getNewId(DBPEFunction.vtType),
+                                module_id=module_id,
+                                port_name=f_name,
+                                is_alias=1 if f_is_alias else 0,
+                                parameters=parameters)
         functions.append(function)
     pe = DBParameterExploration(id=vistrail.idScope.getNewId(DBParameterExploration.vtType),
                                 action_id=action_id,
@@ -313,7 +315,7 @@ class TestTranslate(unittest.TestCase):
         pes = vistrail.db_get_parameter_explorations()
         self.assertEqual(len(pes), 1)
         funs = pes[0].db_functions
-        self.assertEqual(set([f.db_name for f in funs]),
+        self.assertEqual(set([f.db_port_name for f in funs]),
                          set(['SetCoefficients', 'SetBackgroundWidget']))
         parameters = funs[0].db_parameters
         self.assertEqual(len(parameters), 10)

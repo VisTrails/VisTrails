@@ -33,13 +33,13 @@
 ##
 ###############################################################################
 """ This file contains the definition of the class ParameterExploration """
-import datetime
 
 from xml.sax.saxutils import unescape
 
 import vistrails.core.db.action
 
-from vistrails.db.domain import DBParameterExploration
+from vistrails.db.domain import DBParameterExploration, IdScope
+from vistrails.core.paramexplore.function import PEFunction
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.module import Module
@@ -47,11 +47,9 @@ from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator,\
    UserDefinedFunctionInterpolator
 
-from vistrails.core import debug
 
 import unittest
 import copy
-import random
 
 ###############################################################################
 
@@ -86,7 +84,7 @@ class ParameterExploration(DBParameterExploration):
         _parameter_exploration.__class__ = ParameterExploration
 
         for function in _parameter_exploration.db_functions:
-            ModuleFunction.convert(function)
+            PEFunction.convert(function)
 
         _parameter_exploration.set_defaults()
 
@@ -141,25 +139,25 @@ class ParameterExploration(DBParameterExploration):
         added_functions = {}
         vistrail_vars = []
         function_actions = []
-        for i in xrange(len(self.functions)):
-            pe_function = self.functions[i]
-            module = pipeline.db_get_object(Module.vtType, pe_function.real_id)
+        for i in xrange(len(self.PEFunctions)):
+            pe_function = self.PEFunctions[i]
+            module = pipeline.db_get_object(Module.vtType, pe_function.module_id)
             # collect overridden vistrail vars
             if module.is_vistrail_var():
                 vistrail_vars.append(module.get_vistrail_var())
-            port_spec = reg.get_input_port_spec(module, pe_function.name)
+            port_spec = reg.get_input_port_spec(module, pe_function.port_name)
             tmp_f_id = -1L
             tmp_p_id = -1L
-            for param in pe_function.parameters:
+            for param in pe_function.PEParameters:
                 port_spec_item = port_spec.port_spec_items[param.pos]
-                dim = param.real_id
+                dim = param.dimension
                 if dim not in [0, 1, 2, 3]:
                     continue
                 count = self.dims[dim]
                 # find interpolator values
                 values = []
-                text = '%s' % unescape(param.strValue, unescape_dict)
-                if param.type == 'Linear Interpolation':
+                text = '%s' % unescape(param.value, unescape_dict)
+                if param.interpolator == 'Linear Interpolation':
                     # need to figure out type
                     if port_spec_item.module == "Integer":
                         i_range = eval(text)
@@ -173,23 +171,23 @@ class ParameterExploration(DBParameterExploration):
                         p_max =float(i_range[1])
                         values = FloatLinearInterpolator(p_min, p_max,
                                                      count).get_values()
-                elif param.type == 'RGB Interpolation':
+                elif param.interpolator == 'RGB Interpolation':
                     i_range = eval(text)
                     p_min = str(i_range[0])
                     p_max =str(i_range[1])
                     values = RGBColorInterpolator(p_min, p_max,
                                                      count).get_values()
-                elif param.type == 'HSV Interpolation':
+                elif param.interpolator == 'HSV Interpolation':
                     i_range = eval(text)
                     p_min = str(i_range[0])
                     p_max =str(i_range[1])
                     values = HSVColorInterpolator(p_min, p_max,
                                                      count).get_values()
-                elif param.type == 'List':
+                elif param.interpolator == 'List':
                     p_module = port_spec_item.descriptor.module
                     values = [p_module.translate_to_python(m)
                               for m in eval(text)]
-                elif param.type == 'User-defined Function':
+                elif param.interpolator == 'User-defined Function':
                     p_module = port_spec_item.descriptor.module
                     values = UserDefinedFunctionInterpolator(p_module,
                             text, count).get_values()
@@ -273,8 +271,55 @@ class ParameterExploration(DBParameterExploration):
 # Testing
 
 
-#class TestVistrail(unittest.TestCase):
+class TestParameterExploration(unittest.TestCase):
 
+    def create_pe(self, id_scope=IdScope()):
+        pe = ParameterExploration(
+                            id=id_scope.getNewId(ParameterExploration.vtType),
+                            action_id=6,
+                            user='tommy',
+                            date='2007-11-23 12:48',
+                            dims='[1,2]',
+                            layout='{1:"normal"}',
+                            name='test-pe',
+                            functions=[])
+        return pe
+
+    def test_copy(self):        
+        id_scope = IdScope()
+        pe1 = self.create_pe(id_scope)
+        pe2 = copy.copy(pe1)
+        self.assertEquals(pe1, pe2)
+        self.assertEquals(pe1.id, pe2.id)
+        pe3 = pe1.do_copy(True, id_scope, {})
+        self.assertEquals(pe1, pe3)
+        self.assertNotEquals(pe1.id, pe3.id)
+
+    def testComparisonOperators(self):
+        """ Test comparison operators """
+        p = self.create_pe()
+        q = self.create_pe()
+        self.assertEqual(p, q)
+        q.action_id = 8
+        self.assertNotEqual(p, q)
+        q.action_id = 6
+        q.user = 'bobo'
+        self.assertNotEqual(p, q)
+        q.user = 'tommy'
+        q.date = '2008-11-23 12:48'
+        self.assertNotEqual(p, q)
+        q.date = p.date
+        q._dims = '[1,4]'
+        self.assertNotEqual(p, q)
+        q._dims = '[1,2]'
+        q._layout = '{1:"different"}'
+        self.assertNotEqual(p, q)
+        q._layout = p._layout
+        q.name = 'test-pe2'
+        self.assertNotEqual(p, q)
+        q.name = p.name
+        q.functions = [1]
+        self.assertNotEqual(p, q)
 
 if __name__ == '__main__':
     unittest.main()

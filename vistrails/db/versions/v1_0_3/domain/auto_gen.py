@@ -11522,6 +11522,157 @@ class DBOpmWasDerivedFrom(object):
     
 
 
+class DBPEParameter(object):
+
+    vtType = 'PEParameter'
+
+    def __init__(self, id=None, pos=None, interpolator=None, value=None, dimension=None):
+        self._db_id = id
+        self._db_pos = pos
+        self._db_interpolator = interpolator
+        self._db_value = value
+        self._db_dimension = dimension
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBPEParameter.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBPEParameter(id=self._db_id,
+                           pos=self._db_pos,
+                           interpolator=self._db_interpolator,
+                           value=self._db_value,
+                           dimension=self._db_dimension)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBPEParameter()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'pos' in class_dict:
+            res = class_dict['pos'](old_obj, trans_dict)
+            new_obj.db_pos = res
+        elif hasattr(old_obj, 'db_pos') and old_obj.db_pos is not None:
+            new_obj.db_pos = old_obj.db_pos
+        if 'interpolator' in class_dict:
+            res = class_dict['interpolator'](old_obj, trans_dict)
+            new_obj.db_interpolator = res
+        elif hasattr(old_obj, 'db_interpolator') and old_obj.db_interpolator is not None:
+            new_obj.db_interpolator = old_obj.db_interpolator
+        if 'value' in class_dict:
+            res = class_dict['value'](old_obj, trans_dict)
+            new_obj.db_value = res
+        elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
+            new_obj.db_value = old_obj.db_value
+        if 'dimension' in class_dict:
+            res = class_dict['dimension'](old_obj, trans_dict)
+            new_obj.db_dimension = res
+        elif hasattr(old_obj, 'db_dimension') and old_obj.db_dimension is not None:
+            new_obj.db_dimension = old_obj.db_dimension
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_pos(self):
+        return self._db_pos
+    def __set_db_pos(self, pos):
+        self._db_pos = pos
+        self.is_dirty = True
+    db_pos = property(__get_db_pos, __set_db_pos)
+    def db_add_pos(self, pos):
+        self._db_pos = pos
+    def db_change_pos(self, pos):
+        self._db_pos = pos
+    def db_delete_pos(self, pos):
+        self._db_pos = None
+    
+    def __get_db_interpolator(self):
+        return self._db_interpolator
+    def __set_db_interpolator(self, interpolator):
+        self._db_interpolator = interpolator
+        self.is_dirty = True
+    db_interpolator = property(__get_db_interpolator, __set_db_interpolator)
+    def db_add_interpolator(self, interpolator):
+        self._db_interpolator = interpolator
+    def db_change_interpolator(self, interpolator):
+        self._db_interpolator = interpolator
+    def db_delete_interpolator(self, interpolator):
+        self._db_interpolator = None
+    
+    def __get_db_value(self):
+        return self._db_value
+    def __set_db_value(self, value):
+        self._db_value = value
+        self.is_dirty = True
+    db_value = property(__get_db_value, __set_db_value)
+    def db_add_value(self, value):
+        self._db_value = value
+    def db_change_value(self, value):
+        self._db_value = value
+    def db_delete_value(self, value):
+        self._db_value = None
+    
+    def __get_db_dimension(self):
+        return self._db_dimension
+    def __set_db_dimension(self, dimension):
+        self._db_dimension = dimension
+        self.is_dirty = True
+    db_dimension = property(__get_db_dimension, __set_db_dimension)
+    def db_add_dimension(self, dimension):
+        self._db_dimension = dimension
+    def db_change_dimension(self, dimension):
+        self._db_dimension = dimension
+    def db_delete_dimension(self, dimension):
+        self._db_dimension = None
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
 class DBOpmWasControlledBy(object):
 
     vtType = 'opm_was_controlled_by'
@@ -13300,10 +13451,10 @@ class DBParameterExploration(object):
                 new_obj.db_add_function(obj)
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
-                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+                new_obj.db_add_function(DBPEFunction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
             for obj in old_obj.db_deleted_functions:
-                n_obj = DBFunction.update_version(obj, trans_dict)
+                n_obj = DBPEFunction.update_version(obj, trans_dict)
                 new_obj.db_deleted_functions.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
@@ -13729,6 +13880,220 @@ class DBLoopExec(object):
         self._db_error = error
     def db_delete_error(self, error):
         self._db_error = None
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
+class DBPEFunction(object):
+
+    vtType = 'PEFunction'
+
+    def __init__(self, id=None, module_id=None, port_name=None, is_alias=None, parameters=None):
+        self._db_id = id
+        self._db_module_id = module_id
+        self._db_port_name = port_name
+        self._db_is_alias = is_alias
+        self.db_deleted_parameters = []
+        self.db_parameters_id_index = {}
+        if parameters is None:
+            self._db_parameters = []
+        else:
+            self._db_parameters = parameters
+            for v in self._db_parameters:
+                self.db_parameters_id_index[v.db_id] = v
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBPEFunction.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBPEFunction(id=self._db_id,
+                          module_id=self._db_module_id,
+                          port_name=self._db_port_name,
+                          is_alias=self._db_is_alias)
+        if self._db_parameters is None:
+            cp._db_parameters = []
+        else:
+            cp._db_parameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[('module', self._db_module_id)]
+        
+        # recreate indices and set flags
+        cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBPEFunction()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'module_id' in class_dict:
+            res = class_dict['module_id'](old_obj, trans_dict)
+            new_obj.db_module_id = res
+        elif hasattr(old_obj, 'db_module_id') and old_obj.db_module_id is not None:
+            new_obj.db_module_id = old_obj.db_module_id
+        if 'port_name' in class_dict:
+            res = class_dict['port_name'](old_obj, trans_dict)
+            new_obj.db_port_name = res
+        elif hasattr(old_obj, 'db_port_name') and old_obj.db_port_name is not None:
+            new_obj.db_port_name = old_obj.db_port_name
+        if 'is_alias' in class_dict:
+            res = class_dict['is_alias'](old_obj, trans_dict)
+            new_obj.db_is_alias = res
+        elif hasattr(old_obj, 'db_is_alias') and old_obj.db_is_alias is not None:
+            new_obj.db_is_alias = old_obj.db_is_alias
+        if 'parameters' in class_dict:
+            res = class_dict['parameters'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_parameter(obj)
+        elif hasattr(old_obj, 'db_parameters') and old_obj.db_parameters is not None:
+            for obj in old_obj.db_parameters:
+                new_obj.db_add_parameter(DBPEParameter.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_parameters') and hasattr(new_obj, 'db_deleted_parameters'):
+            for obj in old_obj.db_deleted_parameters:
+                n_obj = DBPEParameter.update_version(obj, trans_dict)
+                new_obj.db_deleted_parameters.append(n_obj)
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        children = []
+        to_del = []
+        for child in self.db_parameters:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_parameter(child)
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_parameters)
+        if remove:
+            self.db_deleted_parameters = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        for child in self._db_parameters:
+            if child.has_changes():
+                return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_module_id(self):
+        return self._db_module_id
+    def __set_db_module_id(self, module_id):
+        self._db_module_id = module_id
+        self.is_dirty = True
+    db_module_id = property(__get_db_module_id, __set_db_module_id)
+    def db_add_module_id(self, module_id):
+        self._db_module_id = module_id
+    def db_change_module_id(self, module_id):
+        self._db_module_id = module_id
+    def db_delete_module_id(self, module_id):
+        self._db_module_id = None
+    
+    def __get_db_port_name(self):
+        return self._db_port_name
+    def __set_db_port_name(self, port_name):
+        self._db_port_name = port_name
+        self.is_dirty = True
+    db_port_name = property(__get_db_port_name, __set_db_port_name)
+    def db_add_port_name(self, port_name):
+        self._db_port_name = port_name
+    def db_change_port_name(self, port_name):
+        self._db_port_name = port_name
+    def db_delete_port_name(self, port_name):
+        self._db_port_name = None
+    
+    def __get_db_is_alias(self):
+        return self._db_is_alias
+    def __set_db_is_alias(self, is_alias):
+        self._db_is_alias = is_alias
+        self.is_dirty = True
+    db_is_alias = property(__get_db_is_alias, __set_db_is_alias)
+    def db_add_is_alias(self, is_alias):
+        self._db_is_alias = is_alias
+    def db_change_is_alias(self, is_alias):
+        self._db_is_alias = is_alias
+    def db_delete_is_alias(self, is_alias):
+        self._db_is_alias = None
+    
+    def __get_db_parameters(self):
+        return self._db_parameters
+    def __set_db_parameters(self, parameters):
+        self._db_parameters = parameters
+        self.is_dirty = True
+    db_parameters = property(__get_db_parameters, __set_db_parameters)
+    def db_get_parameters(self):
+        return self._db_parameters
+    def db_add_parameter(self, parameter):
+        self.is_dirty = True
+        self._db_parameters.append(parameter)
+        self.db_parameters_id_index[parameter.db_id] = parameter
+    def db_change_parameter(self, parameter):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_parameters)):
+            if self._db_parameters[i].db_id == parameter.db_id:
+                self._db_parameters[i] = parameter
+                found = True
+                break
+        if not found:
+            self._db_parameters.append(parameter)
+        self.db_parameters_id_index[parameter.db_id] = parameter
+    def db_delete_parameter(self, parameter):
+        self.is_dirty = True
+        for i in xrange(len(self._db_parameters)):
+            if self._db_parameters[i].db_id == parameter.db_id:
+                if not self._db_parameters[i].is_new:
+                    self.db_deleted_parameters.append(self._db_parameters[i])
+                del self._db_parameters[i]
+                break
+        del self.db_parameters_id_index[parameter.db_id]
+    def db_get_parameter(self, key):
+        for i in xrange(len(self._db_parameters)):
+            if self._db_parameters[i].db_id == key:
+                return self._db_parameters[i]
+        return None
+    def db_get_parameter_by_id(self, key):
+        return self.db_parameters_id_index[key]
+    def db_has_parameter_with_id(self, key):
+        return key in self.db_parameters_id_index
     
     def getPrimaryKey(self):
         return self._db_id

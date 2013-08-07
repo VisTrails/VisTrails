@@ -4016,6 +4016,55 @@ class DBOpmWasDerivedFromXMLDAOBase(XMLDAO):
         
         return node
 
+class DBPEParameterXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'peparameter':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('pos', None)
+        pos = self.convertFromStr(data, 'long')
+        data = node.get('interpolator', None)
+        interpolator = self.convertFromStr(data, 'str')
+        data = node.get('value', None)
+        value = self.convertFromStr(data, 'str')
+        data = node.get('dimension', None)
+        dimension = self.convertFromStr(data, 'long')
+        
+        obj = DBPEParameter(id=id,
+                            pos=pos,
+                            interpolator=interpolator,
+                            value=value,
+                            dimension=dimension)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, PEParameter, node=None):
+        if node is None:
+            node = ElementTree.Element('peparameter')
+        
+        # set attributes
+        node.set('id',self.convertToStr(PEParameter.db_id, 'long'))
+        node.set('pos',self.convertToStr(PEParameter.db_pos, 'long'))
+        node.set('interpolator',self.convertToStr(PEParameter.db_interpolator, 'str'))
+        node.set('value',self.convertToStr(PEParameter.db_value, 'str'))
+        node.set('dimension',self.convertToStr(PEParameter.db_dimension, 'long'))
+        
+        return node
+
 class DBOpmWasControlledByXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -4546,8 +4595,8 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'function':
-                _data = self.getDao('function').fromXML(child)
+            if child_tag == 'pefunction':
+                _data = self.getDao('PEFunction').fromXML(child)
                 functions.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
@@ -4580,8 +4629,8 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
         functions = parameter_exploration.db_functions
         for function in functions:
             if (functions is not None) and (functions != ""):
-                childNode = ElementTree.SubElement(node, 'function')
-                self.getDao('function').toXML(function, childNode)
+                childNode = ElementTree.SubElement(node, 'pefunction')
+                self.getDao('PEFunction').toXML(function, childNode)
         
         return node
 
@@ -4671,6 +4720,75 @@ class DBLoopExecXMLDAOBase(XMLDAO):
             elif item_exec.vtType == 'loop_exec':
                 childNode = ElementTree.SubElement(node, 'loopExec')
                 self.getDao('loop_exec').toXML(item_exec, childNode)
+        
+        return node
+
+class DBPEFunctionXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'pefunction':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('moduleId', None)
+        module_id = self.convertFromStr(data, 'long')
+        data = node.get('port_name', None)
+        port_name = self.convertFromStr(data, 'str')
+        data = node.get('is_alias', None)
+        is_alias = self.convertFromStr(data, 'long')
+        
+        parameters = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'peparameter':
+                _data = self.getDao('PEParameter').fromXML(child)
+                parameters.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBPEFunction(id=id,
+                           module_id=module_id,
+                           port_name=port_name,
+                           is_alias=is_alias,
+                           parameters=parameters)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, PEFunction, node=None):
+        if node is None:
+            node = ElementTree.Element('pefunction')
+        
+        # set attributes
+        node.set('id',self.convertToStr(PEFunction.db_id, 'long'))
+        node.set('moduleId',self.convertToStr(PEFunction.db_module_id, 'long'))
+        node.set('port_name',self.convertToStr(PEFunction.db_port_name, 'str'))
+        node.set('is_alias',self.convertToStr(PEFunction.db_is_alias, 'long'))
+        
+        # set elements
+        parameters = PEFunction.db_parameters
+        for parameter in parameters:
+            if (parameters is not None) and (parameters != ""):
+                childNode = ElementTree.SubElement(node, 'peparameter')
+                self.getDao('PEParameter').toXML(parameter, childNode)
         
         return node
 
@@ -5658,6 +5776,8 @@ class XMLDAOListBase(dict):
             self['change'] = DBChangeXMLDAOBase(self)
         if 'opm_was_derived_from' not in self:
             self['opm_was_derived_from'] = DBOpmWasDerivedFromXMLDAOBase(self)
+        if 'PEParameter' not in self:
+            self['PEParameter'] = DBPEParameterXMLDAOBase(self)
         if 'opm_was_controlled_by' not in self:
             self['opm_was_controlled_by'] = DBOpmWasControlledByXMLDAOBase(self)
         if 'opm_agent_id' not in self:
@@ -5674,6 +5794,8 @@ class XMLDAOListBase(dict):
             self['parameter_exploration'] = DBParameterExplorationXMLDAOBase(self)
         if 'loop_exec' not in self:
             self['loop_exec'] = DBLoopExecXMLDAOBase(self)
+        if 'PEFunction' not in self:
+            self['PEFunction'] = DBPEFunctionXMLDAOBase(self)
         if 'mashup_actionAnnotation' not in self:
             self['mashup_actionAnnotation'] = DBMashupActionAnnotationXMLDAOBase(self)
         if 'connection' not in self:

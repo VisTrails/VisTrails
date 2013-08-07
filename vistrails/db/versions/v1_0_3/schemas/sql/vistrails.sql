@@ -363,6 +363,18 @@ CREATE TABLE change_tbl(
     entity_type char(16)
 ) engine=InnoDB;
 
+CREATE TABLE peparameter(
+    id int,
+    pos int,
+    interpolator varchar(255),
+    value mediumtext,
+    dimension int,
+    parent_type char(32),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
 CREATE TABLE group_exec(
     id int,
     ts_start datetime,
@@ -435,6 +447,17 @@ CREATE TABLE loop_exec(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE pefunction(
+    id int,
+    module_id int,
+    port_name varchar(255),
+    is_alias int,
+    parent_type char(32),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE mashup_action_annotation(
