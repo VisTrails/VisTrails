@@ -39,7 +39,8 @@ from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, 
                                       DBParameterExploration, \
                                       DBParameter, DBFunction, \
                                       IdScope, DBAbstraction, \
-                                      DBModule, DBGroup
+                                      DBModule, DBGroup, DBAnnotation, \
+                                      DBActionAnnotation
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
@@ -192,6 +193,9 @@ def translateVistrail(_vistrail):
         DBVistrailVariable class """
     global id_scope
 
+    new_vistrail_vars = []
+    new_param_exps = []
+
     def update_workflow(old_obj, trans_dict):
         return DBWorkflow.update_version(old_obj.db_workflow, 
                                          trans_dict, DBWorkflow())
@@ -221,31 +225,48 @@ def translateVistrail(_vistrail):
                     new_ops.append(new_op)
         return new_ops
     
+    def update_annotations(old_obj, trans_dict):
+        new_annotations = []
+        for a in old_obj.db_annotations:
+            if a.db_key == '__vistrail_vars__':
+                for name, data in dict(eval(a.db_value)).iteritems():
+                    uuid, identifier, value = data
+                    package, module, namespace = identifier
+                    var = DBVistrailVariable(name, uuid, package, module, 
+                                             namespace, value)
+                    new_vistrail_vars.append(var)
+            else:
+                new_a = DBAnnotation.update_version(a, trans_dict)
+                new_annotations.append(new_a)
+
+        return new_annotations
+
+    def update_actionAnnotations(old_obj, trans_dict):
+        new_actionAnnotations = []
+        for aa in old_obj.db_actionAnnotations:
+            if aa.db_key == '__paramexp__':
+                pe = createParameterExploration(aa.db_action_id, aa.db_value, 
+                                                vistrail)
+                new_param_exps.append(pe)
+            else:
+                new_aa = DBActionAnnotation.update_version(aa, trans_dict)
+                new_actionAnnotations.append(new_aa)
+        return new_actionAnnotations
+
     translate_dict = {'DBModule': {'portSpecs': update_portSpecs},
                       'DBModuleDescriptor': {'portSpecs': update_portSpecs},
                       'DBAction': {'operations': update_operations},
                       'DBGroup': {'workflow': update_workflow},
+                      'DBVistrail': {'annotations': update_annotations,
+                                     'actionAnnotations': \
+                                         update_actionAnnotations}
                       }
     vistrail = DBVistrail()
     id_scope = vistrail.idScope
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
-    # Update to new VistrailVariables class
-    key = '__vistrail_vars__'
-    if vistrail.db_has_annotation_with_key(key):
-        s = vistrail.db_get_annotation_by_key(key)
-        vistrail.db_delete_annotation(s)
-        for name, data in dict(eval(s.db_value)).iteritems():
-            uuid, identifier, value = data
-            package, module, namespace = identifier
-            var = DBVistrailVariable(name, uuid, package, module, namespace, value)
-            vistrail.db_add_vistrailVariable(var)
-    # Update to new ParameterExploration class
-    key = '__paramexp__'
-    for aa in vistrail.db_actionAnnotations:
-        if not aa.db_key == key:
-            continue
-        vistrail.db_delete_actionAnnotation(aa)
-        pe = createParameterExploration(aa.db_action_id, aa.db_value, vistrail)
+    for v in new_vistrail_vars:
+        vistrail.db_add_vistrailVariable(v)
+    for pe in new_param_exps:
         vistrail.db_add_parameter_exploration(pe)
 
     vistrail.db_version = '1.0.3'

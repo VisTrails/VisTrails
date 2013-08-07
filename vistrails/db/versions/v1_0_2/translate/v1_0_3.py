@@ -36,6 +36,8 @@ from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
                                       DBWorkflow, DBLog, DBRegistry, \
                                       DBPortSpec, DBAdd, DBChange, DBDelete
 from vistrails.core import debug
+from vistrails.core.system import get_elementtree_library
+ElementTree = get_elementtree_library()
 
 import unittest
 
@@ -109,30 +111,36 @@ def translateVistrail(_vistrail):
                     new_op = DBChange.update_version(obj, trans_dict)
                     new_ops.append(new_op)
         return new_ops
-    
+
+    vistrail = DBVistrail()
+    id_scope = vistrail.idScope
+
+    def update_annotations(old_obj, trans_dict):
+        new_annotations = []
+        for a in old_obj.db_annotations:
+            new_annotations.append(DBAnnotation.update_version(a, 
+                                                               translate_dict))
+            id_scope.updateBeginId(DBAnnotation.vtType, a.db_id)
+        vars = {}
+        for var in old_obj.db_vistrailVariables:
+            descriptor = (var.db_package, var.db_module, var.db_namespace)
+            vars[var.db_name] = (var.db_uuid, descriptor, var.db_value)
+        if vars:
+            new_id = id_scope.getNewId(DBAnnotation.vtType)
+            annotation = DBAnnotation(id=new_id, key='__vistrail_vars__', 
+                                      value=str(vars))
+            new_annotations.append(annotation)
+
+        return new_annotations
+
     translate_dict = {'DBModule': {'portSpecs': update_portSpecs},
                       'DBModuleDescriptor': {'portSpecs': update_portSpecs},
                       'DBAction': {'operations': update_operations},
                       'DBGroup': {'workflow': update_workflow},
+                      'DBVistrail': {'annotations': update_annotations},
                       }
 
-    vistrail = DBVistrail()
-    id_scope = vistrail.idScope
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
-
-    key = '__vistrail_vars__'
-
-    id_scope = vistrail.idScope
-    id_scope.setBeginId('annotation', _vistrail.idScope.getNewId('annotation'))
-    vars = {}
-    for var in _vistrail.db_vistrailVariables:
-        descriptor =(var.db_package, var.db_module, var.db_namespace)
-        vars[var.db_name] = (var.db_uuid, descriptor, var.db_value)
-
-    if vars:
-        new_id = id_scope.getNewId(DBAnnotation.vtType)
-        annotation = DBAnnotation(id=new_id, key=key, value=str(vars))
-        vistrail.db_add_annotation(annotation)
 
     if _vistrail.db_parameter_explorations:
         debug.warning(("Vistrail contains %s parameter explorations that "
