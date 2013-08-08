@@ -109,6 +109,7 @@ def run_install_command_as_root(graphical, cmd, args):
     lines = []
     try:
         for line in iter(p.stdout.readline, ''):
+            print line,
             lines.append(line)
     except IOError, e:
         print "Ignoring IOError:", str(e)
