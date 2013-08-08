@@ -272,11 +272,11 @@ Designing New Modules
 
         self.is_breakpoint = False
 
-        # is_fold_operator stores wether the module is a part of a fold
-        self.is_fold_operator = False
+        # is_looping stores wether the module is a part of a loop
+        self.is_looping = False
 
-        # is_fold_module stores whether the module is a fold module
-        self.is_fold_module = False
+        # is_looping_module stores whether the module is a looping module
+        self.is_looping_module = False
 
         # computed stores wether the module was computed
         # used for the logging stuff
