@@ -132,6 +132,10 @@ def _guess_fedora():
     return os.path.isfile('/etc/fedora-release')
 _system_guesser.add_test(_guess_fedora, 'linux-fedora')
 
+def _guess_windows():
+    return vistrails.core.system.systemType == 'Windows'
+_system_guesser.add_test(_guess_windows, 'windows')
+
 ##############################################################################
 
 def guess_system():
