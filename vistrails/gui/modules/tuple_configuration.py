@@ -144,8 +144,6 @@ class CompletingComboBox(QtGui.QComboBox):
         QtGui.QComboBox.__init__(self, parent)
         self.setEditable(True)
         self.setInsertPolicy(QtGui.QComboBox.NoInsert)
-        self.connect(self.lineEdit(), QtCore.SIGNAL('editingFinished()'),
-                     self.validate_input)
         self._last_good_index = -1
 
     def select_default_item(self, initial_idx):
@@ -155,11 +153,12 @@ class CompletingComboBox(QtGui.QComboBox):
     def validate_input(self):
         invalid = (self.currentIndex() == -1 or
                    self.itemData(self.currentIndex()) == '')
-        if invalid:
-            for i in xrange(self.count()):
-                if self.itemText(i).startswith(self.currentText()):
-                    self.setCurrentIndex(i)
-                    invalid = False
+        completion = self.completer().currentCompletion()
+        if completion:
+            idx = self.findText(completion)
+            if idx:
+                invalid = False
+                self.setCurrentIndex(idx)
         if invalid and self._last_good_index != -1:
             self.setCurrentIndex(self._last_good_index)
         elif invalid:
