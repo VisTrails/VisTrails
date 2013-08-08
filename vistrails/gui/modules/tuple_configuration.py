@@ -137,28 +137,44 @@ class PortTable(QtGui.QTableWidget):
 #        if self.parent():
 #            QtCore.QCoreApplication.sendEvent(self.parent(), event)
 #        QtGui.QTableWidget.focusOutEvent(self, event)
-        
+
+
+class CompletingComboBox(QtGui.QComboBox):
+    def __init__(self, parent):
+        QtGui.QComboBox.__init__(self, parent)
+        self.setEditable(True)
+        self.setInsertPolicy(QtGui.QComboBox.NoInsert)
+        self.connect(self.lineEdit(), QtCore.SIGNAL('editingFinished()'),
+                     self.validate_input)
+        self._last_good_index = -1
+
+    def select_default_item(self, initial_idx):
+        self.setCurrentIndex(initial_idx)
+        self._last_good_index = initial_idx
+
+    def validate_input(self):
+        invalid = (self.currentIndex() == -1 or
+                   self.itemData(self.currentIndex()) == '')
+        if invalid:
+            for i in xrange(self.count()):
+                if self.itemText(i).startswith(self.currentText()):
+                    self.setCurrentIndex(i)
+                    invalid = False
+        if invalid and self._last_good_index != -1:
+            self.setCurrentIndex(self._last_good_index)
+        elif invalid:
+            self.setEditText('')
+        else:
+            self._last_good_index = self.currentIndex()
+            self.setEditText(self.itemText(self.currentIndex()))
+
+
 class PortTableItemDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         registry = get_module_registry()
         if index.column()==1: #Port type
-            combo = QtGui.QComboBox(parent)
-            combo.setEditable(True)
-            combo.setInsertPolicy(QtGui.QComboBox.NoInsert)
-            def validateInput():
-                invalid = (combo.currentIndex() == -1 or
-                           combo.itemData(combo.currentIndex()) == '')
-                if invalid and validateInput.lastGoodIndex != -1:
-                    combo.setCurrentIndex(validateInput.lastGoodIndex)
-                elif invalid:
-                    combo.setEditText('')
-                else:
-                    validateInput.lastGoodIndex = combo.currentIndex()
-                    combo.setEditText(combo.itemText(combo.currentIndex()))
-            validateInput.lastGoodIndex = -1
-            self.connect(combo.lineEdit(), QtCore.SIGNAL('editingFinished()'),
-                         validateInput)
+            combo = CompletingComboBox(parent)
             # FIXME just use descriptors here!!
             variant_desc = registry.get_descriptor_by_name(
                 get_vistrails_basic_pkg_id(), 'Variant')
@@ -178,8 +194,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                                                descriptor.identifier),
                                   descriptor.sigstring)
 
-            combo.setCurrentIndex(variant_index)
-            validateInput.lastGoodIndex = variant_index
+            combo.select_default_item(variant_index)
             return combo
         else:
             return QtGui.QItemDelegate.createEditor(self, parent, option, index)
@@ -193,6 +208,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
 
     def setModelData(self, editor, model, index):
         if index.column()==1:
+            editor.validate_input()
             model.setData(index, editor.itemData(editor.currentIndex()), 
                           QtCore.Qt.UserRole)
             model.setData(index, editor.currentText(), 
