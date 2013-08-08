@@ -35,7 +35,7 @@
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import Boolean, String, Variant, \
-    List, Not
+    List, Not, Integer
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
 from fold import Fold, FoldWithModule
@@ -43,6 +43,7 @@ from utils import Map, Filter, Sum, And, Or
 from conditional import If, Default
 from products import ElementwiseProduct, Dot, Cross
 from order import ExecuteInOrder
+from optimization import Optimize
 
 
 #################################################################################
@@ -73,6 +74,7 @@ def initialize(*args,**keywords):
     registerControl(If)
     registerControl(Default)
     registerControl(ExecuteInOrder)
+    registerControl(Optimize)
 
     reg.add_input_port(Fold, 'InputList', (List, ""))
     reg.add_output_port(Fold, 'Result', (Variant, ""))
@@ -111,6 +113,13 @@ def initialize(*args,**keywords):
 
     reg.add_input_port(ExecuteInOrder, 'module1', (Module, ""))
     reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
+
+    reg.add_input_port(Optimize, 'FunctionPort', (Module, ""))
+    reg.add_input_port(Optimize, 'OutputPort', (String, ""))
+    reg.add_input_port(Optimize, 'ConditionPort', (String, ""))
+    reg.add_input_port(Optimize, 'MaxIterations', (Integer, ""),
+                       optional=True, defaults="['20']")
+    reg.add_output_port(Optimize, 'Result', (Variant, ""))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     reg = get_module_registry()
