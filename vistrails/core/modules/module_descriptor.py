@@ -358,8 +358,8 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     def get_port_spec(self, name, port_type):
         if not self.db_has_portSpec_with_name((name, port_type)):
-            raise Exception("ModuleDescriptor.get_port_spec called when spec "
-                            " (%s, %s) doesn't exist" % (name, port_type))
+            raise ValueError("ModuleDescriptor.get_port_spec called when spec "
+                             " (%s, %s) doesn't exist" % (name, port_type))
         return self.db_get_portSpec_by_name((name, port_type))
 
     def set_port_spec(self, name, port_type, port_spec):

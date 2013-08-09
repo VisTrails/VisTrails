@@ -1703,7 +1703,7 @@ class ModuleRegistry(DBRegistry):
         elif port.type in PortSpec.port_type_map.inverse:
             port_type = PortSpec.port_type_map.inverse[port.type]
         else:
-            raise Exception('Port type "%s" invalid' % str(port.type))
+            raise TypeError('Port type "%s" invalid' % str(port.type))
         if port_type != port_spec.type:
             return False
         if port.name != port_spec.name:

@@ -239,7 +239,7 @@ class vistrails_module(object):
                 port_spec = \
                     self._module.get_port_spec(port_spec.name, 'input')
             else:
-                raise Exception("cannot update an output port spec")
+                raise TypeError("cannot update an output port spec")
 
         # FIXME deal with kwargs
         num_ports = 0
@@ -297,7 +297,7 @@ class vistrails_module(object):
                             other_module.get_port_spec(port_spec.name, 
                                                         'output')
                     else:
-                        raise Exception("cannot update an input "
+                        raise TypeError("cannot update an input "
                                         "port spec")
                 else:
                     other_port_spec = other._port_spec

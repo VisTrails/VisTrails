@@ -945,7 +945,7 @@ class Vistrail(DBVistrail):
                     elif op.what == 'port':
                         deleted_ports += 1
                 else:
-                    raise Exception("Unknown operation type '%s'" % op.vtType)
+                    raise TypeError("Unknown operation type '%s'" % op.vtType)
 
             if added_modules:
                 description = "Added module"
@@ -1130,7 +1130,7 @@ class Vistrail(DBVistrail):
             fresh_id = sub_pipeline.fresh_connection_id()
             c.id = fresh_id
 
-        raise Exception("not finished")
+        raise RuntimeError("not finished")
     
     def get_persisted_log(self):
         """

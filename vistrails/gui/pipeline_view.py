@@ -220,7 +220,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.setPainterState()
 
     def draw(self, painter, option, widget=None):
-        raise Exception("Must implement draw method")
+        raise NotImplementedError("Must implement draw method")
 
     def paint(self, painter, option, widget=None):
         painter.setPen(self.pen())
@@ -433,7 +433,7 @@ class QGraphicsPortTriangleItem(QAbstractGraphicsPortItem):
         QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
         angle = angle % 360
         if angle not in set([0,90,180,270]):
-            raise Exception("Triangle item limited to angles 0,90,180,270.")
+            raise ValueError("Triangle item limited to angles 0,90,180,270.")
         rect = self.getRect()
         if angle == 0 or angle == 180:
             width = rect.width()
@@ -481,7 +481,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
         else:
             points = None
         if points is None or len(points) < 3:
-            raise Exception("Must have at least three points")
+            raise ValueError("Must have at least three points")
         QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
         rect = self.getRect()
         new_points = []

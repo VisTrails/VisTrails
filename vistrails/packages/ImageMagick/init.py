@@ -262,7 +262,7 @@ def initialize():
     def parse_error_if_not_equal(s, expected):
         if s != expected:
             err = "Parse error on version line. Was expecting '%s', got '%s'"
-            raise Exception(err % (s, expected))
+            raise RuntimeError(err % (s, expected))
     
     debug.log("ImageMagick VisTrails package")
 #    print "Will test ImageMagick presence..."
@@ -289,7 +289,7 @@ def initialize():
 #        
 #    version_line = conv_output.readlines()[0][:-1].split(' ')
 #    if result != 0:
-#        raise Exception("ImageMagick does not seem to be present.")
+#        raise RuntimeError("ImageMagick does not seem to be present.")
 #    print "Ok, found ImageMagick"
 #    parse_error_if_not_equal(version_line[0], 'Version:')
 #    parse_error_if_not_equal(version_line[1], 'ImageMagick')

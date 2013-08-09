@@ -157,13 +157,13 @@ class Serializable(object):
         """
         Method used to serialize a module.
         """
-        raise Exception('The serialize method is not defined for this module.')
+        raise NotImplementedError('The serialize method is not defined for this module.')
     
     def deserialize(self):
         """
         Method used to deserialize a module.
         """
-        raise Exception('The deserialize method is not defined for this module.')
+        raise NotImplementedError('The deserialize method is not defined for this module.')
 
 ################################################################################
 # Module

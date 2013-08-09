@@ -253,7 +253,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if (self._auto_save and 
             get_vistrails_application().configuration.check('autosave')):
             if self.locator is None:
-                raise Exception("locator is None")
+                raise ValueError("locator is None")
             return self.locator
         else:
             return None

@@ -249,8 +249,12 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         (cellEvents, errors) = self.runAndGetCellEvents()
         self.is_executing = False
         if len(cellEvents) != self.numberOfCells:
-            raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
-Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
+            raise RuntimeError(
+                    "The number of cells has changed (unexpectedly) "
+                    "(%d vs. %d)!\n"
+                    "Pipeline results: %s" % (len(cellEvents),
+                                              self.numberOfCells,
+                                              errors))
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []
@@ -291,8 +295,12 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
         while True:
             (cellEvents, errors) = self.runAndGetCellEvents()
             if len(cellEvents) != self.numberOfCells:
-                raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
-    Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
+                raise RuntimeError(
+                        "The number of cells has changed (unexpectedly) "
+                        "(%d vs. %d)!\n"
+                        "Pipeline results: %s" % (len(cellEvents),
+                                                  self.numberOfCells,
+                                                  errors))
             if interactive:
                 self.steps.append([])
             else:

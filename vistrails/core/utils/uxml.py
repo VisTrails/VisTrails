@@ -58,7 +58,7 @@ def eval_xml_value(node):
         elif str_value == 'False':
             return False
         else:
-            raise Exception("eval_xml_value: Bogus bool value '%s'" % str_value)
+            raise ValueError("eval_xml_value: Bogus bool value '%s'" % str_value)
     return type_(str_value)
 
 def quote_xml_value(dom, value):

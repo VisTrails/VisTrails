@@ -875,14 +875,14 @@ class Pipeline(DBWorkflow):
         elif isinstance(module_set, Graph):
             subgraph = module_set
         else:
-            raise Exception("Expected list of ints or graph")
+            raise TypeError("Expected list of ints or graph")
         result = Pipeline()
         for module_id in subgraph.iter_vertices():
             result.add_module(copy.copy(self.modules[module_id]))
         for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
             result.add_connection(copy.copy(self.connections[conn_id]))
-                # I haven't finished this yet. -cscheid
-        raise Exception("Incomplete implementation!")
+                # TODO : I haven't finished this yet. -cscheid
+        raise NotImplementedError
         return result
 
     def dump_actions(self):
@@ -892,7 +892,7 @@ class Pipeline(DBWorkflow):
         pipeline."""
 
         # FIXME: Remove this call so we can find who calls it
-        raise Exception('broken')
+        raise RuntimeError('broken')
 
     ##########################################################################
     # Registry-related

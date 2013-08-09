@@ -187,13 +187,13 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     if py_conversion is not None:
         d["translate_to_python"] = py_conversion
     elif base_class == Constant:
-        raise Exception("Must specify translate_to_python for constant")
+        raise ValueError("Must specify translate_to_python for constant")
     else:
         d["translate_to_python"] = staticmethod(base_class.translate_to_python)
     if validation is not None:
         d["validate"] = validation
     elif base_class == Constant:
-        raise Exception("Must specify validation for constant")
+        raise ValueError("Must specify validation for constant")
     else:
         d["validate"] = staticmethod(base_class.validate)
     if default_value is not None:

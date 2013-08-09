@@ -1486,7 +1486,7 @@ class VistrailController(object):
                 if name == last_name:
                     msg = 'Cannot assign the name "%s" to more ' \
                         'than one %s port' % (name, port_type)
-                    raise Exception(msg)
+                    raise RuntimeError(msg)
                 last_name = name
                 idx = name.rfind("_")
                 if idx < 0:
