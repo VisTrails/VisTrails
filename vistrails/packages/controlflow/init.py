@@ -43,7 +43,7 @@ from utils import Map, Filter, Sum, And, Or
 from conditional import If, Default
 from products import ElementwiseProduct, Dot, Cross
 from order import ExecuteInOrder
-from optimization import While
+from looping import While
 
 
 #################################################################################
