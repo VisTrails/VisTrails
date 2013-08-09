@@ -117,6 +117,10 @@ def initialize(*args,**keywords):
     reg.add_input_port(Optimize, 'FunctionPort', (Module, ""))
     reg.add_input_port(Optimize, 'OutputPort', (String, ""))
     reg.add_input_port(Optimize, 'ConditionPort', (String, ""))
+    reg.add_input_port(Optimize, 'StateInputPorts', (List, ""),
+                       optional=True)
+    reg.add_input_port(Optimize, 'StateOutputPorts', (List, ""),
+                       optional=True)
     reg.add_input_port(Optimize, 'MaxIterations', (Integer, ""),
                        optional=True, defaults="['20']")
     reg.add_output_port(Optimize, 'Result', (Variant, ""))
