@@ -7,10 +7,10 @@ from core.modules.vistrails_module import Module, InvalidOutput, \
 from fold import create_constant
 
 
-class Optimize(Module):
+class While(Module):
     """
-    The Optimize Module runs a module over and over until the condition port
-    is true. Then, it returns the result.
+    The While Module runs a module over and over until the condition port
+    is false. Then, it returns the result.
     """
 
     def __init__(self):
@@ -92,7 +92,7 @@ class Optimize(Module):
             if name_condition not in module.outputPorts:
                 raise ModuleError(module,
                                   "Invalid output port: %s" % name_condition)
-            if module.get_output(name_condition):
+            if not module.get_output(name_condition):
                 break
 
             # Get state on output ports
