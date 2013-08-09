@@ -43,7 +43,7 @@ from utils import Map, Filter, AreaFilter, SimilarityFilter
 from conditional import If
 from products import Dot, Cross
 from order import ExecuteInOrder
-from optimization import While
+from looping import While
 
 
 #################################################################################
