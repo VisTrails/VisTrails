@@ -33,13 +33,14 @@
 ##
 ###############################################################################
 
-import sys
-import os
 import json
-import subprocess
+import os
 import platform
-from PyQt4 import QtCore, QtGui
 import string
+import subprocess
+import sys
+import threading
+from PyQt4 import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
                ['\xe2\x80\x9d', '"'],
@@ -67,6 +68,48 @@ def quote_arg(arg):
         return '"%s"' % arg.replace('"', '\\"')
     else:
         return arg
+
+# From: https://gist.github.com/kirpit/1306188
+class Command(object):
+    """
+    Enables to run subprocess commands in a different thread with TIMEOUT option.
+ 
+    Based on jcollado's solution:
+    http://stackoverflow.com/questions/1191374/subprocess-with-timeout/4825933#4825933
+    """
+    command = None
+    process = None
+    status = None
+    output, error = '', ''
+ 
+    def __init__(self, command):
+        self.command = command
+ 
+    def run(self, timeout=5, **kwargs):
+        """ Run a command then return: (status, output, error). """
+        def target(**kwargs):
+            try:
+                self.process = subprocess.Popen(self.command, **kwargs)
+                self.output, self.error = self.process.communicate()
+                self.status = self.process.returncode
+            except:
+                import traceback
+                self.error = traceback.format_exc()
+                self.status = -1
+        # default stdout and stderr
+        if 'stdout' not in kwargs:
+            kwargs['stdout'] = subprocess.PIPE
+        if 'stderr' not in kwargs:
+            kwargs['stderr'] = subprocess.PIPE
+        # thread
+        print "calling with kwargs", target, kwargs
+        thread = threading.Thread(target=target, kwargs=kwargs)
+        thread.start()
+        thread.join(timeout)
+        if thread.is_alive():
+            self.process.terminate()
+            thread.join()
+        return self.status, self.output, self.error
 
 class QCLToolsWizard(QtGui.QWidget):
     def __init__(self, parent, reload_scripts=None):
@@ -623,12 +666,13 @@ class QCLToolsWizard(QtGui.QWidget):
         
     def runProcess(self, args):
         try:
-            text, stderr = subprocess.Popen(args,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, shell=True).communicate()
+            command = Command(args)
+            status, text, stderr = command.run(stdout=subprocess.PIPE,
+                                               stderr=subprocess.PIPE,
+                                               shell=True)
             if not (text and len(text)):
                 text = stderr
-                if not (text and len(text)) or (text and text.beginswith('No ')):
+                if not (text and len(text)) or (text and text.startswith('No ')):
                     return None
             # fix weird formatting
             for a, b in encode_list:
@@ -658,7 +702,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '-h'])
+        text = self.runProcess(['-c', command + ' -h'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
@@ -676,7 +720,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '--help'])
+        text = self.runProcess(['-c', command + ' --help'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
@@ -707,7 +751,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '-h'])
+        text = self.runProcess(['-c', command + ' -h'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
@@ -720,7 +764,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '--help'])
+        text = self.runProcess(['-c', command + ' --help'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
