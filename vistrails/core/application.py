@@ -41,6 +41,7 @@ from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import keychain
 from vistrails.core import system
+import vistrails.core.bundles.installbundle
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
@@ -347,6 +348,16 @@ The builder window can be accessed by a spreadsheet menu option.")
                 
         # Command line options override temp_configuration
         self.readOptions()
+
+        try:
+            vistrails.core.requirements.require_python_module('concurrent.futures')
+        except vistrails.core.requirements.MissingRequirement:
+            if not vistrails.core.bundles.installbundle.install({
+                    'linux-debian': ['python-concurrent.futures'],
+                    'linux-ubuntu': ['python-concurrent.futures'],
+                    'linux-fedora': ['python-futures'],
+                    'pip': ['futures']}):
+                raise
 
         # Create the registry and load default packages
         if self.temp_configuration.check('staticRegistry'):
