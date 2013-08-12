@@ -885,15 +885,6 @@ class Pipeline(DBWorkflow):
         raise NotImplementedError
         return result
 
-    def dump_actions(self):
-        """dump_actions() -> [Action].
-
-        Returns a list of actions that can be used to create a copy of the
-        pipeline."""
-
-        # FIXME: Remove this call so we can find who calls it
-        raise RuntimeError('broken')
-
     ##########################################################################
     # Registry-related
 
