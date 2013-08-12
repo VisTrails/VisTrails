@@ -35,3 +35,6 @@ class ExecutionConfiguration(DBExecutionConfiguration):
             return ExecutionPreference.convert(pref.db_preference)
         except KeyError:
             return None
+
+    def __nonzero__(self):
+        return bool(self.db_module_execution_preferences)

@@ -3376,11 +3376,16 @@ class VistrailController(object):
             if export:
                 save_bundle.vistrail = self.vistrail.do_copy()
                 if isinstance(locator, vistrails.core.db.locator.DBLocator):
-                    save_bundle.vistrail.db_log_filename = None
+                    vistrail = save_bundle.vistrail
+                    vistrail.db_log_filename = None
+                    vistrail.db_execution_configuration_filename = None
             else:
                 save_bundle.vistrail = self.vistrail
             if self.log and len(self.log.workflow_execs) > 0:
                 save_bundle.log = self.log
+            if self.vistrail.execution_configuration:
+                save_bundle.execution_configuration = \
+                        self.vistrail.execution_configuration
             abstractions = self.find_abstractions(self.vistrail, True)
             self.write_abstractions(locator, save_bundle, abstractions, 
                                     abs_save_dir)
@@ -3422,6 +3427,7 @@ class VistrailController(object):
                 new_vistrail = save_bundle.vistrail
                 if isinstance(locator, vistrails.core.db.locator.DBLocator):
                     new_vistrail.db_log_filename = None
+                    new_vistrail.db_execution_configuration_filename = None
                     locator.kwargs['obj_id'] = new_vistrail.db_id
                 if not export:
                     # DAK don't think is necessary since we have a new

@@ -58,6 +58,9 @@ class DBVistrail(_DBVistrail):
         self.db_log_filename = None
         self.log = None
 
+        # keep a reference on the execution configuration here
+        self.db_execution_configuration_filename = None
+
     def __copy__(self):
         return DBVistrail.do_copy(self)
 
@@ -68,6 +71,7 @@ class DBVistrail(_DBVistrail):
         cp.idScope = copy.copy(self.idScope)
         cp.db_objects = copy.copy(self.db_objects)
         cp.db_log_filename = self.db_log_filename
+        cp.db_execution_configuration_filename = self.db_execution_configuration_filename
         if self.log is not None:
             cp.log = copy.copy(self.log)
         else:

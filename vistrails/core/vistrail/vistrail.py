@@ -89,7 +89,6 @@ class Vistrail(DBVistrail):
     def __init__(self, locator=None):
         DBVistrail.__init__(self)
 
-        self.execution_preferences = None
         self.locator = locator
         self.set_defaults()
 
@@ -105,6 +104,7 @@ class Vistrail(DBVistrail):
         return cp
 
     def set_defaults(self, other=None):
+        self.execution_configuration = None
         if other is None:
             self.changed = False
             self.currentVersion = -1
@@ -305,7 +305,7 @@ class Vistrail(DBVistrail):
         try:
             pipeline = Vistrail.getPipelineDispatcher[type(version)](self, version)
 
-            # Label each module with the execution preference
+            # Label each module with the execution configuration
             preferences = self.get_persisted_execution_preferences()
 
             from vistrails.core.vistrail.group import Group
@@ -344,16 +344,16 @@ class Vistrail(DBVistrail):
         return workflow
 
     def get_persisted_execution_preferences(self):
-        if self.execution_preferences is None:
+        if self.execution_configuration is None:
             if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
                 if self.db_execution_configuration_filename is not None:
-                    self.execution_preferences = open_execution_configuration_from_xml(
+                    self.execution_configuration = open_execution_configuration_from_xml(
                             self.db_execution_configuration_filename)
-            if self.execution_preferences is not None:
-                ExecutionConfiguration.convert(self.execution_preferences)
+            if self.execution_configuration is not None:
+                ExecutionConfiguration.convert(self.execution_configuration)
             else:
-                self.execution_preferences = ExecutionConfiguration()
-        return self.execution_preferences
+                self.execution_configuration = ExecutionConfiguration()
+        return self.execution_configuration
 
     def get_pipeline_diff_with_connections(self, v1, v2):
         """like get_pipeline_diff but returns connection info
