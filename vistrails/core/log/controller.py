@@ -39,6 +39,7 @@ from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.loop_exec import LoopExec
 from vistrails.core.log.group_exec import GroupExec
 from vistrails.core.log.machine import Machine
+from vistrails.core.log.remote_execution import RemoteExecution
 from vistrails.core.modules.sub_module import Group, Abstraction
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -155,6 +156,25 @@ class LogController(object):
                                  completed=0)
         return module_exec
 
+    def create_remote_execution(self, scheme, annotations=[], module_execs=[]):
+        remote_exec_id = self.log.id_scope.getNewId(RemoteExecution.vtType)
+        remote_exec = RemoteExecution(id=remote_exec_id,
+                                      scheme=scheme)
+
+        for key, value in annotations:
+            ann_id = self.log.id_scope.getNewId(Annotation.vtType)
+            remote_exec.db_add_annotation(Annotation(id=ann_id,
+                                                     key=key,
+                                                     value=value))
+
+        for module_exec in module_execs:
+            module_exec = module_exec.do_copy(new_ids=True,
+                                              id_scope=self.log.id_scope,
+                                              id_remap={})
+            remote_exec.db_add_module_exec(module_exec)
+
+        return remote_exec
+
     def create_group_exec(self, group, module_id, group_name, cached):
         g_exec_id = self.log.id_scope.getNewId(GroupExec.vtType)
         if isinstance(group, Abstraction):
@@ -246,6 +266,15 @@ class LogController(object):
         del module.module_exec
         if module.is_fold_module:
             return True
+
+    def log_remote_execution(self, module, scheme,
+            annotations=[], module_execs=[]):
+        if not hasattr(module, 'module_exec'):
+            return False
+        remote_exec = self.create_remote_execution(scheme,
+                                                   annotations,
+                                                   module_execs)
+        module.module_exec.db_add_remote_execution(remote_exec)
 
     def start_group_execution(self, group, module_id, group_name,
                               parent_exec, cached):

@@ -30,7 +30,18 @@ class ThreadScheme(ParallelizationScheme):
         async_task = module._runner.make_async_task()
 
         def thread_done(runner):
-            module.do_compute(compute=future.result)
+            def compute():
+                try:
+                    return future.result()
+                finally:
+                    module_exec = module.module_exec.do_copy(
+                            new_ids=True,
+                            id_scope=module.logging.log.log.id_scope,
+                            id_remap={})
+                    module.logging.log_remote_execution(
+                            module, 'threading',
+                            module_execs=[module_exec])
+            module.do_compute(compute=compute)
         future.add_done_callback(lambda res: async_task.callback(thread_done))
 
     def enabled(self):

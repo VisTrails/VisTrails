@@ -256,7 +256,7 @@ def _serialize_module(module):
     return serialize(pipeline)
 
 
-def set_results(module, results):
+def set_results(module, results, scheme, annotations=[]):
     # verifying errors
     if results['errors']:
         raise ModuleError(module, '\n'.join(results['errors']))
@@ -277,14 +277,8 @@ def set_results(module, results):
 
     if exec_ is not None:
         # assigning new ids to existing annotations
-        exec_annotations = exec_.annotations
-        for i in range(len(exec_annotations)):
-            exec_annotations[i].id = module.logging.log.log.id_scope.getNewId(Annotation.vtType)
-
-        parallel_annotation = Annotation(key='parallel_execution', value=True)
-        parallel_annotation.id = module.logging.log.log.id_scope.getNewId(Annotation.vtType)
-        annotations = [parallel_annotation] + exec_annotations
-        exec_.annotations = annotations
+        for i in range(len(exec_.annotations)):
+            exec_.annotations[i].id = module.logging.log.log.id_scope.getNewId(Annotation.vtType)
 
         # before adding the execution log, we need to get the machine information
         machine = unserialize(results['machine_log'], Machine)
@@ -304,4 +298,6 @@ def set_results(module, results):
         if (vtType == 'abstraction') or (vtType == 'group'):
             add_machine_recursive(exec_)
 
-        module.logging.add_exec(exec_)
+        module.logging.log_remote_execution(module, scheme,
+                                            annotations=annotations,
+                                            module_execs=[exec_])

@@ -80,7 +80,7 @@ class IPythonScheme(ParallelizationScheme):
             def get_results(runner):
                 def compute():
                     try:
-                        set_results(module, res.get())
+                        set_results(module, res.get(), 'ipython', [('ipython-profile', EngineManager.profile)])
                     except RemoteError, e:
                         print_remoteerror(e)
                         raise

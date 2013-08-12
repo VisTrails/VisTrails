@@ -382,17 +382,19 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         def add_exec(exec_):
             logger.add_exec(exec_, self.parent_execs)
             
-        logging_obj = InstanceObject(signalSuccess=add_to_executed,
-                                     signalSuspended=add_to_suspended,
-                                     begin_update=begin_update,
-                                     begin_compute=begin_compute,
-                                     update_progress=update_progress,
-                                     end_update=end_update,
-                                     update_cached=update_cached,
-                                     set_computing=set_computing,
-                                     add_exec = add_exec,
-                                     annotate=annotate,
-                                     log=logger)
+        logging_obj = InstanceObject(
+                signalSuccess=add_to_executed,
+                signalSuspended=add_to_suspended,
+                begin_update=begin_update,
+                begin_compute=begin_compute,
+                update_progress=update_progress,
+                end_update=end_update,
+                update_cached=update_cached,
+                set_computing=set_computing,
+                add_exec = add_exec,
+                annotate=annotate,
+                log_remote_execution=logger.log_remote_execution,
+                log=logger)
 
         # PARAMETER CHANGES SETUP
         parameter_changes = []

@@ -1,11 +1,13 @@
 from IPython.parallel.error import RemoteError
 
+from vistrails.core.log.machine import Machine
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.parallelization import SchemeType, Parallelization, \
     ParallelizationScheme
 from vistrails.core.parallelization.common import get_module_inputs_with_defaults
 
 from .api import get_client
+from .engine_manager import EngineManager
 from .utils import print_remoteerror
 
 
@@ -124,12 +126,33 @@ class IPythonStandaloneScheme(ParallelizationScheme):
             def get_results(runner):
                 def compute():
                     try:
-                        results = res.get()
-                    except RemoteError, e:
-                        print_remoteerror(e)
-                        raise
-                    else:
-                        module.outputPorts.update(results)
+                        try:
+                            results = res.get()
+                        except RemoteError, e:
+                            print_remoteerror(e)
+                            raise
+                        else:
+                            module.outputPorts.update(results)
+                    finally:
+                        module_exec = module.module_exec.do_copy(
+                                new_ids=True,
+                                id_scope=module.logging.log.log.id_scope,
+                                id_remap={})
+                        # TODO-logp : get the remote machine somehow...
+                        machine_id = module.logging.log.log.id_scope.getNewId(
+                                Machine.vtType)
+                        machine = Machine(id=machine_id,
+                                          name="Unknown remote machine",
+                                          os="unknown",
+                                          architecture="unknown",
+                                          processor="unknown",
+                                          ram=0)
+                        module.logging.log.workflow_exec.add_machine(machine)
+                        module_exec.machine_id = machine.id
+                        module.logging.log_remote_execution(
+                                module, 'ipython-standalone',
+                                [('ipython-profile', EngineManager.profile)],
+                                module_execs=[module_exec])
                 module.do_compute(compute=compute)
             async_task.callback(get_results)
         rc.add_callback(future, callback)
