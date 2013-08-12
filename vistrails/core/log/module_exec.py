@@ -72,6 +72,7 @@ class ModuleExec(DBModuleExec):
     module_name = DBModuleExec.db_module_name
     machine_id = DBModuleExec.db_machine_id
     error = DBModuleExec.db_error
+    remote_executions = DBModuleExec.db_remote_executions
 
     def _get_duration(self):
         if self.db_ts_end is not None:
