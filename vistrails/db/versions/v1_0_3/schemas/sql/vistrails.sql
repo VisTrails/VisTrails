@@ -148,6 +148,12 @@ CREATE TABLE mashup_alias(
     entity_type char(16)
 ) engine=InnoDB;
 
+CREATE TABLE remote_execution(
+    id int not null auto_increment primary key,
+    parent_id int,
+    scheme varchar(255)
+) engine=InnoDB;
+
 CREATE TABLE mashup(
     id int,
     name varchar(255),
@@ -455,6 +461,15 @@ CREATE TABLE connection_tbl(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE remote_task(
+    id int not null auto_increment primary key,
+    parent_id int,
+    machine_id int,
+    function varchar(255),
+    count int,
+    description varchar(512)
 ) engine=InnoDB;
 
 CREATE TABLE action(

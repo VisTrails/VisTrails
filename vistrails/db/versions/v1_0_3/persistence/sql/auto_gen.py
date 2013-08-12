@@ -1753,6 +1753,147 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBRemoteExecutionSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+        self.table = 'remote_execution'
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'parent_id', 'scheme']
+        table = 'remote_execution'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            parent_exec = self.convertFromDB(row[1], 'long', 'int')
+            scheme = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            
+            remote_execution = DBRemoteExecution(scheme=scheme,
+                                                 id=id)
+            remote_execution.db_parent_exec = parent_exec
+            remote_execution.is_dirty = False
+            res[('remote_execution', id)] = remote_execution
+        return res
+
+    def get_sql_select(self, db, global_props,lock=False):
+        columns = ['id', 'parent_id', 'scheme']
+        table = 'remote_execution'
+        whereMap = global_props
+        orderBy = 'id'
+        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+
+    def process_sql_columns(self, data, global_props):
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            parent_exec = self.convertFromDB(row[1], 'long', 'int')
+            scheme = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            
+            remote_execution = DBRemoteExecution(scheme=scheme,
+                                                 id=id)
+            remote_execution.db_parent_exec = parent_exec
+            remote_execution.is_dirty = False
+            res[('remote_execution', id)] = remote_execution
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('module_exec', obj.db_parent_exec) in all_objects:
+            p = all_objects[('module_exec', obj.db_parent_exec)]
+            p.db_add_remote_execution(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'parent_id', 'scheme']
+        table = 'remote_execution'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_parent_exec') and obj.db_parent_exec is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent_exec, 'long', 'int')
+        if hasattr(obj, 'db_scheme') and obj.db_scheme is not None:
+            columnMap['scheme'] = \
+                self.convertToDB(obj.db_scheme, 'str', 'varchar(255)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        
+    def set_sql_command(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return None
+        columns = ['id', 'parent_id', 'scheme']
+        table = 'remote_execution'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_parent_exec') and obj.db_parent_exec is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent_exec, 'long', 'int')
+        if hasattr(obj, 'db_scheme') and obj.db_scheme is not None:
+            columnMap['scheme'] = \
+                self.convertToDB(obj.db_scheme, 'str', 'varchar(255)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        return dbCommand
+
+    def set_sql_process(self, obj, global_props, lastId):
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        pass
+
+    def to_sql_fast(self, obj, do_copy=True):
+        for child in obj.db_annotations:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        for child in obj.db_remote_tasks:
+            child.db_remote_execution = obj.db_id
+        for child in obj.db_module_execs:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'remote_execution'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBMashupSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5008,6 +5149,12 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'group':
             p = all_objects[('group', obj.db_parent)]
             p.db_add_annotation(obj)
+        elif obj.db_parentType == 'remote_task':
+            p = all_objects[('remote_task', obj.db_parent)]
+            p.db_add_annotation(obj)
+        elif obj.db_parentType == 'remote_execution':
+            p = all_objects[('remote_execution', obj.db_parent)]
+            p.db_add_annotation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -6758,6 +6905,172 @@ class DBConnectionSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBRemoteTaskSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+        self.table = 'remote_task'
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'parent_id', 'machine_id', 'function', 'count', 'description']
+        table = 'remote_task'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            remote_execution = self.convertFromDB(row[1], 'long', 'int')
+            machine_id = self.convertFromDB(row[2], 'long', 'int')
+            function = self.convertFromDB(row[3], 'str', 'varchar(255)')
+            count = self.convertFromDB(row[4], 'long', 'int')
+            description = self.convertFromDB(row[5], 'str', 'varchar(512)')
+            
+            remote_task = DBRemoteTask(machine_id=machine_id,
+                                       function=function,
+                                       count=count,
+                                       description=description,
+                                       id=id)
+            remote_task.db_remote_execution = remote_execution
+            remote_task.is_dirty = False
+            res[('remote_task', id)] = remote_task
+        return res
+
+    def get_sql_select(self, db, global_props,lock=False):
+        columns = ['id', 'parent_id', 'machine_id', 'function', 'count', 'description']
+        table = 'remote_task'
+        whereMap = global_props
+        orderBy = 'id'
+        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+
+    def process_sql_columns(self, data, global_props):
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            remote_execution = self.convertFromDB(row[1], 'long', 'int')
+            machine_id = self.convertFromDB(row[2], 'long', 'int')
+            function = self.convertFromDB(row[3], 'str', 'varchar(255)')
+            count = self.convertFromDB(row[4], 'long', 'int')
+            description = self.convertFromDB(row[5], 'str', 'varchar(512)')
+            
+            remote_task = DBRemoteTask(machine_id=machine_id,
+                                       function=function,
+                                       count=count,
+                                       description=description,
+                                       id=id)
+            remote_task.db_remote_execution = remote_execution
+            remote_task.is_dirty = False
+            res[('remote_task', id)] = remote_task
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('remote_execution', obj.db_remote_execution) in all_objects:
+            p = all_objects[('remote_execution', obj.db_remote_execution)]
+            p.db_add_remote_task(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'parent_id', 'machine_id', 'function', 'count', 'description']
+        table = 'remote_task'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_remote_execution') and obj.db_remote_execution is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_remote_execution, 'long', 'int')
+        if hasattr(obj, 'db_machine_id') and obj.db_machine_id is not None:
+            columnMap['machine_id'] = \
+                self.convertToDB(obj.db_machine_id, 'long', 'int')
+        if hasattr(obj, 'db_function') and obj.db_function is not None:
+            columnMap['function'] = \
+                self.convertToDB(obj.db_function, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_count') and obj.db_count is not None:
+            columnMap['count'] = \
+                self.convertToDB(obj.db_count, 'long', 'int')
+        if hasattr(obj, 'db_description') and obj.db_description is not None:
+            columnMap['description'] = \
+                self.convertToDB(obj.db_description, 'str', 'varchar(512)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        
+    def set_sql_command(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return None
+        columns = ['id', 'parent_id', 'machine_id', 'function', 'count', 'description']
+        table = 'remote_task'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_remote_execution') and obj.db_remote_execution is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_remote_execution, 'long', 'int')
+        if hasattr(obj, 'db_machine_id') and obj.db_machine_id is not None:
+            columnMap['machine_id'] = \
+                self.convertToDB(obj.db_machine_id, 'long', 'int')
+        if hasattr(obj, 'db_function') and obj.db_function is not None:
+            columnMap['function'] = \
+                self.convertToDB(obj.db_function, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_count') and obj.db_count is not None:
+            columnMap['count'] = \
+                self.convertToDB(obj.db_count, 'long', 'int')
+        if hasattr(obj, 'db_description') and obj.db_description is not None:
+            columnMap['description'] = \
+                self.convertToDB(obj.db_description, 'str', 'varchar(512)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        return dbCommand
+
+    def set_sql_process(self, obj, global_props, lastId):
+        if obj.db_id is None:
+            obj.db_id = lastId
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+        pass
+
+    def to_sql_fast(self, obj, do_copy=True):
+        for child in obj.db_annotations:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'remote_task'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBActionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -7395,6 +7708,9 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'loop_exec':
             p = all_objects[('loop_exec', obj.db_parent)]
             p.db_add_item_exec(obj)
+        elif obj.db_parentType == 'remote_execution':
+            p = all_objects[('remote_execution', obj.db_parent)]
+            p.db_add_module_exec(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -7522,6 +7838,8 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         for child in obj.db_loop_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
+        for child in obj.db_remote_executions:
+            child.db_parent_exec = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_exec'
@@ -7559,6 +7877,8 @@ class SQLDAOListBase(dict):
             self['log'] = DBLogSQLDAOBase(self)
         if 'mashup_alias' not in self:
             self['mashup_alias'] = DBMashupAliasSQLDAOBase(self)
+        if 'remote_execution' not in self:
+            self['remote_execution'] = DBRemoteExecutionSQLDAOBase(self)
         if 'mashup' not in self:
             self['mashup'] = DBMashupSQLDAOBase(self)
         if 'portSpecItem' not in self:
@@ -7609,6 +7929,8 @@ class SQLDAOListBase(dict):
             self['mashup_actionAnnotation'] = DBMashupActionAnnotationSQLDAOBase(self)
         if 'connection' not in self:
             self['connection'] = DBConnectionSQLDAOBase(self)
+        if 'remote_task' not in self:
+            self['remote_task'] = DBRemoteTaskSQLDAOBase(self)
         if 'action' not in self:
             self['action'] = DBActionSQLDAOBase(self)
         if 'delete' not in self:

@@ -411,6 +411,14 @@
       <property ref="true" object="group">
 	<sql column="parent_id" type="int"/>
       </property>
+
+      <property ref="true" object="remote_task">
+    <sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="remote_execution">
+    <sql column="parent_id" type="int"/>
+      </property>
     </choice>
 
     <property name="entity_id" type="long" inverse="true">
@@ -1409,6 +1417,10 @@
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="int"/>
       </property>
+
+      <property ref="true" object="remote_execution" type="long" mapping="many-to-one" inverse="true">
+    <sql column="parent_id" type="int"/>
+      </property>
     </choice>
 
     <property name="entity_id" type="long" inverse="true">
@@ -1417,6 +1429,10 @@
 
     <property name="entity_type" type="str" inverse="true">
       <sql type="char(16)"/>
+    </property>
+
+    <property ref="true" object="remote_execution" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
     </property>
 
   </object>
@@ -2010,6 +2026,87 @@
 
     <property ref="true" object="package" type="list"
 	      mapping="one-to-many" index="identifier:version">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- REMOTE_EXECUTION ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="remote_execution">
+    <layout>
+      <xml name="remoteExecution" nodeType="xs:element"/>
+      <sql table="remote_execution"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true"/>
+    </property>
+
+    <property ref="true" name="parent_exec" type="long" object="module_exec" inverse="true" mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="scheme" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many" index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="remote_task" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="module_exec" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- REMOTE_TASK +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="remote_task">
+    <layout>
+      <xml name="remoteTask" nodeType="xs:element"/>
+      <sql table="remote_task"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true"/>
+    </property>
+
+    <property ref="true" type="long" object="remote_execution" inverse="true" mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="machine_id" type="long" foreignKey="true" object="machine">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="function" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="count" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="description" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(512)"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many" index="key">
       <xml nodeType="xs:element"/>
     </property>
   </object>

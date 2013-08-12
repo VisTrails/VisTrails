@@ -94,6 +94,7 @@
       <xs:sequence>
         <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="loop_exec" ref="loopExec" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="remote_execution" ref="remoteExecution" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="tsStart" type="xs:dateTime"/>
@@ -141,6 +142,29 @@
       <xs:attribute name="iteration" type="xs:int"/>
       <xs:attribute name="completed" type="xs:int"/>
       <xs:attribute name="error" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="remoteExecution">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="remote_task" ref="remoteTask" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="module_exec" ref="moduleExec" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="scheme" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="remoteTask">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="machine_id" type="xs:int"/>
+      <xs:attribute name="function" type="xs:string"/>
+      <xs:attribute name="count" type="xs:int"/>
+      <xs:attribute name="description" type="xs:string"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

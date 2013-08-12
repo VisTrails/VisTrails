@@ -280,34 +280,94 @@ class DBVistrailVariable(object):
     def getPrimaryKey(self):
         return self._db_name
 
-class DBProvAgent(object):
+class DBProvDocument(object):
 
-    vtType = 'prov_agent'
+    vtType = 'prov_document'
 
-    def __init__(self, id=None, vt_id=None, prov_type=None, prov_label=None, vt_machine_os=None, vt_machine_architecture=None, vt_machine_processor=None, vt_machine_ram=None):
-        self._db_id = id
-        self._db_vt_id = vt_id
-        self._db_prov_type = prov_type
-        self._db_prov_label = prov_label
-        self._db_vt_machine_os = vt_machine_os
-        self._db_vt_machine_architecture = vt_machine_architecture
-        self._db_vt_machine_processor = vt_machine_processor
-        self._db_vt_machine_ram = vt_machine_ram
+    def __init__(self, prov_entitys=None, prov_activitys=None, prov_agents=None, vt_connections=None, prov_usages=None, prov_generations=None, prov_associations=None):
+        self.db_deleted_prov_entitys = []
+        self.db_prov_entitys_id_index = {}
+        if prov_entitys is None:
+            self._db_prov_entitys = []
+        else:
+            self._db_prov_entitys = prov_entitys
+            for v in self._db_prov_entitys:
+                self.db_prov_entitys_id_index[v.db_id] = v
+        self.db_deleted_prov_activitys = []
+        self.db_prov_activitys_id_index = {}
+        if prov_activitys is None:
+            self._db_prov_activitys = []
+        else:
+            self._db_prov_activitys = prov_activitys
+            for v in self._db_prov_activitys:
+                self.db_prov_activitys_id_index[v.db_id] = v
+        self.db_deleted_prov_agents = []
+        self.db_prov_agents_id_index = {}
+        if prov_agents is None:
+            self._db_prov_agents = []
+        else:
+            self._db_prov_agents = prov_agents
+            for v in self._db_prov_agents:
+                self.db_prov_agents_id_index[v.db_id] = v
+        self.db_deleted_vt_connections = []
+        self.db_vt_connections_id_index = {}
+        if vt_connections is None:
+            self._db_vt_connections = []
+        else:
+            self._db_vt_connections = vt_connections
+            for v in self._db_vt_connections:
+                self.db_vt_connections_id_index[v.db_id] = v
+        self.db_deleted_prov_usages = []
+        if prov_usages is None:
+            self._db_prov_usages = []
+        else:
+            self._db_prov_usages = prov_usages
+        self.db_deleted_prov_generations = []
+        if prov_generations is None:
+            self._db_prov_generations = []
+        else:
+            self._db_prov_generations = prov_generations
+        self.db_deleted_prov_associations = []
+        if prov_associations is None:
+            self._db_prov_associations = []
+        else:
+            self._db_prov_associations = prov_associations
         self.is_dirty = True
         self.is_new = True
     
     def __copy__(self):
-        return DBProvAgent.do_copy(self)
+        return DBProvDocument.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBProvAgent(id=self._db_id,
-                         vt_id=self._db_vt_id,
-                         prov_type=self._db_prov_type,
-                         prov_label=self._db_prov_label,
-                         vt_machine_os=self._db_vt_machine_os,
-                         vt_machine_architecture=self._db_vt_machine_architecture,
-                         vt_machine_processor=self._db_vt_machine_processor,
-                         vt_machine_ram=self._db_vt_machine_ram)
+        cp = DBProvDocument()
+        if self._db_prov_entitys is None:
+            cp._db_prov_entitys = []
+        else:
+            cp._db_prov_entitys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_entitys]
+        if self._db_prov_activitys is None:
+            cp._db_prov_activitys = []
+        else:
+            cp._db_prov_activitys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_activitys]
+        if self._db_prov_agents is None:
+            cp._db_prov_agents = []
+        else:
+            cp._db_prov_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_agents]
+        if self._db_vt_connections is None:
+            cp._db_vt_connections = []
+        else:
+            cp._db_vt_connections = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vt_connections]
+        if self._db_prov_usages is None:
+            cp._db_prov_usages = []
+        else:
+            cp._db_prov_usages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_usages]
+        if self._db_prov_generations is None:
+            cp._db_prov_generations = []
+        else:
+            cp._db_prov_generations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_generations]
+        if self._db_prov_associations is None:
+            cp._db_prov_associations = []
+        else:
+            cp._db_prov_associations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_associations]
         
         # set new ids
         if new_ids:
@@ -319,6 +379,10 @@ class DBProvAgent(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
+        cp.db_prov_entitys_id_index = dict((v.db_id, v) for v in cp._db_prov_entitys)
+        cp.db_prov_activitys_id_index = dict((v.db_id, v) for v in cp._db_prov_activitys)
+        cp.db_prov_agents_id_index = dict((v.db_id, v) for v in cp._db_prov_agents)
+        cp.db_vt_connections_id_index = dict((v.db_id, v) for v in cp._db_vt_connections)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -327,169 +391,416 @@ class DBProvAgent(object):
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
-            new_obj = DBProvAgent()
+            new_obj = DBProvDocument()
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'id' in class_dict:
-            res = class_dict['id'](old_obj, trans_dict)
-            new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
-            new_obj.db_id = old_obj.db_id
-        if 'vt_id' in class_dict:
-            res = class_dict['vt_id'](old_obj, trans_dict)
-            new_obj.db_vt_id = res
-        elif hasattr(old_obj, 'db_vt_id') and old_obj.db_vt_id is not None:
-            new_obj.db_vt_id = old_obj.db_vt_id
-        if 'prov_type' in class_dict:
-            res = class_dict['prov_type'](old_obj, trans_dict)
-            new_obj.db_prov_type = res
-        elif hasattr(old_obj, 'db_prov_type') and old_obj.db_prov_type is not None:
-            new_obj.db_prov_type = old_obj.db_prov_type
-        if 'prov_label' in class_dict:
-            res = class_dict['prov_label'](old_obj, trans_dict)
-            new_obj.db_prov_label = res
-        elif hasattr(old_obj, 'db_prov_label') and old_obj.db_prov_label is not None:
-            new_obj.db_prov_label = old_obj.db_prov_label
-        if 'vt_machine_os' in class_dict:
-            res = class_dict['vt_machine_os'](old_obj, trans_dict)
-            new_obj.db_vt_machine_os = res
-        elif hasattr(old_obj, 'db_vt_machine_os') and old_obj.db_vt_machine_os is not None:
-            new_obj.db_vt_machine_os = old_obj.db_vt_machine_os
-        if 'vt_machine_architecture' in class_dict:
-            res = class_dict['vt_machine_architecture'](old_obj, trans_dict)
-            new_obj.db_vt_machine_architecture = res
-        elif hasattr(old_obj, 'db_vt_machine_architecture') and old_obj.db_vt_machine_architecture is not None:
-            new_obj.db_vt_machine_architecture = old_obj.db_vt_machine_architecture
-        if 'vt_machine_processor' in class_dict:
-            res = class_dict['vt_machine_processor'](old_obj, trans_dict)
-            new_obj.db_vt_machine_processor = res
-        elif hasattr(old_obj, 'db_vt_machine_processor') and old_obj.db_vt_machine_processor is not None:
-            new_obj.db_vt_machine_processor = old_obj.db_vt_machine_processor
-        if 'vt_machine_ram' in class_dict:
-            res = class_dict['vt_machine_ram'](old_obj, trans_dict)
-            new_obj.db_vt_machine_ram = res
-        elif hasattr(old_obj, 'db_vt_machine_ram') and old_obj.db_vt_machine_ram is not None:
-            new_obj.db_vt_machine_ram = old_obj.db_vt_machine_ram
+        if 'prov_entitys' in class_dict:
+            res = class_dict['prov_entitys'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_prov_entity(obj)
+        elif hasattr(old_obj, 'db_prov_entitys') and old_obj.db_prov_entitys is not None:
+            for obj in old_obj.db_prov_entitys:
+                new_obj.db_add_prov_entity(DBProvEntity.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_prov_entitys') and hasattr(new_obj, 'db_deleted_prov_entitys'):
+            for obj in old_obj.db_deleted_prov_entitys:
+                n_obj = DBProvEntity.update_version(obj, trans_dict)
+                new_obj.db_deleted_prov_entitys.append(n_obj)
+        if 'prov_activitys' in class_dict:
+            res = class_dict['prov_activitys'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_prov_activity(obj)
+        elif hasattr(old_obj, 'db_prov_activitys') and old_obj.db_prov_activitys is not None:
+            for obj in old_obj.db_prov_activitys:
+                new_obj.db_add_prov_activity(DBProvActivity.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_prov_activitys') and hasattr(new_obj, 'db_deleted_prov_activitys'):
+            for obj in old_obj.db_deleted_prov_activitys:
+                n_obj = DBProvActivity.update_version(obj, trans_dict)
+                new_obj.db_deleted_prov_activitys.append(n_obj)
+        if 'prov_agents' in class_dict:
+            res = class_dict['prov_agents'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_prov_agent(obj)
+        elif hasattr(old_obj, 'db_prov_agents') and old_obj.db_prov_agents is not None:
+            for obj in old_obj.db_prov_agents:
+                new_obj.db_add_prov_agent(DBProvAgent.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_prov_agents') and hasattr(new_obj, 'db_deleted_prov_agents'):
+            for obj in old_obj.db_deleted_prov_agents:
+                n_obj = DBProvAgent.update_version(obj, trans_dict)
+                new_obj.db_deleted_prov_agents.append(n_obj)
+        if 'vt_connections' in class_dict:
+            res = class_dict['vt_connections'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_vt_connection(obj)
+        elif hasattr(old_obj, 'db_vt_connections') and old_obj.db_vt_connections is not None:
+            for obj in old_obj.db_vt_connections:
+                new_obj.db_add_vt_connection(DBVtConnection.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_vt_connections') and hasattr(new_obj, 'db_deleted_vt_connections'):
+            for obj in old_obj.db_deleted_vt_connections:
+                n_obj = DBVtConnection.update_version(obj, trans_dict)
+                new_obj.db_deleted_vt_connections.append(n_obj)
+        if 'prov_usages' in class_dict:
+            res = class_dict['prov_usages'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_prov_usage(obj)
+        elif hasattr(old_obj, 'db_prov_usages') and old_obj.db_prov_usages is not None:
+            for obj in old_obj.db_prov_usages:
+                new_obj.db_add_prov_usage(DBProvUsage.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_prov_usages') and hasattr(new_obj, 'db_deleted_prov_usages'):
+            for obj in old_obj.db_deleted_prov_usages:
+                n_obj = DBProvUsage.update_version(obj, trans_dict)
+                new_obj.db_deleted_prov_usages.append(n_obj)
+        if 'prov_generations' in class_dict:
+            res = class_dict['prov_generations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_prov_generation(obj)
+        elif hasattr(old_obj, 'db_prov_generations') and old_obj.db_prov_generations is not None:
+            for obj in old_obj.db_prov_generations:
+                new_obj.db_add_prov_generation(DBProvGeneration.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_prov_generations') and hasattr(new_obj, 'db_deleted_prov_generations'):
+            for obj in old_obj.db_deleted_prov_generations:
+                n_obj = DBProvGeneration.update_version(obj, trans_dict)
+                new_obj.db_deleted_prov_generations.append(n_obj)
+        if 'prov_associations' in class_dict:
+            res = class_dict['prov_associations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_prov_association(obj)
+        elif hasattr(old_obj, 'db_prov_associations') and old_obj.db_prov_associations is not None:
+            for obj in old_obj.db_prov_associations:
+                new_obj.db_add_prov_association(DBProvAssociation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_prov_associations') and hasattr(new_obj, 'db_deleted_prov_associations'):
+            for obj in old_obj.db_deleted_prov_associations:
+                n_obj = DBProvAssociation.update_version(obj, trans_dict)
+                new_obj.db_deleted_prov_associations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False, for_action=False):
-        return [(self, parent[0], parent[1])]
+        children = []
+        to_del = []
+        for child in self.db_prov_entitys:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_prov_entity(child)
+        to_del = []
+        for child in self.db_prov_activitys:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_prov_activity(child)
+        to_del = []
+        for child in self.db_prov_agents:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_prov_agent(child)
+        to_del = []
+        for child in self.db_vt_connections:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_vt_connection(child)
+        to_del = []
+        for child in self.db_prov_usages:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_prov_usage(child)
+        to_del = []
+        for child in self.db_prov_generations:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_prov_generation(child)
+        to_del = []
+        for child in self.db_prov_associations:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_prov_association(child)
+        children.append((self, parent[0], parent[1]))
+        return children
     def db_deleted_children(self, remove=False):
         children = []
+        children.extend(self.db_deleted_prov_entitys)
+        children.extend(self.db_deleted_prov_activitys)
+        children.extend(self.db_deleted_prov_agents)
+        children.extend(self.db_deleted_vt_connections)
+        children.extend(self.db_deleted_prov_usages)
+        children.extend(self.db_deleted_prov_generations)
+        children.extend(self.db_deleted_prov_associations)
+        if remove:
+            self.db_deleted_prov_entitys = []
+            self.db_deleted_prov_activitys = []
+            self.db_deleted_prov_agents = []
+            self.db_deleted_vt_connections = []
+            self.db_deleted_prov_usages = []
+            self.db_deleted_prov_generations = []
+            self.db_deleted_prov_associations = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
+        for child in self._db_prov_entitys:
+            if child.has_changes():
+                return True
+        for child in self._db_prov_activitys:
+            if child.has_changes():
+                return True
+        for child in self._db_prov_agents:
+            if child.has_changes():
+                return True
+        for child in self._db_vt_connections:
+            if child.has_changes():
+                return True
+        for child in self._db_prov_usages:
+            if child.has_changes():
+                return True
+        for child in self._db_prov_generations:
+            if child.has_changes():
+                return True
+        for child in self._db_prov_associations:
+            if child.has_changes():
+                return True
         return False
-    def __get_db_id(self):
-        return self._db_id
-    def __set_db_id(self, id):
-        self._db_id = id
+    def __get_db_prov_entitys(self):
+        return self._db_prov_entitys
+    def __set_db_prov_entitys(self, prov_entitys):
+        self._db_prov_entitys = prov_entitys
         self.is_dirty = True
-    db_id = property(__get_db_id, __set_db_id)
-    def db_add_id(self, id):
-        self._db_id = id
-    def db_change_id(self, id):
-        self._db_id = id
-    def db_delete_id(self, id):
-        self._db_id = None
-    
-    def __get_db_vt_id(self):
-        return self._db_vt_id
-    def __set_db_vt_id(self, vt_id):
-        self._db_vt_id = vt_id
+    db_prov_entitys = property(__get_db_prov_entitys, __set_db_prov_entitys)
+    def db_get_prov_entitys(self):
+        return self._db_prov_entitys
+    def db_add_prov_entity(self, prov_entity):
         self.is_dirty = True
-    db_vt_id = property(__get_db_vt_id, __set_db_vt_id)
-    def db_add_vt_id(self, vt_id):
-        self._db_vt_id = vt_id
-    def db_change_vt_id(self, vt_id):
-        self._db_vt_id = vt_id
-    def db_delete_vt_id(self, vt_id):
-        self._db_vt_id = None
-    
-    def __get_db_prov_type(self):
-        return self._db_prov_type
-    def __set_db_prov_type(self, prov_type):
-        self._db_prov_type = prov_type
+        self._db_prov_entitys.append(prov_entity)
+        self.db_prov_entitys_id_index[prov_entity.db_id] = prov_entity
+    def db_change_prov_entity(self, prov_entity):
         self.is_dirty = True
-    db_prov_type = property(__get_db_prov_type, __set_db_prov_type)
-    def db_add_prov_type(self, prov_type):
-        self._db_prov_type = prov_type
-    def db_change_prov_type(self, prov_type):
-        self._db_prov_type = prov_type
-    def db_delete_prov_type(self, prov_type):
-        self._db_prov_type = None
-    
-    def __get_db_prov_label(self):
-        return self._db_prov_label
-    def __set_db_prov_label(self, prov_label):
-        self._db_prov_label = prov_label
+        found = False
+        for i in xrange(len(self._db_prov_entitys)):
+            if self._db_prov_entitys[i].db_id == prov_entity.db_id:
+                self._db_prov_entitys[i] = prov_entity
+                found = True
+                break
+        if not found:
+            self._db_prov_entitys.append(prov_entity)
+        self.db_prov_entitys_id_index[prov_entity.db_id] = prov_entity
+    def db_delete_prov_entity(self, prov_entity):
         self.is_dirty = True
-    db_prov_label = property(__get_db_prov_label, __set_db_prov_label)
-    def db_add_prov_label(self, prov_label):
-        self._db_prov_label = prov_label
-    def db_change_prov_label(self, prov_label):
-        self._db_prov_label = prov_label
-    def db_delete_prov_label(self, prov_label):
-        self._db_prov_label = None
+        for i in xrange(len(self._db_prov_entitys)):
+            if self._db_prov_entitys[i].db_id == prov_entity.db_id:
+                if not self._db_prov_entitys[i].is_new:
+                    self.db_deleted_prov_entitys.append(self._db_prov_entitys[i])
+                del self._db_prov_entitys[i]
+                break
+        del self.db_prov_entitys_id_index[prov_entity.db_id]
+    def db_get_prov_entity(self, key):
+        for i in xrange(len(self._db_prov_entitys)):
+            if self._db_prov_entitys[i].db_id == key:
+                return self._db_prov_entitys[i]
+        return None
+    def db_get_prov_entity_by_id(self, key):
+        return self.db_prov_entitys_id_index[key]
+    def db_has_prov_entity_with_id(self, key):
+        return key in self.db_prov_entitys_id_index
     
-    def __get_db_vt_machine_os(self):
-        return self._db_vt_machine_os
-    def __set_db_vt_machine_os(self, vt_machine_os):
-        self._db_vt_machine_os = vt_machine_os
+    def __get_db_prov_activitys(self):
+        return self._db_prov_activitys
+    def __set_db_prov_activitys(self, prov_activitys):
+        self._db_prov_activitys = prov_activitys
         self.is_dirty = True
-    db_vt_machine_os = property(__get_db_vt_machine_os, __set_db_vt_machine_os)
-    def db_add_vt_machine_os(self, vt_machine_os):
-        self._db_vt_machine_os = vt_machine_os
-    def db_change_vt_machine_os(self, vt_machine_os):
-        self._db_vt_machine_os = vt_machine_os
-    def db_delete_vt_machine_os(self, vt_machine_os):
-        self._db_vt_machine_os = None
-    
-    def __get_db_vt_machine_architecture(self):
-        return self._db_vt_machine_architecture
-    def __set_db_vt_machine_architecture(self, vt_machine_architecture):
-        self._db_vt_machine_architecture = vt_machine_architecture
+    db_prov_activitys = property(__get_db_prov_activitys, __set_db_prov_activitys)
+    def db_get_prov_activitys(self):
+        return self._db_prov_activitys
+    def db_add_prov_activity(self, prov_activity):
         self.is_dirty = True
-    db_vt_machine_architecture = property(__get_db_vt_machine_architecture, __set_db_vt_machine_architecture)
-    def db_add_vt_machine_architecture(self, vt_machine_architecture):
-        self._db_vt_machine_architecture = vt_machine_architecture
-    def db_change_vt_machine_architecture(self, vt_machine_architecture):
-        self._db_vt_machine_architecture = vt_machine_architecture
-    def db_delete_vt_machine_architecture(self, vt_machine_architecture):
-        self._db_vt_machine_architecture = None
-    
-    def __get_db_vt_machine_processor(self):
-        return self._db_vt_machine_processor
-    def __set_db_vt_machine_processor(self, vt_machine_processor):
-        self._db_vt_machine_processor = vt_machine_processor
+        self._db_prov_activitys.append(prov_activity)
+        self.db_prov_activitys_id_index[prov_activity.db_id] = prov_activity
+    def db_change_prov_activity(self, prov_activity):
         self.is_dirty = True
-    db_vt_machine_processor = property(__get_db_vt_machine_processor, __set_db_vt_machine_processor)
-    def db_add_vt_machine_processor(self, vt_machine_processor):
-        self._db_vt_machine_processor = vt_machine_processor
-    def db_change_vt_machine_processor(self, vt_machine_processor):
-        self._db_vt_machine_processor = vt_machine_processor
-    def db_delete_vt_machine_processor(self, vt_machine_processor):
-        self._db_vt_machine_processor = None
-    
-    def __get_db_vt_machine_ram(self):
-        return self._db_vt_machine_ram
-    def __set_db_vt_machine_ram(self, vt_machine_ram):
-        self._db_vt_machine_ram = vt_machine_ram
+        found = False
+        for i in xrange(len(self._db_prov_activitys)):
+            if self._db_prov_activitys[i].db_id == prov_activity.db_id:
+                self._db_prov_activitys[i] = prov_activity
+                found = True
+                break
+        if not found:
+            self._db_prov_activitys.append(prov_activity)
+        self.db_prov_activitys_id_index[prov_activity.db_id] = prov_activity
+    def db_delete_prov_activity(self, prov_activity):
         self.is_dirty = True
-    db_vt_machine_ram = property(__get_db_vt_machine_ram, __set_db_vt_machine_ram)
-    def db_add_vt_machine_ram(self, vt_machine_ram):
-        self._db_vt_machine_ram = vt_machine_ram
-    def db_change_vt_machine_ram(self, vt_machine_ram):
-        self._db_vt_machine_ram = vt_machine_ram
-    def db_delete_vt_machine_ram(self, vt_machine_ram):
-        self._db_vt_machine_ram = None
+        for i in xrange(len(self._db_prov_activitys)):
+            if self._db_prov_activitys[i].db_id == prov_activity.db_id:
+                if not self._db_prov_activitys[i].is_new:
+                    self.db_deleted_prov_activitys.append(self._db_prov_activitys[i])
+                del self._db_prov_activitys[i]
+                break
+        del self.db_prov_activitys_id_index[prov_activity.db_id]
+    def db_get_prov_activity(self, key):
+        for i in xrange(len(self._db_prov_activitys)):
+            if self._db_prov_activitys[i].db_id == key:
+                return self._db_prov_activitys[i]
+        return None
+    def db_get_prov_activity_by_id(self, key):
+        return self.db_prov_activitys_id_index[key]
+    def db_has_prov_activity_with_id(self, key):
+        return key in self.db_prov_activitys_id_index
     
-    def getPrimaryKey(self):
-        return self._db_id
+    def __get_db_prov_agents(self):
+        return self._db_prov_agents
+    def __set_db_prov_agents(self, prov_agents):
+        self._db_prov_agents = prov_agents
+        self.is_dirty = True
+    db_prov_agents = property(__get_db_prov_agents, __set_db_prov_agents)
+    def db_get_prov_agents(self):
+        return self._db_prov_agents
+    def db_add_prov_agent(self, prov_agent):
+        self.is_dirty = True
+        self._db_prov_agents.append(prov_agent)
+        self.db_prov_agents_id_index[prov_agent.db_id] = prov_agent
+    def db_change_prov_agent(self, prov_agent):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_prov_agents)):
+            if self._db_prov_agents[i].db_id == prov_agent.db_id:
+                self._db_prov_agents[i] = prov_agent
+                found = True
+                break
+        if not found:
+            self._db_prov_agents.append(prov_agent)
+        self.db_prov_agents_id_index[prov_agent.db_id] = prov_agent
+    def db_delete_prov_agent(self, prov_agent):
+        self.is_dirty = True
+        for i in xrange(len(self._db_prov_agents)):
+            if self._db_prov_agents[i].db_id == prov_agent.db_id:
+                if not self._db_prov_agents[i].is_new:
+                    self.db_deleted_prov_agents.append(self._db_prov_agents[i])
+                del self._db_prov_agents[i]
+                break
+        del self.db_prov_agents_id_index[prov_agent.db_id]
+    def db_get_prov_agent(self, key):
+        for i in xrange(len(self._db_prov_agents)):
+            if self._db_prov_agents[i].db_id == key:
+                return self._db_prov_agents[i]
+        return None
+    def db_get_prov_agent_by_id(self, key):
+        return self.db_prov_agents_id_index[key]
+    def db_has_prov_agent_with_id(self, key):
+        return key in self.db_prov_agents_id_index
+    
+    def __get_db_vt_connections(self):
+        return self._db_vt_connections
+    def __set_db_vt_connections(self, vt_connections):
+        self._db_vt_connections = vt_connections
+        self.is_dirty = True
+    db_vt_connections = property(__get_db_vt_connections, __set_db_vt_connections)
+    def db_get_vt_connections(self):
+        return self._db_vt_connections
+    def db_add_vt_connection(self, vt_connection):
+        self.is_dirty = True
+        self._db_vt_connections.append(vt_connection)
+        self.db_vt_connections_id_index[vt_connection.db_id] = vt_connection
+    def db_change_vt_connection(self, vt_connection):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_vt_connections)):
+            if self._db_vt_connections[i].db_id == vt_connection.db_id:
+                self._db_vt_connections[i] = vt_connection
+                found = True
+                break
+        if not found:
+            self._db_vt_connections.append(vt_connection)
+        self.db_vt_connections_id_index[vt_connection.db_id] = vt_connection
+    def db_delete_vt_connection(self, vt_connection):
+        self.is_dirty = True
+        for i in xrange(len(self._db_vt_connections)):
+            if self._db_vt_connections[i].db_id == vt_connection.db_id:
+                if not self._db_vt_connections[i].is_new:
+                    self.db_deleted_vt_connections.append(self._db_vt_connections[i])
+                del self._db_vt_connections[i]
+                break
+        del self.db_vt_connections_id_index[vt_connection.db_id]
+    def db_get_vt_connection(self, key):
+        for i in xrange(len(self._db_vt_connections)):
+            if self._db_vt_connections[i].db_id == key:
+                return self._db_vt_connections[i]
+        return None
+    def db_get_vt_connection_by_id(self, key):
+        return self.db_vt_connections_id_index[key]
+    def db_has_vt_connection_with_id(self, key):
+        return key in self.db_vt_connections_id_index
+    
+    def __get_db_prov_usages(self):
+        return self._db_prov_usages
+    def __set_db_prov_usages(self, prov_usages):
+        self._db_prov_usages = prov_usages
+        self.is_dirty = True
+    db_prov_usages = property(__get_db_prov_usages, __set_db_prov_usages)
+    def db_get_prov_usages(self):
+        return self._db_prov_usages
+    def db_add_prov_usage(self, prov_usage):
+        self.is_dirty = True
+        self._db_prov_usages.append(prov_usage)
+    def db_change_prov_usage(self, prov_usage):
+        self.is_dirty = True
+        self._db_prov_usages.append(prov_usage)
+    def db_delete_prov_usage(self, prov_usage):
+        self.is_dirty = True
+        raise Exception('Cannot delete a non-keyed object')
+    def db_get_prov_usage(self, key):
+        return None
+    
+    def __get_db_prov_generations(self):
+        return self._db_prov_generations
+    def __set_db_prov_generations(self, prov_generations):
+        self._db_prov_generations = prov_generations
+        self.is_dirty = True
+    db_prov_generations = property(__get_db_prov_generations, __set_db_prov_generations)
+    def db_get_prov_generations(self):
+        return self._db_prov_generations
+    def db_add_prov_generation(self, prov_generation):
+        self.is_dirty = True
+        self._db_prov_generations.append(prov_generation)
+    def db_change_prov_generation(self, prov_generation):
+        self.is_dirty = True
+        self._db_prov_generations.append(prov_generation)
+    def db_delete_prov_generation(self, prov_generation):
+        self.is_dirty = True
+        raise Exception('Cannot delete a non-keyed object')
+    def db_get_prov_generation(self, key):
+        return None
+    
+    def __get_db_prov_associations(self):
+        return self._db_prov_associations
+    def __set_db_prov_associations(self, prov_associations):
+        self._db_prov_associations = prov_associations
+        self.is_dirty = True
+    db_prov_associations = property(__get_db_prov_associations, __set_db_prov_associations)
+    def db_get_prov_associations(self):
+        return self._db_prov_associations
+    def db_add_prov_association(self, prov_association):
+        self.is_dirty = True
+        self._db_prov_associations.append(prov_association)
+    def db_change_prov_association(self, prov_association):
+        self.is_dirty = True
+        self._db_prov_associations.append(prov_association)
+    def db_delete_prov_association(self, prov_association):
+        self.is_dirty = True
+        raise Exception('Cannot delete a non-keyed object')
+    def db_get_prov_association(self, key):
+        return None
+    
+
 
 class DBOpmWasGeneratedBy(object):
 
@@ -2424,527 +2735,6 @@ class DBExecutionConfiguration(object):
         return key in self.db_module_execution_preferences_module_id_index
     
 
-class DBProvDocument(object):
-
-    vtType = 'prov_document'
-
-    def __init__(self, prov_entitys=None, prov_activitys=None, prov_agents=None, vt_connections=None, prov_usages=None, prov_generations=None, prov_associations=None):
-        self.db_deleted_prov_entitys = []
-        self.db_prov_entitys_id_index = {}
-        if prov_entitys is None:
-            self._db_prov_entitys = []
-        else:
-            self._db_prov_entitys = prov_entitys
-            for v in self._db_prov_entitys:
-                self.db_prov_entitys_id_index[v.db_id] = v
-        self.db_deleted_prov_activitys = []
-        self.db_prov_activitys_id_index = {}
-        if prov_activitys is None:
-            self._db_prov_activitys = []
-        else:
-            self._db_prov_activitys = prov_activitys
-            for v in self._db_prov_activitys:
-                self.db_prov_activitys_id_index[v.db_id] = v
-        self.db_deleted_prov_agents = []
-        self.db_prov_agents_id_index = {}
-        if prov_agents is None:
-            self._db_prov_agents = []
-        else:
-            self._db_prov_agents = prov_agents
-            for v in self._db_prov_agents:
-                self.db_prov_agents_id_index[v.db_id] = v
-        self.db_deleted_vt_connections = []
-        self.db_vt_connections_id_index = {}
-        if vt_connections is None:
-            self._db_vt_connections = []
-        else:
-            self._db_vt_connections = vt_connections
-            for v in self._db_vt_connections:
-                self.db_vt_connections_id_index[v.db_id] = v
-        self.db_deleted_prov_usages = []
-        if prov_usages is None:
-            self._db_prov_usages = []
-        else:
-            self._db_prov_usages = prov_usages
-        self.db_deleted_prov_generations = []
-        if prov_generations is None:
-            self._db_prov_generations = []
-        else:
-            self._db_prov_generations = prov_generations
-        self.db_deleted_prov_associations = []
-        if prov_associations is None:
-            self._db_prov_associations = []
-        else:
-            self._db_prov_associations = prov_associations
-        self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBProvDocument.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBProvDocument()
-        if self._db_prov_entitys is None:
-            cp._db_prov_entitys = []
-        else:
-            cp._db_prov_entitys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_entitys]
-        if self._db_prov_activitys is None:
-            cp._db_prov_activitys = []
-        else:
-            cp._db_prov_activitys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_activitys]
-        if self._db_prov_agents is None:
-            cp._db_prov_agents = []
-        else:
-            cp._db_prov_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_agents]
-        if self._db_vt_connections is None:
-            cp._db_vt_connections = []
-        else:
-            cp._db_vt_connections = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vt_connections]
-        if self._db_prov_usages is None:
-            cp._db_prov_usages = []
-        else:
-            cp._db_prov_usages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_usages]
-        if self._db_prov_generations is None:
-            cp._db_prov_generations = []
-        else:
-            cp._db_prov_generations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_generations]
-        if self._db_prov_associations is None:
-            cp._db_prov_associations = []
-        else:
-            cp._db_prov_associations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_associations]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
-        # recreate indices and set flags
-        cp.db_prov_entitys_id_index = dict((v.db_id, v) for v in cp._db_prov_entitys)
-        cp.db_prov_activitys_id_index = dict((v.db_id, v) for v in cp._db_prov_activitys)
-        cp.db_prov_agents_id_index = dict((v.db_id, v) for v in cp._db_prov_agents)
-        cp.db_vt_connections_id_index = dict((v.db_id, v) for v in cp._db_vt_connections)
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBProvDocument()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'prov_entitys' in class_dict:
-            res = class_dict['prov_entitys'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_prov_entity(obj)
-        elif hasattr(old_obj, 'db_prov_entitys') and old_obj.db_prov_entitys is not None:
-            for obj in old_obj.db_prov_entitys:
-                new_obj.db_add_prov_entity(DBProvEntity.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_prov_entitys') and hasattr(new_obj, 'db_deleted_prov_entitys'):
-            for obj in old_obj.db_deleted_prov_entitys:
-                n_obj = DBProvEntity.update_version(obj, trans_dict)
-                new_obj.db_deleted_prov_entitys.append(n_obj)
-        if 'prov_activitys' in class_dict:
-            res = class_dict['prov_activitys'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_prov_activity(obj)
-        elif hasattr(old_obj, 'db_prov_activitys') and old_obj.db_prov_activitys is not None:
-            for obj in old_obj.db_prov_activitys:
-                new_obj.db_add_prov_activity(DBProvActivity.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_prov_activitys') and hasattr(new_obj, 'db_deleted_prov_activitys'):
-            for obj in old_obj.db_deleted_prov_activitys:
-                n_obj = DBProvActivity.update_version(obj, trans_dict)
-                new_obj.db_deleted_prov_activitys.append(n_obj)
-        if 'prov_agents' in class_dict:
-            res = class_dict['prov_agents'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_prov_agent(obj)
-        elif hasattr(old_obj, 'db_prov_agents') and old_obj.db_prov_agents is not None:
-            for obj in old_obj.db_prov_agents:
-                new_obj.db_add_prov_agent(DBProvAgent.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_prov_agents') and hasattr(new_obj, 'db_deleted_prov_agents'):
-            for obj in old_obj.db_deleted_prov_agents:
-                n_obj = DBProvAgent.update_version(obj, trans_dict)
-                new_obj.db_deleted_prov_agents.append(n_obj)
-        if 'vt_connections' in class_dict:
-            res = class_dict['vt_connections'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_vt_connection(obj)
-        elif hasattr(old_obj, 'db_vt_connections') and old_obj.db_vt_connections is not None:
-            for obj in old_obj.db_vt_connections:
-                new_obj.db_add_vt_connection(DBVtConnection.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_vt_connections') and hasattr(new_obj, 'db_deleted_vt_connections'):
-            for obj in old_obj.db_deleted_vt_connections:
-                n_obj = DBVtConnection.update_version(obj, trans_dict)
-                new_obj.db_deleted_vt_connections.append(n_obj)
-        if 'prov_usages' in class_dict:
-            res = class_dict['prov_usages'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_prov_usage(obj)
-        elif hasattr(old_obj, 'db_prov_usages') and old_obj.db_prov_usages is not None:
-            for obj in old_obj.db_prov_usages:
-                new_obj.db_add_prov_usage(DBProvUsage.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_prov_usages') and hasattr(new_obj, 'db_deleted_prov_usages'):
-            for obj in old_obj.db_deleted_prov_usages:
-                n_obj = DBProvUsage.update_version(obj, trans_dict)
-                new_obj.db_deleted_prov_usages.append(n_obj)
-        if 'prov_generations' in class_dict:
-            res = class_dict['prov_generations'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_prov_generation(obj)
-        elif hasattr(old_obj, 'db_prov_generations') and old_obj.db_prov_generations is not None:
-            for obj in old_obj.db_prov_generations:
-                new_obj.db_add_prov_generation(DBProvGeneration.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_prov_generations') and hasattr(new_obj, 'db_deleted_prov_generations'):
-            for obj in old_obj.db_deleted_prov_generations:
-                n_obj = DBProvGeneration.update_version(obj, trans_dict)
-                new_obj.db_deleted_prov_generations.append(n_obj)
-        if 'prov_associations' in class_dict:
-            res = class_dict['prov_associations'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_prov_association(obj)
-        elif hasattr(old_obj, 'db_prov_associations') and old_obj.db_prov_associations is not None:
-            for obj in old_obj.db_prov_associations:
-                new_obj.db_add_prov_association(DBProvAssociation.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_prov_associations') and hasattr(new_obj, 'db_deleted_prov_associations'):
-            for obj in old_obj.db_deleted_prov_associations:
-                n_obj = DBProvAssociation.update_version(obj, trans_dict)
-                new_obj.db_deleted_prov_associations.append(n_obj)
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
-        children = []
-        to_del = []
-        for child in self.db_prov_entitys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_prov_entity(child)
-        to_del = []
-        for child in self.db_prov_activitys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_prov_activity(child)
-        to_del = []
-        for child in self.db_prov_agents:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_prov_agent(child)
-        to_del = []
-        for child in self.db_vt_connections:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_vt_connection(child)
-        to_del = []
-        for child in self.db_prov_usages:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_prov_usage(child)
-        to_del = []
-        for child in self.db_prov_generations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_prov_generation(child)
-        to_del = []
-        for child in self.db_prov_associations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_prov_association(child)
-        children.append((self, parent[0], parent[1]))
-        return children
-    def db_deleted_children(self, remove=False):
-        children = []
-        children.extend(self.db_deleted_prov_entitys)
-        children.extend(self.db_deleted_prov_activitys)
-        children.extend(self.db_deleted_prov_agents)
-        children.extend(self.db_deleted_vt_connections)
-        children.extend(self.db_deleted_prov_usages)
-        children.extend(self.db_deleted_prov_generations)
-        children.extend(self.db_deleted_prov_associations)
-        if remove:
-            self.db_deleted_prov_entitys = []
-            self.db_deleted_prov_activitys = []
-            self.db_deleted_prov_agents = []
-            self.db_deleted_vt_connections = []
-            self.db_deleted_prov_usages = []
-            self.db_deleted_prov_generations = []
-            self.db_deleted_prov_associations = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        for child in self._db_prov_entitys:
-            if child.has_changes():
-                return True
-        for child in self._db_prov_activitys:
-            if child.has_changes():
-                return True
-        for child in self._db_prov_agents:
-            if child.has_changes():
-                return True
-        for child in self._db_vt_connections:
-            if child.has_changes():
-                return True
-        for child in self._db_prov_usages:
-            if child.has_changes():
-                return True
-        for child in self._db_prov_generations:
-            if child.has_changes():
-                return True
-        for child in self._db_prov_associations:
-            if child.has_changes():
-                return True
-        return False
-    def __get_db_prov_entitys(self):
-        return self._db_prov_entitys
-    def __set_db_prov_entitys(self, prov_entitys):
-        self._db_prov_entitys = prov_entitys
-        self.is_dirty = True
-    db_prov_entitys = property(__get_db_prov_entitys, __set_db_prov_entitys)
-    def db_get_prov_entitys(self):
-        return self._db_prov_entitys
-    def db_add_prov_entity(self, prov_entity):
-        self.is_dirty = True
-        self._db_prov_entitys.append(prov_entity)
-        self.db_prov_entitys_id_index[prov_entity.db_id] = prov_entity
-    def db_change_prov_entity(self, prov_entity):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_prov_entitys)):
-            if self._db_prov_entitys[i].db_id == prov_entity.db_id:
-                self._db_prov_entitys[i] = prov_entity
-                found = True
-                break
-        if not found:
-            self._db_prov_entitys.append(prov_entity)
-        self.db_prov_entitys_id_index[prov_entity.db_id] = prov_entity
-    def db_delete_prov_entity(self, prov_entity):
-        self.is_dirty = True
-        for i in xrange(len(self._db_prov_entitys)):
-            if self._db_prov_entitys[i].db_id == prov_entity.db_id:
-                if not self._db_prov_entitys[i].is_new:
-                    self.db_deleted_prov_entitys.append(self._db_prov_entitys[i])
-                del self._db_prov_entitys[i]
-                break
-        del self.db_prov_entitys_id_index[prov_entity.db_id]
-    def db_get_prov_entity(self, key):
-        for i in xrange(len(self._db_prov_entitys)):
-            if self._db_prov_entitys[i].db_id == key:
-                return self._db_prov_entitys[i]
-        return None
-    def db_get_prov_entity_by_id(self, key):
-        return self.db_prov_entitys_id_index[key]
-    def db_has_prov_entity_with_id(self, key):
-        return key in self.db_prov_entitys_id_index
-    
-    def __get_db_prov_activitys(self):
-        return self._db_prov_activitys
-    def __set_db_prov_activitys(self, prov_activitys):
-        self._db_prov_activitys = prov_activitys
-        self.is_dirty = True
-    db_prov_activitys = property(__get_db_prov_activitys, __set_db_prov_activitys)
-    def db_get_prov_activitys(self):
-        return self._db_prov_activitys
-    def db_add_prov_activity(self, prov_activity):
-        self.is_dirty = True
-        self._db_prov_activitys.append(prov_activity)
-        self.db_prov_activitys_id_index[prov_activity.db_id] = prov_activity
-    def db_change_prov_activity(self, prov_activity):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_prov_activitys)):
-            if self._db_prov_activitys[i].db_id == prov_activity.db_id:
-                self._db_prov_activitys[i] = prov_activity
-                found = True
-                break
-        if not found:
-            self._db_prov_activitys.append(prov_activity)
-        self.db_prov_activitys_id_index[prov_activity.db_id] = prov_activity
-    def db_delete_prov_activity(self, prov_activity):
-        self.is_dirty = True
-        for i in xrange(len(self._db_prov_activitys)):
-            if self._db_prov_activitys[i].db_id == prov_activity.db_id:
-                if not self._db_prov_activitys[i].is_new:
-                    self.db_deleted_prov_activitys.append(self._db_prov_activitys[i])
-                del self._db_prov_activitys[i]
-                break
-        del self.db_prov_activitys_id_index[prov_activity.db_id]
-    def db_get_prov_activity(self, key):
-        for i in xrange(len(self._db_prov_activitys)):
-            if self._db_prov_activitys[i].db_id == key:
-                return self._db_prov_activitys[i]
-        return None
-    def db_get_prov_activity_by_id(self, key):
-        return self.db_prov_activitys_id_index[key]
-    def db_has_prov_activity_with_id(self, key):
-        return key in self.db_prov_activitys_id_index
-    
-    def __get_db_prov_agents(self):
-        return self._db_prov_agents
-    def __set_db_prov_agents(self, prov_agents):
-        self._db_prov_agents = prov_agents
-        self.is_dirty = True
-    db_prov_agents = property(__get_db_prov_agents, __set_db_prov_agents)
-    def db_get_prov_agents(self):
-        return self._db_prov_agents
-    def db_add_prov_agent(self, prov_agent):
-        self.is_dirty = True
-        self._db_prov_agents.append(prov_agent)
-        self.db_prov_agents_id_index[prov_agent.db_id] = prov_agent
-    def db_change_prov_agent(self, prov_agent):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_prov_agents)):
-            if self._db_prov_agents[i].db_id == prov_agent.db_id:
-                self._db_prov_agents[i] = prov_agent
-                found = True
-                break
-        if not found:
-            self._db_prov_agents.append(prov_agent)
-        self.db_prov_agents_id_index[prov_agent.db_id] = prov_agent
-    def db_delete_prov_agent(self, prov_agent):
-        self.is_dirty = True
-        for i in xrange(len(self._db_prov_agents)):
-            if self._db_prov_agents[i].db_id == prov_agent.db_id:
-                if not self._db_prov_agents[i].is_new:
-                    self.db_deleted_prov_agents.append(self._db_prov_agents[i])
-                del self._db_prov_agents[i]
-                break
-        del self.db_prov_agents_id_index[prov_agent.db_id]
-    def db_get_prov_agent(self, key):
-        for i in xrange(len(self._db_prov_agents)):
-            if self._db_prov_agents[i].db_id == key:
-                return self._db_prov_agents[i]
-        return None
-    def db_get_prov_agent_by_id(self, key):
-        return self.db_prov_agents_id_index[key]
-    def db_has_prov_agent_with_id(self, key):
-        return key in self.db_prov_agents_id_index
-    
-    def __get_db_vt_connections(self):
-        return self._db_vt_connections
-    def __set_db_vt_connections(self, vt_connections):
-        self._db_vt_connections = vt_connections
-        self.is_dirty = True
-    db_vt_connections = property(__get_db_vt_connections, __set_db_vt_connections)
-    def db_get_vt_connections(self):
-        return self._db_vt_connections
-    def db_add_vt_connection(self, vt_connection):
-        self.is_dirty = True
-        self._db_vt_connections.append(vt_connection)
-        self.db_vt_connections_id_index[vt_connection.db_id] = vt_connection
-    def db_change_vt_connection(self, vt_connection):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_vt_connections)):
-            if self._db_vt_connections[i].db_id == vt_connection.db_id:
-                self._db_vt_connections[i] = vt_connection
-                found = True
-                break
-        if not found:
-            self._db_vt_connections.append(vt_connection)
-        self.db_vt_connections_id_index[vt_connection.db_id] = vt_connection
-    def db_delete_vt_connection(self, vt_connection):
-        self.is_dirty = True
-        for i in xrange(len(self._db_vt_connections)):
-            if self._db_vt_connections[i].db_id == vt_connection.db_id:
-                if not self._db_vt_connections[i].is_new:
-                    self.db_deleted_vt_connections.append(self._db_vt_connections[i])
-                del self._db_vt_connections[i]
-                break
-        del self.db_vt_connections_id_index[vt_connection.db_id]
-    def db_get_vt_connection(self, key):
-        for i in xrange(len(self._db_vt_connections)):
-            if self._db_vt_connections[i].db_id == key:
-                return self._db_vt_connections[i]
-        return None
-    def db_get_vt_connection_by_id(self, key):
-        return self.db_vt_connections_id_index[key]
-    def db_has_vt_connection_with_id(self, key):
-        return key in self.db_vt_connections_id_index
-    
-    def __get_db_prov_usages(self):
-        return self._db_prov_usages
-    def __set_db_prov_usages(self, prov_usages):
-        self._db_prov_usages = prov_usages
-        self.is_dirty = True
-    db_prov_usages = property(__get_db_prov_usages, __set_db_prov_usages)
-    def db_get_prov_usages(self):
-        return self._db_prov_usages
-    def db_add_prov_usage(self, prov_usage):
-        self.is_dirty = True
-        self._db_prov_usages.append(prov_usage)
-    def db_change_prov_usage(self, prov_usage):
-        self.is_dirty = True
-        self._db_prov_usages.append(prov_usage)
-    def db_delete_prov_usage(self, prov_usage):
-        self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_prov_usage(self, key):
-        return None
-    
-    def __get_db_prov_generations(self):
-        return self._db_prov_generations
-    def __set_db_prov_generations(self, prov_generations):
-        self._db_prov_generations = prov_generations
-        self.is_dirty = True
-    db_prov_generations = property(__get_db_prov_generations, __set_db_prov_generations)
-    def db_get_prov_generations(self):
-        return self._db_prov_generations
-    def db_add_prov_generation(self, prov_generation):
-        self.is_dirty = True
-        self._db_prov_generations.append(prov_generation)
-    def db_change_prov_generation(self, prov_generation):
-        self.is_dirty = True
-        self._db_prov_generations.append(prov_generation)
-    def db_delete_prov_generation(self, prov_generation):
-        self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_prov_generation(self, key):
-        return None
-    
-    def __get_db_prov_associations(self):
-        return self._db_prov_associations
-    def __set_db_prov_associations(self, prov_associations):
-        self._db_prov_associations = prov_associations
-        self.is_dirty = True
-    db_prov_associations = property(__get_db_prov_associations, __set_db_prov_associations)
-    def db_get_prov_associations(self):
-        return self._db_prov_associations
-    def db_add_prov_association(self, prov_association):
-        self.is_dirty = True
-        self._db_prov_associations.append(prov_association)
-    def db_change_prov_association(self, prov_association):
-        self.is_dirty = True
-        self._db_prov_associations.append(prov_association)
-    def db_delete_prov_association(self, prov_association):
-        self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_prov_association(self, key):
-        return None
-    
-
 
 class DBOpmAccount(object):
 
@@ -3166,78 +2956,6 @@ class DBOpmProcesses(object):
         return self.db_processs_id_index[key]
     def db_has_process_with_id(self, key):
         return key in self.db_processs_id_index
-    
-
-
-class DBRefProvActivity(object):
-
-    vtType = 'ref_prov_activity'
-
-    def __init__(self, prov_ref=None):
-        self._db_prov_ref = prov_ref
-        self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBRefProvActivity.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
-        
-        # recreate indices and set flags
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBRefProvActivity()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'prov_ref' in class_dict:
-            res = class_dict['prov_ref'](old_obj, trans_dict)
-            new_obj.db_prov_ref = res
-        elif hasattr(old_obj, 'db_prov_ref') and old_obj.db_prov_ref is not None:
-            new_obj.db_prov_ref = old_obj.db_prov_ref
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
-        return [(self, parent[0], parent[1])]
-    def db_deleted_children(self, remove=False):
-        children = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        return False
-    def __get_db_prov_ref(self):
-        return self._db_prov_ref
-    def __set_db_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-        self.is_dirty = True
-    db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
-    def db_add_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-    def db_change_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-    def db_delete_prov_ref(self, prov_ref):
-        self._db_prov_ref = None
     
 
 
@@ -4609,31 +4327,60 @@ class DBMashupAlias(object):
     def getPrimaryKey(self):
         return self._db_id
 
-class DBOpmAgents(object):
+class DBRemoteExecution(object):
 
-    vtType = 'opm_agents'
+    vtType = 'remote_execution'
 
-    def __init__(self, agents=None):
-        self.db_deleted_agents = []
-        self.db_agents_id_index = {}
-        if agents is None:
-            self._db_agents = []
+    def __init__(self, id=None, scheme=None, annotations=None, remote_tasks=None, module_execs=None):
+        self._db_id = id
+        self._db_scheme = scheme
+        self.db_deleted_annotations = []
+        self.db_annotations_id_index = {}
+        self.db_annotations_key_index = {}
+        if annotations is None:
+            self._db_annotations = []
         else:
-            self._db_agents = agents
-            for v in self._db_agents:
-                self.db_agents_id_index[v.db_id] = v
+            self._db_annotations = annotations
+            for v in self._db_annotations:
+                self.db_annotations_id_index[v.db_id] = v
+                self.db_annotations_key_index[v.db_key] = v
+        self.db_deleted_remote_tasks = []
+        self.db_remote_tasks_id_index = {}
+        if remote_tasks is None:
+            self._db_remote_tasks = []
+        else:
+            self._db_remote_tasks = remote_tasks
+            for v in self._db_remote_tasks:
+                self.db_remote_tasks_id_index[v.db_id] = v
+        self.db_deleted_module_execs = []
+        self.db_module_execs_id_index = {}
+        if module_execs is None:
+            self._db_module_execs = []
+        else:
+            self._db_module_execs = module_execs
+            for v in self._db_module_execs:
+                self.db_module_execs_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
     def __copy__(self):
-        return DBOpmAgents.do_copy(self)
+        return DBRemoteExecution.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBOpmAgents()
-        if self._db_agents is None:
-            cp._db_agents = []
+        cp = DBRemoteExecution(id=self._db_id,
+                               scheme=self._db_scheme)
+        if self._db_annotations is None:
+            cp._db_annotations = []
         else:
-            cp._db_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_agents]
+            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+        if self._db_remote_tasks is None:
+            cp._db_remote_tasks = []
+        else:
+            cp._db_remote_tasks = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_remote_tasks]
+        if self._db_module_execs is None:
+            cp._db_module_execs = []
+        else:
+            cp._db_module_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_execs]
         
         # set new ids
         if new_ids:
@@ -4645,7 +4392,10 @@ class DBOpmAgents(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.db_agents_id_index = dict((v.db_id, v) for v in cp._db_agents)
+        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
+        cp.db_remote_tasks_id_index = dict((v.db_id, v) for v in cp._db_remote_tasks)
+        cp.db_module_execs_id_index = dict((v.db_id, v) for v in cp._db_module_execs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -4654,21 +4404,53 @@ class DBOpmAgents(object):
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
-            new_obj = DBOpmAgents()
+            new_obj = DBRemoteExecution()
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'agents' in class_dict:
-            res = class_dict['agents'](old_obj, trans_dict)
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'scheme' in class_dict:
+            res = class_dict['scheme'](old_obj, trans_dict)
+            new_obj.db_scheme = res
+        elif hasattr(old_obj, 'db_scheme') and old_obj.db_scheme is not None:
+            new_obj.db_scheme = old_obj.db_scheme
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
-                new_obj.db_add_agent(obj)
-        elif hasattr(old_obj, 'db_agents') and old_obj.db_agents is not None:
-            for obj in old_obj.db_agents:
-                new_obj.db_add_agent(DBOpmAgent.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_agents') and hasattr(new_obj, 'db_deleted_agents'):
-            for obj in old_obj.db_deleted_agents:
-                n_obj = DBOpmAgent.update_version(obj, trans_dict)
-                new_obj.db_deleted_agents.append(n_obj)
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
+        if 'remote_tasks' in class_dict:
+            res = class_dict['remote_tasks'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_remote_task(obj)
+        elif hasattr(old_obj, 'db_remote_tasks') and old_obj.db_remote_tasks is not None:
+            for obj in old_obj.db_remote_tasks:
+                new_obj.db_add_remote_task(DBRemoteTask.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_remote_tasks') and hasattr(new_obj, 'db_deleted_remote_tasks'):
+            for obj in old_obj.db_deleted_remote_tasks:
+                n_obj = DBRemoteTask.update_version(obj, trans_dict)
+                new_obj.db_deleted_remote_tasks.append(n_obj)
+        if 'module_execs' in class_dict:
+            res = class_dict['module_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_module_exec(obj)
+        elif hasattr(old_obj, 'db_module_execs') and old_obj.db_module_execs is not None:
+            for obj in old_obj.db_module_execs:
+                new_obj.db_add_module_exec(DBModuleExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_module_execs') and hasattr(new_obj, 'db_deleted_module_execs'):
+            for obj in old_obj.db_deleted_module_execs:
+                n_obj = DBModuleExec.update_version(obj, trans_dict)
+                new_obj.db_deleted_module_execs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -4676,70 +4458,212 @@ class DBOpmAgents(object):
     def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
-        for child in self.db_agents:
+        for child in self.db_annotations:
             children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
-            self.db_delete_agent(child)
+            self.db_delete_annotation(child)
+        to_del = []
+        for child in self.db_remote_tasks:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_remote_task(child)
+        to_del = []
+        for child in self.db_module_execs:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_module_exec(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_agents)
+        children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_remote_tasks)
+        children.extend(self.db_deleted_module_execs)
         if remove:
-            self.db_deleted_agents = []
+            self.db_deleted_annotations = []
+            self.db_deleted_remote_tasks = []
+            self.db_deleted_module_execs = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        for child in self._db_agents:
+        for child in self._db_annotations:
+            if child.has_changes():
+                return True
+        for child in self._db_remote_tasks:
+            if child.has_changes():
+                return True
+        for child in self._db_module_execs:
             if child.has_changes():
                 return True
         return False
-    def __get_db_agents(self):
-        return self._db_agents
-    def __set_db_agents(self, agents):
-        self._db_agents = agents
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
         self.is_dirty = True
-    db_agents = property(__get_db_agents, __set_db_agents)
-    def db_get_agents(self):
-        return self._db_agents
-    def db_add_agent(self, agent):
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_scheme(self):
+        return self._db_scheme
+    def __set_db_scheme(self, scheme):
+        self._db_scheme = scheme
         self.is_dirty = True
-        self._db_agents.append(agent)
-        self.db_agents_id_index[agent.db_id] = agent
-    def db_change_agent(self, agent):
+    db_scheme = property(__get_db_scheme, __set_db_scheme)
+    def db_add_scheme(self, scheme):
+        self._db_scheme = scheme
+    def db_change_scheme(self, scheme):
+        self._db_scheme = scheme
+    def db_delete_scheme(self, scheme):
+        self._db_scheme = None
+    
+    def __get_db_annotations(self):
+        return self._db_annotations
+    def __set_db_annotations(self, annotations):
+        self._db_annotations = annotations
+        self.is_dirty = True
+    db_annotations = property(__get_db_annotations, __set_db_annotations)
+    def db_get_annotations(self):
+        return self._db_annotations
+    def db_add_annotation(self, annotation):
+        self.is_dirty = True
+        self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
+    def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_agents)):
-            if self._db_agents[i].db_id == agent.db_id:
-                self._db_agents[i] = agent
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                self._db_annotations[i] = annotation
                 found = True
                 break
         if not found:
-            self._db_agents.append(agent)
-        self.db_agents_id_index[agent.db_id] = agent
-    def db_delete_agent(self, agent):
+            self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
+    def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_agents)):
-            if self._db_agents[i].db_id == agent.db_id:
-                if not self._db_agents[i].is_new:
-                    self.db_deleted_agents.append(self._db_agents[i])
-                del self._db_agents[i]
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                if not self._db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self._db_annotations[i])
+                del self._db_annotations[i]
                 break
-        del self.db_agents_id_index[agent.db_id]
-    def db_get_agent(self, key):
-        for i in xrange(len(self._db_agents)):
-            if self._db_agents[i].db_id == key:
-                return self._db_agents[i]
+        del self.db_annotations_id_index[annotation.db_id]
+        del self.db_annotations_key_index[annotation.db_key]
+    def db_get_annotation(self, key):
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == key:
+                return self._db_annotations[i]
         return None
-    def db_get_agent_by_id(self, key):
-        return self.db_agents_id_index[key]
-    def db_has_agent_with_id(self, key):
-        return key in self.db_agents_id_index
+    def db_get_annotation_by_id(self, key):
+        return self.db_annotations_id_index[key]
+    def db_has_annotation_with_id(self, key):
+        return key in self.db_annotations_id_index
+    def db_get_annotation_by_key(self, key):
+        return self.db_annotations_key_index[key]
+    def db_has_annotation_with_key(self, key):
+        return key in self.db_annotations_key_index
     
-
+    def __get_db_remote_tasks(self):
+        return self._db_remote_tasks
+    def __set_db_remote_tasks(self, remote_tasks):
+        self._db_remote_tasks = remote_tasks
+        self.is_dirty = True
+    db_remote_tasks = property(__get_db_remote_tasks, __set_db_remote_tasks)
+    def db_get_remote_tasks(self):
+        return self._db_remote_tasks
+    def db_add_remote_task(self, remote_task):
+        self.is_dirty = True
+        self._db_remote_tasks.append(remote_task)
+        self.db_remote_tasks_id_index[remote_task.db_id] = remote_task
+    def db_change_remote_task(self, remote_task):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_remote_tasks)):
+            if self._db_remote_tasks[i].db_id == remote_task.db_id:
+                self._db_remote_tasks[i] = remote_task
+                found = True
+                break
+        if not found:
+            self._db_remote_tasks.append(remote_task)
+        self.db_remote_tasks_id_index[remote_task.db_id] = remote_task
+    def db_delete_remote_task(self, remote_task):
+        self.is_dirty = True
+        for i in xrange(len(self._db_remote_tasks)):
+            if self._db_remote_tasks[i].db_id == remote_task.db_id:
+                if not self._db_remote_tasks[i].is_new:
+                    self.db_deleted_remote_tasks.append(self._db_remote_tasks[i])
+                del self._db_remote_tasks[i]
+                break
+        del self.db_remote_tasks_id_index[remote_task.db_id]
+    def db_get_remote_task(self, key):
+        for i in xrange(len(self._db_remote_tasks)):
+            if self._db_remote_tasks[i].db_id == key:
+                return self._db_remote_tasks[i]
+        return None
+    def db_get_remote_task_by_id(self, key):
+        return self.db_remote_tasks_id_index[key]
+    def db_has_remote_task_with_id(self, key):
+        return key in self.db_remote_tasks_id_index
+    
+    def __get_db_module_execs(self):
+        return self._db_module_execs
+    def __set_db_module_execs(self, module_execs):
+        self._db_module_execs = module_execs
+        self.is_dirty = True
+    db_module_execs = property(__get_db_module_execs, __set_db_module_execs)
+    def db_get_module_execs(self):
+        return self._db_module_execs
+    def db_add_module_exec(self, module_exec):
+        self.is_dirty = True
+        self._db_module_execs.append(module_exec)
+        self.db_module_execs_id_index[module_exec.db_id] = module_exec
+    def db_change_module_exec(self, module_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_module_execs)):
+            if self._db_module_execs[i].db_id == module_exec.db_id:
+                self._db_module_execs[i] = module_exec
+                found = True
+                break
+        if not found:
+            self._db_module_execs.append(module_exec)
+        self.db_module_execs_id_index[module_exec.db_id] = module_exec
+    def db_delete_module_exec(self, module_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_module_execs)):
+            if self._db_module_execs[i].db_id == module_exec.db_id:
+                if not self._db_module_execs[i].is_new:
+                    self.db_deleted_module_execs.append(self._db_module_execs[i])
+                del self._db_module_execs[i]
+                break
+        del self.db_module_execs_id_index[module_exec.db_id]
+    def db_get_module_exec(self, key):
+        for i in xrange(len(self._db_module_execs)):
+            if self._db_module_execs[i].db_id == key:
+                return self._db_module_execs[i]
+        return None
+    def db_get_module_exec_by_id(self, key):
+        return self.db_module_execs_id_index[key]
+    def db_has_module_exec_with_id(self, key):
+        return key in self.db_module_execs_id_index
+    
+    def getPrimaryKey(self):
+        return self._db_id
 
 class DBMashup(object):
 
@@ -6494,6 +6418,275 @@ class DBOpmDependencies(object):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
     def db_get_dependency(self, key):
+        return None
+    
+
+
+class DBOpmWasDerivedFrom(object):
+
+    vtType = 'opm_was_derived_from'
+
+    def __init__(self, effect=None, role=None, cause=None, accounts=None, opm_times=None):
+        self.db_deleted_effect = []
+        self._db_effect = effect
+        self.db_deleted_role = []
+        self._db_role = role
+        self.db_deleted_cause = []
+        self._db_cause = cause
+        self.db_deleted_accounts = []
+        if accounts is None:
+            self._db_accounts = []
+        else:
+            self._db_accounts = accounts
+        self.db_deleted_opm_times = []
+        if opm_times is None:
+            self._db_opm_times = []
+        else:
+            self._db_opm_times = opm_times
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBOpmWasDerivedFrom.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBOpmWasDerivedFrom()
+        if self._db_effect is not None:
+            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
+        if self._db_role is not None:
+            cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
+        if self._db_cause is not None:
+            cp._db_cause = self._db_cause.do_copy(new_ids, id_scope, id_remap)
+        if self._db_accounts is None:
+            cp._db_accounts = []
+        else:
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+        if self._db_opm_times is None:
+            cp._db_opm_times = []
+        else:
+            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBOpmWasDerivedFrom()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'effect' in class_dict:
+            res = class_dict['effect'](old_obj, trans_dict)
+            new_obj.db_effect = res
+        elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
+            obj = old_obj.db_effect
+            new_obj.db_add_effect(DBOpmArtifactIdEffect.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
+            for obj in old_obj.db_deleted_effect:
+                n_obj = DBOpmArtifactIdEffect.update_version(obj, trans_dict)
+                new_obj.db_deleted_effect.append(n_obj)
+        if 'role' in class_dict:
+            res = class_dict['role'](old_obj, trans_dict)
+            new_obj.db_role = res
+        elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
+            obj = old_obj.db_role
+            new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
+            for obj in old_obj.db_deleted_role:
+                n_obj = DBOpmRole.update_version(obj, trans_dict)
+                new_obj.db_deleted_role.append(n_obj)
+        if 'cause' in class_dict:
+            res = class_dict['cause'](old_obj, trans_dict)
+            new_obj.db_cause = res
+        elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
+            obj = old_obj.db_cause
+            new_obj.db_add_cause(DBOpmArtifactIdCause.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
+            for obj in old_obj.db_deleted_cause:
+                n_obj = DBOpmArtifactIdCause.update_version(obj, trans_dict)
+                new_obj.db_deleted_cause.append(n_obj)
+        if 'accounts' in class_dict:
+            res = class_dict['accounts'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_account(obj)
+        elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
+            for obj in old_obj.db_accounts:
+                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
+        if 'opm_times' in class_dict:
+            res = class_dict['opm_times'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_opm_time(obj)
+        elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
+            for obj in old_obj.db_opm_times:
+                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
+            for obj in old_obj.db_deleted_opm_times:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_times.append(n_obj)
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        children = []
+        if self._db_effect is not None:
+            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_effect = None
+        if self._db_role is not None:
+            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_role = None
+        if self._db_cause is not None:
+            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_cause = None
+        to_del = []
+        for child in self.db_accounts:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_account(child)
+        to_del = []
+        for child in self.db_opm_times:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_opm_time(child)
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_effect)
+        children.extend(self.db_deleted_role)
+        children.extend(self.db_deleted_cause)
+        children.extend(self.db_deleted_accounts)
+        children.extend(self.db_deleted_opm_times)
+        if remove:
+            self.db_deleted_effect = []
+            self.db_deleted_role = []
+            self.db_deleted_cause = []
+            self.db_deleted_accounts = []
+            self.db_deleted_opm_times = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        if self._db_effect is not None and self._db_effect.has_changes():
+            return True
+        if self._db_role is not None and self._db_role.has_changes():
+            return True
+        if self._db_cause is not None and self._db_cause.has_changes():
+            return True
+        for child in self._db_accounts:
+            if child.has_changes():
+                return True
+        for child in self._db_opm_times:
+            if child.has_changes():
+                return True
+        return False
+    def __get_db_effect(self):
+        return self._db_effect
+    def __set_db_effect(self, effect):
+        self._db_effect = effect
+        self.is_dirty = True
+    db_effect = property(__get_db_effect, __set_db_effect)
+    def db_add_effect(self, effect):
+        self._db_effect = effect
+    def db_change_effect(self, effect):
+        self._db_effect = effect
+    def db_delete_effect(self, effect):
+        if not self.is_new:
+            self.db_deleted_effect.append(self._db_effect)
+        self._db_effect = None
+    
+    def __get_db_role(self):
+        return self._db_role
+    def __set_db_role(self, role):
+        self._db_role = role
+        self.is_dirty = True
+    db_role = property(__get_db_role, __set_db_role)
+    def db_add_role(self, role):
+        self._db_role = role
+    def db_change_role(self, role):
+        self._db_role = role
+    def db_delete_role(self, role):
+        if not self.is_new:
+            self.db_deleted_role.append(self._db_role)
+        self._db_role = None
+    
+    def __get_db_cause(self):
+        return self._db_cause
+    def __set_db_cause(self, cause):
+        self._db_cause = cause
+        self.is_dirty = True
+    db_cause = property(__get_db_cause, __set_db_cause)
+    def db_add_cause(self, cause):
+        self._db_cause = cause
+    def db_change_cause(self, cause):
+        self._db_cause = cause
+    def db_delete_cause(self, cause):
+        if not self.is_new:
+            self.db_deleted_cause.append(self._db_cause)
+        self._db_cause = None
+    
+    def __get_db_accounts(self):
+        return self._db_accounts
+    def __set_db_accounts(self, accounts):
+        self._db_accounts = accounts
+        self.is_dirty = True
+    db_accounts = property(__get_db_accounts, __set_db_accounts)
+    def db_get_accounts(self):
+        return self._db_accounts
+    def db_add_account(self, account):
+        self.is_dirty = True
+        self._db_accounts.append(account)
+    def db_change_account(self, account):
+        self.is_dirty = True
+        self._db_accounts.append(account)
+    def db_delete_account(self, account):
+        self.is_dirty = True
+        raise Exception('Cannot delete a non-keyed object')
+    def db_get_account(self, key):
+        return None
+    
+    def __get_db_opm_times(self):
+        return self._db_opm_times
+    def __set_db_opm_times(self, opm_times):
+        self._db_opm_times = opm_times
+        self.is_dirty = True
+    db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
+    def db_get_opm_times(self):
+        return self._db_opm_times
+    def db_add_opm_time(self, opm_time):
+        self.is_dirty = True
+        self._db_opm_times.append(opm_time)
+    def db_change_opm_time(self, opm_time):
+        self.is_dirty = True
+        self._db_opm_times.append(opm_time)
+    def db_delete_opm_time(self, opm_time):
+        self.is_dirty = True
+        raise Exception('Cannot delete a non-keyed object')
+    def db_get_opm_time(self, key):
         return None
     
 
@@ -11496,49 +11689,31 @@ class DBChange(object):
     def getPrimaryKey(self):
         return self._db_id
 
-class DBOpmWasDerivedFrom(object):
+class DBOpmAgents(object):
 
-    vtType = 'opm_was_derived_from'
+    vtType = 'opm_agents'
 
-    def __init__(self, effect=None, role=None, cause=None, accounts=None, opm_times=None):
-        self.db_deleted_effect = []
-        self._db_effect = effect
-        self.db_deleted_role = []
-        self._db_role = role
-        self.db_deleted_cause = []
-        self._db_cause = cause
-        self.db_deleted_accounts = []
-        if accounts is None:
-            self._db_accounts = []
+    def __init__(self, agents=None):
+        self.db_deleted_agents = []
+        self.db_agents_id_index = {}
+        if agents is None:
+            self._db_agents = []
         else:
-            self._db_accounts = accounts
-        self.db_deleted_opm_times = []
-        if opm_times is None:
-            self._db_opm_times = []
-        else:
-            self._db_opm_times = opm_times
+            self._db_agents = agents
+            for v in self._db_agents:
+                self.db_agents_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
     def __copy__(self):
-        return DBOpmWasDerivedFrom.do_copy(self)
+        return DBOpmAgents.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBOpmWasDerivedFrom()
-        if self._db_effect is not None:
-            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
-        if self._db_role is not None:
-            cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
-        if self._db_cause is not None:
-            cp._db_cause = self._db_cause.do_copy(new_ids, id_scope, id_remap)
-        if self._db_accounts is None:
-            cp._db_accounts = []
+        cp = DBOpmAgents()
+        if self._db_agents is None:
+            cp._db_agents = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        if self._db_opm_times is None:
-            cp._db_opm_times = []
-        else:
-            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+            cp._db_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_agents]
         
         # set new ids
         if new_ids:
@@ -11550,6 +11725,7 @@ class DBOpmWasDerivedFrom(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
+        cp.db_agents_id_index = dict((v.db_id, v) for v in cp._db_agents)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -11558,210 +11734,90 @@ class DBOpmWasDerivedFrom(object):
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
-            new_obj = DBOpmWasDerivedFrom()
+            new_obj = DBOpmAgents()
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'effect' in class_dict:
-            res = class_dict['effect'](old_obj, trans_dict)
-            new_obj.db_effect = res
-        elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
-            obj = old_obj.db_effect
-            new_obj.db_add_effect(DBOpmArtifactIdEffect.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
-            for obj in old_obj.db_deleted_effect:
-                n_obj = DBOpmArtifactIdEffect.update_version(obj, trans_dict)
-                new_obj.db_deleted_effect.append(n_obj)
-        if 'role' in class_dict:
-            res = class_dict['role'](old_obj, trans_dict)
-            new_obj.db_role = res
-        elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
-            obj = old_obj.db_role
-            new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
-            for obj in old_obj.db_deleted_role:
-                n_obj = DBOpmRole.update_version(obj, trans_dict)
-                new_obj.db_deleted_role.append(n_obj)
-        if 'cause' in class_dict:
-            res = class_dict['cause'](old_obj, trans_dict)
-            new_obj.db_cause = res
-        elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
-            obj = old_obj.db_cause
-            new_obj.db_add_cause(DBOpmArtifactIdCause.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
-            for obj in old_obj.db_deleted_cause:
-                n_obj = DBOpmArtifactIdCause.update_version(obj, trans_dict)
-                new_obj.db_deleted_cause.append(n_obj)
-        if 'accounts' in class_dict:
-            res = class_dict['accounts'](old_obj, trans_dict)
+        if 'agents' in class_dict:
+            res = class_dict['agents'](old_obj, trans_dict)
             for obj in res:
-                new_obj.db_add_account(obj)
-        elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
-            for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
-            for obj in old_obj.db_deleted_accounts:
-                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
-                new_obj.db_deleted_accounts.append(n_obj)
-        if 'opm_times' in class_dict:
-            res = class_dict['opm_times'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_opm_time(obj)
-        elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
-            for obj in old_obj.db_opm_times:
-                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
-            for obj in old_obj.db_deleted_opm_times:
-                n_obj = DBOpmTime.update_version(obj, trans_dict)
-                new_obj.db_deleted_opm_times.append(n_obj)
+                new_obj.db_add_agent(obj)
+        elif hasattr(old_obj, 'db_agents') and old_obj.db_agents is not None:
+            for obj in old_obj.db_agents:
+                new_obj.db_add_agent(DBOpmAgent.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_agents') and hasattr(new_obj, 'db_deleted_agents'):
+            for obj in old_obj.db_deleted_agents:
+                n_obj = DBOpmAgent.update_version(obj, trans_dict)
+                new_obj.db_deleted_agents.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
-        if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                self._db_effect = None
-        if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                self._db_role = None
-        if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                self._db_cause = None
         to_del = []
-        for child in self.db_accounts:
+        for child in self.db_agents:
             children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
-            self.db_delete_account(child)
-        to_del = []
-        for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_opm_time(child)
+            self.db_delete_agent(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_effect)
-        children.extend(self.db_deleted_role)
-        children.extend(self.db_deleted_cause)
-        children.extend(self.db_deleted_accounts)
-        children.extend(self.db_deleted_opm_times)
+        children.extend(self.db_deleted_agents)
         if remove:
-            self.db_deleted_effect = []
-            self.db_deleted_role = []
-            self.db_deleted_cause = []
-            self.db_deleted_accounts = []
-            self.db_deleted_opm_times = []
+            self.db_deleted_agents = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        if self._db_effect is not None and self._db_effect.has_changes():
-            return True
-        if self._db_role is not None and self._db_role.has_changes():
-            return True
-        if self._db_cause is not None and self._db_cause.has_changes():
-            return True
-        for child in self._db_accounts:
-            if child.has_changes():
-                return True
-        for child in self._db_opm_times:
+        for child in self._db_agents:
             if child.has_changes():
                 return True
         return False
-    def __get_db_effect(self):
-        return self._db_effect
-    def __set_db_effect(self, effect):
-        self._db_effect = effect
+    def __get_db_agents(self):
+        return self._db_agents
+    def __set_db_agents(self, agents):
+        self._db_agents = agents
         self.is_dirty = True
-    db_effect = property(__get_db_effect, __set_db_effect)
-    def db_add_effect(self, effect):
-        self._db_effect = effect
-    def db_change_effect(self, effect):
-        self._db_effect = effect
-    def db_delete_effect(self, effect):
-        if not self.is_new:
-            self.db_deleted_effect.append(self._db_effect)
-        self._db_effect = None
-    
-    def __get_db_role(self):
-        return self._db_role
-    def __set_db_role(self, role):
-        self._db_role = role
+    db_agents = property(__get_db_agents, __set_db_agents)
+    def db_get_agents(self):
+        return self._db_agents
+    def db_add_agent(self, agent):
         self.is_dirty = True
-    db_role = property(__get_db_role, __set_db_role)
-    def db_add_role(self, role):
-        self._db_role = role
-    def db_change_role(self, role):
-        self._db_role = role
-    def db_delete_role(self, role):
-        if not self.is_new:
-            self.db_deleted_role.append(self._db_role)
-        self._db_role = None
-    
-    def __get_db_cause(self):
-        return self._db_cause
-    def __set_db_cause(self, cause):
-        self._db_cause = cause
+        self._db_agents.append(agent)
+        self.db_agents_id_index[agent.db_id] = agent
+    def db_change_agent(self, agent):
         self.is_dirty = True
-    db_cause = property(__get_db_cause, __set_db_cause)
-    def db_add_cause(self, cause):
-        self._db_cause = cause
-    def db_change_cause(self, cause):
-        self._db_cause = cause
-    def db_delete_cause(self, cause):
-        if not self.is_new:
-            self.db_deleted_cause.append(self._db_cause)
-        self._db_cause = None
-    
-    def __get_db_accounts(self):
-        return self._db_accounts
-    def __set_db_accounts(self, accounts):
-        self._db_accounts = accounts
+        found = False
+        for i in xrange(len(self._db_agents)):
+            if self._db_agents[i].db_id == agent.db_id:
+                self._db_agents[i] = agent
+                found = True
+                break
+        if not found:
+            self._db_agents.append(agent)
+        self.db_agents_id_index[agent.db_id] = agent
+    def db_delete_agent(self, agent):
         self.is_dirty = True
-    db_accounts = property(__get_db_accounts, __set_db_accounts)
-    def db_get_accounts(self):
-        return self._db_accounts
-    def db_add_account(self, account):
-        self.is_dirty = True
-        self._db_accounts.append(account)
-    def db_change_account(self, account):
-        self.is_dirty = True
-        self._db_accounts.append(account)
-    def db_delete_account(self, account):
-        self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_account(self, key):
+        for i in xrange(len(self._db_agents)):
+            if self._db_agents[i].db_id == agent.db_id:
+                if not self._db_agents[i].is_new:
+                    self.db_deleted_agents.append(self._db_agents[i])
+                del self._db_agents[i]
+                break
+        del self.db_agents_id_index[agent.db_id]
+    def db_get_agent(self, key):
+        for i in xrange(len(self._db_agents)):
+            if self._db_agents[i].db_id == key:
+                return self._db_agents[i]
         return None
-    
-    def __get_db_opm_times(self):
-        return self._db_opm_times
-    def __set_db_opm_times(self, opm_times):
-        self._db_opm_times = opm_times
-        self.is_dirty = True
-    db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
-    def db_get_opm_times(self):
-        return self._db_opm_times
-    def db_add_opm_time(self, opm_time):
-        self.is_dirty = True
-        self._db_opm_times.append(opm_time)
-    def db_change_opm_time(self, opm_time):
-        self.is_dirty = True
-        self._db_opm_times.append(opm_time)
-    def db_delete_opm_time(self, opm_time):
-        self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_opm_time(self, key):
-        return None
+    def db_get_agent_by_id(self, key):
+        return self.db_agents_id_index[key]
+    def db_has_agent_with_id(self, key):
+        return key in self.db_agents_id_index
     
 
 
@@ -14054,6 +14110,486 @@ class DBLoopExec(object):
     def getPrimaryKey(self):
         return self._db_id
 
+class DBOpmWasTriggeredBy(object):
+
+    vtType = 'opm_was_triggered_by'
+
+    def __init__(self, effect=None, role=None, cause=None, accounts=None, opm_times=None):
+        self.db_deleted_effect = []
+        self._db_effect = effect
+        self.db_deleted_role = []
+        self._db_role = role
+        self.db_deleted_cause = []
+        self._db_cause = cause
+        self.db_deleted_accounts = []
+        if accounts is None:
+            self._db_accounts = []
+        else:
+            self._db_accounts = accounts
+        self.db_deleted_opm_times = []
+        if opm_times is None:
+            self._db_opm_times = []
+        else:
+            self._db_opm_times = opm_times
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBOpmWasTriggeredBy.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBOpmWasTriggeredBy()
+        if self._db_effect is not None:
+            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
+        if self._db_role is not None:
+            cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
+        if self._db_cause is not None:
+            cp._db_cause = self._db_cause.do_copy(new_ids, id_scope, id_remap)
+        if self._db_accounts is None:
+            cp._db_accounts = []
+        else:
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+        if self._db_opm_times is None:
+            cp._db_opm_times = []
+        else:
+            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBOpmWasTriggeredBy()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'effect' in class_dict:
+            res = class_dict['effect'](old_obj, trans_dict)
+            new_obj.db_effect = res
+        elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
+            obj = old_obj.db_effect
+            new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
+            for obj in old_obj.db_deleted_effect:
+                n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
+                new_obj.db_deleted_effect.append(n_obj)
+        if 'role' in class_dict:
+            res = class_dict['role'](old_obj, trans_dict)
+            new_obj.db_role = res
+        elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
+            obj = old_obj.db_role
+            new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
+            for obj in old_obj.db_deleted_role:
+                n_obj = DBOpmRole.update_version(obj, trans_dict)
+                new_obj.db_deleted_role.append(n_obj)
+        if 'cause' in class_dict:
+            res = class_dict['cause'](old_obj, trans_dict)
+            new_obj.db_cause = res
+        elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
+            obj = old_obj.db_cause
+            new_obj.db_add_cause(DBOpmProcessIdCause.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
+            for obj in old_obj.db_deleted_cause:
+                n_obj = DBOpmProcessIdCause.update_version(obj, trans_dict)
+                new_obj.db_deleted_cause.append(n_obj)
+        if 'accounts' in class_dict:
+            res = class_dict['accounts'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_account(obj)
+        elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
+            for obj in old_obj.db_accounts:
+                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
+            for obj in old_obj.db_deleted_accounts:
+                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
+                new_obj.db_deleted_accounts.append(n_obj)
+        if 'opm_times' in class_dict:
+            res = class_dict['opm_times'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_opm_time(obj)
+        elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
+            for obj in old_obj.db_opm_times:
+                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
+            for obj in old_obj.db_deleted_opm_times:
+                n_obj = DBOpmTime.update_version(obj, trans_dict)
+                new_obj.db_deleted_opm_times.append(n_obj)
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        children = []
+        if self._db_effect is not None:
+            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_effect = None
+        if self._db_role is not None:
+            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_role = None
+        if self._db_cause is not None:
+            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_cause = None
+        to_del = []
+        for child in self.db_accounts:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_account(child)
+        to_del = []
+        for child in self.db_opm_times:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_opm_time(child)
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_effect)
+        children.extend(self.db_deleted_role)
+        children.extend(self.db_deleted_cause)
+        children.extend(self.db_deleted_accounts)
+        children.extend(self.db_deleted_opm_times)
+        if remove:
+            self.db_deleted_effect = []
+            self.db_deleted_role = []
+            self.db_deleted_cause = []
+            self.db_deleted_accounts = []
+            self.db_deleted_opm_times = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        if self._db_effect is not None and self._db_effect.has_changes():
+            return True
+        if self._db_role is not None and self._db_role.has_changes():
+            return True
+        if self._db_cause is not None and self._db_cause.has_changes():
+            return True
+        for child in self._db_accounts:
+            if child.has_changes():
+                return True
+        for child in self._db_opm_times:
+            if child.has_changes():
+                return True
+        return False
+    def __get_db_effect(self):
+        return self._db_effect
+    def __set_db_effect(self, effect):
+        self._db_effect = effect
+        self.is_dirty = True
+    db_effect = property(__get_db_effect, __set_db_effect)
+    def db_add_effect(self, effect):
+        self._db_effect = effect
+    def db_change_effect(self, effect):
+        self._db_effect = effect
+    def db_delete_effect(self, effect):
+        if not self.is_new:
+            self.db_deleted_effect.append(self._db_effect)
+        self._db_effect = None
+    
+    def __get_db_role(self):
+        return self._db_role
+    def __set_db_role(self, role):
+        self._db_role = role
+        self.is_dirty = True
+    db_role = property(__get_db_role, __set_db_role)
+    def db_add_role(self, role):
+        self._db_role = role
+    def db_change_role(self, role):
+        self._db_role = role
+    def db_delete_role(self, role):
+        if not self.is_new:
+            self.db_deleted_role.append(self._db_role)
+        self._db_role = None
+    
+    def __get_db_cause(self):
+        return self._db_cause
+    def __set_db_cause(self, cause):
+        self._db_cause = cause
+        self.is_dirty = True
+    db_cause = property(__get_db_cause, __set_db_cause)
+    def db_add_cause(self, cause):
+        self._db_cause = cause
+    def db_change_cause(self, cause):
+        self._db_cause = cause
+    def db_delete_cause(self, cause):
+        if not self.is_new:
+            self.db_deleted_cause.append(self._db_cause)
+        self._db_cause = None
+    
+    def __get_db_accounts(self):
+        return self._db_accounts
+    def __set_db_accounts(self, accounts):
+        self._db_accounts = accounts
+        self.is_dirty = True
+    db_accounts = property(__get_db_accounts, __set_db_accounts)
+    def db_get_accounts(self):
+        return self._db_accounts
+    def db_add_account(self, account):
+        self.is_dirty = True
+        self._db_accounts.append(account)
+    def db_change_account(self, account):
+        self.is_dirty = True
+        self._db_accounts.append(account)
+    def db_delete_account(self, account):
+        self.is_dirty = True
+        raise Exception('Cannot delete a non-keyed object')
+    def db_get_account(self, key):
+        return None
+    
+    def __get_db_opm_times(self):
+        return self._db_opm_times
+    def __set_db_opm_times(self, opm_times):
+        self._db_opm_times = opm_times
+        self.is_dirty = True
+    db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
+    def db_get_opm_times(self):
+        return self._db_opm_times
+    def db_add_opm_time(self, opm_time):
+        self.is_dirty = True
+        self._db_opm_times.append(opm_time)
+    def db_change_opm_time(self, opm_time):
+        self.is_dirty = True
+        self._db_opm_times.append(opm_time)
+    def db_delete_opm_time(self, opm_time):
+        self.is_dirty = True
+        raise Exception('Cannot delete a non-keyed object')
+    def db_get_opm_time(self, key):
+        return None
+    
+
+
+class DBProvAgent(object):
+
+    vtType = 'prov_agent'
+
+    def __init__(self, id=None, vt_id=None, prov_type=None, prov_label=None, vt_machine_os=None, vt_machine_architecture=None, vt_machine_processor=None, vt_machine_ram=None):
+        self._db_id = id
+        self._db_vt_id = vt_id
+        self._db_prov_type = prov_type
+        self._db_prov_label = prov_label
+        self._db_vt_machine_os = vt_machine_os
+        self._db_vt_machine_architecture = vt_machine_architecture
+        self._db_vt_machine_processor = vt_machine_processor
+        self._db_vt_machine_ram = vt_machine_ram
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBProvAgent.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBProvAgent(id=self._db_id,
+                         vt_id=self._db_vt_id,
+                         prov_type=self._db_prov_type,
+                         prov_label=self._db_prov_label,
+                         vt_machine_os=self._db_vt_machine_os,
+                         vt_machine_architecture=self._db_vt_machine_architecture,
+                         vt_machine_processor=self._db_vt_machine_processor,
+                         vt_machine_ram=self._db_vt_machine_ram)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBProvAgent()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'vt_id' in class_dict:
+            res = class_dict['vt_id'](old_obj, trans_dict)
+            new_obj.db_vt_id = res
+        elif hasattr(old_obj, 'db_vt_id') and old_obj.db_vt_id is not None:
+            new_obj.db_vt_id = old_obj.db_vt_id
+        if 'prov_type' in class_dict:
+            res = class_dict['prov_type'](old_obj, trans_dict)
+            new_obj.db_prov_type = res
+        elif hasattr(old_obj, 'db_prov_type') and old_obj.db_prov_type is not None:
+            new_obj.db_prov_type = old_obj.db_prov_type
+        if 'prov_label' in class_dict:
+            res = class_dict['prov_label'](old_obj, trans_dict)
+            new_obj.db_prov_label = res
+        elif hasattr(old_obj, 'db_prov_label') and old_obj.db_prov_label is not None:
+            new_obj.db_prov_label = old_obj.db_prov_label
+        if 'vt_machine_os' in class_dict:
+            res = class_dict['vt_machine_os'](old_obj, trans_dict)
+            new_obj.db_vt_machine_os = res
+        elif hasattr(old_obj, 'db_vt_machine_os') and old_obj.db_vt_machine_os is not None:
+            new_obj.db_vt_machine_os = old_obj.db_vt_machine_os
+        if 'vt_machine_architecture' in class_dict:
+            res = class_dict['vt_machine_architecture'](old_obj, trans_dict)
+            new_obj.db_vt_machine_architecture = res
+        elif hasattr(old_obj, 'db_vt_machine_architecture') and old_obj.db_vt_machine_architecture is not None:
+            new_obj.db_vt_machine_architecture = old_obj.db_vt_machine_architecture
+        if 'vt_machine_processor' in class_dict:
+            res = class_dict['vt_machine_processor'](old_obj, trans_dict)
+            new_obj.db_vt_machine_processor = res
+        elif hasattr(old_obj, 'db_vt_machine_processor') and old_obj.db_vt_machine_processor is not None:
+            new_obj.db_vt_machine_processor = old_obj.db_vt_machine_processor
+        if 'vt_machine_ram' in class_dict:
+            res = class_dict['vt_machine_ram'](old_obj, trans_dict)
+            new_obj.db_vt_machine_ram = res
+        elif hasattr(old_obj, 'db_vt_machine_ram') and old_obj.db_vt_machine_ram is not None:
+            new_obj.db_vt_machine_ram = old_obj.db_vt_machine_ram
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_vt_id(self):
+        return self._db_vt_id
+    def __set_db_vt_id(self, vt_id):
+        self._db_vt_id = vt_id
+        self.is_dirty = True
+    db_vt_id = property(__get_db_vt_id, __set_db_vt_id)
+    def db_add_vt_id(self, vt_id):
+        self._db_vt_id = vt_id
+    def db_change_vt_id(self, vt_id):
+        self._db_vt_id = vt_id
+    def db_delete_vt_id(self, vt_id):
+        self._db_vt_id = None
+    
+    def __get_db_prov_type(self):
+        return self._db_prov_type
+    def __set_db_prov_type(self, prov_type):
+        self._db_prov_type = prov_type
+        self.is_dirty = True
+    db_prov_type = property(__get_db_prov_type, __set_db_prov_type)
+    def db_add_prov_type(self, prov_type):
+        self._db_prov_type = prov_type
+    def db_change_prov_type(self, prov_type):
+        self._db_prov_type = prov_type
+    def db_delete_prov_type(self, prov_type):
+        self._db_prov_type = None
+    
+    def __get_db_prov_label(self):
+        return self._db_prov_label
+    def __set_db_prov_label(self, prov_label):
+        self._db_prov_label = prov_label
+        self.is_dirty = True
+    db_prov_label = property(__get_db_prov_label, __set_db_prov_label)
+    def db_add_prov_label(self, prov_label):
+        self._db_prov_label = prov_label
+    def db_change_prov_label(self, prov_label):
+        self._db_prov_label = prov_label
+    def db_delete_prov_label(self, prov_label):
+        self._db_prov_label = None
+    
+    def __get_db_vt_machine_os(self):
+        return self._db_vt_machine_os
+    def __set_db_vt_machine_os(self, vt_machine_os):
+        self._db_vt_machine_os = vt_machine_os
+        self.is_dirty = True
+    db_vt_machine_os = property(__get_db_vt_machine_os, __set_db_vt_machine_os)
+    def db_add_vt_machine_os(self, vt_machine_os):
+        self._db_vt_machine_os = vt_machine_os
+    def db_change_vt_machine_os(self, vt_machine_os):
+        self._db_vt_machine_os = vt_machine_os
+    def db_delete_vt_machine_os(self, vt_machine_os):
+        self._db_vt_machine_os = None
+    
+    def __get_db_vt_machine_architecture(self):
+        return self._db_vt_machine_architecture
+    def __set_db_vt_machine_architecture(self, vt_machine_architecture):
+        self._db_vt_machine_architecture = vt_machine_architecture
+        self.is_dirty = True
+    db_vt_machine_architecture = property(__get_db_vt_machine_architecture, __set_db_vt_machine_architecture)
+    def db_add_vt_machine_architecture(self, vt_machine_architecture):
+        self._db_vt_machine_architecture = vt_machine_architecture
+    def db_change_vt_machine_architecture(self, vt_machine_architecture):
+        self._db_vt_machine_architecture = vt_machine_architecture
+    def db_delete_vt_machine_architecture(self, vt_machine_architecture):
+        self._db_vt_machine_architecture = None
+    
+    def __get_db_vt_machine_processor(self):
+        return self._db_vt_machine_processor
+    def __set_db_vt_machine_processor(self, vt_machine_processor):
+        self._db_vt_machine_processor = vt_machine_processor
+        self.is_dirty = True
+    db_vt_machine_processor = property(__get_db_vt_machine_processor, __set_db_vt_machine_processor)
+    def db_add_vt_machine_processor(self, vt_machine_processor):
+        self._db_vt_machine_processor = vt_machine_processor
+    def db_change_vt_machine_processor(self, vt_machine_processor):
+        self._db_vt_machine_processor = vt_machine_processor
+    def db_delete_vt_machine_processor(self, vt_machine_processor):
+        self._db_vt_machine_processor = None
+    
+    def __get_db_vt_machine_ram(self):
+        return self._db_vt_machine_ram
+    def __set_db_vt_machine_ram(self, vt_machine_ram):
+        self._db_vt_machine_ram = vt_machine_ram
+        self.is_dirty = True
+    db_vt_machine_ram = property(__get_db_vt_machine_ram, __set_db_vt_machine_ram)
+    def db_add_vt_machine_ram(self, vt_machine_ram):
+        self._db_vt_machine_ram = vt_machine_ram
+    def db_change_vt_machine_ram(self, vt_machine_ram):
+        self._db_vt_machine_ram = vt_machine_ram
+    def db_delete_vt_machine_ram(self, vt_machine_ram):
+        self._db_vt_machine_ram = None
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
 class DBMashupActionAnnotation(object):
 
     vtType = 'mashup_actionAnnotation'
@@ -14622,49 +15158,42 @@ class DBIsPartOf(object):
     
 
 
-class DBOpmWasTriggeredBy(object):
+class DBRemoteTask(object):
 
-    vtType = 'opm_was_triggered_by'
+    vtType = 'remote_task'
 
-    def __init__(self, effect=None, role=None, cause=None, accounts=None, opm_times=None):
-        self.db_deleted_effect = []
-        self._db_effect = effect
-        self.db_deleted_role = []
-        self._db_role = role
-        self.db_deleted_cause = []
-        self._db_cause = cause
-        self.db_deleted_accounts = []
-        if accounts is None:
-            self._db_accounts = []
+    def __init__(self, id=None, machine_id=None, function=None, count=None, description=None, annotations=None):
+        self._db_id = id
+        self._db_machine_id = machine_id
+        self._db_function = function
+        self._db_count = count
+        self._db_description = description
+        self.db_deleted_annotations = []
+        self.db_annotations_id_index = {}
+        self.db_annotations_key_index = {}
+        if annotations is None:
+            self._db_annotations = []
         else:
-            self._db_accounts = accounts
-        self.db_deleted_opm_times = []
-        if opm_times is None:
-            self._db_opm_times = []
-        else:
-            self._db_opm_times = opm_times
+            self._db_annotations = annotations
+            for v in self._db_annotations:
+                self.db_annotations_id_index[v.db_id] = v
+                self.db_annotations_key_index[v.db_key] = v
         self.is_dirty = True
         self.is_new = True
     
     def __copy__(self):
-        return DBOpmWasTriggeredBy.do_copy(self)
+        return DBRemoteTask.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBOpmWasTriggeredBy()
-        if self._db_effect is not None:
-            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
-        if self._db_role is not None:
-            cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
-        if self._db_cause is not None:
-            cp._db_cause = self._db_cause.do_copy(new_ids, id_scope, id_remap)
-        if self._db_accounts is None:
-            cp._db_accounts = []
+        cp = DBRemoteTask(id=self._db_id,
+                          machine_id=self._db_machine_id,
+                          function=self._db_function,
+                          count=self._db_count,
+                          description=self._db_description)
+        if self._db_annotations is None:
+            cp._db_annotations = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        if self._db_opm_times is None:
-            cp._db_opm_times = []
-        else:
-            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         
         # set new ids
         if new_ids:
@@ -14674,8 +15203,12 @@ class DBOpmWasTriggeredBy(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
+            if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
+                cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
         
         # recreate indices and set flags
+        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -14684,212 +15217,190 @@ class DBOpmWasTriggeredBy(object):
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
-            new_obj = DBOpmWasTriggeredBy()
+            new_obj = DBRemoteTask()
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'effect' in class_dict:
-            res = class_dict['effect'](old_obj, trans_dict)
-            new_obj.db_effect = res
-        elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
-            obj = old_obj.db_effect
-            new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
-            for obj in old_obj.db_deleted_effect:
-                n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
-                new_obj.db_deleted_effect.append(n_obj)
-        if 'role' in class_dict:
-            res = class_dict['role'](old_obj, trans_dict)
-            new_obj.db_role = res
-        elif hasattr(old_obj, 'db_role') and old_obj.db_role is not None:
-            obj = old_obj.db_role
-            new_obj.db_add_role(DBOpmRole.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_role') and hasattr(new_obj, 'db_deleted_role'):
-            for obj in old_obj.db_deleted_role:
-                n_obj = DBOpmRole.update_version(obj, trans_dict)
-                new_obj.db_deleted_role.append(n_obj)
-        if 'cause' in class_dict:
-            res = class_dict['cause'](old_obj, trans_dict)
-            new_obj.db_cause = res
-        elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
-            obj = old_obj.db_cause
-            new_obj.db_add_cause(DBOpmProcessIdCause.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
-            for obj in old_obj.db_deleted_cause:
-                n_obj = DBOpmProcessIdCause.update_version(obj, trans_dict)
-                new_obj.db_deleted_cause.append(n_obj)
-        if 'accounts' in class_dict:
-            res = class_dict['accounts'](old_obj, trans_dict)
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'machine_id' in class_dict:
+            res = class_dict['machine_id'](old_obj, trans_dict)
+            new_obj.db_machine_id = res
+        elif hasattr(old_obj, 'db_machine_id') and old_obj.db_machine_id is not None:
+            new_obj.db_machine_id = old_obj.db_machine_id
+        if 'function' in class_dict:
+            res = class_dict['function'](old_obj, trans_dict)
+            new_obj.db_function = res
+        elif hasattr(old_obj, 'db_function') and old_obj.db_function is not None:
+            new_obj.db_function = old_obj.db_function
+        if 'count' in class_dict:
+            res = class_dict['count'](old_obj, trans_dict)
+            new_obj.db_count = res
+        elif hasattr(old_obj, 'db_count') and old_obj.db_count is not None:
+            new_obj.db_count = old_obj.db_count
+        if 'description' in class_dict:
+            res = class_dict['description'](old_obj, trans_dict)
+            new_obj.db_description = res
+        elif hasattr(old_obj, 'db_description') and old_obj.db_description is not None:
+            new_obj.db_description = old_obj.db_description
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
-                new_obj.db_add_account(obj)
-        elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
-            for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
-            for obj in old_obj.db_deleted_accounts:
-                n_obj = DBOpmAccountId.update_version(obj, trans_dict)
-                new_obj.db_deleted_accounts.append(n_obj)
-        if 'opm_times' in class_dict:
-            res = class_dict['opm_times'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_opm_time(obj)
-        elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
-            for obj in old_obj.db_opm_times:
-                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
-            for obj in old_obj.db_deleted_opm_times:
-                n_obj = DBOpmTime.update_version(obj, trans_dict)
-                new_obj.db_deleted_opm_times.append(n_obj)
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
+            for obj in old_obj.db_deleted_annotations:
+                n_obj = DBAnnotation.update_version(obj, trans_dict)
+                new_obj.db_deleted_annotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
-        if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                self._db_effect = None
-        if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                self._db_role = None
-        if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                self._db_cause = None
         to_del = []
-        for child in self.db_accounts:
+        for child in self.db_annotations:
             children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
-            self.db_delete_account(child)
-        to_del = []
-        for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_opm_time(child)
+            self.db_delete_annotation(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_effect)
-        children.extend(self.db_deleted_role)
-        children.extend(self.db_deleted_cause)
-        children.extend(self.db_deleted_accounts)
-        children.extend(self.db_deleted_opm_times)
+        children.extend(self.db_deleted_annotations)
         if remove:
-            self.db_deleted_effect = []
-            self.db_deleted_role = []
-            self.db_deleted_cause = []
-            self.db_deleted_accounts = []
-            self.db_deleted_opm_times = []
+            self.db_deleted_annotations = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        if self._db_effect is not None and self._db_effect.has_changes():
-            return True
-        if self._db_role is not None and self._db_role.has_changes():
-            return True
-        if self._db_cause is not None and self._db_cause.has_changes():
-            return True
-        for child in self._db_accounts:
-            if child.has_changes():
-                return True
-        for child in self._db_opm_times:
+        for child in self._db_annotations:
             if child.has_changes():
                 return True
         return False
-    def __get_db_effect(self):
-        return self._db_effect
-    def __set_db_effect(self, effect):
-        self._db_effect = effect
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
         self.is_dirty = True
-    db_effect = property(__get_db_effect, __set_db_effect)
-    def db_add_effect(self, effect):
-        self._db_effect = effect
-    def db_change_effect(self, effect):
-        self._db_effect = effect
-    def db_delete_effect(self, effect):
-        if not self.is_new:
-            self.db_deleted_effect.append(self._db_effect)
-        self._db_effect = None
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
     
-    def __get_db_role(self):
-        return self._db_role
-    def __set_db_role(self, role):
-        self._db_role = role
+    def __get_db_machine_id(self):
+        return self._db_machine_id
+    def __set_db_machine_id(self, machine_id):
+        self._db_machine_id = machine_id
         self.is_dirty = True
-    db_role = property(__get_db_role, __set_db_role)
-    def db_add_role(self, role):
-        self._db_role = role
-    def db_change_role(self, role):
-        self._db_role = role
-    def db_delete_role(self, role):
-        if not self.is_new:
-            self.db_deleted_role.append(self._db_role)
-        self._db_role = None
+    db_machine_id = property(__get_db_machine_id, __set_db_machine_id)
+    def db_add_machine_id(self, machine_id):
+        self._db_machine_id = machine_id
+    def db_change_machine_id(self, machine_id):
+        self._db_machine_id = machine_id
+    def db_delete_machine_id(self, machine_id):
+        self._db_machine_id = None
     
-    def __get_db_cause(self):
-        return self._db_cause
-    def __set_db_cause(self, cause):
-        self._db_cause = cause
+    def __get_db_function(self):
+        return self._db_function
+    def __set_db_function(self, function):
+        self._db_function = function
         self.is_dirty = True
-    db_cause = property(__get_db_cause, __set_db_cause)
-    def db_add_cause(self, cause):
-        self._db_cause = cause
-    def db_change_cause(self, cause):
-        self._db_cause = cause
-    def db_delete_cause(self, cause):
-        if not self.is_new:
-            self.db_deleted_cause.append(self._db_cause)
-        self._db_cause = None
+    db_function = property(__get_db_function, __set_db_function)
+    def db_add_function(self, function):
+        self._db_function = function
+    def db_change_function(self, function):
+        self._db_function = function
+    def db_delete_function(self, function):
+        self._db_function = None
     
-    def __get_db_accounts(self):
-        return self._db_accounts
-    def __set_db_accounts(self, accounts):
-        self._db_accounts = accounts
+    def __get_db_count(self):
+        return self._db_count
+    def __set_db_count(self, count):
+        self._db_count = count
         self.is_dirty = True
-    db_accounts = property(__get_db_accounts, __set_db_accounts)
-    def db_get_accounts(self):
-        return self._db_accounts
-    def db_add_account(self, account):
+    db_count = property(__get_db_count, __set_db_count)
+    def db_add_count(self, count):
+        self._db_count = count
+    def db_change_count(self, count):
+        self._db_count = count
+    def db_delete_count(self, count):
+        self._db_count = None
+    
+    def __get_db_description(self):
+        return self._db_description
+    def __set_db_description(self, description):
+        self._db_description = description
         self.is_dirty = True
-        self._db_accounts.append(account)
-    def db_change_account(self, account):
+    db_description = property(__get_db_description, __set_db_description)
+    def db_add_description(self, description):
+        self._db_description = description
+    def db_change_description(self, description):
+        self._db_description = description
+    def db_delete_description(self, description):
+        self._db_description = None
+    
+    def __get_db_annotations(self):
+        return self._db_annotations
+    def __set_db_annotations(self, annotations):
+        self._db_annotations = annotations
         self.is_dirty = True
-        self._db_accounts.append(account)
-    def db_delete_account(self, account):
+    db_annotations = property(__get_db_annotations, __set_db_annotations)
+    def db_get_annotations(self):
+        return self._db_annotations
+    def db_add_annotation(self, annotation):
         self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_account(self, key):
+        self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
+    def db_change_annotation(self, annotation):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                self._db_annotations[i] = annotation
+                found = True
+                break
+        if not found:
+            self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
+    def db_delete_annotation(self, annotation):
+        self.is_dirty = True
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                if not self._db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self._db_annotations[i])
+                del self._db_annotations[i]
+                break
+        del self.db_annotations_id_index[annotation.db_id]
+        del self.db_annotations_key_index[annotation.db_key]
+    def db_get_annotation(self, key):
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == key:
+                return self._db_annotations[i]
         return None
+    def db_get_annotation_by_id(self, key):
+        return self.db_annotations_id_index[key]
+    def db_has_annotation_with_id(self, key):
+        return key in self.db_annotations_id_index
+    def db_get_annotation_by_key(self, key):
+        return self.db_annotations_key_index[key]
+    def db_has_annotation_with_key(self, key):
+        return key in self.db_annotations_key_index
     
-    def __get_db_opm_times(self):
-        return self._db_opm_times
-    def __set_db_opm_times(self, opm_times):
-        self._db_opm_times = opm_times
-        self.is_dirty = True
-    db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
-    def db_get_opm_times(self):
-        return self._db_opm_times
-    def db_add_opm_time(self, opm_time):
-        self.is_dirty = True
-        self._db_opm_times.append(opm_time)
-    def db_change_opm_time(self, opm_time):
-        self.is_dirty = True
-        self._db_opm_times.append(opm_time)
-    def db_delete_opm_time(self, opm_time):
-        self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
-    def db_get_opm_time(self, key):
-        return None
-    
-
+    def getPrimaryKey(self):
+        return self._db_id
 
 class DBExecutionPreference(object):
 
@@ -15801,6 +16312,78 @@ class DBDelete(object):
     def getPrimaryKey(self):
         return self._db_id
 
+class DBRefProvActivity(object):
+
+    vtType = 'ref_prov_activity'
+
+    def __init__(self, prov_ref=None):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBRefProvActivity.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBRefProvActivity()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'prov_ref' in class_dict:
+            res = class_dict['prov_ref'](old_obj, trans_dict)
+            new_obj.db_prov_ref = res
+        elif hasattr(old_obj, 'db_prov_ref') and old_obj.db_prov_ref is not None:
+            new_obj.db_prov_ref = old_obj.db_prov_ref
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_prov_ref(self):
+        return self._db_prov_ref
+    def __set_db_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+    db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+    def db_add_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_change_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_delete_prov_ref(self, prov_ref):
+        self._db_prov_ref = None
+    
+
+
 class DBProvAssociation(object):
 
     vtType = 'prov_association'
@@ -16664,7 +17247,7 @@ class DBModuleExec(object):
 
     vtType = 'module_exec'
 
-    def __init__(self, id=None, ts_start=None, ts_end=None, cached=None, module_id=None, module_name=None, completed=None, error=None, machine_id=None, annotations=None, loop_execs=None):
+    def __init__(self, id=None, ts_start=None, ts_end=None, cached=None, module_id=None, module_name=None, completed=None, error=None, machine_id=None, annotations=None, loop_execs=None, remote_executions=None):
         self._db_id = id
         self._db_ts_start = ts_start
         self._db_ts_end = ts_end
@@ -16690,6 +17273,14 @@ class DBModuleExec(object):
             self._db_loop_execs = loop_execs
             for v in self._db_loop_execs:
                 self.db_loop_execs_id_index[v.db_id] = v
+        self.db_deleted_remote_executions = []
+        self.db_remote_executions_id_index = {}
+        if remote_executions is None:
+            self._db_remote_executions = []
+        else:
+            self._db_remote_executions = remote_executions
+            for v in self._db_remote_executions:
+                self.db_remote_executions_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -16714,6 +17305,10 @@ class DBModuleExec(object):
             cp._db_loop_execs = []
         else:
             cp._db_loop_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_execs]
+        if self._db_remote_executions is None:
+            cp._db_remote_executions = []
+        else:
+            cp._db_remote_executions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_remote_executions]
         
         # set new ids
         if new_ids:
@@ -16731,6 +17326,7 @@ class DBModuleExec(object):
         # recreate indices and set flags
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_loop_execs_id_index = dict((v.db_id, v) for v in cp._db_loop_execs)
+        cp.db_remote_executions_id_index = dict((v.db_id, v) for v in cp._db_remote_executions)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -16810,6 +17406,17 @@ class DBModuleExec(object):
             for obj in old_obj.db_deleted_loop_execs:
                 n_obj = DBLoopExec.update_version(obj, trans_dict)
                 new_obj.db_deleted_loop_execs.append(n_obj)
+        if 'remote_executions' in class_dict:
+            res = class_dict['remote_executions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_remote_execution(obj)
+        elif hasattr(old_obj, 'db_remote_executions') and old_obj.db_remote_executions is not None:
+            for obj in old_obj.db_remote_executions:
+                new_obj.db_add_remote_execution(DBRemoteExecution.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_remote_executions') and hasattr(new_obj, 'db_deleted_remote_executions'):
+            for obj in old_obj.db_deleted_remote_executions:
+                n_obj = DBRemoteExecution.update_version(obj, trans_dict)
+                new_obj.db_deleted_remote_executions.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -16830,15 +17437,24 @@ class DBModuleExec(object):
                 to_del.append(child)
         for child in to_del:
             self.db_delete_loop_exec(child)
+        to_del = []
+        for child in self.db_remote_executions:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_remote_execution(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_annotations)
         children.extend(self.db_deleted_loop_execs)
+        children.extend(self.db_deleted_remote_executions)
         if remove:
             self.db_deleted_annotations = []
             self.db_deleted_loop_execs = []
+            self.db_deleted_remote_executions = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -16847,6 +17463,9 @@ class DBModuleExec(object):
             if child.has_changes():
                 return True
         for child in self._db_loop_execs:
+            if child.has_changes():
+                return True
+        for child in self._db_remote_executions:
             if child.has_changes():
                 return True
         return False
@@ -17050,6 +17669,48 @@ class DBModuleExec(object):
         return self.db_loop_execs_id_index[key]
     def db_has_loop_exec_with_id(self, key):
         return key in self.db_loop_execs_id_index
+    
+    def __get_db_remote_executions(self):
+        return self._db_remote_executions
+    def __set_db_remote_executions(self, remote_executions):
+        self._db_remote_executions = remote_executions
+        self.is_dirty = True
+    db_remote_executions = property(__get_db_remote_executions, __set_db_remote_executions)
+    def db_get_remote_executions(self):
+        return self._db_remote_executions
+    def db_add_remote_execution(self, remote_execution):
+        self.is_dirty = True
+        self._db_remote_executions.append(remote_execution)
+        self.db_remote_executions_id_index[remote_execution.db_id] = remote_execution
+    def db_change_remote_execution(self, remote_execution):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_remote_executions)):
+            if self._db_remote_executions[i].db_id == remote_execution.db_id:
+                self._db_remote_executions[i] = remote_execution
+                found = True
+                break
+        if not found:
+            self._db_remote_executions.append(remote_execution)
+        self.db_remote_executions_id_index[remote_execution.db_id] = remote_execution
+    def db_delete_remote_execution(self, remote_execution):
+        self.is_dirty = True
+        for i in xrange(len(self._db_remote_executions)):
+            if self._db_remote_executions[i].db_id == remote_execution.db_id:
+                if not self._db_remote_executions[i].is_new:
+                    self.db_deleted_remote_executions.append(self._db_remote_executions[i])
+                del self._db_remote_executions[i]
+                break
+        del self.db_remote_executions_id_index[remote_execution.db_id]
+    def db_get_remote_execution(self, key):
+        for i in xrange(len(self._db_remote_executions)):
+            if self._db_remote_executions[i].db_id == key:
+                return self._db_remote_executions[i]
+        return None
+    def db_get_remote_execution_by_id(self, key):
+        return self.db_remote_executions_id_index[key]
+    def db_has_remote_execution_with_id(self, key):
+        return key in self.db_remote_executions_id_index
     
     def getPrimaryKey(self):
         return self._db_id
