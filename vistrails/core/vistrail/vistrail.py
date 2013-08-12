@@ -89,6 +89,7 @@ class Vistrail(DBVistrail):
     def __init__(self, locator=None):
         DBVistrail.__init__(self)
 
+        self.execution_preferences = None
         self.locator = locator
         self.set_defaults()
 
@@ -343,13 +344,16 @@ class Vistrail(DBVistrail):
         return workflow
 
     def get_persisted_execution_preferences(self):
-        config = ExecutionConfiguration()
-        if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
-            if self.db_execution_configuration_filename is not None:
-                config = open_execution_configuration_from_xml(
-                        self.db_execution_configuration_filename)
-        ExecutionConfiguration.convert(config)
-        return config
+        if self.execution_preferences is None:
+            if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
+                if self.db_execution_configuration_filename is not None:
+                    self.execution_preferences = open_execution_configuration_from_xml(
+                            self.db_execution_configuration_filename)
+            if self.execution_preferences is not None:
+                ExecutionConfiguration.convert(self.execution_preferences)
+            else:
+                self.execution_preferences = ExecutionConfiguration()
+        return self.execution_preferences
 
     def get_pipeline_diff_with_connections(self, v1, v2):
         """like get_pipeline_diff but returns connection info
