@@ -14,6 +14,18 @@ from .utils import print_remoteerror
 def make_fake_module_and_execute(compute_code, inputs):
     global IPythonFakeModule
 
+    import platform
+    import socket
+
+    machine_dict = {
+            'name': socket.getfqdn(),
+            'os': platform.system(),
+            'architecture':
+                    64 if platform.architecture()[0] == '64bit' else 32,
+            'processor': platform.processor() or 'n/a',
+            'ram': 0, # This is difficult to get...
+        }
+
     from types import FunctionType
 
     try:
@@ -75,12 +87,16 @@ def make_fake_module_and_execute(compute_code, inputs):
             def setResult(self, port, value):
                 self.outputPorts[port] = value
 
-    IPythonFakeModule.compute = FunctionType(compute_code, globals(), 'compute')
+    IPythonFakeModule.compute = FunctionType(
+            compute_code,   # code
+            globals(),      # globals
+            'compute')      # name
 
     m = IPythonFakeModule(inputs)
     m.compute()
 
-    return m.outputPorts
+    # Returns the results to be set on the port, plus the machine info
+    return m.outputPorts, machine_dict
 
 
 @apply
@@ -125,30 +141,30 @@ class IPythonStandaloneScheme(ParallelizationScheme):
         def callback(res):
             def get_results(runner):
                 def compute():
+                    machine_dict = {'name': "Unknown remote machine",
+                                    'os': "unknown",
+                                    'architecture': "unknown",
+                                    'processor': "unknown",
+                                    'ram': 0}
                     try:
-                        try:
-                            results = res.get()
-                        except RemoteError, e:
-                            print_remoteerror(e)
-                            raise
-                        else:
-                            module.outputPorts.update(results)
+                        results, machine_dict = res.get()
+                    except RemoteError, e:
+                        print_remoteerror(e)
+                        raise
+                    else:
+                        module.outputPorts.update(results)
                     finally:
                         module_exec = module.module_exec.do_copy(
                                 new_ids=True,
                                 id_scope=module.logging.log.log.id_scope,
                                 id_remap={})
-                        # TODO-logp : get the remote machine somehow...
                         machine_id = module.logging.log.log.id_scope.getNewId(
                                 Machine.vtType)
                         machine = Machine(id=machine_id,
-                                          name="Unknown remote machine",
-                                          os="unknown",
-                                          architecture="unknown",
-                                          processor="unknown",
-                                          ram=0)
+                                          **machine_dict)
                         module.logging.log.workflow_exec.add_machine(machine)
                         module_exec.machine_id = machine.id
+                        module_exec.completed = 1
                         module.logging.log_remote_execution(
                                 module, 'ipython-standalone',
                                 [('ipython-profile', EngineManager.profile)],
