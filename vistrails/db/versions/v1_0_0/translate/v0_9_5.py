@@ -63,7 +63,27 @@ def translateLog(_log):
             elif obj.vtType == 'loop_exec':
                 new_item_execs.append(DBLoopExec.update_version(obj, translate_dict))
         return new_item_execs
-    translate_dict = {'DBWorkflowExec': {'item_execs': update_item_execs}}
+
+    def update_sub_item_execs(old_obj, translate_dict, do_loop_execs=True):
+        new_item_execs = []
+        for obj in old_obj.db_module_execs:
+            new_item_execs.append(DBModuleExec.update_version(obj, translate_dict))
+        for obj in old_obj.db_group_execs:
+            new_item_execs.append(DBGroupExec.update_version(obj, translate_dict))
+        if do_loop_execs:
+            for obj in old_obj.db_loop_execs:
+                new_item_execs.append(DBLoopExec.update_version(obj, translate_dict))
+        return new_item_execs
+
+    def update_group_item_execs(old_obj, translate_dict):
+        return update_sub_item_execs(old_obj, translate_dict)
+
+    def update_loop_item_execs(old_obj, translate_dict):
+        return update_sub_item_execs(old_obj, translate_dict, False)
+
+    translate_dict = {'DBWorkflowExec': {'item_execs': update_item_execs},
+                      'DBGroupExec': {'item_execs': update_group_item_execs},
+                      'DBLoopExec': {'item_execs': update_loop_item_execs}}
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '1.0.0'
     return log

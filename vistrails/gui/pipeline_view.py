@@ -57,13 +57,13 @@ from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
-from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
@@ -75,7 +75,6 @@ import operator
 
 import vistrails.api
 import vistrails.gui.utils
-import vistrails.core
 
 ##############################################################################
 # 2008-06-24 cscheid
@@ -221,7 +220,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.setPainterState()
 
     def draw(self, painter, option, widget=None):
-        raise Exception("Must implement draw method")
+        raise NotImplementedError("Must implement draw method")
 
     def paint(self, painter, option, widget=None):
         painter.setPen(self.pen())
@@ -434,7 +433,7 @@ class QGraphicsPortTriangleItem(QAbstractGraphicsPortItem):
         QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
         angle = angle % 360
         if angle not in set([0,90,180,270]):
-            raise Exception("Triangle item limited to angles 0,90,180,270.")
+            raise ValueError("Triangle item limited to angles 0,90,180,270.")
         rect = self.getRect()
         if angle == 0 or angle == 180:
             width = rect.width()
@@ -482,7 +481,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
         else:
             points = None
         if points is None or len(points) < 3:
-            raise Exception("Must have at least three points")
+            raise ValueError("Must have at least three points")
         QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
         rect = self.getRect()
         new_points = []
@@ -1879,14 +1878,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.tmp_input_conn = None
         self.tmp_output_conn = None
 
-#        menu = QtGui.QMenu()
-#        self._create_abstraction = QtGui.QAction("Create abstraction", self)
-#        menu.addAction(self._create_abstraction)
-#        self._context_menu = menu
-#        self.connect(self._create_abstraction,
-#                     QtCore.SIGNAL("triggered()"),
-#                     self.create_abstraction)
-
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
         Add a module to the scene
@@ -1951,15 +1942,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
                    for x in items
                    if isinstance(x, QGraphicsModuleItem)]
         return self.controller.current_pipeline.graph.subgraph(modules)
-
-#     def create_abstraction(self):
-#         subgraph = self.selected_subgraph()
-#         try:
-#             self.controller.create_abstraction(subgraph)
-#         except Vistrail.InvalidAbstraction, e:
-#             dlg = QtGui.QMessageBox.warning(None,
-#                                             "Invalid Abstraction",
-#                                             str(e))
 
 #    def contextMenuEvent(self, event):
 #        selectedItems = self.selectedItems()
@@ -2929,12 +2911,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 'Are you sure you want to abort the execution?',
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No)
-            if r==QtGui.QMessageBox.Yes:
-                raise Exception("Execution aborted by user")
+            if r == QtGui.QMessageBox.Yes:
+                raise AbortExecution("Execution aborted by user")
             else:
-                self.progress.reset()
-                self.progress.setValue(self.progress.new_value)
-        
+                self.progress.goOn()
+
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
@@ -2979,8 +2960,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.progress:
             self.cancel_progress()
-            self.progress.new_value = self.progress.value() + 1 
-            self.progress.setValue(self.progress.new_value)
+            self.progress.setValue(self.progress.value() + 1)
             self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
@@ -3297,7 +3277,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def get_long_title(self):
         pip_name = self.controller.get_pipeline_name()
         vt_name = self.controller.name
-        self.long_title = "%s from %s"%(pip_name,vt_name)
+        self.long_title = "Pipeline %s from %s" % (pip_name,vt_name)
         return self.long_title
     
     def get_controller(self):
@@ -3335,12 +3315,21 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
     def __init__(self, modules):
-        QtGui.QProgressDialog.__init__(self, 'Starting Workflow execution',
+        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
                                        0, modules)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
-        self.new_value = 0
+        self._last_set_value = 0
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(ExecutionProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
 ################################################################################
 # Testing

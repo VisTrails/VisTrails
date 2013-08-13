@@ -79,10 +79,9 @@ class TreeLW:
 
     def changeParentOfNodeWithNoParent(self, parentNode, childNode):
         if childNode.parent != None:
-            raise Exception()
+            raise ValueError("Node already has a parent")
 
-        #
-        parentNode.addChild(childNode)        
+        parentNode.addChild(childNode)
         maxLevel = self.__dfsUpdateLevel(childNode)
 
         # update max level

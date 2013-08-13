@@ -80,6 +80,7 @@ from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port import Port
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.port_spec_item import PortSpecItem
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
@@ -150,6 +151,7 @@ class VistrailController(object):
 
         self._asked_packages = set()
         self._delayed_actions = []
+        self._delayed_paramexps = []
         self._loaded_abstractions = {}
         
         # This will just store the mashups in memory and send them to SaveBundle
@@ -485,11 +487,14 @@ class VistrailController(object):
             self.current_version = action.id
             start_version = action.id
             added_upgrade = True
-
+        for pe in self._delayed_paramexps:
+            pe.action_id = self.current_version
+            self.vistrail.db_add_parameter_exploration(pe)
         # We have to do moves after the delayed actions because the pipeline
         # may have been updated
         added_moves = self.flush_move_actions()
         self._delayed_actions = []
+        self._delayed_paramexps = []
         if added_upgrade or added_moves:
             self.recompute_terse_graph()
             self.invalidate_version_tree(False)
@@ -740,6 +745,9 @@ class VistrailController(object):
                              sigstring=port_sigstring,
                              sort_key=port_sort_key,
                              )
+        # don't know how many port spec items are created until after...
+        for psi in port_spec.port_spec_items:
+            psi.id = id_scope.getNewId(PortSpecItem.vtType)
         return port_spec
 
     def get_module_connection_ids(self, module_ids, graph):
@@ -1221,6 +1229,9 @@ class VistrailController(object):
                              name=port_tuple[1],
                              sigstring=port_tuple[2],
                              )
+        # don't know how many port spec items are created until after...
+        for psi in port_spec.port_spec_items:
+            psi.id = self.vistrail.idScope.getNewId(PortSpecItem.vtType)
         action = vistrails.core.db.action.create_action([('add', port_spec,
                                                 module.vtType, module.id)])
         return action
@@ -1475,7 +1486,7 @@ class VistrailController(object):
                 if name == last_name:
                     msg = 'Cannot assign the name "%s" to more ' \
                         'than one %s port' % (name, port_type)
-                    raise Exception(msg)
+                    raise RuntimeError(msg)
                 last_name = name
                 idx = name.rfind("_")
                 if idx < 0:
@@ -2786,7 +2797,29 @@ class VistrailController(object):
                            value=value,
                            )
             action.add_annotation(annotation)
-        
+
+    def get_upgrade_module_remap(self, actions):
+        """Try to get a module remap when possible.  This uses the fact that
+        most generic actions will have a single delete module action
+        and a single add module action.
+
+        """
+        is_full_remap = True
+        remap = {}
+        for action in actions:
+            d_module_ids = []
+            a_module_ids = []
+            for op in action.operations:
+                if op.vtType == 'delete' and op.what == 'module':
+                    d_module_ids.append(op.db_objectId)
+                if op.vtType == 'add' and op.what == 'module':
+                    a_module_ids.append(op.db_objectId)
+            if len(d_module_ids) == 1 and len(a_module_ids) == 1:
+                remap[(Module.vtType, d_module_ids[0])] = a_module_ids[0]
+            elif len(d_module_ids) + len(a_module_ids) > 0:
+                is_full_remap = False
+        return (remap, is_full_remap)
+                            
     def create_upgrade_action(self, actions):
         new_action = vistrails.core.db.action.merge_actions(actions)
         self.set_action_annotation(new_action, Action.ANNOTATION_DESCRIPTION, 
@@ -3025,8 +3058,21 @@ class VistrailController(object):
 
         if len(new_actions) > 0:
             upgrade_action = self.create_upgrade_action(new_actions)
+            param_exps = self.vistrail.get_paramexps(new_version)
+            new_param_exps = []
+            if len(param_exps) > 0:
+                (module_remap, is_complete) = \
+                                    self.get_upgrade_module_remap(new_actions)
+                if is_complete:
+                    for pe in param_exps:
+                        new_pe = pe.do_copy(True, self.id_scope, module_remap)
+                        new_param_exps.append(new_pe)
+                else:
+                    debug.warning("Cannot translate old parameter "
+                                  "explorations through upgrade.")
             if get_vistrails_configuration().check('upgradeDelay') and not force_no_delay:
                 self._delayed_actions.append(upgrade_action)
+                self._delayed_paramexps.extend(new_param_exps)
             else:
                 vistrail.add_action(upgrade_action, new_version, 
                                     self.current_session)
@@ -3034,6 +3080,9 @@ class VistrailController(object):
                 if get_vistrails_configuration().check("migrateTags"):
                     self.migrate_tags(new_version, upgrade_action.id, vistrail)
                 new_version = upgrade_action.id
+                for pe in new_param_exps:
+                    pe.action_id = new_version
+                    self.vistrail.db_add_parameter_exploration(pe)
                 self.set_changed(True)
                 self.recompute_terse_graph()
 

@@ -2915,6 +2915,194 @@ class DBLocationSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBPEParameterSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+        self.table = 'pe_parameter'
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_parameter'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            interpolator = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            value = self.convertFromDB(row[3], 'str', 'mediumtext')
+            dimension = self.convertFromDB(row[4], 'long', 'int')
+            parentType = self.convertFromDB(row[5], 'str', 'char(32)')
+            pe_function = self.convertFromDB(row[6], 'long', 'int')
+            entity_id = self.convertFromDB(row[7], 'long', 'int')
+            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
+            
+            pe_parameter = DBPEParameter(pos=pos,
+                                         interpolator=interpolator,
+                                         value=value,
+                                         dimension=dimension,
+                                         id=id)
+            pe_parameter.db_parentType = parentType
+            pe_parameter.db_pe_function = pe_function
+            pe_parameter.db_entity_id = entity_id
+            pe_parameter.db_entity_type = entity_type
+            pe_parameter.is_dirty = False
+            res[('pe_parameter', id)] = pe_parameter
+        return res
+
+    def get_sql_select(self, db, global_props,lock=False):
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_parameter'
+        whereMap = global_props
+        orderBy = 'id'
+        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+
+    def process_sql_columns(self, data, global_props):
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            interpolator = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            value = self.convertFromDB(row[3], 'str', 'mediumtext')
+            dimension = self.convertFromDB(row[4], 'long', 'int')
+            parentType = self.convertFromDB(row[5], 'str', 'char(32)')
+            pe_function = self.convertFromDB(row[6], 'long', 'int')
+            entity_id = self.convertFromDB(row[7], 'long', 'int')
+            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
+            
+            pe_parameter = DBPEParameter(pos=pos,
+                                         interpolator=interpolator,
+                                         value=value,
+                                         dimension=dimension,
+                                         id=id)
+            pe_parameter.db_parentType = parentType
+            pe_parameter.db_pe_function = pe_function
+            pe_parameter.db_entity_id = entity_id
+            pe_parameter.db_entity_type = entity_type
+            pe_parameter.is_dirty = False
+            res[('pe_parameter', id)] = pe_parameter
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('pe_function', obj.db_pe_function) in all_objects:
+            p = all_objects[('pe_function', obj.db_pe_function)]
+            p.db_add_parameter(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_parameter'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
+        if hasattr(obj, 'db_interpolator') and obj.db_interpolator is not None:
+            columnMap['interpolator'] = \
+                self.convertToDB(obj.db_interpolator, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_value') and obj.db_value is not None:
+            columnMap['value'] = \
+                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+        if hasattr(obj, 'db_dimension') and obj.db_dimension is not None:
+            columnMap['dimension'] = \
+                self.convertToDB(obj.db_dimension, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+        if hasattr(obj, 'db_pe_function') and obj.db_pe_function is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_pe_function, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        
+    def set_sql_command(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return None
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_parameter'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
+        if hasattr(obj, 'db_interpolator') and obj.db_interpolator is not None:
+            columnMap['interpolator'] = \
+                self.convertToDB(obj.db_interpolator, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_value') and obj.db_value is not None:
+            columnMap['value'] = \
+                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+        if hasattr(obj, 'db_dimension') and obj.db_dimension is not None:
+            columnMap['dimension'] = \
+                self.convertToDB(obj.db_dimension, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+        if hasattr(obj, 'db_pe_function') and obj.db_pe_function is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_pe_function, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        return dbCommand
+
+    def set_sql_process(self, obj, global_props, lastId):
+        pass
+
+    def to_sql_fast(self, obj, do_copy=True):
+        pass
+    
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'pe_parameter'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBParameterSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -3366,9 +3554,6 @@ class DBFunctionSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        elif obj.db_parentType == 'parameter_exploration':
-            p = all_objects[('parameter_exploration', obj.db_parent)]
-            p.db_add_function(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -6192,8 +6377,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_functions:
-            child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parameter_exploration = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'parameter_exploration'
@@ -6750,6 +6934,183 @@ class DBConnectionSQLDAOBase(SQLDAO):
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'connection_tbl'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
+class DBPEFunctionSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+        self.table = 'pe_function'
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_function'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            module_id = self.convertFromDB(row[1], 'long', 'int')
+            port_name = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            is_alias = self.convertFromDB(row[3], 'long', 'int')
+            parentType = self.convertFromDB(row[4], 'str', 'char(32)')
+            parameter_exploration = self.convertFromDB(row[5], 'long', 'int')
+            entity_id = self.convertFromDB(row[6], 'long', 'int')
+            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            
+            pe_function = DBPEFunction(module_id=module_id,
+                                       port_name=port_name,
+                                       id=id)
+            pe_function.db_parentType = parentType
+            pe_function.db_parameter_exploration = parameter_exploration
+            pe_function.db_entity_id = entity_id
+            pe_function.db_entity_type = entity_type
+            pe_function.is_dirty = False
+            res[('pe_function', id)] = pe_function
+        return res
+
+    def get_sql_select(self, db, global_props,lock=False):
+        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_function'
+        whereMap = global_props
+        orderBy = 'id'
+        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+
+    def process_sql_columns(self, data, global_props):
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            module_id = self.convertFromDB(row[1], 'long', 'int')
+            port_name = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            is_alias = self.convertFromDB(row[3], 'long', 'int')
+            parentType = self.convertFromDB(row[4], 'str', 'char(32)')
+            parameter_exploration = self.convertFromDB(row[5], 'long', 'int')
+            entity_id = self.convertFromDB(row[6], 'long', 'int')
+            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            
+            pe_function = DBPEFunction(module_id=module_id,
+                                       port_name=port_name,
+                                       id=id)
+            pe_function.db_parentType = parentType
+            pe_function.db_parameter_exploration = parameter_exploration
+            pe_function.db_entity_id = entity_id
+            pe_function.db_entity_type = entity_type
+            pe_function.is_dirty = False
+            res[('pe_function', id)] = pe_function
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('parameter_exploration', obj.db_parameter_exploration) in all_objects:
+            p = all_objects[('parameter_exploration', obj.db_parameter_exploration)]
+            p.db_add_function(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_function'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_module_id') and obj.db_module_id is not None:
+            columnMap['module_id'] = \
+                self.convertToDB(obj.db_module_id, 'long', 'int')
+        if hasattr(obj, 'db_port_name') and obj.db_port_name is not None:
+            columnMap['port_name'] = \
+                self.convertToDB(obj.db_port_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_is_alias') and obj.db_is_alias is not None:
+            columnMap['is_alias'] = \
+                self.convertToDB(obj.db_is_alias, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+        if hasattr(obj, 'db_parameter_exploration') and obj.db_parameter_exploration is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parameter_exploration, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        
+    def set_sql_command(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return None
+        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        table = 'pe_function'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_module_id') and obj.db_module_id is not None:
+            columnMap['module_id'] = \
+                self.convertToDB(obj.db_module_id, 'long', 'int')
+        if hasattr(obj, 'db_port_name') and obj.db_port_name is not None:
+            columnMap['port_name'] = \
+                self.convertToDB(obj.db_port_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_is_alias') and obj.db_is_alias is not None:
+            columnMap['is_alias'] = \
+                self.convertToDB(obj.db_is_alias, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+        if hasattr(obj, 'db_parameter_exploration') and obj.db_parameter_exploration is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parameter_exploration, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        return dbCommand
+
+    def set_sql_process(self, obj, global_props, lastId):
+        pass
+
+    def to_sql_fast(self, obj, do_copy=True):
+        for child in obj.db_parameters:
+            child.db_pe_function = obj.db_id
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'pe_function'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -7571,6 +7932,8 @@ class SQLDAOListBase(dict):
             self['other'] = DBOtherSQLDAOBase(self)
         if 'location' not in self:
             self['location'] = DBLocationSQLDAOBase(self)
+        if 'pe_parameter' not in self:
+            self['pe_parameter'] = DBPEParameterSQLDAOBase(self)
         if 'parameter' not in self:
             self['parameter'] = DBParameterSQLDAOBase(self)
         if 'plugin_data' not in self:
@@ -7609,6 +7972,8 @@ class SQLDAOListBase(dict):
             self['mashup_actionAnnotation'] = DBMashupActionAnnotationSQLDAOBase(self)
         if 'connection' not in self:
             self['connection'] = DBConnectionSQLDAOBase(self)
+        if 'pe_function' not in self:
+            self['pe_function'] = DBPEFunctionSQLDAOBase(self)
         if 'action' not in self:
             self['action'] = DBActionSQLDAOBase(self)
         if 'delete' not in self:

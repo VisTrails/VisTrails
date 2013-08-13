@@ -340,9 +340,9 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
     def __init__(self, controller, error, parent):
         if controller.vistrail.locator:
             self.name = "%s:%s" % (controller.vistrail.locator.short_name,
-                                    controller.get_pipeline_name()[10:])
+                                    controller.get_pipeline_name())
         else:
-            self.name = "Untitled.vt:%s" % controller.get_pipeline_name()[10:]
+            self.name = "Untitled.vt:%s" % controller.get_pipeline_name()
             
         QtGui.QTreeWidgetItem.__init__(self, parent,
                     [self.name, error if isinstance(error, str) else error.msg])

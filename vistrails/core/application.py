@@ -95,7 +95,7 @@ class VistrailsApplicationInterface(object):
         add = command_line.CommandLineParser.add_option
         add("-S", "--startup", action="store", type="str", default=None,
             dest="dotVistrails",
-            help="Set startup file (default is ~/.vistrails/startup.py)")
+            help="Set startup file (default is ~/.vistrails)")
         add("-?", action="help",
             help="show this help message and exit")
         add("-v", "--version", action="callback",
@@ -219,11 +219,6 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.debugSignals = bool(get('debugsignals'))
         if get('dotVistrails')!=None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
-        #in theory this should never happen because core.configuration.default()
-        #should have done this already
-        #if not self.configuration.check('dotVistrails'):
-        #    self.configuration.dotVistrails = system.default_dot_vistrails()
-        #    self.temp_configuration.dotVistrails = system.default_dot_vistrails()
         if get('multiheads')!=None:
             self.temp_configuration.multiHeads = bool(get('multiheads'))
         if get('maximized')!=None:
@@ -324,7 +319,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # VistrailsStartup will load. This updates self.temp_configuration
         self.read_dotvistrails_option()
         
-        if optionsDict and 'dotVistrails' in optionsDict.keys():
+        if optionsDict and optionsDict.get('dotVistrails'):
             self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
 
         # the problem here is that if the user pointed to a new .vistrails

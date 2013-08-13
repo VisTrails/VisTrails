@@ -927,12 +927,8 @@ class TestGraph(unittest.TestCase):
          g.add_edge(0, 1)
          g.add_edge(1, 2)
          g.add_edge(2, 0)
-         try:
+         with self.assertRaises(Graph.GraphContainsCycles):
              g.dfs(raise_if_cyclic=True)
-         except Graph.GraphContainsCycles, e:
-             pass
-         else:
-             raise Exception("Should have thrown")
 
      def test_call_inverse(self):
          """Test if calling inverse methods work."""

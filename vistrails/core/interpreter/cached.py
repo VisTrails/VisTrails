@@ -46,6 +46,7 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.vistrail import Vistrail
 import copy
 import vistrails.core.interpreter.base
+from vistrails.core.interpreter.base import AbortExecution
 import vistrails.core.interpreter.utils
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -141,6 +142,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
 
+        reg = modules.module_registry.get_module_registry()
+
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to setup_pipeline: %s' % kwargs)
@@ -153,7 +156,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         
         def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
-            reg = modules.module_registry.get_module_registry()
             getter = reg.get_descriptor_by_name
             desc = getter(param.identifier, param.type, param.namespace)
             constant = desc.module()
@@ -195,8 +197,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for i in module_added_set:
             persistent_id = tmp_to_persistent_module_map[i]
             module = self._persistent_pipeline.modules[persistent_id]
-            self._objects[persistent_id] = module.summon()
-            obj = self._objects[persistent_id]
+            obj = self._objects[persistent_id] = module.summon()
             obj.interpreter = self
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
@@ -208,8 +209,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 #print annotate_output
                 if annotate_output:
                     obj.annotate_output = True
-                
-            reg = modules.module_registry.get_module_registry()
+
             for f in module.functions:
                 connector = None
                 if len(f.params) == 0:
@@ -444,6 +444,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 continue
             except ModuleHadError:
                 pass
+            except AbortExecution:
+                break
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)

@@ -115,7 +115,8 @@ class VistrailEntity(Entity):
             entity.name = pe.name
         else:
             # find logical name using vistrail tag
-            entity.name = "Latest for " + self.get_pipeline_name(pe.action_id)
+            entity.name = "Latest for " + \
+                          self.vistrail.get_pipeline_name(pe.action_id)
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['parameterExploration'] = pe.id
         entity.url = locator.to_url()
@@ -253,8 +254,8 @@ class VistrailEntity(Entity):
             is_new = True
             # FIXME add new workflow entity for this version
             if version_id not in self.vistrail.actionMap:
-                raise Exception("Version %d does not occur in vistrail." % \
-                                    version_id)
+                raise LookupError("Version %d does not occur in vistrail." %
+                                  version_id)
             action = self.vistrail.actionMap[version_id]
             try:
                 workflow = self.vistrail.getPipeline(version_id)
@@ -468,23 +469,6 @@ class VistrailEntity(Entity):
                     del self.pe_entity_map[pe_name]
         return (added_pes, deleted_pes)
                 
-    def get_pipeline_name(self, version):
-        tag_map = self.vistrail.get_tagMap()
-        action_map = self.vistrail.actionMap
-        count = 0
-        while True:
-            if version in tag_map or version <= 0:
-                if version in tag_map:
-                    name = tag_map[version]
-                else:
-                    name = "ROOT"
-                count_str = ""
-                if count > 0:
-                    count_str = " + " + str(count)
-                return name + count_str
-            version = action_map[version].parent
-            count += 1
-
 #        for key, mashup in self.mshp_entity_map.iteritems():
 #            deleted_mashups.append(mashup)
 #        self.mshp_entity_map = {}
