@@ -287,7 +287,7 @@ To do so, call initialize_packages()"""
 
     def initialize_abstraction_pkg(self, prefix_dictionary):
         if self._abstraction_pkg is None:
-            raise Exception("Subworkflows packages is None")
+            raise RuntimeError("Subworkflows packages is None")
         self.add_to_package_list(self._abstraction_pkg.codepath,
                                  self._abstraction_pkg)
         self.late_enable_package(self._abstraction_pkg.codepath, 

@@ -36,9 +36,6 @@
 """
 from vistrails.core.configuration import ConfigurationObject
 
-name = 'CLTools'
-identifier = "org.vistrails.vistrails.cltools"
-version = "0.1.2"
-old_identifiers = ["edu.utah.sci.vistrails.cltools"]
+from identifiers import *
 
 configuration = ConfigurationObject(env=(None, str))

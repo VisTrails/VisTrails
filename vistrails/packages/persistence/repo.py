@@ -55,8 +55,8 @@ class GitRepo(object):
     def __init__(self, path):
         if os.path.exists(path):
             if not os.path.isdir(path):
-                raise Exception('Git repository "%s" must be a directory.' % \
-                                    path)
+                raise IOError('Git repository "%s" must be a directory.' %
+                              path)
         try:
             self.repo = Repo(path)
         except NotGitRepository:
@@ -76,7 +76,7 @@ class GitRepo(object):
 
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find object "%s"' % name)
+            raise KeyError('Cannot find object "%s"' % name)
         if tree[name][0] & stat.S_IFDIR:
             return "tree"
         else:
@@ -91,7 +91,7 @@ class GitRepo(object):
         elif path_type == 'blob':
             return self.get_file(name, version, out_name, out_suffix)
 
-        raise Exception("Unknown path type '%s'" % path_type)
+        raise TypeError("Unknown path type '%s'" % path_type)
 
     def _write_blob(self, blob_sha, out_fname=None, out_suffix=''):
         if out_fname is None:
@@ -116,7 +116,7 @@ class GitRepo(object):
         commit = self._get_commit(version)
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find blob "%s"' % name)
+            raise KeyError('Cannot find blob "%s"' % name)
         blob_sha = tree[name][1]
         out_fname = self._write_blob(blob_sha, out_fname, out_suffix)
         return out_fname
@@ -134,7 +134,7 @@ class GitRepo(object):
         commit = self._get_commit(version)
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find tree "%s"' % name)
+            raise KeyError('Cannot find tree "%s"' % name)
         subtree_id = tree[name][1]
         # subtree = self.repo.tree(subtree_id)
         for entry in self.repo.object_store.iter_tree_contents(subtree_id):
@@ -146,7 +146,7 @@ class GitRepo(object):
         commit = self._get_commit(version)
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find object "%s"' % name)
+            raise KeyError('Cannot find object "%s"' % name)
         return tree[name][1]
 
     @staticmethod
@@ -181,7 +181,7 @@ class GitRepo(object):
             return GitRepo.compute_tree_hash(path)
         elif os.path.isfile(path):
             return GitRepo.compute_blob_hash(path)
-        raise Exception("Do not support this type of path")
+        raise TypeError("Do not support this type of path")
 
     def get_latest_version(self, path):
         head = self.repo.head()

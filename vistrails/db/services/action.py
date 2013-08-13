@@ -160,7 +160,7 @@ def create_action(action_list):
                 ops.extend(create_change_op_chain(tuple[1], tuple[2]))
         else:
             msg = "unable to interpret action tuple " + tuple.__str__()
-            raise Exception(msg)
+            raise ValueError(msg)
     action = DBAction(id=-1,
                       operations=ops)
     return action

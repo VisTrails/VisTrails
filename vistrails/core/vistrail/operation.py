@@ -71,7 +71,7 @@ def convert_data(_data):
     try:
         map[_data.vtType].convert(_data)
     except KeyError:
-        raise Exception('cannot convert data of type %s' % _data.vtType)
+        raise TypeError('cannot convert data of type %s' % _data.vtType)
 
 class AddOp(DBAdd):
 

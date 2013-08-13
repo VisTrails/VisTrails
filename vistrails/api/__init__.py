@@ -74,6 +74,14 @@ def switch_to_query_view():
     """
     get_vistrails_application().builderWindow.qactions['search'].trigger()
 
+def switch_to_mashup_view():
+    """switch_to_mashup_view():
+
+    Changes current viewing mode to mashup view in the builder window.
+
+    """
+    get_vistrails_application().builderWindow.qactions['mashup'].trigger()
+ 
 ################################################################################
 # Access to current state
 

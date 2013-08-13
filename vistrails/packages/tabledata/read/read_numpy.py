@@ -106,6 +106,16 @@ class NumpyTestCase(unittest.TestCase):
                         ('datatype', [('String', 'npy')]),
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', '')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 1, 'l'),
+                ],
+                add_port_specs=[
+                    (1, 'input', 'l',
+                     'org.vistrails.vistrails.basic:List'),
                 ]))
         self.assertEqual(len(results), 1)
         self.assertEqual(list(results[0]), [1.0, 7.0, 5.0, 3.0, 6.0, 1.0])

@@ -145,8 +145,8 @@ class PortSpec(DBPortSpec):
 
         if sum(1 for container in (self.port_spec_items, signature, sigstring)
                if container) > 1:
-            raise Exception("Please specify only one of portSpecItems,"
-                            " signature, or sigstring kwargs.")
+            raise ValueError("Please specify only one of portSpecItems,"
+                             " signature, or sigstring kwargs.")
         self.create_spec_items(self.port_spec_items, signature, sigstring, 
                                defaults, labels, values, entry_types)
 

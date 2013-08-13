@@ -357,6 +357,8 @@ When a workflow is executed, the module color is determined as follows:
    * orange: module was cached
    * red: module execution failed
 
+A popup is shown when executing workflows from the pipeline or history view. The popup shows overall progress, the type of module being executed, and a cancel button. Pressing cancel will show a dialog where you can choose to abort or continue the execution. Note that the cancel button may appear frozen while a module is being executed. This is due to limitations in python.
+
 .. topic:: Note
 
    VisTrails caches by default, so after a workflow is executed, if none of its parameters change, it won't be executed again.

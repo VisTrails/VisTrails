@@ -32,25 +32,75 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBWorkflow, DBLog
+from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBWorkflow, DBLog, \
+    DBAbstractionRef, DBAdd, DBChange, DBDelete, DBAbstractionRef, DBGroup, \
+    DBModule
+
+def update_workflow(old_obj, translate_dict):
+    return DBWorkflow.update_version(old_obj.db_workflow, 
+                                     translate_dict, DBWorkflow())
+
+def update_modules(old_obj, trans_dict):
+    new_modules = []
+    for obj in old_obj.db_modules:
+        if obj.vtType == 'module':
+            new_modules.append(DBModule.update_version(obj, trans_dict))
+        elif obj.vtType == 'abstraction':
+            new_modules.append(DBAbstractionRef.update_version(obj,
+                                                               trans_dict))
+        elif obj.vtType == 'group':
+            new_modules.append(DBGroup.update_version(obj, trans_dict))
+    return new_modules
 
 def translateVistrail(_vistrail):
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, 
-                                         translate_dict, DBWorkflow())
+    def update_operations(old_obj, trans_dict):
+        def update_abstraction(old_obj, trans_dict):
+            def get_version(old_obj, trans_dict):
+                return long(old_obj.db_internal_version)
+            new_dict = {'DBAbstractionRef': {'version': get_version}}
+            new_dict.update(trans_dict)
+            return DBAbstractionRef.update_version(old_obj.db_data, new_dict)
+        new_ops = []
+        for obj in old_obj.db_operations:
+            if obj.vtType == 'add':
+                if obj.db_what == 'abstraction':
+                    trans_dict['DBAdd'] = {'data': update_abstraction}
+                    new_op = DBAdd.update_version(obj, trans_dict)
+                    new_op.db_what = 'abstractionRef'
+                    new_ops.append(new_op)
+                    del trans_dict['DBAdd']
+                else:
+                    new_op = DBAdd.update_version(obj, trans_dict)
+                    if obj.db_parentObjType == 'abstraction':
+                        new_op.db_parentObjType = 'abstractionRef'
+                    new_ops.append(new_op)
+            elif obj.vtType == 'delete':
+                new_ops.append(DBDelete.update_version(obj, trans_dict))
+            elif obj.vtType == 'change':
+                if obj.db_what == 'abstraction':
+                    trans_dict['DBChange'] = {'data': update_abstraction}
+                    new_op = DBChange.update_version(obj, trans_dict)
+                    new_op.db_what = 'abstractionRef'
+                    new_ops.append(new_op)
+                    del trans_dict['DBChange']
+                else:
+                    new_op = DBChange.update_version(obj, trans_dict)
+                    if obj.db_parentObjType == 'abstraction':
+                        new_op.db_parentObjType = 'abstractionRef'
+                    new_ops.append(new_op)
+        return new_ops
 
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
+    translate_dict = {'DBGroup': {'workflow': update_workflow},
+                      'DBAction': {'operations': update_operations},
+                      'DBWorkflow': {'modules': update_modules}}
     # pass DBVistrail because domain contains enriched version of the auto_gen
     vistrail = DBVistrail.update_version(_vistrail, translate_dict)
     vistrail.db_version = '0.9.3'
     return vistrail
 
 def translateWorkflow(_workflow):
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, 
-                                         translate_dict, DBWorkflow())
-
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
+    translate_dict = {'DBGroup': {'workflow': update_workflow},
+                      'DBWorkflow': {'modules': update_modules}}
     workflow = DBWorkflow.update_version(_workflow, translate_dict)
     workflow.db_version = '0.9.3'
     return workflow

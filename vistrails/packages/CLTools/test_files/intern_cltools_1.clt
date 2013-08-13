@@ -1,0 +1,78 @@
+{
+    "args": [
+        [
+            "constant", 
+            "packages/CLTools/test_files/test_script_1.py", 
+            "string", 
+            {}
+        ], 
+        [
+            "input", 
+            "f_in", 
+            "file", 
+            {
+                "required": ""
+            }
+        ], 
+        [
+            "output", 
+            "f_out", 
+            "string", 
+            {
+                "required": "", 
+                "suffix": ".cltest"
+            }
+        ], 
+        [
+            "input", 
+            "true", 
+            "flag", 
+            {
+                "flag": "-t", 
+                "required": ""
+            }
+        ], 
+        [
+            "input", 
+            "false", 
+            "flag", 
+            {
+                "flag": "-f", 
+                "required": ""
+            }
+        ], 
+        [
+            "input", 
+            "nb", 
+            "integer", 
+            {
+                "required": ""
+            }
+        ], 
+        [
+            "input", 
+            "chars", 
+            "list", 
+            {
+                "flag": "-l", 
+                "required": "", 
+                "type": "String"
+            }
+        ]
+    ], 
+    "command": "python", 
+    "stdin": [
+        "stdin", 
+        "string", 
+        {
+            "required": ""
+        }
+    ], 
+    "stdout": [
+        "stdout", 
+        "string", 
+        {
+            "required": ""
+        }
+    ]
+}

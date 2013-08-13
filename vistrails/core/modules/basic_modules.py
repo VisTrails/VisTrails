@@ -188,13 +188,13 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     if py_conversion is not None:
         d["translate_to_python"] = py_conversion
     elif base_class == Constant:
-        raise Exception("Must specify translate_to_python for constant")
+        raise ValueError("Must specify translate_to_python for constant")
     else:
         d["translate_to_python"] = staticmethod(base_class.translate_to_python)
     if validation is not None:
         d["validate"] = validation
     elif base_class == Constant:
-        raise Exception("Must specify validation for constant")
+        raise ValueError("Must specify validation for constant")
     else:
         d["validate"] = staticmethod(base_class.validate)
     if default_value is not None:
@@ -1122,6 +1122,32 @@ class Variant(Module):
     """
     pass
 
+##############################################################################
+
+class Assert(Module):
+    """
+    Assert is a simple module that conditionally stops the execution.
+    """
+    def compute(self):
+        condition = self.getInputFromPort('condition')
+        if not condition:
+            raise ModuleError(self, "Assert: condition is False")
+
+
+class AssertEqual(Module):
+    """
+    AssertEqual works like Assert but compares two values.
+
+    It is provided for convenience.
+    """
+    def compute(self):
+        values = (self.getInputFromPort('value1'),
+                  self.getInputFromPort('value2'))
+        if values[0] != values[1]:
+            raise ModuleError(self, "AssertEqual: values are different")
+
+##############################################################################
+
 def init_constant(m):
     reg = get_module_registry()
 
@@ -1233,6 +1259,13 @@ def initialize(*args, **kwargs):
     reg.add_module(Null, hide_descriptor=True)
 
     reg.add_module(Variant, abstract=True)
+
+    reg.add_module(Assert)
+    reg.add_input_port(Assert, 'condition', Boolean)
+
+    reg.add_module(AssertEqual)
+    reg.add_input_port(AssertEqual, 'value1', Module)
+    reg.add_input_port(AssertEqual, 'value2', Module)
 
     reg.add_module(Unpickle, hide_descriptor=True)
     reg.add_input_port(Unpickle, 'input', String)
