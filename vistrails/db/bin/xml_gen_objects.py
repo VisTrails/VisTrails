@@ -188,7 +188,7 @@ def convert_schema_order(objects, root_type):
             cur_objects = [obj]
             break
     if len(ref_objects) < 1:
-        raise Exception("Cannot find root %s" % root_type)
+        raise ValueError("Cannot find root %s" % root_type)
     while len(cur_objects) > 0:
         next_objects = []
         for obj in cur_objects:

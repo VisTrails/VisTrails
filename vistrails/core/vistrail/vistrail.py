@@ -246,6 +246,23 @@ class Vistrail(DBVistrail):
             return self.get_tag(version)
         return ""
 
+    def get_pipeline_name(self, version):
+        tag_map = self.get_tagMap()
+        action_map = self.actionMap
+        count = 0
+        while True:
+            if version in tag_map or version <= 0:
+                if version in tag_map:
+                    name = tag_map[version]
+                else:
+                    name = "ROOT"
+                count_str = ""
+                if count > 0:
+                    count_str = " + " + str(count)
+                return name + count_str
+            version = action_map[version].parent
+            count += 1
+
     def get_version_count(self):
         """get_version_count() -> Integer
         Returns the total number of versions in this vistrail.
@@ -928,7 +945,7 @@ class Vistrail(DBVistrail):
                     elif op.what == 'port':
                         deleted_ports += 1
                 else:
-                    raise Exception("Unknown operation type '%s'" % op.vtType)
+                    raise TypeError("Unknown operation type '%s'" % op.vtType)
 
             if added_modules:
                 description = "Added module"
@@ -1085,36 +1102,6 @@ class Vistrail(DBVistrail):
     class InvalidAbstraction(Exception):
         pass
 
-    def create_abstraction(self,
-                           pipeline_version,
-                           subgraph,
-                           abstraction_name):
-        pipeline = self.getPipeline(pipeline_version)
-        current_graph = pipeline.graph
-        if not current_graph.topologically_contractible(subgraph):
-            msg = "Abstraction violates DAG constraints."
-            raise self.InvalidAbstraction(msg)
-        input_ports = current_graph.connections_to_subgraph(subgraph)
-        output_ports = current_graph.connections_from_subgraph(subgraph)
-
-        # Recreate pipeline from empty version
-        sub_pipeline = pipeline.get_subpipeline(subgraph)
-        actions = sub_pipeline.dump_actions()
-
-        for (frm, to, conn_id) in input_ports:
-            fresh_id = sub_pipeline.fresh_module_id()
-            m = Module()
-            m.id = fresh_id
-            m.location = copy.copy(pipeline.modules[frm].location)
-            m.name = "InputPort"
-            actions.append(m)
-
-            c = vistrails.core.vistrail.connection.Connection()
-            fresh_id = sub_pipeline.fresh_connection_id()
-            c.id = fresh_id
-
-        raise Exception("not finished")
-    
     def get_persisted_log(self):
         """
         Returns the log object for this vistrail if available
@@ -1387,20 +1374,6 @@ class TestVistrail(unittest.TestCase):
 
         do_test('/tests/resources/dummy.xml', XMLFileLocator)
         do_test('/tests/resources/terminator.vt', FileLocator)
-
-#     def test_abstraction(self):
-#         import core.vistrail
-#         import core.xml_parser
-#         parser = core.xml_parser.XMLParser()
-#         parser.openVistrail(core.system.vistrails_root_directory() +
-#                             '/tests/resources/ect.xml')
-#         v = parser.getVistrail()
-#         parser.closeVistrail()
-#         #testing diff
-#         p = v.getPipeline('WindowedSync (lambda-mu) Error')
-#         version = v.get_version_number('WindowedSync (lambda-mu) Error')
-#         sub = p.graph.subgraph([43, 45])
-#         v.create_abstraction(version, sub, "FOOBAR")
 
 if __name__ == '__main__':
     unittest.main()

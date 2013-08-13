@@ -87,7 +87,7 @@ class StandardConstantWidgetBase(ConstantWidgetMixin):
         if 'param' in kwargs:
             param = kwargs['param']
         if param is None:
-            raise Exception("Must pass param as first argument.")
+            raise ValueError("Must pass param as first argument.")
         if param.port_spec_item and param.port_spec_item.entry_type and \
                 param.port_spec_item.entry_type.startswith("enum"):
             return StandardConstantEnumWidget.__new__(StandardConstantEnumWidget, *args, **kwargs)
@@ -281,7 +281,7 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
         if 'param' in kwargs:
             param = kwargs['param']
         if param is None:
-            raise Exception("Must pass param as first argument.")
+            raise ValueError("Must pass param as first argument.")
         if param.port_spec_item and param.port_spec_item.entry_type and \
                 param.port_spec_item.entry_type.startswith("enum"):
             # StandardConstantEnumWidget is not related to StringWidget, so

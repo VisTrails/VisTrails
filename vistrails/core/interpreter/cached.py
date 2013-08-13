@@ -49,6 +49,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
     ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView, VistrailsInternalError
+from vistrails.core.interpreter.base import AbortExecution
 import vistrails.core.system
 from vistrails.core.task_system import TaskRunner
 import vistrails.core.vistrail.pipeline
@@ -143,6 +144,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
 
+        reg = modules.module_registry.get_module_registry()
+
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to setup_pipeline: %s' % kwargs)
@@ -155,7 +158,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
-            reg = modules.module_registry.get_module_registry()
             getter = reg.get_descriptor_by_name
             desc = getter(param.identifier, param.type, param.namespace)
             constant = desc.module()
@@ -197,8 +199,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for i in module_added_set:
             persistent_id = tmp_to_persistent_module_map[i]
             module = self._persistent_pipeline.modules[persistent_id]
-            self._objects[persistent_id] = module.summon()
-            obj = self._objects[persistent_id]
+            obj = self._objects[persistent_id] = module.summon()
             obj.interpreter = self
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
@@ -447,6 +448,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         def catch_module_error():
             try:
                 yield
+            except AbortExecution:
+                raise ExecutionAborted
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)

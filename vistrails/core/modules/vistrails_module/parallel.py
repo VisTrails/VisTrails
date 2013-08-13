@@ -33,117 +33,12 @@
 ##
 ###############################################################################
 
-from vistrails.core.utils import bisect, enum
+from vistrails.core.parallelization import RemoteExecution
 
 from .module import Module
 
 
 ###############################################################################
-
-is_subprocess = False
-
-def set_is_subprocess(sub=True):
-    """This allows to globally disable remote executions.
-
-    It is useful when we are using VisTrails to execute a pipeline on the
-    remote side, to prevent the remote from executing remotely in its turn.
-    """
-    global is_subprocess
-    is_subprocess = sub
-
-
-SchemeType = enum(
-        'SchemeType',
-        ['THREAD', 'LOCAL_PROCESS', 'REMOTE_MACHINE', 'REMOTE_NO_VISTRAILS'])
-
-
-class ParallelizationScheme(object):
-    def __init__(self, priority, scheme_type, name):
-        self.priority = priority
-        self.scheme_type = scheme_type
-        self.name = name
-
-    def supports(self, thread, process, remote, standalone, systems):
-        if not self.enabled():
-            return False
-
-        if self.name in systems:
-            return systems[self.name]
-
-        if self.scheme_type == SchemeType.THREAD and thread:
-            return True
-        elif self.scheme_type == SchemeType.LOCAL_PROCESS and process:
-            return True
-        elif self.scheme_type == SchemeType.REMOTE_MACHINE and remote:
-            return True
-        elif self.scheme_type == SchemeType.REMOTE_NO_VISTRAILS and standalone:
-            return True
-        else:
-            return False
-
-    def enabled(self):
-        return True
-
-    def do_compute(self, module):
-        raise NotImplementedError
-
-    def finalize(self):
-        pass
-
-
-_parallelization_schemes = []
-
-def register_parallelization_scheme(scheme):
-    """Registers a ParallelizationScheme to be used by parallelizable().
-    """
-    priority = scheme.priority
-    i = bisect(
-            len(_parallelization_schemes),
-            _parallelization_schemes.__getitem__,
-            (priority, scheme),
-            comp=lambda a, b: a[0] < b[0])
-    _parallelization_schemes.insert(i, (priority, scheme))
-
-
-def finalize_parallelization_schemes():
-    """Finalize every ParallelizationScheme.
-    """
-    global _parallelization_schemes
-    for priority, scheme in _parallelization_schemes:
-        scheme.finalize()
-    _parallelization_schemes = []
-
-
-class RemoteExecution(object):
-    def __init__(self, thread=False, process=False, remote=False,
-                 standalone=False, systems={}):
-        self.parallelizable = dict(
-                thread=thread,
-                process=process,
-                remote=remote,
-                standalone=standalone,
-                systems=systems)
-
-    @staticmethod
-    def do_compute(module):
-        """This method is injected as do_compute in parallelizable modules.
-
-        When the parallelizable() class decorator is used on a class, this
-        method is called instead of do_compute. The original arguments to
-        parallelizable() will be used to choose a specific scheme.
-        """
-        if is_subprocess:
-            module.do_compute()
-            return
-
-        for priority, scheme in _parallelization_schemes:
-            if scheme.supports(**module.remote_execution.parallelizable):
-                scheme.do_compute(module)
-                return
-
-        # Fallback to classic execution
-        module.do_compute()
-
 
 def parallelizable(thread=True, process=False, remote=False, standalone=False,
         systems={}):

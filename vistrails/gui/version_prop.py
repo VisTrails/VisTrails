@@ -120,8 +120,14 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.dateEdit = QtGui.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
 
+        idLabel = QtGui.QLabel('ID:', self)
+        gLayout.addWidget(idLabel, 3, 0, 1, 1)
+        
+        self.idEdit = QtGui.QLabel('', self)
+        gLayout.addWidget(self.idEdit, 3, 2, 1, 1)
+
         self.notesLabel = QtGui.QLabel('Notes:')
-        gLayout.addWidget(self.notesLabel, 3, 0, 1, 1)
+        gLayout.addWidget(self.notesLabel, 4, 0, 1, 1)
 
         self.versionNotes = QVersionNotes()
         vLayout.addWidget(self.versionNotes)
@@ -170,6 +176,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.tagEdit.setText(name)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
+                self.idEdit.setText(unicode(action.id))
                 self.tagEdit.setEnabled(True)
                 return
             else:
@@ -179,6 +186,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.tagEdit.setText('')
         self.userEdit.setText('')
         self.dateEdit.setText('')
+        self.idEdit.setText('')
         
 
     def tagFinished(self):

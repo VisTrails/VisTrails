@@ -375,6 +375,7 @@ class EngineManager(object):
                                 system]))
                 for i in xrange(tree.columnCount()):
                     tree.resizeColumnToContents(i)
+                tree.expandAll()
                 layout.addWidget(tree)
 
             ok = QtGui.QPushButton("Ok")

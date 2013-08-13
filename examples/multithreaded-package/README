@@ -1,0 +1,6 @@
+This is an example of multithreaded package, using the @parallelizable class
+decorator.
+
+In order to run the two example workflows, 'threading.xml' and
+'threading-standalone.xml', you must copy multithreaded_pkg.py to packages/ and
+enable it.

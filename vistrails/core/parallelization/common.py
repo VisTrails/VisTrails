@@ -15,7 +15,7 @@ from vistrails.core.modules.basic_modules import Unpickle
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.sub_module import InputPort
 from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.core.modules.vistrails_module.parallel import set_is_subprocess
+from vistrails.core.parallelization import Parallelization
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.group import Group
@@ -95,7 +95,7 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
     if get_vistrails_application() is None:
         vistrails.core.application.init(args=[])
 
-    set_is_subprocess()
+    Parallelization.set_is_subprocess()
 
     # Save the workflow in a temporary file
     temp_wf_fd, temp_wf = tempfile.mkstemp()
@@ -161,26 +161,31 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
                 errors.append(msg)
 
         # Get the execution log from the controller
-        module_outputs = []
         for module_log in controller.log.workflow_execs[0].item_execs:
-            # Get the requested output values
-            annotations = module_log.annotations
-            for annotation in annotations:
-                if annotation.key == 'output':
-                    module_outputs = annotation.value
-                    break
-
-            if module_outputs:
-                machine = controller.log.machine_list[0]
+            if module_log.module_id == moduleId:
+                machine = controller.log.workflow_execs[0].machine_list[0]
                 xml_log = serialize(module_log)
                 machine_log = serialize(machine)
-                break
 
-        # Store the output values in the order they were requested
+                break
+        else:
+            errors.append("Module log not found")
+            return dict(errors=errors)
+
+        # Get the output values
         outputs = {}
-        for m_output in module_outputs:
-            if m_output[0] in output_ports:
-                outputs[m_output[0]] = m_output[1]
+        for executed_module in execution[0][0].executed:
+            if executed_module != moduleId:
+                continue
+            executed_module = execution[0][0].objects[executed_module]
+            try:
+                for port in output_ports:
+                    outputs[port] = executed_module.get_output(port)
+                break
+            except ModuleError, e:
+                errors.append("Output port not found: %s (%s)" % (port, e.msg))
+        else:
+            errors.append("Module not found")
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
@@ -218,10 +223,6 @@ def module_to_serialized_pipeline(module):
 
         group.pipeline = pipeline_db_module.pipeline
         pipeline_db_module = group
-
-    # store output data
-    annotation = Annotation(key='annotate_output', value=True)
-    pipeline_db_module.add_annotation(annotation)
 
     # serializing module
     wf = _serialize_module(pipeline_db_module)
@@ -264,7 +265,7 @@ def set_results(module, results):
 
     orig_pipeline = module.moduleInfo['pipeline']
     moduleId = module.moduleInfo['moduleId']
-    vtType = orig_pipeline.modules[moduleId]
+    vtType = orig_pipeline.modules[moduleId].vtType
 
     # including execution logs
     log = results['xml_log']
@@ -288,7 +289,7 @@ def set_results(module, results):
         # before adding the execution log, we need to get the machine information
         machine = unserialize(results['machine_log'], Machine)
         machine.id = module.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-        module.logging.log.log.add_machine(machine)
+        module.logging.log.workflow_exec.add_machine(machine)
 
         # recursively add machine information to execution items
         def add_machine_recursive(exec_):

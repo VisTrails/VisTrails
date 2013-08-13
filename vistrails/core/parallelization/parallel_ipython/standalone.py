@@ -1,8 +1,8 @@
 from IPython.parallel.error import RemoteError
 
 from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.core.modules.vistrails_module.parallel import SchemeType, \
-    ParallelizationScheme, register_parallelization_scheme
+from vistrails.core.parallelization import SchemeType, Parallelization, \
+    ParallelizationScheme
 from vistrails.core.parallelization.common import get_module_inputs_with_defaults
 
 from .api import get_client
@@ -137,4 +137,4 @@ class IPythonStandaloneScheme(ParallelizationScheme):
 
 # IPython has some logic in pickleutil (class CannedFunction) to send the
 # function's bytecode to the engines
-register_parallelization_scheme(IPythonStandaloneScheme)
+Parallelization.register_parallelization_scheme(IPythonStandaloneScheme)

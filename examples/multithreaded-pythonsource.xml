@@ -1,0 +1,244 @@
+<vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2013-07-02 18:00:46" id="1" prevId="0" session="0" user="Remi">
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="0" x="-10.3087248322" y="1.71812080537" />
+    </add>
+  </action>
+  <action date="2013-07-02 18:01:56" id="2" prevId="1" session="0" user="Remi">
+    <add id="2" objectId="0" parentObjId="0" parentObjType="module" what="portSpec">
+      <portSpec id="0" maxConns="-1" minConns="0" name="o" optional="0" sortKey="0" type="output">
+        <portSpecItem default="" entryType="" id="-1" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+      </portSpec>
+    </add>
+    <add id="3" objectId="0" parentObjId="0" parentObjType="module" what="function">
+      <function id="0" name="source" pos="0" />
+    </add>
+    <add id="4" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="import%20threading%0A%0Ao%20%3D%20str%28threading.current_thread%28%29%29" />
+    </add>
+  </action>
+  <action date="2013-07-02 18:02:06" id="3" prevId="2" session="0" user="Remi">
+    <add id="5" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="StandardOutput" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="6" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="78.1744966443" y="-116.832214765" />
+    </add>
+  </action>
+  <action date="2013-07-02 18:02:06" id="4" prevId="3" session="0" user="Remi">
+    <add id="7" objectId="0" parentObjId="" parentObjType="" what="connection">
+      <connection id="0" />
+    </add>
+    <add id="8" objectId="0" parentObjId="0" parentObjType="connection" what="port">
+      <port id="0" moduleId="0" moduleName="PythonSource" name="o" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="9" objectId="1" parentObjId="0" parentObjType="connection" what="port">
+      <port id="1" moduleId="1" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-07-02 18:03:06" id="5" prevId="4" session="1" user="Remi">
+    <add id="10" objectId="1" parentObjId="0" parentObjType="module" what="function">
+      <function id="1" name="execution_target" pos="1" />
+    </add>
+    <add id="11" objectId="1" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['threading']" />
+    </add>
+  </action>
+  <action date="2013-07-02 18:07:36" id="6" prevId="5" session="2" user="Remi">
+    <change id="12" newObjId="2" oldObjId="1" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="" />
+    </change>
+  </action>
+  <action date="2013-07-02 18:07:36" id="7" prevId="6" session="2" user="Remi">
+    <delete id="13" objectId="2" parentObjId="1" parentObjType="function" what="parameter" />
+    <delete id="14" objectId="1" parentObjId="0" parentObjType="module" what="function" />
+  </action>
+  <action date="2013-07-02 18:07:38" id="8" prevId="7" session="2" user="Remi">
+    <add id="15" objectId="2" parentObjId="0" parentObjType="module" what="function">
+      <function id="2" name="execution_targets" pos="1" />
+    </add>
+    <add id="16" objectId="3" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['threading']" />
+    </add>
+  </action>
+  <action date="2013-07-03 14:06:54" id="9" prevId="8" session="3" user="Remi">
+    <change id="17" newObjId="4" oldObjId="3" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['ipython-standalone']" />
+    </change>
+  </action>
+  <action date="2013-07-03 14:06:58" id="10" prevId="9" session="3" user="Remi">
+    <change id="18" newObjId="2" oldObjId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="2" x="-11.1677852349" y="1.71812080537" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:13:53" id="11" prevId="10" session="4" user="Remi">
+    <change id="19" newObjId="5" oldObjId="4" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['ipython']" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:14:46" id="12" prevId="11" session="4" user="Remi">
+    <add id="20" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="ConcatenateString" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="21" objectId="3" parentObjId="2" parentObjType="module" what="location">
+      <location id="3" x="96.2147651007" y="-240.536912752" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:14:48" id="13" prevId="12" session="4" user="Remi">
+    <delete id="22" objectId="0" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="23" objectId="1" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="24" objectId="0" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2013-07-11 12:14:51" id="14" prevId="13" session="4" user="Remi">
+    <change id="25" newObjId="4" oldObjId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="4" x="67.8657718121" y="-224.214765101" />
+    </change>
+    <change id="26" newObjId="5" oldObjId="3" parentObjId="2" parentObjType="module" what="location">
+      <location id="5" x="65.288590604" y="-117.691275168" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:14:51" id="15" prevId="14" session="4" user="Remi">
+    <annotation id="0" key="__description__" value="Paste" />
+    <add id="27" objectId="3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="28" objectId="1" parentObjId="3" parentObjType="module" what="portSpec">
+      <portSpec id="1" maxConns="-1" minConns="0" name="o" optional="0" sortKey="0" type="output">
+        <portSpecItem default="" entryType="" id="0" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+      </portSpec>
+    </add>
+    <add id="29" objectId="4" parentObjId="3" parentObjType="module" what="function">
+      <function id="4" name="execution_targets" pos="1" />
+    </add>
+    <add id="30" objectId="7" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['ipython']" />
+    </add>
+    <add id="31" objectId="3" parentObjId="3" parentObjType="module" what="function">
+      <function id="3" name="source" pos="0" />
+    </add>
+    <add id="32" objectId="6" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="import%20threading%0A%0Ao%20%3D%20str%28threading.current_thread%28%29%29" />
+    </add>
+    <add id="33" objectId="6" parentObjId="3" parentObjType="module" what="location">
+      <location id="6" x="90.2013422819" y="-84.1879194631" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:14:53" id="16" prevId="15" session="4" user="Remi">
+    <change id="34" newObjId="7" oldObjId="6" parentObjId="3" parentObjType="module" what="location">
+      <location id="7" x="201.879194631" y="2.57718120805" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:14:53" id="17" prevId="16" session="4" user="Remi">
+    <add id="35" objectId="1" parentObjId="" parentObjType="" what="connection">
+      <connection id="1" />
+    </add>
+    <add id="36" objectId="2" parentObjId="1" parentObjType="connection" what="port">
+      <port id="2" moduleId="0" moduleName="PythonSource" name="o" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="37" objectId="3" parentObjId="1" parentObjType="connection" what="port">
+      <port id="3" moduleId="2" moduleName="ConcatenateString" name="str1" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:14:55" id="18" prevId="17" session="4" user="Remi">
+    <add id="38" objectId="2" parentObjId="" parentObjType="" what="connection">
+      <connection id="2" />
+    </add>
+    <add id="39" objectId="4" parentObjId="2" parentObjType="connection" what="port">
+      <port id="4" moduleId="3" moduleName="PythonSource" name="o" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="40" objectId="5" parentObjId="2" parentObjType="connection" what="port">
+      <port id="5" moduleId="2" moduleName="ConcatenateString" name="str2" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:14:56" id="19" prevId="18" session="4" user="Remi">
+    <add id="41" objectId="3" parentObjId="" parentObjType="" what="connection">
+      <connection id="3" />
+    </add>
+    <add id="42" objectId="6" parentObjId="3" parentObjType="connection" what="port">
+      <port id="6" moduleId="2" moduleName="ConcatenateString" name="value" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="43" objectId="7" parentObjId="3" parentObjType="connection" what="port">
+      <port id="7" moduleId="1" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:15:49" id="20" prevId="19" session="4" user="Remi">
+    <change id="44" newObjId="8" oldObjId="5" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['ipython', 'threading', 'multiprocessing']" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:15:51" id="21" prevId="20" session="4" user="Remi">
+    <change id="45" newObjId="9" oldObjId="7" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['ipython', 'threading', 'multiprocessing']" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:16:20" id="22" prevId="21" session="4" user="Remi">
+    <change id="46" newObjId="10" oldObjId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="import%20os%0Aimport%20threading%0A%0Ao%20%3D%20%22pid%3D%25d%20thread%3D%25d%20%22%20%25%20%28threading.current_thread%28%29%2C%20os.getpid%28%29%29" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:16:26" id="23" prevId="22" session="4" user="Remi">
+    <change id="47" newObjId="11" oldObjId="6" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="import%20os%0Aimport%20threading%0A%0Ao%20%3D%20%22pid%3D%25d%20thread%3D%25d%20%22%20%25%20%28threading.current_thread%28%29%2C%20os.getpid%28%29%29" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:16:42" id="24" prevId="23" session="4" user="Remi">
+    <change id="48" newObjId="12" oldObjId="10" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="import%20os%0Aimport%20threading%0A%0Ao%20%3D%20%22pid%3D%25d%20thread%3D%25s%20%22%20%25%20%28threading.current_thread%28%29%2C%20os.getpid%28%29%29" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:16:49" id="25" prevId="24" session="4" user="Remi">
+    <change id="49" newObjId="13" oldObjId="12" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="import%20os%0Aimport%20threading%0A%0Ao%20%3D%20%22pid%3D%25d%20thread%3D%25s%20%22%20%25%20%28os.getpid%28%29%2C%20threading.current_thread%28%29%29" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:16:59" id="26" prevId="25" session="4" user="Remi">
+    <change id="50" newObjId="14" oldObjId="11" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="import%20os%0Aimport%20threading%0A%0Ao%20%3D%20%22pid%3D%25d%20thread%3D%25s%20%22%20%25%20%28os.getpid%28%29%2C%20threading.current_thread%28%29%29" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:17:09" id="27" prevId="26" session="4" user="Remi">
+    <delete id="51" objectId="4" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="52" objectId="5" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="53" objectId="2" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2013-07-11 12:17:11" id="28" prevId="27" session="4" user="Remi">
+    <add id="54" objectId="4" parentObjId="" parentObjType="" what="connection">
+      <connection id="4" />
+    </add>
+    <add id="55" objectId="8" parentObjId="4" parentObjType="connection" what="port">
+      <port id="8" moduleId="3" moduleName="PythonSource" name="o" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="56" objectId="9" parentObjId="4" parentObjType="connection" what="port">
+      <port id="9" moduleId="2" moduleName="ConcatenateString" name="str3" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:17:14" id="29" prevId="28" session="4" user="Remi">
+    <add id="57" objectId="5" parentObjId="2" parentObjType="module" what="function">
+      <function id="5" name="str2" pos="0" />
+    </add>
+    <add id="58" objectId="15" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="&#10;" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:17:24" id="30" prevId="29" session="4" user="Remi">
+    <add id="59" objectId="6" parentObjId="2" parentObjType="module" what="function">
+      <function id="6" name="str4" pos="1" />
+    </add>
+    <add id="60" objectId="16" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="---" />
+    </add>
+  </action>
+  <action date="2013-07-11 12:17:26" id="31" prevId="30" session="4" user="Remi">
+    <change id="61" newObjId="17" oldObjId="16" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="---&#10;" />
+    </change>
+  </action>
+  <action date="2013-07-11 12:17:39" id="32" prevId="31" session="4" user="Remi">
+    <change id="62" newObjId="18" oldObjId="17" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="18" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="&#10;---&#10;" />
+    </change>
+  </action>
+</vistrail>

@@ -44,7 +44,6 @@ import urllib
 import urlparse
 import uuid
 
-import vistrails.core.configuration
 import vistrails.core.system
 from vistrails.db.services import io
 from vistrails.db.services.io import SaveBundle
@@ -288,11 +287,7 @@ class SaveTemporariesMixin(object):
 
     @staticmethod
     def get_autosave_dir():
-        config = vistrails.core.configuration.get_vistrails_configuration()
-        if config:
-            dot_vistrails = config.dotVistrails
-        else:
-            dot_vistrails = vistrails.core.system.default_dot_vistrails()
+        dot_vistrails = vistrails.core.system.current_dot_vistrails()
         auto_save_dir = os.path.join(dot_vistrails, "autosave")
         if not os.path.exists(auto_save_dir):
             # !!! we assume dot_vistrails exists !!!

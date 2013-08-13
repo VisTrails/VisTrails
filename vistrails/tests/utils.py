@@ -1,7 +1,9 @@
 import contextlib
 
+from vistrails.core.modules.vistrails_module import Module
 
-def execute(modules, connections=[], add_port_specs=[]):
+
+def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
     """Build a pipeline and execute it.
 
     This is useful to simply build a pipeline in a test case, and run it. When
@@ -58,7 +60,7 @@ def execute(modules, connections=[], add_port_specs=[]):
         ]))
     """
     from vistrails.core.db.locator import XMLFileLocator
-    from vistrails.core.interpreter.default import get_default_interpreter
+    from vistrails.core.modules.module_registry import MissingPackage
     from vistrails.core.packagemanager import get_package_manager
     from vistrails.core.utils import DummyView
     from vistrails.core.vistrail.connection import Connection
@@ -73,20 +75,33 @@ def execute(modules, connections=[], add_port_specs=[]):
     pm = get_package_manager()
 
     port_spec_per_module = {} # mod_id -> [portspec: PortSpec]
+    j = 0
     for i, (mod_id, inout, name, sig) in enumerate(add_port_specs):
         mod_specs = port_spec_per_module.setdefault(mod_id, [])
-        mod_specs.append(PortSpec(
-                id=i,
-                name=name,
-                type=inout,
-                sigstring=sig,
-                sort_key=-1))
+        ps = PortSpec(id=i,
+                      name=name,
+                      type=inout,
+                      sigstring=sig,
+                      sort_key=-1)
+        for psi in ps.port_spec_items:
+            psi.id = j
+            j += 1
+        mod_specs.append(ps)
 
     pipeline = Pipeline()
     module_list = []
     for i, (name, identifier, functions) in enumerate(modules):
         function_list = []
-        pkg = pm.get_package(identifier)
+        try:
+            pkg = pm.get_package(identifier)
+        except MissingPackage:
+            if not enable_pkg:
+                raise
+            pkg = pm.identifier_is_available(identifier)
+            if pkg:
+                pm.late_enable_package(pkg.codepath)
+                pkg = pm.get_package(identifier)
+
         for func_name, params in functions:
             param_list = []
             for param_type, param_val in params:
@@ -151,14 +166,47 @@ def intercept_result(module, output_name):
         self.assertFalse(execute(...))
     self.assertEqual(results, [42])
     """
-    old_setResult = module.setResult
+    actual_setResult = module.setResult
+    old_setResult = module.__dict__.get('setResult', None)
     results = []
+    modules_index = {}  # Maps a Module to an index in the list, so a module
+            # can change its result
     def new_setResult(self, name, value):
         if name == output_name:
-            results.append(value)
-        old_setResult(self, name, value)
+            if self in modules_index:
+                results[modules_index[self]] = value
+            else:
+                modules_index[self] = len(results)
+                results.append(value)
+        actual_setResult(self, name, value)
     module.setResult = new_setResult
     try:
         yield results
     finally:
-        module.setResult = old_setResult
+        if old_setResult is not None:
+            module.setResult = old_setResult
+        else:
+            del module.setResult
+
+
+def intercept_results(*args):
+    """This calls intercept_result() several times.
+
+    You can pass it multiple modules and port names and it will nest the
+    managers, for instance:
+    with intercept_results(ModOne, 'one1', 'one2', ModTwo, 'two1', 'two2') as (
+            one1, one2, two1, two2):
+        self.assertFalse(execute(...))
+    """
+    ctx = []
+    current_module = None
+    for arg in args:
+        if isinstance(arg, type) and issubclass(arg, Module):
+            current_module = arg
+        elif isinstance(arg, basestring):
+            if current_module is None:
+                raise ValueError
+            ctx.append(intercept_result(current_module, arg))
+        else:
+            raise TypeError
+    return contextlib.nested(*ctx)

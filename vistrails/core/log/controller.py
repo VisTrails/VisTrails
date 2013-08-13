@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import copy
+
 from vistrails.core.log.workflow_exec import WorkflowExec
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.loop_exec import LoopExec
@@ -95,14 +97,7 @@ class LogController(object):
         self.log = log
         self.workflow_exec = None
         self.machine = machine
-        to_add = True
-        for machine in self.log.machine_list:
-            if self.machine.equals_no_id(machine):
-                to_add = False
-                self.machine = machine
-        if to_add:
-            self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
-            self.log.add_machine(self.machine)
+        self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
             
     def start_workflow_execution(self, vistrail=None, pipeline=None, 
                                  currentVersion=None):
@@ -128,7 +123,8 @@ class LogController(object):
                                           parent_id=parent_id,
                                           parent_version=currentVersion,
                                           completed=0,
-                                          session=session)
+                                          session=session,
+                                          machines=[copy.copy(self.machine)])
         self.log.add_workflow_exec(self.workflow_exec)
 
     def finish_workflow_execution(self, errors, suspended=False):

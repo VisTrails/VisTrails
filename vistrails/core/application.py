@@ -41,6 +41,7 @@ from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import keychain
 from vistrails.core import system
+import vistrails.core.bundles.installbundle
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
@@ -48,8 +49,7 @@ from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
-from vistrails.core.parallelization import setup_parallelization_schemes, \
-    finalize_parallelization_schemes
+from vistrails.core.parallelization import Parallelization
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
@@ -97,7 +97,7 @@ class VistrailsApplicationInterface(object):
         add = command_line.CommandLineParser.add_option
         add("-S", "--startup", action="store", type="str", default=None,
             dest="dotVistrails",
-            help="Set startup file (default is ~/.vistrails/startup.py)")
+            help="Set startup file (default is ~/.vistrails)")
         add("-?", action="help",
             help="show this help message and exit")
         add("-v", "--version", action="callback",
@@ -221,11 +221,6 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.debugSignals = bool(get('debugsignals'))
         if get('dotVistrails')!=None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
-        #in theory this should never happen because core.configuration.default()
-        #should have done this already
-        #if not self.configuration.check('dotVistrails'):
-        #    self.configuration.dotVistrails = system.default_dot_vistrails()
-        #    self.temp_configuration.dotVistrails = system.default_dot_vistrails()
         if get('multiheads')!=None:
             self.temp_configuration.multiHeads = bool(get('multiheads'))
         if get('maximized')!=None:
@@ -326,7 +321,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # VistrailsStartup will load. This updates self.temp_configuration
         self.read_dotvistrails_option()
         
-        if optionsDict and 'dotVistrails' in optionsDict.keys():
+        if optionsDict and optionsDict.get('dotVistrails'):
             self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
 
         # the problem here is that if the user pointed to a new .vistrails
@@ -354,6 +349,16 @@ The builder window can be accessed by a spreadsheet menu option.")
         # Command line options override temp_configuration
         self.readOptions()
 
+        try:
+            vistrails.core.requirements.require_python_module('concurrent.futures')
+        except vistrails.core.requirements.MissingRequirement:
+            if not vistrails.core.bundles.installbundle.install({
+                    'linux-debian': ['python-concurrent.futures'],
+                    'linux-ubuntu': ['python-concurrent.futures'],
+                    'linux-fedora': ['python-futures'],
+                    'pip': ['futures']}):
+                raise
+
         # Create the registry and load default packages
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
@@ -362,7 +367,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.vistrailsStartup.set_registry(reg)
 
         # Register parallelization schemes
-        setup_parallelization_schemes()
+        Parallelization.setup_parallelization_schemes()
 
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
@@ -378,7 +383,7 @@ after self.init()"""
         if hasattr(self, 'vistrailsStartup'):
             self.vistrailsStartup.destroy()
 
-        finalize_parallelization_schemes()
+        Parallelization.finalize_parallelization_schemes()
 
     def __del__(self):
         """ __del__() -> None

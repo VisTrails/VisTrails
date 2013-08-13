@@ -57,7 +57,7 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         self.set_exploration()
         
     def updatePipeline(self, pipeline):
-        name = self.controller.get_pipeline_name()[10:]
+        name = self.controller.get_pipeline_name()
         self.set_title("Explore: %s" % name)
 
     def set_exploration(self, pe=None):
