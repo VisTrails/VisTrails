@@ -446,6 +446,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         @contextlib.contextmanager
         def catch_module_error():
+            abort = False
             try:
                 yield
             except AbortExecution:
@@ -454,15 +455,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
                     errors[me.module.id] = me
+                    abort = abort or me.abort
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg, me.errorTrace)
                 errors[me.module.id] = me
+                abort = me.abort
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
             else:
                 return
-            if stop_on_error:
+            if stop_on_error or abort:
                 raise ExecutionAborted
 
         try:
