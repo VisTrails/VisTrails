@@ -440,7 +440,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             try:
                 obj.update()
             except AbortExecution:
-                pass
+                break
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
