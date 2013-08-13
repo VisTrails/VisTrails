@@ -91,10 +91,11 @@ class ModuleError(Exception):
 exception is recognized by the interpreter and allows meaningful error
 reporting to the user and to the logging mechanism."""
     
-    def __init__(self, module, errormsg):
+    def __init__(self, module, errormsg, abort=False):
         """ModuleError should be passed the module instance that signaled the
 error and the error message as a string."""
         Exception.__init__(self, errormsg)
+        self.abort = abort # force abort even if stopOnError is False
         self.module = module
         self.msg = errormsg
         import traceback

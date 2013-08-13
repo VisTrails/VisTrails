@@ -439,6 +439,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         # Update new sinks
         for obj in persistent_sinks:
+            abort = False
             try:
                 obj.update()
                 continue
@@ -450,13 +451,15 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
                     errors[me.module.id] = me
+                    abort = abort or me.abort
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg, me.errorTrace)
                 errors[me.module.id] = me
+                abort = me.abort
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
-            if stop_on_error:
+            if stop_on_error or abort:
                 break
 
         if self.done_update_hook:
