@@ -50,6 +50,9 @@ import sys
 def has_qt():
     try:
         import PyQt4.QtGui
+        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
+        # PyQt4.QtOpenGL by default
+        import PyQt4.QtOpenGL
         return True
     except ImportError:
         return False
