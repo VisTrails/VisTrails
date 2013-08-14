@@ -2487,7 +2487,9 @@ class VistrailController(object):
     
     def execute_workflow_list(self, vistrails):
         """execute_workflow_list(vistrails: list) -> (results, bool)"""
-        
+
+        stop_on_error = getattr(get_vistrails_configuration(),
+                                'stopOnError')
         interpreter = get_default_interpreter()
         changed = False
         results = []
@@ -2512,6 +2514,7 @@ class VistrailController(object):
                       'reason': reason,
                       'sinks': sinks,
                       'extra_info': extra_info,
+                      'stop_on_error': stop_on_error,
                       }    
             if self.get_vistrail_variables():
                 kwargs['vistrail_variables'] = \

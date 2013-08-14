@@ -40,7 +40,7 @@ import vistrails.core.db.io
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
-    ModuleError, ModuleBreakpoint, ModuleErrors
+    ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -140,6 +140,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
 
         reg = modules.module_registry.get_module_registry()
 
@@ -296,6 +297,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_suspended_hook = fetch('module_suspended_hook', [])
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
+        stop_on_error = fetch('stop_on_error', True)
         # parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
@@ -437,22 +439,27 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         # Update new sinks
         for obj in persistent_sinks:
+            abort = False
             try:
                 obj.update()
+                continue
+            except ModuleHadError:
+                pass
             except AbortExecution:
                 break
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
                     errors[me.module.id] = me
-                break
+                    abort = abort or me.abort
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg, me.errorTrace)
                 errors[me.module.id] = me
-                break
+                abort = me.abort
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
+            if stop_on_error or abort:
                 break
 
         if self.done_update_hook:
@@ -608,6 +615,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
