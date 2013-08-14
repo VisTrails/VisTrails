@@ -16,6 +16,7 @@ def make_fake_module_and_execute(compute_code, inputs):
 
     import platform
     import socket
+    import traceback
 
     machine_dict = {
             'name': socket.getfqdn(),
@@ -93,10 +94,15 @@ def make_fake_module_and_execute(compute_code, inputs):
             'compute')      # name
 
     m = IPythonFakeModule(inputs)
-    m.compute()
-
-    # Returns the results to be set on the port, plus the machine info
-    return m.outputPorts, machine_dict
+    try:
+        m.compute()
+    except Exception, e:
+        # Return the formatted exception, plus the machine info
+        exc = (e.__class__.__name__,) + e.args, traceback.format_exc()
+        return False, exc, machine_dict
+    else:
+        # Returns the results to be set on the port, plus the machine info
+        return True, m.outputPorts, machine_dict
 
 
 @apply
@@ -141,19 +147,15 @@ class IPythonStandaloneScheme(ParallelizationScheme):
         def callback(res):
             def get_results(runner):
                 def compute():
-                    machine_dict = {'name': "Unknown remote machine",
-                                    'os': "unknown",
-                                    'architecture': "unknown",
-                                    'processor': "unknown",
-                                    'ram': 0}
                     try:
-                        results, machine_dict = res.get()
+                        success, results, machine_dict = res.get()
                     except RemoteError, e:
                         print_remoteerror(e)
                         raise
                     else:
-                        module.outputPorts.update(results)
-                    finally:
+                        if success:
+                            module.outputPorts.update(results)
+
                         module_exec = module.module_exec.do_copy(
                                 new_ids=True,
                                 id_scope=module.logging.log.log.id_scope,
@@ -164,11 +166,21 @@ class IPythonStandaloneScheme(ParallelizationScheme):
                                           **machine_dict)
                         module.logging.log.workflow_exec.add_machine(machine)
                         module_exec.machine_id = machine.id
-                        module_exec.completed = 1
+                        if not success:
+                            module_exec.error = '%s: %s' % (
+                                    results[0][0], results[0][1])
+                            module_exec.completed = -1
+                        else:
+                            module_exec.completed = 1
                         module.logging.log_remote_execution(
                                 module, 'ipython-standalone',
                                 [('ipython-profile', EngineManager.profile)],
                                 module_execs=[module_exec])
+                        if not success:
+                            raise RemoteError(
+                                    results[0][0],  # name
+                                    results[0][1],  # message
+                                    results[1])     # traceback
                 module.do_compute(compute=compute)
             async_task.callback(get_results)
         rc.add_callback(future, callback)
