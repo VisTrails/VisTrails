@@ -583,6 +583,10 @@ It is a WSDL type with signature:
         for m in self.wsmethods.itervalues():
             def compute(self):
                 # create dict of inputs
+                cacheable = False
+                if self.hasInputFromPort('cacheable'):
+                    cacheable = self.getInputFromPort('cacheable')
+                self.is_cacheable = lambda *args, **kwargs: cacheable            
                 params = {}
                 mname = self.wsmethod.qname[0]
                 for name in self.wsmethod.inputs:
@@ -593,11 +597,14 @@ It is a WSDL type with signature:
                             params[name] = params[name].value
                         params[name] = self.service.makeDictType(params[name])
                 try:
-#                    print "params:", str(params)[:400]
-#                    self.service.service.set_options(retxml = True)
-#                    result = getattr(self.service.service.service, mname)(**params)
-#                    print "result:", str(result)[:400]
-#                    self.service.service.set_options(retxml = False)
+                    #import logging
+                    #logging.basicConfig(level=logging.INFO)
+                    #logging.getLogger('suds.client').setLevel(logging.DEBUG)
+                    #print "params:", str(params)[:400]
+                    #self.service.service.set_options(retxml = True)
+                    #result = getattr(self.service.service.service, mname)(**params)
+                    #print "result:", str(result)[:400]
+                    #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
                     raise ModuleError(self, "Error invoking method %s: %s"%(name, str(e)))
@@ -646,6 +653,9 @@ Outputs:
             reg.add_module(M, **{'namespace':'Methods',
                                  'package':self.signature,
                                  'package_version':self.wsdlHash})
+            reg.add_input_port(self.methodClasses[m.qname], 'cacheable',
+                               wsdlTypesDict['boolean'], optional=True)
+
             # add ports
             for p, ptype in m.inputs.iteritems():
                 if ptype[1] in wsdlSchemas:
