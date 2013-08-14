@@ -35,7 +35,7 @@
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import Boolean, String, Variant, \
-    List, Not, Integer
+    List, Not, Integer, Float
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
 from fold import Fold, FoldWithModule
@@ -123,6 +123,8 @@ def initialize(*args,**keywords):
                        optional=True)
     reg.add_input_port(While, 'MaxIterations', (Integer, ""),
                        optional=True, defaults="['20']")
+    reg.add_input_port(While, 'Delay', (Float, ""),
+                       optional=True)
     reg.add_output_port(While, 'Result', (Variant, ""))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
