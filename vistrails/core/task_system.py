@@ -9,6 +9,16 @@ import Queue
 import warnings
 
 
+@apply
+class empty_contextmanager(object):
+    def __enter__(self):
+        pass
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+    def __call__(self):
+        return self
+
+
 class DependentTask(object):
     """Structure used internally to keep track of a dependency.
 
@@ -133,11 +143,19 @@ class TaskRunner(object):
     def make_async_task(self):
         return AsyncTask(self, self._inherited_priority)
 
-    def execute_tasks(self):
+    def execute_tasks(self, task_hook=empty_contextmanager):
         """Main loop executing tasks until there is nothing more to run.
 
         Will emit a RuntimeWarning if tasks remain at the end (if for some
         tasks, Task#done() was never called).
+
+        task_hook is an optional context manager generator that is used around
+        task execution. It can be used to catch some exceptions and allow the
+        runner to continue; else, exceptions are propagated and end the
+        execution.
+        Note that the object will be called before being used as a context
+        manager:
+        with task_hook(): # note the ()
         """
         while True:
             try:
@@ -147,22 +165,32 @@ class TaskRunner(object):
             self._inherited_priority = inh_prio + (prio,)
             if isinstance(task, Task):
                 self.tasks_ran.add(task)
-                task.start(self)
+                with task_hook():
+                    task.start(self)
             elif hasattr(task, '__call__'):
-                task(self)
-                self.task_done(task)
+                done = False
+                with task_hook():
+                    task(self)
+                    done = True
+                if done:
+                    self.task_done(task)
             else:
                 raise RuntimeError("Something in task queue is not a task: "
                                    "%r" % (task,))
 
-        for deps in self.dependencies.itervalues():
-            if any(dep.tasks for dep in deps):
-                warnings.warn("Some tasks were never completed, but we don't have "
-                              "anything left to run (did you forget to call "
-                              "done()?)",
-                              RuntimeWarning,
-                              stacklevel=2)
-                break
+        # This is now disabled since task_hook was added, because as it can
+        # catch exceptions, we can continue executing while tasks failed
+        # These failed tasks prevent their dependent tasks from running, and it
+        # is intended
+        if False:
+            for deps in self.dependencies.itervalues():
+                if any(dep.tasks for dep in deps):
+                    warnings.warn("Some tasks were never completed, but we don't have "
+                                  "anything left to run (did you forget to call "
+                                  "done()?)",
+                                  RuntimeWarning,
+                                  stacklevel=2)
+                    break
 
     def task_done(self, task):
         """Internal method, called from Task#done().

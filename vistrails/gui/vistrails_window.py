@@ -231,6 +231,9 @@ class QBaseViewWindow(QtGui.QMainWindow):
                        'enabled': False,
                        'callback': _app.pass_through(self.get_current_view,
                                                      'execute')}),
+                     ("stop_on_error", "Stop on first error",
+                      {'checkable': True,
+                       'callback': _app.set_stop_on_error}),
                      ("flushCache", "Erase Cache Contents", 
                       {'enabled': True,
                        'callback': _app.flush_cache}),
@@ -834,6 +837,9 @@ class QVistrailViewWindow(QBaseViewWindow):
             _app.connect_package_manager_signals()
         else:
             self.build_packages_menu_from_main_app()
+
+        self.qactions['stop_on_error'].setChecked(
+                getattr(get_vistrails_configuration(), 'stopOnError'))
 
         # view_menu = self.qmenus["view"]
         # for action_name, action in self.create_palette_actions():
@@ -2087,7 +2093,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def flush_cache(self):
         CachedInterpreter.flush()
-            
+
+    def set_stop_on_error(self, stop):
+        setattr(get_vistrails_persistent_configuration(), 'stopOnError', stop)
+        setattr(get_vistrails_configuration(), 'stopOnError', stop)
+
     def showPreferences(self):
         """showPreferences() -> None
         Display Preferences dialog

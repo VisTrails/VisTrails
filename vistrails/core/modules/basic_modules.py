@@ -1131,7 +1131,8 @@ class Assert(Module):
     def compute(self):
         condition = self.getInputFromPort('condition')
         if not condition:
-            raise ModuleError(self, "Assert: condition is False")
+            raise ModuleError(self, "Assert: condition is False",
+                              abort=True)
 
 
 class AssertEqual(Module):
@@ -1144,7 +1145,8 @@ class AssertEqual(Module):
         values = (self.getInputFromPort('value1'),
                   self.getInputFromPort('value2'))
         if values[0] != values[1]:
-            raise ModuleError(self, "AssertEqual: values are different")
+            raise ModuleError(self, "AssertEqual: values are different",
+                              abort=True)
 
 ##############################################################################
 
