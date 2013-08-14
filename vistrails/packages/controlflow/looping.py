@@ -1,5 +1,6 @@
 import copy
 from itertools import izip
+import time
 
 from core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleSuspended, ModuleError, ModuleConnector
@@ -42,6 +43,7 @@ class While(Module):
         name_state_input = self.forceGetInputFromPort('StateInputPorts')
         name_state_output = self.forceGetInputFromPort('StateOutputPorts')
         max_iterations = self.getInputFromPort('MaxIterations')
+        delay = self.forceGetInputFromPort('Delay')
 
         if name_state_input or name_state_output:
             if not name_state_input or not name_state_output:
@@ -94,6 +96,9 @@ class While(Module):
                                   "Invalid output port: %s" % name_condition)
             if not module.get_output(name_condition):
                 break
+
+            if delay:
+                time.sleep(delay)
 
             # Get state on output ports
             if name_state_output:
