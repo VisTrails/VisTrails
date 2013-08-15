@@ -1,3 +1,4 @@
+from vistrails.core.vistrail.annotation import Annotation
 from vistrails.db.domain import DBExecutionConfiguration, DBExecutionPreference
 
 
@@ -6,7 +7,14 @@ class ExecutionPreference(DBExecutionPreference):
     """
     @staticmethod
     def convert(target):
+        if target.__class__ == ExecutionPreference:
+            return
         target.__class__ = ExecutionPreference
+        for annotation in target.annotations:
+            Annotation.convert(annotation)
+
+    annotations = DBExecutionPreference.db_annotations
+    system = DBExecutionPreference.db_system
 
 
 class ExecutionConfiguration(DBExecutionConfiguration):
@@ -15,12 +23,12 @@ class ExecutionConfiguration(DBExecutionConfiguration):
     _empty_pref = None
 
     @staticmethod
-    def convert(pref):
-        if pref.__class__ == ExecutionConfiguration:
+    def convert(config):
+        if config.__class__ == ExecutionConfiguration:
             return
-        pref.__class__ = ExecutionConfiguration
-        for mod in pref.modules:
-            ExecutionPreference.convert(mod)
+        config.__class__ = ExecutionConfiguration
+        for pref in config.execution_preferences:
+            ExecutionPreference.convert(pref)
 
     def get_module_preference(self, ids):
         """get_module_preference(ids: (int,)) -> ExecutionPreference
@@ -38,3 +46,5 @@ class ExecutionConfiguration(DBExecutionConfiguration):
 
     def __nonzero__(self):
         return bool(self.db_module_execution_preferences)
+
+    execution_preferences = DBExecutionConfiguration.db_execution_preferences

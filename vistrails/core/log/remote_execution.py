@@ -1,3 +1,5 @@
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.log.remote_task import RemoteTask
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.db.domain import DBRemoteExecution
 
@@ -36,6 +38,10 @@ class RemoteExecution(DBRemoteExecution):
         remote_execution.__class__ = RemoteExecution
         for annotation in remote_execution.annotations:
             Annotation.convert(annotation)
+        for module_exec in remote_execution.module_execs:
+            ModuleExec.convert(module_exec)
+        for remote_task in remote_execution.remote_tasks:
+            RemoteTask.convert(remote_task)
 
     ###########################################################################
     # Properties
