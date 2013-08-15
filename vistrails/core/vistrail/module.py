@@ -282,6 +282,7 @@ class Module(DBModule):
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...
         result.registry = get_module_registry()
+        result.execution_preference = self.execution_preference
         return result
 
     def is_group(self):

@@ -93,8 +93,7 @@ class SupportedExecution(object):
                                    self.parallelizable)
     __str__ = __repr__
 
-    @staticmethod
-    def do_compute(module):
+    def do_compute(self, module):
         """This method is injected as do_compute in parallelizable modules.
 
         When the parallelizable() class decorator is used on a class, this
@@ -104,6 +103,8 @@ class SupportedExecution(object):
         if Parallelization.is_subprocess:
             module.do_compute()
             return
+
+        # TODO-threadconfig : use self.execution_preference
 
         for priority, scheme in Parallelization._parallelization_schemes:
             if scheme.supports(**module.supported_execution.parallelizable):
