@@ -56,7 +56,8 @@ class ExecutionConfiguration(DBExecutionConfiguration):
             return None
 
     def __nonzero__(self):
-        return bool(self.db_module_execution_preferences)
+        return (bool(self.db_module_execution_preferences) or
+                bool(self.execution_preferences))
 
     execution_preferences = DBExecutionConfiguration.db_execution_preferences
     add_execution_preference = \

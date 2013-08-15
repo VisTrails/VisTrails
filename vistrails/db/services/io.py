@@ -1218,9 +1218,9 @@ def open_execution_configuration_from_xml(filename):
 def save_execution_configuration_to_xml(config, filename, version=None):
     if version is None:
         version = currentVersion
-    if not config.db_version:
-        config.db_version = currentVersion
-    config = translate_execution_configuration(config, config.db_version, version)
+    if not config.db_vt_version:
+        config.db_vt_version = currentVersion
+    config = translate_execution_configuration(config, config.db_vt_version, version)
 
     daoList = getVersionDAO(version)
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance'}
