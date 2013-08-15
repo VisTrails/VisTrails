@@ -15411,12 +15411,14 @@ class DBExecutionPreference(object):
         self._db_system = system
         self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
+        self.db_annotations_key_index = {}
         if annotations is None:
             self._db_annotations = []
         else:
             self._db_annotations = annotations
             for v in self._db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
+                self.db_annotations_key_index[v.db_key] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -15442,6 +15444,7 @@ class DBExecutionPreference(object):
         
         # recreate indices and set flags
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -15541,6 +15544,7 @@ class DBExecutionPreference(object):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -15552,6 +15556,7 @@ class DBExecutionPreference(object):
         if not found:
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -15561,6 +15566,7 @@ class DBExecutionPreference(object):
                 del self._db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
+        del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
@@ -15570,6 +15576,10 @@ class DBExecutionPreference(object):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
+    def db_get_annotation_by_key(self, key):
+        return self.db_annotations_key_index[key]
+    def db_has_annotation_with_key(self, key):
+        return key in self.db_annotations_key_index
     
     def getPrimaryKey(self):
         return self._db_id

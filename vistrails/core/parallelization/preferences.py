@@ -14,6 +14,17 @@ class ExecutionPreference(DBExecutionPreference):
             Annotation.convert(annotation)
 
     annotations = DBExecutionPreference.db_annotations
+    def get_annotation(self, key):
+        try:
+            return self.db_get_annotation_by_key(key)
+        except KeyError:
+            return None
+    def set_annotation(self, id_scope, key, value):
+        try:
+            self.db_get_annotation_by_key(key).value = value
+        except KeyError:
+            ann_id = id_scope.getNewId(Annotation.vtType)
+            self.db_add_annotation(Annotation(id=ann_id, key=key, value=value))
     system = DBExecutionPreference.db_system
 
 
@@ -48,3 +59,7 @@ class ExecutionConfiguration(DBExecutionConfiguration):
         return bool(self.db_module_execution_preferences)
 
     execution_preferences = DBExecutionConfiguration.db_execution_preferences
+    add_execution_preference = \
+            DBExecutionConfiguration.db_add_execution_preference
+    delete_execution_preference = \
+            DBExecutionConfiguration.db_delete_execution_preference
