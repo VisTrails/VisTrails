@@ -899,6 +899,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             shutil.copyfile(
                     save_bundle.vistrail.db_execution_configuration_filename,
                     xml_fname)
+            save_bundle.vistrail.db_execution_configuration_filename = xml_fname
 
     if save_bundle.execution_configuration is not None:
         xml_fname = os.path.join(vt_save_dir, 'execution_configuration')
@@ -1018,7 +1019,13 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     finally:
         os.unlink(tmp_zip_file)
         os.rmdir(tmp_zip_dir)
-    save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail, save_bundle.log, thumbnails=saved_thumbnails, abstractions=saved_abstractions)
+    save_bundle = SaveBundle(
+            save_bundle.bundle_type,
+            save_bundle.vistrail,
+            save_bundle.log,
+            thumbnails=saved_thumbnails,
+            abstractions=saved_abstractions,
+            execution_configuration=save_bundle.execution_configuration)
     return (save_bundle, vt_save_dir)
 
 def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None):

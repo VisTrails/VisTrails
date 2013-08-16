@@ -99,10 +99,12 @@ class CoreLocator(object):
         from vistrails.core.log.log import Log
         from vistrails.core.modules.module_registry import ModuleRegistry
         from vistrails.core.log.opm_graph import OpmGraph
+        from vistrails.core.parallelization.preferences import ExecutionConfiguration
         
         klass_map = {Vistrail.vtType: Vistrail,
                      Pipeline.vtType: Pipeline,
                      Log.vtType: Log,
+                     ExecutionConfiguration.vtType: ExecutionConfiguration,
                      ModuleRegistry.vtType: ModuleRegistry,
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
