@@ -52,14 +52,14 @@ class QParallelThreadSettings(QtGui.QWidget):
     def enable_clicked(self, state):
         if state == QtCore.Qt.Checked:
             if self._preference is None:
-                pref_id = self._parent._vistrail.idScope.getNewId(
+                pref_id = self._parent.vistrail.idScope.getNewId(
                         ExecutionPreference.vtType)
                 self._preference = ExecutionPreference(
                         id=pref_id,
                         system='threading')
                 self._parent.config.add_execution_preference(self._preference)
             self._preference.set_annotation(
-                    self._parent._vistrail.idScope,
+                    self._parent.vistrail.idScope,
                     'pool_size',
                     self._threads.value())
             self._parent.set_changed()
@@ -80,6 +80,6 @@ class QParallelThreadSettings(QtGui.QWidget):
             if nb == 0:
                 nb = self._default_threads
             self._preference.set_annotation(
-                    self._parent._vistrail.idScope,
+                    self._parent.vistrail.idScope,
                     'pool_size', nb)
             self._parent.set_changed()

@@ -93,6 +93,7 @@ class Module(DBModule):
             self.is_watched = False
             self._descriptor_info = None
             self._module_descriptor = None
+            self.execution_preference = None
         else:
             self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
@@ -105,6 +106,7 @@ class Module(DBModule):
             self.is_watched = other.is_watched
             self._descriptor_info = None
             self._module_descriptor = other._module_descriptor
+            self.execution_preference = other.execution_preference
         if not self.namespace:
             self.namespace = None
         self.function_idx = self.db_functions_id_index

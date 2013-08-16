@@ -65,6 +65,7 @@ from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
 from vistrails.gui.module_palette import QModuleTreeWidget
+from vistrails.gui.parallelization import QParallelizationSettings
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
@@ -593,8 +594,47 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 
         """
         module = self.controller.current_pipeline.modules[self.moduleId]
+
+        parallelization_schemes = QtGui.QMenu("Set parallel configuration")
+        config = self.controller.vistrail.get_persisted_execution_preferences()
+
+        def set_pref(pref):
+            def callback():
+                # Update pipeline
+                module.execution_preference = pref
+                # Update config file
+                config.set_module_preference(
+                        [self.moduleId],
+                        pref)
+                # Mark that the vistrail needs saving
+                self.controller.set_changed(True)
+            return callback
+        group = QtGui.QActionGroup(parallelization_schemes)
+        for pref in config.execution_preferences:
+            action = QtGui.QAction(
+                    QParallelizationSettings.describe_scheme(pref.system),
+                    group)
+            action.setCheckable(True)
+            # We compare ids here because the preferences on the config can get
+            # out of sync with the ones set on the pipeline's module
+            # This is because the pipeline gets constructed by the controller
+            # which does weird stuff (i.e. caching) without the Vistrail
+            # re-labelling
+            if (pref is module.execution_preference) or (
+                    pref is not None and
+                    module.execution_preference is not None and
+                    pref.id == module.execution_preference.id):
+                # Current scheme: check the box
+                action.setChecked(True)
+            else:
+                # Else: make it selectable
+                QtCore.QObject.connect(action, QtCore.SIGNAL('triggered()'),
+                                       set_pref(pref))
+            parallelization_schemes.addAction(action)
+
         menu = QtGui.QMenu()
         menu.addAction(self.configureAct)
+        menu.addMenu(parallelization_schemes)
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
         menu.addAction(self.changeModuleLabelAct)

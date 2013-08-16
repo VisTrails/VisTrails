@@ -296,7 +296,25 @@ class Vistrail(DBVistrail):
             return max_ver
         except:
             return 0
-                   
+
+    def set_execution_preferences(self, pipeline):
+        """set_execution_preferences(Pipeline)
+        Assign its preferred execution configuration to each Module.
+        """
+        # Label each module with the execution configuration
+        preferences = self.get_persisted_execution_preferences()
+
+        from vistrails.core.vistrail.group import Group
+        def label_pipeline_with_exec_pref(pipeline, prefix=()):
+            for module in pipeline.module_list:
+                if isinstance(module, Group):
+                    label_pipeline_with_exec_pref(
+                            module.pipeline, prefix + (module.id,))
+                module.execution_preference = (
+                        preferences.get_module_preference(
+                                prefix + (module.id,)))
+        label_pipeline_with_exec_pref(pipeline)
+
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 
@@ -304,21 +322,7 @@ class Vistrail(DBVistrail):
         """
         try:
             pipeline = Vistrail.getPipelineDispatcher[type(version)](self, version)
-
-            # Label each module with the execution configuration
-            preferences = self.get_persisted_execution_preferences()
-
-            from vistrails.core.vistrail.group import Group
-            def label_pipeline_with_exec_pref(pipeline, prefix=()):
-                for module in pipeline.module_list:
-                    if isinstance(module, Group):
-                        label_pipeline_with_exec_pref(
-                                module.pipeline, prefix + (module.id,))
-                    module.execution_preference = (
-                            preferences.get_module_preference(
-                                    prefix + (module.id,)))
-            label_pipeline_with_exec_pref(pipeline)
-
+            self.set_execution_preferences(pipeline)
             return pipeline
         except Exception, e:
             raise InvalidPipeline([e])

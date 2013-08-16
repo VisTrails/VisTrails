@@ -59,6 +59,12 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             #'ipython-standalone': QParallelIPythonStandaloneSettings,
         }
 
+    ALL_WIDGETS = {
+            'threading': QParallelThreadSettings,
+            'multiprocessing': QParallelProcessSettings,
+        }
+    ALL_WIDGETS.update(WIDGETS)
+
     def __init__(self, parent=None):
         super(QParallelizationSettings, self).__init__(parent)
 
@@ -83,23 +89,34 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
 
         app = get_vistrails_application()
         app.register_notification(
-                'controller_changed', self._set_controller)
-        self._vistrail = False
-        self._set_controller(None)
+                'controller_changed', self._check_vistrail)
+        app.register_notification(
+                'vistrail_saved', self._check_vistrail)
+        self.vistrail = False
+        self.config = False
+        self._set_vistrail(None)
 
-    def _set_controller(self, controller):
+    def _check_vistrail(self, *args):
+        controller = get_vistrails_application().get_current_controller()
         if controller is not None:
-            vistrail = controller.vistrail
+            self._set_vistrail(controller.vistrail)
         else:
-            vistrail = None
+            self._set_vistrail(None)
 
-        if vistrail is self._vistrail:
+    def _set_vistrail(self, vistrail):
+        if vistrail is not None:
+            config = vistrail.get_persisted_execution_preferences()
+        else:
+            config = None
+
+        if config is self.config:
             return
 
         self._schemes = {}
         self._list.clear()
 
-        self._vistrail = vistrail
+        self.vistrail = vistrail
+        self.config = config
 
         self.threading = None
         self.multiprocessing = None
@@ -108,22 +125,15 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             self.setEnabled(False)
         else:
             self.setEnabled(True)
-            self.config = vistrail.get_persisted_execution_preferences()
 
             # Build widget from configuration
             for preference in self.config.execution_preferences:
                 if preference.system == 'threading':
                     self.threading = QParallelThreadSettings(self,
                                                              preference)
-                    self._add_widget(SchemeWidgetWrapper(self,
-                                                         self.threading,
-                                                         removable=False))
                 elif preference.system == 'multiprocessing':
                     self.multiprocessing = QParallelProcessSettings(self,
                                                                     preference)
-                    self._add_widget(SchemeWidgetWrapper(self,
-                                                         self.multiprocessing,
-                                                         removable=False))
                 else:
                     widget_klass = self.WIDGETS.get(
                             preference.system,
@@ -135,14 +145,14 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
 
         if self.threading is None:
             self.threading = QParallelThreadSettings(self, None)
-            self._add_widget(SchemeWidgetWrapper(self,
-                                                 self.threading,
-                                                 removable=False))
+        self._add_widget(SchemeWidgetWrapper(self,
+                                             self.threading,
+                                             removable=False))
         if self.multiprocessing is None:
             self.multiprocessing = QParallelProcessSettings(self, None)
-            self._add_widget(SchemeWidgetWrapper(self,
-                                                 self.multiprocessing,
-                                                 removable=False))
+        self._add_widget(SchemeWidgetWrapper(self,
+                                             self.multiprocessing,
+                                             removable=False))
 
     def _add_widget(self, widget):
         item = QtGui.QListWidgetItem()
@@ -152,7 +162,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         return item
 
     def add_scheme(self, scheme):
-        pref_id = self._vistrail.idScope.getNewId(ExecutionPreference.vtType)
+        pref_id = self.vistrail.idScope.getNewId(ExecutionPreference.vtType)
         preference = ExecutionPreference(id=pref_id,
                                          system=scheme)
 
@@ -170,3 +180,10 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_changed(self):
         get_vistrails_application().get_current_controller().set_changed(True)
+
+    @staticmethod
+    def describe_scheme(scheme):
+        try:
+            return QParallelizationSettings.ALL_WIDGETS[scheme].description
+        except KeyError:
+            return "Unknown scheme: %s" % scheme

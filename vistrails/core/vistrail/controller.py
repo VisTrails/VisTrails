@@ -3155,6 +3155,7 @@ class VistrailController(object):
                     else:
                         result = copy.copy(self.current_pipeline)
                     result.perform_action(action)
+                self.vistrail.set_execution_preferences(result)
                 if self._cache_pipelines and \
                         self.vistrail.has_tag(long(version)):
                     # stash a copy for future use

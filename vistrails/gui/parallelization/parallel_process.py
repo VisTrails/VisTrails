@@ -52,14 +52,14 @@ class QParallelProcessSettings(QtGui.QWidget):
     def enable_clicked(self, state):
         if state == QtCore.Qt.Checked:
             if self._preference is None:
-                pref_id = self._parent._vistrail.idScope.getNewId(
+                pref_id = self._parent.vistrail.idScope.getNewId(
                         ExecutionPreference.vtType)
                 self._preference = ExecutionPreference(
                         id=pref_id,
                         system='multiprocessing')
                 self._parent.config.add_execution_preference(self._preference)
             self._preference.set_annotation(
-                    self._parent._vistrail.idScope,
+                    self._parent.vistrail.idScope,
                     'pool_size',
                     '%d' % self._processes.value())
             self._parent.set_changed()
@@ -80,6 +80,6 @@ class QParallelProcessSettings(QtGui.QWidget):
             if nb == 0:
                 nb = self._default_processes
             self._preference.set_annotation(
-                    self._parent._vistrail.idScope,
+                    self._parent.vistrail.idScope,
                     'pool_size', nb)
             self._parent.set_changed()

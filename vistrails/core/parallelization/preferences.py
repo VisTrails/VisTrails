@@ -1,5 +1,6 @@
 from vistrails.core.vistrail.annotation import Annotation
-from vistrails.db.domain import DBExecutionConfiguration, DBExecutionPreference
+from vistrails.db.domain import DBExecutionConfiguration, \
+    DBExecutionPreference, DBModuleExecutionPreference
 
 
 class ExecutionPreference(DBExecutionPreference):
@@ -13,6 +14,7 @@ class ExecutionPreference(DBExecutionPreference):
         for annotation in target.annotations:
             Annotation.convert(annotation)
 
+    id = DBExecutionPreference.db_id
     annotations = DBExecutionPreference.db_annotations
     def get_annotation(self, key):
         try:
@@ -49,11 +51,30 @@ class ExecutionConfiguration(DBExecutionConfiguration):
         ids is a tuple to handle nested modules (i.e. in groups), for example
         (group_id, module_id_in_group).
         """
+        ids = ','.join('%d' % i for i in ids)
         try:
-            pref = self.db_get_module_execution_preference_by_module_id(ids)
-            return ExecutionPreference.convert(pref.db_preference)
+            assoc = self.db_get_module_execution_preference_by_module_id(ids)
+            r = self.db_get_execution_preference_by_id(assoc.db_preference)
+            return r
         except KeyError:
             return None
+
+    def set_module_preference(self, ids, pref):
+        """set_module_preference(ids: (int,), ExecutionPreference
+
+        Sets the preferred execution configuration for the given module.
+        ids is a tuple to handle nested modules (i.e. in groups), for example
+        (group_id, module_id_in_group).
+        """
+        ids = ','.join('%d' % i for i in ids)
+        try:
+            assoc = self.db_get_module_execution_preference_by_module_id(ids)
+            assoc.execution_preference = pref.id
+        except KeyError:
+            self.db_add_module_execution_preference(
+                    DBModuleExecutionPreference(
+                            module_id=ids,
+                            preference=pref.id))
 
     def __nonzero__(self):
         return (bool(self.db_module_execution_preferences) or
