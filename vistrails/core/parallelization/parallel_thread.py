@@ -12,21 +12,30 @@ class ThreadScheme(ParallelizationScheme):
                 200, # low priority
                 SchemeType.THREAD,
                 'threading')
-        self._enabled = True
         self._thread_pool = None
-        self._pool_size = max(multiprocessing.cpu_count(), 2)
-                # This initial thread count is somewhat arbitrary; Python code
-                # will not run in parallel anyway...
-                # It is adjustable via the GUI
+        self._pool_size = None
 
-    def thread_pool(self):
+    def thread_pool(self, size):
+        if not size or size < 0:
+            size = max(multiprocessing.cpu_count(), 2)
+                    # This thread count is somewhat arbitrary; Python code will
+                    # not run in parallel anyway...
+        if self._thread_pool is not None and self._pool_size != size:
+            self._thread_pool.shutdown(wait=True)
+            self._thread_pool = None
         if self._thread_pool is None:
-            self._thread_pool = concurrent.futures.ThreadPoolExecutor(
-                    self._pool_size)
+            self._thread_pool = concurrent.futures.ThreadPoolExecutor(size)
+            self._pool_size = size
         return self._thread_pool
 
-    def do_compute(self, module):
-        future = self.thread_pool().submit(module.compute)
+    def do_compute(self, target, module):
+        size = target.get_annotation('pool_size')
+        if size:
+            size = size.value
+        else:
+            size = 0
+
+        future = self.thread_pool(size).submit(module.compute)
         async_task = module._runner.make_async_task()
 
         def thread_done(runner):
@@ -44,21 +53,9 @@ class ThreadScheme(ParallelizationScheme):
             module.do_compute(compute=compute)
         future.add_done_callback(lambda res: async_task.callback(thread_done))
 
-    def enabled(self):
-        return self._enabled
-
-    def set_enabled(self, enabled):
-        self._enabled = enabled
-
-    def set_pool_size(self, nb):
-        if self._pool_size != nb and self._thread_pool is not None:
-            self._thread_pool.shutdown()
-            self._thread_pool = None
-        self._pool_size = nb
-
     def finalize(self):
         if self._thread_pool is not None:
-            self._thread_pool.shutdown()
+            self._thread_pool.shutdown(wait=True)
             self._thread_pool = None
 
 

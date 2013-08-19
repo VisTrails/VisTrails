@@ -35,10 +35,7 @@ class ParallelizationScheme(object):
         else:
             return False
 
-    def enabled(self):
-        return True
-
-    def do_compute(self, module):
+    def do_compute(self, target, module):
         raise NotImplementedError
 
     def finalize(self):

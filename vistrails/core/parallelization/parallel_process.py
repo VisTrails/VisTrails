@@ -14,22 +14,32 @@ class ProcessScheme(ParallelizationScheme):
                 100,
                 SchemeType.LOCAL_PROCESS,
                 'multiprocessing')
-        self._enabled = True
         self._process_pool = None
-        self._pool_size = multiprocessing.cpu_count()
+        self._pool_size = None
 
-    def process_pool(self):
+    def process_pool(self, size):
+        if not size or size < 0:
+            size = multiprocessing.cpu_count()
+        if self._process_pool is not None and self._pool_size != size:
+            self._process_pool.shutdown(wait=True)
+            self._process_pool = None
         if self._process_pool is None:
-            self._process_pool = concurrent.futures.ProcessPoolExecutor(
-                    self._pool_size)
+            self._process_pool = concurrent.futures.ProcessPoolExecutor(size)
+            self._process_pool = size
         return self._process_pool
 
-    def do_compute(self, module):
+    def do_compute(self, target, module):
+        size = target.get_annotation('pool_size')
+        if size:
+            size = size.value
+        else:
+            size = 0
+
         inputs = get_pickled_module_inputs(module)
         pipeline, moduleId, connected_outputports = \
                 module_to_serialized_pipeline(module)
 
-        future = self.process_pool().submit(
+        future = self.process_pool(size).submit(
                 execute_serialized_pipeline,
                 pipeline,
                 moduleId,
@@ -44,21 +54,9 @@ class ProcessScheme(ParallelizationScheme):
             module.do_compute(compute=get_results)
         future.add_done_callback(lambda res: async_task.callback(process_done))
 
-    def enabled(self):
-        return self._enabled
-
-    def set_enabled(self, enabled):
-        self._enabled = enabled
-
-    def set_pool_size(self, nb):
-        if self._pool_size != nb and self._process_pool is not None:
-            self._process_pool.shutdown()
-            self._process_pool = None
-        self._pool_size = nb
-
     def finalize(self):
         if self._process_pool is not None:
-            self._process_pool.shutdown()
+            self._process_pool.shutdown(wait=True)
             self._process_pool = None
 
 
