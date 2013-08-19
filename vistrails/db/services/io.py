@@ -907,6 +907,11 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
                 save_bundle.execution_configuration,
                 xml_fname, version)
         save_bundle.vistrail.db_execution_configuration_filename = xml_fname
+    else:
+        old_fname = save_bundle.vistrail.db_execution_configuration_filename
+        if old_fname and os.path.exists(old_fname):
+            os.remove(old_fname)
+        save_bundle.vistrail.db_execution_configuration_filename = None
 
     # Save Log
     if save_bundle.vistrail.db_log_filename is not None:
