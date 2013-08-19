@@ -83,3 +83,12 @@ class QParallelProcessSettings(QtGui.QWidget):
                     self._parent.vistrail.idScope,
                     'pool_size', nb)
             self._parent.set_changed()
+
+    @staticmethod
+    def describe(pref):
+        if pref.system != 'multiprocessing':
+            raise ValueError
+
+        # There can be only one instance of the multiprocessing scheme so there
+        # is no need to display any kind of parameter in the description
+        return QParallelProcessSettings.description

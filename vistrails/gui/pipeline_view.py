@@ -612,7 +612,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         group = QtGui.QActionGroup(parallelization_schemes)
         for pref in config.execution_preferences:
             action = QtGui.QAction(
-                    QParallelizationSettings.describe_scheme(pref.system),
+                    QParallelizationSettings.describe_scheme(pref),
                     group)
             action.setCheckable(True)
             # We compare ids here because the preferences on the config can get

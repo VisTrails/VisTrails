@@ -83,3 +83,12 @@ class QParallelThreadSettings(QtGui.QWidget):
                     self._parent.vistrail.idScope,
                     'pool_size', nb)
             self._parent.set_changed()
+
+    @staticmethod
+    def describe(pref):
+        if pref.system != 'threading':
+            raise ValueError
+
+        # There can be only one instance of the threading scheme so there is no
+        # need to display any kind of parameter in the description
+        return QParallelThreadSettings.description

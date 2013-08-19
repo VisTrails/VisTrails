@@ -182,8 +182,12 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         get_vistrails_application().get_current_controller().set_changed(True)
 
     @staticmethod
-    def describe_scheme(scheme):
+    def describe_scheme(pref):
+        """Makes a readable string describing an instance of a scheme.
+        """
         try:
-            return QParallelizationSettings.ALL_WIDGETS[scheme].description
+            widget_klass = QParallelizationSettings.ALL_WIDGETS[pref.system]
         except KeyError:
-            return "Unknown scheme: %s" % scheme
+            return "Unknown scheme: %s" % pref.system
+        else:
+            return widget_klass.describe(pref)
