@@ -49,10 +49,10 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.db.action import create_action
-from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
-from vistrails.core.system import get_vistrails_basic_pkg_id
+from vistrails.core.system import systemType, get_vistrails_basic_pkg_id
+from vistrails.core.parallelization import Parallelization
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
@@ -610,6 +610,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                 self.controller.set_changed(True)
             return callback
         group = QtGui.QActionGroup(parallelization_schemes)
+        empty = True
         for pref in config.execution_preferences:
             action = QtGui.QAction(
                     QParallelizationSettings.describe_scheme(pref),
@@ -620,16 +621,35 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
             # This is because the pipeline gets constructed by the controller
             # which does weird stuff (i.e. caching) without the Vistrail
             # re-labelling
-            if (pref is module.execution_preference) or (
+            selected = (pref is module.execution_preference) or (
                     pref is not None and
                     module.execution_preference is not None and
-                    pref.id == module.execution_preference.id):
-                # Current scheme: check the box
-                action.setChecked(True)
+                    pref.id == module.execution_preference.id)
+            scheme = Parallelization.get_parallelization_scheme(pref.system)
+            supported_execution = module.module_descriptor.supported_execution
+            if supported_execution is None:
+                available = False
             else:
-                # Else: make it selectable
-                QtCore.QObject.connect(action, QtCore.SIGNAL('triggered()'),
-                                       set_pref(pref))
+                available = scheme.supports(
+                        **supported_execution.parallelizable)
+            if selected or available:
+                if selected:
+                    # Current scheme: check the box
+                    action.setChecked(True)
+                else:
+                    # Else: make it selectable
+                    QtCore.QObject.connect(action, QtCore.SIGNAL('triggered()'),
+                                           set_pref(pref))
+                parallelization_schemes.addAction(action)
+                empty = False
+
+        if empty:
+            if config.execution_preferences:
+                text = "No execution target supported by this module"
+            else:
+                text = "No execution target defined"
+            action = QtGui.QAction(text, group)
+            action.setEnabled(False)
             parallelization_schemes.addAction(action)
 
         menu = QtGui.QMenu()

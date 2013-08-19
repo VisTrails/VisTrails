@@ -106,7 +106,7 @@ class SupportedExecution(object):
 
         # TODO-threadconfig : use self.execution_preference
 
-        for priority, scheme in Parallelization._parallelization_schemes:
+        for priority, scheme in Parallelization._sorted_schemes:
             if scheme.supports(**module.supported_execution.parallelizable):
                 scheme.do_compute(module)
                 return
@@ -121,7 +121,8 @@ class Parallelization(object):
     """
     def __init__(self):
         self.is_subprocess = False
-        self._parallelization_schemes = []
+        self._parallelization_schemes = {}  # name -> scheme
+        self._sorted_schemes = []   # (prio, scheme) sorted by prio
 
     def set_is_subprocess(self, sub=True):
         """This allows to globally disable remote executions.
@@ -140,20 +141,26 @@ class Parallelization(object):
     def register_parallelization_scheme(self, scheme):
         """Registers a ParallelizationScheme to be used by parallelizable().
         """
+        self._parallelization_schemes[scheme.name] = scheme
+
         priority = scheme.priority
         i = bisect(
-                len(self._parallelization_schemes),
-                self._parallelization_schemes.__getitem__,
+                len(self._sorted_schemes),
+                self._sorted_schemes.__getitem__,
                 (priority, scheme),
                 comp=lambda a, b: a[0] < b[0])
-        self._parallelization_schemes.insert(i, (priority, scheme))
+        self._sorted_schemes.insert(i, (priority, scheme))
 
     def finalize_parallelization_schemes(self):
         """Finalize every ParallelizationScheme.
         """
-        for priority, scheme in self._parallelization_schemes:
+        for scheme in self._parallelization_schemes.itervalues():
             scheme.finalize()
-        self._parallelization_schemes = []
+        self._parallelization_schemes = {}
+        self._sorted_schemes = []
+
+    def get_parallelization_scheme(self, name):
+        return self._parallelization_schemes[name]
 
 
 ###############################################################################
