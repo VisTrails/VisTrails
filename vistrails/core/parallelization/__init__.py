@@ -97,16 +97,37 @@ class SupportedExecution(object):
         method is called instead of do_compute. The original arguments to
         parallelizable() will be used to choose a specific scheme.
         """
+        # If we are a remote machine executing because this was sent here,
+        # don't try to send it somewhere else again
         if Parallelization.is_subprocess:
             module.do_compute()
             return
 
-        # TODO-threadconfig : use self.execution_preference
 
-        for priority, scheme in Parallelization._sorted_schemes:
-            if scheme.supports(**module.supported_execution.parallelizable):
-                scheme.do_compute(module)
+        # First, try to use the preferred execution target
+        target = module.preferred_execution_target
+        if target is not None:
+            scheme = Parallelization.get_parallelization_scheme(target.scheme)
+            if scheme is not None and scheme.supports(
+                    **module.supported_execution.parallelizable):
+                scheme.do_compute(target, module)
                 return
+
+        # Then, find the one that matches and has the lowest priority
+        vistrail = module.moduleInfo['controller'].vistrail
+        config = vistrail.execution_configuration
+        best_target = best_prio = best_scheme = None
+        for target in config.execution_targets:
+            scheme = Parallelization.get_parallelization_scheme(target.scheme)
+            if scheme is not None and scheme.supports(
+                    **module.supported_execution.parallelizable):
+                if best_target is None or best_prio > scheme.priority:
+                    best_target = target
+                    best_scheme = scheme
+                    best_prio = scheme.priority
+        if best_target:
+            best_scheme.do_compute(best_target, module)
+            return
 
         # Fallback to classic execution
         module.do_compute()
