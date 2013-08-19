@@ -33,8 +33,6 @@ class ExecutionTarget(DBExecutionTarget):
 class ExecutionConfiguration(DBExecutionConfiguration):
     """Execution preferences for the whole workflow.
     """
-    _empty_pref = None
-
     @staticmethod
     def convert(config):
         if config.__class__ == ExecutionConfiguration:

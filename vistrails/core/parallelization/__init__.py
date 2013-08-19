@@ -160,7 +160,7 @@ class Parallelization(object):
         self._sorted_schemes = []
 
     def get_parallelization_scheme(self, name):
-        return self._parallelization_schemes[name]
+        return self._parallelization_schemes.get(name, None)
 
 
 ###############################################################################

@@ -627,6 +627,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                     module.preferred_execution_target is not None and
                     target.id == module.preferred_execution_target.id)
             scheme = Parallelization.get_parallelization_scheme(target.scheme)
+            if scheme is None:
+                continue
             supported_execution = module.module_descriptor.supported_execution
             if supported_execution is None:
                 available = False
