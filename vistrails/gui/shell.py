@@ -884,7 +884,8 @@ def getIPythonDialog():
 #    print "installed!"
 #    QShellDialog = getIPythonDialog()
 
-# FIXME: For now this requires installing IPython from github
+# This is tested with IPython 1.0.0 and its beta versions
+# TODO: Once IPython 1.0 is included in the distro we should add auto-install
 try:
     from IPython.frontend.qt.inprocess import QtInProcessKernelManager
     try:
