@@ -4,24 +4,24 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration
-from vistrails.core.parallelization.preferences import ExecutionPreference
+from vistrails.core.parallelization.preferences import ExecutionTarget
 
 
 class QParallelProcessSettings(QtGui.QWidget):
     description = 'Python multiprocessing'
 
-    def __init__(self, parent, preference):
+    def __init__(self, parent, target):
         QtGui.QWidget.__init__(self)
 
         self._parent = parent
-        self._preference = preference
+        self._target = target
 
         self._default_processes = multiprocessing.cpu_count()
 
         layout = QtGui.QHBoxLayout()
 
         checkbox = QtGui.QCheckBox("Enabled")
-        checkbox.setChecked(preference is not None)
+        checkbox.setChecked(target is not None)
         self.connect(checkbox, QtCore.SIGNAL('stateChanged(int)'),
                     self.enable_clicked)
         layout.addWidget(checkbox)
@@ -34,8 +34,8 @@ class QParallelProcessSettings(QtGui.QWidget):
                                       self._default_processes)
         self._processes.setValue(getattr(get_vistrails_configuration(),
                                    'parallelProcess_number'))
-        if preference is not None:
-            annotation = preference.get_annotation('pool_size')
+        if target is not None:
+            annotation = target.get_annotation('pool_size')
             if annotation is not None:
                 self._processes.setValue(int(annotation.value))
 
@@ -47,27 +47,27 @@ class QParallelProcessSettings(QtGui.QWidget):
 
         self.setLayout(layout)
 
-        self._processes.setEnabled(preference is not None)
+        self._processes.setEnabled(target is not None)
 
     def enable_clicked(self, state):
         if state == QtCore.Qt.Checked:
-            if self._preference is None:
-                pref_id = self._parent.vistrail.idScope.getNewId(
-                        ExecutionPreference.vtType)
-                self._preference = ExecutionPreference(
-                        id=pref_id,
-                        system='multiprocessing')
-                self._parent.config.add_execution_preference(self._preference)
-            self._preference.set_annotation(
+            if self._target is None:
+                target_id = self._parent.vistrail.idScope.getNewId(
+                        ExecutionTarget.vtType)
+                self._target = ExecutionTarget(
+                        id=target_id,
+                        scheme='multiprocessing')
+                self._parent.config.add_execution_target(self._target)
+            self._target.set_annotation(
                     self._parent.vistrail.idScope,
                     'pool_size',
                     '%d' % self._processes.value())
             self._parent.set_changed()
         else:
-            if self._preference is not None:
-                self._parent.config.delete_execution_preference(
-                        self._preference)
-                self._preference = None
+            if self._target is not None:
+                self._parent.config.delete_execution_target(
+                        self._target)
+                self._target = None
                 self._parent.set_changed()
 
         self._processes.setEnabled(state == QtCore.Qt.Checked)
@@ -76,17 +76,17 @@ class QParallelProcessSettings(QtGui.QWidget):
         setattr(get_vistrails_persistent_configuration(),
                 'parallelProcess_number',
                 nb)
-        if self._preference:
+        if self._target:
             if nb == 0:
                 nb = self._default_processes
-            self._preference.set_annotation(
+            self._target.set_annotation(
                     self._parent.vistrail.idScope,
                     'pool_size', nb)
             self._parent.set_changed()
 
     @staticmethod
-    def describe(pref):
-        if pref.system != 'multiprocessing':
+    def describe(target):
+        if target.scheme != 'multiprocessing':
             raise ValueError
 
         # There can be only one instance of the multiprocessing scheme so there

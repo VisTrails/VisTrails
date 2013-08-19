@@ -692,7 +692,7 @@
       <xml name="vtVersion" nodeType="xs:attribute" type="xs:string"/>
     </property>
 
-    <property ref="true" object="execution_preference" type="list"
+    <property ref="true" object="execution_target" type="list"
         mapping="one-to-many">
       <xml nodeType="xs:element"/>
     </property>
@@ -704,19 +704,19 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
-  <!-- EXECUTION_PREFERENCE ++++-->
+  <!-- EXECUTION_TARGET ++++-->
   <!--++++++++++++++++++++++++++-->
 
-  <object name="execution_preference">
+  <object name="execution_target">
     <layout>
-      <xml name="executionPreference"/>
+      <xml name="executionTarget"/>
     </layout>
 
     <property name="id" type="long" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:int"/>
     </property>
 
-    <property name="system" type="str">
+    <property name="scheme" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
     </property>
 
@@ -1452,8 +1452,8 @@
       <xml nodeType="xs:attribute" type="string"/>
     </property>
 
-    <property name="preference" type="long" foreignKey="true"
-        object="execution_preference">
+    <property name="target" type="long" foreignKey="true"
+        object="execution_target">
       <xml nodeType="xs:attribute" type="xs:int"/>
     </property>
   </object>

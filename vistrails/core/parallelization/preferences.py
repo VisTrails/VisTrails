@@ -1,21 +1,21 @@
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.db.domain import DBExecutionConfiguration, \
-    DBExecutionPreference, DBModuleExecutionPreference
+    DBExecutionTarget, DBModuleExecutionPreference
 
 
-class ExecutionPreference(DBExecutionPreference):
-    """Execution preference for a given module.
+class ExecutionTarget(DBExecutionTarget):
+    """Execution target description, for modules to use.
     """
     @staticmethod
     def convert(target):
-        if target.__class__ == ExecutionPreference:
+        if target.__class__ == ExecutionTarget:
             return
-        target.__class__ = ExecutionPreference
+        target.__class__ = ExecutionTarget
         for annotation in target.annotations:
             Annotation.convert(annotation)
 
-    id = DBExecutionPreference.db_id
-    annotations = DBExecutionPreference.db_annotations
+    id = DBExecutionTarget.db_id
+    annotations = DBExecutionTarget.db_annotations
     def get_annotation(self, key):
         try:
             return self.db_get_annotation_by_key(key)
@@ -27,7 +27,7 @@ class ExecutionPreference(DBExecutionPreference):
         except KeyError:
             ann_id = id_scope.getNewId(Annotation.vtType)
             self.db_add_annotation(Annotation(id=ann_id, key=key, value=value))
-    system = DBExecutionPreference.db_system
+    scheme = DBExecutionTarget.db_scheme
 
 
 class ExecutionConfiguration(DBExecutionConfiguration):
@@ -40,48 +40,48 @@ class ExecutionConfiguration(DBExecutionConfiguration):
         if config.__class__ == ExecutionConfiguration:
             return
         config.__class__ = ExecutionConfiguration
-        for pref in config.execution_preferences:
-            ExecutionPreference.convert(pref)
+        for target in config.execution_targets:
+            ExecutionTarget.convert(target)
 
     def get_module_preference(self, ids):
-        """get_module_preference(ids: (int,)) -> ExecutionPreference
+        """get_module_preference(ids: (int,)) -> ExecutionTarget
 
-        Gets the preferences set by the user for the execution of the given
-        module.
+        Gets the preferred execution target set by the user for the execution
+        of the given module.
         ids is a tuple to handle nested modules (i.e. in groups), for example
         (group_id, module_id_in_group).
         """
         ids = ','.join('%d' % i for i in ids)
         try:
             assoc = self.db_get_module_execution_preference_by_module_id(ids)
-            r = self.db_get_execution_preference_by_id(assoc.db_preference)
+            r = self.db_get_execution_target_by_id(assoc.db_target)
             return r
         except KeyError:
             return None
 
-    def set_module_preference(self, ids, pref):
-        """set_module_preference(ids: (int,), ExecutionPreference
+    def set_module_preference(self, ids, target):
+        """set_module_preference(ids: (int,), ExecutionTarget
 
-        Sets the preferred execution configuration for the given module.
+        Sets the preferred execution target for the given module.
         ids is a tuple to handle nested modules (i.e. in groups), for example
         (group_id, module_id_in_group).
         """
         ids = ','.join('%d' % i for i in ids)
         try:
             assoc = self.db_get_module_execution_preference_by_module_id(ids)
-            assoc.execution_preference = pref.id
+            assoc.db_target = target.id
         except KeyError:
             self.db_add_module_execution_preference(
                     DBModuleExecutionPreference(
                             module_id=ids,
-                            preference=pref.id))
+                            target=target.id))
 
     def __nonzero__(self):
         return (bool(self.db_module_execution_preferences) or
-                bool(self.execution_preferences))
+                bool(self.execution_targets))
 
-    execution_preferences = DBExecutionConfiguration.db_execution_preferences
-    add_execution_preference = \
-            DBExecutionConfiguration.db_add_execution_preference
-    delete_execution_preference = \
-            DBExecutionConfiguration.db_delete_execution_preference
+    execution_targets = DBExecutionConfiguration.db_execution_targets
+    add_execution_target = \
+            DBExecutionConfiguration.db_add_execution_target
+    delete_execution_target = \
+            DBExecutionConfiguration.db_delete_execution_target

@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import get_vistrails_application
-from vistrails.core.parallelization.preferences import ExecutionPreference
+from vistrails.core.parallelization.preferences import ExecutionTarget
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 from .parallel_thread import QParallelThreadSettings
@@ -39,13 +39,13 @@ class UnknownSystem(QtGui.QWidget):
     (no module will use it when executing) but we still display it and keep the
     info (unless the user removes it from this UI).
     """
-    def __init__(self, preference):
+    def __init__(self, target):
         QtGui.QWidget.__init__(self)
         self.setEnabled(False)
 
         layout = QtGui.QVBoxLayout()
         layout.addWidget(
-                QtGui.QLabel("Unknown scheme: %s" % preference.system))
+                QtGui.QLabel("Unknown scheme: %s" % target.scheme))
         self.setLayout(layout)
 
 
@@ -75,7 +75,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             action = QtGui.QAction(widget_klass.description, self)
             self._add_menu.addAction(action)
             self.connect(action, QtCore.SIGNAL('triggered()'),
-                         lambda: self.add_scheme(scheme))
+                         lambda: self.add_target(scheme))
 
         layout = QtGui.QVBoxLayout()
         add_button = QtGui.QPushButton("Add scheme...")
@@ -85,7 +85,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.addWidget(self._list)
         self.setLayout(layout)
 
-        self._schemes = {} # wrapper -> (listitem, preference)
+        self._targets = {} # wrapper -> (listitem, target)
 
         app = get_vistrails_application()
         app.register_notification(
@@ -105,14 +105,14 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def _set_vistrail(self, vistrail):
         if vistrail is not None:
-            config = vistrail.get_persisted_execution_preferences()
+            config = vistrail.get_persisted_execution_configuration()
         else:
             config = None
 
         if config is self.config:
             return
 
-        self._schemes = {}
+        self._targets = {}
         self._list.clear()
 
         self.vistrail = vistrail
@@ -127,21 +127,21 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             self.setEnabled(True)
 
             # Build widget from configuration
-            for preference in self.config.execution_preferences:
-                if preference.system == 'threading':
+            for target in self.config.execution_targets:
+                if target.scheme == 'threading':
                     self.threading = QParallelThreadSettings(self,
-                                                             preference)
-                elif preference.system == 'multiprocessing':
+                                                             target)
+                elif target.scheme == 'multiprocessing':
                     self.multiprocessing = QParallelProcessSettings(self,
-                                                                    preference)
+                                                                    target)
                 else:
                     widget_klass = self.WIDGETS.get(
-                            preference.system,
+                            target.scheme,
                             UnknownSystem)
-                    widget = widget_klass(preference)
+                    widget = widget_klass(target)
                     item = self._add_widget(widget)
                     wrapper = SchemeWidgetWrapper(self, widget)
-                    self._schemes[wrapper] = item, preference
+                    self._targets[wrapper] = item, target
 
         if self.threading is None:
             self.threading = QParallelThreadSettings(self, None)
@@ -161,33 +161,33 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         self._list.setItemWidget(item, widget)
         return item
 
-    def add_scheme(self, scheme):
-        pref_id = self.vistrail.idScope.getNewId(ExecutionPreference.vtType)
-        preference = ExecutionPreference(id=pref_id,
-                                         system=scheme)
+    def add_target(self, scheme):
+        target_id = self.vistrail.idScope.getNewId(ExecutionTarget.vtType)
+        target = ExecutionTarget(id=target_id,
+                                 scheme=scheme)
 
         widget_klass = self.WIDGETS.get(scheme, UnknownSystem)
         widget = widget_klass()
         item = self._add_widget(widget)
         wrapper = SchemeWidgetWrapper(self, widget)
-        self._schemes[wrapper] = item, preference
+        self._targets[wrapper] = item, target
 
     def remove_widget(self, wrapper):
-        item, preference = self._schemes[wrapper]
+        item, target = self._targets[wrapper]
         self._list.removeItemWidget(item)
         self.widget.remove()
-        self.config.delete_execution_preference(preference)
+        self.config.delete_execution_target(target)
 
     def set_changed(self):
         get_vistrails_application().get_current_controller().set_changed(True)
 
     @staticmethod
-    def describe_scheme(pref):
-        """Makes a readable string describing an instance of a scheme.
+    def describe_target(target):
+        """Makes a readable string describing an execution target.
         """
         try:
-            widget_klass = QParallelizationSettings.ALL_WIDGETS[pref.system]
+            widget_klass = QParallelizationSettings.ALL_WIDGETS[target.scheme]
         except KeyError:
-            return "Unknown scheme: %s" % pref.system
+            return "Unknown scheme: %s" % target.scheme
         else:
-            return widget_klass.describe(pref)
+            return widget_klass.describe(target)

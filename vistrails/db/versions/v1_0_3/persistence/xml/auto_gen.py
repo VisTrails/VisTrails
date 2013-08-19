@@ -776,7 +776,7 @@ class DBExecutionConfigurationXMLDAOBase(XMLDAO):
         data = node.get('vtVersion', None)
         vt_version = self.convertFromStr(data, 'str')
         
-        execution_preferences = []
+        execution_targets = []
         module_execution_preferences = []
         
         # read children
@@ -785,9 +785,9 @@ class DBExecutionConfigurationXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'executionPreference':
-                _data = self.getDao('execution_preference').fromXML(child)
-                execution_preferences.append(_data)
+            if child_tag == 'executionTarget':
+                _data = self.getDao('execution_target').fromXML(child)
+                execution_targets.append(_data)
             elif child_tag == 'moduleExecutionPreference':
                 _data = self.getDao('module_execution_preference').fromXML(child)
                 module_execution_preferences.append(_data)
@@ -797,7 +797,7 @@ class DBExecutionConfigurationXMLDAOBase(XMLDAO):
                 print '*** ERROR *** tag = %s' % child.tag
         
         obj = DBExecutionConfiguration(vt_version=vt_version,
-                                       execution_preferences=execution_preferences,
+                                       execution_targets=execution_targets,
                                        module_execution_preferences=module_execution_preferences)
         obj.is_dirty = False
         return obj
@@ -810,11 +810,11 @@ class DBExecutionConfigurationXMLDAOBase(XMLDAO):
         node.set('vtVersion',self.convertToStr(execution_configuration.db_vt_version, 'str'))
         
         # set elements
-        execution_preferences = execution_configuration.db_execution_preferences
-        for execution_preference in execution_preferences:
-            if (execution_preferences is not None) and (execution_preferences != ""):
-                childNode = ElementTree.SubElement(node, 'executionPreference')
-                self.getDao('execution_preference').toXML(execution_preference, childNode)
+        execution_targets = execution_configuration.db_execution_targets
+        for execution_target in execution_targets:
+            if (execution_targets is not None) and (execution_targets != ""):
+                childNode = ElementTree.SubElement(node, 'executionTarget')
+                self.getDao('execution_target').toXML(execution_target, childNode)
         module_execution_preferences = execution_configuration.db_module_execution_preferences
         for module_execution_preference in module_execution_preferences:
             if (module_execution_preferences is not None) and (module_execution_preferences != ""):
@@ -1033,11 +1033,11 @@ class DBModuleExecutionPreferenceXMLDAOBase(XMLDAO):
         # read attributes
         data = node.get('module_id', None)
         module_id = self.convertFromStr(data, 'str')
-        data = node.get('preference', None)
-        preference = self.convertFromStr(data, 'long')
+        data = node.get('target', None)
+        target = self.convertFromStr(data, 'long')
         
         obj = DBModuleExecutionPreference(module_id=module_id,
-                                          preference=preference)
+                                          target=target)
         obj.is_dirty = False
         return obj
     
@@ -1047,7 +1047,7 @@ class DBModuleExecutionPreferenceXMLDAOBase(XMLDAO):
         
         # set attributes
         node.set('module_id',self.convertToStr(module_execution_preference.db_module_id, 'str'))
-        node.set('preference',self.convertToStr(module_execution_preference.db_preference, 'long'))
+        node.set('target',self.convertToStr(module_execution_preference.db_target, 'long'))
         
         return node
 
@@ -1324,6 +1324,79 @@ class DBLogXMLDAOBase(XMLDAO):
             if (workflow_execs is not None) and (workflow_execs != ""):
                 childNode = ElementTree.SubElement(node, 'workflowExec')
                 self.getDao('workflow_exec').toXML(workflow_exec, childNode)
+        
+        return node
+
+class DBOpmDependenciesXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'causalDependencies':
+            return None
+        
+        dependencys = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'used':
+                _data = self.getDao('opm_used').fromXML(child)
+                dependencys.append(_data)
+            elif child_tag == 'wasGeneratedBy':
+                _data = self.getDao('opm_was_generated_by').fromXML(child)
+                dependencys.append(_data)
+            elif child_tag == 'wasTriggeredBy':
+                _data = self.getDao('opm_was_triggered_by').fromXML(child)
+                dependencys.append(_data)
+            elif child_tag == 'wasDerivedFrom':
+                _data = self.getDao('opm_was_derived_from').fromXML(child)
+                dependencys.append(_data)
+            elif child_tag == 'wasControlledBy':
+                _data = self.getDao('opm_was_controlled_by').fromXML(child)
+                dependencys.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBOpmDependencies(dependencys=dependencys)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, opm_dependencies, node=None):
+        if node is None:
+            node = ElementTree.Element('causalDependencies')
+        
+        # set elements
+        dependencys = opm_dependencies.db_dependencys
+        for dependency in dependencys:
+            if dependency.vtType == 'opm_used':
+                childNode = ElementTree.SubElement(node, 'used')
+                self.getDao('opm_used').toXML(dependency, childNode)
+            elif dependency.vtType == 'opm_was_generated_by':
+                childNode = ElementTree.SubElement(node, 'wasGeneratedBy')
+                self.getDao('opm_was_generated_by').toXML(dependency, childNode)
+            elif dependency.vtType == 'opm_was_triggered_by':
+                childNode = ElementTree.SubElement(node, 'wasTriggeredBy')
+                self.getDao('opm_was_triggered_by').toXML(dependency, childNode)
+            elif dependency.vtType == 'opm_was_derived_from':
+                childNode = ElementTree.SubElement(node, 'wasDerivedFrom')
+                self.getDao('opm_was_derived_from').toXML(dependency, childNode)
+            elif dependency.vtType == 'opm_was_controlled_by':
+                childNode = ElementTree.SubElement(node, 'wasControlledBy')
+                self.getDao('opm_was_controlled_by').toXML(dependency, childNode)
         
         return node
 
@@ -2121,7 +2194,7 @@ class DBOpmArtifactsXMLDAOBase(XMLDAO):
         
         return node
 
-class DBOpmDependenciesXMLDAOBase(XMLDAO):
+class DBExecutionTargetXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
@@ -2134,10 +2207,16 @@ class DBOpmDependenciesXMLDAOBase(XMLDAO):
             node_tag = node.tag.split("}")[1]
         else:
             node_tag = node.tag
-        if node_tag != 'causalDependencies':
+        if node_tag != 'executionTarget':
             return None
         
-        dependencys = []
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('scheme', None)
+        scheme = self.convertFromStr(data, 'str')
+        
+        annotations = []
         
         # read children
         for child in node.getchildren():
@@ -2145,52 +2224,34 @@ class DBOpmDependenciesXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'used':
-                _data = self.getDao('opm_used').fromXML(child)
-                dependencys.append(_data)
-            elif child_tag == 'wasGeneratedBy':
-                _data = self.getDao('opm_was_generated_by').fromXML(child)
-                dependencys.append(_data)
-            elif child_tag == 'wasTriggeredBy':
-                _data = self.getDao('opm_was_triggered_by').fromXML(child)
-                dependencys.append(_data)
-            elif child_tag == 'wasDerivedFrom':
-                _data = self.getDao('opm_was_derived_from').fromXML(child)
-                dependencys.append(_data)
-            elif child_tag == 'wasControlledBy':
-                _data = self.getDao('opm_was_controlled_by').fromXML(child)
-                dependencys.append(_data)
+            if child_tag == 'annotation':
+                _data = self.getDao('annotation').fromXML(child)
+                annotations.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBOpmDependencies(dependencys=dependencys)
+        obj = DBExecutionTarget(id=id,
+                                scheme=scheme,
+                                annotations=annotations)
         obj.is_dirty = False
         return obj
     
-    def toXML(self, opm_dependencies, node=None):
+    def toXML(self, execution_target, node=None):
         if node is None:
-            node = ElementTree.Element('causalDependencies')
+            node = ElementTree.Element('executionTarget')
+        
+        # set attributes
+        node.set('id',self.convertToStr(execution_target.db_id, 'long'))
+        node.set('scheme',self.convertToStr(execution_target.db_scheme, 'str'))
         
         # set elements
-        dependencys = opm_dependencies.db_dependencys
-        for dependency in dependencys:
-            if dependency.vtType == 'opm_used':
-                childNode = ElementTree.SubElement(node, 'used')
-                self.getDao('opm_used').toXML(dependency, childNode)
-            elif dependency.vtType == 'opm_was_generated_by':
-                childNode = ElementTree.SubElement(node, 'wasGeneratedBy')
-                self.getDao('opm_was_generated_by').toXML(dependency, childNode)
-            elif dependency.vtType == 'opm_was_triggered_by':
-                childNode = ElementTree.SubElement(node, 'wasTriggeredBy')
-                self.getDao('opm_was_triggered_by').toXML(dependency, childNode)
-            elif dependency.vtType == 'opm_was_derived_from':
-                childNode = ElementTree.SubElement(node, 'wasDerivedFrom')
-                self.getDao('opm_was_derived_from').toXML(dependency, childNode)
-            elif dependency.vtType == 'opm_was_controlled_by':
-                childNode = ElementTree.SubElement(node, 'wasControlledBy')
-                self.getDao('opm_was_controlled_by').toXML(dependency, childNode)
+        annotations = execution_target.db_annotations
+        for annotation in annotations:
+            if (annotations is not None) and (annotations != ""):
+                childNode = ElementTree.SubElement(node, 'annotation')
+                self.getDao('annotation').toXML(annotation, childNode)
         
         return node
 
@@ -4716,95 +4777,6 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         
         return node
 
-class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'wasTriggeredBy':
-            return None
-        
-        effect = None
-        role = None
-        cause = None
-        accounts = []
-        opm_times = []
-        
-        # read children
-        for child in node.getchildren():
-            if child.tag[0] == "{":
-                child_tag = child.tag.split("}")[1]
-            else:
-                child_tag = child.tag
-            if child_tag == 'effect':
-                _data = self.getDao('opm_process_id_effect').fromXML(child)
-                effect = _data
-            elif child_tag == 'role':
-                _data = self.getDao('opm_role').fromXML(child)
-                role = _data
-            elif child_tag == 'cause':
-                _data = self.getDao('opm_process_id_cause').fromXML(child)
-                cause = _data
-            elif child_tag == 'account':
-                _data = self.getDao('opm_account_id').fromXML(child)
-                accounts.append(_data)
-            elif child_tag == 'time':
-                _data = self.getDao('opm_time').fromXML(child)
-                opm_times.append(_data)
-            elif child.text is None or child.text.strip() == '':
-                pass
-            else:
-                print '*** ERROR *** tag = %s' % child.tag
-        
-        obj = DBOpmWasTriggeredBy(effect=effect,
-                                  role=role,
-                                  cause=cause,
-                                  accounts=accounts,
-                                  opm_times=opm_times)
-        obj.is_dirty = False
-        return obj
-    
-    def toXML(self, opm_was_triggered_by, node=None):
-        if node is None:
-            node = ElementTree.Element('wasTriggeredBy')
-        
-        # set elements
-        effect = opm_was_triggered_by.db_effect
-        if effect is not None:
-            if (effect is not None) and (effect != ""):
-                childNode = ElementTree.SubElement(node, 'effect')
-                self.getDao('opm_process_id_effect').toXML(effect, childNode)
-        role = opm_was_triggered_by.db_role
-        if role is not None:
-            if (role is not None) and (role != ""):
-                childNode = ElementTree.SubElement(node, 'role')
-                self.getDao('opm_role').toXML(role, childNode)
-        cause = opm_was_triggered_by.db_cause
-        if cause is not None:
-            if (cause is not None) and (cause != ""):
-                childNode = ElementTree.SubElement(node, 'cause')
-                self.getDao('opm_process_id_cause').toXML(cause, childNode)
-        accounts = opm_was_triggered_by.db_accounts
-        for account in accounts:
-            if (accounts is not None) and (accounts != ""):
-                childNode = ElementTree.SubElement(node, 'account')
-                self.getDao('opm_account_id').toXML(account, childNode)
-        opm_times = opm_was_triggered_by.db_opm_times
-        for opm_time in opm_times:
-            if (opm_times is not None) and (opm_times != ""):
-                childNode = ElementTree.SubElement(node, 'time')
-                self.getDao('opm_time').toXML(opm_time, childNode)
-        
-        return node
-
 class DBProvAgentXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -5198,7 +5170,7 @@ class DBRemoteTaskXMLDAOBase(XMLDAO):
         
         return node
 
-class DBExecutionPreferenceXMLDAOBase(XMLDAO):
+class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
@@ -5211,16 +5183,14 @@ class DBExecutionPreferenceXMLDAOBase(XMLDAO):
             node_tag = node.tag.split("}")[1]
         else:
             node_tag = node.tag
-        if node_tag != 'executionPreference':
+        if node_tag != 'wasTriggeredBy':
             return None
         
-        # read attributes
-        data = node.get('id', None)
-        id = self.convertFromStr(data, 'long')
-        data = node.get('system', None)
-        system = self.convertFromStr(data, 'str')
-        
-        annotations = []
+        effect = None
+        role = None
+        cause = None
+        accounts = []
+        opm_times = []
         
         # read children
         for child in node.getchildren():
@@ -5228,34 +5198,64 @@ class DBExecutionPreferenceXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'annotation':
-                _data = self.getDao('annotation').fromXML(child)
-                annotations.append(_data)
+            if child_tag == 'effect':
+                _data = self.getDao('opm_process_id_effect').fromXML(child)
+                effect = _data
+            elif child_tag == 'role':
+                _data = self.getDao('opm_role').fromXML(child)
+                role = _data
+            elif child_tag == 'cause':
+                _data = self.getDao('opm_process_id_cause').fromXML(child)
+                cause = _data
+            elif child_tag == 'account':
+                _data = self.getDao('opm_account_id').fromXML(child)
+                accounts.append(_data)
+            elif child_tag == 'time':
+                _data = self.getDao('opm_time').fromXML(child)
+                opm_times.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBExecutionPreference(id=id,
-                                    system=system,
-                                    annotations=annotations)
+        obj = DBOpmWasTriggeredBy(effect=effect,
+                                  role=role,
+                                  cause=cause,
+                                  accounts=accounts,
+                                  opm_times=opm_times)
         obj.is_dirty = False
         return obj
     
-    def toXML(self, execution_preference, node=None):
+    def toXML(self, opm_was_triggered_by, node=None):
         if node is None:
-            node = ElementTree.Element('executionPreference')
-        
-        # set attributes
-        node.set('id',self.convertToStr(execution_preference.db_id, 'long'))
-        node.set('system',self.convertToStr(execution_preference.db_system, 'str'))
+            node = ElementTree.Element('wasTriggeredBy')
         
         # set elements
-        annotations = execution_preference.db_annotations
-        for annotation in annotations:
-            if (annotations is not None) and (annotations != ""):
-                childNode = ElementTree.SubElement(node, 'annotation')
-                self.getDao('annotation').toXML(annotation, childNode)
+        effect = opm_was_triggered_by.db_effect
+        if effect is not None:
+            if (effect is not None) and (effect != ""):
+                childNode = ElementTree.SubElement(node, 'effect')
+                self.getDao('opm_process_id_effect').toXML(effect, childNode)
+        role = opm_was_triggered_by.db_role
+        if role is not None:
+            if (role is not None) and (role != ""):
+                childNode = ElementTree.SubElement(node, 'role')
+                self.getDao('opm_role').toXML(role, childNode)
+        cause = opm_was_triggered_by.db_cause
+        if cause is not None:
+            if (cause is not None) and (cause != ""):
+                childNode = ElementTree.SubElement(node, 'cause')
+                self.getDao('opm_process_id_cause').toXML(cause, childNode)
+        accounts = opm_was_triggered_by.db_accounts
+        for account in accounts:
+            if (accounts is not None) and (accounts != ""):
+                childNode = ElementTree.SubElement(node, 'account')
+                self.getDao('opm_account_id').toXML(account, childNode)
+        opm_times = opm_was_triggered_by.db_opm_times
+        for opm_time in opm_times:
+            if (opm_times is not None) and (opm_times != ""):
+                childNode = ElementTree.SubElement(node, 'time')
+                self.getDao('opm_time').toXML(opm_time, childNode)
         
         return node
 
@@ -5915,6 +5915,8 @@ class XMLDAOListBase(dict):
             self['group'] = DBGroupXMLDAOBase(self)
         if 'log' not in self:
             self['log'] = DBLogXMLDAOBase(self)
+        if 'opm_dependencies' not in self:
+            self['opm_dependencies'] = DBOpmDependenciesXMLDAOBase(self)
         if 'mashup_alias' not in self:
             self['mashup_alias'] = DBMashupAliasXMLDAOBase(self)
         if 'remote_execution' not in self:
@@ -5939,8 +5941,8 @@ class XMLDAOListBase(dict):
             self['opm_overlaps'] = DBOpmOverlapsXMLDAOBase(self)
         if 'opm_artifacts' not in self:
             self['opm_artifacts'] = DBOpmArtifactsXMLDAOBase(self)
-        if 'opm_dependencies' not in self:
-            self['opm_dependencies'] = DBOpmDependenciesXMLDAOBase(self)
+        if 'execution_target' not in self:
+            self['execution_target'] = DBExecutionTargetXMLDAOBase(self)
         if 'opm_was_derived_from' not in self:
             self['opm_was_derived_from'] = DBOpmWasDerivedFromXMLDAOBase(self)
         if 'parameter' not in self:
@@ -6005,8 +6007,6 @@ class XMLDAOListBase(dict):
             self['parameter_exploration'] = DBParameterExplorationXMLDAOBase(self)
         if 'loop_exec' not in self:
             self['loop_exec'] = DBLoopExecXMLDAOBase(self)
-        if 'opm_was_triggered_by' not in self:
-            self['opm_was_triggered_by'] = DBOpmWasTriggeredByXMLDAOBase(self)
         if 'prov_agent' not in self:
             self['prov_agent'] = DBProvAgentXMLDAOBase(self)
         if 'mashup_actionAnnotation' not in self:
@@ -6019,8 +6019,8 @@ class XMLDAOListBase(dict):
             self['is_part_of'] = DBIsPartOfXMLDAOBase(self)
         if 'remote_task' not in self:
             self['remote_task'] = DBRemoteTaskXMLDAOBase(self)
-        if 'execution_preference' not in self:
-            self['execution_preference'] = DBExecutionPreferenceXMLDAOBase(self)
+        if 'opm_was_triggered_by' not in self:
+            self['opm_was_triggered_by'] = DBOpmWasTriggeredByXMLDAOBase(self)
         if 'opm_process_value' not in self:
             self['opm_process_value'] = DBOpmProcessValueXMLDAOBase(self)
         if 'action' not in self:

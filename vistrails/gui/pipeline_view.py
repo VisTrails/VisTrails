@@ -593,27 +593,28 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Captures context menu event.
 
         """
-        module = self.controller.current_pipeline.modules[self.moduleId]
+        controller = self.controller
+        module = controller.current_pipeline.modules[self.moduleId]
 
         parallelization_schemes = QtGui.QMenu("Set parallel configuration")
-        config = self.controller.vistrail.get_persisted_execution_preferences()
+        config = controller.vistrail.get_persisted_execution_configuration()
 
-        def set_pref(pref):
+        def set_pref(target):
             def callback():
                 # Update pipeline
-                module.execution_preference = pref
+                module.preferred_execution_target = target
                 # Update config file
                 config.set_module_preference(
                         [self.moduleId],
-                        pref)
+                        target)
                 # Mark that the vistrail needs saving
-                self.controller.set_changed(True)
+                controller.set_changed(True)
             return callback
         group = QtGui.QActionGroup(parallelization_schemes)
         empty = True
-        for pref in config.execution_preferences:
+        for target in config.execution_targets:
             action = QtGui.QAction(
-                    QParallelizationSettings.describe_scheme(pref),
+                    QParallelizationSettings.describe_target(target),
                     group)
             action.setCheckable(True)
             # We compare ids here because the preferences on the config can get
@@ -621,11 +622,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
             # This is because the pipeline gets constructed by the controller
             # which does weird stuff (i.e. caching) without the Vistrail
             # re-labelling
-            selected = (pref is module.execution_preference) or (
-                    pref is not None and
-                    module.execution_preference is not None and
-                    pref.id == module.execution_preference.id)
-            scheme = Parallelization.get_parallelization_scheme(pref.system)
+            selected = (target is module.preferred_execution_target) or (
+                    target is not None and
+                    module.preferred_execution_target is not None and
+                    target.id == module.preferred_execution_target.id)
+            scheme = Parallelization.get_parallelization_scheme(target.scheme)
             supported_execution = module.module_descriptor.supported_execution
             if supported_execution is None:
                 available = False
@@ -639,12 +640,12 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                 else:
                     # Else: make it selectable
                     QtCore.QObject.connect(action, QtCore.SIGNAL('triggered()'),
-                                           set_pref(pref))
+                                           set_pref(target))
                 parallelization_schemes.addAction(action)
                 empty = False
 
         if empty:
-            if config.execution_preferences:
+            if config.execution_targets:
                 text = "No execution target supported by this module"
             else:
                 text = "No execution target defined"

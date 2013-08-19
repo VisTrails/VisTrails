@@ -299,10 +299,10 @@ class Vistrail(DBVistrail):
 
     def set_execution_preferences(self, pipeline):
         """set_execution_preferences(Pipeline)
-        Assign its preferred execution configuration to each Module.
+        Assign its preferred execution target to each Module.
         """
         # Label each module with the execution configuration
-        preferences = self.get_persisted_execution_preferences()
+        config = self.get_persisted_execution_configuration()
 
         from vistrails.core.vistrail.group import Group
         def label_pipeline_with_exec_pref(pipeline, prefix=()):
@@ -310,8 +310,8 @@ class Vistrail(DBVistrail):
                 if isinstance(module, Group):
                     label_pipeline_with_exec_pref(
                             module.pipeline, prefix + (module.id,))
-                module.execution_preference = (
-                        preferences.get_module_preference(
+                module.preferred_execution_target = (
+                        config.get_module_preference(
                                 prefix + (module.id,)))
         label_pipeline_with_exec_pref(pipeline)
 
@@ -347,7 +347,7 @@ class Vistrail(DBVistrail):
         workflow = vistrails.core.db.io.get_workflow(self, version)
         return workflow
 
-    def get_persisted_execution_preferences(self):
+    def get_persisted_execution_configuration(self):
         if self.execution_configuration is None:
             if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
                 if self.db_execution_configuration_filename is not None:

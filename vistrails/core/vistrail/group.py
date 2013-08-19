@@ -146,7 +146,7 @@ class Group(DBGroup, Module):
         if hasattr(result, 'output_ports_order'):
             result.output_ports_order = [p.name for p in self.sourcePorts()]
         result.registry = get_module_registry()
-        result.execution_preference = self.execution_preference
+        result.preferred_execution_target = self.preferred_execution_target
         return result
 
     def is_group(self):

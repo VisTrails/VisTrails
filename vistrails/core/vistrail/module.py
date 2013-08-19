@@ -93,7 +93,7 @@ class Module(DBModule):
             self.is_watched = False
             self._descriptor_info = None
             self._module_descriptor = None
-            self.execution_preference = None
+            self.preferred_execution_target = None
         else:
             self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
@@ -106,7 +106,7 @@ class Module(DBModule):
             self.is_watched = other.is_watched
             self._descriptor_info = None
             self._module_descriptor = other._module_descriptor
-            self.execution_preference = other.execution_preference
+            self.preferred_execution_target = other.preferred_execution_target
         if not self.namespace:
             self.namespace = None
         self.function_idx = self.db_functions_id_index
@@ -284,7 +284,7 @@ class Module(DBModule):
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...
         result.registry = get_module_registry()
-        result.execution_preference = self.execution_preference
+        result.preferred_execution_target = self.preferred_execution_target
         return result
 
     def is_group(self):
