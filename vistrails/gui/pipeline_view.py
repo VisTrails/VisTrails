@@ -1043,6 +1043,40 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
 ##############################################################################
 # QGraphicsModuleItem
 
+class QParallelizationMarker(QtGui.QGraphicsPolygonItem):
+    def __init__(self, parent, color, cross=False):
+        if cross:
+            points = [
+                    (-1.2, 0.0),
+                    (-0.9, 0.0),
+                    ( 0.0, 0.9),
+                    ( 0.0, 1.2),
+                    (-1.2, 0.0),
+                ]
+        else:
+            points = [
+                    (-1.0, 0.0),
+                    ( 0.0, 0.0),
+                    ( 0.0, 1.0),
+                    (-1.0, 0.0),
+                ]
+
+        polygon = QtGui.QPolygonF([QtCore.QPointF(x * 30, y * 30)
+                                   for (x, y) in points])
+
+        QtGui.QGraphicsPolygonItem.__init__(self, polygon, parent)
+
+        r, g, b = color
+        if cross:
+            self.setPen(QtGui.QColor(r, g, b))
+            self.setBrush(QtGui.QBrush(QtCore.Qt.NoBrush))
+        else:
+            self.setBrush(QtGui.QColor(int(r*255), int(g*255), int(b*255)))
+            self.setPen(QtGui.QColor(0, 0, 0))
+
+##############################################################################
+# QGraphicsModuleItem
+
 class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     """
     QGraphicsModuleItem knows how to draw a Vistrail Module into the
@@ -1533,6 +1567,28 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         x = (self.paddedRect.right() - t.CONFIGURE_WIDTH
              - mpm2)
         self.createConfigureItem(x, y)
+
+        # Color a corner according to the execution target
+        # If module not parallelizable: nothing
+        # If unset (autoselection): white corner
+        # If set to local (forbid parallelization): black cross
+        # If a preferred target is set: target's color
+        target = module.preferred_execution_target
+        marker = None
+        tcolor = None
+        if module.module_descriptor.supported_execution is None:
+            pass
+        elif target is None:
+            tcolor = (1.0, 1.0, 1.0)
+        else:
+            tcolor = QParallelizationSettings.get_target_color(target)
+            if tcolor is None:
+                marker = QParallelizationMarker(self, (0.0, 0.0, 0.0),
+                                                cross=True)
+        if marker is None and tcolor is not None:
+            marker = QParallelizationMarker(self, tcolor)
+        if marker:
+            marker.translate(self.paddedRect.right(), self.paddedRect.y())
 
         if module.is_valid:
             try:

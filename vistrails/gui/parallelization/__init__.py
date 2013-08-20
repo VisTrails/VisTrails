@@ -165,15 +165,18 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
 
         if self.threading is None:
             self.threading = QParallelThreadSettings(self, None)
+        self.threading_color = self.colors.next()
         self._add_widget(SchemeWidgetWrapper(self,
                                              self.threading,
-                                             self.colors.next(),
+                                             self.threading_color,
                                              removable=False))
+
         if self.multiprocessing is None:
             self.multiprocessing = QParallelProcessSettings(self, None)
+        self.multiprocessing_color = self.colors.next()
         self._add_widget(SchemeWidgetWrapper(self,
                                              self.multiprocessing,
-                                             self.colors.next(),
+                                             self.multiprocessing_color,
                                              removable=False))
 
     def _add_widget(self, widget):
@@ -221,4 +224,12 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
 
     @classmethod
     def get_target_color(klass, target):
-        return klass.instance()._target2widget(target.id).color
+        self = klass.instance()
+        if not target.scheme:
+            return None
+        elif target.scheme == 'threading':
+            return self.threading_color
+        elif target.scheme == 'multiprocessing':
+            return self.multiprocessing_color
+        else:
+            return self._target2widget[target.id].color
