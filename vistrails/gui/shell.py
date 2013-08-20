@@ -833,8 +833,8 @@ class QShell(QtGui.QTextEdit):
 ################################################################################
 
 def getIPythonDialog():
-    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+    from IPython.qt.inprocess import QtInProcessKernelManager
 #    from IPython.kernel.inprocess.ipkernel import InProcessKernel
 
     km = QtInProcessKernelManager()
@@ -887,7 +887,7 @@ def getIPythonDialog():
 # This is tested with IPython 1.0.0 and its beta versions
 # TODO: Once IPython 1.0 is included in the distro we should add auto-install
 try:
-    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+    from IPython.qt.inprocess import QtInProcessKernelManager
     try:
         QShellDialog = getIPythonDialog()
     except Exception, e:
