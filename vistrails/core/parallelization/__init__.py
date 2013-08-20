@@ -18,9 +18,6 @@ class ParallelizationScheme(object):
         self.name = name
 
     def supports(self, thread, process, remote, standalone, systems):
-        if not self.enabled():
-            return False
-
         if self.name in systems:
             return systems[self.name]
 
