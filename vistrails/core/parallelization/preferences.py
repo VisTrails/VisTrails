@@ -55,7 +55,7 @@ class ExecutionConfiguration(DBExecutionConfiguration):
         ids = ','.join('%d' % i for i in ids)
         try:
             assoc = self.db_get_module_execution_preference_by_module_id(ids)
-            if not assoc.db_target:
+            if assoc.db_target is None:
                 return localExecutionTarget
             r = self.db_get_execution_target_by_id(assoc.db_target)
             return r
