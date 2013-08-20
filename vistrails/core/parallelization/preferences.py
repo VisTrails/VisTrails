@@ -30,6 +30,9 @@ class ExecutionTarget(DBExecutionTarget):
     scheme = DBExecutionTarget.db_scheme
 
 
+localExecutionTarget = ExecutionTarget(id=-1, scheme='')
+
+
 class ExecutionConfiguration(DBExecutionConfiguration):
     """Execution preferences for the whole workflow.
     """
@@ -52,6 +55,8 @@ class ExecutionConfiguration(DBExecutionConfiguration):
         ids = ','.join('%d' % i for i in ids)
         try:
             assoc = self.db_get_module_execution_preference_by_module_id(ids)
+            if not assoc.db_target:
+                return localExecutionTarget
             r = self.db_get_execution_target_by_id(assoc.db_target)
             return r
         except KeyError:
@@ -65,14 +70,32 @@ class ExecutionConfiguration(DBExecutionConfiguration):
         (group_id, module_id_in_group).
         """
         ids = ','.join('%d' % i for i in ids)
+
+        if target is None:
+            # Unset
+            try:
+                assoc = self.db_get_module_execution_preference_by_module_id(ids)
+            except KeyError:
+                pass
+            else:
+                self.db_delete_module_execution_preference(assoc)
+            return
+
+        # Set
+        if not target.scheme:
+            t_id = None
+        else:
+            t_id = target.id
         try:
+            # Change
             assoc = self.db_get_module_execution_preference_by_module_id(ids)
-            assoc.db_target = target.id
+            assoc.db_target = t_id
         except KeyError:
+            # Add
             self.db_add_module_execution_preference(
                     DBModuleExecutionPreference(
                             module_id=ids,
-                            target=target.id))
+                            target=t_id))
 
     def __nonzero__(self):
         return (bool(self.db_module_execution_preferences) or

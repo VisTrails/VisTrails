@@ -185,6 +185,8 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
     def describe_target(target):
         """Makes a readable string describing an execution target.
         """
+        if not target.scheme:
+            return "Local execution"
         try:
             widget_klass = QParallelizationSettings.ALL_WIDGETS[target.scheme]
         except KeyError:

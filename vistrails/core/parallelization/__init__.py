@@ -1,3 +1,4 @@
+from vistrails.core.parallelization.preferences import ExecutionTarget
 from vistrails.core.utils import bisect, enum
 
 
@@ -37,6 +38,23 @@ class ParallelizationScheme(object):
 
     def finalize(self):
         pass
+
+
+@apply
+class DontParallelize(ParallelizationScheme):
+    """This is a special scheme that indicates not to parallelize.
+    """
+    def __init__(self):
+        ParallelizationScheme.__init__(self,
+               999999,  # lowest priority ever
+               None,
+               '')
+
+    def supports(self, *args, **kwargs):
+        return True
+
+    def do_compute(self, target, module):
+        module.do_compute()
 
 
 class SupportedExecution(object):
@@ -175,6 +193,8 @@ class Parallelization(object):
         self._sorted_schemes = []
 
     def get_parallelization_scheme(self, name):
+        if not name:
+            return DontParallelize
         return self._parallelization_schemes.get(name, None)
 
 

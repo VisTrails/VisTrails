@@ -53,6 +53,7 @@ from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 from vistrails.core.system import systemType, get_vistrails_basic_pkg_id
 from vistrails.core.parallelization import Parallelization
+from vistrails.core.parallelization.preferences import localExecutionTarget
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.port import PortEndPoint
@@ -71,6 +72,7 @@ from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
 
 import copy
+import itertools
 import math
 import operator
 
@@ -587,17 +589,21 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.contextMenuEvent(event)
         event.accept()
         self.ungrabMouse()
-        
-    def contextMenuEvent(self, event):
-        """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
-        Captures context menu event.
 
-        """
+    def _module_parallelization_menu(self):
         controller = self.controller
         module = controller.current_pipeline.modules[self.moduleId]
 
         parallelization_schemes = QtGui.QMenu("Set parallel configuration")
+        group = QtGui.QActionGroup(parallelization_schemes)
         config = controller.vistrail.get_persisted_execution_configuration()
+
+        supported_execution = module.module_descriptor.supported_execution
+        if not supported_execution:
+            action = QtGui.QAction("This module is not parallelizable", group)
+            action.setEnabled(False)
+            parallelization_schemes.addAction(action)
+            return parallelization_schemes
 
         def set_pref(target):
             def callback():
@@ -610,9 +616,10 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                 # Mark that the vistrail needs saving
                 controller.set_changed(True)
             return callback
-        group = QtGui.QActionGroup(parallelization_schemes)
+
         empty = True
-        for target in config.execution_targets:
+        for target in itertools.chain((localExecutionTarget,),
+                                      config.execution_targets):
             action = QtGui.QAction(
                     QParallelizationSettings.describe_target(target),
                     group)
@@ -629,12 +636,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
             scheme = Parallelization.get_parallelization_scheme(target.scheme)
             if scheme is None:
                 continue
-            supported_execution = module.module_descriptor.supported_execution
-            if supported_execution is None:
-                available = False
-            else:
-                available = scheme.supports(
-                        **supported_execution.parallelizable)
+            available = scheme.supports(
+                    **supported_execution.parallelizable)
             if selected or available:
                 if selected:
                     # Current scheme: check the box
@@ -644,7 +647,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                     QtCore.QObject.connect(action, QtCore.SIGNAL('triggered()'),
                                            set_pref(target))
                 parallelization_schemes.addAction(action)
-                empty = False
+                if empty and target is not localExecutionTarget:
+                    empty = False
 
         if empty:
             if config.execution_targets:
@@ -654,10 +658,26 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
             action = QtGui.QAction(text, group)
             action.setEnabled(False)
             parallelization_schemes.addAction(action)
+        elif module.preferred_execution_target:
+            action = QtGui.QAction("Unset preference", group)
+            QtCore.QObject.connect(action, QtCore.SIGNAL('triggered()'),
+                                   set_pref(None))
+            parallelization_schemes.addSeparator()
+            parallelization_schemes.addAction(action)
+
+        return parallelization_schemes
+
+    def contextMenuEvent(self, event):
+        """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
+        Captures context menu event.
+
+        """
+        module = self.controller.current_pipeline.modules[self.moduleId]
 
         menu = QtGui.QMenu()
         menu.addAction(self.configureAct)
-        menu.addMenu(parallelization_schemes)
+        m = self._module_parallelization_menu()
+        menu.addMenu(m)
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
         menu.addAction(self.changeModuleLabelAct)
