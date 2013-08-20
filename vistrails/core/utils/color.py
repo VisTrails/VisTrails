@@ -400,6 +400,37 @@ def hsv2rgb(hsv):
     else: # i == 5
         return (v, p, q)
 
+
+class ColorGenerator(object):
+    def __init__(self, h=8, v=2):
+        self.colors_per_value = h
+        self.value_planes = v
+
+    def get_color_hsv(self, pos):
+        h = 360.0 / self.colors_per_value * (pos % self.colors_per_value)
+        s = 1.0
+        v = pos // self.colors_per_value
+        if v >= self.value_planes:
+            raise ValueError
+        v = 1.0 - (1.0/self.value_planes) * v
+        return (h, s, v)
+
+    def get_color_rgb(self, pos):
+        return hsv2rgb(self.get_color_hsv(pos))
+
+    get_color = get_color_rgb
+
+    def __iter__(self):
+        def generator():
+            pos = 0
+            try:
+                while True:
+                    yield self.get_color(pos)
+                    pos += 1
+            except ValueError:
+                raise StopIteration
+        return generator()
+
 ################################################################################
 
 import unittest
