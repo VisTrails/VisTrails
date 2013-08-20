@@ -156,7 +156,7 @@ class SignalSet(object):
 
     def plug(self):
         if self.plugged:
-            raise Exception("SignalSet %s is already plugged" % self)
+            raise ValueError("SignalSet %s is already plugged" % self)
         for tupl in self.signalTripleList:
             self.owner.connect(*tupl)
         self.plugged = True

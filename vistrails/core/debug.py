@@ -274,4 +274,4 @@ def object_at(desc):
     for obj in gc.get_objects():
         if id(obj) == target_id:
             return obj
-    raise Exception("Couldn't find object")
+    raise KeyError("Couldn't find object")

@@ -1302,7 +1302,7 @@ be loaded again: %s"% w
         ouf.close()
     except Exception, e:
         msg = "Error generating web services configuration file %s"%str(e)
-        raise Exception(msg)
+        raise RuntimeError(msg)
 
     return(result,not_loaded)
         
@@ -1434,7 +1434,7 @@ This message will not be shown again."
             inf.close()
         except Exception, e:
             msg = "Error loading configuration file: ", pathfile
-            raise Exception(msg)
+            raise IOError(msg)
     
     #print wsdlList, outdated_list, updated_list
     (res, not_loaded) = load_wsdl_no_config(updated_list)

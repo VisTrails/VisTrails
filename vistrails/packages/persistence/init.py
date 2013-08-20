@@ -546,14 +546,14 @@ def initialize():
     if configuration.check('local_db'):
         local_db = configuration.local_db
         if not os.path.exists(local_db):
-            raise Exception('local_db "%s" does not exist' % local_db)
+            raise RuntimeError('local_db "%s" does not exist' % local_db)
     else:
         local_db = os.path.join(current_dot_vistrails(), 'persistent_files')
         if not os.path.exists(local_db):
             try:
                 os.mkdir(local_db)
             except:
-                raise Exception('local_db "%s" does not exist' % local_db)
+                raise RuntimeError('local_db "%s" does not exist' % local_db)
 
     local_repo = repo.get_repo(local_db)
     repo.set_current_repo(local_repo)

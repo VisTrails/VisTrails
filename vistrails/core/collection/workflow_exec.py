@@ -66,5 +66,5 @@ class WorkflowExecEntity(Entity):
         
     # returns boolean, True if search input is satisfied else False
     def match(self, search):
-        raise Exception("Not implemented")
+        raise NotImplementedError
 

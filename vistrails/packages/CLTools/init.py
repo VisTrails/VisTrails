@@ -43,6 +43,7 @@ import sys
 from vistrails.core.modules.vistrails_module import Module, ModuleError, IncompleteImplementation, new_module
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
+from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import default_dot_vistrails, packages_directory, \
     vistrails_root_directory
 
@@ -509,6 +510,10 @@ from vistrails.tests.utils import execute, intercept_results
 class TestCLTools(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # first make sure CLTools is loaded
+        pm = get_package_manager()
+        if 'CLTools' not in pm._package_list:
+            pm.late_enable_package('CLTools')
         remove_all_scripts()
         cls.testdir = os.path.join(packages_directory(), 'cltools', 'test_files')
         cls._tools = {}

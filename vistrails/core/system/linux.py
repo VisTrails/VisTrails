@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import os
+import re
 import shutil
 from ctypes import CDLL, c_void_p
 from vistrails.core.system.unix import executable_is_in_path,\
@@ -43,24 +44,26 @@ import unittest
 
 ################################################################################
 
+_meminfo_fmt = re.compile(r'([^:]+):\s+([0-9]+)(?: (kB|B))?\n$')
+
 def parse_meminfo():
     """parse_meminfo() -> dictionary
     Parses /proc/meminfo and returns appropriate dictionary. Only available on
     Linux."""
-    result = {}
-    for line in open('/proc/meminfo'):
-        (key, value) = line.split(':')
-        value = value[:-1]
-        if value.endswith(' kB'):
-            value = int(int(value[:-3]) /1024) * 1L
-        else:
-            try:
-                value = int(value) *1L
-            except ValueError:
-                raise VistrailsInternalError("I was expecting '%s' to be int" 
-                                             % value)
-        result[key] = value
-    return result
+    info = {}
+    with open('/proc/meminfo') as fp:
+        for line in fp:
+            m = _meminfo_fmt.match(line)
+            if m is None:
+                raise VistrailsInternalError("Invalid format found in "
+                                             "/proc/meminfo")
+            key, value, unit = m.groups()
+            if unit == 'kB':
+                value = int(value) * 1000
+            else:
+                value = int(value)
+            info[key] = value
+    return info
 
 def guess_total_memory():
     """ guess_total_memory() -> int 

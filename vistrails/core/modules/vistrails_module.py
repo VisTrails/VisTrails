@@ -78,17 +78,24 @@ class ModuleBreakpoint(Exception):
             inputs[p] = self.module.getInputListFromPort(p)
 
         return inputs
-        
+
+class ModuleHadError(Exception):
+    """Exception occurring when a module that failed gets updated again.
+
+    It is caught by the interpreter that doesn't log it.
+    """
+
 class ModuleError(Exception):
 
     """Exception representing a VisTrails module runtime error. This
 exception is recognized by the interpreter and allows meaningful error
 reporting to the user and to the logging mechanism."""
     
-    def __init__(self, module, errormsg):
+    def __init__(self, module, errormsg, abort=False):
         """ModuleError should be passed the module instance that signaled the
 error and the error message as a string."""
         Exception.__init__(self, errormsg)
+        self.abort = abort # force abort even if stopOnError is False
         self.module = module
         self.msg = errormsg
         import traceback
@@ -157,13 +164,13 @@ class Serializable(object):
         """
         Method used to serialize a module.
         """
-        raise Exception('The serialize method is not defined for this module.')
+        raise NotImplementedError('The serialize method is not defined for this module.')
     
     def deserialize(self):
         """
         Method used to deserialize a module.
         """
-        raise Exception('The deserialize method is not defined for this module.')
+        raise NotImplementedError('The deserialize method is not defined for this module.')
 
 ################################################################################
 # Module
@@ -245,6 +252,7 @@ Designing New Modules
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
+        self.ran = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -346,14 +354,20 @@ context."""
         modules. Report to the logger if available
         
         """
-        self.logging.begin_update(self)
-        self.updateUpstream()
-        if self.suspended:
-            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
+            return
+        if self.ran:
+            if self.had_error:
+                raise ModuleHadError(self)
+            return
+        self.ran = True
+        self.had_error = True # Unset later in this method
+        self.logging.begin_update(self)
+        self.updateUpstream()
+        if self.suspended:
             return
         self.logging.begin_compute(self)
         try:
@@ -387,6 +401,7 @@ context."""
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True
+        self.had_error = False
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 

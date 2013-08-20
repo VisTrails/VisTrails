@@ -237,8 +237,8 @@ def create_opm(workflow, version, log, reg):
                                 pkg.db_module_descriptors_id_index[base_id]
                             break
                     if module_desc is None:
-                        raise Exception("Cannot find base descriptor id %d" % \
-                                            base_id)
+                        raise KeyError("Cannot find base descriptor id %d" %
+                                       base_id)
                     # pkg = get_package(reg, module_desc.db_package,
                     #                   module_desc.db_package_version)
                     # module_desc = pkg.db_module_descriptors_id_index[base_id]
@@ -384,7 +384,7 @@ def create_opm(workflow, version, log, reg):
             elif false_id in module_processes:
                 cond_process = module_processes[false_id][1]
             else:
-                raise Exception("cannot process if")
+                raise RuntimeError("cannot process if")
             # FIXME: assume true for now
             # eventually need to check which module_id was execed for this
             # current item exec
