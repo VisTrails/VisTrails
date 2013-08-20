@@ -2,6 +2,7 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core import get_vistrails_application
 from vistrails.core.parallelization.preferences import ExecutionTarget
+from vistrails.core.utils.color import ColorGenerator
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 from .parallel_thread import QParallelThreadSettings
@@ -11,7 +12,7 @@ from .parallel_process import QParallelProcessSettings
 
 
 class SchemeWidgetWrapper(QtGui.QGroupBox):
-    def __init__(self, parent, widget, removable=True):
+    def __init__(self, parent, widget, color, removable=True):
         QtGui.QWidget.__init__(self, widget.description)
 
         self.widget = widget
@@ -28,6 +29,19 @@ class SchemeWidgetWrapper(QtGui.QGroupBox):
             layout.addWidget(remove_button)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+
+        color = tuple(i*255 for i in color)
+        self.setStyleSheet(
+                '''
+                SchemeWidgetWrapper {
+                    border-style: inset;
+                    border-width: 2px;
+                    border-radius: 3px;
+                    border-color: rgb(%d, %d, %d);
+                    margin-top: 4px;
+                }
+                ''' % color)
+        self.color = color
 
 
 class UnknownSystem(QtGui.QWidget):
@@ -85,7 +99,8 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.addWidget(self._list)
         self.setLayout(layout)
 
-        self._targets = {} # wrapper -> (listitem, target)
+        self._widgets = {}          # wrapper -> (listitem, target)
+        self._target2widget = {}    # target_id: int -> wrapper
 
         app = get_vistrails_application()
         app.register_notification(
@@ -112,11 +127,14 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         if config is self.config:
             return
 
-        self._targets = {}
+        self._widgets = {}
+        self._target2widget = {}
         self._list.clear()
 
         self.vistrail = vistrail
         self.config = config
+
+        self.colors = iter(ColorGenerator())
 
         self.threading = None
         self.multiprocessing = None
@@ -140,18 +158,22 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
                             UnknownSystem)
                     widget = widget_klass(target)
                     item = self._add_widget(widget)
-                    wrapper = SchemeWidgetWrapper(self, widget)
-                    self._targets[wrapper] = item, target
+                    wrapper = SchemeWidgetWrapper(self, widget,
+                                                  self.colors.next())
+                    self._widgets[wrapper] = item, target
+                    self._target2widget[target.id] = wrapper
 
         if self.threading is None:
             self.threading = QParallelThreadSettings(self, None)
         self._add_widget(SchemeWidgetWrapper(self,
                                              self.threading,
+                                             self.colors.next(),
                                              removable=False))
         if self.multiprocessing is None:
             self.multiprocessing = QParallelProcessSettings(self, None)
         self._add_widget(SchemeWidgetWrapper(self,
                                              self.multiprocessing,
+                                             self.colors.next(),
                                              removable=False))
 
     def _add_widget(self, widget):
@@ -169,14 +191,17 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         widget_klass = self.WIDGETS.get(scheme, UnknownSystem)
         widget = widget_klass()
         item = self._add_widget(widget)
-        wrapper = SchemeWidgetWrapper(self, widget)
-        self._targets[wrapper] = item, target
+        wrapper = SchemeWidgetWrapper(self, widget, self.colors.next())
+        self._widgets[wrapper] = item, target
+        self._target2widget[target.id] = wrapper
 
     def remove_widget(self, wrapper):
-        item, target = self._targets[wrapper]
+        item, target = self._widgets[wrapper]
         self._list.removeItemWidget(item)
         self.widget.remove()
         self.config.delete_execution_target(target)
+        del self._widgets[wrapper]
+        del self._target2widget[target.id]
 
     def set_changed(self):
         get_vistrails_application().get_current_controller().set_changed(True)
@@ -193,3 +218,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             return "Unknown scheme: %s" % target.scheme
         else:
             return widget_klass.describe(target)
+
+    @classmethod
+    def get_target_color(klass, target):
+        return klass.instance()._target2widget(target.id).color
