@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.core.bundles import py_import
 from vistrails.core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
 import copy
@@ -44,7 +45,11 @@ from vistrails.core.utils import append_to_dict_of_lists
 from vistrails.core.system import temporary_directory
 
 try:
-    import scipy
+    scipy = py_import('scipy', {
+            'pip': 'scipy',
+            'linux-debian': 'python-scipy',
+            'linux-ubuntu': 'python-scipy',
+            'linux-fedora': 'scipy'})
     _analogies_available = True
 except ImportError:
     _analogies_available = False

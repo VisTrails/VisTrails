@@ -74,7 +74,7 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.location import Location
-from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module import Module, ModuleFunction, ModuleParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -152,6 +152,7 @@ class VistrailController(object):
         self._asked_packages = set()
         self._delayed_actions = []
         self._delayed_paramexps = []
+        self._delayed_mashups = []
         self._loaded_abstractions = {}
         
         # This will just store the mashups in memory and send them to SaveBundle
@@ -490,11 +491,21 @@ class VistrailController(object):
         for pe in self._delayed_paramexps:
             pe.action_id = self.current_version
             self.vistrail.db_add_parameter_exploration(pe)
+        for mashup in self._delayed_mashups:
+            # mashup is a mashuptrail.
+            # We need to update all action id references.
+            mashup.vtVersion = self.current_version
+            for action in mashup.actions:
+                action.mashup.version = self.current_version
+            self._mashups.append(mashup)
+
+            #self.vistrail.db_add_parameter_exploration(pe)
         # We have to do moves after the delayed actions because the pipeline
         # may have been updated
         added_moves = self.flush_move_actions()
         self._delayed_actions = []
         self._delayed_paramexps = []
+        self._delayed_mashups = []
         if added_upgrade or added_moves:
             self.recompute_terse_graph()
             self.invalidate_version_tree(False)
@@ -2819,6 +2830,40 @@ class VistrailController(object):
             elif len(d_module_ids) + len(a_module_ids) > 0:
                 is_full_remap = False
         return (remap, is_full_remap)
+
+    def get_simple_upgrade_remap(self, actions):
+        """Try to get module/function/parameter remaps when possible.  This
+        uses the fact that most remaps only changes names and number of
+        deletes/adds are the same and adds are done in the reverse order of
+        deletes.
+        """
+        is_full_remap = True
+        remap = {}
+        for action in actions:
+            delete_ops = []
+            add_ops = []
+            for op in action.operations:
+                if op.vtType == 'delete':
+                    delete_ops.append(op)
+                if op.vtType == 'add':
+                    add_ops.append(op)
+            if len(delete_ops) != len(add_ops):
+                return (remap, False)
+            add_ops.reverse()
+            for deleted, added in zip(delete_ops, add_ops):
+                if deleted.what != added.what:
+                    return (remap, False)
+                if added.what == 'module':
+                    remap[(Module.vtType, deleted.db_objectId)] = added.db_objectId
+                if added.what == 'function':
+                    if len(delete_ops) != len(add_ops):
+                        return (remap, False)
+                    remap[(ModuleFunction.vtType, deleted.db_objectId)] = added.db_objectId
+                if added.what == 'parameter':
+                    if len(delete_ops) != len(add_ops):
+                        return (remap, False)
+                    remap[(ModuleParam.vtType, deleted.db_objectId)] = added.db_objectId
+        return (remap, is_full_remap)
                             
     def create_upgrade_action(self, actions):
         new_action = vistrails.core.db.action.merge_actions(actions)
@@ -3070,9 +3115,44 @@ class VistrailController(object):
                 else:
                     debug.warning("Cannot translate old parameter "
                                   "explorations through upgrade.")
+            mashup = None
+            if hasattr(self, "_mashups"):
+                for mashuptrail in self._mashups:
+                    if mashuptrail.vtVersion == new_version:
+                        mashup = mashuptrail
+            new_mashups = []
+            if mashup:
+                (mfp_remap, is_complete) = \
+                                self.get_simple_upgrade_remap(new_actions)
+                if is_complete:
+                    # FIXME: we should move the remapping to the db layer
+                    # But we need to fix the schema by making functions/params
+                    # foreign keys
+                    mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
+                    mashup.id = uuid.uuid1()
+                    for action in mashup.actions:
+                        for alias in action.mashup.aliases:
+                            c = alias.component
+                            if (Module.vtType, c.vtmid) in mfp_remap:
+                                c.vtmid = mfp_remap[(Module.vtType, c.vtmid)]
+                            if (ModuleFunction.vtType,
+                                c.vtparent_id) in mfp_remap:
+                                c.vtparent_id=mfp_remap[(ModuleFunction.vtType,
+                                                         c.vtparent_id)]
+                            if (ModuleParam.vtType, c.vtid) in mfp_remap:
+                                c.vtid = mfp_remap[(ModuleParam.vtType,
+                                                     c.vtid)]
+                    mashup.currentVersion = mashup.getLatestVersion()
+                    
+                    new_mashups.append(mashup)
+                else:
+                    debug.warning("Cannot translate old parameter "
+                                  "explorations through upgrade.")
+            
             if get_vistrails_configuration().check('upgradeDelay') and not force_no_delay:
                 self._delayed_actions.append(upgrade_action)
                 self._delayed_paramexps.extend(new_param_exps)
+                self._delayed_mashups.extend(new_mashups)
             else:
                 vistrail.add_action(upgrade_action, new_version, 
                                     self.current_session)
@@ -3083,6 +3163,12 @@ class VistrailController(object):
                 for pe in new_param_exps:
                     pe.action_id = new_version
                     self.vistrail.db_add_parameter_exploration(pe)
+                for mashup in new_mashups:
+                    mashup.vtVersion = self.current_version
+                    for action in mashup.actions:
+                        action.mashup.version = self.current_version
+                    self._mashups.append(mashup)
+
                 self.set_changed(True)
                 self.recompute_terse_graph()
 
