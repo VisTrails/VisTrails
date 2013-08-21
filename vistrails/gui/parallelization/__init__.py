@@ -202,9 +202,29 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         item, target = self._widgets[wrapper]
         self._list.removeItemWidget(item)
         self.widget.remove()
-        self.config.delete_execution_target(target)
+        self.delete_execution_target(self, target)
         del self._widgets[wrapper]
         del self._target2widget[target.id]
+
+    def delete_execution_target(self, target):
+        # This removes the association with modules in cascade
+        self.config.delete_execution_target(target)
+
+        app = get_vistrails_application()
+        controller = app.get_current_controller()
+
+        # Update the pipeline
+        controller.vistrail.set_execution_preferences(
+                controller.current_pipeline)
+
+        # Now we need to update the pipeline view
+        # Refresh everything
+        scene = controller.current_pipeline_scene
+        scene.update_parallel_markers()
+        # It's hard to use recreate_module() here with specific ids because we
+        # don't even know what (sub)pipeline is displayed...
+
+        self.set_changed()
 
     def set_changed(self):
         get_vistrails_application().get_current_controller().set_changed(True)

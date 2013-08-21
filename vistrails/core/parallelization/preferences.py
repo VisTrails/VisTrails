@@ -104,5 +104,9 @@ class ExecutionConfiguration(DBExecutionConfiguration):
     execution_targets = DBExecutionConfiguration.db_execution_targets
     add_execution_target = \
             DBExecutionConfiguration.db_add_execution_target
-    delete_execution_target = \
-            DBExecutionConfiguration.db_delete_execution_target
+
+    def delete_execution_target(self, target):
+        for assoc in self.db_module_execution_preferences:
+            if assoc.db_target == target.id:
+                self.db_delete_module_execution_preference(assoc)
+        self.db_delete_execution_target(target)

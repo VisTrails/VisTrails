@@ -65,7 +65,7 @@ class QParallelThreadSettings(QtGui.QWidget):
             self._parent.set_changed()
         else:
             if self._target is not None:
-                self._parent.config.delete_execution_target(
+                self._parent.delete_execution_target(
                         self._target)
                 self._target = None
                 self._parent.set_changed()

@@ -616,7 +616,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                 # Mark that the vistrail needs saving
                 controller.set_changed(True)
                 # Change the corner
-                self.parentItem().set_parallel_corner()
+                self.parentItem().set_parallel_marker()
             return callback
 
         empty = True
@@ -1470,7 +1470,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             diff = minWidth - self.paddedRect.width() + 1
             self.paddedRect.adjust(-diff/2, 0, diff/2, 0)
 
-    def set_parallel_corner(self):
+    def set_parallel_marker(self):
         # Color a corner according to the execution target
         # If module not parallelizable: nothing
         # If unset (autoselection): white corner
@@ -1598,7 +1598,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
              - mpm2)
         self.createConfigureItem(x, y)
 
-        self.set_parallel_corner()
+        self.set_parallel_marker()
 
         if module.is_valid:
             try:
@@ -2166,7 +2166,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                
         if selected:
             self.modules[m_id].setSelected(True)
-            
+
+    def update_parallel_markers(self):
+        for module in self.modules.itervalues():
+            module.set_parallel_marker()
+
     def update_module_functions(self, pipeline, m_id):
         self.modules[m_id].update_function_ports(pipeline.modules[m_id])
 
