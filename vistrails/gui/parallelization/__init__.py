@@ -89,7 +89,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             action = QtGui.QAction(widget_klass.description, self)
             self._add_menu.addAction(action)
             self.connect(action, QtCore.SIGNAL('triggered()'),
-                         lambda: self.add_target(scheme))
+                         lambda: self.new_target(scheme))
 
         layout = QtGui.QVBoxLayout()
         add_button = QtGui.QPushButton("Add scheme...")
@@ -153,15 +153,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
                     self.multiprocessing = QParallelProcessSettings(self,
                                                                     target)
                 else:
-                    widget_klass = self.WIDGETS.get(
-                            target.scheme,
-                            UnknownSystem)
-                    widget = widget_klass(target)
-                    item = self._add_widget(widget)
-                    wrapper = SchemeWidgetWrapper(self, widget,
-                                                  self.colors.next())
-                    self._widgets[wrapper] = item, target
-                    self._target2widget[target.id] = wrapper
+                    self.add_target(target)
 
         if self.threading is None:
             self.threading = QParallelThreadSettings(self, None)
@@ -186,13 +178,15 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         self._list.setItemWidget(item, widget)
         return item
 
-    def add_target(self, scheme):
+    def new_target(self, scheme):
         target_id = self.vistrail.idScope.getNewId(ExecutionTarget.vtType)
         target = ExecutionTarget(id=target_id,
                                  scheme=scheme)
+        self.add_target(target)
 
-        widget_klass = self.WIDGETS.get(scheme, UnknownSystem)
-        widget = widget_klass()
+    def add_target(self, target):
+        widget_klass = self.WIDGETS.get(target.scheme, UnknownSystem)
+        widget = widget_klass(target)
         item = self._add_widget(widget)
         wrapper = SchemeWidgetWrapper(self, widget, self.colors.next())
         self._widgets[wrapper] = item, target
