@@ -33,29 +33,34 @@
 ##
 ###############################################################################
 import base64
+import contextlib
+import copy
+import cPickle
+import gc
+
 from vistrails.core import modules
-from vistrails.core.common import *
+from vistrails.core.common import InstanceObject, lock_method
 from vistrails.core.data_structures.bijectivedict import Bidict
+import vistrails.core.interpreter.base
+import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
     ModuleError, ModuleBreakpoint, ModuleErrors
-from vistrails.core.utils import DummyView
-import copy
-import vistrails.core.interpreter.base
+from vistrails.core.utils import DummyView, VistrailsInternalError
 from vistrails.core.interpreter.base import AbortExecution
-import vistrails.core.interpreter.utils
 import vistrails.core.system
-import vistrails.core.vistrail.pipeline
-import gc
-import cPickle
-
-import unittest
 from vistrails.core.task_system import TaskRunner
+import vistrails.core.vistrail.pipeline
 
-# from core.modules.module_utils import FilePool
 
 ##############################################################################
+
+class ExecutionAborted(Exception):
+    """Raised internally by the task hook to stop the TaskRunner.
+    """
+
 
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
@@ -137,6 +142,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
 
         reg = modules.module_registry.get_module_registry()
 
@@ -144,12 +150,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to setup_pipeline: %s' % kwargs)
 
+        reg = get_module_registry()
+        Null_desc = reg.get_descriptor_by_name(basic_pkg, 'Null')
         def create_null():
             """Creates a Null value"""
-            getter = modules.module_registry.registry.get_descriptor_by_name
-            descriptor = getter(basic_pkg, 'Null')
-            return descriptor.module()
-        
+            return Null_desc.module()
+
         def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
             getter = reg.get_descriptor_by_name
@@ -292,6 +298,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_suspended_hook = fetch('module_suspended_hook', [])
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
+        stop_on_error = fetch('stop_on_error', True)
         # parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
@@ -438,23 +445,38 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         # Update new sinks
         for obj in persistent_sinks:
             runner.add(obj)
-        try:
-            runner.execute_tasks()
-        except AbortExecution:
-            pass
-        except ModuleErrors, mes:
-            for me in mes.module_errors:
-                me.module.logging.end_update(me.module, me.msg)
-                errors[me.module.id] = me
-        except ModuleError, me:
-            me.module.logging.end_update(me.module, me.msg, me.errorTrace)
-            errors[me.module.id] = me
-        except ModuleBreakpoint, mb:
-            mb.module.logging.end_update(mb.module)
-            errors[mb.module.id] = mb
 
-        runner.close()
-        runner = None
+        @contextlib.contextmanager
+        def catch_module_error():
+            abort = False
+            try:
+                yield
+            except AbortExecution:
+                raise ExecutionAborted
+            except ModuleErrors, mes:
+                for me in mes.module_errors:
+                    me.module.logging.end_update(me.module, me.msg)
+                    errors[me.module.id] = me
+                    abort = abort or me.abort
+            except ModuleError, me:
+                me.module.logging.end_update(me.module, me.msg, me.errorTrace)
+                errors[me.module.id] = me
+                abort = me.abort
+            except ModuleBreakpoint, mb:
+                mb.module.logging.end_update(mb.module)
+                errors[mb.module.id] = mb
+            else:
+                return
+            if stop_on_error or abort:
+                raise ExecutionAborted
+
+        try:
+            runner.execute_tasks(task_hook=catch_module_error)
+        except ExecutionAborted:
+            pass
+        finally:
+            runner.close()
+            runner = None
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
@@ -609,6 +631,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -761,6 +784,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
 ##############################################################################
 # Testing
+
+import unittest
 
 
 class TestCachedInterpreter(unittest.TestCase):

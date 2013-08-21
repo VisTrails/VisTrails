@@ -239,7 +239,7 @@ class vistrails_module(object):
                 port_spec = \
                     self._module.get_port_spec(port_spec.name, 'input')
             else:
-                raise Exception("cannot update an output port spec")
+                raise TypeError("cannot update an output port spec")
 
         # FIXME deal with kwargs
         num_ports = 0
@@ -297,7 +297,7 @@ class vistrails_module(object):
                             other_module.get_port_spec(port_spec.name, 
                                                         'output')
                     else:
-                        raise Exception("cannot update an input "
+                        raise TypeError("cannot update an input "
                                         "port spec")
                 else:
                     other_port_spec = other._port_spec
@@ -833,8 +833,8 @@ class QShell(QtGui.QTextEdit):
 ################################################################################
 
 def getIPythonDialog():
-    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+    from IPython.qt.inprocess import QtInProcessKernelManager
 #    from IPython.kernel.inprocess.ipkernel import InProcessKernel
 
     km = QtInProcessKernelManager()
@@ -884,9 +884,10 @@ def getIPythonDialog():
 #    print "installed!"
 #    QShellDialog = getIPythonDialog()
 
-# FIXME: For now this requires installing IPython from github
+# This is tested with IPython 1.0.0 and its beta versions
+# TODO: Once IPython 1.0 is included in the distro we should add auto-install
 try:
-    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+    from IPython.qt.inprocess import QtInProcessKernelManager
     try:
         QShellDialog = getIPythonDialog()
     except Exception, e:

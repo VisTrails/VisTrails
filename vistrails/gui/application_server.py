@@ -2005,7 +2005,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         if config.has_option("media", "media_dir"):
             media_dir = config.get("media", "media_dir")
             if not os.path.exists(media_dir):
-                raise Exception("media_dir %s doesn't exist." % media_dir)
+                raise ValueError("media_dir %s doesn't exist." % media_dir)
 
         if not config.has_section("script"):
             config.add_section("script")
@@ -2014,7 +2014,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         if config.has_option("script", "script_file"):
             script_file = config.get("script", "script_file")
             if not os.path.exists(script_file):
-                raise Exception("script_file %s doesn't exist." % script_file)
+                raise ValueError("script_file %s doesn't exist." % script_file)
         else:
             config.set("script", "script_file", "")
             has_changed = True
@@ -2037,26 +2037,26 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                       "from %s config file: %s ") % \
                                      (filename, ", ".join(missing_req_fields)))
             if not has_changed:
-                raise Exception("Following required parameters where missing from %s config file: %s " % \
-                                (filename, ", ".join(missing_req_fields)))
+                raise ValueError("Following required parameters where missing from %s config file: %s " %
+                                 (filename, ", ".join(missing_req_fields)))
 
         if has_changed:
             # save changes to passed config file
             if file_opened:
                 config.write(open(filename, "wb"))
-                self.server_logger.error(("Invalid config file, the missing fields have been "
-                                   "added to your config, please populate them"))
-                raise Exception("Invalid config file, the missing fields have been "
-                                "added to your config, please populate them")
+                self.server_logger.error("Invalid config file, the missing fields have been "
+                                         "added to your config, please populate them")
+                raise RuntimeError("Invalid config file, the missing fields have been "
+                                   "added to your config, please populate them")
             else:
                 # save changes to default config file
                 config.write(open(new_filename, "wb"))
-                self.server_logger.error(("Config file %s doesn't exist. Creating new file at %s. "
-                                   "Please populated it with the correct values and use it") % \
+                self.server_logger.error("Config file %s doesn't exist. Creating new file at %s. "
+                                         "Please populated it with the correct values and use it" %
                                          (filename, new_filename))
-                raise Exception(("Config file %s doesn't exist. Creating new file at %s. "
-                                 "Please populated it with the correct values and use it") % \
-                                (filename, new_filename))
+                raise RuntimeError("Config file %s doesn't exist. Creating new file at %s. "
+                                   "Please populate it with the correct values and use it" %
+                                   (filename, new_filename))
 
     def init(self, optionsDict=None):
         """ init(optionDict: dict) -> boolean

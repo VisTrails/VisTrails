@@ -74,12 +74,13 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.location import Location
-from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module import Module, ModuleFunction, ModuleParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port import Port
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.port_spec_item import PortSpecItem
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
@@ -150,6 +151,8 @@ class VistrailController(object):
 
         self._asked_packages = set()
         self._delayed_actions = []
+        self._delayed_paramexps = []
+        self._delayed_mashups = []
         self._loaded_abstractions = {}
         
         # This will just store the mashups in memory and send them to SaveBundle
@@ -485,11 +488,24 @@ class VistrailController(object):
             self.current_version = action.id
             start_version = action.id
             added_upgrade = True
+        for pe in self._delayed_paramexps:
+            pe.action_id = self.current_version
+            self.vistrail.db_add_parameter_exploration(pe)
+        for mashup in self._delayed_mashups:
+            # mashup is a mashuptrail.
+            # We need to update all action id references.
+            mashup.vtVersion = self.current_version
+            for action in mashup.actions:
+                action.mashup.version = self.current_version
+            self._mashups.append(mashup)
 
+            #self.vistrail.db_add_parameter_exploration(pe)
         # We have to do moves after the delayed actions because the pipeline
         # may have been updated
         added_moves = self.flush_move_actions()
         self._delayed_actions = []
+        self._delayed_paramexps = []
+        self._delayed_mashups = []
         if added_upgrade or added_moves:
             self.recompute_terse_graph()
             self.invalidate_version_tree(False)
@@ -740,6 +756,9 @@ class VistrailController(object):
                              sigstring=port_sigstring,
                              sort_key=port_sort_key,
                              )
+        # don't know how many port spec items are created until after...
+        for psi in port_spec.port_spec_items:
+            psi.id = id_scope.getNewId(PortSpecItem.vtType)
         return port_spec
 
     def get_module_connection_ids(self, module_ids, graph):
@@ -1221,6 +1240,9 @@ class VistrailController(object):
                              name=port_tuple[1],
                              sigstring=port_tuple[2],
                              )
+        # don't know how many port spec items are created until after...
+        for psi in port_spec.port_spec_items:
+            psi.id = self.vistrail.idScope.getNewId(PortSpecItem.vtType)
         action = vistrails.core.db.action.create_action([('add', port_spec,
                                                 module.vtType, module.id)])
         return action
@@ -1475,7 +1497,7 @@ class VistrailController(object):
                 if name == last_name:
                     msg = 'Cannot assign the name "%s" to more ' \
                         'than one %s port' % (name, port_type)
-                    raise Exception(msg)
+                    raise RuntimeError(msg)
                 last_name = name
                 idx = name.rfind("_")
                 if idx < 0:
@@ -2476,7 +2498,9 @@ class VistrailController(object):
     
     def execute_workflow_list(self, vistrails):
         """execute_workflow_list(vistrails: list) -> (results, bool)"""
-        
+
+        stop_on_error = getattr(get_vistrails_configuration(),
+                                'stopOnError')
         interpreter = get_default_interpreter()
         changed = False
         results = []
@@ -2501,6 +2525,7 @@ class VistrailController(object):
                       'reason': reason,
                       'sinks': sinks,
                       'extra_info': extra_info,
+                      'stop_on_error': stop_on_error,
                       }    
             if self.get_vistrail_variables():
                 kwargs['vistrail_variables'] = \
@@ -2783,7 +2808,63 @@ class VistrailController(object):
                            value=value,
                            )
             action.add_annotation(annotation)
-        
+
+    def get_upgrade_module_remap(self, actions):
+        """Try to get a module remap when possible.  This uses the fact that
+        most generic actions will have a single delete module action
+        and a single add module action.
+
+        """
+        is_full_remap = True
+        remap = {}
+        for action in actions:
+            d_module_ids = []
+            a_module_ids = []
+            for op in action.operations:
+                if op.vtType == 'delete' and op.what == 'module':
+                    d_module_ids.append(op.db_objectId)
+                if op.vtType == 'add' and op.what == 'module':
+                    a_module_ids.append(op.db_objectId)
+            if len(d_module_ids) == 1 and len(a_module_ids) == 1:
+                remap[(Module.vtType, d_module_ids[0])] = a_module_ids[0]
+            elif len(d_module_ids) + len(a_module_ids) > 0:
+                is_full_remap = False
+        return (remap, is_full_remap)
+
+    def get_simple_upgrade_remap(self, actions):
+        """Try to get module/function/parameter remaps when possible.  This
+        uses the fact that most remaps only changes names and number of
+        deletes/adds are the same and adds are done in the reverse order of
+        deletes.
+        """
+        is_full_remap = True
+        remap = {}
+        for action in actions:
+            delete_ops = []
+            add_ops = []
+            for op in action.operations:
+                if op.vtType == 'delete':
+                    delete_ops.append(op)
+                if op.vtType == 'add':
+                    add_ops.append(op)
+            if len(delete_ops) != len(add_ops):
+                return (remap, False)
+            add_ops.reverse()
+            for deleted, added in zip(delete_ops, add_ops):
+                if deleted.what != added.what:
+                    return (remap, False)
+                if added.what == 'module':
+                    remap[(Module.vtType, deleted.db_objectId)] = added.db_objectId
+                if added.what == 'function':
+                    if len(delete_ops) != len(add_ops):
+                        return (remap, False)
+                    remap[(ModuleFunction.vtType, deleted.db_objectId)] = added.db_objectId
+                if added.what == 'parameter':
+                    if len(delete_ops) != len(add_ops):
+                        return (remap, False)
+                    remap[(ModuleParam.vtType, deleted.db_objectId)] = added.db_objectId
+        return (remap, is_full_remap)
+                            
     def create_upgrade_action(self, actions):
         new_action = vistrails.core.db.action.merge_actions(actions)
         self.set_action_annotation(new_action, Action.ANNOTATION_DESCRIPTION, 
@@ -3022,8 +3103,56 @@ class VistrailController(object):
 
         if len(new_actions) > 0:
             upgrade_action = self.create_upgrade_action(new_actions)
+            param_exps = self.vistrail.get_paramexps(new_version)
+            new_param_exps = []
+            if len(param_exps) > 0:
+                (module_remap, is_complete) = \
+                                    self.get_upgrade_module_remap(new_actions)
+                if is_complete:
+                    for pe in param_exps:
+                        new_pe = pe.do_copy(True, self.id_scope, module_remap)
+                        new_param_exps.append(new_pe)
+                else:
+                    debug.warning("Cannot translate old parameter "
+                                  "explorations through upgrade.")
+            mashup = None
+            if hasattr(self, "_mashups"):
+                for mashuptrail in self._mashups:
+                    if mashuptrail.vtVersion == new_version:
+                        mashup = mashuptrail
+            new_mashups = []
+            if mashup:
+                (mfp_remap, is_complete) = \
+                                self.get_simple_upgrade_remap(new_actions)
+                if is_complete:
+                    # FIXME: we should move the remapping to the db layer
+                    # But we need to fix the schema by making functions/params
+                    # foreign keys
+                    mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
+                    mashup.id = uuid.uuid1()
+                    for action in mashup.actions:
+                        for alias in action.mashup.aliases:
+                            c = alias.component
+                            if (Module.vtType, c.vtmid) in mfp_remap:
+                                c.vtmid = mfp_remap[(Module.vtType, c.vtmid)]
+                            if (ModuleFunction.vtType,
+                                c.vtparent_id) in mfp_remap:
+                                c.vtparent_id=mfp_remap[(ModuleFunction.vtType,
+                                                         c.vtparent_id)]
+                            if (ModuleParam.vtType, c.vtid) in mfp_remap:
+                                c.vtid = mfp_remap[(ModuleParam.vtType,
+                                                     c.vtid)]
+                    mashup.currentVersion = mashup.getLatestVersion()
+                    
+                    new_mashups.append(mashup)
+                else:
+                    debug.warning("Cannot translate old parameter "
+                                  "explorations through upgrade.")
+            
             if get_vistrails_configuration().check('upgradeDelay') and not force_no_delay:
                 self._delayed_actions.append(upgrade_action)
+                self._delayed_paramexps.extend(new_param_exps)
+                self._delayed_mashups.extend(new_mashups)
             else:
                 vistrail.add_action(upgrade_action, new_version, 
                                     self.current_session)
@@ -3031,6 +3160,15 @@ class VistrailController(object):
                 if get_vistrails_configuration().check("migrateTags"):
                     self.migrate_tags(new_version, upgrade_action.id, vistrail)
                 new_version = upgrade_action.id
+                for pe in new_param_exps:
+                    pe.action_id = new_version
+                    self.vistrail.db_add_parameter_exploration(pe)
+                for mashup in new_mashups:
+                    mashup.vtVersion = self.current_version
+                    for action in mashup.actions:
+                        action.mashup.version = self.current_version
+                    self._mashups.append(mashup)
+
                 self.set_changed(True)
                 self.recompute_terse_graph()
 

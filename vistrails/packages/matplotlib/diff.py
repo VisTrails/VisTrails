@@ -7,7 +7,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
                     port=None):
     if qualifier == "alternate":
         if port is None:
-            raise Exception("Must specify port with alternate")
+            raise ValueError("Must specify port with alternate")
         out_port_specs = dict((ps.name, ps) for ps in out_ps_list)
         in_port_specs = dict((ps.name, ps) for ps in in_ps_list)
     else:
@@ -63,7 +63,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
         elif qualifier == "alternate":
             attr_list = AlternatePortSpec.attrs
         else:
-            raise Exception('Unknown port type "%s"' % qualifier)
+            raise ValueError('Unknown port type "%s"' % qualifier)
         for attr in attr_list:
             in_val = getattr(in_ps, attr) 
             out_val = getattr(out_ps, attr)
@@ -250,8 +250,8 @@ def apply_diff(in_fname, diff_fname, out_fname):
                     idx = in_alt_refs[(code_ref, port, alt_name)][0]
                     del ps.alternate_specs[idx]
                 else:
-                    raise Exception('Cannot access list of type "%s"' % \
-                                        port_type)
+                    raise ValueError('Cannot access list of type "%s"' %
+                                     port_type)
             else:
                 idx = in_refs[code_ref][0]
                 del in_specs.module_specs[idx]
@@ -271,8 +271,8 @@ def apply_diff(in_fname, diff_fname, out_fname):
                     ps = in_ips_refs[(code_ref, port)][1]
                     ps.alternate_specs.append(AlternatePortSpec.from_xml(value))
                 else:
-                    raise Exception('Cannot access list of type "%s"' % \
-                                        port_type)
+                    raise ValueError('Cannot access list of type "%s"' %
+                                     port_type)
             else:
                 in_specs.module_specs.append(ModuleSpec.from_xml(value))
         elif elt.tag.startswith('change'):
@@ -301,7 +301,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
     #     for line in f_iter:
     #         line = line.strip()
     #         if not re.match("[+-C]", line):
-    #             raise Exception("Problem parsing line\n%s" % line)
+    #             raise RuntimeError("Problem parsing line\n%s" % line)
     #         if line.startswith('-'):
     #             arr = line.split(' ', 1)
     #             prop = arr[1].split('.')
@@ -317,8 +317,8 @@ def apply_diff(in_fname, diff_fname, out_fname):
     #                     idx = in_ops_refs[prop[0], prop[2]][0]
     #                     del m_specs.output_port_specs[idx]
     #                 else:
-    #                     raise Exception('Cannot access list of type "%s"' % \
-    #                                         prop[1])
+    #                     raise ValueError('Cannot access list of type "%s"' %
+    #                                      prop[1])
     #         elif line.startswith('+'):
     #             arr = line.split(' ', 2)
     #             prop = arr[1].split('.')

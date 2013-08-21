@@ -783,7 +783,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                           }
                 execution.execute(pipeline, **kwargs)
             else:
-                raise Exception("Couldn't load spreadsheet")
+                raise RuntimeError("Couldn't load spreadsheet")
             lidx += 1
         progress.setValue(pipelineCount)
         QtCore.QCoreApplication.processEvents()

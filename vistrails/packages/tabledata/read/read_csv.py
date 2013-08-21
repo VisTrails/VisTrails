@@ -23,7 +23,7 @@ class CSVFile(Table):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('value', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
+            ('self', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
 
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
@@ -81,7 +81,6 @@ class CSVFile(Table):
 
         self.setResult('column_count', self.columns)
         self.setResult('column_names', self.names)
-        self.setResult('value', self)
 
     def get_column(self, index, numeric=False):
         if index in self.column_cache:
@@ -152,10 +151,20 @@ class CSVTestCase(unittest.TestCase):
                             ('column_name', [('String', 'col 2')]),
                             ('numeric', [('Boolean', 'True')]),
                         ]),
+                        ('PythonSource', 'org.vistrails.vistrails.basic', [
+                            ('source', [('String', '')]),
+                        ]),
                     ],
                     [
-                        (0, 'value', 1, 'table'),
+                        (0, 'self', 1, 'table'),
+                        (1, 'value', 2, 'l'),
+                    ],
+                    add_port_specs=[
+                        (2, 'input', 'l',
+                         'org.vistrails.vistrails.basic:List'),
                     ]))
+                # Here we use a PythonSource just to check that a numpy array
+                # can be passed on a List port
         self.assertEqual(columns, [3])
         self.assertEqual(len(results), 1)
         self.assertEqual(list(results[0]), [2.0, 3.0, 14.5])
@@ -173,7 +182,7 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'value', 1, 'table'),
+                (0, 'self', 1, 'table'),
             ]))
 
     def test_csv_missing(self):
@@ -188,7 +197,7 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'value', 1, 'table'),
+                (0, 'self', 1, 'table'),
             ]))
 
     def test_csv_nonnumeric(self):
@@ -206,7 +215,7 @@ class CSVTestCase(unittest.TestCase):
                     ]),
                 ],
                 [
-                    (0, 'value', 1, 'table'),
+                    (0, 'self', 1, 'table'),
                 ]))
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0],

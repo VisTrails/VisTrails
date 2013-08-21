@@ -253,7 +253,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if (self._auto_save and 
             get_vistrails_application().configuration.check('autosave')):
             if self.locator is None:
-                raise Exception("locator is None")
+                raise ValueError("locator is None")
             return self.locator
         else:
             return None
@@ -1378,6 +1378,8 @@ class VistrailController(QtCore.QObject, BaseController):
         reg = vistrails.core.modules.module_registry.get_module_registry()
         spreadsheet_pkg = '%s.spreadsheet' % \
                 vistrails.core.system.get_vistrails_default_pkg_prefix()
+        use_spreadsheet = reg.has_module(spreadsheet_pkg, 'CellLocation') and\
+                          reg.has_module(spreadsheet_pkg, 'SheetReference')
 
         if pe.action_id != self.current_version:
             self.change_selected_version(pe.action_id)
@@ -1390,13 +1392,13 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.current_pipeline, actions, pre_actions)
             
             dim = [max(1, len(a)) for a in actions]
-            if (reg.has_module(spreadsheet_pkg, 'CellLocation') and
-                reg.has_module(spreadsheet_pkg, 'SheetReference')):
+            if use_spreadsheet:
                 from vistrails.gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
                 from vistrails.gui.paramexplore.pe_view import QParamExploreView
                 modifiedPipelines, pipelinePositions = positionPipelines(
                     'PE#%d %s' % (QParamExploreView.explorationId, self.name),
                     dim[2], dim[1], dim[0], pipelines, pe.layout, self)
+                QParamExploreView.explorationId += 1
             else:
                 modifiedPipelines = pipelines
 
@@ -1418,7 +1420,6 @@ class VistrailController(QtCore.QObject, BaseController):
                 progress.setWindowModality(QtCore.Qt.WindowModal)
                 progress.show()
 
-            QParamExploreView.explorationId += 1
             interpreter = get_default_interpreter()
             
             images = {}
@@ -1433,12 +1434,13 @@ class VistrailController(QtCore.QObject, BaseController):
                         if not progress.wasCanceled():
                             progress.setValue(progress.value()+1)
                             QtCore.QCoreApplication.processEvents()
-                name = os.path.splitext(self.name)[0] + \
+                if use_spreadsheet:
+                    name = os.path.splitext(self.name)[0] + \
                                          ("_%s_%s_%s" % pipelinePositions[pi])
-                extra_info['nameDumpCells'] = name
-                if 'pathDumpCells' in extra_info:
-                    images[pipelinePositions[pi]] = \
-                               os.path.join(extra_info['pathDumpCells'], name)
+                    extra_info['nameDumpCells'] = name
+                    if 'pathDumpCells' in extra_info:
+                        images[pipelinePositions[pi]] = \
+                                   os.path.join(extra_info['pathDumpCells'], name)
                 kwargs = {'locator': self.locator,
                           'current_version': self.current_version,
                           'reason': 'Parameter Exploration',
@@ -1456,8 +1458,11 @@ class VistrailController(QtCore.QObject, BaseController):
                     kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
                 result = interpreter.execute(modifiedPipelines[pi], **kwargs)
                 for error in result.errors.itervalues():
-                    pp = pipelinePositions[pi]
-                    errors.append(((pp[1], pp[0], pp[2]), error))
+                    if use_spreadsheet:
+                        pp = pipelinePositions[pi]
+                        errors.append(((pp[1], pp[0], pp[2]), error))
+                    else:
+                        errors.append(((0,0,0), error))
 
             if showProgress:
                 progress.setValue(totalProgress)

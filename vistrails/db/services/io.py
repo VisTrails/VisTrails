@@ -1118,6 +1118,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             workflow.db_group = id
             workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
             workflow.db_name = name
+            workflow = translate_workflow(workflow, currentVersion, version)
             wfToSave.append(workflow)
             #print "done"
     if wfToSave:

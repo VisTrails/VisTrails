@@ -223,7 +223,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.setPainterState()
 
     def draw(self, painter, option, widget=None):
-        raise Exception("Must implement draw method")
+        raise NotImplementedError("Must implement draw method")
 
     def paint(self, painter, option, widget=None):
         painter.setPen(self.pen())
@@ -436,7 +436,7 @@ class QGraphicsPortTriangleItem(QAbstractGraphicsPortItem):
         QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
         angle = angle % 360
         if angle not in set([0,90,180,270]):
-            raise Exception("Triangle item limited to angles 0,90,180,270.")
+            raise ValueError("Triangle item limited to angles 0,90,180,270.")
         rect = self.getRect()
         if angle == 0 or angle == 180:
             width = rect.width()
@@ -484,7 +484,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
         else:
             points = None
         if points is None or len(points) < 3:
-            raise Exception("Must have at least three points")
+            raise ValueError("Must have at least three points")
         QAbstractGraphicsPortItem.__init__(self, *args, **kwargs)
         rect = self.getRect()
         new_points = []
@@ -2017,14 +2017,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.tmp_input_conn = None
         self.tmp_output_conn = None
 
-#        menu = QtGui.QMenu()
-#        self._create_abstraction = QtGui.QAction("Create abstraction", self)
-#        menu.addAction(self._create_abstraction)
-#        self._context_menu = menu
-#        self.connect(self._create_abstraction,
-#                     QtCore.SIGNAL("triggered()"),
-#                     self.create_abstraction)
-
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
         Add a module to the scene
@@ -2089,15 +2081,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
                    for x in items
                    if isinstance(x, QGraphicsModuleItem)]
         return self.controller.current_pipeline.graph.subgraph(modules)
-
-#     def create_abstraction(self):
-#         subgraph = self.selected_subgraph()
-#         try:
-#             self.controller.create_abstraction(subgraph)
-#         except Vistrail.InvalidAbstraction, e:
-#             dlg = QtGui.QMessageBox.warning(None,
-#                                             "Invalid Abstraction",
-#                                             str(e))
 
 #    def contextMenuEvent(self, event):
 #        selectedItems = self.selectedItems()

@@ -69,13 +69,13 @@ class Serializable(object):
         """
         Method used to serialize a module.
         """
-        raise Exception('The serialize method is not defined for this module.')
+        raise NotImplementedError('The serialize method is not defined for this module.')
 
     def deserialize(self):
         """
         Method used to deserialize a module.
         """
-        raise Exception('The deserialize method is not defined for this module.')
+        raise NotImplementedError('The deserialize method is not defined for this module.')
 
 
 ###############################################################################
@@ -359,7 +359,6 @@ context."""
                     self.removeInputConnector(iport, connector)
 
         if self.suspended:
-            self.done()
             return
         if self.upToDate:
             if not self.computed:
@@ -388,13 +387,13 @@ context."""
         The base implementation calls 'compute' if present or compute() and
         catches error classes to set status.
         """
-        self.done()
         try:
             if compute is not None:
                 compute()
             else:
                 self.compute()
             self.computed = True
+            self.done()
         except ModuleSuspended, e:
             self.suspended = e.msg
             self._module_suspended = e

@@ -143,8 +143,8 @@ class Action(DBAction):
             elif _operation.vtType == 'delete':
                 DeleteOp.convert(_operation)
             else:
-                raise Exception("Unknown operation type '%s'" % \
-                                    _operation.vtType)
+                raise TypeError("Unknown operation type '%s'" %
+                                _operation.vtType)
             
     ##########################################################################
     # Operators

@@ -336,6 +336,10 @@ class Object:
         return 'db_' + Object.getName(self)
 
     def getClassName(self):
+        try:
+            return self.params['className']
+        except KeyError:
+            pass
         return 'DB%s' % capitalizeOne(Object.getName(self))
 
     def getChildren(self):

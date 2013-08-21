@@ -184,6 +184,19 @@ class Mashuptrail(DBMashuptrail):
         annot = ActionAnnotation(id=id, action_id=action_id, key=key,
                                  value=value, user=user, date=date)
         self.actionAnnotations.append(annot)
+
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        """ __str__() -> str - Returns a string representation of itself """
+        
+        return ("(Mashuptrail id='%s' vtVersion='%s' actions='%s')@%X" %
+                    (self.id,
+                     self.vtVersion,
+                     self.actions,
+                     id(self)))
     
     ######################################################################
     ## Serialization and Unserialization
