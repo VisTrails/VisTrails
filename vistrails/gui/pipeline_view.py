@@ -615,6 +615,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                         target)
                 # Mark that the vistrail needs saving
                 controller.set_changed(True)
+                # Change the corner
+                self.parentItem().set_parallel_corner()
             return callback
 
         empty = True
@@ -1136,6 +1138,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.connectionItems = {}
         self._cur_function_names = set()
         self.handlePositionChanges = True
+        self.parallel_marker = None
 
     def moduleHasChanged(self, core_module):
         def module_text_has_changed(m1, m2):
@@ -1467,6 +1470,33 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             diff = minWidth - self.paddedRect.width() + 1
             self.paddedRect.adjust(-diff/2, 0, diff/2, 0)
 
+    def set_parallel_corner(self):
+        # Color a corner according to the execution target
+        # If module not parallelizable: nothing
+        # If unset (autoselection): white corner
+        # If set to local (forbid parallelization): black cross
+        # If a preferred target is set: target's color
+        target = self.module.preferred_execution_target
+        if self.parallel_marker is not None:
+            self.parallel_marker.setParentItem(None)
+            self.parallel_marker = None
+        tcolor = None
+        if self.module.module_descriptor.supported_execution is None:
+            pass
+        elif target is None:
+            tcolor = (1.0, 1.0, 1.0)
+        else:
+            tcolor = QParallelizationSettings.get_target_color(target)
+            if tcolor is None:
+                self.parallel_marker = QParallelizationMarker(
+                        self,
+                        (0.0, 0.0, 0.0), cross=True)
+        if self.parallel_marker is None and tcolor is not None:
+            self.parallel_marker = QParallelizationMarker(self, tcolor)
+        if self.parallel_marker:
+            self.parallel_marker.translate(self.paddedRect.right(),
+                                          self.paddedRect.y())
+
     def setupModule(self, module):
         """ setupModule(module: Module) -> None
         Set up the item to reflect the info in 'module'
@@ -1568,27 +1598,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
              - mpm2)
         self.createConfigureItem(x, y)
 
-        # Color a corner according to the execution target
-        # If module not parallelizable: nothing
-        # If unset (autoselection): white corner
-        # If set to local (forbid parallelization): black cross
-        # If a preferred target is set: target's color
-        target = module.preferred_execution_target
-        marker = None
-        tcolor = None
-        if module.module_descriptor.supported_execution is None:
-            pass
-        elif target is None:
-            tcolor = (1.0, 1.0, 1.0)
-        else:
-            tcolor = QParallelizationSettings.get_target_color(target)
-            if tcolor is None:
-                marker = QParallelizationMarker(self, (0.0, 0.0, 0.0),
-                                                cross=True)
-        if marker is None and tcolor is not None:
-            marker = QParallelizationMarker(self, tcolor)
-        if marker:
-            marker.translate(self.paddedRect.right(), self.paddedRect.y())
+        self.set_parallel_corner()
 
         if module.is_valid:
             try:
