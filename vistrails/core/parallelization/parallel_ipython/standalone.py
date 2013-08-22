@@ -128,13 +128,13 @@ class IPythonStandaloneScheme(ParallelizationScheme):
         if rc is None:
             raise ModuleError(
                     module,
-                    "Couldn't connect to IPython profile %s")
+                    "Couldn't connect to IPython profile %s" % profile)
         engines = rc.ids
 
         if not engines:
             raise ModuleError(
                     module,
-                    "No IPython engines detected!")
+                    "No IPython engines detected with profile %s!" % profile)
 
         # Get inputs
         inputs = get_module_inputs_with_defaults(module)

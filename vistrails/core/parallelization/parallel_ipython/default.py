@@ -56,13 +56,13 @@ class IPythonScheme(ParallelizationScheme):
         if rc is None:
             raise ModuleError(
                     module,
-                    "Couldn't connect to IPython profile %s")
+                    "Couldn't connect to IPython profile %s" % profile)
         engines = rc.ids
 
         if not engines:
             raise ModuleError(
                     module,
-                    "No IPython engines detected!")
+                    "No IPython engines detected with profile %s!" % profile)
 
         # Build the pipeline
         inputs = get_pickled_module_inputs(module)
@@ -96,12 +96,6 @@ class IPythonScheme(ParallelizationScheme):
                 module.do_compute(compute=compute)
             async_task.callback(get_results)
         rc.add_callback(future, callback)
-
-    def enabled(self):
-        return self._enabled
-
-    def set_enabled(self, enabled):
-        self._enabled = enabled
 
     def finalize(self):
         EngineManager.finalize()

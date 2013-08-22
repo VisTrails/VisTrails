@@ -1471,10 +1471,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.paddedRect.adjust(-diff/2, 0, diff/2, 0)
 
     def set_parallel_marker(self):
-        if False:
-            module = self.module
-        else:
-            module = self.controller.current_pipeline.modules[self.module.id]
+        if self.controller is None or self.controller.current_pipeline is None:
+            return
+        module = self.controller.current_pipeline.modules[self.module.id]
 
         # Color a corner according to the execution target
         # If module not parallelizable: nothing
