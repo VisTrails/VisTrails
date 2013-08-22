@@ -107,7 +107,7 @@ def fix_paths():
     i = 0
     while i < len(sys.path):
         rpath = os.path.realpath(sys.path[i])
-        if rpath.startswith(vistrails_dir):
+        if rpath.startswith(__file__):
             del sys.path[i]
         else:
             i += 1
