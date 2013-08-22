@@ -17,18 +17,20 @@ class SchemeWidgetWrapper(QtGui.QGroupBox):
 
         self.widget = widget
 
-        if removable:
-            remove_button = QtGui.QPushButton("X")
-            self.connect(remove_button, QtCore.SIGNAL('clicked'),
-                         lambda: parent.remove_widget(self))
-
-        layout = QtGui.QHBoxLayout()
+        layout = QtGui.QVBoxLayout()
         layout.addWidget(widget)
-        if removable:
-            layout.addStretch()
-            layout.addWidget(remove_button)
-        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        if removable:
+            self._remove_button = QtGui.QToolButton(self)
+            self._remove_button.setText("X")
+            self._remove_button.setSizePolicy(QtGui.QSizePolicy.Fixed,
+                                        QtGui.QSizePolicy.Fixed)
+            self.connect(self._remove_button, QtCore.SIGNAL('clicked()'),
+                         lambda: parent.remove_widget(self))
+        else:
+            self._remove_button = None
 
         color = tuple(i*255 for i in color)
         self.setStyleSheet(
@@ -42,6 +44,20 @@ class SchemeWidgetWrapper(QtGui.QGroupBox):
                 }
                 ''' % color)
         self.color = color
+
+        self.do_layout()
+
+    def resizeEvent(self, event):
+        super(SchemeWidgetWrapper, self).resizeEvent(event)
+        self.do_layout()
+
+    def do_layout(self):
+        if self._remove_button:
+            self._remove_button.setGeometry(
+                    self.width() - self._remove_button.width() - 3,
+                    2,
+                    self._remove_button.minimumSizeHint().width(),
+                    self._remove_button.minimumSizeHint().height())
 
 
 class UnknownSystem(QtGui.QWidget):
@@ -89,7 +105,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             action = QtGui.QAction(widget_klass.description, self)
             self._add_menu.addAction(action)
             self.connect(action, QtCore.SIGNAL('triggered()'),
-                         lambda: self.new_target(scheme))
+                         lambda s=scheme: self.new_target(s))
 
         layout = QtGui.QVBoxLayout()
         add_button = QtGui.QPushButton("Add scheme...")
@@ -182,21 +198,22 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
         target_id = self.vistrail.idScope.getNewId(ExecutionTarget.vtType)
         target = ExecutionTarget(id=target_id,
                                  scheme=scheme)
+        self.config.add_execution_target(target)
         self.add_target(target)
 
     def add_target(self, target):
         widget_klass = self.WIDGETS.get(target.scheme, UnknownSystem)
         widget = widget_klass(target)
-        item = self._add_widget(widget)
         wrapper = SchemeWidgetWrapper(self, widget, self.colors.next())
+        item = self._add_widget(wrapper)
         self._widgets[wrapper] = item, target
         self._target2widget[target.id] = wrapper
 
     def remove_widget(self, wrapper):
         item, target = self._widgets[wrapper]
-        self._list.removeItemWidget(item)
-        self.widget.remove()
-        self.delete_execution_target(self, target)
+        wrapper.widget.remove()
+        self._list.model().removeRow(self._list.indexFromItem(item).row())
+        self.delete_execution_target(target)
         del self._widgets[wrapper]
         del self._target2widget[target.id]
 
