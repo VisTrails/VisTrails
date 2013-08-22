@@ -49,7 +49,7 @@ LicenseFile=..\Input\license.txt
 OutputBaseFilename=vistrails-gdal-setup
 
 [Files]
-Source: C:\Python27\w9xpopen.exe; DestDir: {app}Python27
+Source: C:\Python27\w9xpopen.exe; DestDir: {app}\Python27
 Source: C:\Python27\LICENSE.txt; DestDir: {app}\Python27
 Source: C:\Python27\*.exe; DestDir: {app}\Python27
 ;Source: C:\Python27\qt.conf; DestDir: {app}\Python27
