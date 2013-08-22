@@ -6,7 +6,6 @@ from vistrails.core.parallelization import SchemeType, Parallelization, \
     ParallelizationScheme
 from vistrails.core.parallelization.common import get_module_inputs_with_defaults
 
-from .api import get_client
 from .engine_manager import EngineManager
 from .utils import print_remoteerror
 
@@ -113,20 +112,29 @@ class IPythonStandaloneScheme(ParallelizationScheme):
                 SchemeType.REMOTE_NO_VISTRAILS,
                 'ipython-standalone')
 
-    def do_compute(self, module):
+    def do_compute(self, target, module):
+        if target.scheme != 'ipython-standalone':
+            raise ValueError
+        profile = target.get_annotation('ipython-profile')
+        if profile is not None:
+            profile = profile.value
+        if not profile:
+            raise ValueError
+
+        profmngr = EngineManager(profile)
+
         # Connect to cluster
-        try:
-            rc = get_client(shared_client=True)
-            engines = rc.ids
-        except Exception, error:
+        rc = profmngr.ensure_client(connect_only=True)
+        if rc is None:
             raise ModuleError(
                     module,
-                    "Exception while loading IPython: %s" % error)
+                    "Couldn't connect to IPython profile %s")
+        engines = rc.ids
+
         if not engines:
             raise ModuleError(
                     module,
-                    "Exception while loading IPython: No IPython engines "
-                    "detected!")
+                    "No IPython engines detected!")
 
         # Get inputs
         inputs = get_module_inputs_with_defaults(module)
@@ -174,7 +182,7 @@ class IPythonStandaloneScheme(ParallelizationScheme):
                             module_exec.completed = 1
                         module.logging.log_remote_execution(
                                 module, 'ipython-standalone',
-                                [('ipython-profile', EngineManager.profile)],
+                                [('ipython-profile', profile)],
                                 module_execs=[module_exec])
                         if not success:
                             raise RemoteError(
@@ -184,6 +192,9 @@ class IPythonStandaloneScheme(ParallelizationScheme):
                 module.do_compute(compute=compute)
             async_task.callback(get_results)
         rc.add_callback(future, callback)
+
+    def finalize(self):
+        EngineManager.finalize()
 
 
 # IPython has some logic in pickleutil (class CannedFunction) to send the

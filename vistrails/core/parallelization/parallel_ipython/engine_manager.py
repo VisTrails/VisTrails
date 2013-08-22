@@ -5,13 +5,13 @@ import time
 
 from IPython.utils.path import get_ipython_dir, locate_profile
 from .ipython_callbacks import SafeClient
-from IPython.parallel import Client, error
+from IPython.parallel import error
 
 from vistrails.core.system import vistrails_root_directory
 
 
 try:
-    from PyQt4 import QtCore, QtGui
+    from PyQt4 import QtGui
     QtGui.QDialog
 except Exception:
     qt_available = False
@@ -19,104 +19,56 @@ else:
     qt_available = True
 
 
-class ProfileItem(QtGui.QListWidgetItem):
-    def __init__(self, profile, text, italic=False):
-        QtGui.QListWidgetItem.__init__(self, text)
-        if italic:
-            font = self.font()
-            font.setItalic(True)
-            self.setFont(font)
-        self.profile = profile
-
-
-def choose_profile(profiles):
-    dialog = QtGui.QDialog()
-    dialog.setWindowTitle("IPython profile selection")
-
-    layout = QtGui.QVBoxLayout()
-    profile_list = QtGui.QListWidget()
-    profile_list.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-    for profile in profiles:
-        profile_list.addItem(ProfileItem(profile, profile))
-
-    # If no profiles are available, still provide an option to use the
-    # 'default' profile
-    if not profiles:
-        profile_list.addItem(ProfileItem('default', "default (create)", True))
-
-    buttons = QtGui.QHBoxLayout()
-    ok = QtGui.QPushButton("Select")
-    QtCore.QObject.connect(ok, QtCore.SIGNAL('clicked()'),
-                           dialog, QtCore.SLOT('accept()'))
-    buttons.addWidget(ok)
-    cancel = QtGui.QPushButton("Cancel")
-    QtCore.QObject.connect(cancel, QtCore.SIGNAL('clicked()'),
-                           dialog, QtCore.SLOT('reject()'))
-    buttons.addWidget(cancel)
-
-    def check_selection():
-        selection = profile_list.selectedItems()
-        ok.setEnabled(len(selection) == 1)
-    QtCore.QObject.connect(
-            profile_list, QtCore.SIGNAL('itemSelectionChanged()'),
-            check_selection)
-    check_selection()
-
-    layout.addWidget(profile_list)
-    layout.addLayout(buttons)
-    dialog.setLayout(layout)
-
-    if dialog.exec_() == QtGui.QDialog.Accepted:
-        return profile_list.selectedItems()[0].profile
+def start_process(condition, *args):
+    """Executes a file and waits for a condition.
+    """
+    prev_dir = os.getcwd()
+    os.chdir(os.path.join(vistrails_root_directory(), os.path.pardir))
+    try:
+        p = subprocess.Popen(args)
+    finally:
+        os.chdir(prev_dir)
+    if condition is None:
+        return p, None
     else:
-        return None
+        while True:
+            time.sleep(0.5)
+            if condition():
+                return p, None
+            res = p.poll()
+            if res is not None:
+                return None, res
 
 
-class EngineManager(object):
-    def __init__(self):
-        self.profile = None
+class IPythonProfile(object):
+    """Info kept by EngineManager for a specific profile.
+
+    Has useful methods to interact with a specific cluster.
+    """
+    def __init__(self, profile):
+        self.profile = profile
         self.started_controller = None
         self.started_engines = set()
         self._client = None
 
-    def _select_profile(self):
-        # See IPython.core.profileapp:list_profile_in()
-        profiles = []
-        for filename in os.listdir(get_ipython_dir()):
-            if filename.startswith('profile_'):
-                profiles.append(filename[8:])
+    def ensure_client(self, connect_only=False):
+        """Make sure a Client is available.
 
-        if profiles == ['default'] and not qt_available:
-            self.profile = 'default'
-        elif not qt_available:
-            raise ValueError("'default' IPython profile does not exist "
-                             "and PyQt4 is not available")
-        else:
-            self.profile = choose_profile(profiles)
-
-    def ensure_controller(self, connect_only=False):
-        """Make sure a controller is available, else start a local one.
-
-        This returns the SafeClient connected to the controller. DO NOT call
-        close() on this client. If this returns non-None, you can call
-        private_client() to get a different Client object (connected to the
-        same cluster).
+        If we can't connect and connect_only is False, start a local controller
+        and connect to it.
         """
+        # Already connected
         if self._client:
             return self._client
 
-        if self.profile is None:
-            self._select_profile()
-        if self.profile is None:
-            return None
-        print "ipython: using IPython profile %r" % self.profile
+        print "ipython: %s: connecting" % self.profile
 
         try:
             self._client = SafeClient(profile=self.profile)
-            print "ipython: connected to controller"
+            print "ipython: %s: connected to controller" % self.profile
             return self._client
         except error.TimeoutError:
-            print "ipython: timeout when connecting to controller"
+            print "ipython: %s: timeout when connecting" % self.profile
             if connect_only:
                 start_ctrl = False
             elif qt_available:
@@ -130,7 +82,7 @@ class EngineManager(object):
             else:
                 start_ctrl = True
         except IOError:
-            print "ipython: didn't find a controller to connect to"
+            print "ipython: %s: didn't find a controller" % self.profile
             if connect_only:
                 start_ctrl = False
             elif qt_available:
@@ -151,8 +103,8 @@ class EngineManager(object):
                     'ipcontroller.pid')
             if os.path.exists(ctrl_pid):
                 os.remove(ctrl_pid)
-            print "ipython: starting controller"
-            proc, code = self.start_process(
+            print "ipython: %s: starting local controller" % self.profile
+            proc, code = start_process(
                     lambda: os.path.exists(ctrl_pid),
                     sys.executable,
                     '-m',
@@ -164,57 +116,61 @@ class EngineManager(object):
                             None,
                             "Error",
                             "Controller exited with code %d" % code)
-                print ("ipython: controller process exited with "
-                       "code %d" % code)
+                print ("ipython: %s: controller process exited with "
+                       "code %d" % (self.profile, code))
                 return None
             else:
                 self.started_controller = proc
-                print "ipython: controller started, connecting"
+                print "ipython: %s: local controller started, connecting" % (
+                        self.profile)
                 self._client = SafeClient(profile=self.profile)
                 return self._client
 
         return None
 
-    def private_client(self):
-        """Makes a new Client object that is not shared with others.
+    @property
+    def connected(self):
+        return self._client is not None
 
-        Client objects are not thread-safe. ensure_controller returns a
-        SafeClient that adds a lock and a safe callback feature, but if you
-        need access to other IPython features, call this method. You will get
-        your own private Client object with its own ZeroMQ connections.
-
-        Don't forget to call close() on it when done.
+    def info(self):
+        """Show some information on the cluster.
         """
-        if self._client is not None and self._client.ids:
-            return Client(profile=self.profile)
-        else:
-            return None
+        client = self.ensure_client(connect_only=True)
 
-    @staticmethod
-    def start_process(condition, *args):
-        """Executes a file and waits for a condition.
-        """
-        prev_dir = os.getcwd()
-        os.chdir(os.path.join(vistrails_root_directory(), os.path.pardir))
-        try:
-            p = subprocess.Popen(args)
-        finally:
-            os.chdir(prev_dir)
-        if condition is None:
-            return p, None
+        info = {}
+
+        info['profile'] = self.profile
+        info['connected'] = connected = self.connected
+        info['started_controller'] = (self.started_controller is not None and
+                                      self.started_controller.poll() is None)
+        info['started_engines'] = sum(1 for p in self.started_engines if p.poll() is None)
+        if client is not None:
+            info['total_engines'] = len(client.ids)
         else:
-            while True:
-                time.sleep(0.5)
-                if condition():
-                    return p, None
-                res = p.poll()
-                if res is not None:
-                    return None, res
+            info['total_engines'] = None
+        if connected and client.ids:
+            with client.direct_view() as dview:
+                with dview.sync_imports():
+                    import os
+                    import platform
+                    import socket
+                engines = dview.apply_async(
+                        eval,
+                        '(os.getpid(), platform.system(), socket.getfqdn())'
+                ).get_dict()
+            engines = sorted(
+                    engines.items(),
+                    key=lambda (ip_id, (pid, system, fqdn)): (fqdn, ip_id))
+        else:
+            engines = []
+        info['engines'] = engines
+
+        return info
 
     def start_engines(self, nb=None, prompt="Number of engines to start"):
         """Start some engines locally
         """
-        c = self.ensure_controller()
+        c = self.ensure_client()
         if c is None:
             if qt_available:
                 QtGui.QMessageBox.warning(
@@ -222,7 +178,8 @@ class EngineManager(object):
                         "No controller",
                         "Can't start engines: couldn't connect to a "
                         "controller")
-            print "ipython: no controller, not starting engines"
+            print "ipython: %s: not connected, not starting engines" % (
+                    self.profile)
         else:
             if not nb and qt_available:
                 nb, res = QtGui.QInputDialog.getInt(
@@ -234,9 +191,9 @@ class EngineManager(object):
                         16) # max
                 if not res:
                     return
-            elif nb is None:
+            elif not nb:
                 nb = 1
-            print "ipython: about to start %d engines" % nb
+            print "ipython: %s: about to start %d engines" % (self.profile, nb)
             if qt_available:
                 bar = QtGui.QProgressDialog(
                         "Starting engines...",
@@ -253,7 +210,7 @@ class EngineManager(object):
             # Start the processes
             starting = set()
             for i in xrange(nb):
-                proc, res = self.start_process(
+                proc, res = start_process(
                         None,
                         sys.executable,
                         '-m',
@@ -284,130 +241,23 @@ class EngineManager(object):
                         "Error",
                         "%d engine(s) exited with codes: %s" % (
                         nb_failed, failed))
-                print "ipython: %d engine(s) exited with codes: %s" % (
-                        nb_failed, failed)
+                print "ipython: %s: %d engine(s) exited with codes: %s" % (
+                        self.profile, nb_failed, failed)
             self.started_engines.update(starting)
 
             if qt_available:
                 bar.hide()
                 bar.deleteLater()
-            print "ipython: %d engines started" % (i + 1)
+            print "ipython: %s: %d engines started" % (self.profile, i + 1)
 
-    def info(self):
-        """Show some information on the cluster.
-        """
-        client = self.ensure_controller(connect_only=True)
-
-        print "----- IPython information -----"
-        print "profile: %s" % self.profile
-        connected = client is not None
-        print "connected to controller: %s" % (
-                "yes" if connected else "no")
-        st_ctrl = (self.started_controller is not None and
-                        self.started_controller.poll() is None)
-        print "controller started from VisTrails: %s" % (
-                "running" if st_ctrl else "no")
-        st_engines = sum(1 for p in self.started_engines if p.poll() is None)
-        print "engines started from VisTrails: %d" % st_engines
-        if client is not None:
-            nb_engines = len(client.ids)
-        else:
-            nb_engines = None
-        print "total engines in cluster: %s" % (
-                nb_engines if nb_engines is not None else "(unknown)")
-        if connected and client.ids:
-            with client.direct_view() as dview:
-                with dview.sync_imports():
-                    import os
-                    import platform
-                    import socket
-                engines = dview.apply_async(
-                        eval,
-                        '(os.getpid(), platform.system(), socket.getfqdn())'
-                ).get_dict()
-            engines = sorted(
-                    engines.items(),
-                    key=lambda (ip_id, (pid, system, fqdn)): (fqdn, ip_id))
-            print "engines:"
-            print "\tid\tsystem\tPID\tnode FQDN"
-            print "\t--\t------\t---\t---------"
-            for ip_id, (pid, system, fqdn) in engines:
-                print "\t%d\t%s\t%d\t%s" % (ip_id, system, pid, fqdn)
-        print ""
-
-        if qt_available:
-            dialog = QtGui.QDialog()
-            layout = QtGui.QVBoxLayout()
-            form = QtGui.QFormLayout()
-            form.addRow(
-                    "Profile:",
-                    QtGui.QLabel(self.profile))
-            form.addRow(
-                    "Connected:",
-                    QtGui.QLabel("yes" if connected else "no"))
-            form.addRow(
-                    "Controller started from VisTrails:",
-                    QtGui.QLabel("running" if st_ctrl else "no"))
-            form.addRow(
-                    "Engines started from VisTrails:",
-                    QtGui.QLabel(str(st_engines)))
-            form.addRow(
-                    "Total engines in cluster:",
-                    QtGui.QLabel(str(nb_engines)
-                                 if nb_engines is not None
-                                 else "(unknown)"))
-            layout.addLayout(form)
-            if connected and client.ids:
-                tree = QtGui.QTreeWidget()
-                tree.setHeaderHidden(False)
-                tree.setHeaderLabels(["IPython id", "PID", "System type"])
-                engine_tree = dict()
-                for ip_id, (pid, system, fqdn) in engines:
-                    engine_tree.setdefault(fqdn, []).append(
-                            (ip_id, pid, system))
-                for fqdn, info in engine_tree.iteritems():
-                    node = QtGui.QTreeWidgetItem([fqdn])
-                    tree.addTopLevelItem(node)
-                    for ip_id, pid, system in info:
-                        node.addChild(QtGui.QTreeWidgetItem([
-                                str(ip_id),
-                                str(pid),
-                                system]))
-                for i in xrange(tree.columnCount()):
-                    tree.resizeColumnToContents(i)
-                tree.expandAll()
-                layout.addWidget(tree)
-
-            ok = QtGui.QPushButton("Ok")
-            QtCore.QObject.connect(ok, QtCore.SIGNAL('clicked()'),
-                                   dialog, QtCore.SLOT('accept()'))
-            layout.addWidget(ok, 1, QtCore.Qt.AlignHCenter)
-            dialog.setLayout(layout)
-            dialog.exec_()
-
-    def change_profile(self):
-        self.cleanup()
-
-        old_profile = self.profile
-        self._select_profile()
-        if not self.profile:
-            self.profile = old_profile
-
-        if self.profile != old_profile:
-            # Here, the processes that were started but the user didn't want to
-            # clean up are abandonned
-            # They will continue running but later cleanups won't ask for these
-            # ones
-            self.started_engines = set()
-            self.started_controller = None
-
-    def cleanup(self):
+    def cleanup(self, ask=True):
         """Shut down the started processes (with user confirmation).
         """
         engines = sum(1 for p in self.started_engines if p.poll() is None)
         ctrl = (self.started_controller is not None and
                 self.started_controller.poll() is None)
-        print ("ipython: cleanup: %s, %d engines running" % (
+        print ("ipython: %s: cleanup: %s, %d engines running" % (
+               self.profile,
                "controller running" if ctrl else "no controller",
                engines))
 
@@ -433,12 +283,12 @@ class EngineManager(object):
                             hub=True,
                             block=False)
                     hub_shutdown = True
-                    print "ipython: requested hub shutdown"
+                    print "ipython: %s: requested hub shutdown" % self.profile
                 else:
                     if self.started_controller.poll() is not None:
                         self.started_controller.terminate()
                         self.started_controller.wait()
-                    print "ipython: controller terminated"
+                    print "ipython: %s: controller terminated" % self.profile
             self.started_controller = None
 
         if engines > 0 and not hub_shutdown:
@@ -464,19 +314,20 @@ class EngineManager(object):
                     if engine.poll() is not None:
                         engine.terminate()
                         engine.wait()
-                print ("ipython: %d engines terminated" %
-                       len(self.started_engines))
+                print ("ipython: %s: %d engines terminated" % (
+                       self.profile,
+                       len(self.started_engines)))
             self.started_engines = set()
 
         if self._client is not None:
-            print "ipython: closing client"
+            print "ipython: %s: closing client" % self.profile
             self._client.close()
             self._client = None
 
     def shutdown_cluster(self):
         """Use the client to request a shutdown of the whole cluster.
         """
-        client = self.ensure_controller(connect_only=True)
+        client = self.ensure_client(connect_only=True)
         if client is None:
             if qt_available:
                 QtGui.QMessageBox.information(
@@ -484,8 +335,8 @@ class EngineManager(object):
                         "Couldn't connect",
                         "Couldn't connect to a controller. Is the cluster "
                         "down already?")
-            print ("ipython: shutdown_cluster requested, but could "
-                   "not connect to a controller")
+            print ("ipython: %s: shutdown_cluster requested, but could "
+                   "not connect to controller" % self.profile)
             return
 
         if qt_available:
@@ -504,7 +355,59 @@ class EngineManager(object):
                 restart=False,
                 hub=True,
                 block=False)
-        print "ipython: cluster shutdown requested"
+        print "ipython: %s: cluster shutdown requested" % self.profile
         self._client = None
 
-EngineManager = EngineManager()
+
+@apply
+class EngineManager(object):
+    """Singleton object keeping track of IPython connections.
+
+    For each profile, this manager can obtain engines information, connect and
+    disconnect, start a local controller, add a bunch of local engines, and
+    request the whole cluster to shutdown. It also keeps track of locally
+    started processes in order to optionally close them when VisTrails exits.
+    """
+    def __init__(self):
+        self._profiles = {}
+
+    def list_profiles(self):
+        """Returns a list of available profile names.
+
+        The items are (profile_name: str, connected: bool).
+        """
+        # See IPython.core.profileapp:list_profile_in()
+        profiles = []
+        for filename in os.listdir(get_ipython_dir()):
+            if filename.startswith('profile_'):
+                profile = filename[8:]
+                try:
+                    connected = self._profiles[profile].connected
+                except KeyError:
+                    connected = False
+                profiles.append((profile, connected))
+        return profiles
+
+    def __call__(self, profile):
+        """Get an IPythonProfile object for a specific profile name.
+
+        If such an object doesn't exist, it is created.
+        """
+        try:
+            locate_profile(profile)
+        except IOError:
+            raise KeyError("No IPython profile %r" % profile)
+        try:
+            return self._profiles[profile]
+        except KeyError:
+            profmngr = IPythonProfile(profile)
+            self._profiles[profile] = profmngr
+            return profmngr
+
+    def finalize(self):
+        if self._profiles:
+            print "ipython: finalizing connections (%d profiles)" % (
+                    len(self._profiles))
+            for profmngr in self._profiles.itervalues():
+                profmngr.cleanup(False)
+            self._profiles = None

@@ -6,7 +6,6 @@ from vistrails.core.parallelization.common import get_pickled_module_inputs, \
     execute_serialized_pipeline, module_to_serialized_pipeline, set_results
 from vistrails.core.modules.vistrails_module.errors import ModuleError
 
-from .api import get_client
 from .engine_manager import EngineManager
 from .utils import print_remoteerror
 
@@ -41,19 +40,29 @@ class IPythonScheme(ParallelizationScheme):
                 'ipython')
         self._enabled = False
 
-    def do_compute(self, module):
+    def do_compute(self, target, module):
+        if target.scheme != 'ipython':
+            raise ValueError
+        profile = target.get_annotation('ipython-profile')
+        if profile is not None:
+            profile = profile.value
+        if not profile:
+            raise ValueError
+
+        profmngr = EngineManager(profile)
+
         # Connect to cluster
-        try:
-            rc = get_client(shared_client=True)
-        except Exception, error:
+        rc = profmngr.ensure_client(connect_only=True)
+        if rc is None:
             raise ModuleError(
                     module,
-                    "Exception while loading IPython: %s" % error)
-        if not rc.ids:
+                    "Couldn't connect to IPython profile %s")
+        engines = rc.ids
+
+        if not engines:
             raise ModuleError(
                     module,
-                    "Exception while loading IPython: No IPython engines "
-                    "detected!")
+                    "No IPython engines detected!")
 
         # Build the pipeline
         inputs = get_pickled_module_inputs(module)
@@ -80,7 +89,7 @@ class IPythonScheme(ParallelizationScheme):
             def get_results(runner):
                 def compute():
                     try:
-                        set_results(module, res.get(), 'ipython', [('ipython-profile', EngineManager.profile)])
+                        set_results(module, res.get(), 'ipython', [('ipython-profile', profile)])
                     except RemoteError, e:
                         print_remoteerror(e)
                         raise
@@ -95,7 +104,7 @@ class IPythonScheme(ParallelizationScheme):
         self._enabled = enabled
 
     def finalize(self):
-        EngineManager.cleanup()
+        EngineManager.finalize()
 
 
 Parallelization.register_parallelization_scheme(IPythonScheme)

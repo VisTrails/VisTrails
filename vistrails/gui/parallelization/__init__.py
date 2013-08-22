@@ -7,8 +7,8 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 from .parallel_thread import QParallelThreadSettings
 from .parallel_process import QParallelProcessSettings
-#from .parallel_ipython import QParallelIPythonSettings#, \
-    #QParallelIPythonStandaloneSettings
+from .parallel_ipython import QParallelIPythonSettings, \
+    QParallelIPythonStandaloneSettings
 
 
 class SchemeWidgetWrapper(QtGui.QGroupBox):
@@ -32,6 +32,7 @@ class SchemeWidgetWrapper(QtGui.QGroupBox):
         else:
             self._remove_button = None
 
+        self.color = color
         color = tuple(i*255 for i in color)
         self.setStyleSheet(
                 '''
@@ -43,7 +44,6 @@ class SchemeWidgetWrapper(QtGui.QGroupBox):
                     margin-top: 4px;
                 }
                 ''' % color)
-        self.color = color
 
         self.do_layout()
 
@@ -85,8 +85,8 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
             # list but can be enabled/disabled
             # 'threading': QParallelThreadSettings,
             # 'multiprocessing': QParallelProcessSettings,
-            #'ipython': QParallelIPythonSettings,
-            #'ipython-standalone': QParallelIPythonStandaloneSettings,
+            'ipython': QParallelIPythonSettings,
+            'ipython-standalone': QParallelIPythonStandaloneSettings,
         }
 
     ALL_WIDGETS = {
@@ -203,7 +203,7 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def add_target(self, target):
         widget_klass = self.WIDGETS.get(target.scheme, UnknownSystem)
-        widget = widget_klass(target)
+        widget = widget_klass(self, target)
         wrapper = SchemeWidgetWrapper(self, widget, self.colors.next())
         item = self._add_widget(wrapper)
         self._widgets[wrapper] = item, target
