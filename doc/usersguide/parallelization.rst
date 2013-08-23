@@ -133,5 +133,23 @@ Should you need to, you can also enable or disable specific schemes:
        def compute(self):
            # ...
 
+The user can then define specific instances of these schemes, called *targets*.
+A target is simply the association of a scheme with its required parameters,
+stored as key-value annotations in a separate "execution_configuration" file in
+the .vt bundle.
+
 .. _NumPy: http://www.numpy.org/
 .. _pickle: http://docs.python.org/2/library/pickle.html
+
+Preferred parallelization target
+================================
+
+If the ``@parallelizable`` decorator is used, by opposition to some other
+runtime parallelization, the supported targets are extracted into the
+ModuleDescriptor and the user can assign a specific *preferred target* to each
+module. These associations are stored alongside the target configurations, and
+shown with different colors on the pipeline view.
+
+This allows the user to override the automatic target selection. Note that if
+no preferred target is set, autoselection still happens, unless the
+``autoselect`` parameter is set to False on ``@parallelizable``.
