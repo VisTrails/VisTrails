@@ -41,11 +41,11 @@ from .module import Module
 ###############################################################################
 
 def parallelizable(thread=True, process=False, remote=False, standalone=False,
-        systems={}):
+        systems={}, autoselect=True):
     """This decorator enables a Module's compute() method to run in parallel.
 
     Use this class decorator to mark a Module subclass as being able to execute
-    in parallel. You can specify which kind of parallelism is supported using
+    in parallel. You can specify what kind of parallelism is supported using
     the keyword arguments:
       * thread: enabled by default if you use this decorator. This means that
       the compute() method can be run in a separate thread, in parallel with
@@ -72,6 +72,10 @@ def parallelizable(thread=True, process=False, remote=False, standalone=False,
     In addition, you may specify whether a specific system can be used by
     adding it to the 'system' dictionary.
 
+    'autoselect' indicates whether VisTrails should select the best supported
+    scheme if none has been manually assign to this module by the user; else it
+    will immediately default to local execution.
+
     Example:
         @parallelizable(thread=False, remote=True, systems=dict(ipython=False))
         class MyModule(Module):
@@ -87,6 +91,7 @@ def parallelizable(thread=True, process=False, remote=False, standalone=False,
                 process=process,
                 remote=remote,
                 standalone=standalone,
-                systems=systems)
+                systems=systems,
+                autoselect=autoselect)
         return klass
     return decorator

@@ -64,13 +64,14 @@ class SupportedExecution(object):
     that the module supports.
     """
     def __init__(self, thread=False, process=False, remote=False,
-                 standalone=False, systems={}):
+                 standalone=False, systems={}, autoselect=True):
         self.parallelizable = dict(
                 thread=thread,
                 process=process,
                 remote=remote,
                 standalone=standalone,
                 systems=systems)
+        self.autoselect = autoselect
 
     def __or__(self, other):
         o = other.parallelizable
@@ -95,7 +96,9 @@ class SupportedExecution(object):
                 sy[system] = True
         n['systems'] = sy
 
-        return SupportedExecution(**n)
+        return SupportedExecution(
+                autoselect=self.autoselect or other.autoselect,
+                **n)
 
     def __eq__(self, other):
         return self.parallelizable == other.parallelizable
@@ -129,20 +132,21 @@ class SupportedExecution(object):
                 return
 
         # Then, find the one that matches and has the lowest priority
-        vistrail = module.moduleInfo['controller'].vistrail
-        config = vistrail.execution_configuration
-        best_target = best_prio = best_scheme = None
-        for target in config.execution_targets:
-            scheme = Parallelization.get_parallelization_scheme(target.scheme)
-            if scheme is not None and scheme.supports(
-                    **supported.parallelizable):
-                if best_target is None or best_prio > scheme.priority:
-                    best_target = target
-                    best_scheme = scheme
-                    best_prio = scheme.priority
-        if best_target:
-            best_scheme.do_compute(best_target, module)
-            return
+        if supported.autoselect:
+            vistrail = module.moduleInfo['controller'].vistrail
+            config = vistrail.execution_configuration
+            best_target = best_prio = best_scheme = None
+            for target in config.execution_targets:
+                scheme = Parallelization.get_parallelization_scheme(target.scheme)
+                if scheme is not None and scheme.supports(
+                        **supported.parallelizable):
+                    if best_target is None or best_prio > scheme.priority:
+                        best_target = target
+                        best_scheme = scheme
+                        best_prio = scheme.priority
+            if best_target:
+                best_scheme.do_compute(best_target, module)
+                return
 
         # Fallback to classic execution
         module.do_compute()
