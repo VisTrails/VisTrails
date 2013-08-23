@@ -38,7 +38,7 @@ import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
-from vistrails.core.modules.vistrails_module.parallel import SupportedExecution
+from vistrails.core.modules.vistrails_module.parallel import parallelizable
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 
@@ -913,6 +913,7 @@ class CodeRunnerMixin(object):
 
 ##############################################################################
 
+@parallelizable(True, True, True, True, autoselect=False)
 class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     """PythonSource is a Module that executes an arbitrary piece of
     Python code.
@@ -930,28 +931,6 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
         self.run_code(s, use_input=True, use_output=True)
-
-    def update(self):
-        self.logging.begin_update(self)
-        self.updateUpstream(self.execution_target_ready, ['execution_targets'],
-                            Module.UPDATE_UPSTREAM_PRIORITY)
-
-    def execution_target_ready(self, connectors):
-        if connectors:
-            execution_targets = connectors[0]()
-        else:
-            execution_targets = []
-
-        if execution_targets:
-            self.COMPUTE_PRIORITY = Module.COMPUTE_BACKGROUND_PRIORITY
-            self.supported_execution = SupportedExecution(
-                    systems={system: True for system in execution_targets})
-
-        other_connectors = []
-        for port, connectorList in self.inputPorts.iteritems():
-            if port != 'execution_targets':
-                other_connectors.extend(connectorList)
-        self.updateUpstream(targets=other_connectors)
 
 ##############################################################################
 
@@ -1275,7 +1254,6 @@ def initialize(*args, **kwargs):
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
     reg.add_input_port(PythonSource, 'source', String, True)
-    reg.add_input_port(PythonSource, 'execution_targets', List)
     reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
