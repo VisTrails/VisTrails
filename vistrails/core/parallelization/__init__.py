@@ -101,12 +101,15 @@ class RemoteExecution(object):
         method is called instead of do_compute. The original arguments to
         parallelizable() will be used to choose a specific scheme.
         """
+        supported = module.remote_execution
+
+        # If we're already a remote machine, only use threads
         if Parallelization.is_subprocess:
-            module.do_compute()
-            return
+            supported = RemoteExecution(
+                    thread=supported.parallelizable['thread'])
 
         for priority, scheme in Parallelization._parallelization_schemes:
-            if scheme.supports(**module.remote_execution.parallelizable):
+            if scheme.supports(**supported.parallelizable):
                 scheme.do_compute(module)
                 return
 
