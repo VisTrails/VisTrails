@@ -25,13 +25,13 @@ class ProcessScheme(ParallelizationScheme):
             self._process_pool = None
         if self._process_pool is None:
             self._process_pool = concurrent.futures.ProcessPoolExecutor(size)
-            self._process_pool = size
+            self._pool_size = size
         return self._process_pool
 
     def do_compute(self, target, module):
         size = target.get_annotation('pool_size')
         if size:
-            size = size.value
+            size = int(size.value)
         else:
             size = 0
 

@@ -31,7 +31,7 @@ class ThreadScheme(ParallelizationScheme):
     def do_compute(self, target, module):
         size = target.get_annotation('pool_size')
         if size:
-            size = size.value
+            size = int(size.value)
         else:
             size = 0
 
