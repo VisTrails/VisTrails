@@ -112,19 +112,19 @@ class SupportedExecution(object):
         method is called instead of do_compute. The original arguments to
         parallelizable() will be used to choose a specific scheme.
         """
-        # If we are a remote machine executing because this was sent here,
-        # don't try to send it somewhere else again
-        if Parallelization.is_subprocess:
-            module.do_compute()
-            return
+        supported = module.supported_execution
 
+        # If we're already a remote machine, only use threads
+        if Parallelization.is_subprocess:
+            supported = SupportedExecution(
+                    thread=supported.parallelizable['thread'])
 
         # First, try to use the preferred execution target
         target = module.preferred_execution_target
         if target is not None:
             scheme = Parallelization.get_parallelization_scheme(target.scheme)
             if scheme is not None and scheme.supports(
-                    **module.supported_execution.parallelizable):
+                    **supported.parallelizable):
                 scheme.do_compute(target, module)
                 return
 
@@ -135,7 +135,7 @@ class SupportedExecution(object):
         for target in config.execution_targets:
             scheme = Parallelization.get_parallelization_scheme(target.scheme)
             if scheme is not None and scheme.supports(
-                    **module.supported_execution.parallelizable):
+                    **supported.parallelizable):
                 if best_target is None or best_prio > scheme.priority:
                     best_target = target
                     best_scheme = scheme

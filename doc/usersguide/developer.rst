@@ -9,8 +9,8 @@ Developer's Guide
 
    packages
    batch
+   parallelization
    log
    example_itk
    controlflowdev
-   parallelization
    cltools
