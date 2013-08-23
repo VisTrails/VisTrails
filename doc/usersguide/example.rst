@@ -39,7 +39,6 @@ Learning VisTrails By Example
    provenance
    mashups
    example_guide
-   
 
 ############################################
 Intermediate Concepts and VisTrails Packages
@@ -48,9 +47,9 @@ Intermediate Concepts and VisTrails Packages
 .. toctree::
    :maxdepth: 2
 
+   parallelschemes
    controlflow
    cfassistant
-   parallelflow
    database
    example_webservices
    persistence
