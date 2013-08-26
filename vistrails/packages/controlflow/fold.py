@@ -101,7 +101,7 @@ class FoldWithModule(Fold, NotCacheable):
 
     def __init__(self):
         Fold.__init__(self)
-        self.is_fold_module = True
+        self.is_looping_module = True
 
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
@@ -159,10 +159,10 @@ class FoldWithModule(Fold, NotCacheable):
                     module.already_computed = False
 
                     ## Setting information for logging stuff
-                    module.is_fold_operator = True
+                    module.is_looping = True
                     module.first_iteration = i == 0
                     module.last_iteration = i == len(inputList) - 1
-                    module.fold_iteration = i
+                    module.loop_iteration = i
 
                     self.setInputValues(module, nameInput, element)
 
