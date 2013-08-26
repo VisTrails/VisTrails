@@ -305,6 +305,10 @@ To do so, call initialize_packages()"""
     def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
         pkg = self._package_list[codepath]
+
+        from vistrails.core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.clear_package(pkg.identifier)
+
         self._dependency_graph.delete_vertex(pkg.identifier)
         del self._package_versions[pkg.identifier][pkg.version]
         if len(self._package_versions[pkg.identifier]) == 0:
