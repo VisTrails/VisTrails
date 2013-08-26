@@ -322,7 +322,6 @@ class QPackagesWidget(QtGui.QWidget):
                 raise
             finally:
                 palette.setUpdatesEnabled(True)
-                palette.treeWidget.expandAll()
             # the old code that used to be here to update the lists
             # has been moved to package_added
             self.invalidate_current_pipeline()
@@ -376,7 +375,6 @@ class QPackagesWidget(QtGui.QWidget):
             self.populate_lists()
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(True)
-            palette.treeWidget.expandAll()
             self.erase_cache = True
             self.select_package_after_update(codepath)
             self.invalidate_current_pipeline()
