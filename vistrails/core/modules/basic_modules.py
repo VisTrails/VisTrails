@@ -36,20 +36,17 @@
 pipelines."""
 import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
-from vistrails.core.system import vistrails_version
+import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 
-
-import vistrails.core.system
+from abc import ABCMeta
 from itertools import izip
-import re
 import os
-import os.path
 import pickle
+import re
 import shutil
 #import zipfile
 import urllib
@@ -783,6 +780,18 @@ class Not(Module):
 ##############################################################################
 # List
 
+# If numpy is available, we consider numpy arrays to be lists as well
+class ListType:
+    __metaclass__ = ABCMeta
+
+ListType.register(list)
+try:
+    import numpy
+except ImportError:
+    numpy = None
+else:
+    ListType.register(numpy.ndarray)
+
 class List(Constant):
     default_value = []
 
@@ -792,15 +801,25 @@ class List(Constant):
 
     @staticmethod
     def validate(x):
-        return isinstance(x, list)
+        return isinstance(x, ListType)
 
     @staticmethod
     def translate_to_python(v):
         return eval(v)
 
     @staticmethod
-    def translate_to_string(v):
-        return '[%s]' % ', '.join(repr(c) for c in v)
+    def translate_to_string(v, dims=None):
+        if dims is None:
+            if numpy is not None and isinstance(v, numpy.ndarray):
+                dims = v.ndim
+            else:
+                dims = 1
+        if dims == 1:
+            return '[%s]' % ', '.join(repr(c)
+                                      for c in v)
+        else:
+            return '[%s]' % ', '.join(List.translate_to_string(c, dims-1)
+                                      for c in v)
 
     def compute(self):
         head, middle, items, tail = [], [], [], []
