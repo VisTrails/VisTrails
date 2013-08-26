@@ -269,7 +269,6 @@ class QPackagesWidget(QtGui.QWidget):
         self.populate_lists()
 
         self._current_package = None
-        self.erase_cache = False
 
     def populate_lists(self):
         pkg_manager = get_package_manager()
@@ -360,7 +359,6 @@ class QPackagesWidget(QtGui.QWidget):
         palette = QModulePalette.instance()
         palette.setUpdatesEnabled(False)
         pm.reload_package_disable(codepath)
-        self.erase_cache = True
 
     def reload_current_package_finisher(self, codepath, reverse_deps, prefix_dictionary):
         # REENABLES the current package and all reverse dependencies
@@ -375,7 +373,6 @@ class QPackagesWidget(QtGui.QWidget):
             self.populate_lists()
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(True)
-            self.erase_cache = True
             self.select_package_after_update(codepath)
             self.invalidate_current_pipeline()
 
@@ -394,7 +391,6 @@ class QPackagesWidget(QtGui.QWidget):
             av.takeItem(pos)
             inst.addItem(item)
             inst.sortItems()
-            self.erase_cache = True
             self.select_package_after_update(codepath)
 
     def package_removed(self, codepath):
@@ -402,7 +398,6 @@ class QPackagesWidget(QtGui.QWidget):
         # if we run a late-enable with a prefix (console_mode_test),
         # we don't actually have the package later
         self.populate_lists()
-        self.erase_cache = True
         self.select_package_after_update(codepath)
 
     def select_package_after_update(self, codepath):
