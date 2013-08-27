@@ -43,6 +43,7 @@ from vistrails.core.modules.vistrails_module import ModuleError, NotCacheable
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.gui.utils import show_warning
 from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module.parallel import parallelizable
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
@@ -69,6 +70,7 @@ package_directory = None
 
 ###############################################################################
 
+@parallelizable(thread=True)
 class HTTPFile(NotCacheable, Module):
     """ Downloads file from URL """
 
