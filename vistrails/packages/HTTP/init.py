@@ -39,7 +39,7 @@ directory. This way, files that haven't been changed do not need
 downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
-from vistrails.core.modules.vistrails_module import ModuleError, NotCacheable
+from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.gui.utils import show_warning
 from vistrails.core.modules.vistrails_module import Module
@@ -69,7 +69,7 @@ package_directory = None
 
 ###############################################################################
 
-class HTTPFile(NotCacheable, Module):
+class HTTPFile(Module):
     """ Downloads file from URL """
 
     def compute(self):
