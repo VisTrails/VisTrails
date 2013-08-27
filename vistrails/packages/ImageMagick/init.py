@@ -50,12 +50,14 @@ import vistrails.core.modules.basic_modules as basic
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     new_module, IncompleteImplementation
+from vistrails.core.modules.vistrails_module.parallel import parallelizable
 from vistrails.core.system import list2cmdline
 
 import os
 
 ################################################################################
 
+@parallelizable(thread=True)
 class ImageMagick(Module):
     """ImageMagick is the base Module for all Modules in the ImageMagick
 package. It simply defines some helper methods for subclasses."""
