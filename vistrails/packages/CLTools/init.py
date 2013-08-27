@@ -44,15 +44,16 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, Incompl
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.system import default_dot_vistrails, packages_directory, \
-    vistrails_root_directory
+from vistrails.core.system import packages_directory, vistrails_root_directory
 
 import identifiers
+from vistrails.core.modules.vistrails_module.parallel import parallelizable
 
 
 cl_tools = {}
 
 
+@parallelizable(thread=True)
 class CLTools(Module):
     """ CLTools is the base Module.
      We will create a SUDSWebService Module for each method published by 
