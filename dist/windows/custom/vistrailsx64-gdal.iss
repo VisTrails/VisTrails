@@ -139,8 +139,8 @@ Source: ..\Input\qt.conf; DestDir: {app}\Python27_64
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
 Source: ..\Input\x64\python27.dll; DestDir: {app}
 Source: ..\Input\x64\python27.dll; DestDir: {app}\Python27_64
-Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.dll; DestDir: {app}\vistrails
-Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir: {app}\vistrails
+Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.dll; DestDir: {app}
+Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir: {app}
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 ;Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails

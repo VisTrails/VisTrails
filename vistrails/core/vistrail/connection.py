@@ -45,28 +45,18 @@ from vistrails.db.domain import IdScope
 
 ################################################################################
 
-Variant_desc = None
-
 def moduleConnection(conn):
     """moduleConnection(conn)-> function 
     Returns a function to build a module connection
 
     """
     def theFunction(src, dst):
-        global Variant_desc
-        if Variant_desc is None:
-            reg = get_module_registry()
-            Variant_desc = reg.get_descriptor_by_name(
-                    'org.vistrails.vistrails.basic', 'Variant')
-
         iport = conn.destination.name
         oport = conn.source.name
         src.enableOutputPort(oport)
-        typecheck = [desc is Variant_desc
-                     for desc in conn.source.spec.descriptors()]
         dst.set_input_port(
                 iport,
-                ModuleConnector(src, oport, conn.destination.spec, typecheck))
+                ModuleConnector(src, oport, conn.destination.spec))
     return theFunction
 
 ################################################################################

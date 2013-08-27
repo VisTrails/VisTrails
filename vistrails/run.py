@@ -103,15 +103,17 @@ def fix_paths():
     # been started from a subdir)
     # A better solution is probably to move run.py up a
     # directory in the repo
+    old_dir = os.path.realpath(os.path.dirname(__file__))
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     i = 0
     while i < len(sys.path):
         rpath = os.path.realpath(sys.path[i])
-        if rpath.startswith(vistrails_dir):
+        if rpath.startswith(old_dir):
             del sys.path[i]
         else:
             i += 1
-    sys.path.insert(0, vistrails_dir)
+    if vistrails_dir not in sys.path:
+        sys.path.insert(0, vistrails_dir)
 
 if __name__ == '__main__':
     fix_paths()

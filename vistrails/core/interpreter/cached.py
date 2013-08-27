@@ -94,7 +94,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         Removes modules from the persistent pipeline, and the modules that
         depend on them."""
-        if modules_to_clean == []:
+        if not modules_to_clean:
             return
         g = self._persistent_pipeline.graph
         dependencies = g.vertices_topological_sort(modules_to_clean)
@@ -113,7 +113,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                                  if not mod.is_cacheable() or \
                                  mod.suspended]
         self.clean_modules(non_cacheable_modules)
-        
+
+    def _clear_package(self, identifier):
+        """clear_package(identifier: str) -> None
+
+        Removes all modules from the given package from the persistent
+        pipeline.
+        """
+        modules = [mod.id
+                   for mod in self._persistent_pipeline.module_list
+                   if mod.module_descriptor.identifier == identifier]
+        self.clean_modules(modules)
 
     def setup_pipeline(self, pipeline, **kwargs):
         """setup_pipeline(controller, pipeline, locator, currentVersion,
@@ -773,13 +783,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             CachedInterpreter.__instance.clear()
         objs = gc.collect()
 
-
     @staticmethod
     def flush():
         if CachedInterpreter.__instance:
             CachedInterpreter.__instance.clear()
             CachedInterpreter.__instance.create()
         objs = gc.collect()
+
+    @staticmethod
+    def clear_package(identifier):
+        if CachedInterpreter.__instance:
+            CachedInterpreter.__instance._clear_package(identifier)
 
 ##############################################################################
 # Testing

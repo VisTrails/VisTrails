@@ -44,7 +44,8 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, Incompl
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.system import packages_directory, vistrails_root_directory
+from vistrails.core.system import current_dot_vistrails, packages_directory, \
+    vistrails_root_directory
 
 import identifiers
 from vistrails.core.modules.vistrails_module.parallel import parallelizable
@@ -406,8 +407,7 @@ def add_tool(path):
 def initialize(*args, **keywords):
     if "CLTools" == identifiers.name:
         # this is the original package 
-        location = os.path.join(vistrails.core.system.current_dot_vistrails(),
-                                "CLTools")
+        location = os.path.join(current_dot_vistrails(), "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
             try:
@@ -445,8 +445,7 @@ def reload_scripts():
     remove_all_scripts()
     if "CLTools" == identifiers.name:
         # this is the original package
-        location = os.path.join(vistrails.core.system.current_dot_vistrails(),
-                                "CLTools")
+        location = os.path.join(current_dot_vistrails(), "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
             try:
@@ -469,6 +468,9 @@ def reload_scripts():
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), exc),
                    traceback.format_exc())
+
+    from vistrails.core.interpreter.cached import CachedInterpreter
+    CachedInterpreter.clear_package(identifiers.identifier)
 
     from vistrails.gui.vistrails_window import _app
     _app.invalidate_pipelines()
