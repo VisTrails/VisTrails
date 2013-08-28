@@ -346,9 +346,26 @@ class VistrailController(QtCore.QObject, BaseController):
             self.vistrails = vistrails
 
         def run(self):
-            self.results, self.changed = BaseController.execute_workflow_list(
-                    self.controller,
-                    self.vistrails)
+            try:
+                self.results, self.changed = BaseController.execute_workflow_list(
+                        self.controller,
+                        self.vistrails,
+                        unparallelizable_execution=self.run_on_qt_thread)
+            except Exception:
+                import traceback; traceback.print_exc()
+
+        def run_on_qt_thread(self, func):
+            """Runs a function on the Qt thread.
+            """
+            QtCore.QMetaObject.invokeMethod(
+                    self,
+                    'invoke_function',
+                    QtCore.Qt.BlockingQueuedConnection,
+                    QtCore.Q_ARG(object, func))
+
+        @QtCore.pyqtSlot(object)
+        def invoke_function(self, func):
+            func()
 
     def execute_workflow_list(self, vistrails):
         old_quiet = self.quiet

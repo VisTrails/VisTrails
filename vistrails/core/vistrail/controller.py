@@ -2496,7 +2496,8 @@ class VistrailController(object):
     ##########################################################################
     # Workflow Execution
     
-    def execute_workflow_list(self, vistrails):
+    def execute_workflow_list(self, vistrails,
+                              unparallelizable_execution=None):
         """execute_workflow_list(vistrails: list) -> (results, bool)"""
 
         stop_on_error = getattr(get_vistrails_configuration(),
@@ -2514,7 +2515,7 @@ class VistrailController(object):
                     extra_info = {}
                 extra_info['pathDumpCells'] = create_temp_folder(prefix='vt_thumb')
                 temp_folder_used = True
-#           
+
             kwargs = {'locator': locator,
                       'current_version': version,
                       'view': view,
@@ -2526,7 +2527,8 @@ class VistrailController(object):
                       'sinks': sinks,
                       'extra_info': extra_info,
                       'stop_on_error': stop_on_error,
-                      }    
+                      'unparallelizable_execution': unparallelizable_execution,
+                      }
             if self.get_vistrail_variables():
                 kwargs['vistrail_variables'] = \
                     self.get_vistrail_variable_by_uuid

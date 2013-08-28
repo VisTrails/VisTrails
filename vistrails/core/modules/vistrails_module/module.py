@@ -374,7 +374,11 @@ context."""
         if hasattr(self, 'remote_execution'):
             self.remote_execution.do_compute(self)
         else:
-            self.do_compute()
+            execute = self.moduleInfo.get('unparallelizable_execution')
+            if execute is not None:
+                execute(self.do_compute)
+            else:
+                self.do_compute()
 
     def do_compute(self, compute=None):
         """ do_compute() -> None

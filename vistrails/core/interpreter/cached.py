@@ -153,6 +153,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
+        unparallelizable_execution = fetch('unparallelizable_execution', None)
 
         reg = modules.module_registry.get_module_registry()
 
@@ -309,6 +310,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
         stop_on_error = fetch('stop_on_error', True)
+        unparallelizable_execution = fetch('unparallelizable_execution', None)
         # parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
@@ -430,6 +432,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
             obj.moduleInfo['controller'] = controller
+            if unparallelizable_execution is not None:
+                obj.moduleInfo['unparallelizable_execution'] = \
+                        unparallelizable_execution
             if extra_info is not None:
                 obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:
@@ -640,6 +645,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
+        unparallelizable_execution = fetch('unparallelizable_execution', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
