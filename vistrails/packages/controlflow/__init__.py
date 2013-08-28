@@ -35,4 +35,4 @@
 
 identifier="edu.utah.sci.vistrails.control_flow"
 name="Control Flow"
-version="0.2.0"
+version="0.2.1"

@@ -34,7 +34,8 @@
 ###############################################################################
 from core.modules.vistrails_module import Module
 from core.modules.module_registry import get_module_registry
-from core.modules.basic_modules import Boolean, String, Variant, List
+from core.modules.basic_modules import Boolean, String, Variant, List, \
+    Integer, Float
 from core.upgradeworkflow import UpgradeWorkflowHandler
 import copy
 
@@ -43,6 +44,7 @@ from utils import Map, Filter, AreaFilter, SimilarityFilter
 from conditional import If
 from products import Dot, Cross
 from order import ExecuteInOrder
+from looping import While
 
 
 #################################################################################
@@ -67,6 +69,8 @@ def initialize(*args,**keywords):
     registerControl(AreaFilter)
     registerControl(SimilarityFilter)
     registerControl(If)
+    registerControl(ExecuteInOrder)
+    registerControl(While)
 
     reg.add_input_port(Fold, 'FunctionPort', (Module, ""))
     reg.add_input_port(Fold, 'InputList', (List, ""))
@@ -99,9 +103,21 @@ def initialize(*args,**keywords):
     reg.add_input_port(Cross, 'CombineTuple', (Boolean, ""), optional=True)
     reg.add_output_port(Cross, 'Result', (List, ""))
 
-    reg.add_module(ExecuteInOrder)
     reg.add_input_port(ExecuteInOrder, 'module1', (Module, ""))
     reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
+
+    reg.add_input_port(While, 'FunctionPort', (Module, ""))
+    reg.add_input_port(While, 'OutputPort', (String, ""))
+    reg.add_input_port(While, 'ConditionPort', (String, ""))
+    reg.add_input_port(While, 'StateInputPorts', (List, ""),
+                       optional=True)
+    reg.add_input_port(While, 'StateOutputPorts', (List, ""),
+                       optional=True)
+    reg.add_input_port(While, 'MaxIterations', (Integer, ""),
+                       optional=True, defaults="['20']")
+    reg.add_input_port(While, 'Delay', (Float, ""),
+                       optional=True)
+    reg.add_output_port(While, 'Result', (Variant, ""))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
    reg = get_module_registry()
