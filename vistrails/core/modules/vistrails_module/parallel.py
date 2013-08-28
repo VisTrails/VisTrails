@@ -40,16 +40,17 @@ from .module import Module
 
 ###############################################################################
 
-def parallelizable(thread=True, process=False, remote=False, standalone=False,
+def parallelizable(thread=False, process=False, remote=False, standalone=False,
         systems={}):
     """This decorator enables a Module's compute() method to run in parallel.
 
     Use this class decorator to mark a Module subclass as being able to execute
     in parallel. You can specify which kind of parallelism is supported using
     the keyword arguments:
-      * thread: enabled by default if you use this decorator. This means that
-      the compute() method can be run in a separate thread, in parallel with
-      the execution of other modules.
+      * thread: means that the compute() method can be run in a separate
+      thread, in parallel with the execution of other modules. It will be in
+      the same process, use the same VisTrails application and share every
+      object.
       * process: means that compute() can be run in a separate process using
       multiprocessing from the standard library.
       * remote: means that compute() can be run on a different machine.
@@ -78,7 +79,7 @@ def parallelizable(thread=True, process=False, remote=False, standalone=False,
             ...
     """
     def decorator(klass):
-        if not issubclass(klass, Module):
+        if not isinstance(klass, type) or not issubclass(klass, Module):
             raise TypeError("parallelizable should be used on Module "
                             "subclasses, not '%s'" % klass)
         klass.COMPUTE_PRIORITY = Module.COMPUTE_BACKGROUND_PRIORITY
