@@ -221,13 +221,48 @@ def getCurrentVersion():
 def initTheme():
     return vistrails.gui.theme.initializeCurrentTheme()
 
+class ThreadProxy(QtCore.QObject):
+    """Proxy object calling methods in another thread.
+    """
+    class MethodProxy(object):
+        def __init__(self, proxy, method):
+            self.__proxy = proxy
+            self.__method = method
+
+        def __call__(self, *args, **kwargs):
+            QtCore.QMetaObject.invokeMethod(
+                    self.__proxy,
+                    '_ThreadProxy_invoke_method',
+                    QtCore.Qt.QueuedConnection,
+                    QtCore.Q_ARG(object, self.__method),
+                    QtCore.Q_ARG(object, args),
+                    QtCore.Q_ARG(object, kwargs))
+
+        def __repr__(self):
+            return "<MethodProxy object for %r>" % self.__method
+        __str__ = __repr__
+
+    def __init__(self, obj):
+        QtCore.QObject.__init__(self)
+        self.__obj = obj
+
+    def __getattr__(self, name):
+        return ThreadProxy.MethodProxy(self, getattr(self.__obj, name))
+
+    @QtCore.pyqtSlot(object, object, object)
+    def _ThreadProxy_invoke_method(self, method, args, kwargs):
+        method(*args, **kwargs)
+
+    def __repr__(self):
+        return "<ThreadProxy object for %r>" % self.__obj
+    __str__ = __repr__
+
 ################################################################################
 # VisTrails GUI unit test class - setUp and teardown ensure no
 # vistrails are open
 
 
 class TestVisTrailsGUI(unittest.TestCase):
-
     def _close_all(self):
         import vistrails.api
         # Close all open vistrails
@@ -238,6 +273,47 @@ class TestVisTrailsGUI(unittest.TestCase):
         # by default if we are not closing the first vistrail.
         self._close_all()
         self._close_all()
-        
+
     def tearDown(self):
         self._close_all()
+
+
+class TestThreadProxy(unittest.TestCase):
+    def test_ThreadProxy(self):
+        # Using a synchronized list so we don't rely on the GIL
+        import Queue
+        calls = Queue.Queue()
+
+        # Test object that logs its called methods with the calling thread
+        @apply
+        class obj(object):
+            def foo(self, *args):
+                calls.put((QtCore.QThread.currentThread(), 'foo',) + args)
+
+            def bar(self, *args):
+                calls.put((QtCore.QThread.currentThread(), 'bar',) + args)
+        proxy = ThreadProxy(obj)
+
+        # Start a thread that calls methods
+        @apply
+        class thread(QtCore.QThread):
+            def run(self):
+                proxy.foo('test', TestThreadProxy)
+                obj.bar(False)
+                proxy.bar(42)
+        thread.start()
+        loop = QtCore.QEventLoop()
+        QtCore.QObject.connect(thread, QtCore.SIGNAL('finished()'),
+                               loop, QtCore.SLOT('quit()'))
+        loop.exec_()
+
+        # Turns the queue into a set
+        calls = set(calls.get(False) for i in xrange(3))
+
+        # Check results
+        main = QtCore.QThread.currentThread()
+        self.assertNotEqual(main, thread)
+        self.assertEqual(calls, set([
+                (main, 'foo', 'test', TestThreadProxy),
+                (thread, 'bar', False),
+                (main, 'bar', 42)]))

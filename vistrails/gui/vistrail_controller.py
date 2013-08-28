@@ -65,7 +65,8 @@ from vistrails.core.vistrail.vistrail import Vistrail, TagExists
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from vistrails.gui.utils import ThreadProxy, show_warning, show_question, \
+    YES_BUTTON, NO_BUTTON
 
 import vistrails.core.analogy
 import copy
@@ -337,14 +338,38 @@ class VistrailController(QtCore.QObject, BaseController):
 
     ##########################################################################
     # Workflow Execution
-    
+
+    class WorkflowExecutingThread(QtCore.QThread):
+        def __init__(self, controller, vistrails):
+            QtCore.QThread.__init__(self)
+            self.controller = controller
+            self.vistrails = vistrails
+
+        def run(self):
+            self.results, self.changed = BaseController.execute_workflow_list(
+                    self.controller,
+                    self.vistrails)
+
     def execute_workflow_list(self, vistrails):
         old_quiet = self.quiet
         self.quiet = True
         self.current_pipeline_scene.reset_module_colors()
         self.current_pipeline_scene.update()
-        (results, changed) = BaseController.execute_workflow_list(self, 
-                                                                  vistrails)        
+
+        vistrails = list(vistrails)
+        for i in xrange(len(vistrails)):
+            vis = vistrails[i]
+            view = ThreadProxy(vis[3])
+            vistrails[i] = vis[:3] + (view,) + vis[4:]
+
+        loop = QtCore.QEventLoop()
+        thread = VistrailController.WorkflowExecutingThread(self, vistrails)
+        QtCore.QObject.connect(thread, QtCore.SIGNAL('finished()'),
+                               loop, QtCore.SLOT('quit()'))
+        thread.start()
+        loop.exec_()
+        results, changed = thread.results, thread.changed
+
         self.quiet = old_quiet
         if changed:
             self.invalidate_version_tree(False)
