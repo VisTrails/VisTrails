@@ -62,6 +62,7 @@ class DummyLogController(object):
     def finish_group_loop_execution(self, *args, **kwargs): pass
     def start_module_execution(self, *args, **kwargs): pass
     def finish_module_execution(self, *args, **kwargs): pass
+    def log_remote_execution(self, *args, **kwargs): pass
     def start_group_execution(self, *args, **kwargs): pass
     def finish_group_execution(self, *args, **kwargs): pass
     def start_loop_execution(self, *args, **kwargs): pass
