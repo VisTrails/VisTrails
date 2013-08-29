@@ -37,7 +37,7 @@ import os.path
 import sys
 import urllib2
 
-DOWNLOAD_URL = "http://www.vistrails.org/usersguide/v2.0/html/VisTrails.pdf"
+DOWNLOAD_URL = "http://www.vistrails.org/usersguide/dev/html/VisTrails.pdf"
 SAVE_TO = os.path.dirname(os.path.abspath(__file__)) #saving to the directory where this script is
 
 if __name__ == "__main__":

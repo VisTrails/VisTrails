@@ -131,6 +131,7 @@ class ${spec.name}(${spec.superklass}):
     % endif
 
     def compute(self):
+        super(${spec.name}, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []

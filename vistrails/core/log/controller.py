@@ -201,11 +201,11 @@ class LogController(object):
     def start_execution(self, module, module_id, module_name, parent_execs,
                         cached=0):
         parent_exec = parent_execs[-1]
-        if module.is_fold_operator:
+        if module.is_looping:
             parent_exec = self.start_loop_execution(module, module_id, 
                                                     module_name, 
                                                     parent_exec, cached,
-                                                    module.fold_iteration)
+                                                    module.loop_iteration)
             parent_execs.append(parent_exec)
 
         if isinstance(module, Group):
@@ -227,7 +227,7 @@ class LogController(object):
         else:
             if self.finish_module_execution(module, error, errorTrace, suspended):
                 parent_execs.pop()
-        if module.is_fold_operator:
+        if module.is_looping:
             self.finish_loop_execution(module, error, parent_execs.pop(), suspended)
 
     def start_module_execution(self, module, module_id, module_name,
@@ -240,7 +240,7 @@ class LogController(object):
             parent_exec.add_item_exec(module_exec)
         else:
             self.workflow_exec.add_item_exec(module_exec)
-        if module.is_fold_module:
+        if module.is_looping_module:
             return module_exec
         return None
 
@@ -264,7 +264,7 @@ class LogController(object):
                                         value=errorTrace)
                 module.module_exec.add_annotation(annotation)
         del module.module_exec
-        if module.is_fold_module:
+        if module.is_looping_module:
             return True
 
     def log_remote_execution(self, module, scheme,

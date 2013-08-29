@@ -101,7 +101,7 @@ class FoldWithModule(Fold, NotCacheable):
 
     def __init__(self):
         Fold.__init__(self)
-        self.is_fold_module = True
+        self.is_looping_module = True
 
     def update(self):
         self.logging.begin_update(self)
