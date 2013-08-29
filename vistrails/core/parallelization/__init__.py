@@ -133,20 +133,26 @@ class SupportedExecution(object):
 
         # Then, find the one that matches and has the lowest priority
         if supported.autoselect:
-            vistrail = module.moduleInfo['controller'].vistrail
-            config = vistrail.execution_configuration
-            best_target = best_prio = best_scheme = None
-            for target in config.execution_targets:
-                scheme = Parallelization.get_parallelization_scheme(target.scheme)
-                if scheme is not None and scheme.supports(
-                        **supported.parallelizable):
-                    if best_target is None or best_prio > scheme.priority:
-                        best_target = target
-                        best_scheme = scheme
-                        best_prio = scheme.priority
-            if best_target:
-                best_scheme.do_compute(best_target, module)
-                return
+            controller = module.moduleInfo['controller']
+            if controller is not None:
+                vistrail = controller.vistrail
+                if vistrail is not None:
+                    config = vistrail.execution_configuration
+            else:
+                config = None
+            if config is not None:
+                best_target = best_prio = best_scheme = None
+                for target in config.execution_targets:
+                    scheme = Parallelization.get_parallelization_scheme(target.scheme)
+                    if scheme is not None and scheme.supports(
+                            **supported.parallelizable):
+                        if best_target is None or best_prio > scheme.priority:
+                            best_target = target
+                            best_scheme = scheme
+                            best_prio = scheme.priority
+                if best_target:
+                    best_scheme.do_compute(best_target, module)
+                    return
 
         # Fallback to classic execution
         module.do_compute()
