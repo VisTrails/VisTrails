@@ -84,8 +84,10 @@ class QBaseIPythonWidget(QtGui.QWidget):
 
         if self.profile is None:
             prof_txt = "Select profile"
+            self.mngr = None
         else:
             prof_txt = "Profile: %s" % self.profile
+            self.mngr = EngineManager(self.profile)
         self._profile_button = QtGui.QPushButton(prof_txt)
         self.connect(self._profile_button, QtCore.SIGNAL('clicked()'),
                      self.change_profile)
@@ -119,6 +121,16 @@ class QBaseIPythonWidget(QtGui.QWidget):
         # TODO : Perhaps close Client if not used anymore?
         pass
 
+    def _check_manager(self):
+        if self.mngr is None:
+            QtGui.QMessageBox.warning(
+                    self,
+                    u"No profile set",
+                    u"Please choose an IPython profile")
+            return False
+        else:
+            return True
+
     def change_profile(self):
         profile = choose_profile()
         if profile is not None and profile != self.profile:
@@ -136,6 +148,9 @@ class QBaseIPythonWidget(QtGui.QWidget):
                 pass # TODO : Hmm, what to do here
 
     def info(self):
+        if not self._check_manager():
+            return
+
         info = self.mngr.info()
 
         dialog = QtGui.QDialog()
@@ -190,13 +205,20 @@ class QBaseIPythonWidget(QtGui.QWidget):
         dialog.exec_()
 
     def start_engines(self):
+        if not self._check_manager():
+            return
+
         self.mngr.start_engines()
 
     def shutdown_cluster(self):
+        if not self._check_manager():
+            return
+
         self.mngr.shutdown_cluster()
 
     def cleanup(self):
-        self.mngr.cleanup()
+        if self.mngr is not None:
+            self.mngr.cleanup()
 
 
 class QParallelIPythonSettings(QBaseIPythonWidget):
