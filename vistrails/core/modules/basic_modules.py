@@ -132,6 +132,10 @@ class Constant(Module):
         return None
 
     @staticmethod
+    def get_widget_class_of_type(widget_type):
+        return None
+
+    @staticmethod
     def get_query_widget_class():
         return None
 
@@ -152,7 +156,8 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  str_conversion=None, base_class=Constant,
                  compute=None, query_widget_type=None,
                  query_compute=None,
-                 param_explore_widget_list=None):
+                 param_explore_widget_list=None,
+                 widget_types_list=None):
     """new_constant(name: str, 
                     py_conversion: callable,
                     default_value: python_type,
@@ -164,6 +169,8 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
                     query_widget_type: (path, name) tuple or QWidget type,
                     query_compute: static callable,
                     param_explore_widget_list: 
+                        list((path, name) tuple or QWidget type)
+                    widget_types_list:
                         list((path, name) tuple or QWidget type)) -> Module
 
     new_constant dynamically creates a new Module derived from
@@ -221,6 +228,15 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
         def get_param_explore_widget_list():
             return param_explore_widget_list
         d['get_param_explore_widget_list'] = get_param_explore_widget_list
+    if widget_types_list is not None:
+        @staticmethod
+        def get_widget_class_of_type(w_type):
+            for (t, widget) in widget_types_list:
+                if w_type == t:
+                    return widget
+            return None
+        d['get_widget_class_of_type'] = get_widget_class_of_type
+            
 
     m = new_module(base_class, name, d)
     m._input_ports = [('value', m)]
@@ -296,8 +312,7 @@ String  = new_constant('String'  , staticmethod(str), "",
                        query_widget_type=('vistrails.gui.modules.query_configuration',
                                           'StringQueryWidget'),
                        query_compute=string_compare,
-                       widget_type=('vistrails.gui.modules.constant_configuration',
-                                    'StringWidget'))
+                       widget_types_list=[('multiline', ('vistrails.gui.modules.constant_configuration', 'MultiLineStringWidget'))])
 
 ##############################################################################
 
@@ -613,6 +628,13 @@ class Color(Constant):
     @staticmethod
     def get_widget_class():
         return ("vistrails.gui.modules.constant_configuration", "ColorWidget")
+
+    @staticmethod
+    def get_widget_class_of_type(widget_type):
+        if widget_type.startswith('enum'):
+            return ("vistrails.gui.modules.constant_configuration", 
+                    "ColorEnumWidget")
+        return None
         
     @staticmethod
     def get_query_widget_class():

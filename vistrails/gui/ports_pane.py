@@ -208,7 +208,8 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
         for i, (psi, param) in enumerate(izip(self.port_spec.port_spec_items, 
                                               params)):
-            widget_class = widget_accessor(psi.descriptor.module)
+            widget_class = widget_accessor(psi.descriptor.module,
+                                           psi.entry_type)
             if param is not None:
                 obj = param
             else:
@@ -222,7 +223,9 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             param_widget = widget_class(obj, self.group_box)
             self.my_widgets.append(param_widget)
             layout.addWidget(label, i, 0)
+            layout.setAlignment(label, QtCore.Qt.AlignLeft)
             layout.addWidget(param_widget, i, 1)
+            layout.addItem(QtGui.QSpacerItem(0,0, QtGui.QSizePolicy.MinimumExpanding), i, 2)
 
         self.group_box.setLayout(layout)
         def updateMethod():

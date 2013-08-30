@@ -33,20 +33,28 @@
 ##
 ###############################################################################
 
-from constant_configuration import StandardConstantWidgetBase
+from constant_configuration import StandardConstantWidget, \
+    StandardConstantEnumWidget
 from query_configuration import BaseQueryWidget
 
-def get_widget_class(module_klass):
-    klass = module_klass.get_widget_class()
+def get_widget_class(module_klass, widget_type=None):
+    klass = None
+    if widget_type:
+        klass = module_klass.get_widget_class_of_type(widget_type)
+        if klass is None:
+            if widget_type.startswith("enum"):
+                return StandardConstantEnumWidget
     if klass is None:
-        return StandardConstantWidgetBase
+        klass = module_klass.get_widget_class()
+        if klass is None:
+            return StandardConstantWidget
     if isinstance(klass, tuple):
         (path, klass_name) = klass
         module = __import__(path, globals(), locals(), [klass_name])
         return getattr(module, klass_name)
     return klass
 
-def get_query_widget_class(module_klass):
+def get_query_widget_class(module_klass, widget_type=""):
     klass = module_klass.get_query_widget_class()
     if klass is None:
         class DefaultQueryWidget(BaseQueryWidget):
