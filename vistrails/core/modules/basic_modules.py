@@ -1034,39 +1034,15 @@ class SmartSource(NotCacheable, Module):
 
 ##############################################################################
 
-class _ZIPDecompressor(object):
+def zip_extract_file(archive, filename_in_archive, output_filename):
+    os.system(
+            "%s > %s" % (
+                    vistrails.core.system.list2cmdline([
+                            'unzip',
+                            '-p', archive,
+                            filename_in_archive]),
+                    vistrails.core.system.list2cmdline([output_filename])))
 
-    """_ZIPDecompressor extracts a file from a .zip file. On Win32, uses
-the zipfile library from python. On Linux/Macs, uses command line, because
-it avoids moving the entire file contents to/from memory."""
-
-    # TODO: Figure out a way of doing this right on Win32
-
-    def __init__(self, archive, filename_in_archive, output_filename):
-        self._archive = archive
-        self._filename_in_archive = filename_in_archive
-        self._output_filename = output_filename
-
-    if vistrails.core.system.systemType in ['Windows', 'Microsoft']:
-        def extract(self):
-            os.system('unzip -p "%s" "%s" > "%s"' %
-                      (self._archive,
-                       self._filename_in_archive,
-                       self._output_filename))
-# zipfile cannot handle big files
-#            import zipfile
-#             output_file = open(self._output_filename, 'w')
-#             zip_file = zipfile.ZipFile(self._archive)
-#             contents = zip_file.read(self._filename_in_archive)
-#             output_file.write(contents)
-#             output_file.close()
-    else:
-        def extract(self):
-            os.system("unzip -p %s %s > %s" %
-                      (self._archive,
-                       self._filename_in_archive,
-                       self._output_filename))
-            
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
@@ -1078,10 +1054,9 @@ class Unzip(Module):
         archive_file = self.getInputFromPort("archive_file")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
         output = self.interpreter.filePool.create_file(suffix=suffix)
-        dc = _ZIPDecompressor(archive_file.name,
-                              filename_in_archive,
-                              output.name)
-        dc.extract()
+        zip_extract_file(archive_file.name,
+                         filename_in_archive,
+                         output.name)
         self.setResult("file", output)
 
 ##############################################################################
