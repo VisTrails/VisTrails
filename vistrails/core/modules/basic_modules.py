@@ -1044,6 +1044,14 @@ def zip_extract_file(archive, filename_in_archive, output_filename):
                     vistrails.core.system.list2cmdline([output_filename])))
 
 
+def zip_extract_all_files(archive, output_path):
+    os.system(
+            vistrails.core.system.list2cmdline([
+                    'unzip',
+                    archive,
+                    '-d', output_path]))
+
+
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
 
@@ -1058,6 +1066,18 @@ class Unzip(Module):
                          filename_in_archive,
                          output.name)
         self.setResult("file", output)
+
+
+class UnzipDirectory(Module):
+    """UnzipDirectory extracts every file from a ZIP archive."""
+
+    def compute(self):
+        self.checkInputPort("archive_file")
+        archive_file = self.getInputFromPort("archive_file")
+        output = self.interpreter.filePool.create_directory()
+        zip_extract_all_files(archive_file.name,
+                              output.name)
+        self.setResult("directory", output)
 
 ##############################################################################
 
@@ -1259,6 +1279,10 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Unzip, 'archive_file', File)
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
+
+    reg.add_module(UnzipDirectory)
+    reg.add_input_port(UnzipDirectory, 'archive_file', File)
+    reg.add_output_port(UnzipDirectory, 'directory', Directory)
 
     reg.add_module(Round, hide_descriptor=True)
     reg.add_input_port(Round, 'in_value', Float)
