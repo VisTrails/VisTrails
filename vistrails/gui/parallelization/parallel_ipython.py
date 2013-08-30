@@ -175,6 +175,12 @@ class QBaseIPythonWidget(QtGui.QWidget):
                 QtGui.QLabel(str(info['started_engines'])
                              if info['started_engines'] is not None
                              else "(unknown)"))
+        if info['database'] is not None:
+            form.addRow(
+                    "Controller connected to a database:",
+                    QtGui.QLabel("yes"
+                                 if info['database']
+                                 else "no"))
         layout.addLayout(form)
         if info['engines']:
             tree = QtGui.QTreeWidget()

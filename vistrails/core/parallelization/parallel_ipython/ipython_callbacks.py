@@ -113,6 +113,10 @@ class SafeClient(object):
                 self._callback_condition.release()
         return wrapper()
 
+    def db_query(self, *args, **kwargs):
+        with self.lock():
+            return self.client.db_query(*args, **kwargs)
+
     def shutdown(self, *args, **kwargs):
         self.client.shutdown(*args, **kwargs)
         self.close()

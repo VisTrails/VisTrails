@@ -146,8 +146,15 @@ class IPythonProfile(object):
         info['started_engines'] = sum(1 for p in self.started_engines if p.poll() is None)
         if client is not None:
             info['total_engines'] = len(client.ids)
+            try:
+                client.db_query({'msg_id': 'ae5f5276-1aad-40ef-ade9-a3175a3be7be'})
+            except error.IPythonError:
+                info['database'] = False
+            else:
+                info['database'] = True
         else:
             info['total_engines'] = None
+            info['database'] = None
         if connected and client.ids:
             with client.direct_view() as dview:
                 with dview.sync_imports():
