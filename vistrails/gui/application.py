@@ -93,7 +93,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
-            self.timeout = 10000
+            self.timeout = 600000
             self._unique_key = os.path.join(system.home_directory(),
                                             "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
@@ -582,7 +582,13 @@ parameters from other instances")
             self.temp_configuration.interactiveMode = True
             
             result = self.parse_input_args_from_other_instance(str(byte_array))
-            if result not in [True, False]:
+            if None == result:
+                result = True
+            if True == result:
+                result = "Command Completed"
+            elif False == result:
+                result = "Command Failed"
+            else:
                 result = '\n'.join(result[1])
             self.shared_memory.lock()
             local_socket.write(str(result))
