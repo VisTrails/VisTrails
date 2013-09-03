@@ -34,7 +34,7 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 import os
-import sqlite3
+import re
 import uuid
 
 from vistrails.core.modules.basic_modules import Path
@@ -60,6 +60,15 @@ class PersistentRefModelSingleton(object):
 class PersistentRefModel(QtCore.QAbstractItemModel):
 
     _instance = None
+
+    # 2013-09-03 18:57:53.133000
+    _DATE_FORMAT = re.compile(r'^(?P<y>[0-9]{4})-'
+                              r'(?P<m>[0-9]{2})-'
+                              r'(?P<d>[0-9]{2}) '
+                              r'(?P<H>[0-9]{2}):'
+                              r'(?P<M>[0-9]{2}):'
+                              r'(?P<S>[0-9]{2}).'
+                              r'(?P<ms>[0-9]+)$')
 
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
@@ -89,7 +98,17 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         self.db_access = DatabaseAccessSingleton()
         self.db_access.set_model(self)
         rows = self.db_access.read_database(
-            [c[1] for c in sorted(self.cols.iteritems())])        
+            [c[1] for c in sorted(self.cols.iteritems())])
+
+        def fix_dates(row):
+            row = list(row)
+            for c in ('date_created', 'date_modified'):
+                c = self.idxs[c]
+                m = self._DATE_FORMAT.match(row[c])
+                if m is not None:
+                    row[c] = '{y}-{m}-{d} {H}:{M}'.format(**m.groupdict())
+            return tuple(row)
+        rows = map(fix_dates, rows)
 
         self.id_lists = {}
         for ref in rows:
@@ -285,6 +304,9 @@ class PersistentRefView(QtGui.QTreeView):
         self.setSortingEnabled(True)
         self.current_id = None
         self.current_version = None
+
+        for i in xrange(self.my_model.columnCount()):
+            self.resizeColumnToContents(i)
 
     def set_visibility(self, path_type=None):
         if path_type == "blob":
