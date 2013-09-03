@@ -24,7 +24,7 @@ if __name__ == '__main__':
         sys.stderr.write("Wrong extension for f_in '%s'\n" % fin)
         sys.exit(1)
 
-    with open(fin, 'rb') as fpin:
+    with open(fin, 'r') as fpin:
         fcin = fpin.read()
     if fcin != 'this is a\ntest':
         sys.stderr.write("Wrong content in f_in '%s'\n" % fin)
