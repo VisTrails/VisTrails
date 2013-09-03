@@ -1563,3 +1563,41 @@ class TestNumericConversions(unittest.TestCase):
                     (2, 'value', 3, 'in_value'),
                 ]))
         self.assertEqual(results, [7])
+
+
+class TestUnzip(unittest.TestCase):
+    def test_unzip_file(self):
+        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.core.system import vistrails_root_directory
+        zipfile = os.path.join(vistrails_root_directory(),
+                               'tests', 'resources',
+                               'test_archive.zip')
+        with intercept_result(Unzip, 'file') as outfiles:
+            self.assertFalse(execute([
+                    ('Unzip', 'org.vistrails.vistrails.basic', [
+                        ('archive_file', [('File', zipfile)]),
+                        ('filename_in_archive', [('String', 'file1.txt')]),
+                    ]),
+                ]))
+        self.assertEqual(len(outfiles), 1)
+        with open(outfiles[0].name, 'r') as outfile:
+            self.assertEqual(outfile.read(), "some random\ncontent")
+
+    def test_unzip_all(self):
+        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.core.system import vistrails_root_directory
+        zipfile = os.path.join(vistrails_root_directory(),
+                               'tests', 'resources',
+                               'test_archive.zip')
+        with intercept_result(UnzipDirectory, 'directory') as outdir:
+            self.assertFalse(execute([
+                    ('UnzipDirectory', 'org.vistrails.vistrails.basic', [
+                        ('archive_file', [('File', zipfile)]),
+                    ]),
+                ]))
+        self.assertEqual(len(outdir), 1)
+
+        self.assertEqual(
+                [(d, f) for p, d, f in os.walk(outdir[0].name)],
+                [(['subdir'], ['file1.txt']),
+                 ([], ['file2.txt'])])
