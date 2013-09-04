@@ -141,10 +141,18 @@ parameters from other instances")
 
     def found_another_instance_running(self):
         debug.critical("Found another instance of VisTrails running")
-        msg = str(sys.argv[1:])
+        msg = bytes(sys.argv[1:])
         debug.critical("Will send parameters to main instance %s" % msg)
-        return self.send_message(msg)
-            
+        res = self.send_message(msg)
+        if res is True:
+            debug.critical("Main instance succeeded")
+            return True
+        elif res is False:
+            return False
+        else:
+            debug.critical("Main instance reports: %s" % res)
+            return False
+
     def init(self, optionsDict=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
@@ -161,7 +169,7 @@ parameters from other instances")
         if singleInstance:
             self.run_single_instance()
             if self._is_running:
-                if self.found_another_instance_running() is True:
+                if self.found_another_instance_running():
                     sys.exit(0)
                 else:
                     return False
@@ -592,7 +600,7 @@ parameters from other instances")
             else:
                 result = '\n'.join(result[1])
             self.shared_memory.lock()
-            local_socket.write(str(result))
+            local_socket.write(bytes(result))
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.critical("Writing failed: %s" %
