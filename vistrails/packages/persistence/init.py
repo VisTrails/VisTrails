@@ -219,62 +219,64 @@ class PersistentPath(Module):
 
         self.persistent_ref = None
         self.persistent_path = None
-        if not is_input:
-            # can check updateUpstream
-            if not hasattr(self, 'signature'):
-                raise ModuleError(self, 'Module has no signature')
-            ref_exists = False
-            if not self.hasInputFromPort('ref'):
-                # create new reference with no name or tags
-                ref = PersistentRef()
-                ref.signature = self.signature
-            else:
-                # update single port
-                self.updateUpstreamPort('ref')
-                ref = self.getInputFromPort('ref')
-                if db_access.ref_exists(ref.id, ref.version):
-                    ref_exists = True
-                    if ref.version is None:
-                        ref.version = \
-                            repo.get_current_repo().get_latest_version(ref.id)
-                    signature = db_access.get_signature(ref.id, ref.version)
-                    if signature == self.signature:
-                        # don't need to create a new version
-                        self.persistent_ref = ref
+        if is_input:
+            return super(PersistentPath, self).updateUpstream()
 
-            # Note that ref_exists is True if the reference is a fixed
-            # reference; if it was assigned a new uuid, we can still
-            # reuse a reference with the same signature
-            if not ref_exists:
-                signature = self.signature
-                debug_print('searching for signature', signature)
-                sig_ref = db_access.search_by_signature(signature)
-                debug_print('sig_ref:', sig_ref)
-                if sig_ref:
-                    debug_print('setting persistent_ref')
-                    ref.id, ref.version, ref.name = sig_ref
+        # can check updateUpstream
+        if not hasattr(self, 'signature'):
+            raise ModuleError(self, 'Module has no signature')
+
+        ref_exists = False
+        if not self.hasInputFromPort('ref'):
+            # create new reference with no name or tags
+            ref = PersistentRef()
+            ref.signature = self.signature
+        else:
+            # update single port
+            self.updateUpstreamPort('ref')
+            ref = self.getInputFromPort('ref')
+            if db_access.ref_exists(ref.id, ref.version):
+                ref_exists = True
+                if ref.version is None:
+                    ref.version = \
+                        repo.get_current_repo().get_latest_version(ref.id)
+                signature = db_access.get_signature(ref.id, ref.version)
+                if signature == self.signature:
+                    # don't need to create a new version
                     self.persistent_ref = ref
-                    #             else:
-                    #                 ref.id = uuid.uuid1()
-                
 
-                # copy as normal
-                # don't copy if equal
+        # Note that ref_exists is True if the reference is a fixed
+        # reference; if it was assigned a new uuid, we can still
+        # reuse a reference with the same signature
+        if not ref_exists:
+            signature = self.signature
+            debug_print('searching for signature', signature)
+            sig_ref = db_access.search_by_signature(signature)
+            debug_print('sig_ref:', sig_ref)
+            if sig_ref:
+                debug_print('setting persistent_ref')
+                ref.id, ref.version, ref.name = sig_ref
+                self.persistent_ref = ref
+                #             else:
+                #                 ref.id = uuid.uuid1()
 
-            # FIXME also need to check that the file actually exists here!
-            if self.persistent_ref is not None:
-                _, suffix = os.path.splitext(self.persistent_ref.name)
-                self.persistent_path = repo.get_current_repo().get_path(
-                    self.persistent_ref.id, 
-                    self.persistent_ref.version,
-                    out_suffix=suffix)
-                debug_print("FOUND persistent path")
-                debug_print(self.persistent_path)
-                debug_print(self.persistent_ref.local_path)
+            # copy as normal
+            # don't copy if equal
+
+        # FIXME also need to check that the file actually exists here!
+        if self.persistent_ref is not None:
+            _, suffix = os.path.splitext(self.persistent_ref.name)
+            self.persistent_path = repo.get_current_repo().get_path(
+                self.persistent_ref.id,
+                self.persistent_ref.version,
+                out_suffix=suffix)
+            debug_print("FOUND persistent path")
+            debug_print(self.persistent_path)
+            debug_print(self.persistent_ref.local_path)
 
         if self.persistent_ref is None or self.persistent_path is None:
             debug_print("NOT FOUND persistent path")
-            Module.updateUpstream(self)
+            super(PersistentPath, self).updateUpstream()
 
     def compute(self, is_input=None, path_type=None):
         global db_access
