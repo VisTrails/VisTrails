@@ -173,6 +173,13 @@ class PersistentPath(Module):
         debug_print('stderr:', type(errs), errs)
         debug_print('***')
 
+    @staticmethod
+    def git_command():
+        if systemType in ['Windows', 'Microsoft']:
+            return ['cd', '/D', local_db, '&&', git_bin]
+        else:
+            return ['cd', local_db, '&&', git_bin]
+
     def get_path_type(self, path):
         if os.path.isdir(path):
             return 'tree'
