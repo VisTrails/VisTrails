@@ -282,18 +282,6 @@ possible for modules to be cacheable depending on their execution
 context."""
         return True
 
-    def updateUpstreamPort(self, port):
-        # update single port
-        if port in self.inputPorts:
-            for connector in self.inputPorts[port]:
-                connector.obj.update()
-                if hasattr(connector.obj, 'suspended') and \
-                   connector.obj.suspended:
-                    self.suspended = connector.obj.suspended
-            for connector in copy.copy(self.inputPorts[port]):
-                if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(port, connector)
-
     def updateUpstream(self, callback=None, targets=None, priority=None):
         """ updateUpstream(targets: list) -> None
         Called from update() to update the upstream modules, so as to make
