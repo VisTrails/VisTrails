@@ -225,15 +225,22 @@ class PersistentPath(Module):
         # can check updateUpstream
         if not hasattr(self, 'signature'):
             raise ModuleError(self, 'Module has no signature')
+        if not self.hasInputFromPort('ref'):
+            self.got_ref()
+        else:
+            # update single port
+            super(PersistentPath, self).updateUpstream(
+                    self.got_ref,
+                    ['ref'],
+                    self.COMPUTE_BACKGROUND_PRIORITY)
 
+    def got_ref(self, _unused_connectors=None):
         ref_exists = False
         if not self.hasInputFromPort('ref'):
             # create new reference with no name or tags
             ref = PersistentRef()
             ref.signature = self.signature
         else:
-            # update single port
-            self.updateUpstreamPort('ref')
             ref = self.getInputFromPort('ref')
             if db_access.ref_exists(ref.id, ref.version):
                 ref_exists = True
@@ -277,6 +284,8 @@ class PersistentPath(Module):
         if self.persistent_ref is None or self.persistent_path is None:
             debug_print("NOT FOUND persistent path")
             super(PersistentPath, self).updateUpstream()
+        else:
+            super(PersistentPath, self).updateUpstream(targets=[])
 
     def compute(self, is_input=None, path_type=None):
         global db_access
