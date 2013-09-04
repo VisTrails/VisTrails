@@ -160,10 +160,8 @@ parameters from other instances")
         if singleInstance:
             self.run_single_instance()
             if self._is_running:
-                if self.found_another_instance_running() is True:
-                    return True
-                else:
-                    return False
+                self.found_another_instance_running()
+                return False
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
@@ -594,7 +592,7 @@ parameters from other instances")
             local_socket.write(str(result))
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
-                debug.debug("Writing failed: %s" %
+                debug.critical("Writing failed: %s" %
                             local_socket.errorString())
                 return
             local_socket.disconnectFromServer()
@@ -623,12 +621,13 @@ parameters from other instances")
             byte_array = local_socket.readAll()
             result = str(byte_array)
             debug.log("Other instance processed input (%s)"%result)
-            if result != 'True':
+            if result != 'Command Completed':
                 debug.critical(result)
             else:
+                local_socket.disconnectFromServer()
                 return True
             local_socket.disconnectFromServer()
-            return str(byte_array)
+            return result
     
     def parse_input_args_from_other_instance(self, msg):
         import re
