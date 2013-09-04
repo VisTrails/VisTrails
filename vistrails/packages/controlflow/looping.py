@@ -69,7 +69,7 @@ class While(Module):
         for i in xrange(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
-                module.already_computed = False
+                module.ran = False
 
                 # For logging
                 module.is_looping = True
