@@ -252,7 +252,6 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         return QtCore.QModelIndex()
 
     def add_data(self, value_dict):
-        value_dict = self.fix_dates(value_dict)
         id = value_dict['id']
         value_list = []
         for _, c in sorted(self.cols.iteritems()):
@@ -263,9 +262,9 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         if id not in self.id_lists:
             self.id_lists[id] = []
             self.id_lists_keys.append(id)
-        self.id_lists[id].append(tuple(value_list))
+        self.id_lists[id].append(self.fix_dates(value_list))
         self.reset()
-            
+
     def remove_data(self, where_dict):
         id = where_dict['id']
         version = where_dict.get('version', None)
