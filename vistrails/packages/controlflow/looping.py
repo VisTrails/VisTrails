@@ -21,23 +21,31 @@ class While(Module):
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
 
-        # everything is the same except that we don't update anything
-        # upstream of FunctionPort
+        if len(self.inputPorts.get('FunctionPort', [])) != 1:
+            raise ModuleError(self,
+                              "%s module should have exactly one connection "
+                              "on its FunctionPort" % self.__class__.__name__)
+        connectors = []
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
-                for connector in connector_list:
-                    connector.obj.updateUpstream()
+                connector, = connector_list
+                for up_connector_list in connector.obj.inputPorts.itervalues():
+                    connectors.extend(up_connector_list)
             else:
-                for connector in connector_list:
-                    connector.obj.update()
+                connectors.extend(connector_list)
+        self.run_upstream_module(
+                self.other_ports_ready,
+                *connectors,
+                priority=self.UPDATE_UPSTREAM_PRIORITY)
+
+    def other_ports_ready(self):
         for port_name, connectorList in copy.copy(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
-                    if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
+                    mod, port = connector.obj, connector.port
+                    if mod.get_output(port) is InvalidOutput:
                         self.removeInputConnector(port_name, connector)
 
-    def compute(self):
         name_output = self.getInputFromPort('OutputPort')
         name_condition = self.getInputFromPort('ConditionPort')
         name_state_input = self.forceGetInputFromPort('StateInputPorts')
