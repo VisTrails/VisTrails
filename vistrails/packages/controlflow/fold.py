@@ -119,6 +119,13 @@ class FoldWithModule(Fold, NotCacheable):
                 priority=self.UPDATE_UPSTREAM_PRIORITY)
 
     def other_ports_ready(self):
+        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+            if port_name != 'FunctionPort':
+                for connector in connectorList:
+                    mod, port = connector.obj, connector.port
+                    if mod.get_output(port) is InvalidOutput:
+                        self.removeInputConnector(port_name, connector)
+
         self.setInitialValue()
         self.partialResult = self.initialValue
         self.elementResult = None
