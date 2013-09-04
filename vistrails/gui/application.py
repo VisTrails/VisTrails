@@ -160,8 +160,10 @@ parameters from other instances")
         if singleInstance:
             self.run_single_instance()
             if self._is_running:
-                self.found_another_instance_running()
-                return False
+                if self.found_another_instance_running() is True:
+                    sys.exit(0)
+                else:
+                    return False
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
