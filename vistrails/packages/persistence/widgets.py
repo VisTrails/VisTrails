@@ -70,45 +70,36 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
                               r'(?P<S>[0-9]{2}).'
                               r'(?P<ms>[0-9]+)$')
 
+    cols = {0: "name",
+            1: "type",
+            2: "tags",
+            3: "user",
+            4: "date_created",
+            5: "date_modified",
+            6: "id",
+            7: "version",
+            8: "content_hash",
+            9: "signature"}
+    idxs = dict((v,k) for (k,v) in cols.iteritems())
+    headers = {"id": "ID",
+               "name": "Name",
+               "tags": "Tags",
+               "user": "User",
+               "date_created": "Date Created",
+               "date_modified": "Date Modified",
+               "content_hash": "Content Hash",
+               "version": "Version",
+               "signature": "Signature",
+               "type": "Type"}
+
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
-        self.cols = {0: "name",
-                     1: "type",
-                     2: "tags",
-                     3: "user",
-                     4: "date_created",
-                     5: "date_modified",
-                     6: "id",
-                     7: "version",
-                     8: "content_hash",
-                     9: "signature",
-                     }
-        self.idxs = dict((v,k) for (k,v) in self.cols.iteritems())
-        self.headers = {"id": "ID",
-                        "name": "Name",
-                        "tags": "Tags",
-                        "user": "User",
-                        "date_created": "Date Created",
-                        "date_modified": "Date Modified",
-                        "content_hash": "Content Hash",
-                        "version": "Version",
-                        "signature": "Signature",
-                        "type": "Type"}
 
         self.db_access = DatabaseAccessSingleton()
         self.db_access.set_model(self)
         rows = self.db_access.read_database(
             [c[1] for c in sorted(self.cols.iteritems())])
-
-        def fix_dates(row):
-            row = list(row)
-            for c in ('date_created', 'date_modified'):
-                c = self.idxs[c]
-                m = self._DATE_FORMAT.match(row[c])
-                if m is not None:
-                    row[c] = '{y}-{m}-{d} {H}:{M}'.format(**m.groupdict())
-            return tuple(row)
-        rows = map(fix_dates, rows)
+        rows = map(self.fix_dates, rows)
 
         self.id_lists = {}
         for ref in rows:
@@ -119,6 +110,16 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         self.id_lists_keys = self.id_lists.keys()
 
         self.integer_wrappers = {}
+
+    @staticmethod
+    def fix_dates(row):
+        row = list(row)
+        for c in ('date_created', 'date_modified'):
+            c = PersistentRefModel.idxs[c]
+            m = PersistentRefModel._DATE_FORMAT.match(row[c])
+            if m is not None:
+                row[c] = '{y}-{m}-{d} {H}:{M}'.format(**m.groupdict())
+        return tuple(row)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         if not parent.isValid():
@@ -249,8 +250,9 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
 #                     (not version or data[self.idxs['version']] == version):
 #                 return self.createIndex(i, 0, 0)
         return QtCore.QModelIndex()
-    
+
     def add_data(self, value_dict):
+        value_dict = self.fix_dates(value_dict)
         id = value_dict['id']
         value_list = []
         for _, c in sorted(self.cols.iteritems()):
