@@ -50,6 +50,7 @@ from vistrails.gui import qt
 import vistrails.gui.theme
 import os.path
 import getpass
+import re
 import sys
 
 ################################################################################
@@ -630,16 +631,19 @@ parameters from other instances")
                 return True
             local_socket.disconnectFromServer()
             return result
-    
+
     def parse_input_args_from_other_instance(self, msg):
-        import re
-        options_re = re.compile(r"(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])")
+        options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
         if options_re.match(msg):
             #it's safe to eval as a list
             args = eval(msg)
             if isinstance(args, list):
                 #print "args from another instance %s"%args
-                command_line.CommandLineParser.init_options(args)
+                try:
+                    command_line.CommandLineParser.init_options(args)
+                except SystemExit:
+                    debug.critical("Invalid options: %s" % ' '.join(args))
+                    return False
                 self.readOptions()
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
@@ -656,7 +660,8 @@ parameters from other instances")
                 debug.critical("Invalid string: %s" % msg)
         else:
             debug.critical("Invalid input: %s" % msg)
-        
+        return False
+
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
