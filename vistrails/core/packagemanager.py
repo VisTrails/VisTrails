@@ -500,12 +500,17 @@ Returns true if given package identifier is present."""
             except Package.MissingDependency, e:
                 debug.critical("Dependencies of package %s are missing "
                                "so it will be disabled" % package.name, str(e))
-                package.remove_own_dom_element()
-                self._dependency_graph.delete_vertex(package.identifier)
-                del self._package_versions[package.identifier][package.version]
-                if len(self._package_versions[package.identifier]) == 0:
-                    del self._package_versions[package.identifier]
-                failed.append(package)
+            except Exception, e:
+                debug.critical("Got an exception while getting dependencies "
+                               "of package %s: %s" % (package.name, str(e)))
+            else:
+                continue
+            package.remove_own_dom_element()
+            self._dependency_graph.delete_vertex(package.identifier)
+            del self._package_versions[package.identifier][package.version]
+            if len(self._package_versions[package.identifier]) == 0:
+                del self._package_versions[package.identifier]
+            failed.append(package)
 
         for pkg in failed:
             del self._package_list[pkg.codepath]
