@@ -39,11 +39,16 @@ class While(Module):
 
     def compute(self):
         name_output = self.getInputFromPort('OutputPort')
-        name_condition = self.getInputFromPort('ConditionPort')
+        name_condition = self.forceGetInputFromPort('ConditionPort')
         name_state_input = self.forceGetInputFromPort('StateInputPorts')
         name_state_output = self.forceGetInputFromPort('StateOutputPorts')
         max_iterations = self.getInputFromPort('MaxIterations')
         delay = self.forceGetInputFromPort('Delay')
+
+        if (name_condition is None and
+                not self.hasInputFromPort('MaxIterations')):
+            raise ModuleError(self,
+                              "Please set MaxIterations use a ConditionPort")
 
         if name_state_input or name_state_output:
             if not name_state_input or not name_state_output:
@@ -91,11 +96,13 @@ class While(Module):
             if hasattr(module, 'suspended') and module.suspended:
                 raise ModuleSuspended(module._module_suspended)
 
-            if name_condition not in module.outputPorts:
-                raise ModuleError(module,
-                                  "Invalid output port: %s" % name_condition)
-            if not module.get_output(name_condition):
-                break
+            if name_condition is not None:
+                if name_condition not in module.outputPorts:
+                    raise ModuleError(
+                            module,
+                            "Invalid output port: %s" % name_condition)
+                if not module.get_output(name_condition):
+                    break
 
             if delay:
                 time.sleep(delay)
