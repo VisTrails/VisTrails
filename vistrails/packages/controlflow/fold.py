@@ -197,10 +197,7 @@ class FoldWithModule(Fold, NotCacheable):
                     len(suspended), suspended[0].msg)
             self._module_suspended = suspended
         if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
+            return
         self.setResult('Result', self.partialResult)
 
         self.upToDate = True
