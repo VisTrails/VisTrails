@@ -47,11 +47,16 @@ class While(Module):
                         self.removeInputConnector(port_name, connector)
 
         name_output = self.getInputFromPort('OutputPort')
-        name_condition = self.getInputFromPort('ConditionPort')
+        name_condition = self.forceGetInputFromPort('ConditionPort')
         name_state_input = self.forceGetInputFromPort('StateInputPorts')
         name_state_output = self.forceGetInputFromPort('StateOutputPorts')
         max_iterations = self.getInputFromPort('MaxIterations')
         delay = self.forceGetInputFromPort('Delay')
+
+        if (name_condition is None and
+                not self.hasInputFromPort('MaxIterations')):
+            raise ModuleError(self,
+                              "Please set MaxIterations use a ConditionPort")
 
         if name_state_input or name_state_output:
             if not name_state_input or not name_state_output:
@@ -77,7 +82,7 @@ class While(Module):
         for i in xrange(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
-                module.already_computed = False
+                module.ran = False
 
                 # For logging
                 module.is_looping = True
@@ -99,11 +104,13 @@ class While(Module):
             if hasattr(module, 'suspended') and module.suspended:
                 raise ModuleSuspended(module._module_suspended)
 
-            if name_condition not in module.outputPorts:
-                raise ModuleError(module,
-                                  "Invalid output port: %s" % name_condition)
-            if not module.get_output(name_condition):
-                break
+            if name_condition is not None:
+                if name_condition not in module.outputPorts:
+                    raise ModuleError(
+                            module,
+                            "Invalid output port: %s" % name_condition)
+                if not module.get_output(name_condition):
+                    break
 
             if delay:
                 time.sleep(delay)
@@ -117,3 +124,44 @@ class While(Module):
                               "Invalid output port: %s" % name_output)
         result = copy.copy(module.get_output(name_output))
         self.setResult('Result', result)
+
+
+###############################################################################
+
+import unittest
+
+class TestWhile(unittest.TestCase):
+    def test_pythonsource(self):
+        import urllib2
+        source = ('o = i * 2\n'
+                  "r = \"it's %d!!!\" % o\n"
+                  'go_on = o < 100')
+        source = urllib2.quote(source)
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(While, 'Result') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', source)]),
+                        ('i', [('Integer', '5')]),
+                    ]),
+                    ('While', 'org.vistrails.vistrails.control_flow', [
+                        ('ConditionPort', [('String', 'go_on')]),
+                        ('OutputPort', [('String', 'r')]),
+                        ('StateInputPorts', [('List', "['i']")]),
+                        ('StateOutputPorts', [('List', "['o']")]),
+                    ]),
+                ],
+                [
+                    (0, 'self', 1, 'FunctionPort'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'i',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'r',
+                     'org.vistrails.vistrails.basic:String'),
+                    (0, 'output', 'go_on',
+                     'org.vistrails.vistrails.basic:Boolean'),
+                ]))
+        self.assertEqual(results, ["it's 160!!!"])

@@ -107,7 +107,7 @@ class CoreLocator(object):
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
 
-class UntitledLocator(_UntitledLocator):
+class UntitledLocator(_UntitledLocator, CoreLocator):
     def load(self, klass=None):
         from vistrails.core.vistrail.vistrail import Vistrail
         if klass is None:

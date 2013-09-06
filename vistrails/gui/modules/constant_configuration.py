@@ -339,7 +339,8 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
 
     def setDefault(self, value):
         self._default = value
-        self._widget.setDefault(value)
+        if self._widget is not None:
+            self._widget.setDefault(value)
 
     def contents(self):
         return self._widget.contents()

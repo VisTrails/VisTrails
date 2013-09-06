@@ -912,9 +912,8 @@ class CodeRunnerMixin(object):
             self.is_cacheable = lambda *args, **kwargs: True
         locals_ = locals()
         if use_input:
-            inputDict = dict([(k, self.getInputFromPort(k))
-                              for k in self.inputPorts])
-            locals_.update(inputDict)
+            for k in self.inputPorts:
+                locals_[k] = self.getInputFromPort(k)
         if use_output:
             for output_portname in self.output_ports_order:
                 locals_[output_portname] = None
@@ -925,7 +924,8 @@ class CodeRunnerMixin(object):
                         'cache_this': cache_this,
                         'registry': reg,
                         'self': self})
-        del locals_['source']
+        if 'source' in locals_:
+            del locals_['source']
         exec code_str in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
@@ -949,7 +949,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     """
 
     def compute(self):
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.getInputFromPort('source')))
         self.run_code(s, use_input=True, use_output=True)
 
     def update(self):
@@ -1298,14 +1298,14 @@ def initialize(*args, **kwargs):
     reg.add_module(PythonSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
-    reg.add_input_port(PythonSource, 'source', String, True)
+    reg.add_input_port(PythonSource, 'source', String, True, defaults=str(['']))
     reg.add_input_port(PythonSource, 'execution_targets', List)
     reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
-    reg.add_input_port(SmartSource, 'source', String, True)
+    reg.add_input_port(SmartSource, 'source', String, True, defaults=str(['']))
 
     reg.add_module(Unzip)
     reg.add_input_port(Unzip, 'archive_file', File)
