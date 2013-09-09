@@ -187,6 +187,8 @@ def default():
         'defaultFileType':system.vistrails_default_file_type(),
         'detachHistoryView': False,
         'dotVistrails': system.default_dot_vistrails(),
+        'errorOnConnectionTypeerror': False,
+        'errorOnVariantTypeerror': True,
         'executeWorkflows': False,
         'fileDirectory': (None, str),
 #        'evolutionGraph': (None, str),
