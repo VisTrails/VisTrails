@@ -190,8 +190,14 @@ class GitRepo(object):
         return iter(walker).next().commit.id
 
     def add_commit(self, filename):
-        self.repo.open_index()
-        self.repo.stage(filename)
+        if os.path.isdir(os.path.join(self.repo.path, filename)):
+            paths = []
+            for dirpath, dirnames, filenames in os.walk(
+                    os.path.join(self.repo.path, filename)):
+                paths.extend(os.path.join(filename, f) for f in filenames)
+            self.repo.stage(paths)
+        else:
+            self.repo.stage(filename)
         commit_id = self.repo.do_commit('Updated %s' % filename)
         return commit_id
 

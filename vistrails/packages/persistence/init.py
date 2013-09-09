@@ -355,6 +355,12 @@ class PersistentPath(Module):
                     
             if do_update:
                 debug_print('doing update')
+
+                if path_type == 'tree':
+                    if (not os.path.exists(path) or
+                            not os.listdir(path)):
+                        raise ModuleError(self, "This directory is empty")
+
                 self.copypath(path, os.path.join(local_db, ref.id))
 
                 # commit (and add to) repository
