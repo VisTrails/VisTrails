@@ -61,6 +61,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         package_label = QtGui.QLabel("Package:")
         self.package_edit = QtGui.QLabel("")
         # self.package_edit.setReadOnly(True)
+        id = QtGui.QLabel("Id:")
+        self.module_id = QtGui.QLabel("")
+        # self.module_id.setReadOnly(True)
         self.configure_button = QDockPushButton("Configure")
         self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
                      self.configure)
@@ -86,6 +89,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         add_line(name_label, self.name_edit)
         add_line(type_label, self.type_edit)
         add_line(package_label, self.package_edit)
+        add_line(id, self.module_id)
         h_layout = QtGui.QHBoxLayout()
         h_layout.setMargin(2)
         h_layout.setSpacing(5)
@@ -163,7 +167,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             # self.type_edit.setEnabled(True)
             self.package_edit.setText(self.module.package)
             # self.package_edit.setEnabled(True)
-            
+            self.module_id.setText('%d' % self.module.id)
+            # self.module_id.setEnabled(True)
+
     def name_editing_finished(self):
         if self.module is not None:
             old_text = ''
