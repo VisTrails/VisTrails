@@ -32,8 +32,6 @@ class While(Module):
     def other_ports_ready(self, connectors):
         """Starts looping once upstream modules are done (except the loop).
         """
-        self.logging.begin_update(self)
-
         for port_name, connectorList in copy.copy(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
