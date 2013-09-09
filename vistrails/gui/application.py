@@ -42,7 +42,6 @@ from vistrails.core.application import VistrailsApplicationInterface, \
 from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
-from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
 from vistrails.core.db.locator import FileLocator, DBLocator
 import vistrails.core.requirements
 from vistrails.db import VistrailsDBException
@@ -97,7 +96,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if QtCore.QT_VERSION >= 0x40400:
             self.timeout = 600000
             self._unique_key = os.path.join(system.home_directory(),
-                       "vistrails-single-instance-check-%s"%getpass.getuser())
+                                            "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
             self.local_server = None
             if self.shared_memory.attach():
@@ -137,9 +136,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         if self.local_server.listen(self._unique_key):
                             debug.log("Listening on %s"%self.local_server.fullServerName())
                         else:
-                            debug.warning("Server is not listening. This \
-                            means it will not accept parameters from other \
-                            instances")
+                            debug.warning("Server is not listening. This means it will not accept \
+parameters from other instances")
 
     def found_another_instance_running(self):
         debug.critical("Found another instance of VisTrails running")
@@ -172,10 +170,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.run_single_instance()
             if self._is_running:
                 if self.found_another_instance_running():
-                    return APP_DONE # success, we should shut down 
-
+                    sys.exit(0)
                 else:
-                    return APP_FAIL  # error, we should shut down
+                    return False
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
@@ -199,8 +196,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
-            return APP_SUCCESS if r is True else APP_FAIL
-        return APP_SUCCESS
+            return r
+        return True
 
     def is_running_gui(self):
         return True
@@ -593,19 +590,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.temp_configuration.executeWorkflows = False
             self.temp_configuration.interactiveMode = True
             
-            try:
-                result = self.parse_input_args_from_other_instance(str(byte_array))
-            except Exception, e:
-                import traceback
-                debug.critical("Unknown error: %s" % str(e))
-                result = traceback.format_exc()
+            result = self.parse_input_args_from_other_instance(str(byte_array))
             if None == result:
                 result = True
             if True == result:
                 result = "Command Completed"
             elif False == result:
                 result = "Command Failed"
-            elif type(result) == list:
+            else:
                 result = '\n'.join(result[1])
             self.shared_memory.lock()
             local_socket.write(bytes(result))
@@ -698,7 +690,10 @@ def start_application(optionsDict=None):
         debug.critical("Missing requirement", msg)
         sys.exit(1)
     x = VistrailsApplication.init(optionsDict)
-    return x
+    if x == True:
+        return 0
+    else:
+        return 1
 
 def stop_application():
     """Stop and finalize the application singleton."""
