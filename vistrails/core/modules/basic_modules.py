@@ -1588,7 +1588,7 @@ class TestUnzip(unittest.TestCase):
                     ]),
                 ]))
         self.assertEqual(len(outfiles), 1)
-        with open(outfiles[0].name, 'r') as outfile:
+        with open(outfiles[0].name, 'rb') as outfile:
             self.assertEqual(outfile.read(), "some random\ncontent")
 
     def test_unzip_all(self):
