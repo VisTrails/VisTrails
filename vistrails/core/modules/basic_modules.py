@@ -1609,3 +1609,122 @@ class TestUnzip(unittest.TestCase):
                 [(d, f) for p, d, f in os.walk(outdir[0].name)],
                 [(['subdir'], ['file1.txt']),
                  ([], ['file2.txt'])])
+
+
+from vistrails.core.configuration import get_vistrails_configuration
+
+class TestTypechecking(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        conf = get_vistrails_configuration()
+        cls.error_all = conf.errorOnConnectionTypeerror
+        cls.error_variant = conf.errorOnVariantTypeerror
+
+    @classmethod
+    def tearDownClass(cls):
+        conf = get_vistrails_configuration()
+        conf.errorOnConnectionTypeerror = cls.error_all
+        conf.errorOnVariantTypeerror = cls.error_variant
+
+    @staticmethod
+    def set_settings(error_all, error_variant):
+        conf = get_vistrails_configuration()
+        conf.errorOnConnectionTypeerror = error_all
+        conf.errorOnVariantTypeerror = error_variant
+
+    def run_test_pipeline(self, result, expected_results, *args, **kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        for error_all, error_variant, expected in expected_results:
+            self.set_settings(error_all, error_variant)
+            with intercept_result(*result) as results:
+                error = execute(*args, **kwargs)
+            if not expected:
+                self.assertTrue(error)
+            else:
+                self.assertFalse(error)
+                self.assertEqual(results, expected)
+
+    def test_basic(self):
+        import urllib2
+        # Base case: no typing error
+        # This should succeed in every case
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, ["test"]),
+             (True, True, ["test"])],
+            [
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('o = "test"'))]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'o', 1, 'i'),
+            ],
+            add_port_specs=[
+                (0, 'output', 'o',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String')
+            ])
+
+    def test_fake(self):
+        import urllib2
+        # A module is lying, declaring a String but returning an int
+        # This should fail with errorOnConnectionTypeerror=True (not the
+        # default)
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, [42]),
+             (False, True, [42]),
+             (True, True, False)],
+            [
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('o = 42'))]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'o', 1, 'i'),
+            ],
+            add_port_specs=[
+                (0, 'output', 'o',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String')
+            ])
+
+    def test_inputport(self):
+        import urllib2
+        # This test uses an InputPort module, whose output port should not be
+        # considered a Variant port (although it is)
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, [42]),
+             (False, True, [42]),
+             (True, True, [42])],
+            [
+                ('InputPort', 'org.vistrails.vistrails.basic', [
+                    ('ExternalPipe', [('Integer', '42')]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'InternalPipe', 1, 'i'),
+            ],
+            add_port_specs=[
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String'),
+            ])
