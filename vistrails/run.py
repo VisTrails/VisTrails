@@ -139,13 +139,14 @@ if __name__ == '__main__':
 
     from PyQt4 import QtGui
     import vistrails.gui.application
+    from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
     try:
         v = vistrails.gui.application.start_application()
-        if v != 0:
+        if v != APP_SUCCESS:
             app = vistrails.gui.application.get_vistrails_application()
             if app:
                 app.finishSession()
-            sys.exit(v)
+            sys.exit(APP_SUCCESS if v == APP_DONE else APP_FAIL)
         app = vistrails.gui.application.get_vistrails_application()()
     except SystemExit, e:
         app = vistrails.gui.application.get_vistrails_application()
