@@ -36,6 +36,12 @@
 ##############################################################################
 # Changes
 #
+# 20130827 (by Remi)
+#    CombineRGBA can now also accept RGB
+#    Factored code common between Convert and CombineRGBA
+#    Removes 'geometry' and related ports from most modules, as they were
+#    *already ignored* except by the Scale module
+#
 # 20090521 (by Emanuele)
 #    Added path configuration option so imagemagick does not to be in the path
 #    Removed ImageMagick presence check
