@@ -26,7 +26,7 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.1 beta2 build da6dda16b6cb from v2.1 branch
+Release Name: v2.1 beta2 build d13df0810af7 from v2.1 branch
 
 Bug fixes: 
  - Ticket #705: zip.exe not found in Windows binary (69a16e3c5b84)
