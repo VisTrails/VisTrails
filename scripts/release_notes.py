@@ -329,9 +329,8 @@ def build_release_notes(repo, branch):
     revisions = sorted(times)
     revisions.reverse()
     for (t,r) in revisions:
-        print "(%s): "%r[0:12]
         for c in changes[r]:
-            print "  - %s... "%c[0:100]
+            print " - %s (%s)" %(c.split('\n')[0][0:100],r[0:12])
 
 if __name__ == "__main__":
     repo = init_repo()
