@@ -36,6 +36,12 @@
 ##############################################################################
 # Changes
 #
+# 20130827 (by Remi)
+#    CombineRGBA can now also accept RGB
+#    Factored code common between Convert and CombineRGBA
+#    Removes 'geometry' and related ports from most modules, as they were
+#    *already ignored* except by the Scale module
+#
 # 20090521 (by Emanuele)
 #    Added path configuration option so imagemagick does not to be in the path
 #    Removed ImageMagick presence check
@@ -44,17 +50,14 @@
 #    Added CombineRGBA to create image from channels.
 #    Moved quiet to configuration
 #    Fixed bug with GaussianBlur
-import vistrails.core.modules
-import vistrails.core.modules.module_registry
-import vistrails.core.modules.basic_modules
+
 from vistrails.core import debug
-from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module, \
-     IncompleteImplementation
-import vistrails.core.configuration
-import vistrails.core.requirements
-import vistrails.core.system
+import vistrails.core.modules.basic_modules as basic
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+    new_module, IncompleteImplementation
 from vistrails.core.system import list2cmdline
-import vistrails.core.bundles
+
 import os
 
 ################################################################################
@@ -67,26 +70,18 @@ package. It simply defines some helper methods for subclasses."""
         raise IncompleteImplementation
 
     def input_file_description(self):
-        """Returns a fully described name in the ImageMagick format. For example,
-a file stored in PNG format may be described by its extension
+        """Returns a fully described name in the ImageMagick format.
 
+        For example, a file stored in PNG format may be described by:
         - 'graphic.png' indicates the filename 'graphic.png', using the PNG
         file format.
-
-        - 'graphic:png' indicates the filename 'graphic', still using the PNG
+        - 'png:graphic' indicates the filename 'graphic', still using the PNG
         file format."""
         i = self.getInputFromPort("input")
         if self.hasInputFromPort('inputFormat'):
             return self.getInputFromPort('inputFormat') + ':' + i.name
         else:
             return i.name
-
-
-class Convert(ImageMagick):
-    """Convert is the base Module for VisTrails Modules in the ImageMagick
-package that deal with operations on images. Convert is a bit of a misnomer since
-the 'convert' tool does more than simply file format conversion. Each subclass
-has a descriptive name of the operation it implements."""
 
     def create_output_file(self):
         """Creates a File with the output format given by the
@@ -96,19 +91,6 @@ outputFormat port."""
             return self.interpreter.filePool.create_file(suffix=s)
         else:
             return self.interpreter.filePool.create_file(suffix='.png')
-
-    def geometry_description(self):
-        """returns a string with the description of the geometry as
-indicated by the appropriate ports (geometry or width and height)"""
-        # if complete geometry is available, ignore rest
-        if self.hasInputFromPort("geometry"):
-            return self.getInputFromPort("geometry")
-        elif self.hasInputFromPort("width"):
-            w = self.getInputFromPort("width")
-            h = self.getInputFromPort("height")
-            return "'%sx%s'" % (w, h)
-        else:
-            raise ModuleError(self, "Needs geometry or width/height")
 
     def run(self, *args):
         """run(*args), runs ImageMagick's 'convert' on a shell, passing all
@@ -126,7 +108,13 @@ arguments to the program."""
             debug.log(cmdline)
         r = os.system(cmdline)
         if r != 0:
-            raise ModuleError(self, "system call failed: '%s'" % cmdline)
+            raise ModuleError(self, "system call failed: %r" % cmdline)
+
+
+class Convert(ImageMagick):
+    """Convert is the base Module for VisTrails Modules in the ImageMagick
+package that transform a single input into a single output. Each subclass has
+a descriptive name of the operation it implements."""
 
     def compute(self):
         o = self.create_output_file()
@@ -135,55 +123,43 @@ arguments to the program."""
         self.setResult("output", o)
 
 
-class CombineRGBA(Module):
-
-    def create_output_file(self):
-        """Creates a File with the output format given by the
-outputFormat port."""
-        if self.hasInputFromPort('outputFormat'):
-            s = '.' + self.getInputFromPort('outputFormat')
-            return self.interpreter.filePool.create_file(suffix=s)
-        else:
-            return self.interpreter.filePool.create_file(suffix='.png')
+class CombineRGBA(ImageMagick):
+    """Combines channels as separate images into a single RGBA file."""
 
     def compute(self):
         o = self.create_output_file()
         r = self.getInputFromPort("r")
         g = self.getInputFromPort("g")
         b = self.getInputFromPort("b")
-        a = self.getInputFromPort("a")
-        
-        path = None
-        if configuration.check('path'):
-            path = configuration.path
-        if path:
-            cmd = os.path.join(path,'convert')
+        a = self.forceGetInputFromPort("a")
+
+        if a is not None:
+            self.run(r.name, g.name, b.name, a.name,
+                     '-channel', 'RGBA',
+                     '-combine', o.name)
         else:
-            cmd = 'convert'    
-        cmd = [cmd, '-channel', 'RGBA', '-combine',
-               r.name, g.name, b.name, a.name, o.name]
-        if not configuration.quiet:
-            debug.log(cmd)
-        cmdline = list2cmdline(cmd)
-        result = os.system(cmdline)
-        if result != 0:
-            raise ModuleError(self, "system call failed: '%s'" % cmdline)
-        self.setResult("output", o)
+            self.run(r.name, g.name, b.name,
+                     '-channel', 'RGB',
+                     '-combine', o.name)
 
-class Negate(Convert):
-    """Negate returns the two's complement negation of the image."""
-
-    def compute(self):
-        o = self.create_output_file()
-        i = self.input_file_description()
-        self.run(i,
-                 "-negate",
-                 o.name)
         self.setResult("output", o)
 
 
 class Scale(Convert):
     """Scale rescales the input image to the given geometry description."""
+
+    def geometry_description(self):
+        """returns a string with the description of the geometry as
+indicated by the appropriate ports (geometry or width and height)"""
+        # if complete geometry is available, ignore rest
+        if self.hasInputFromPort("geometry"):
+            return self.getInputFromPort("geometry")
+        elif self.hasInputFromPort("width"):
+            w = self.getInputFromPort("width")
+            h = self.getInputFromPort("height")
+            return "'%sx%s'" % (w, h)
+        else:
+            raise ModuleError(self, "Needs geometry or width/height")
 
     def compute(self):
         o = self.create_output_file()
@@ -263,52 +239,16 @@ def initialize():
         if s != expected:
             err = "Parse error on version line. Was expecting '%s', got '%s'"
             raise RuntimeError(err % (s, expected))
-    
-    debug.log("ImageMagick VisTrails package")
-#    print "Will test ImageMagick presence..."
-#
-#    if not configuration.check('path'):
-#        cmd = 'convert'
-#        if (not core.requirements.executable_file_exists('convert') and
-#            not core.bundles.install({'linux-ubuntu': 'imagemagick'})):
-#            raise core.requirements.MissingRequirement("ImageMagick suite")
-#    else:
-#        cmd = os.path.join(configuration.path,'convert')
-#    cmdline = list2cmdline([cmd, '-version'])
-#    
-#    if core.system.systemType not in ['Windows', 'Microsoft']: 
-#        process = popen2.Popen4(cmdline)
-#
-#        result = -1
-#        while result == -1:
-#            result = process.poll()
-#        conv_output = process.fromchild
-#    else:
-#        conv_output, input = popen2.popen4(cmdline)
-#        result = 0
-#        
-#    version_line = conv_output.readlines()[0][:-1].split(' ')
-#    if result != 0:
-#        raise RuntimeError("ImageMagick does not seem to be present.")
-#    print "Ok, found ImageMagick"
-#    parse_error_if_not_equal(version_line[0], 'Version:')
-#    parse_error_if_not_equal(version_line[1], 'ImageMagick')
-#    print "Detected version %s" % version_line[2]
-#    global __version__
-#    __version__ = version_line[2]
 
     reg = vistrails.core.modules.module_registry.get_module_registry()
-    basic = vistrails.core.modules.basic_modules
+
     reg.add_module(ImageMagick, abstract=True)
-    reg.add_input_port(ImageMagick, "input", (basic.File, 'the input file'))
-    reg.add_input_port(ImageMagick, "inputFormat", (basic.String, 'coerce interpretation of file to this format'))
-    reg.add_input_port(ImageMagick, "outputFormat", (basic.String, 'Force output to be of this format'))
 
     reg.add_module(Convert)
-    reg.add_input_port(Convert, "geometry", (basic.String, 'ImageMagick geometry'))
-    reg.add_input_port(Convert, "width", (basic.String, 'width of the geometry for operation'))
-    reg.add_input_port(Convert, "height", (basic.String, 'height of the geometry for operation'))
+    reg.add_input_port(Convert, "input", (basic.File, 'the input file'))
+    reg.add_input_port(Convert, "inputFormat", (basic.String, 'coerce interpretation of file to this format'))
     reg.add_output_port(Convert, "output", (basic.File, 'the output file'))
+    reg.add_input_port(Convert, "outputFormat", (basic.String, 'Force output to be of this format'))
 
     for (name, opt, doc_string) in no_param_options:
         m = new_module(Convert, name, no_param_options_method_dict(opt),
@@ -324,12 +264,15 @@ def initialize():
     reg.add_input_port(GaussianBlur, "radiusSigma", [(basic.Float, 'radius'), (basic.Float, 'sigma')])
 
     reg.add_module(Scale)
+    reg.add_input_port(Scale, "geometry", (basic.String, 'ImageMagick geometry'))
+    reg.add_input_port(Scale, "width", (basic.String, 'width of the geometry for operation'))
+    reg.add_input_port(Scale, "height", (basic.String, 'height of the geometry for operation'))
 
     reg.add_module(CombineRGBA)
     reg.add_input_port(CombineRGBA, "r", basic.File)
     reg.add_input_port(CombineRGBA, "g", basic.File)
     reg.add_input_port(CombineRGBA, "b", basic.File)
-    reg.add_input_port(CombineRGBA, "a", basic.File)
+    reg.add_input_port(CombineRGBA, "a", basic.File, optional=True)
     reg.add_input_port(CombineRGBA, "outputFormat", basic.String)
     reg.add_output_port(CombineRGBA, "output", basic.File)
 

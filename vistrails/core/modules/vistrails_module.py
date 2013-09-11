@@ -608,7 +608,7 @@ class ModuleConnector(object):
         """clear() -> None. Removes references, prepares for deletion."""
         self.obj = None
         self.port = None
-    
+
     def __call__(self):
         result = self.obj.get_output(self.port)
         if self.spec is not None and self.typecheck is not None:

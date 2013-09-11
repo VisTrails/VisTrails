@@ -64,6 +64,7 @@ from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
+from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
@@ -3272,6 +3273,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             # controller.current_pipeline_view = self.scene()
 
     def set_to_current(self):
+        QModuleInfo.instance().setReadOnly(self.scene().read_only_mode)
         self.controller.set_pipeline_view(self)
 
     def get_long_title(self):

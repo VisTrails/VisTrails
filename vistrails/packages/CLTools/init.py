@@ -44,8 +44,8 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, Incompl
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.system import default_dot_vistrails, packages_directory, \
-    vistrails_root_directory
+import vistrails.core.system
+from vistrails.core.system import packages_directory, vistrails_root_directory
 
 import identifiers
 
@@ -468,6 +468,9 @@ def reload_scripts():
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), exc),
                    traceback.format_exc())
+
+    from vistrails.core.interpreter.cached import CachedInterpreter
+    CachedInterpreter.clear_package(identifiers.identifier)
 
     from vistrails.gui.vistrails_window import _app
     _app.invalidate_pipelines()

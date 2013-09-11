@@ -116,3 +116,44 @@ class While(Module):
                               "Invalid output port: %s" % name_output)
         result = copy.copy(module.get_output(name_output))
         self.setResult('Result', result)
+
+
+###############################################################################
+
+import unittest
+
+class TestWhile(unittest.TestCase):
+    def test_pythonsource(self):
+        import urllib2
+        source = ('o = i * 2\n'
+                  "r = \"it's %d!!!\" % o\n"
+                  'go_on = o < 100')
+        source = urllib2.quote(source)
+        from vistrails.tests.utils import execute, intercept_result
+        with intercept_result(While, 'Result') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', source)]),
+                        ('i', [('Integer', '5')]),
+                    ]),
+                    ('While', 'org.vistrails.vistrails.control_flow', [
+                        ('ConditionPort', [('String', 'go_on')]),
+                        ('OutputPort', [('String', 'r')]),
+                        ('StateInputPorts', [('List', "['i']")]),
+                        ('StateOutputPorts', [('List', "['o']")]),
+                    ]),
+                ],
+                [
+                    (0, 'self', 1, 'FunctionPort'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'i',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'r',
+                     'org.vistrails.vistrails.basic:String'),
+                    (0, 'output', 'go_on',
+                     'org.vistrails.vistrails.basic:Boolean'),
+                ]))
+        self.assertEqual(results, ["it's 160!!!"])

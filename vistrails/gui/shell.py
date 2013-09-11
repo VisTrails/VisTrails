@@ -871,6 +871,74 @@ def getIPythonDialog():
             # self.setTitleBarWidget(QtGui.QLabel(self.shell.windowTitle()))
             # self.monitorWindowTitle(self.shell)
             self.vistrails_interpreter = get_default_interpreter()
+
+        def visibility_changed(self, visible):
+            QVistrailsPaletteInterface.visibility_changed(self, visible)
+            if visible:
+                self.show()
+            else:
+                self.hide()
+
+        def hide(self):
+            """suspend() -> None
+            Called when hiding the parent window in order to recover the previous
+            state.
+    
+            """
+            #recovering the state
+            sys.stdout   = sys.__stdout__
+            sys.stderr   = sys.__stderr__
+            sys.stdin    = sys.__stdin__
+            RichIPythonWidget.hide(self)
+    
+        def show(self):
+            """show() -> None
+            Store previous state and starts capturing all interactive input and 
+            output.
+            
+            """
+            # capture all interactive input/output
+            sys.stdout   = self
+            sys.stderr   = self
+            sys.stdin    = self
+            RichIPythonWidget.show(self)
+
+        def showEvent(self, e):
+            """showEvent(e) -> None
+            Event handler called when the dialog acquires focus 
+    
+            """
+            self.show()
+
+        def flush(self):
+            """flush() -> None. 
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            pass
+    
+        def isatty(self):
+            """isatty() -> int
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            return 1
+    
+        def readline(self):
+            """readline() -> str
+            
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            return ""
+        
+        def write(self, text):
+            """write(text: str) -> None
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            self._append_plain_text(text, True)
+
     return IPythonDialog
 
 #install_attempted = False

@@ -911,9 +911,8 @@ class CodeRunnerMixin(object):
             self.is_cacheable = lambda *args, **kwargs: True
         locals_ = locals()
         if use_input:
-            inputDict = dict([(k, self.getInputFromPort(k))
-                              for k in self.inputPorts])
-            locals_.update(inputDict)
+            for k in self.inputPorts:
+                locals_[k] = self.getInputFromPort(k)
         if use_output:
             for output_portname in self.output_ports_order:
                 locals_[output_portname] = None
@@ -924,7 +923,8 @@ class CodeRunnerMixin(object):
                         'cache_this': cache_this,
                         'registry': reg,
                         'self': self})
-        del locals_['source']
+        if 'source' in locals_:
+            del locals_['source']
         exec code_str in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
@@ -948,7 +948,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     """
 
     def compute(self):
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.getInputFromPort('source')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################
@@ -1034,39 +1034,23 @@ class SmartSource(NotCacheable, Module):
 
 ##############################################################################
 
-class _ZIPDecompressor(object):
+def zip_extract_file(archive, filename_in_archive, output_filename):
+    return os.system(
+            "%s > %s" % (
+                    vistrails.core.system.list2cmdline([
+                            'unzip',
+                            '-p', archive,
+                            filename_in_archive]),
+                    vistrails.core.system.list2cmdline([output_filename])))
 
-    """_ZIPDecompressor extracts a file from a .zip file. On Win32, uses
-the zipfile library from python. On Linux/Macs, uses command line, because
-it avoids moving the entire file contents to/from memory."""
 
-    # TODO: Figure out a way of doing this right on Win32
+def zip_extract_all_files(archive, output_path):
+    return os.system(
+            vistrails.core.system.list2cmdline([
+                    'unzip',
+                    archive,
+                    '-d', output_path]))
 
-    def __init__(self, archive, filename_in_archive, output_filename):
-        self._archive = archive
-        self._filename_in_archive = filename_in_archive
-        self._output_filename = output_filename
-
-    if vistrails.core.system.systemType in ['Windows', 'Microsoft']:
-        def extract(self):
-            os.system('unzip -p "%s" "%s" > "%s"' %
-                      (self._archive,
-                       self._filename_in_archive,
-                       self._output_filename))
-# zipfile cannot handle big files
-#            import zipfile
-#             output_file = open(self._output_filename, 'w')
-#             zip_file = zipfile.ZipFile(self._archive)
-#             contents = zip_file.read(self._filename_in_archive)
-#             output_file.write(contents)
-#             output_file.close()
-    else:
-        def extract(self):
-            os.system("unzip -p %s %s > %s" %
-                      (self._archive,
-                       self._filename_in_archive,
-                       self._output_filename))
-            
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
@@ -1076,13 +1060,32 @@ class Unzip(Module):
         self.checkInputPort("filename_in_archive")
         filename_in_archive = self.getInputFromPort("filename_in_archive")
         archive_file = self.getInputFromPort("archive_file")
+        if not os.path.isfile(archive_file.name):
+            raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
         output = self.interpreter.filePool.create_file(suffix=suffix)
-        dc = _ZIPDecompressor(archive_file.name,
-                              filename_in_archive,
-                              output.name)
-        dc.extract()
+        s = zip_extract_file(archive_file.name,
+                             filename_in_archive,
+                             output.name)
+        if s != 0:
+            raise ModuleError(self, "unzip command failed with status %d" % s)
         self.setResult("file", output)
+
+
+class UnzipDirectory(Module):
+    """UnzipDirectory extracts every file from a ZIP archive."""
+
+    def compute(self):
+        self.checkInputPort("archive_file")
+        archive_file = self.getInputFromPort("archive_file")
+        if not os.path.isfile(archive_file.name):
+            raise ModuleError(self, "archive file does not exist")
+        output = self.interpreter.filePool.create_directory()
+        s = zip_extract_all_files(archive_file.name,
+                                  output.name)
+        if s != 0:
+            raise ModuleError(self, "unzip command failed with status %d" % s)
+        self.setResult("directory", output)
 
 ##############################################################################
 
@@ -1272,18 +1275,22 @@ def initialize(*args, **kwargs):
     reg.add_module(PythonSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
-    reg.add_input_port(PythonSource, 'source', String, True)
+    reg.add_input_port(PythonSource, 'source', String, True, defaults=str(['']))
     reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
-    reg.add_input_port(SmartSource, 'source', String, True)
+    reg.add_input_port(SmartSource, 'source', String, True, defaults=str(['']))
 
     reg.add_module(Unzip)
     reg.add_input_port(Unzip, 'archive_file', File)
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
+
+    reg.add_module(UnzipDirectory)
+    reg.add_input_port(UnzipDirectory, 'archive_file', File)
+    reg.add_output_port(UnzipDirectory, 'directory', Directory)
 
     reg.add_module(Round, hide_descriptor=True)
     reg.add_input_port(Round, 'in_value', Float)
@@ -1564,3 +1571,160 @@ class TestNumericConversions(unittest.TestCase):
                     (2, 'value', 3, 'in_value'),
                 ]))
         self.assertEqual(results, [7])
+
+
+class TestUnzip(unittest.TestCase):
+    def test_unzip_file(self):
+        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.core.system import vistrails_root_directory
+        zipfile = os.path.join(vistrails_root_directory(),
+                               'tests', 'resources',
+                               'test_archive.zip')
+        with intercept_result(Unzip, 'file') as outfiles:
+            self.assertFalse(execute([
+                    ('Unzip', 'org.vistrails.vistrails.basic', [
+                        ('archive_file', [('File', zipfile)]),
+                        ('filename_in_archive', [('String', 'file1.txt')]),
+                    ]),
+                ]))
+        self.assertEqual(len(outfiles), 1)
+        with open(outfiles[0].name, 'rb') as outfile:
+            self.assertEqual(outfile.read(), "some random\ncontent")
+
+    def test_unzip_all(self):
+        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.core.system import vistrails_root_directory
+        zipfile = os.path.join(vistrails_root_directory(),
+                               'tests', 'resources',
+                               'test_archive.zip')
+        with intercept_result(UnzipDirectory, 'directory') as outdir:
+            self.assertFalse(execute([
+                    ('UnzipDirectory', 'org.vistrails.vistrails.basic', [
+                        ('archive_file', [('File', zipfile)]),
+                    ]),
+                ]))
+        self.assertEqual(len(outdir), 1)
+
+        self.assertEqual(
+                [(d, f) for p, d, f in os.walk(outdir[0].name)],
+                [(['subdir'], ['file1.txt']),
+                 ([], ['file2.txt'])])
+
+
+from vistrails.core.configuration import get_vistrails_configuration
+
+class TestTypechecking(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        conf = get_vistrails_configuration()
+        cls.error_all = conf.errorOnConnectionTypeerror
+        cls.error_variant = conf.errorOnVariantTypeerror
+
+    @classmethod
+    def tearDownClass(cls):
+        conf = get_vistrails_configuration()
+        conf.errorOnConnectionTypeerror = cls.error_all
+        conf.errorOnVariantTypeerror = cls.error_variant
+
+    @staticmethod
+    def set_settings(error_all, error_variant):
+        conf = get_vistrails_configuration()
+        conf.errorOnConnectionTypeerror = error_all
+        conf.errorOnVariantTypeerror = error_variant
+
+    def run_test_pipeline(self, result, expected_results, *args, **kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        for error_all, error_variant, expected in expected_results:
+            self.set_settings(error_all, error_variant)
+            with intercept_result(*result) as results:
+                error = execute(*args, **kwargs)
+            if not expected:
+                self.assertTrue(error)
+            else:
+                self.assertFalse(error)
+                self.assertEqual(results, expected)
+
+    def test_basic(self):
+        import urllib2
+        # Base case: no typing error
+        # This should succeed in every case
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, ["test"]),
+             (True, True, ["test"])],
+            [
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('o = "test"'))]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'o', 1, 'i'),
+            ],
+            add_port_specs=[
+                (0, 'output', 'o',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String')
+            ])
+
+    def test_fake(self):
+        import urllib2
+        # A module is lying, declaring a String but returning an int
+        # This should fail with errorOnConnectionTypeerror=True (not the
+        # default)
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, [42]),
+             (False, True, [42]),
+             (True, True, False)],
+            [
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('o = 42'))]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'o', 1, 'i'),
+            ],
+            add_port_specs=[
+                (0, 'output', 'o',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String')
+            ])
+
+    def test_inputport(self):
+        import urllib2
+        # This test uses an InputPort module, whose output port should not be
+        # considered a Variant port (although it is)
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, [42]),
+             (False, True, [42]),
+             (True, True, [42])],
+            [
+                ('InputPort', 'org.vistrails.vistrails.basic', [
+                    ('ExternalPipe', [('Integer', '42')]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'InternalPipe', 1, 'i'),
+            ],
+            add_port_specs=[
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String'),
+            ])

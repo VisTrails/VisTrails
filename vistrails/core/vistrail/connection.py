@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.core.configuration import get_vistrails_configuration
 """ This python module defines Connection class.
 """
 import copy
@@ -49,7 +50,7 @@ Variant_desc = None
 InputPort_desc = None
 
 def moduleConnection(conn):
-    """moduleConnection(conn)-> function 
+    """moduleConnection(conn)-> function
     Returns a function to build a module connection
 
     """
@@ -65,10 +66,15 @@ def moduleConnection(conn):
         iport = conn.destination.name
         oport = conn.source.name
         src.enableOutputPort(oport)
+        conf = get_vistrails_configuration()
+        error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
+        error_on_variant = (error_on_others or
+                            getattr(conf, 'errorOnVariantTypeerror'))
+        errors = [error_on_others, error_on_variant]
         if isinstance(src, InputPort_desc.module):
             typecheck = [False]
         else:
-            typecheck = [desc is Variant_desc
+            typecheck = [errors[desc is Variant_desc]
                          for desc in conn.source.spec.descriptors()]
         dst.set_input_port(
                 iport,

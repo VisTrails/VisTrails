@@ -36,11 +36,11 @@ from PyQt4 import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme
 import vistrails.core.debug
 import StringIO
-import vistrails.api
 import cgi
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.gui.application import get_vistrails_application
 from vistrails.gui.common_widgets import QDockPushButton
+import vistrails.gui.utils
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
@@ -159,7 +159,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         elif visible == QtCore.Qt.Checked:
             visible = True
         for item in [self.list.item(i) for i in xrange(self.list.count())]:
-            if str(item.data(32)).split('\n')[0] == s:
+            if item.data(32).split('\n')[0] == s:
                 self.list.setItemHidden(item, not visible)
 
     def toggleInfo(self, visible):
@@ -175,20 +175,20 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         """ copy selected message to clipboard """
         items = self.list.selectedItems()
         if len(items)>0:
-            text = str(items[0].data(32))
+            text = items[0].data(32)
             get_vistrails_application().clipboard().setText(text)
 
     def copyAll(self):
         """ copy all messages to clipboard """
         texts = []
         for i in range(self.list.count()):
-            texts.append(str(self.list.item(i).data(32)))
+            texts.append(self.list.item(i).data(32))
         text = '\n'.join(texts)
         get_vistrails_application().clipboard().setText(text)
 
     def showMessage(self, item, olditem):
         """ show item data in a messagebox """
-        s = str(item.data(32))
+        s = item.data(32)
         msgs = s.split('\n')
         msgs = [cgi.escape(i) for i in msgs]
         format = {'INFO': 'Message:',
@@ -224,7 +224,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.currentItem = item
         msg_box = self.msg_box
         # update messagebox with data from item
-        s = str(item.data(32))
+        s = item.data(32)
         msgs = s.split('\n')
         if msgs[0] == "INFO":
             msg_box.setIcon(QtGui.QMessageBox.Information)
@@ -307,7 +307,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         adds the string s to the message list and displays it
         """
         # adds the string s to the list and 
-        s = str(s).strip()
+        s = s.strip()
         msgs = s.split('\n')
 
         if len(msgs)<=3:
