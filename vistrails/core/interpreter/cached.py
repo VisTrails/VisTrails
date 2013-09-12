@@ -356,6 +356,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             view.set_module_active(i)
 
+        # the cached dict works on persistent ids
         def update_cached(obj):
             cached[obj.id] = True
             i = get_remapped_id(obj.id)
@@ -387,7 +388,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         # views and loggers work on local ids
         def annotate(obj, d):
-            i = get_remapped_id(obj.id)
             logger.insert_module_annotations(obj, d)
 
         # views and loggers work on local ids
@@ -406,7 +406,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                                      end_update=end_update,
                                      update_cached=update_cached,
                                      set_computing=set_computing,
-                                     add_exec = add_exec,
+                                     add_exec=add_exec,
                                      annotate=annotate,
                                      log=logger)
 
