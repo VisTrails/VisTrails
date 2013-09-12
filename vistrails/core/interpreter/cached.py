@@ -334,7 +334,11 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             suspended[obj.id] = obj.suspended
             for callable_ in module_suspended_hook:
                 callable_(obj.id)
-                
+
+        # the error dict works on persistent ids
+        def add_error(obj, error):
+            errors[obj.id] = error
+
         def set_computing(obj):
             i = get_remapped_id(obj.id)
             view.set_module_computing(i)
@@ -400,6 +404,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             
         logging_obj = InstanceObject(signalSuccess=add_to_executed,
                                      signalSuspended=add_to_suspended,
+                                     signalError=add_error,
                                      begin_update=begin_update,
                                      begin_compute=begin_compute,
                                      update_progress=update_progress,
@@ -460,15 +465,15 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
-                    errors[me.module.id] = me
+                    logging_obj.signalError(me.module, me)
                     abort = abort or me.abort
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg, me.errorTrace)
-                errors[me.module.id] = me
+                logging_obj.signalError(me.module, me)
                 abort = me.abort
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
-                errors[mb.module.id] = mb
+                logging_obj.signalError(mb.module, mb)
             if stop_on_error or abort:
                 break
 
