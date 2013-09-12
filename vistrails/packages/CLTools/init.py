@@ -518,7 +518,7 @@ class TestCLTools(unittest.TestCase):
         if 'CLTools' not in pm._package_list:
             pm.late_enable_package('CLTools')
         remove_all_scripts()
-        cls.testdir = os.path.join(packages_directory(), 'cltools', 'test_files')
+        cls.testdir = os.path.join(packages_directory(), 'CLTools', 'test_files')
         cls._tools = {}
         for name in os.listdir(cls.testdir):
             if not name.endswith(SUFFIX):
