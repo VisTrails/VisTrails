@@ -63,6 +63,8 @@ from vistrails.core.repository.poster.streaminghttp import register_openers
 
 from vistrails.core.utils import DummyView
 
+from http_directory import download_directory
+
 # special file uploaders used to push files to repository
 
 package_directory = None
@@ -227,6 +229,27 @@ class HTTPFile(Module):
 
     def _local_filename(self, url):
         return package_directory + '/' + urllib.quote_plus(url)
+
+
+class HTTPDirectory(Module):
+    """Downloads a whole directory recursively from a URL
+    """
+
+    def compute(self):
+        self.checkInputPort('url')
+        url = self.getInputFromPort('url')
+        local_path = self.download(url)
+        self.setResult('local_path', local_path)
+        local_dir = vistrails.core.modules.basic_modules.Directory()
+        local_dir.name = local_path
+        self.setResult('directory', local_dir)
+
+    def download(self, url):
+        local_path = self.interpreter.filePool.create_directory(
+                prefix='vt_http').name
+        download_directory(url, local_path)
+        return local_path
+
 
 class RepoSync(Module):
     """ VisTrails Server version of RepoSync modules. Customized to play 
@@ -414,6 +437,13 @@ def initialize(*args, **keywords):
     reg.add_output_port(HTTPFile, "file", (basic.File, 'local File object'))
     reg.add_output_port(HTTPFile, "local_filename",
                         (basic.String, 'local filename'), optional=True)
+
+    reg.add_module(HTTPDirectory)
+    reg.add_input_port(HTTPDirectory, 'url', (basic.String, "URL"))
+    reg.add_output_port(HTTPDirectory, 'directory',
+                        (basic.Directory, "local Directory object"))
+    reg.add_output_port(HTTPDirectory, 'local_path',
+                        (basic.String, "local path"), optional=True)
 
     reg.add_module(RepoSync)
     reg.add_input_port(RepoSync, "file", (basic.File, 'File'))
