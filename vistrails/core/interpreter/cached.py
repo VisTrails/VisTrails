@@ -58,7 +58,102 @@ import vistrails.core.packagemanager
 
 # from core.modules.module_utils import FilePool
 
-##############################################################################
+###############################################################################
+
+class ViewUpdatingLogController(object):
+    def __init__(self, logger, view, remap_id,
+            parent_execs=None,
+            module_executed_hook=[],
+            module_suspended_hook=[]):
+        self.log = logger
+        self.view = view
+
+        self.remap_id = remap_id
+
+        if parent_execs is not None:
+            self.parent_execs = parent_execs
+        else:
+            self.parent_execs = []
+
+        self.module_executed_hook = module_executed_hook
+        self.module_suspended_hook = module_suspended_hook
+
+        self.errors = {}
+        self.executed = {}
+        self.suspended = {}
+        self.cached = {}
+
+    def signalSuccess(self, obj):
+        self.executed[obj.id] = True
+        for callable_ in self.module_executed_hook:
+            callable_(obj.id)
+
+    def signalSuspended(self, obj):
+        self.suspended[obj.id] = obj.suspended
+        for callable_ in self.module_suspended_hook:
+            callable_(obj.id)
+
+    def signalError(self, obj, error):
+        self.errors[obj.id] = error
+
+    def begin_update(self, obj):
+        i = self.remap_id(obj.id)
+        self.view.set_module_active(i)
+
+    def begin_compute(self, obj):
+        i = self.remap_id(obj.id)
+        self.view.set_module_computing(i)
+
+        reg = modules.module_registry.get_module_registry()
+        module_name = reg.get_descriptor(obj.__class__).name
+
+        # !!!self.parent_execs is mutated!!!
+        self.log.start_execution(obj, i, module_name,
+                                    parent_execs=self.parent_execs)
+
+    def update_progress(self, obj, percentage=0.0):
+        i = self.remap_id(obj.id)
+        self.view.set_module_progress(i, percentage)
+
+    def end_update(self, obj, error='', errorTrace=None, was_suspended = False):
+        i = self.remap_id(obj.id)
+        if was_suspended:
+            self.view.set_module_suspended(i, error)
+            error = error.msg
+        elif not error:
+            self.view.set_module_success(i)
+        else:
+            self.view.set_module_error(i, error)
+
+        # !!!self.parent_execs is mutated!!!
+        self.log.finish_execution(obj, error, self.parent_execs, errorTrace,
+                                     was_suspended)
+
+    def update_cached(self, obj):
+        self.cached[obj.id] = True
+        i = self.remap_id(obj.id)
+
+        reg = modules.module_registry.get_module_registry()
+        module_name = reg.get_descriptor(obj.__class__).name
+
+        # !!!self.parent_execs is mutated!!!
+        self.log.start_execution(obj, i, module_name,
+                               parent_execs=self.parent_execs,
+                               cached=1)
+        self.view.set_module_not_executed(i)
+        self.log.finish_execution(obj,'', self.parent_execs)
+
+    def set_computing(self, obj):
+        i = self.remap_id(obj.id)
+        self.view.set_module_computing(i)
+
+    def add_exec(self, exec_):
+        self.log.add_exec(exec_, self.parent_execs)
+
+    def annotate(self, obj, d):
+        self.log.insert_module_annotations(obj, d)
+
+###############################################################################
 
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
@@ -314,106 +409,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to execute_pipeline: %s' % kwargs)
 
-        errors = {}
-        executed = {}
-        suspended = {}
-        cached = {}
-
         # LOGGING SETUP
         def get_remapped_id(id):
             return persistent_to_tmp_id_map[id]
 
-        # the executed dict works on persistent ids
-        def add_to_executed(obj):
-            executed[obj.id] = True
-            for callable_ in module_executed_hook:
-                callable_(obj.id)
-
-        # the suspended dict works on persistent ids
-        def add_to_suspended(obj):
-            suspended[obj.id] = obj.suspended
-            for callable_ in module_suspended_hook:
-                callable_(obj.id)
-
-        # the error dict works on persistent ids
-        def add_error(obj, error):
-            errors[obj.id] = error
-
-        def set_computing(obj):
-            i = get_remapped_id(obj.id)
-            view.set_module_computing(i)
-
-        # views work on local ids
-        def begin_compute(obj):
-            i = get_remapped_id(obj.id)
-            view.set_module_computing(i)
-
-            reg = modules.module_registry.get_module_registry()
-            module_name = reg.get_descriptor(obj.__class__).name
-
-            # !!!self.parent_execs is mutated!!!
-            logger.start_execution(obj, i, module_name,
-                                   parent_execs=self.parent_execs)
-
-        # views and loggers work on local ids
-        def begin_update(obj):
-            i = get_remapped_id(obj.id)
-            view.set_module_active(i)
-
-        # the cached dict works on persistent ids
-        def update_cached(obj):
-            cached[obj.id] = True
-            i = get_remapped_id(obj.id)
-
-            reg = modules.module_registry.get_module_registry()
-            module_name = reg.get_descriptor(obj.__class__).name
-
-            # !!!self.parent_execs is mutated!!!
-            logger.start_execution(obj, i, module_name,
-                                   parent_execs=self.parent_execs,
-                                   cached=1)
-            view.set_module_not_executed(i)
-            num_pops = logger.finish_execution(obj,'', self.parent_execs)
-
-        # views and loggers work on local ids
-        def end_update(obj, error='', errorTrace=None, was_suspended = False):
-            i = get_remapped_id(obj.id)
-            if was_suspended:
-                view.set_module_suspended(i, error)
-                error = error.msg
-            elif not error:
-                view.set_module_success(i)
-            else:
-                view.set_module_error(i, error)
-
-            # !!!self.parent_execs is mutated!!!
-            logger.finish_execution(obj, error, self.parent_execs, errorTrace,
-                                    was_suspended)
-
-        # views and loggers work on local ids
-        def annotate(obj, d):
-            logger.insert_module_annotations(obj, d)
-
-        # views and loggers work on local ids
-        def update_progress(obj, percentage=0.0):
-            i = get_remapped_id(obj.id)
-            view.set_module_progress(i, percentage)
-            
-        def add_exec(exec_):
-            logger.add_exec(exec_, self.parent_execs)
-            
-        logging_obj = InstanceObject(signalSuccess=add_to_executed,
-                                     signalSuspended=add_to_suspended,
-                                     signalError=add_error,
-                                     begin_update=begin_update,
-                                     begin_compute=begin_compute,
-                                     update_progress=update_progress,
-                                     end_update=end_update,
-                                     update_cached=update_cached,
-                                     set_computing=set_computing,
-                                     add_exec=add_exec,
-                                     annotate=annotate,
-                                     log=logger)
+        logging_obj = ViewUpdatingLogController(
+                logger=logger,
+                view=view,
+                remap_id=get_remapped_id,
+                parent_execs=self.parent_execs,
+                module_executed_hook=module_executed_hook,
+                module_suspended_hook=module_suspended_hook)
 
         # PARAMETER CHANGES SETUP
         parameter_changes = []
@@ -496,16 +502,16 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             if clean_pipeline:
                 to_delete.append(obj.id)
             objs[tmp_id] = obj
-            if obj.id in errors:
-                errs[tmp_id] = errors[obj.id]
+            if obj.id in logging_obj.errors:
+                errs[tmp_id] = logging_obj.errors[obj.id]
                 if not clean_pipeline:
                     to_delete.append(obj.id)
-            if obj.id in executed:
-                execs[tmp_id] = executed[obj.id]
-            elif obj.id in suspended:
-                suspends[tmp_id] = suspended[obj.id]
-            elif obj.id in cached:
-                caches[tmp_id] = cached[obj.id]
+            if obj.id in logging_obj.executed:
+                execs[tmp_id] = logging_obj.executed[obj.id]
+            elif obj.id in logging_obj.suspended:
+                suspends[tmp_id] = logging_obj.suspended[obj.id]
+            elif obj.id in logging_obj.cached:
+                caches[tmp_id] = logging_obj.cached[obj.id]
             else:
                 # these modules didn't execute
                 execs[tmp_id] = False
@@ -786,7 +792,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if CachedInterpreter.__instance:
             CachedInterpreter.__instance._clear_package(identifier)
 
-##############################################################################
+###############################################################################
 # Testing
 
 
