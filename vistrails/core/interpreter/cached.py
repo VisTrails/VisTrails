@@ -32,31 +32,26 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 import base64
-from vistrails.core import modules
-from vistrails.core.common import *
+import copy
+import gc
+import cPickle as pickle
+
+from vistrails.core.common import InstanceObject, lock_method, \
+    VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
-import vistrails.core.db.io
+import vistrails.core.interpreter.base
+from vistrails.core.interpreter.base import AbortExecution
+import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
+from vistrails.core import modules
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
     ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView
-from vistrails.core.vistrail.annotation import Annotation
-from vistrails.core.vistrail.vistrail import Vistrail
-import copy
-import vistrails.core.interpreter.base
-from vistrails.core.interpreter.base import AbortExecution
-import vistrails.core.interpreter.utils
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
-import gc
-import cPickle
-
-import unittest
-import vistrails.core.packagemanager
-
-# from core.modules.module_utils import FilePool
 
 ###############################################################################
 
@@ -109,13 +104,14 @@ class ViewUpdatingLogController(object):
 
         # !!!self.parent_execs is mutated!!!
         self.log.start_execution(obj, i, module_name,
-                                    parent_execs=self.parent_execs)
+                                 parent_execs=self.parent_execs)
 
     def update_progress(self, obj, percentage=0.0):
         i = self.remap_id(obj.id)
         self.view.set_module_progress(i, percentage)
 
-    def end_update(self, obj, error='', errorTrace=None, was_suspended = False):
+    def end_update(self, obj, error='', errorTrace=None,
+            was_suspended = False):
         i = self.remap_id(obj.id)
         if was_suspended:
             self.view.set_module_suspended(i, error)
@@ -127,7 +123,7 @@ class ViewUpdatingLogController(object):
 
         # !!!self.parent_execs is mutated!!!
         self.log.finish_execution(obj, error, self.parent_execs, errorTrace,
-                                     was_suspended)
+                                  was_suspended)
 
     def update_cached(self, obj):
         self.cached[obj.id] = True
@@ -138,8 +134,8 @@ class ViewUpdatingLogController(object):
 
         # !!!self.parent_execs is mutated!!!
         self.log.start_execution(obj, i, module_name,
-                               parent_execs=self.parent_execs,
-                               cached=1)
+                                 parent_execs=self.parent_execs,
+                                 cached=1)
         self.view.set_module_not_executed(i)
         self.log.finish_execution(obj,'', self.parent_execs)
 
@@ -403,7 +399,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
         stop_on_error = fetch('stop_on_error', True)
-        # parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -676,9 +671,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         d = {}
         d["__reason__"] = reason
         if aliases is not None and isinstance(aliases, dict):
-            d["__aliases__"] = cPickle.dumps(aliases)
+            d["__aliases__"] = pickle.dumps(aliases)
         if params is not None and isinstance(params, list):
-            d["__params__"] = cPickle.dumps(params)
+            d["__params__"] = pickle.dumps(params)
         logger.insert_workflow_exec_annotations(d)
         
     def add_to_persistent_pipeline(self, pipeline):
@@ -794,6 +789,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
 ###############################################################################
 # Testing
+
+import unittest
 
 
 class TestCachedInterpreter(unittest.TestCase):
