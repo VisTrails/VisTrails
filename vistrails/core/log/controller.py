@@ -68,14 +68,13 @@ class DummyLogController(object):
 
 class LogControllerFactory(object):
     _instance = None
-    class LogControllerFactorySingleton(object):
-        def __call__(self, *args, **kw):
-            if LogControllerFactory._instance is None:
-                obj = LogControllerFactory(*args, **kw)
-                LogControllerFactory._instance = obj
-            return LogControllerFactory._instance
 
-    getInstance = LogControllerFactorySingleton()
+    @staticmethod
+    def getInstance(*args, **kw):
+        if LogControllerFactory._instance is None:
+            obj = LogControllerFactory(*args, **kw)
+            LogControllerFactory._instance = obj
+        return LogControllerFactory._instance
 
     def __init__(self):
         self.machine = Machine(id=-1,
