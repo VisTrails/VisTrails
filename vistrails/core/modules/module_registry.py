@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 from itertools import izip, chain
+import ast
 import copy
 import os
 import tempfile
@@ -975,6 +976,33 @@ class ModuleRegistry(DBRegistry):
                                             package_version, version)
         return descriptor
 
+    def convert_port_val(self, val, sig=None, cls=None):
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+        if sig is None and cls is None:
+            raise ValueError("One of sig or cls must be set")
+        try:
+            if sig is not None:
+                desc = self.get_descriptor_by_name(*sig)
+            else:
+                desc = self.get_descriptor(cls)
+        except:
+            raise Exception('Cannot convert value "%s" due to missing '
+                            'descriptor for port' % val)
+        constant_desc = self.get_descriptor_by_name(basic_pkg, 'Constant')
+        if not self.is_descriptor_subclass(desc, constant_desc):
+            raise TypeError("Cannot convert value for non-constant type")
+        if desc.module is None:
+            return None
+        
+        if not isinstance(val, basestring):
+            retval = desc.module.translate_to_string(val)
+        else:
+            checkval = desc.module.translate_to_python(val)
+            retval = desc.module.translate_to_string(checkval)
+            if retval != val:
+                retval = desc.module.translate_to_string(val)
+        return retval
+            
     def auto_add_ports(self, module):
         """auto_add_ports(module or (module, kwargs)): add
         input/output ports to registry. Don't call this directly - it is
@@ -989,10 +1017,36 @@ class ModuleRegistry(DBRegistry):
                         kwargs = port_info._asdict()
                         port_name = kwargs.pop('name')
                         port_sig = kwargs.pop('signature')
+                        port_sigstring = None
+                        port_cls = None
+                        if isinstance(port_sig, basestring):
+                            port_sigstring = vistrails.core.modules.utils.parse_port_spec_string(port_sig)[0]
+                        else:
+                            port_cls = port_sig
                         if port_key == '_input_ports':
-                            kwargs['defaults'] = [kwargs.pop('default')]
+                            default_val = kwargs.pop('default')
+                            if default_val is not None:
+                                default_conv = \
+                                    self.convert_port_val(default_val, 
+                                                          port_sigstring, port_cls)
+                                if default_conv is not None:
+                                    kwargs['defaults'] = [default_conv]
+                            # else raise some error
                             kwargs['labels'] = [kwargs.pop('label')]
-                            kwargs['values'] = [kwargs.pop('values')]
+                            values = kwargs.pop('values')
+                            if values is not None:
+                                if isinstance(values, basestring):
+                                    values = ast.literal_eval(values)
+                                out_values = []
+                                for v in values:
+                                    out_v = self.convert_port_val(v, port_sigstring,
+                                                                  port_cls)
+                                    if out_v is None:
+                                        new_values = []
+                                        break
+                                    out_values.append(out_v)
+                                if out_values:
+                                    kwargs['values'] = [out_values]
                             kwargs['entry_types'] = [kwargs.pop('entry_type')]
                         else:
                             kwargs.pop('default')

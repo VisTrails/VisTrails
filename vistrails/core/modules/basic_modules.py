@@ -489,7 +489,7 @@ class FileSink(NotCacheable, Module):
     _input_ports = [Port("file", File),
                     Port("outputPath", OutputPath),
                     Port("overwrite", Boolean, optional=True, 
-                         default="True"),
+                         default=True),
                     Port("publishFile", Boolean, optional=True)]
     
     def compute(self):
