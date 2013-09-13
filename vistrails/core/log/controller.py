@@ -74,9 +74,9 @@ class LogControllerFactory(object):
                 obj = LogControllerFactory(*args, **kw)
                 LogControllerFactory._instance = obj
             return LogControllerFactory._instance
-        
+
     getInstance = LogControllerFactorySingleton()
-    
+
     def __init__(self):
         self.machine = Machine(id=-1,
                                name=vistrails.core.system.current_machine(),
@@ -84,7 +84,7 @@ class LogControllerFactory(object):
                                architecture=vistrails.core.system.current_architecture(),
                                processor=vistrails.core.system.current_processor(),
                                ram=vistrails.core.system.guess_total_memory())
-    
+
     def create_logger(self, log):
         return LogController(log, self.machine)
 
@@ -103,8 +103,8 @@ class LogController(object):
         if to_add:
             self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
             self.log.add_machine(self.machine)
-            
-    def start_workflow_execution(self, vistrail=None, pipeline=None, 
+
+    def start_workflow_execution(self, vistrail=None, pipeline=None,
                                  currentVersion=None):
         if vistrail is not None:
             parent_type = Vistrail.vtType
@@ -139,7 +139,7 @@ class LogController(object):
             self.workflow_exec.completed = -1
         else:
             self.workflow_exec.completed = 1
-            
+
     def add_exec(self, exec_, parent_execs):
         parent_exec = parent_execs[-1]
         if parent_exec:
@@ -186,8 +186,8 @@ class LogController(object):
                         cached=0):
         parent_exec = parent_execs[-1]
         if module.is_looping:
-            parent_exec = self.start_loop_execution(module, module_id, 
-                                                    module_name, 
+            parent_exec = self.start_loop_execution(module, module_id,
+                                                    module_name,
                                                     parent_exec, cached,
                                                     module.loop_iteration)
             parent_execs.append(parent_exec)
@@ -202,7 +202,7 @@ class LogController(object):
                                               parent_exec, cached)
             if ret is not None:
                 parent_execs.append(ret)
-        
+
     def finish_execution(self, module, error, parent_execs, errorTrace=None,
                          suspended=False):
         if isinstance(module, Group):
@@ -272,20 +272,12 @@ class LogController(object):
         elif not error:
             group.group_exec.completed = 1
         else:
-#             if group.group_exec.module_execs and group.group_exec.\
-#                module_execs[-1].error:
-#                 error = 'Error in module execution with id %d.'%\
-#                         group.group_exec.module_execs[-1].id
-#             if group.group_exec.group_execs and group.group_exec.\
-#                group_execs[-1].error:
-#                 error = 'Error in group execution with id %d.'%\
-#                         group.group_exec.group_execs[-1].id
             group.group_exec.completed = -1
             group.group_exec.error = error
         del group.group_exec
         return True
 
-    def start_loop_execution(self, module, module_id, module_name, 
+    def start_loop_execution(self, module, module_id, module_name,
                              parent_exec, cached, iteration):
         loop_exec = self.create_loop_exec(iteration)
         if parent_exec:
@@ -308,35 +300,6 @@ class LogController(object):
             loop_exec.error = error
         return True
 
-#         is_group = isinstance(module, Group)
-#         if is_group:
-#             module.group_exec.loop_execs[-1].ts_end = core.system.\
-#                                                       current_time()
-#             if not error:
-#                 module.group_exec.loop_execs[-1].completed = 1
-#             else:
-#                 if module.group_exec.loop_execs[-1].module_execs and\
-#                    module.group_exec.loop_execs[-1].module_execs[-1].error:
-#                     error = 'Error in module execution with id %d.'%\
-#                             module.group_exec.loop_execs[-1].\
-#                             module_execs[-1].id
-#                 if module.group_exec.loop_execs[-1].group_execs and\
-#                    module.group_exec.loop_execs[-1].group_execs[-1].error:
-#                     error = 'Error in group execution with id %d.'%\
-#                             module.group_exec.loop_execs[-1].\
-#                             group_execs[-1].id
-#                 module.group_exec.loop_execs[-1].completed = -1
-#                 module.group_exec.loop_execs[-1].error = error
-#         else:
-#             module.module_exec.loop_execs[-1].ts_end = core.system.\
-#                                                        current_time()
-#             if not error:
-#                 module.module_exec.loop_execs[-1].completed = 1
-#             else:
-#                 module.module_exec.loop_execs[-1].completed = -1
-#                 module.module_exec.loop_execs[-1].error = error
-#         return True
-
     def insert_module_annotations(self, module, a_dict):
         for k,v in a_dict.iteritems():
             a_id = self.log.id_scope.getNewId(Annotation.vtType)
@@ -347,10 +310,10 @@ class LogController(object):
                 module.group_exec.add_annotation(annotation)
             else:
                 module.module_exec.add_annotation(annotation)
-            
+
     def insert_workflow_exec_annotations(self, a_dict):
         """insert_workflow_exec_annotations(a_dict)-> None
-        This will create an annotation for each pair in a_dict in 
+        This will create an annotation for each pair in a_dict in
         self.workflow_exec"""
         if self.workflow_exec:
             for k,v in a_dict.iteritems():
