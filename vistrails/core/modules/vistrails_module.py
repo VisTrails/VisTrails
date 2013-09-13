@@ -34,6 +34,7 @@
 ###############################################################################
 import copy
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.modules.config import ModuleSettings, Port
 from vistrails.core.utils import VistrailsInternalError
 
 class NeedsInputPort(Exception):
@@ -247,6 +248,9 @@ Designing New Modules
 
 
 """
+
+    _settings = ModuleSettings(is_root=True, abstract=True)
+    _output_ports = [Port("self", "Module", optional=True)]
 
     def __init__(self):
         self.inputPorts = {}
@@ -590,6 +594,10 @@ class Converter(Module):
     You must override the 'in_value' and 'out_value' ports by providing the
     types your module actually matches.
     """
+    _settings = ModuleSettings(abstract=True)
+    _input_ports = [Port('in_value', Module)]
+    _output_ports = [Port('out_value', Module)]
+
     def compute(self):
         raise NotImplementedError
 

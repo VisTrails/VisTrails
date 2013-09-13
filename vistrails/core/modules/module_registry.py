@@ -42,7 +42,8 @@ import uuid
 from vistrails.core import debug, get_vistrails_application
 from vistrails.core.data_structures.graph import Graph
 import vistrails.core.modules
-from vistrails.core.modules.config import ConstantWidgetConfig
+from vistrails.core.modules.config import ConstantWidgetConfig, \
+    ModuleSettings, Port, CompoundPort, PortItem
 import vistrails.core.modules.vistrails_module
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
@@ -52,7 +53,6 @@ from vistrails.core.utils import VistrailsInternalError, memo_method, \
      all, profile, versions_increasing, InvalidPipeline
 from vistrails.core.system import vistrails_root_directory, vistrails_version, \
     get_vistrails_basic_pkg_id
-from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
 import vistrails.core.cache.hasher
@@ -976,7 +976,7 @@ class ModuleRegistry(DBRegistry):
         return descriptor
 
     def auto_add_ports(self, module):
-        """auto_add_module(module or (module, kwargs)): add
+        """auto_add_ports(module or (module, kwargs)): add
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
@@ -985,7 +985,55 @@ class ModuleRegistry(DBRegistry):
             if port_key in module.__dict__:
                 for port_info in module.__dict__[port_key]:
                     added = False
-                    if isinstance(port_info, PortSpec):
+                    if isinstance(port_info, Port):
+                        kwargs = port_info._asdict()
+                        port_name = kwargs.pop('name')
+                        port_sig = kwargs.pop('signature')
+                        if port_key == '_input_ports':
+                            kwargs['defaults'] = [kwargs.pop('default')]
+                            kwargs['labels'] = [kwargs.pop('label')]
+                            kwargs['values'] = [kwargs.pop('values')]
+                            kwargs['entry_types'] = [kwargs.pop('entry_type')]
+                        else:
+                            kwargs.pop('default')
+                            kwargs.pop('label')
+                            kwargs.pop('values')
+                            kwargs.pop('entry_type')
+                        adder_f(module, port_name, port_sig, **kwargs)
+                        added = True
+                    elif isinstance(port_info, CompoundPort):
+                        kwargs = port_info._asdict()
+                        port_name = kwargs.pop('name')
+                        port_sig = kwargs.pop('signature')
+                        items = kwargs.pop('items')
+                        if port_sig is None and \
+                           all(item.signature is not None for item in items):
+                            port_sig = \
+                                    ",".join(item.signature for item in items)
+                        if port_sig is None:
+                            raise TypeError('Expected port "%s" to have '
+                                            "either full signature or each "
+                                            "PortItem to have signature" % \
+                                            port_name)
+                        if 'defaults' not in kwargs and \
+                           any(item.default is not None for item in items):
+                            kwargs['defaults'] = \
+                                            [item.default for item in items]
+                        if 'labels' not in kwargs and \
+                           any(item.label is not None for item in items):
+                            kwargs['labels'] = \
+                                            [item.label for item in items]
+                        if 'values' not in kwargs and \
+                           any(item.values is not None for item in items):
+                            kwargs['values'] = \
+                                            [item.values for item in items]
+                        if 'entry_types' not in kwargs and \
+                           any(item.entry_type is not None for item in items):
+                            kwargs['entry_types'] = \
+                                            [item.entry_type for item in items]
+                        adder_f(module, port_name, port_sig, **kwargs)
+                        added = True
+                    elif isinstance(port_info, PortSpec):
                         # force port type to match list it occurs in
                         # we just need "input" or "output"
                         port_info.type = port_key[1:-6]
@@ -1015,7 +1063,17 @@ class ModuleRegistry(DBRegistry):
         meant to be used by the packagemanager, when inspecting the package
         contents."""
         if isinstance(module, type):
-            return self.add_module(module)
+            if '_settings' in module.__dict__:
+                settings = module.__dict__['_settings']
+                if isinstance(settings, ModuleSettings):
+                    return self.add_module(module, **settings._asdict())
+                elif isinstance(settings, dict):
+                    return self.add_module(module, **settings)
+                else:
+                    raise TypeError("Expected module._settings to be "
+                                    "ModuleSettings or dict")
+            else:
+                return self.add_module(module)
         elif (isinstance(module, tuple) and
               len(module) == 2 and
               isinstance(module[0], type) and
@@ -1140,7 +1198,7 @@ class ModuleRegistry(DBRegistry):
             except KeyError:
                 pass
             return r
-        name = fetch('name', module.__name__)
+        name = fetch('name', None)
         configureWidgetType = fetch('configureWidgetType', None)
         constantWidget = fetch('constantWidget', None)
         constantWidgets = fetch('constantWidgets', None)
@@ -1151,11 +1209,12 @@ class ModuleRegistry(DBRegistry):
         moduleLeftFringe = fetch('moduleLeftFringe', None) 
         moduleRightFringe = fetch('moduleRightFringe', None)
         is_abstract = fetch('abstract', False)
-        identifier = fetch('package', self._current_package.identifier)
+        identifier = fetch('package', None)
+        # self._current_package.identifier)
         namespace = fetch('namespace', None)
         version = fetch('version', None)
-        package_version = fetch('package_version', 
-                                self._current_package.version)
+        package_version = fetch('package_version', None)
+        # self._current_package.version)
         hide_namespace = fetch('hide_namespace', False)
         hide_descriptor = fetch('hide_descriptor', False)
         is_root = fetch('is_root', False)
@@ -1167,6 +1226,12 @@ class ModuleRegistry(DBRegistry):
             raise VistrailsInternalError(
                 'Wrong parameters passed to addModule: %s' % kwargs)
         
+        if name is None:
+            name = module.__name__
+        if identifier is None:
+            identifier = self._current_package.identifier
+        if package_version is None:
+            package_version = self._current_package.version
         package = self.package_versions[(identifier, package_version)]
         desc_key = (name, namespace, version)
         if desc_key in package.descriptor_versions:

@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from collections import namedtuple as _namedtuple
+from collections import namedtuple as _namedtuple, Mapping
 
 def namedtuple(typename, field_names, default_values=None):
     T = _namedtuple(typename, field_names)
@@ -53,18 +53,39 @@ QueryWidgetConfig = subnamedtuple('QueryWidgetConfig', ConstantWidgetConfig,
 ParamExpWidgetConfig = subnamedtuple('ParamExpWidgetConfig', 
                                      ConstantWidgetConfig, (None, 'paramexp'))
 
-# class QueryWidgetConfig(ConstantWidgetConfig):
-#     pass
-# QueryWidgetConfig.__new__.__defaults__ = (None, 'query')
+ModuleSettings = namedtuple('ModuleSettings',
+                          ['name', 'configureWidgetType', 'constantWidget',
+                           'constantWidgets', 'signatureCallable', 
+                           'constantSignatureCallable', 'moduleColor', 
+                           'moduleFringe', 'moduleLeftFringe',
+                           'moduleRightFringe', 'abstract', 'package', 
+                           'namespace', 'version', 'package_version', 
+                           'hide_namespace', 'hide_descriptor', 'is_root', 
+                           'ghost_package', 'ghost_package_version', 
+                           'ghost_namespace'],
+                          (None, None, None, None, None, None, None, None, 
+                           None, None, False, None, None, None, None, False, 
+                           False, False, None, None, None))
 
-# class ParamExpWidgetConfig(ConstantWidgetConfig):
-#     pass
-# ParamExpWidgetConfig.__new__.__defaults__ = (None, 'paramexp')
-    
-# QueryWidgetConfig.= namedtuple('QueryWidgetConfig',
-#                                   ['widget', 'widget_type', 'widget_use'],
-#                                   (None, 'query'))
+Port = namedtuple('Port',
+                  ['name', 'signature', 'optional', 'sort_key',
+                   'label', 'default', 'values', 'entry_type',
+                   'docstring', 'shape', 'min_conns', 'max_conns'],
+                  (False, -1, None, None, None, None, None, None, None, None))
 
-# ParamExpWidgetConfig = namedtuple('ParamExpWidgetConfig',
-#                                   ['widget', 'widget_type', 'widget_use'],
-#                                   (None, 'paramexp'))
+OutputPort = namedtuple('OutputPort',
+                        ['name', 'signature', 'optional', 'sort_key',
+                         'docstring', 'shape', 'min_conns', 'max_conns'])
+
+CompoundPort = namedtuple('CompoundPort',
+                          ['name', 'signature', 'optional', 'sort_key', 
+                           'labels', 'defaults', 'values', 'entry_types',
+                           'docstring', 'shape', 'min_conns', 
+                           'max_conns', 'items'],
+                          (None, False, -1, None, None, None, None, None, 
+                           None, None, None, None))
+
+PortItem = namedtuple('PortItem',
+                      ['signature', 'label', 'default', 'values', 'entry_type'],
+                      (None, None, None, None))
+OutputPortItem = namedtuple('OutputPortItem', ['signature'], (None))
