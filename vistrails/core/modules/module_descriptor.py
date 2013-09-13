@@ -138,6 +138,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._widget_item = None
             self._is_hidden = False
             self._namespace_hidden = False
+            self._widget_classes = {}
             self.children = []
             # The ghost attributes represent the original values
             # for the descriptor of an upgraded package subworkflow
@@ -162,6 +163,8 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._hasher_callable = other._hasher_callable
             self._widget_item = other._widget_item
             self._is_hidden = other._is_hidden
+            self._widget_classes = dict((k,copy.copy(v)) for k, v in \
+                                         other._widget_classes.iteritems())
             self._namespace_hidden = other._namespace_hidden
             self.ghost_identifier = other.ghost_identifier
             self.ghost_package_version = other.ghost_package_version
@@ -248,6 +251,26 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     def configuration_widget(self):
         return self._configuration_widget
+
+    def set_constant_config_widget(self, widget_class, widget_use, 
+                                   widget_type):
+        if widget_use not in self._widget_classes:
+            self._widget_classes[widget_use] = {}
+        self._widget_classes[widget_use][widget_type] = widget_class
+
+    def has_constant_config_widget(self, widget_use, widget_type):
+        return widget_use in self._widget_classes and \
+            widget_type in self._widget_classes[widget_use]
+
+    def get_constant_config_widget(self, widget_use, widget_type):
+        if self.has_constant_config_widget(widget_use, widget_type):
+            return self._widget_classes[widget_use][widget_type]
+        return None
+
+    def get_all_constant_config_widgets(self, widget_use):
+        if widget_use in self._widget_classes:
+            return self._widget_classes[widget_use]
+        return {}
 
     def set_module_color(self, color):
         if color:

@@ -38,6 +38,8 @@ import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
+from vistrails.core.modules.config import ConstantWidgetConfig, \
+    QueryWidgetConfig, ParamExpWidgetConfig
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -132,18 +134,6 @@ class Constant(Module):
         return None
 
     @staticmethod
-    def get_widget_class_of_type(widget_type):
-        return None
-
-    @staticmethod
-    def get_query_widget_class():
-        return None
-
-    @staticmethod
-    def get_param_explore_widget_list():
-        return []
-
-    @staticmethod
     def query_compute(value_a, value_b, query_method):
         if query_method == '==' or query_method is None:
             return (value_a == value_b)
@@ -154,10 +144,7 @@ class Constant(Module):
 def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
                  str_conversion=None, base_class=Constant,
-                 compute=None, query_widget_type=None,
-                 query_compute=None,
-                 param_explore_widget_list=None,
-                 widget_types_list=None):
+                 compute=None, query_compute=None):
     """new_constant(name: str, 
                     py_conversion: callable,
                     default_value: python_type,
@@ -166,12 +153,7 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
                     str_conversion: callable,
                     base_class: class,
                     compute: callable,
-                    query_widget_type: (path, name) tuple or QWidget type,
-                    query_compute: static callable,
-                    param_explore_widget_list: 
-                        list((path, name) tuple or QWidget type)
-                    widget_types_list:
-                        list((path, name) tuple or QWidget type)) -> Module
+                    query_compute: static callable) -> Module
 
     new_constant dynamically creates a new Module derived from
     Constant with given py_conversion and str_conversion functions, a
@@ -217,26 +199,7 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
         @staticmethod
         def get_widget_class():
             return widget_type
-        d['get_widget_class'] = get_widget_class
-    if query_widget_type is not None:
-        @staticmethod
-        def get_query_widget_class():
-            return query_widget_type
-        d['get_query_widget_class'] = get_query_widget_class
-    if param_explore_widget_list is not None:
-        @staticmethod
-        def get_param_explore_widget_list():
-            return param_explore_widget_list
-        d['get_param_explore_widget_list'] = get_param_explore_widget_list
-    if widget_types_list is not None:
-        @staticmethod
-        def get_widget_class_of_type(w_type):
-            for (t, widget) in widget_types_list:
-                if w_type == t:
-                    return widget
-            return None
-        d['get_widget_class_of_type'] = get_widget_class_of_type
-            
+        d['get_widget_class'] = get_widget_class            
 
     m = new_module(base_class, name, d)
     m._input_ports = [('value', m)]
@@ -289,30 +252,17 @@ def string_compare(value_a, value_b, query_method):
     return False
 
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
-                       False, staticmethod(lambda x: isinstance(x, bool)),
-                       widget_type=('vistrails.gui.modules.constant_configuration', 
-                                    'BooleanWidget'))
+                       False, staticmethod(lambda x: isinstance(x, bool)))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
                        staticmethod(lambda x: isinstance(x, (int, long, float))),
-                       query_widget_type=('vistrails.gui.modules.query_configuration',
-                                          'NumericQueryWidget'),
-                       query_compute=numeric_compare,
-                       param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
-                                                   'FloatExploreWidget')])
+                       query_compute=numeric_compare)
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
                        staticmethod(lambda x: isinstance(x, (int, long))),
                        base_class=Float,
-                       query_widget_type=('vistrails.gui.modules.query_configuration',
-                                          'NumericQueryWidget'),
-                       query_compute=numeric_compare,
-                       param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
-                                                   'IntegerExploreWidget')])
+                       query_compute=numeric_compare)
 String  = new_constant('String'  , staticmethod(str), "", 
                        staticmethod(lambda x: isinstance(x, str)),
-                       query_widget_type=('vistrails.gui.modules.query_configuration',
-                                          'StringQueryWidget'),
-                       query_compute=string_compare,
-                       widget_types_list=[('multiline', ('vistrails.gui.modules.constant_configuration', 'MultiLineStringWidget'))])
+                       query_compute=string_compare)
 
 ##############################################################################
 
@@ -359,11 +309,6 @@ class Path(Constant):
 #         self.setResult("isfile", os.path.isfile(n))
 #         self.setResult("isdir", os.path.isdir(n))
         
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "PathChooserWidget")
-
 Path.default_value = Path()
 
 class File(Path):
@@ -389,11 +334,6 @@ class File(Path):
         self.set_results(n)
         self.setResult("local_filename", n)
         self.setResult("self", self)
-
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "FileChooserWidget")
 
 File.default_value = File()
     
@@ -437,11 +377,6 @@ class Directory(Path):
                 output_list.append(dir_item)
         self.setResult('itemList', output_list)
             
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "DirectoryChooserWidget")
-
 Directory.default_value = Directory()
 
 def path_parameter_hasher(p):
@@ -488,11 +423,6 @@ class OutputPath(Path):
         n = self.get_name()
         self.set_results(n)
         
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "OutputPathChooserWidget")
-
 OutputPath.default_value = OutputPath()
 
 class FileSink(NotCacheable, Module):
@@ -623,27 +553,7 @@ class Color(Constant):
 
     @staticmethod
     def to_string(r, g, b):
-        return "%s,%s,%s" % (r,g,b)
-
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", "ColorWidget")
-
-    @staticmethod
-    def get_widget_class_of_type(widget_type):
-        if widget_type.startswith('enum'):
-            return ("vistrails.gui.modules.constant_configuration", 
-                    "ColorEnumWidget")
-        return None
-        
-    @staticmethod
-    def get_query_widget_class():
-        return ("vistrails.gui.modules.query_configuration", "ColorQueryWidget")
-
-    @staticmethod
-    def get_param_explore_widget_list():
-        return [('vistrails.gui.modules.paramexplore', 'RGBExploreWidget'),
-                ('vistrails.gui.modules.paramexplore', 'HSVExploreWidget')]
+        return "%s,%s,%s" % (r,g,b)        
 
     @staticmethod
     def query_compute(value_a, value_b, query_method):
@@ -1174,8 +1084,12 @@ def init_constant(m):
     reg.add_module(m)
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
-    
+
 def initialize(*args, **kwargs):
+    constant_config_path = "vistrails.gui.modules.constant_configuration"
+    query_config_path = "vistrails.gui.modules.query_configuration"
+    paramexp_config_path = "vistrails.gui.modules.paramexplore"
+
     reg = get_module_registry()
 
     # !!! is_root should only be set for Module !!!
@@ -1188,42 +1102,67 @@ def initialize(*args, **kwargs):
 
     reg.add_module(Constant, abstract=True)
 
-    reg.add_module(Boolean)
-    reg.add_module(Float)
-    reg.add_module(Integer)
+    reg.add_module(Boolean,
+                   constantWidget=('%s:BooleanWidget' % \
+                                   constant_config_path))
+    reg.add_module(Float,
+                   constantWidgets=[
+                       QueryWidgetConfig('%s:NumericQueryWidget' % \
+                                            query_config_path),
+                       ParamExpWidgetConfig('%s:FloatExploreWidget' % \
+                                            paramexp_config_path)])
+    reg.add_module(Integer,
+                   constantWidgets=[
+                       QueryWidgetConfig('%s:NumericQueryWidget' % \
+                                         query_config_path),
+                       ParamExpWidgetConfig('%s:IntegerExploreWidget' % \
+                                            paramexp_config_path)])
+
     reg.add_module(String,
-                   configureWidgetType=("vistrails.gui.modules.string_configure",
-                                        "TextConfigurationWidget"))
+                   configureWidgetType="vistrails.gui.modules.string_configure:TextConfigurationWidget",
+                   constantWidgets=[
+                       ConstantWidgetConfig('%s:MultiLineStringWidget' % \
+                                            constant_config_path, 
+                                            widget_type='multiline'),
+                       QueryWidgetConfig('%s:StringQueryWidget' % \
+                                         query_config_path)])
     
     reg.add_output_port(Constant, "value_as_string", String)
     reg.add_output_port(String, "value_as_string", String, True)
 
-    reg.add_module(List,
+    reg.add_module(List, 
                    configureWidgetType=(
-                           "vistrails.gui.modules.list_configuration",
-                           "ListConfigurationWidget"))
+            "vistrails.gui.modules.list_configuration:ListConfigurationWidget"))
     reg.add_input_port(List, "head", Module)
     reg.add_input_port(List, "tail", List)
 
-    reg.add_module(Path)
+    reg.add_module(Path,
+                   constantWidget=("%s:PathChooserWidget" % \
+                                   constant_config_path))
     reg.add_input_port(Path, "value", Path)
     reg.add_output_port(Path, "value", Path)
     reg.add_input_port(Path, "name", String, True)
 
-    reg.add_module(File, constantSignatureCallable=path_parameter_hasher)
+    reg.add_module(File, constantSignatureCallable=path_parameter_hasher,
+                   constantWidget=("%s:FileChooserWidget" % \
+                                   constant_config_path))
     reg.add_input_port(File, "value", File)
     reg.add_output_port(File, "value", File)
     reg.add_output_port(File, "self", File, True)
     reg.add_input_port(File, "create_file", Boolean, True)
     reg.add_output_port(File, "local_filename", String, True)
 
-    reg.add_module(Directory, constantSignatureCallable=path_parameter_hasher)
+    reg.add_module(Directory, constantSignatureCallable=path_parameter_hasher,
+                   constantWidget=("%s:DirectoryChooserWidget" % \
+                                   constant_config_path))
     reg.add_input_port(Directory, "value", Directory)
     reg.add_output_port(Directory, "value", Directory)
     reg.add_output_port(Directory, "itemList", List)
     reg.add_input_port(Directory, "create_directory", Boolean, True)
 
-    reg.add_module(OutputPath)
+    reg.add_module(OutputPath,
+                   constantWidget=("%s:OutputPathChooserWidget" % \
+                                   constant_config_path))
     reg.add_output_port(OutputPath, "value", OutputPath)
 
     reg.add_module(FileSink)
@@ -1244,7 +1183,20 @@ def initialize(*args, **kwargs):
     reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
     reg.add_output_port(WriteFile, 'out_value', File)
 
-    reg.add_module(Color)
+    reg.add_module(Color,
+                   constantWidgets=[
+                       '%s:ColorWidget' % constant_config_path, 
+                       ConstantWidgetConfig('%s:ColorEnumWidget' % \
+                                            constant_config_path, 
+                                            widget_type='enum'),
+                       QueryWidgetConfig('%s:ColorQueryWidget' % \
+                                            query_config_path),
+                       ParamExpWidgetConfig('%s:RGBExploreWidget' % \
+                                            paramexp_config_path,
+                                            widget_type='rgb'),
+                       ParamExpWidgetConfig('%s:HSVExploreWidget' % \
+                                            paramexp_config_path,
+                                            widget_type='hsv')])
     reg.add_input_port(Color, "value", Color)
     reg.add_output_port(Color, "value", Color)
 
@@ -1252,13 +1204,11 @@ def initialize(*args, **kwargs):
     reg.add_input_port(StandardOutput, "value", Module)
 
     reg.add_module(Tuple, 
-                   configureWidgetType=("vistrails.gui.modules.tuple_configuration",
-                                        "TupleConfigurationWidget"))
+                   configureWidgetType="vistrails.gui.modules.tuple_configuration:TupleConfigurationWidget")
     reg.add_output_port(Tuple, 'self', Tuple)
 
     reg.add_module(Untuple, 
-                   configureWidgetType=("vistrails.gui.modules.tuple_configuration",
-                                        "UntupleConfigurationWidget"))
+                   configureWidgetType="vistrails.gui.modules.tuple_configuration:UntupleConfigurationWidget")
     reg.add_input_port(Untuple, 'tuple', Tuple)
 
     reg.add_module(ConcatenateString)

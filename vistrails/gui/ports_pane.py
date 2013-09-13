@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from itertools import izip
 import os
+import string
 
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import identifier as basic_identifier
@@ -42,7 +43,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import create_port_spec_string
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.system import vistrails_root_directory
-from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.port_documentation import QPortDocumentation
 from vistrails.gui.theme import CurrentTheme
@@ -208,8 +209,16 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
         for i, (psi, param) in enumerate(izip(self.port_spec.port_spec_items, 
                                               params)):
-            widget_class = widget_accessor(psi.descriptor.module,
-                                           psi.entry_type)
+            if psi.entry_type is not None:
+                # !!only pull off the prefix!! options follow in camelcase
+                prefix_end = len(psi.entry_type.lstrip(string.lowercase))
+                if prefix_end == 0:
+                    entry_type = psi.entry_type
+                else:
+                    entry_type = psi.entry_type[:-prefix_end]
+            else:
+                entry_type = None
+            widget_class = widget_accessor(psi.descriptor, entry_type)
             if param is not None:
                 obj = param
             else:

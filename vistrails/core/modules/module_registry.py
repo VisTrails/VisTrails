@@ -42,6 +42,7 @@ import uuid
 from vistrails.core import debug, get_vistrails_application
 from vistrails.core.data_structures.graph import Graph
 import vistrails.core.modules
+from vistrails.core.modules.config import ConstantWidgetConfig
 import vistrails.core.modules.vistrails_module
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
@@ -1030,6 +1031,7 @@ class ModuleRegistry(DBRegistry):
         kwargs:
           name=None,
           configureWidgetType=None,
+          constantWidget(s)=None,
           signatureCallable=None,
           moduleColor=None,
           moduleFringe=None,
@@ -1090,6 +1092,14 @@ class ModuleRegistry(DBRegistry):
         the given constant.  If this is not None, then the added
         module must be a subclass of Constant.
 
+        If constantWidget(s) is not None, the registry will use the
+        specified widget(s) or import path string(s) of the form
+        "<module>:<class>" to import the widget.  A tuple allows a
+        user to specify the widget_type (e.g. "default", "enum", etc.)
+        as the second item and the widget_use (e.g. "default",
+        "query", "paramexp").  If the plural form is used, we expect a
+        list, the singular form is used for a single item.
+
         If hide_namespace is True, the ModulePalette will not display
         the namespace for that module.  If hide_descriptor is True,
         the ModulePalette will not display that module in its list
@@ -1132,6 +1142,8 @@ class ModuleRegistry(DBRegistry):
             return r
         name = fetch('name', module.__name__)
         configureWidgetType = fetch('configureWidgetType', None)
+        constantWidget = fetch('constantWidget', None)
+        constantWidgets = fetch('constantWidgets', None)
         signatureCallable = fetch('signatureCallable', None)
         constantSignatureCallable = fetch('constantSignatureCallable', None)
         moduleColor = fetch('moduleColor', None)
@@ -1211,6 +1223,35 @@ class ModuleRegistry(DBRegistry):
             # FIXME, currently only allow one per hash, no versioning
             hash_key = (identifier, name, namespace)
             self._constant_hasher_map[hash_key] = constantSignatureCallable
+        
+        if constantWidget:
+            if constantWidgets is not None:
+                constantWidgets = constantWidget + constantWidgets
+            else:
+                constantWidgets = [constantWidget]
+        if constantWidgets:
+            try:
+                basic_pkg = get_vistrails_basic_pkg_id()
+                c = self.get_descriptor_by_name(basic_pkg, 'Constant').module
+            except ModuleRegistryException:
+                msg = "Constant not found - can't set constantSignatureCallable"
+                raise VistrailsInternalError(msg)
+            if not issubclass(module, c):
+                raise TypeError("To set constantWidgets, module " +
+                                "must be a subclass of Constant")
+            for widget_t in constantWidgets:
+                if isinstance(widget_t, tuple):
+                    widget_t = ConstantWidgetConfig(*widget_t)
+                else:
+                    widget_t = ConstantWidgetConfig(widget_t)
+                if widget_t.widget is not None:
+                    print 'setting widget:', widget_t.widget, \
+                        widget_t.widget_type, widget_t.widget_use
+                    self.set_constant_config_widget(descriptor, 
+                                                    widget_t.widget,
+                                                    widget_t.widget_type, 
+                                                    widget_t.widget_use)
+
         descriptor.set_module_color(moduleColor)
 
         if moduleFringe:
@@ -1904,12 +1945,52 @@ class ModuleRegistry(DBRegistry):
 
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
-        klass = descriptor.configuration_widget()
-        if isinstance(klass, tuple):
-            (path, klass_name) = klass
-            module = __import__(path, globals(), locals(), [klass_name])
-            klass = getattr(module, klass_name)            
-        return klass
+        cls = descriptor.configuration_widget()
+        path = None
+        if isinstance(cls, tuple):
+            (path, cls_name) = cls
+        elif isinstance(cls, basestring):
+            [path, cls_name] = cls.split(':')[:2]
+        if path is not None:
+            module = __import__(path, globals(), locals(), [cls_name])
+            cls = getattr(module, cls_name)            
+        return cls
+
+    def get_constant_config_params(self, widget_type=None, widget_use=None):
+        if widget_type is None:
+            widget_type = 'default'
+        if widget_use is None:
+            widget_use = 'default'
+        return (widget_type, widget_use)
+
+    def get_constant_config_widget(self, descriptor, widget_type=None, 
+                                   widget_use=None):
+        widget_type, widget_use = self.get_constant_config_params(widget_type,
+                                                                  widget_use)
+        for desc in self.get_module_hierarchy(descriptor):
+            if desc.has_constant_config_widget(widget_use, widget_type):
+                return desc.get_constant_config_widget(widget_use, widget_type)
+        return None
+
+    def get_all_constant_config_widgets(self, descriptor, widget_use=None):
+        widget_use = self.get_constant_config_params(None, widget_use)[1]
+        widgets = {}
+        for desc in reversed(self.get_module_hierarchy(descriptor)):
+            widgets.update(desc.get_all_constant_config_widgets(widget_use))
+        return widgets.values()
+
+    def set_constant_config_widget(self, descriptor, widget_class, 
+                                   widget_type=None, widget_use=None):
+        widget_type, widget_use = self.get_constant_config_params(widget_type,
+                                                                  widget_use)
+        basic_pkg = get_vistrails_basic_pkg_id()
+        constant_desc = self.get_descriptor_by_name(basic_pkg, 'Constant')
+        if not self.is_descriptor_subclass(descriptor, constant_desc):
+            raise Exception('Descriptor "%s" must be a subclass of Constant '
+                            'to use a constant configuration widget.' % \
+                            descriptor.sigstring)
+        descriptor.set_constant_config_widget(widget_class,
+                                              widget_use, widget_type)
 
     def is_descriptor_subclass(self, sub, super):
         """is_descriptor_subclass(sub : ModuleDescriptor, 

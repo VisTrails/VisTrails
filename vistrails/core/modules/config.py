@@ -33,4 +33,38 @@
 ##
 ###############################################################################
 
-pass
+from collections import namedtuple as _namedtuple
+
+def namedtuple(typename, field_names, default_values=None):
+    T = _namedtuple(typename, field_names)
+    if default_values is not None:
+        T.__new__.__defaults__ = default_values
+    return T
+
+def subnamedtuple(typename, cls, default_values=None):
+    return namedtuple(typename, cls._fields, default_values)
+
+ConstantWidgetConfig = namedtuple('ConstantWidgetConfig',
+                                  ['widget', 'widget_type', 'widget_use'],
+                                  (None, None))
+
+QueryWidgetConfig = subnamedtuple('QueryWidgetConfig', ConstantWidgetConfig, 
+                                  (None, 'query'))
+ParamExpWidgetConfig = subnamedtuple('ParamExpWidgetConfig', 
+                                     ConstantWidgetConfig, (None, 'paramexp'))
+
+# class QueryWidgetConfig(ConstantWidgetConfig):
+#     pass
+# QueryWidgetConfig.__new__.__defaults__ = (None, 'query')
+
+# class ParamExpWidgetConfig(ConstantWidgetConfig):
+#     pass
+# ParamExpWidgetConfig.__new__.__defaults__ = (None, 'paramexp')
+    
+# QueryWidgetConfig.= namedtuple('QueryWidgetConfig',
+#                                   ['widget', 'widget_type', 'widget_use'],
+#                                   (None, 'query'))
+
+# ParamExpWidgetConfig = namedtuple('ParamExpWidgetConfig',
+#                                   ['widget', 'widget_type', 'widget_use'],
+#                                   (None, 'paramexp'))

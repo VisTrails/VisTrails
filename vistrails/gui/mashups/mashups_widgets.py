@@ -35,7 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
     StandardConstantWidget
 from vistrails.core.modules.module_registry import get_module_registry

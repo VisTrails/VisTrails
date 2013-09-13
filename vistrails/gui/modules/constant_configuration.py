@@ -510,7 +510,7 @@ class QColorWidget(QtGui.QToolButton):
         if color.isValid():
             self.setColor(color, silent=False)
         else:
-            self.setColor(self.qcolor)
+            self.setColor(qcolor)
 
 class ColorWidget(QColorWidget, ConstantWidgetBase):
     def __init__(self, param, parent=None):

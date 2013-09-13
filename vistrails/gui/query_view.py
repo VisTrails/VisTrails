@@ -46,7 +46,7 @@ from vistrails.core.vistrail.vistrail import Vistrail
 
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.common_widgets import QSearchBox
-from vistrails.gui.modules import get_query_widget_class
+from vistrails.gui.modules.utils import get_query_widget_class
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.ports_pane import ParameterEntry
 from vistrails.gui.theme import CurrentTheme
