@@ -105,19 +105,31 @@ class CartesianProduct(Module):
         list1 = self.getInputFromPort("List1")
         list2 = self.getInputFromPort("List2")
         result = []
-        for i in list1:
-            for j in list2:
-                if isinstance(i, tuple) and isinstance(j, tuple):
-                    tuple_ = i + j
-                    result.append(tuple_)
-                elif isinstance(i, tuple) and not isinstance(j, tuple):
-                    tuple_ = i + (j,)
-                    result.append(tuple_)
-                elif not isinstance(i, tuple) and isinstance(j, tuple):
-                    tuple_ = (i,) + j
-                    result.append(tuple_)
-                else:
+        # If CombineTuple is not set or True, existing tuples will be
+        # concatenated instead of put inside a new tuple, eg:
+        #   with CombineTuple (default):
+        #     [(1, 2)], [3, 4] -> [(1, 2, 3), (1, 2, 4)]
+        #   without:
+        #     [(1, 2)], [3, 4] -> [((1, 2), 3), ((1, 2), 4)]
+        if not self.getInputFromPort('CombineTuple'):
+            for i in list1:
+                for j in list2:
                     tuple_ = (i, j)
                     result.append(tuple_)
+        else:
+            for i in list1:
+                for j in list2:
+                    if isinstance(i, tuple) and isinstance(j, tuple):
+                        tuple_ = i + j
+                        result.append(tuple_)
+                    elif isinstance(i, tuple) and not isinstance(j, tuple):
+                        tuple_ = i + (j,)
+                        result.append(tuple_)
+                    elif not isinstance(i, tuple) and isinstance(j, tuple):
+                        tuple_ = (i,) + j
+                        result.append(tuple_)
+                    else:
+                        tuple_ = (i, j)
+                        result.append(tuple_)
 
         self.setResult("Result", result)
