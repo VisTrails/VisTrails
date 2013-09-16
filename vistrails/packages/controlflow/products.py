@@ -133,3 +133,76 @@ class CartesianProduct(Module):
                         result.append(tuple_)
 
         self.setResult("Result", result)
+
+
+###############################################################################
+
+import unittest
+
+from vistrails.tests.utils import intercept_result, execute
+
+
+class TestProducts(unittest.TestCase):
+    def test_elementwise(self):
+        with intercept_result(ElementwiseProduct, 'Result') as results:
+            self.assertFalse(execute([
+                    ('ElementwiseProduct', 'org.vistrails.vistrails.control_flow', [
+                        ('List1', [('List', "[1, 2, 0]")]),
+                        ('List2', [('List', "[4, -3, 7]")]),
+                    ]),
+                ]))
+        self.assertEqual(results, [[4, -6, 0]])
+
+    def test_elementwise_tuples(self):
+        with intercept_result(ElementwiseProduct, 'Result') as results:
+            self.assertFalse(execute([
+                    ('ElementwiseProduct', 'org.vistrails.vistrails.control_flow', [
+                        ('List1', [('List', "[1, 2, 0]")]),
+                        ('List2', [('List', "[4, -3, 7]")]),
+                        ('NumericalProduct', [('Boolean', "False")]),
+                    ]),
+                ]))
+        self.assertEqual(results, [[(1, 4), (2, -3), (0, 7)]])
+
+    def test_dot(self):
+        with intercept_result(Dot, 'Result') as results:
+            self.assertFalse(execute([
+                    ('Dot', 'org.vistrails.vistrails.control_flow', [
+                        ('List1', [('List', "[1, 2, 0]")]),
+                        ('List2', [('List', "[4, -3, 7]")]),
+                    ]),
+                ]))
+        self.assertEqual(results, [-2])
+
+    def test_cross(self):
+        with intercept_result(Cross, 'Result') as results:
+            self.assertFalse(execute([
+                    ('Cross', 'org.vistrails.vistrails.control_flow', [
+                        ('List1', [('List', "[1, 2, 0]")]),
+                        ('List2', [('List', "[4, -3, 7]")]),
+                    ]),
+                ]))
+        # ( | 2 -3 |, | 0  7 |, | 1  4 | )
+        #   | 0  7 |  | 1  4 |  | 2 -3 |
+        self.assertEqual(results, [[14, -7, -11]])
+
+    def test_cartesian_combine(self):
+        with intercept_result(CartesianProduct, 'Result') as results:
+            self.assertFalse(execute([
+                    ('CartesianProduct', 'org.vistrails.vistrails.control_flow', [
+                        ('List1', [('List', "[(1, 2)]")]),
+                        ('List2', [('List', "[3, 4]")]),
+                    ]),
+                ]))
+        self.assertEqual(results, [[(1, 2, 3), (1, 2, 4)]])
+
+    def test_cartesian_nocombine(self):
+        with intercept_result(CartesianProduct, 'Result') as results:
+            self.assertFalse(execute([
+                    ('CartesianProduct', 'org.vistrails.vistrails.control_flow', [
+                        ('List1', [('List', "[(1, 2)]")]),
+                        ('List2', [('List', "[3, 4]")]),
+                        ('CombineTuple', [('Boolean', "False")]),
+                    ]),
+                ]))
+        self.assertEqual(results, [[((1, 2), 3), ((1, 2), 4)]])
