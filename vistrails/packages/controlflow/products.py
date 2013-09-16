@@ -95,3 +95,29 @@ class Cross(Module):
                   x1*y2 - x2*y1]
 
         self.setResult("Result", result)
+
+
+class CartesianProduct(Module):
+    """This module does the cartesian product of two lists.
+    """
+
+    def compute(self):
+        list1 = self.getInputFromPort("List1")
+        list2 = self.getInputFromPort("List2")
+        result = []
+        for i in list1:
+            for j in list2:
+                if isinstance(i, tuple) and isinstance(j, tuple):
+                    tuple_ = i + j
+                    result.append(tuple_)
+                elif isinstance(i, tuple) and not isinstance(j, tuple):
+                    tuple_ = i + (j,)
+                    result.append(tuple_)
+                elif not isinstance(i, tuple) and isinstance(j, tuple):
+                    tuple_ = (i,) + j
+                    result.append(tuple_)
+                else:
+                    tuple_ = (i, j)
+                    result.append(tuple_)
+
+        self.setResult("Result", result)
