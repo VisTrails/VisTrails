@@ -41,7 +41,7 @@ from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from fold import Fold, FoldWithModule
 from utils import Map, Filter, Sum, And, Or
 from conditional import If, Default
-from products import ElementwiseProduct, Dot, Cross
+from products import ElementwiseProduct, Dot, Cross, CartesianProduct
 from order import ExecuteInOrder
 from looping import While
 
@@ -110,6 +110,11 @@ def initialize(*args,**keywords):
     reg.add_input_port(Cross, 'List1', (List, ""))
     reg.add_input_port(Cross, 'List2', (List, ""))
     reg.add_output_port(Cross, 'Result', (List, ""))
+
+    reg.add_module(CartesianProduct)
+    reg.add_input_port(CartesianProduct, 'List1', (List, ""))
+    reg.add_input_port(CartesianProduct, 'List2', (List, ""))
+    reg.add_output_port(CartesianProduct, 'Result', (List, ""))
 
     reg.add_input_port(ExecuteInOrder, 'module1', (Module, ""))
     reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
