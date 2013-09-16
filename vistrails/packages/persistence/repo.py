@@ -191,10 +191,14 @@ class GitRepo(object):
 
     def add_commit(self, filename):
         if os.path.isdir(os.path.join(self.repo.path, filename)):
+            repo_path_len = len(self.repo.path) + 1
             paths = []
             for dirpath, dirnames, filenames in os.walk(
                     os.path.join(self.repo.path, filename)):
-                paths.extend(os.path.join(filename, f) for f in filenames)
+                # need to include the full path (including
+                # subdirectories) relative to the repository
+                paths.extend(os.path.join(dirpath[repo_path_len:], f) 
+                             for f in filenames)
             self.repo.stage(paths)
         else:
             self.repo.stage(filename)
