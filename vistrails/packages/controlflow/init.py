@@ -183,7 +183,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
             ],
             'Cross': [
                 # I can't figure out what CombineTuple used to do
-                (None, '0.2.2', Cross, {
+                (None, '0.2.2', CartesianProduct, {
                     'dst_port_remap': {
                         'List_1': 'List1',
                         'List_2': 'List2',
