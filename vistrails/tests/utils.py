@@ -1,4 +1,10 @@
 import contextlib
+import sys
+
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
 
 from vistrails.core.modules.vistrails_module import Module
 
@@ -215,3 +221,16 @@ def intercept_results(*args):
         else:
             raise TypeError
     return contextlib.nested(*ctx)
+
+
+@contextlib.contextmanager
+def capture_stdout():
+    lines = []
+    old_stdout = sys.stdout
+    sio = StringIO.StringIO()
+    sys.stdout = sio
+    yield lines
+    sys.stdout = old_stdout
+    lines.extend(sio.getvalue().split('\n'))
+    if lines and not lines[-1]:
+        del lines[-1]
