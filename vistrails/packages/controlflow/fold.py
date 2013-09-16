@@ -298,7 +298,7 @@ def get_module(value, signature):
     elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (get_module(value[element], signature[element]))
+            v_modules += (get_module(value[element], signature[element]),)
         return v_modules
     else:
         debug.warning("Could not identify the type of the list element.")
