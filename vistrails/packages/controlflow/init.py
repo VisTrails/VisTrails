@@ -114,6 +114,8 @@ def initialize(*args,**keywords):
     reg.add_module(CartesianProduct)
     reg.add_input_port(CartesianProduct, 'List1', (List, ""))
     reg.add_input_port(CartesianProduct, 'List2', (List, ""))
+    reg.add_input_port(CartesianProduct, 'CombineTuple', (Boolean, ""),
+                       optional=True, defaults="['True']")
     reg.add_output_port(CartesianProduct, 'Result', (List, ""))
 
     reg.add_input_port(ExecuteInOrder, 'module1', (Module, ""))
@@ -182,7 +184,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 }),
             ],
             'Cross': [
-                # I can't figure out what CombineTuple used to do
                 (None, '0.2.2', CartesianProduct, {
                     'dst_port_remap': {
                         'List_1': 'List1',
