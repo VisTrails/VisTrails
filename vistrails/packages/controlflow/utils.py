@@ -114,3 +114,89 @@ class Or(Fold):
         """Defining the operation..."""
 
         self.partialResult = self.partialResult or self.element
+
+
+###############################################################################
+
+import unittest
+import urllib2
+
+from vistrails.tests.utils import intercept_result, execute
+
+
+class TestMap(unittest.TestCase):
+    def test_simple(self):
+        src = urllib2.quote('o = i + 1')
+        with intercept_result(Map, 'Result') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', src)]),
+                    ]),
+                    ('Map', 'org.vistrails.vistrails.control_flow', [
+                        ('InputPort', [('List', "['i']")]),
+                        ('OutputPort', [('String', 'o')]),
+                        ('InputList', [('List', '[1, 2, 8, 9.1]')]),
+                    ]),
+                ],
+                [
+                    (0, 'self', 1, 'FunctionPort'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'i',
+                     'org.vistrails.vistrails.basic:Float'),
+                    (0, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Float'),
+                ]))
+        self.assertEqual(results, [[2, 3, 9, 10.1]])
+
+    def test_tuple(self):
+        src = urllib2.quote('o = len(i[0]) + i[1]')
+        with intercept_result(Map, 'Result') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', src)]),
+                    ]),
+                    ('Map', 'org.vistrails.vistrails.control_flow', [
+                        ('InputPort', [('List', "['i']")]),
+                        ('OutputPort', [('String', 'o')]),
+                        ('InputList', [('List',
+                            '[("aa", 1), ("", 8), ("a", 4)]')]),
+                    ]),
+                ],
+                [
+                    (0, 'self', 1, 'FunctionPort'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'i',
+                     'org.vistrails.vistrails.basic:String,org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Float'),
+                ]))
+        self.assertEqual(results, [[3, 8, 5]])
+
+    def test_multiple(self):
+        src = urllib2.quote('o = i + j')
+        with intercept_result(Map, 'Result') as results:
+            self.assertFalse(execute([
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', src)]),
+                    ]),
+                    ('Map', 'org.vistrails.vistrails.control_flow', [
+                        ('InputPort', [('List', "['i', 'j']")]),
+                        ('OutputPort', [('String', 'o')]),
+                        ('InputList', [('List',
+                            '[(1, 2), (3, 8), (-2, 3)]')]),
+                    ]),
+                ],
+                [
+                    (0, 'self', 1, 'FunctionPort'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'i',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'input', 'j',
+                     'org.vistrails.vistrails.basic:Integer'),
+                    (0, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Integer'),
+                ]))
+        self.assertEqual(results, [[3, 11, 1]])
