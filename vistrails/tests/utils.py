@@ -3,7 +3,8 @@ import contextlib
 from vistrails.core.modules.vistrails_module import Module
 
 
-def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
+def execute(modules, connections=[], add_port_specs=[],
+            enable_pkg=True, full_results=False):
     """Build a pipeline and execute it.
 
     This is useful to simply build a pipeline in a test case, and run it. When
@@ -150,7 +151,11 @@ def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
             locator=XMLFileLocator('foo.xml'),
             current_version=1,
             view=DummyView())
-    return result.errors
+    if full_results:
+        return result
+    else:
+        # Allows to do self.assertFalse(execute(...))
+        return result.errors
 
 
 @contextlib.contextmanager
