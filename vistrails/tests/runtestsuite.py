@@ -43,6 +43,7 @@ any unit tests, as a crude measure of code coverage.
 
 """
 #import doctest
+import atexit
 import os
 import sys
 import traceback
@@ -50,12 +51,31 @@ import unittest
 import os.path
 import optparse
 from optparse import OptionParser
+import shutil
+import tempfile
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
 _this_dir = os.path.dirname(os.path.realpath(__file__))
 root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
 sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
+
+# Use a different temporary directory
+test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
+tempfile.tempdir = test_temp_dir
+@atexit.register
+def clean_tempdir():
+    nb_dirs = 0
+    nb_files = 0
+    for f in os.listdir(test_temp_dir):
+        if os.path.isdir(f):
+            nb_dirs += 1
+        else:
+            nb_files += 1
+    if nb_dirs > 0 or nb_files > 0:
+        sys.stdout.write("Warning: %d dirs and %d files were left behind in "
+                         "tempdir, cleaning up\n" % (nb_dirs, nb_files))
+    shutil.rmtree(test_temp_dir, ignore_errors=True)
 
 def setNewPyQtAPI():
     try:
