@@ -201,9 +201,25 @@ class GitRepo(object):
             self.repo.stage(filename)
 
     def add_commit(self, filename):
+        self.setup_git()
         self._stage(filename)
         commit_id = self.repo.do_commit('Updated %s' % filename)
         return commit_id
+
+    def setup_git(self):
+        config_stack = self.repo.get_config_stack()
+
+        try:
+            config_stack.get(('user',), 'name')
+            config_stack.get(('user',), 'email')
+        except KeyError:
+            from vistrails.core.system import current_user
+            from dulwich.config import ConfigFile
+            user = current_user()
+            repo_conf = self.repo.get_config()
+            repo_conf.set(('user',), 'name', user)
+            repo_conf.set(('user',), 'email', '%s@localhost' % user)
+            repo_conf.write_to_path()
 
 current_repo = None
 
