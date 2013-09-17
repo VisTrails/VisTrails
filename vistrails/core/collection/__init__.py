@@ -110,6 +110,12 @@ class Collection(object):
             Collection._instance = obj
         return Collection._instance
 
+    @staticmethod
+    def clearInstance():
+        if Collection._instance:
+            Collection._instance.conn.close()
+        Collection._instance = False
+
     def add_listener(self, c):
         """ Add objects that listen to entity creation/removal
             Object may implement the following method
