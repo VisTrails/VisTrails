@@ -163,7 +163,7 @@ def pip_install(package_name):
     if vistrails.core.system.executable_is_in_path('pip'):
         cmd = 'pip install'
     else:
-        cmd = sys.executable + ' -m pip install'
+        cmd = '"' + sys.executable + '" -m pip install'
     return run_install_command_as_root(has_qt(), cmd, package_name)
 
 def show_question(which_files, has_distro_pkg, has_pip):
