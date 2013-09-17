@@ -198,6 +198,8 @@ class GitRepo(object):
             for f in os.listdir(fullpath):
                 self._stage(os.path.join(filename, f))
         else:
+            if os.path.sep != '/':
+                filename = filename.replace(os.path.sep, '/')
             self.repo.stage(filename)
 
     def add_commit(self, filename):
