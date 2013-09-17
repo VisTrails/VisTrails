@@ -39,6 +39,7 @@ py_import('dulwich', {
         'linux-debian': 'python-dulwich',
         'linux-ubuntu': 'python-dulwich',
         'linux-fedora': 'python-dulwich'})
+from vistrails.core import debug
 
 from dulwich.errors import NotCommitError, NotGitRepository
 from dulwich.repo import Repo
@@ -189,19 +190,18 @@ class GitRepo(object):
                         paths=[path])
         return iter(walker).next().commit.id
 
-    def add_commit(self, filename):
-        if os.path.isdir(os.path.join(self.repo.path, filename)):
-            repo_path_len = len(self.repo.path) + 1
-            paths = []
-            for dirpath, dirnames, filenames in os.walk(
-                    os.path.join(self.repo.path, filename)):
-                # need to include the full path (including
-                # subdirectories) relative to the repository
-                paths.extend(os.path.join(dirpath[repo_path_len:], f) 
-                             for f in filenames)
-            self.repo.stage(paths)
+    def _stage(self, filename):
+        fullpath = os.path.join(self.repo.path, filename)
+        if os.path.islink(fullpath):
+            debug.warning("Warning: not staging symbolic link %s" % os.path.basename(filename))
+        elif os.path.isdir(fullpath):
+            for f in os.listdir(fullpath):
+                self._stage(os.path.join(filename, f))
         else:
             self.repo.stage(filename)
+
+    def add_commit(self, filename):
+        self._stage(filename)
         commit_id = self.repo.do_commit('Updated %s' % filename)
         return commit_id
 
