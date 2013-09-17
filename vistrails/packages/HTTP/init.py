@@ -540,5 +540,36 @@ class TestHTTPFile(unittest.TestCase):
                   }
         interpreter.execute(p, **kwargs)
 
+class TestHTTPDirectory(unittest.TestCase):
+    def test_download(self):
+        url = 'http://www.vistrails.org/testing/httpdirectory/test/'
+
+        import shutil
+        import tempfile
+        testdir = tempfile.mkdtemp(prefix='vt_test_http_')
+        try:
+            download_directory(url, testdir)
+            files = {}
+            def addfiles(dirpath):
+                td = os.path.join(testdir, dirpath)
+                for name in os.listdir(td):
+                    filename = os.path.join(testdir, dirpath, name)
+                    dn = os.path.join(dirpath, name)
+                    if os.path.isdir(filename):
+                        addfiles(os.path.join(dirpath, name))
+                    else:
+                        with open(filename, 'rb') as f:
+                            files[dn.replace(os.sep, '/')] = f.read()
+            addfiles('')
+            self.assertEqual(len(files), 4)
+            del files['f.html']
+            self.assertEqual(files, {
+                    'a': 'aa\n',
+                    'bb': 'bb\n',
+                    'cc/d': 'dd\n',
+                })
+        finally:
+            shutil.rmtree(testdir)
+
 if __name__ == '__main__':
     unittest.main()
