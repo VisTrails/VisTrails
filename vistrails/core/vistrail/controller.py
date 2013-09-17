@@ -1814,14 +1814,30 @@ class VistrailController(object):
         except InvalidPipeline, e:
             # handle_invalid_pipeline will raise it's own InvalidPipeline
             # exception if it fails
-            vistrail_id_scope = self.id_scope
-            self.id_scope = abs_vistrail.idScope
+            
+            # use a new controller that is tied to the abstraction
+            # vistrail to process exceptions, also force upgrades to
+            # be immediately incorporated, use self.__class_ to create
+            # controller so user is prompted if in GUI mode
+            abs_controller = self.__class__(abs_vistrail, auto_save=False)
             (new_version, new_pipeline) = \
-                self.handle_invalid_pipeline(e, long(module_version), \
-                                                 abs_vistrail, False)
+                abs_controller.handle_invalid_pipeline(e, long(module_version),
+                                                       force_no_delay=True) 
+            try:
+                abstraction = new_abstraction(name, abs_vistrail, abs_fname,
+                                              new_version)
+            except InvalidPipeline, e:
+                # we need to process a second InvalidPipeline exception
+                # because the first may be simply for a missing package,
+                # then we hit upgrades with the second one
+
+                (new_version, new_pipeline) = \
+                    abs_controller.handle_invalid_pipeline(e, new_version,
+                                                           force_no_delay=True)
+            del abs_controller
+
             save_abstraction(abs_vistrail, abs_fname)
             self.set_changed(True)
-            self.id_scope = vistrail_id_scope
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                           new_version, new_pipeline)
             module_version = str(new_version)
