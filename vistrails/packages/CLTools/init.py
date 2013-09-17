@@ -403,35 +403,7 @@ def add_tool(path):
 
 
 def initialize(*args, **keywords):
-    if "CLTools" == identifiers.name:
-        # this is the original package 
-        location = os.path.join(vistrails.core.system.current_dot_vistrails(),
-                                "CLTools")
-        # make sure dir exist
-        if not os.path.isdir(location): # pragma: no cover # pragma: no partial
-            try:
-                debug.log("Creating CLTools directory...")
-                os.mkdir(location)
-            except:
-                debug.critical("""Could not create CLTools directory. Make
- sure '%s' does not exist and parent directory is writable""" % location)
-                sys.exit(1)
-    else: # pragma: no cover
-        # this is a standalone package so modules are placed in this directory
-        location = os.path.dirname(__file__)
-    
-
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-    reg.add_module(CLTools, abstract=True)
-    for path in os.listdir(location):
-        if path.endswith(SUFFIX): # pragma: no partial
-            try:
-                add_tool(os.path.join(location, path))
-            except Exception as exc: # pragma: no cover
-                import traceback
-                debug.critical("Package CLTools failed to create module "
-                   "from '%s': %s" % (os.path.join(location, path), exc),
-                   traceback.format_exc())
+    reload_scripts(initial=True)
 
 
 def remove_all_scripts():
@@ -440,8 +412,9 @@ def remove_all_scripts():
         del cl_tools[tool_name]
         reg.delete_module(identifiers.identifier, tool_name)
 
-def reload_scripts():
-    remove_all_scripts()
+def reload_scripts(initial=False):
+    if not initial:
+        remove_all_scripts()
     if "CLTools" == identifiers.name:
         # this is the original package
         location = os.path.join(vistrails.core.system.current_dot_vistrails(),
@@ -458,7 +431,10 @@ def reload_scripts():
     else: # pragma: no cover
         # this is a standalone package so modules are placed in this directory
         location = os.path.dirname(__file__)
-    
+
+    if initial:
+        reg = vistrails.core.modules.module_registry.get_module_registry()
+        reg.add_module(CLTools, abstract=True)
     for path in os.listdir(location):
         if path.endswith(SUFFIX): # pragma: no partial
             try:
@@ -469,11 +445,12 @@ def reload_scripts():
                    "from '%s': %s" % (os.path.join(location, path), exc),
                    traceback.format_exc())
 
-    from vistrails.core.interpreter.cached import CachedInterpreter
-    CachedInterpreter.clear_package(identifiers.identifier)
+    if not initial:
+        from vistrails.core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.clear_package(identifiers.identifier)
 
-    from vistrails.gui.vistrails_window import _app
-    _app.invalidate_pipelines()
+        from vistrails.gui.vistrails_window import _app
+        _app.invalidate_pipelines()
 
 
 wizards_list = []
