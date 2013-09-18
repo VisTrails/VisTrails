@@ -18,7 +18,7 @@ An Introduction to VisTrails
 .. toctree::
    :maxdepth: 2
 
-   intro2
+   intro
    getting_started
 
 #############################
