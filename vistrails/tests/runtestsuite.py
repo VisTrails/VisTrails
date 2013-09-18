@@ -196,6 +196,7 @@ optionsDict = {
         'singleInstance': False,
         'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
+        'enablePackagesSilently': True,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
