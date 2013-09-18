@@ -41,17 +41,25 @@ def namedtuple(typename, field_names, default_values=None):
         T.__new__.__defaults__ = default_values
     return T
 
-def subnamedtuple(typename, cls, default_values=None):
-    return namedtuple(typename, cls._fields, default_values)
+def subnamedtuple(typename, cls, new_fields=[], new_default_values=tuple(),
+                  overwrite_defaults=False):
+    if overwrite_defaults:
+        return namedtuple(typename, list(cls._fields) + new_fields, 
+                          new_default_values)
+    else:
+        if cls.__new__.__defaults__ is not None:
+            new_default_values = cls.__new__.__defaults__ + new_default_values
+        return namedtuple(typename, list(cls._fields) + new_fields, 
+                          new_default_values)
 
 ConstantWidgetConfig = namedtuple('ConstantWidgetConfig',
                                   ['widget', 'widget_type', 'widget_use'],
                                   (None, None))
-
 QueryWidgetConfig = subnamedtuple('QueryWidgetConfig', ConstantWidgetConfig, 
-                                  (None, 'query'))
+                                  [], (None, 'query'), True)
 ParamExpWidgetConfig = subnamedtuple('ParamExpWidgetConfig', 
-                                     ConstantWidgetConfig, (None, 'paramexp'))
+                                     ConstantWidgetConfig, [],
+                                     (None, 'paramexp'), True)
 
 ModuleSettings = namedtuple('ModuleSettings',
                           ['name', 'configureWidgetType', 'constantWidget',
@@ -69,23 +77,40 @@ ModuleSettings = namedtuple('ModuleSettings',
 
 Port = namedtuple('Port',
                   ['name', 'signature', 'optional', 'sort_key',
-                   'label', 'default', 'values', 'entry_type',
                    'docstring', 'shape', 'min_conns', 'max_conns'],
-                  (False, -1, None, None, None, None, None, None, None, None))
+                  (False, -1, None, None, 0, -1))
+InputPort = subnamedtuple('InputPort', Port,
+                          ['label', 'default', 'values', 'entry_type'],
+                          (None, None, None, None))
+OutputPort = subnamedtuple('OutputPort', Port)
 
-OutputPort = namedtuple('OutputPort',
-                        ['name', 'signature', 'optional', 'sort_key',
-                         'docstring', 'shape', 'min_conns', 'max_conns'])
+CompoundPort = subnamedtuple('CompoundPort', Port,
+                             ['items'],
+                             (None, False, -1, None, None, 0, -1, None), 
+                             True)
+CompoundInputPort = subnamedtuple('CompoundInputPort', CompoundPort,
+                                  ['labels', 'defaults', 'values', 
+                                   'entry_types'],
+                                  (None, None, None, None))
+CompoundOutputPort = subnamedtuple('CompoundOutputPort', CompoundPort)
 
-CompoundPort = namedtuple('CompoundPort',
-                          ['name', 'signature', 'optional', 'sort_key', 
-                           'labels', 'defaults', 'values', 'entry_types',
-                           'docstring', 'shape', 'min_conns', 
-                           'max_conns', 'items'],
-                          (None, False, -1, None, None, None, None, None, 
-                           None, None, None, None))
+PortItem = namedtuple('PortItem', ['signature'])
+InputPortItem = subnamedtuple('InputPortItem', PortItem,
+                              ['label', 'default', 'values', 'entry_type'],
+                              (None, None, None, None))
+OutputPortItem = subnamedtuple('OutputPortItem', PortItem)
 
-PortItem = namedtuple('PortItem',
-                      ['signature', 'label', 'default', 'values', 'entry_type'],
-                      (None, None, None, None))
-OutputPortItem = namedtuple('OutputPortItem', ['signature'], (None))
+DeprecatedInputPort = namedtuple('DeprecatedInputPort',
+                                 ['name', 'signature', 'optional', 'sort_key',
+                                  'labels', 'defaults', 'values', 
+                                  'entry_types', 'docstring', 'shape', 
+                                  'min_conns', 'max_conns'],
+                                 (False, -1, None, None, None, None, None, 
+                                  None, 0, -1))
+
+IPort = InputPort
+OPort = OutputPort
+CIPort = CompoundInputPort
+COPort = CompoundOutputPort
+IPItem = InputPortItem
+OPItem = OutputPortItem

@@ -43,7 +43,7 @@ from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
 from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
     NotCacheable, identifier as basic_pkg
-from vistrails.core.modules.config import ModuleSettings, Port
+from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
     ModuleError, ModuleSuspended
 from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
@@ -72,12 +72,12 @@ def input_port_signature(pipeline, obj, chm):
 
 class InputPort(Module):
     _settings = ModuleSettings(signatureCallable=input_port_signature)
-    _input_ports = [Port("name", "String", optional=True),
-                    Port("optional", "Boolean", optional=True),
-                    Port("spec", "String"),
-                    Port("ExternalPipe", "Variant", optional=True),
-                    Port("Default", "Variant")]
-    _output_ports = [Port("InternalPipe", "Variant")]
+    _input_ports = [IPort("name", "String", optional=True),
+                    IPort("optional", "Boolean", optional=True),
+                    IPort("spec", "String"),
+                    IPort("ExternalPipe", "Variant", optional=True),
+                    IPort("Default", "Variant")]
+    _output_ports = [OPort("InternalPipe", "Variant")]
                     
     def compute(self):
         exPipe = self.forceGetInputFromPort('ExternalPipe')
@@ -93,11 +93,11 @@ class InputPort(Module):
 ###############################################################################
     
 class OutputPort(Module):
-    _input_ports = [Port("name", "String", optional=True),
-                    Port("optional", "Boolean", optional=True),
-                    Port("spec", "String"),
-                    Port("InternalPipe", "Variant")]
-    _output_ports = [Port("ExternalPipe", "Variant", optional=True)]
+    _input_ports = [IPort("name", "String", optional=True),
+                    IPort("optional", "Boolean", optional=True),
+                    IPort("spec", "String"),
+                    IPort("InternalPipe", "Variant")]
+    _output_ports = [OPort("ExternalPipe", "Variant", optional=True)]
     
     def compute(self):
         inPipe = self.getInputFromPort('InternalPipe')
@@ -158,7 +158,7 @@ def group_signature(pipeline, module, chm):
 class Group(Module):
     _settings = ModuleSettings(signatureCallable=group_signature,
                                hide_descriptor=True)
-    _output_ports = [Port("self", "Group", optional=True)]
+    _output_ports = [OPort("self", "Group", optional=True)]
 
     def __init__(self):
         Module.__init__(self)

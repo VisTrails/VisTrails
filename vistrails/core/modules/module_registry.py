@@ -34,6 +34,7 @@
 ###############################################################################
 from itertools import izip, chain
 import ast
+import collections
 import copy
 import os
 import tempfile
@@ -44,7 +45,8 @@ from vistrails.core import debug, get_vistrails_application
 from vistrails.core.data_structures.graph import Graph
 import vistrails.core.modules
 from vistrails.core.modules.config import ConstantWidgetConfig, \
-    ModuleSettings, Port, CompoundPort, PortItem
+    ModuleSettings, InputPort, OutputPort, CompoundInputPort, \
+    CompoundOutputPort, DeprecatedInputPort
 import vistrails.core.modules.vistrails_module
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
@@ -999,7 +1001,9 @@ class ModuleRegistry(DBRegistry):
         else:
             checkval = desc.module.translate_to_python(val)
             retval = desc.module.translate_to_string(checkval)
-            if retval != val:
+            if isinstance(checkval, basestring) and retval != val:
+                # we have a string -> string conversion that doesn't
+                # match
                 retval = desc.module.translate_to_string(val)
         return retval
             
@@ -1008,109 +1012,83 @@ class ModuleRegistry(DBRegistry):
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        for (port_key, adder_f) in [('_input_ports', self.add_input_port),
-                                    ('_output_ports', self.add_output_port)]:
+        create_psi_string = \
+                    vistrails.core.modules.utils.create_port_spec_item_string
+        for (port_key, adder_f, simple_t, compound_t, deprecated_t, is_input) \
+            in [('_input_ports', self.add_input_port, InputPort, 
+                 CompoundInputPort, DeprecatedInputPort, True),
+                ('_output_ports', self.add_output_port, OutputPort, 
+                 CompoundOutputPort, OutputPort, False)]:
             if port_key in module.__dict__:
                 for port_info in module.__dict__[port_key]:
                     added = False
-                    if isinstance(port_info, Port):
-                        kwargs = port_info._asdict()
-                        port_name = kwargs.pop('name')
-                        port_sig = kwargs.pop('signature')
-                        port_sigstring = None
-                        port_cls = None
-                        if isinstance(port_sig, basestring):
-                            port_sigstring = vistrails.core.modules.utils.parse_port_spec_string(port_sig)[0]
-                        else:
-                            port_cls = port_sig
-                        if port_key == '_input_ports':
-                            default_val = kwargs.pop('default')
-                            if default_val is not None:
-                                default_conv = \
-                                    self.convert_port_val(default_val, 
-                                                          port_sigstring, port_cls)
-                                if default_conv is not None:
-                                    kwargs['defaults'] = [default_conv]
-                            # else raise some error
-                            kwargs['labels'] = [kwargs.pop('label')]
-                            values = kwargs.pop('values')
-                            if values is not None:
-                                if isinstance(values, basestring):
-                                    values = ast.literal_eval(values)
-                                out_values = []
-                                for v in values:
-                                    out_v = self.convert_port_val(v, port_sigstring,
-                                                                  port_cls)
-                                    if out_v is None:
-                                        new_values = []
-                                        break
-                                    out_values.append(out_v)
-                                if out_values:
-                                    kwargs['values'] = [out_values]
-                            kwargs['entry_types'] = [kwargs.pop('entry_type')]
-                        else:
-                            kwargs.pop('default')
-                            kwargs.pop('label')
-                            kwargs.pop('values')
-                            kwargs.pop('entry_type')
-                        adder_f(module, port_name, port_sig, **kwargs)
-                        added = True
-                    elif isinstance(port_info, CompoundPort):
-                        kwargs = port_info._asdict()
-                        port_name = kwargs.pop('name')
-                        port_sig = kwargs.pop('signature')
-                        items = kwargs.pop('items')
-                        if port_sig is None and \
-                           all(item.signature is not None for item in items):
-                            port_sig = \
-                                    ",".join(item.signature for item in items)
-                        if port_sig is None:
-                            raise TypeError('Expected port "%s" to have '
-                                            "either full signature or each "
-                                            "PortItem to have signature" % \
-                                            port_name)
-                        if 'defaults' not in kwargs and \
-                           any(item.default is not None for item in items):
-                            kwargs['defaults'] = \
-                                            [item.default for item in items]
-                        if 'labels' not in kwargs and \
-                           any(item.label is not None for item in items):
-                            kwargs['labels'] = \
-                                            [item.label for item in items]
-                        if 'values' not in kwargs and \
-                           any(item.values is not None for item in items):
-                            kwargs['values'] = \
-                                            [item.values for item in items]
-                        if 'entry_types' not in kwargs and \
-                           any(item.entry_type is not None for item in items):
-                            kwargs['entry_types'] = \
-                                            [item.entry_type for item in items]
-                        adder_f(module, port_name, port_sig, **kwargs)
-                        added = True
-                    elif isinstance(port_info, PortSpec):
-                        # force port type to match list it occurs in
-                        # we just need "input" or "output"
-                        port_info.type = port_key[1:-6]
-                        descriptor = self.get_descriptor(module)
-                        self.add_port_spec(descriptor, port_info)
-                        added = True
-                    elif len(port_info) >= 2:
-                        port_name, port_sig = port_info[:2]
-                        if len(port_info) > 2 and \
-                                isinstance(port_info[2], dict):
-                            kwargs = port_info[2]
-                            adder_f(module, port_name, port_sig, **kwargs)
-                            added = True
-                        else:
-                            args = port_info[2:]
-                            adder_f(module, port_name, port_sig, *args)
-                            added = True
-                        
-                    if not added:
-                        raise TypeError("Expected (port_name, port_signature, "
-                                        "kwargs_dict) or (port_name, "
-                                        "port_signature, *args)")
+                    port_name = None
+                    port_sig = None
+                    try:
+                        if not isinstance(port_info, simple_t) and \
+                           not isinstance(port_info, compound_t):
+                            port_name = port_info[0]
+                            port_sig = port_info[1]
+                            if len(port_info) > 2:
+                                if isinstance(port_info[2], dict):
+                                    port_info = compound_t(port_info[0],
+                                                                port_info[1],
+                                                                **port_info[2])
 
+                                else:
+                                    dep_port_info = deprecated_t(*port_info)
+                                    port_info = \
+                                        compound_t(**dep_port_info._asdict())
+                            else:
+                                port_info = compound_t(*port_info)
+
+                        # convert simple ports to compound ones
+                        kwargs = port_info._asdict()
+                        port_name = kwargs.pop('name')
+                        port_sig = kwargs.pop('signature')
+                        if is_input and isinstance(port_info, simple_t):
+                            kwargs['labels'] = [kwargs.pop('label')]
+                            kwargs['defaults'] = [kwargs.pop('default')]
+                            kwargs['values'] = [kwargs.pop('values')]
+                            kwargs['entry_types'] = [kwargs.pop('entry_type')]
+                        elif isinstance(port_info, compound_t):
+                            # have compound port
+                            port_items = kwargs.pop('items')
+                            if port_items is not None:
+                                sig_items = []
+                                labels = []
+                                defaults = []
+                                values = []
+                                entry_types = []
+                                for item in port_info.items:
+                                    if not isinstance(item.signature, 
+                                                      basestring):
+                                        d = self.get_descriptor(item.signature)
+                                        sig_items.append(create_psi_string(
+                                            d.package, d.name, d.namespace))
+                                    else:
+                                        sig_items.append(item.signature)
+                                    labels.append(item.label)
+                                    defaults.append(item.default)
+                                    values.append(item.values)
+                                    entry_types.append(item.entry_type)
+                                kwargs['signature'] = ','.join(sig_items)
+                                if is_input:
+                                    kwargs['labels'] = labels
+                                    kwargs['defaults'] = defaults
+                                    kwargs['values'] = values
+                                    kwargs['entry_types'] = entry_types
+
+                        # add the port
+                        adder_f(module, port_name, port_sig, **kwargs)
+                        added = True
+                    except Exception, e:
+                        debug.critical('Failed to add port "%s" to '
+                                       'module "%s"' % (port_name, 
+                                                        module.__name__),
+                                       str(e))
+                        raise
+                        
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module
         to registry. Don't call this directly - it is
@@ -1364,8 +1342,6 @@ class ModuleRegistry(DBRegistry):
                 else:
                     widget_t = ConstantWidgetConfig(widget_t)
                 if widget_t.widget is not None:
-                    print 'setting widget:', widget_t.widget, \
-                        widget_t.widget_type, widget_t.widget_use
                     self.set_constant_config_widget(descriptor, 
                                                     widget_t.widget,
                                                     widget_t.widget_type, 
@@ -1529,6 +1505,57 @@ class ModuleRegistry(DBRegistry):
             raise VistrailsInternalError("create_port_spec: one of signature "
                                          "and sigstring must be specified")
         spec_id = self.idScope.getNewId(PortSpec.vtType)
+
+        # convert values of defaults and values if necessary
+        if defaults is not None or values is not None:
+            parse_port_spec_string = \
+                            vistrails.core.modules.utils.parse_port_spec_string
+            # parse port specs as necessary
+            if sigstring is not None:
+                sigstrings = parse_port_spec_string(sigstring)
+                sig_cls_list = [None,] * len(sigstrings)
+            else:
+                if isinstance(signature, collections.Sequence):
+                    sig_cls_list = signature
+                    sigstrings = [None,] * len(sig_cls_list)
+                else:
+                    sig_cls_list = [signature]
+                    sigstrings = [None,]
+            if defaults is not None:
+                new_defaults = []
+                if isinstance(defaults, basestring):
+                    defaults = ast.literal_eval(defaults)
+                for i, default_val in enumerate(defaults):
+                    if default_val is not None:
+                        default_conv = self.convert_port_val(default_val,
+                                                             sigstrings[i], 
+                                                             sig_cls_list[i])
+                        if default_conv is not None:
+                            new_defaults.append(default_conv)
+                        else:
+                            new_defaults.append(None)
+                    else:
+                        new_defaults.append(None)
+                defaults = new_defaults
+            if values is not None:
+                new_values = []
+                if isinstance(values, basestring):
+                    values = ast.literal_eval(values)
+                for i, values_list in enumerate(values):
+                    if values_list is not None:
+                        new_values_list = []
+                        for val in values_list:
+                            if val is not None:
+                                val_conv = self.convert_port_val(val, 
+                                                                 sigstrings[i],
+                                                                 sig_cls_list[i])
+                                if val_conv is not None:
+                                    new_values_list.append(val_conv)
+                        new_values.append(new_values_list)
+                    else:
+                        new_values.append(None)
+                values = new_values        
+        
         spec = PortSpec(id=spec_id,
                         name=name,
                         type=type,

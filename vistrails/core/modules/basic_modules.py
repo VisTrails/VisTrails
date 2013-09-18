@@ -39,8 +39,8 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
 from vistrails.core.modules.config import ConstantWidgetConfig, \
-    QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, Port, \
-    CompoundPort
+    QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
+    CIPort, COPort
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -107,7 +107,7 @@ class Constant(Module):
     
     """
     _settings = ModuleSettings(abstract=True)
-    _output_ports = [Port("value_as_string", "String")]
+    _output_ports = [OPort("value_as_string", "String")]
 
     def __init__(self):
         Module.__init__(self)
@@ -288,16 +288,16 @@ String._settings = ModuleSettings(configureWidgetType=
                                              widget_type='multiline'),
                         QueryWidgetConfig('%s:StringQueryWidget' % \
                                           query_config_path)])
-String._output_ports.append(Port("value_as_string", "String", optional=True))
+String._output_ports.append(OPort("value_as_string", "String", optional=True))
     
 ##############################################################################
 
 class Path(Constant):
     _settings = ModuleSettings(constantWidget=("%s:PathChooserWidget" % \
                                                constant_config_path))
-    _input_ports = [Port("value", "Path"),
-                    Port("name", "String", optional=True)]
-    _output_ports = [Port("value", "Path")]
+    _input_ports = [IPort("value", "Path"),
+                    IPort("name", "String", optional=True)]
+    _output_ports = [OPort("value", "Path")]
 
     def __init__(self):
         Constant.__init__(self)
@@ -373,11 +373,11 @@ class File(Path):
     _settings = ModuleSettings(constantSignatureCallable=path_parameter_hasher,
                                constantWidget=("%s:FileChooserWidget" % \
                                                constant_config_path))
-    _input_ports = [Port("value", "File"),
-                    Port("create_file", "Boolean", optional=True)]
-    _output_ports = [Port("value", "File"),
-                     Port("self", "File", optional=True),
-                     Port("local_filename", "String", optional=True)]
+    _input_ports = [IPort("value", "File"),
+                    IPort("create_file", "Boolean", optional=True)]
+    _output_ports = [OPort("value", "File"),
+                     OPort("self", "File", optional=True),
+                     OPort("local_filename", "String", optional=True)]
 
     def __init__(self):
         Path.__init__(self)
@@ -407,10 +407,10 @@ class Directory(Path):
     _settings = ModuleSettings(constantSignatureCallable=path_parameter_hasher,
                                constantWidget=("%s:DirectoryChooserWidget" % \
                                                constant_config_path))
-    _input_ports = [Port("value", "Directory"),
-                    Port("create_directory", "Boolean", optional=True)]
-    _output_ports = [Port("value", "Directory"),
-                     Port("itemList", "List")]
+    _input_ports = [IPort("value", "Directory"),
+                    IPort("create_directory", "Boolean", optional=True)]
+    _output_ports = [OPort("value", "Directory"),
+                     OPort("itemList", "List")]
 
     def __init__(self):
         Path.__init__(self)
@@ -458,7 +458,7 @@ Directory.default_value = Directory()
 class OutputPath(Path):
     _settings = ModuleSettings(constantWidget=("%s:OutputPathChooserWidget" % \
                                                constant_config_path))
-    _output_ports = [Port("value", "OutputPath")]
+    _output_ports = [OPort("value", "OutputPath")]
 
     def get_name(self):
         n = None
@@ -486,11 +486,11 @@ class FileSink(NotCacheable, Module):
     specified by the outputPath.  The overwrite flag allows users to
     specify whether an existing path should be overwritten."""
 
-    _input_ports = [Port("file", File),
-                    Port("outputPath", OutputPath),
-                    Port("overwrite", Boolean, optional=True, 
-                         default=True),
-                    Port("publishFile", Boolean, optional=True)]
+    _input_ports = [IPort("file", File),
+                    IPort("outputPath", OutputPath),
+                    IPort("overwrite", Boolean, optional=True, 
+                          default=True),
+                    IPort("publishFile", Boolean, optional=True)]
     
     def compute(self):
         input_file = self.getInputFromPort("file")
@@ -545,9 +545,9 @@ class DirectorySink(NotCacheable, Module):
     flag allows users to specify whether an existing path should be
     overwritten."""
 
-    _input_ports = [Port("dir", Directory),
-                    Port("outputPath", OutputPath),
-                    Port("overwrite", Boolean, optional=True, default="True")]
+    _input_ports = [IPort("dir", Directory),
+                    IPort("outputPath", OutputPath),
+                    IPort("overwrite", Boolean, optional=True, default="True")]
 
     def compute(self):
         input_dir = self.getInputFromPort("dir")
@@ -583,9 +583,9 @@ class DirectorySink(NotCacheable, Module):
 class WriteFile(Converter):
     """Writes a String to a temporary File.
     """
-    _input_ports = [Port('in_value', String),
-                    Port('suffix', String, optional=True, default="")]
-    _output_ports = [Port('out_value', File)]
+    _input_ports = [IPort('in_value', String),
+                    IPort('suffix', String, optional=True, default="")]
+    _output_ports = [OPort('out_value', File)]
 
     def compute(self):
         contents = self.getInputFromPort('in_value')
@@ -615,8 +615,8 @@ class Color(Constant):
         ParamExpWidgetConfig('%s:HSVExploreWidget' % \
                              paramexp_config_path,
                              widget_type='hsv')])
-    _input_ports = [Port("value", "Color")]
-    _output_ports = [Port("value", "Color")]
+    _input_ports = [IPort("value", "Color")]
+    _output_ports = [OPort("value", "Color")]
     # reg.add_input_port(Color, "value", Color)
     # reg.add_output_port(Color, "value", Color)
 
@@ -720,7 +720,7 @@ class StandardOutput(NotCacheable, Module):
     value connected on its port to standard output. It is intended
     mostly as a debugging device."""
 
-    _input_ports = [Port("value", Module)]
+    _input_ports = [IPort("value", Module)]
     
     def compute(self):
         v = self.getInputFromPort("value")
@@ -738,7 +738,7 @@ class Tuple(Module):
 
     _settings = ModuleSettings(configureWidgetType=
         "vistrails.gui.modules.tuple_configuration:TupleConfigurationWidget")
-    _output_ports = [Port("self", "Tuple")]
+    _output_ports = [OPort("self", "Tuple")]
 
     def __init__(self):
         Module.__init__(self)
@@ -759,7 +759,7 @@ class Untuple(Module):
 
     _settings = ModuleSettings(configureWidgetType=
         "vistrails.gui.modules.tuple_configuration:UntupleConfigurationWidget")
-    _input_ports = [Port("tuple", "Tuple")]
+    _input_ports = [IPort("tuple", "Tuple")]
 
     def __init__(self):
         Module.__init__(self)
@@ -786,8 +786,9 @@ class ConcatenateString(Module):
     future."""
 
     fieldCount = 4
-    _input_ports = [Port("str%d" % (i+1), "String") for i in xrange(fieldCount)]
-    _output_ports = [Port("value", "String")]
+    _input_ports = [IPort("str%d" % (i+1), "String") 
+                    for i in xrange(fieldCount)]
+    _output_ports = [OPort("value", "String")]
 
     def compute(self):
         result = ""
@@ -804,8 +805,8 @@ class ConcatenateString(Module):
 class Not(Module):
     """Not inverts a Boolean.
     """
-    _input_ports = [Port('input', 'Boolean')]
-    _output_ports = [Port('value', 'Boolean')]
+    _input_ports = [IPort('input', 'Boolean')]
+    _output_ports = [OPort('value', 'Boolean')]
 
     def compute(self):
         value = self.getInputFromPort('input')
@@ -829,10 +830,10 @@ else:
 class List(Constant):
     _settings = ModuleSettings(configureWidgetType=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
-    _input_ports = [Port("value", "List"),
-                    Port("head", "Module"),
-                    Port("tail", "List")]
-    _output_ports = [Port("value", "List")]
+    _input_ports = [IPort("value", "List"),
+                    IPort("head", "Module"),
+                    IPort("tail", "List")]
+    _output_ports = [OPort("value", "List")]
 
     default_value = []
 
@@ -909,8 +910,8 @@ def dict_compute(self):
 Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
                           {}, staticmethod(lambda x: isinstance(x, dict)),
                           compute=dict_compute)
-Dictionary._input_ports.extend([CompoundPort("addPair", "Module, Module"),
-                                Port("addPairs", "List")])
+Dictionary._input_ports.extend([CIPort("addPair", "Module, Module"),
+                                IPort("addPairs", "List")])
 
 ##############################################################################
 
@@ -928,8 +929,8 @@ class Unpickle(Module):
     """Unpickles a string.
     """
     _settings = ModuleSettings(hide_descriptor=True)
-    _input_ports = [Port('input', 'String')]
-    _output_ports = [Port('result', 'Variant')]
+    _input_ports = [IPort('input', 'String')]
+    _output_ports = [OPort('result', 'Variant')]
 
     def compute(self):
         value = self.getInputFromPort('input')
@@ -994,8 +995,8 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     _settings = ModuleSettings(
         configureWidgetType=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
-    _input_ports = [Port('source', 'String', optional=True)]
-    _output_pors = [Port('self', 'Module')]
+    _input_ports = [IPort('source', 'String', optional=True)]
+    _output_pors = [OPort('self', 'Module')]
 
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
@@ -1007,7 +1008,7 @@ class SmartSource(NotCacheable, Module):
     _settings = ModuleSettings(
         configureWidgetType=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
-    _input_ports = [Port('source', 'String', optional=True)]
+    _input_ports = [IPort('source', 'String', optional=True)]
 
     def run_code(self, code_str,
                  use_input=False,
@@ -1124,9 +1125,9 @@ it avoids moving the entire file contents to/from memory."""
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
-    _input_ports = [Port('archive_file', 'File'),
-                    Port('filename_in_archive', 'String')]
-    _output_ports = [Port('file', 'File')]
+    _input_ports = [IPort('archive_file', 'File'),
+                    IPort('filename_in_archive', 'String')]
+    _output_ports = [OPort('file', 'File')]
 
     def compute(self):
         self.checkInputPort("archive_file")
@@ -1147,9 +1148,9 @@ class Round(Converter):
     """Turns a Float into an Integer.
     """
     _settings = ModuleSettings(hide_descriptor=True)
-    _input_ports = [Port('in_value', 'Float'),
-                    Port('floor', 'Boolean', optional=True, default="True")]
-    _output_ports = [Port('out_value', 'Integer')]
+    _input_ports = [IPort('in_value', 'Float'),
+                    IPort('floor', 'Boolean', optional=True, default="True")]
+    _output_ports = [OPort('out_value', 'Integer')]
 
     def compute(self):
         fl = self.getInputFromPort('in_value')
@@ -1165,8 +1166,8 @@ class TupleToList(Converter):
     """Turns a Tuple into a List.
     """
     _settings = ModuleSettings(hide_descriptor=True)
-    _input_ports = [Port('in_value', 'Tuple')]
-    _output_ports = [Port('out_value', 'List')]
+    _input_ports = [IPort('in_value', 'Tuple')]
+    _output_ports = [OPort('out_value', 'List')]
     
     def compute(self):
         tu = self.getInputFromPort('in_value')
@@ -1190,7 +1191,7 @@ class Assert(Module):
     """
     Assert is a simple module that conditionally stops the execution.
     """
-    _input_ports = [Port('condition', 'Boolean')]
+    _input_ports = [IPort('condition', 'Boolean')]
 
     def compute(self):
         condition = self.getInputFromPort('condition')
@@ -1206,8 +1207,8 @@ class AssertEqual(Module):
     It is provided for convenience.
     """
 
-    _input_ports = [Port('value1', 'Module'),
-                    Port('value2', 'Module')]
+    _input_ports = [IPort('value1', 'Module'),
+                    IPort('value2', 'Module')]
 
     def compute(self):
         values = (self.getInputFromPort('value1'),
