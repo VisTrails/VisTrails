@@ -1,8 +1,19 @@
 RELEASE NOTES
 -------------
-Release Name: v2.1 beta2 build d13df0810af7 from v2.1 branch
+Release Name: v2.1 beta2 build 79efdfc6a207 from v2.1 branch
 
 Bug fixes: 
+ - Ticket #735: Windows dulwich install via pip fails (14d362a695df)
+ - Ticket #718: persistence can't handle directories (2a668a6e9881)
+ - Fix issue with persistent paths in Windows (2a668a6e9881)
+ - Ticket #728: Upgrading vistrail with disabled package (b28c85b718ac)
+ - Fix issue with subworkflows using disabled packages (b28c85b718ac)
+ - Fix issue with staging persistent directories (6cddde545965)
+ - Fixed module upgrades not working with dynamic packages (bf997c6bb0c6)
+ - Fix issue with transfer function widget (11213143752c)
+ - Rewrites error-prone code for GitRepo#add_commit() (c1d2f60cc10d)
+ - Persistence sets up a Git username if none is set (f37129976ba5)
+ - Fixes default values on optional Boolean ports (34365eb22800)
  - Ticket #705: zip.exe not found in Windows binary (69a16e3c5b84)
  - Ticket #700: Upgrades with package identifier changes fail (32f934bef698)
  - Ticket #716: The new IPython console does not receive console output (96d65c1d0e80)
