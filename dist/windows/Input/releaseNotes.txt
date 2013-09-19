@@ -1,6 +1,6 @@
 RELEASE NOTES
 -------------
-Release Name: v2.1 beta2 build 79efdfc6a207 from v2.1 branch
+Release Name: v2.1 beta2 build 99faabb791a0 from v2.1 branch
 
 Bug fixes: 
  - Ticket #735: Windows dulwich install via pip fails (14d362a695df)
