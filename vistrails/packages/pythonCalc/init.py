@@ -32,8 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import vistrails.core.modules.module_registry
+
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.config import IPort, OPort
 
 ###############################################################################
 # PythonCalc
@@ -50,6 +51,25 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError
 class PythonCalc(Module):
     """PythonCalc is a module that performs simple arithmetic operations
 on its inputs."""
+
+    # You need to report the ports the module wants to make
+    # available. This is done by creating _input_ports and
+    # _output_ports lists composed of InputPort (IPort) and OutputPort
+    # (OPort) objects. These are simple ports that take only one
+    # value. We'll see in later tutorials how to create compound ports
+    # which can take a tuple of values.  Each port must specify its
+    # name and signature.  The signature specifies the package
+    # (e.g. "basic" which is shorthand for
+    # "org.vistrails.vistrails.basic") and module (e.g. "Float").
+    # Note that the third input port (op) has two other arguments.
+    # The "enum" entry_type specifies that there are a set of options
+    # the user should choose from, and the values then specifies those
+    # options.
+    _input_ports = [IPort(name="value1", signature="basic:Float"),
+                    IPort(name="value2", signature="basic:Float"),
+                    IPort(name="op", signature="basic:String",
+                          entry_type="enum", values=["+", "-", "*", "/"])]
+    _output_ports = [OPort(name="value", signature="basic:Float")]
 
     # This constructor is strictly unnecessary. However, some modules
     # might want to initialize per-object data. When implementing your
@@ -92,36 +112,6 @@ on its inputs."""
         # function.
         raise ModuleError(self, "unrecognized operation: '%s'" % op)
 
-###############################################################################
-# the function initialize is called for each package, after all
-# packages have been loaded. It is used to register the module with
-# the VisTrails runtime.
-
-def initialize(*args, **keywords):
-
-    # We'll first create a local alias for the module_registry so that
-    # we can refer to it in a shorter way.
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-
-    # VisTrails cannot currently automatically detect your derived
-    # classes, and the ports that they support as input and
-    # output. Because of this, you as a module developer need to let
-    # VisTrails know that you created a new module. This is done by calling
-    # function addModule:
-    reg.add_module(PythonCalc)
-
-    # In a similar way, you need to report the ports the module wants
-    # to make available. This is done by calling addInputPort and
-    # addOutputPort appropriately. These calls only show how to set up
-    # one-parameter ports. We'll see in later tutorials how to set up
-    # multiple-parameter plots.
-    reg.add_input_port(PythonCalc, "value1",
-                       (vistrails.core.modules.basic_modules.Float, 'the first argument'))
-    reg.add_input_port(PythonCalc, "value2",
-                       (vistrails.core.modules.basic_modules.Float, 'the second argument'))
-    reg.add_input_port(PythonCalc, "op",
-                       (vistrails.core.modules.basic_modules.String, 'the operation'),
-                       entry_types=['enum'], values=["['+', '-', '*', '/']"])
-    reg.add_output_port(PythonCalc, "value",
-                        (vistrails.core.modules.basic_modules.Float, 'the result'))
-
+# VisTrails will only load the modules specified in the _modules list.
+# This list contains all of the modules a package defines.
+_modules = [PythonCalc,]

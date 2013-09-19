@@ -39,15 +39,25 @@ However, if you do not yet know Python but are familiar with another object-orie
 
 .. _sec-packages-simple_example:
 
-A Simple Example
-================
+An Example Module
+=================
 
-Here is a simplified example of a very simple user-defined module:
+Here is the definition of a very simple module:
 
 .. code-block:: python
    :linenos:
 
    class Divide(Module):
+       _input_ports = [IPort(name='arg1',\
+                             signature='basic:Float',\
+                             label="dividend"),
+                       IPort(name='arg2',\
+		             signature='basic:Float',\
+			     label='divisor')]
+       _output_ports = [OPort(name='result',\
+                              signature='basic:Float',\
+                              label='quotient')]
+
        def compute(self):
            arg1 = self.getInputFromPort("arg1")
            arg2 = self.getInputFromPort("arg2")
@@ -55,25 +65,22 @@ Here is a simplified example of a very simple user-defined module:
                raise ModuleError(self, "Division by zero")
            self.setResult("result", arg1 / arg2)
 
-       _input_ports = [('arg1', '(edu.utah.sci.vistrails.basic:Float)',\
-                        {"labels": str(["dividend"])}),\
-                       ('arg2', '(edu.utah.sci.vistrails.basic:Float)',\
-                        {"labels": str(["divisor"])})]
-       _output_ports = [('result', '(edu.utah.sci.vistrails.basic:Float)',\
-                        {"labels": str(["quotient"])})]
+New VisTrails modules must subclass from Module, the base class that defines basic functionality. The only required override is the ``compute`` method, which performs the actual module computation. Input and output is specified through ports, which must be explicitly registered with |vistrails| using the ``_input_ports`` and ``_output_ports`` lists.
 
-   _modules = [Divide]
-   #old syntax
-   #registry.addModule(Divide)
-   #registry.addInputPort(Divide, "arg1", (basic.Float, 'dividend'))
-   #registry.addInputPort(Divide, "arg2", (basic.Float, 'divisor'))
-   #registry.addOutputPort(Divide, "result", (basic.Float, 'quotient'))
+An Example Package
+==================
 
-New VisTrails modules must subclass from Module, the base class that defines basic functionality. The only required override is the compute() method, which performs the actual module computation. Input and output is specified through ports, which currently have to be explicitly registered with VisTrails. However, this is straightforward, and done through method calls to the module registry. An example of a (slightly) more complicated module follows:
+The previous section only shows the definition of a single module.  To create a full package that loads and runs in |vistrails|, a few more items are required.  In this example, we define a basic calculator package named PythonCalc.  Note that this package includes *two* files, ``__init__.py`` and ``init.py`` that live in a directory named ``pythonCalc``; each file is an important piece of a VisTrails package.
+
+**__init__.py**
+
+.. include:: pythoncalc_file1.rst
+
+**init.py**
 
 .. include:: pythoncalc.rst
 
-To try this out in VisTrails, save the file above in the ``.vistrails/userpackages`` subdirectory of your home directory, with the filename ``pythoncalc.py``. Then, click on the ``Edit`` menu (or the ``VisTrails`` menu on Mac OS X), select the ``Preferences`` option and select the ``Module Packages`` tab.  A dialog similar to what is shown
+To create and install this package in VisTrails, first create a new directory named ``pythonCalc`` in the ``.vistrails/userpackages`` subdirectory of your home directory. Then, save the two code blocks above to the corresponding ``__init__.py`` and ``init.py`` files in the newly created ``pythonCalc`` directory.  Now, click on the ``Edit`` menu (or the ``VisTrails`` menu on Mac OS X), select the ``Preferences`` option and select the ``Module Packages`` tab.  A dialog similar to what is shown
 in Figure :ref:`All available packages... <fig-packages-enablepackage>` should appear. Select the
 ``pythonCalc`` package, then click on
 ``Enable``. This should move the package to the
@@ -104,14 +111,7 @@ will print the following on your terminal:
 
 
 
-Let's now examine how this works. The first
-two lines simply import required components. The next three lines
-give |vistrails| meta-information about the
-package. ``Version`` is simply information about the package
-version. This might be tied to the underlying library or not. The only
-recommended guideline is that compatibility is not broken across minor
-releases, but this is not enforced in any way. ``Name`` is a
-human-readable name for the package. 
+Let's now examine how this works. The ``__init__.py`` file provides metadata about the package.  ``Version`` is simply information about the package version. This might be tied to the underlying library or not. The only recommended guideline is that compatibility is not broken across minor releases, but this is not enforced in any way. ``Name`` is a human-readable name for the package. 
 
 .. %\paragraph*{Choosing a good identifier}
 
@@ -131,66 +131,36 @@ use their institution's DNS, use your own. The rationale for this is
 that the third party itself might decide to create their own |vistrails|
 package, and you do not want to introduce conflicts.
 
-Line 8 is where we actually start defining a new module.
-Every |vistrails| module corresponds
-to a Python class that ultimately derives from the ``Module`` class, which is defined in ``core.modules.vistrails_module``. Each module must implement a ``compute`` method that takes no extra parameters, such as on Line 11. This method
-represents the actual computation that happens in a module.
-This computation typically involves getting the necessary input and
-generating the output. We will now see how that works.
+The ``init.py`` file contains the actual definitions of the modules. Every |vistrails| module corresponds to a Python class that ultimately derives from the ``Module`` class, which is defined in ``vistrails.core.modules.vistrails_module``. Each module must define input ports and output ports as well as implement a ``compute`` method that takes no extra parameters.
 
-Line 12 shows how to extract input from a
-port. Specifically, we're getting the values passed to input ports
-``value1`` and ``value2``. We then perform some
-operation with these values, and need to report the output on an
-output port, so that it is available for downstream modules. This is
-done on Line 15, where the result is set to port
-``value``.
+.. index:: ports
+   pair: modules; ``_input_ports``
+   pair: modules; ``_output_ports``
+
+We need to tell |vistrails| about the input and output ports we want to expose in a module.  Input ports are set in the ``_input_ports`` list and output ports in the ``_output_ports`` list. Each object in these lists is defined from a type from ``vistrials.core.modules.config``.  The most basic port types are ``InputPort`` (or ``IPort``) and ``OutputPort`` (or ``OPort``).  Each requires two arguments, the *name* of the port and the *signature* of the port.  A name may be any string, but must be unique across all inputs or outputs.  The same name may be used both for an input and an output. The signature defines the type of the port; |vistrails| allows any module to also be a type. A signature is a string composed of the module's package identifier followed by a colon and the module's name.  Many basic module types including ``String``, ``Float``, and ``Integer`` are defined by |vistrails| in the Basic Modules package.  Thus, the ``Float`` module's signature is ``org.vistrails.vistrails.basic:Float``.  Any core package that is distributed with |vistrails| has an identifier that begins ``org.vistrails.vistrails`` and thus you may omit that prefix for brevity; ``basic:Float`` defines the same signature.  There are a number of other options for ports, but we will cover these later.
+
+.. index::
+   pair: modules; ``compute``
+
+The compute method on Line 49 defines the actual computation that happens in a module. This computation typically involves getting the necessary input and generating the output.  Lines 53-54 shows how to extract input from a port. Specifically, we're getting the values passed to input ports ``value1`` and ``value2``. We then perform some
+operation with these values, and need to report the output on an output port, so that it is available for downstream modules. This is done on Line 62, where the result is set to port ``value``.
 
 .. index:: 
    pair: modules; ``ModuleError``
 
 Let us now look more carefully at the remainder of the class definition. Notice
 that developers are allowed to define extra helper methods, for example the ``op`` method on Line
-17. These helper methods can naturally use the ports
+64. These helper methods can naturally use the ports
 API. The other important feature of the ``op`` method is
 *error checking*. ``PythonCalc`` requires a string that
 represents the operation to be performed with the two numbers. If the
 string is invalid, it signals an error by simply raising a Python
 exception, ``ModuleError``, that is provided in
-``core.modules.vistrails_module``. This exception expects two
+``vistrails.core.modules.vistrails_module``. This exception expects two
 parameters: the module that generated the exception (typically
-``self``) and a string describing the error. In the Pipeline view, this error message is displayed in the tooltip that appears when the user "mouses over" the ``PythonCalc`` module icon.
+``self``) and a string describing the error. In the Pipeline view, this error message is displayed in the tooltip that appears when the user moves the cursor over the ``PythonCalc`` module icon.
 
-.. index::
-   pair: packages; ``initialize``
-   pair: Module registry; ``add_Module``
-   pair: Module registry; ``add_input_port``
-   pair: Module registry; ``add_output_port``
-
-That is all that it takes in terms of module behavior. The rest of the
-code is meant to interact with |vistrails|, and let the system know
-about the modules and ports being exposed. To do that, you must
-provide a function called ``initialize`` in the main body of the
-package file (the function starting on Line
-27). The first thing is usually to register the
-module itself, such as on Line 33. Then, we need
-to tell |vistrails| about the input and output ports we want to
-expose.  Input ports are set with the ``add_input_port`` method
-in the registry, and output ports with ``add_output_port``. These calls take three parameters. The
-first parameter is the module you're adding a new port to. The second
-one is simply the name of the port, and the third one is a description
-of the parameter. In most cases, this is just a pair, where the
-first element is a |vistrails| module representing the module type
-being passed, and the second element is a string describing it.
-Notice that the
-types being used are |vistrails| modules (Line 35),
-and not Python types.
-
-.. %Later, we will see how to pass more complicated data types.
-
-That is it --- you have successfully created a new package and
-module. From now on, we will look at more complicated examples, and
-more advanced features of the package mechanism.
+The final step is to specify the list of modules your package defines.  This is done via the ``_modules`` list which is simply a list of all the modules the package wishes to define.  Leaving a class out of that list will mean it will *not appear* as an available module for use in VisTrails.  That is it --- you have successfully created a new package and module. From now on, we will look at more complicated examples, and more advanced features of the package mechanism.
 
 Creating Reloadable Packages
 ============================
@@ -221,9 +191,10 @@ When creating or making changes to packages, it is often desirable to reload the
 
 Imports (excluding core.configuration), other class definitions, and the initialize method should be in the ``init.py`` file.  Finally, to reload a package, select the ``reload`` button from the ``Preferences`` dialog's ``Module Packages`` tab.
 
-.. topic:: Note
+..
+   .. topic:: Note
 
-   To make the previous example :ref:`sec-packages-simple_example` reloadable, rather than having just one file ``pythoncalc.py``, one would have a ``pythoncalc`` directory with the "version", "name", and "identifier" lines in ``__init__.py`` and all other lines in ``init.py``.
+      To make the previous example :ref:`sec-packages-simple_example`    reloadable, rather than having just one file ``pythoncalc.py``, one    would have a ``pythoncalc`` directory with the "version", "name", and    "identifier" lines in ``__init__.py`` and all other lines in    ``init.py``.
 
 .. _sec-wrapping_cmdline_tools:
 

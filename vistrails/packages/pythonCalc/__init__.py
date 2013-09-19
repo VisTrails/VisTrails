@@ -43,5 +43,5 @@ core/modules/vistrails_module.py.
 
 identifier = 'org.vistrails.vistrails.pythoncalc'
 name = 'PythonCalc'
-version = '0.9.1'
+version = '0.9.2'
 old_identifiers = ['edu.utah.sci.vistrails.pythoncalc']
