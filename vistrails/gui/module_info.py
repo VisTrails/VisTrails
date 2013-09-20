@@ -151,6 +151,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.type_edit.setText("")
             # self.type_edit.setEnabled(False)
             self.package_edit.setText("")
+            self.module_id.setText("")
         else:
             if module.has_annotation_with_key('__desc__'):
                 label = module.get_annotation_by_key('__desc__').value.strip()

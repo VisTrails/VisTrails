@@ -841,13 +841,19 @@ def class_dict(base_module, node):
             # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
             # it has other ways of specifying files, like SetFilePrefix for
             # multiple files
-            if any(issubclass(self.vtkClass, x)
-                   for x in
-                   [vtk.vtkBYUReader,
+            skip = [vtk.vtkBYUReader,
                     vtk.vtkImageReader,
-                    vtk.vtkPLOT3DReader,
                     vtk.vtkDICOMImageReader,
-                    vtk.vtkTIFFReader]):
+                    vtk.vtkTIFFReader]
+
+            # vtkPLOT3DReader does not exist from version 6.0.0
+            v = vtk.vtkVersion()
+            version = [v.GetVTKMajorVersion(),
+                       v.GetVTKMinorVersion(),
+                       v.GetVTKBuildVersion()]
+            if version < [6, 0, 0]:
+                skip.append(vtk.vtkPLOT3DReader)
+            if any(issubclass(self.vtkClass, x) for x in skip):
                 old_compute(self)
                 return
             if self.hasInputFromPort('SetFileName'):
@@ -1078,7 +1084,7 @@ def createModule(baseModule, node):
             return True
         try:
             getattr(vtk, node.name)()
-        except TypeError: # VTK raises type error on abstract classes
+        except (TypeError, NotImplementedError): # VTK raises type error on abstract classes
             return True
         return False
     module = new_module(baseModule, node.name,
