@@ -147,7 +147,7 @@ class QToolWindowInterface(object):
         
         """
         if not hasattr(self, '_toolWindow'):
-            self._toolWindow = QToolWindow(self, self.parent())
+            self._toolWindow = QToolWindow(self, self.parent and self.parent())
         elif self._toolWindow.centralwidget!=self:
             self._toolWindow.window.setCentralWidget(self)
         return self._toolWindow

@@ -45,8 +45,7 @@ def parse_docutils_thead(elt):
     header = []
     for child in elt.children:
         if child.__class__ == docutils.nodes.row:
-            if len(header) > 0:
-                raise Exception("More than one row in header")
+            assert len(header) == 0, "More than one row in header"
             for subchild in child.children:
                 if subchild.__class__ == docutils.nodes.entry:
                     header.append(parse_docutils_elt(subchild)[0].strip())
@@ -104,20 +103,18 @@ def parse_docutils_deflist(elt):
     term = None
     definition = None
     for child in elt.children:
-        if child.__class__ != docutils.nodes.definition_list_item:
-            raise Exception("NO DEF LIST ITEM!")
-        else:
-            for subchild in child.children:
-                if subchild.__class__ == docutils.nodes.term:
-                    terms, accepts = parse_docutils_term(subchild)
-                    print "TERMS:", terms
-                    if accepts:
-                        print "ACCEPTS:", accepts
-                elif subchild.__class__ == docutils.nodes.definition:
-                    definition = parse_docutils_elt(subchild)[0].rstrip()
-                    print "DEFINITION:", definition
-                    for term in terms:
-                        args.append((term, accepts, definition))
+        assert child.__class__ == docutils.nodes.definition_list_item, "NO DEF LIST ITEM!"
+        for subchild in child.children:
+            if subchild.__class__ == docutils.nodes.term:
+                terms, accepts = parse_docutils_term(subchild)
+                print "TERMS:", terms
+                if accepts:
+                    print "ACCEPTS:", accepts
+            elif subchild.__class__ == docutils.nodes.definition:
+                definition = parse_docutils_elt(subchild)[0].rstrip()
+                print "DEFINITION:", definition
+                for term in terms:
+                    args.append((term, accepts, definition))
     return args
 
 def parse_docutils_elt(elt, last_text=""):
@@ -301,15 +298,13 @@ def parse_description(desc):
             if m:
                 (_, before_res, _, after_res) = m.groups()
                 if after_res:
-                    if default_val is not None:
-                        raise Exception('Multiple defaults: "%s" "%s"' % \
-                                            (default_val, after_res))
+                    assert default_val is None, ('Multiple defaults: '
+                            '"%s" "%s"' % (default_val, after_res))
                     default_val = after_res
                     opt = after_res
                 elif before_res:
-                    if default_val is not None:
-                        raise Exception('Multiple defaults: "%s" "%s"' % \
-                                            (default_val, after_res))
+                    assert default_val is None, ('Multiple defaults: '
+                            '"%s" "%s"' % (default_val, after_res))
                     default_val = before_res
                     opt = before_res
             found_type = False
@@ -392,7 +387,7 @@ def do_translation_override(port_specs, names, rows, opts):
     if 'name' in opts:
         names = opts['name']
     if names is None:
-        raise Exception("Must specify name of port to use translation for")
+        raise ValueError("Must specify name of port to use translation for")
     if isinstance(names, basestring) or not matplotlib.cbook.iterable(names):
         names = [names]
     should_reverse = opts.get('reverse', True)
@@ -416,7 +411,7 @@ def get_names(obj, default_module_base, default_super_base,
         if len(obj) > 2:
             super_name = obj[2]
         if len(obj) < 2:
-            raise Exception("Need to specify 2- or 3-tuple")
+            raise ValueError("Need to specify 2- or 3-tuple")
         (obj, module_name) = obj[:2]
     if module_name is None:
         module_name = "%s%s%s" % (prefix, 
@@ -511,9 +506,9 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                         print "*** Different defaults!" + \
                             str(old_port_spec.defaults) + \
                             " : " + str(port_spec.defaults)
-                        # raise Exception("Different defaults!" + \
-                        #                     str(old_port_spec.defaults) + \
-                        #                     " : " + str(port_spec.defaults))
+                        # raise RuntimeError("Different defaults! %s: %s" % (
+                        #                    old_port_spec.defaults,
+                        #                    port_spec.defaults))
                 else:
                     port_specs[port_spec.arg] = port_spec
 
@@ -569,7 +564,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
         if re.search("return value", table_intro, re.IGNORECASE):
             print "  -> RETURN"
             if len(rows[0]) != 2:
-                raise Exception("row that has more/less than 2 columns!")
+                raise ValueError("row that has more/less than 2 columns!")
             for (name, port_doc) in rows:
                 (port_types, option_strs, default_val, allows_none) = \
                     parse_description(port_doc)
@@ -586,7 +581,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
               re.search("kwarg", table_intro, re.IGNORECASE)):
             print "  -> ARGUMENT"
             if len(rows[0]) != 2:
-                raise Exception("row that has more/less than 2 columns!")
+                raise ValueError("row that has more/less than 2 columns!")
             for (name, port_doc) in rows:
                 if name not in port_specs:
                     port_specs[name] = InputPortSpec(name, docstring=port_doc)
@@ -607,8 +602,8 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 if default_val is not None:
                     port_specs[name].defaults = [str(default_val)]
         else:
-            raise Exception("Unknown table: %s\n  %s %s" % \
-                                (parent, table_intro, str(header)))
+            raise ValueError("Unknown table: %s\n  %s %s" % (
+                             parent, table_intro, header))
             # print "HIT SPEC:", name
             # if name not in port_specs:
             #     port_specs[name] = PortSpec(name, name, "UNKNOWN", "")
@@ -720,7 +715,7 @@ def parse_artists(artist_types, table_overrides={}):
                 continue
 
             if s in port_specs:
-                raise Exception('duplicate port "%s"' % s)
+                raise ValueError('duplicate port "%s"' % s)
             port_spec = InputPortSpec(s)
             port_specs[s] = port_spec
 
@@ -728,7 +723,7 @@ def parse_artists(artist_types, table_overrides={}):
             (accepts, deflists, tables, call_sigs) = \
                 parse_docutils_str(accepts_raw)
             if len(deflists) + len(tables) > 0:
-                raise Exception("accepts has deflists and/or tables")
+                raise ValueError("accepts has deflists and/or tables")
             (port_types, option_strs, default_val, allows_none) = \
                 parse_description(accepts)
             # port_spec.port_type = port_type
@@ -749,7 +744,6 @@ def parse_artists(artist_types, table_overrides={}):
                 print "STARTING DOCSTRING:", docstring
                 groups = match.groups()
                 if len(groups) > 2 and groups[2]:
-                    # raise Exception("GOT LAST" + str(docstring) + str(groups))
                     docstring = groups[0] + groups[2]
                 else:
                     docstring = groups[0]
@@ -773,9 +767,9 @@ def parse_artists(artist_types, table_overrides={}):
                     elif override_type == "skip":
                         continue
                 if len(header) != 2:
-                    raise Exception("Table not two columns!")
+                    raise ValueError("Table not two columns!")
                 if translations is not None:
-                    raise Exception("Two translations in one attr")
+                    raise ValueError("Two translations in one attr")
                 (translations, pt2, values) = parse_translation(rows)
                 port_spec.translations = translations
                 port_spec.values = [values]

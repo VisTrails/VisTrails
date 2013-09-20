@@ -103,18 +103,17 @@ def fix_paths():
     # been started from a subdir)
     # A better solution is probably to move run.py up a
     # directory in the repo
-    print "file:", __file__
+    old_dir = os.path.realpath(os.path.dirname(__file__))
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     i = 0
-    print "vistrails_dir:", vistrails_dir
     while i < len(sys.path):
         rpath = os.path.realpath(sys.path[i])
-        if rpath.startswith(vistrails_dir):
-            print "deleting", sys.path[i]
+        if rpath.startswith(old_dir):
             del sys.path[i]
         else:
             i += 1
-    sys.path.insert(0, vistrails_dir)
+    if vistrails_dir not in sys.path:
+        sys.path.insert(0, vistrails_dir)
 
 if __name__ == '__main__':
     fix_paths()
@@ -129,23 +128,25 @@ if __name__ == '__main__':
         vistrails.core.requirements.require_python_module('PyQt4.QtGui')
         vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
     except vistrails.core.requirements.MissingRequirement, req:
-        r = vistrails.gui.bundles.installbundle.install(
-            {'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-fedora': ['PyQt4']})
+        r = vistrails.gui.bundles.installbundle.install({
+            'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-fedora': ['PyQt4'],
+            'pip': ['PyQt<5.0']})
         if not r:
             raise req
         setNewPyQtAPI()
 
     from PyQt4 import QtGui
     import vistrails.gui.application
+    from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
     try:
         v = vistrails.gui.application.start_application()
-        if v != 0:
+        if v != APP_SUCCESS:
             app = vistrails.gui.application.get_vistrails_application()
             if app:
                 app.finishSession()
-            sys.exit(v)
+            sys.exit(APP_SUCCESS if v == APP_DONE else APP_FAIL)
         app = vistrails.gui.application.get_vistrails_application()()
     except SystemExit, e:
         app = vistrails.gui.application.get_vistrails_application()

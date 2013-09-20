@@ -424,9 +424,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             if isinstance(q, CellContainerInterface):
                 return q.widget() != None
             p = q
-            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet)):
+            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet) and p.parent):
                 p = p.parent()
-            if p and not p.isModal():
+            if p and isinstance(p, StandardWidgetSheet) and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
                 if e.modifiers() & QtCore.Qt.ControlModifier:
                     p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),

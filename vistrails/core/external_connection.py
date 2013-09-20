@@ -176,14 +176,12 @@ class ExtConnectionList(XMLWrapper):
 
     """
     _instance = None
-    class ExtConnectionListSingleton(object):
-        def __call__(self, *args, **kw):
-            if ExtConnectionList._instance is None:
-                obj = ExtConnectionList(*args, **kw)
-                ExtConnectionList._instance = obj
-            return ExtConnectionList._instance
-    
-    getInstance = ExtConnectionListSingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if ExtConnectionList._instance is None:
+            obj = ExtConnectionList(*args, **kwargs)
+            ExtConnectionList._instance = obj
+        return ExtConnectionList._instance
     
     def __init__(self, filename=''):
         """ __init__() -> ExtConnectionList """

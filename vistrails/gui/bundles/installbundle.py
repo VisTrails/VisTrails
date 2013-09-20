@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 """Module with utilities to try and install a bundle if possible."""
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration, \
@@ -43,12 +44,15 @@ from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 import subprocess
 import sys
-from io import StringIO
+
 ##############################################################################
 
 def has_qt():
     try:
         import PyQt4.QtGui
+        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
+        # PyQt4.QtOpenGL by default
+        import PyQt4.QtOpenGL
         return True
     except ImportError:
         return False
@@ -69,14 +73,18 @@ def hide_splash_if_necessary():
             pass
 
 
+def shell_escape(arg):
+    return '"%s"' % arg.replace('\\', '\\\\').replace('"', '\\"')
+
+
 def run_install_command_as_root(graphical, cmd, args):
     if isinstance(args, str):
-        cmd += ' ' + args
+        cmd += ' %s' % shell_escape(args)
     elif isinstance(args, list):
         for package in args:
             if not isinstance(package, str):
                 raise TypeError("Expected string or list of strings")
-            cmd += ' ' + package
+            cmd += ' %s' % shell_escape(package)
     else:
         raise TypeError("Expected string or list of strings")
 
@@ -87,13 +95,13 @@ def run_install_command_as_root(graphical, cmd, args):
                       args)
         if get_executable_path('sudo'):
             sucmd, escape = "sudo %s", False
-        elif not systemType == 'Darwin':
+        elif systemType not in ['Darwin', 'Windows']:
             sucmd, escape = "su -c %s", True
         else:
-            return False
+            sucmd, escape = '%s', False
 
     if escape:
-        sucmd = sucmd % '"%s"' % cmd.replace('\\', '\\\\').replace('"', '\\"')
+        sucmd = sucmd % shell_escape(cmd)
     else:
         sucmd = sucmd % cmd
 
@@ -104,6 +112,7 @@ def run_install_command_as_root(graphical, cmd, args):
     lines = []
     try:
         for line in iter(p.stdout.readline, ''):
+            print line,
             lines.append(line)
     except IOError, e:
         print "Ignoring IOError:", str(e)
@@ -111,7 +120,7 @@ def run_install_command_as_root(graphical, cmd, args):
 
     if result != 0:
         debug.critical("Error running: %s" % cmd, ''.join(lines))
-                
+
     return result == 0 # 0 indicates success
 
 
@@ -125,10 +134,12 @@ def linux_debian_install(package_name):
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_debian_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_debian_install.py')
     else:
-        cmd = '%s install -y' % ('aptitude' if get_executable_path('aptitude') else 'apt-get')
+        cmd = '%s install -y' % ('aptitude'
+                                 if get_executable_path('aptitude')
+                                 else 'apt-get')
 
     return run_install_command_as_root(qt, cmd, package_name)
 
@@ -140,8 +151,8 @@ def linux_fedora_install(package_name):
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_fedora_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_debian_install.py')
     else:
         cmd = 'yum -y install'
 
@@ -154,7 +165,7 @@ def pip_install(package_name):
     if vistrails.core.system.executable_is_in_path('pip'):
         cmd = 'pip install'
     else:
-        cmd = sys.executable + ' -m pip install'
+        cmd = shell_escape(sys.executable) + ' -m pip install'
     return run_install_command_as_root(has_qt(), cmd, package_name)
 
 def show_question(which_files, has_distro_pkg, has_pip):
@@ -240,8 +251,8 @@ def install(dependency_dictionary):
              dependency_dictionary.get('pip'))
     if not files:
         return None
-    can_install = ('pip' in dependency_dictionary and pip_installed) or \
-                  distro in dependency_dictionary
+    can_install = (('pip' in dependency_dictionary and pip_installed) or
+                   distro in dependency_dictionary)
     if can_install:
         action = show_question(
                 files,

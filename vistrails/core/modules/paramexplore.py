@@ -35,6 +35,7 @@
 
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Color
+from vistrails.core.utils.color import rgb2hsv, hsv2rgb
 
 
 class BaseLinearInterpolator(object):
@@ -92,73 +93,6 @@ class RGBColorInterpolator(BaseColorInterpolator):
             [r,g,b] = [b[i] + u * (e[i] - b[i]) for i in [0,1,2]]
             return Color.to_string(r, g, b)
         BaseColorInterpolator.__init__(self, fun, begin, end, size)
-
-
-def rgb2hsv(rgb):
-    """Converts RGB to HSV.
-
-    Note that H may be None when S is 0 (for grey colors).
-    """
-    r, g, b = rgb
-    minimum = min(r, g, b)
-    maximum = max(r, g, b)
-
-    v = maximum
-
-    delta = maximum - minimum
-
-    if delta != 0:
-        s = delta / maximum
-    else:
-        # h is undefined
-        s = 0
-        h = None
-        return (h, s, v)
-
-    if r == maximum:
-        h = (g - b) / delta     # between yellow & magenta
-    elif g == maximum:
-        h = 2 + (b - r) / delta # between cyan & yellow
-    else:
-        h = 4 + (r - g) / delta # between magenta & cyan
-
-    h *= 60 # degrees
-
-    if h < 0:
-        h += 360
-
-    return (h, s, v)
-
-
-def hsv2rgb(hsv):
-    """Converts HSV to RGB.
-
-    Accepts H=None when S=0.
-    """
-    h, s, v = hsv
-
-    if s == 0:
-        return (v, v, v)
-
-    h /= 60
-    i = int(h)
-    f = h - i   # factorial part
-    p = v * (1 - s)
-    q = v * (1 - s * f)
-    t = v * (1 - s * (1 - f))
-
-    if i == 0:
-        return (v, t, p)
-    elif i == 1:
-        return (q, v, p)
-    elif i == 2:
-        return (p, v, t)
-    elif i == 3:
-        return (p, q, v)
-    elif i == 4:
-        return (t, p, v)
-    else: # i == 5
-        return (v, p, q)
 
 
 class HSVColorInterpolator(BaseColorInterpolator):
@@ -285,34 +219,6 @@ class TestLinearInterpolator(unittest.TestCase):
         r1 = (v2 - v1) / (x[v2] - x[v1])
         r2 = (v4 - v3) / (x[v4] - x[v3])
         assert abs(r1 - r2) < 1e-6
-
-
-class TestColorConversion(unittest.TestCase):
-    colors = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 0.8, 0.3),
-              (0.9, 0.0, 0.6), (0.4, 0.4, 0.4), (1.0, 1.0, 1.0)]
-
-    def test_hsv_conversions(self):
-        for color in self.colors:
-            res = hsv2rgb(rgb2hsv(color))
-            for i in xrange(3):
-                self.assertAlmostEqual(color[i], res[i])
-
-    def test_hsv_with_qt(self):
-        try:
-            from PyQt4 import QtGui
-        except ImportError:
-            self.skipTest("QtGui not available")
-        for color in self.colors:
-            our_hsv = rgb2hsv(color)
-            qcolor = QtGui.QColor(*[int(color[i]*255) for i in xrange(3)])
-            qt_hsv = [qcolor.hueF(), qcolor.saturationF(), qcolor.valueF()]
-            if qt_hsv[0] == -1.0:
-                qt_hsv[0] = None
-            else:
-                self.assertAlmostEqual(our_hsv[0], qt_hsv[0] * 360.0,
-                                       delta=0.2)
-            self.assertAlmostEqual(our_hsv[1], qt_hsv[1], delta=0.005)
-            self.assertAlmostEqual(our_hsv[2], qt_hsv[2], delta=0.005)
 
 
 class TestColorInterpolation(unittest.TestCase):

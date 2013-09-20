@@ -64,6 +64,29 @@ class PortSpecItem(DBPortSpecItem):
                 kwargs["values"] = str(kwargs["values"])
         if 'id' not in kwargs:
             kwargs['id'] = -1
+
+        def update_identifier(identifier):
+            """check for changed identifiers (e.g. edu.utah.sci.vistrails ->
+            org.vistrails.vistrails) and use the current one.
+
+            """
+            from vistrails.core.modules.module_registry import \
+                get_module_registry, MissingPackage
+            reg = get_module_registry()
+            try:
+                identifier = reg.get_package_by_name(identifier).identifier
+            except MissingPackage:
+                # catch this later, just trying to ensure that old
+                # identifiers are updated
+                pass
+            return identifier
+            
+        # args[3] is the package argument
+        # FIXME this is schema-dependent...
+        if len(args) > 3:
+            args[3] = update_identifier(args[3])
+        if "package" in kwargs:
+            kwargs["package"] = update_identifier(kwargs["package"])
         DBPortSpecItem.__init__(self, *args, **kwargs)
         self.set_defaults()
 

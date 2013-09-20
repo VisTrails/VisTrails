@@ -389,7 +389,7 @@ class PortsList(QtGui.QTreeWidget):
                 connected_ports = module.connected_output_ports
                 visible_ports = module.visible_output_ports
             else:
-                raise Exception("Unknown port type: '%s'" % self.port_type)
+                raise TypeError("Unknown port type: '%s'" % self.port_type)
             
             for port_spec in sorted(port_specs, key=lambda x: x.name):
                 if not self.include_port(port_spec): continue
@@ -507,7 +507,7 @@ class PortsList(QtGui.QTreeWidget):
         elif self.port_type == 'output':
             visible_ports = self.module.visible_output_ports
         else:
-            raise Exception("Unknown port type: '%s'" % self.port_type)
+            raise TypeError("Unknown port type: '%s'" % self.port_type)
         
         if item.is_optional:
             item.set_visible(not item.is_visible)

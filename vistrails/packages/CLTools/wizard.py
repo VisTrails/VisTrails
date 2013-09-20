@@ -33,11 +33,18 @@
 ##
 ###############################################################################
 
-import sys
-import os
+if __name__ == '__main__':
+    import sip
+    sip.setapi('QString', 2)
+    sip.setapi('QVariant', 2)
+
 import json
-import subprocess
+import os
 import platform
+import string
+import subprocess
+import sys
+import threading
 from PyQt4 import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
@@ -59,7 +66,56 @@ def default_dir():
     if not os.path.exists(default_dir):
         os.mkdir(default_dir)
     return default_dir
-    
+
+def quote_arg(arg):
+    arg = arg.replace('\\', '\\\\')
+    if '"' in arg or any(c in arg for c in string.whitespace):
+        return '"%s"' % arg.replace('"', '\\"')
+    else:
+        return arg
+
+# From: https://gist.github.com/kirpit/1306188
+class Command(object):
+    """
+    Enables to run subprocess commands in a different thread with TIMEOUT option.
+ 
+    Based on jcollado's solution:
+    http://stackoverflow.com/questions/1191374/subprocess-with-timeout/4825933#4825933
+    """
+    command = None
+    process = None
+    status = None
+    output, error = '', ''
+ 
+    def __init__(self, command):
+        self.command = command
+ 
+    def run(self, timeout=5, **kwargs):
+        """ Run a command then return: (status, output, error). """
+        def target(**kwargs):
+            try:
+                self.process = subprocess.Popen(self.command, **kwargs)
+                self.output, self.error = self.process.communicate()
+                self.status = self.process.returncode
+            except:
+                import traceback
+                self.error = traceback.format_exc()
+                self.status = -1
+        # default stdout and stderr
+        if 'stdout' not in kwargs:
+            kwargs['stdout'] = subprocess.PIPE
+        if 'stderr' not in kwargs:
+            kwargs['stderr'] = subprocess.PIPE
+        # thread
+        print "calling with kwargs", target, kwargs
+        thread = threading.Thread(target=target, kwargs=kwargs)
+        thread.start()
+        thread.join(timeout)
+        if thread.is_alive():
+            self.process.terminate()
+            thread.join()
+        return self.status, self.output, self.error
+
 class QCLToolsWizard(QtGui.QWidget):
     def __init__(self, parent, reload_scripts=None):
         QtGui.QWidget.__init__(self, parent)
@@ -354,8 +410,8 @@ class QCLToolsWizard(QtGui.QWidget):
             
     def get_current_conf(self):
         conf = {}
-        conf['command'] = str(self.command.text()).strip()
-        dir = str(self.dir.text()).strip()
+        conf['command'] = self.command.text()
+        dir = self.dir.text()
         if dir:
             conf['dir'] = dir
             
@@ -399,7 +455,7 @@ class QCLToolsWizard(QtGui.QWidget):
                             self.file if self.file else default_dir(),
                             "Wrappers (*%s)" % SUFFIX)
         if fileName:
-            self.file = str(fileName)
+            self.file = fileName
             if not self.file.endswith(SUFFIX):
                 self.file += SUFFIX
             self.save()
@@ -428,17 +484,16 @@ class QCLToolsWizard(QtGui.QWidget):
             # env
             if 'env' in o:
                 if text:
-                    text += ';'
+                    text += ' '
                 text += c['options']['env']
             if text:
                 text += ' '
 
         # command
         text += c['command']
-        # args
 
+        # args
         if 'args' in c:
-            text += ''
             for type, name, klass, opts in c['args']:
                 type = type.lower()
                 klass = klass.lower()
@@ -446,7 +501,7 @@ class QCLToolsWizard(QtGui.QWidget):
                 if type == 'constant':
                     if 'flag' in opts:
                         text += opts['flag'] + ' '
-                    text += name
+                    text += quote_arg(name)
                     continue
                 if 'required' not in opts:
                     text += '['
@@ -465,7 +520,7 @@ class QCLToolsWizard(QtGui.QWidget):
                             if ('type' in opts and opts['type']) else 'string'
                 elif type=='input' and klass == 'flag':
                     if 'flag' not in opts:
-                        text += name
+                        text += quote_arg(name)
                 elif type in ['output', 'inputoutput']:
                     text += 'file'
                 else:
@@ -492,27 +547,27 @@ class QCLToolsWizard(QtGui.QWidget):
 
         if 'stdin' in conf:
             name, type, options = conf['stdin']
-            optional = 'required' not in options
-            intext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+            optional = " (visible)" if "required" in options else ""
+            intext.append("%s: %s%s" % (name, type, optional))
         if 'stdout' in conf:
             name, type, options = conf['stdout']
-            optional = 'required' not in options
-            outtext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+            optional = " (visible)" if "required" in options else ""
+            outtext.append("%s: %s%s" % (name, type, optional))
         if 'stderr' in conf:
             name, type, options = conf['stderr']
-            optional = 'required' not in options
-            outtext.append("%s: %s%s" % (name, type, " (visible)" if optional else ''))
+            optional = " (visible)" if "required" in options else ""
+            outtext.append("%s: %s%s" % (name, type, optional))
         if 'options' in conf and 'env_port' in conf['options']:
             intext.append('env: String')
         for type, name, klass, options in conf['args']:
-            optional = 'required' not in options
+            optional = " (visible)" if "required" in options else ""
             if 'input' == type.lower():
-                intext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+                intext.append("%s: %s%s" % (name, klass, optional))
             elif 'output' == type.lower():
-                outtext.append("%s: %s%s" % (name, klass, " (visible)" if optional else ''))
+                outtext.append("%s: %s%s" % (name, klass, optional))
             elif 'inputoutput' == type.lower():
-                intext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
-                outtext.append("%s: %s%s" % (name, 'File', " (visible)" if optional else ''))
+                intext.append("%s: %s%s" % (name, 'File', optional))
+                outtext.append("%s: %s%s" % (name, 'File', optional))
         
         intext = ''.join(['Input %s. %s\n' % (i+1, t)
                           for i, t in zip(xrange(len(intext)), intext)])
@@ -616,12 +671,13 @@ class QCLToolsWizard(QtGui.QWidget):
         
     def runProcess(self, args):
         try:
-            text, stderr = subprocess.Popen(args,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, shell=True).communicate()
+            command = Command(args)
+            status, text, stderr = command.run(stdout=subprocess.PIPE,
+                                               stderr=subprocess.PIPE,
+                                               shell=True)
             if not (text and len(text)):
                 text = stderr
-                if not (text and len(text)) or (text and text.beginswith('No ')):
+                if not (text and len(text)) or (text and text.startswith('No ')):
                     return None
             # fix weird formatting
             for a, b in encode_list:
@@ -631,7 +687,7 @@ class QCLToolsWizard(QtGui.QWidget):
             return None
     
     def generateFromManPage(self):
-        command = str(self.command.text())
+        command = self.command.text()
         if command == '':
             return
         text = self.runProcess(['-c', 'man %s | col -b' % command])
@@ -648,10 +704,10 @@ class QCLToolsWizard(QtGui.QWidget):
         self.manpageImport.show()
 
     def generateFromHelpPage(self):
-        command = str(self.command.text())
+        command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '-h'])
+        text = self.runProcess(['-c', command + ' -h'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
@@ -666,10 +722,10 @@ class QCLToolsWizard(QtGui.QWidget):
         self.helppageImport.show()
 
     def generateFromHelpPage2(self):
-        command = str(self.command.text())
+        command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '--help'])
+        text = self.runProcess(['-c', command + ' --help'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
@@ -684,7 +740,7 @@ class QCLToolsWizard(QtGui.QWidget):
         self.helppageImport.show()
 
     def viewManPage(self):
-        command = str(self.command.text())
+        command = self.command.text()
         if command == '':
             return
         text = self.runProcess(['-c', 'man %s | col -b' % command])
@@ -697,10 +753,10 @@ class QCLToolsWizard(QtGui.QWidget):
         self.manpageView.show()
 
     def viewHelpPage(self):
-        command = str(self.command.text())
+        command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '-h'])
+        text = self.runProcess(['-c', command + ' -h'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
@@ -710,10 +766,10 @@ class QCLToolsWizard(QtGui.QWidget):
         self.helppageView.show()
 
     def viewHelpPage2(self):
-        command = str(self.command.text())
+        command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '--help'])
+        text = self.runProcess(['-c', command + ' --help'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
@@ -731,15 +787,40 @@ class QCLToolsWizard(QtGui.QWidget):
 
 class QArgWidget(QtGui.QWidget):
     """ Widget for configuring an argument """
+    KLASSES = {
+            'input': ['flag', 'file', 'string', 'integer', 'float', 'list'],
+            'output': ['file', 'string'],
+            'inputoutput': ['file'],
+            'stdin': ['file', 'string'],
+            'stdout': ['file', 'string'],
+            'stderr': ['file', 'string'],
+        }
+    KLASSNAMES = {
+            'flag': 'Boolean flag',
+            'string': 'String',
+            'integer': 'Integer',
+            'float': 'Float',
+            'file': 'File',
+            'list': 'List',
+        }
+
+    TYPES = ['input', 'output', 'inputoutput', 'constant']
+    TYPENAMES = {
+            'input': 'Input Port',
+            'output': 'Output Port',
+            'inputoutput': 'InputOutput Port',
+            'constant': 'Constant',
+        }
+
     def __init__(self, argtype='Input', name='untitled', klass='Flag', options={}, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.stdTypes = ['stdin', 'stdout', 'stderr']
         self.stdLabels = ['Standard input', 'Standard output', 'Standard error']
         self.stdDict = dict(zip(self.stdTypes, self.stdLabels))
 
-        self.argtype = argtype
+        self.argtype = argtype.lower()
         self.name = name
-        self.klass = klass
+        self.klass = klass.lower()
         self.options = options
 
         layout = QtGui.QVBoxLayout()
@@ -763,11 +844,10 @@ class QArgWidget(QtGui.QWidget):
         # type of argument
         if self.argtype not in self.stdTypes:
             self.typeList = QtGui.QComboBox()
-            self.types = ['Input', 'Output', 'InputOutput', 'Constant']
-            self.typeDict = dict(zip(self.types, xrange(len(self.types))))
-            self.typeDict.update(dict(zip([s.lower() for s in self.types], xrange(len(self.types)))))
-            self.typeNames = ['Input Port', 'Output Port', 'InputOutput Port', 'Constant']
-            self.typeList.addItems(self.typeNames)
+            self.typeDict = {}
+            for i, n in enumerate(self.TYPES):
+                self.typeList.addItem(self.TYPENAMES[n], n)
+                self.typeDict[n] = i
             self.typeList.setCurrentIndex(self.typeDict.get(self.argtype, 0))
             #label = QtGui.QLabel('Type:')
             tt = "Select if argument will be an input port, output port, both, or a hidden constant. InputOutput's are always files."
@@ -775,17 +855,15 @@ class QArgWidget(QtGui.QWidget):
             self.typeList.setToolTip(tt)
             #layout1.addWidget(label)
             layout1.addWidget(self.typeList)
+        else:
+            self.typeList = None
         # type of port
         self.klassList = QtGui.QComboBox()
-        self.klasses = ['Flag', 'String', 'Integer', 'Float', 'File', 'List']
-        if self.argtype in self.stdTypes:
-            self.klasses = ['String', 'File']
-        self.klassDict = dict(zip(self.klasses, xrange(len(self.klasses))))
-        self.klassDict.update(dict(zip([s.lower() for s in self.klasses], xrange(len(self.klasses)))))
-        self.klassNames = ['Bool Flag', 'String', 'Integer', 'Float', 'File', 'List']
-        if self.argtype in self.stdTypes:
-            self.klassNames = ['String', 'File']
-        self.klassList.addItems(self.klassNames)
+        klasses = self.KLASSES[self.argtype]
+        self.klassDict = {}
+        for i, n in enumerate(klasses):
+            self.klassList.addItem(self.KLASSNAMES[n], n)
+            self.klassDict[n] = i
         self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
         #label = QtGui.QLabel('Class:')
         tt = 'Port Type. Can be String, Integer, Float, File or Boolean Flag. List means an input list of one of the other types. Only File and String should be used for output ports.'
@@ -858,7 +936,8 @@ class QArgWidget(QtGui.QWidget):
         self.suffix.setFixedWidth(50)
         layout2.addWidget(self.suffixLabel)
         layout2.addWidget(self.suffix)
-        
+
+        self.typeChanged()
         self.klassChanged()
 
         # description
@@ -874,36 +953,32 @@ class QArgWidget(QtGui.QWidget):
             self.connect(self.klassList, QtCore.SIGNAL('currentIndexChanged(int)'),
                      self.klassChanged)
             self.connect(self.typeList, QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.klassChanged)
+                     self.typeChanged)
 
     def getValues(self):
         """ get the values from the widgets and store them """
-        if self.argtype not in self.stdTypes:
-            self.argtype = self.types[self.typeList.currentIndex()]
-        self.klass = self.klasses[self.klassList.currentIndex()]
-        klass = self.klass.lower()
-        self.name = str(self.nameLine.text()).strip()
+        self.klass = self.klassList.itemData(self.klassList.currentIndex())
+        self.name = self.nameLine.text()
         self.options = {}
         if self.argtype not in self.stdTypes:
-            flag = str(self.flag.text()).strip()
+            flag = self.flag.text()
             if flag:
                 self.options['flag'] = flag
-            prefix = str(self.prefix.text()).strip()
+            prefix = self.prefix.text()
             if prefix:
                 self.options['prefix'] = prefix
-        desc = str(self.desc.text()).strip()
+        desc = self.desc.text()
         if desc:
             self.options['desc'] = desc
         if self.required.isChecked():
             self.options['required'] = ''
-        if klass == 'list':
-            subtype = str(self.subtype.currentText()).strip()
+        if self.klass == 'list':
+            subtype = self.subtype.currentText()
             if subtype:
                 self.options['type'] = subtype
         type = self.argtype.lower()
-        suffix = str(self.suffix.text()).strip()
-        if ((klass == "file" and type == 'output') or type == 'inputoutput') and \
-            suffix:
+        suffix = self.suffix.text()
+        if (type == 'output' or type == 'inputoutput') and suffix:
             self.options['suffix'] = suffix
 
     def setValues(self):
@@ -919,9 +994,9 @@ class QArgWidget(QtGui.QWidget):
         self.required.setChecked('required' in self.options)
         self.desc.setText(self.options.get('desc', ''))
         type = self.argtype.lower()
-        klass = self.klass.lower()
-        if (klass == "file" and type == 'output') or type == 'inputoutput':
+        if type == 'output' or type == 'inputoutput':
             self.suffix.setText(self.options.get('suffix', ''))
+        self.typeChanged()
         self.klassChanged()
             
     def toList(self):
@@ -938,19 +1013,33 @@ class QArgWidget(QtGui.QWidget):
             self.name, self.klass, self.options = arg
         self.setValues()
 
-    def klassChanged(self, index=0):
+    def klassChanged(self, index=None):
         if self.argtype in self.stdTypes:
             return
-        type = self.types[self.typeList.currentIndex()].lower()
-        self.klassList.setVisible(type not in ['constant', 'inputoutput'])
-        klass = self.klasses[self.klassList.currentIndex()].lower()
+        klass = self.klassList.itemData(self.klassList.currentIndex())
         self.listLabel.setVisible(klass == "list" and type == 'input')
         self.subtype.setVisible(klass == "list" and type == 'input')
 
-        self.suffixLabel.setVisible((klass == "file" and type == 'output') or
-                                    type == 'inputoutput')
-        self.suffix.setVisible((klass == "file" and type == 'output') or
-                               type == 'inputoutput')
+    def typeChanged(self, index=None):
+        if self.argtype in self.stdTypes:
+            return
+        type = self.typeList.itemData(self.typeList.currentIndex())
+        if index is not None and type == self.argtype:
+            return
+        self.argtype = type
+        if type in ('constant', 'inputoutput'):
+            self.klassList.hide()
+        else:
+            self.klassList.show()
+            self.klassList.clear()
+            klasses = self.KLASSES[self.argtype]
+            self.klassDict = {}
+            for i, n in enumerate(klasses):
+                self.klassList.addItem(self.KLASSNAMES[n], n)
+                self.klassDict[n] = i
+            self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
+        self.suffixLabel.setVisible(type == 'output' or type == 'inputoutput')
+        self.suffix.setVisible(type == 'output' or type == 'inputoutput')
 
     def guess(self, name, count=0):
         """ add argument by guessing what the arg might be """

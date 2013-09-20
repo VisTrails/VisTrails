@@ -127,7 +127,7 @@ class ModuleSpec(object):
         args = [ps for ps in self.port_specs if ps.in_args]
         args.sort(key=lambda ps: ps.arg_pos)
         if len(args) > 1 and len(args) != (args[-1].arg_pos + 1):
-            raise Exception("Argument positions are numbered incorrectly")
+            raise ValueError("Argument positions are numbered incorrectly")
         return args
 
     def get_output_port_spec(self, compute_name):
@@ -250,7 +250,7 @@ class PortSpec(object):
         child_elts = {}
         for child in elt.getchildren():
             # if child.tag not in obj.attrs:
-            #     raise Exception('Cannot deal with tag "%s"' % child.tag)
+            #     raise RuntimeError('Cannot deal with tag "%s"' % child.tag)
             if child.tag not in child_elts:
                 child_elts[child.tag] = []
             child_elts[child.tag].append(child)
@@ -277,7 +277,7 @@ class PortSpec(object):
                     attr_vals = [attr_val]
             
             if len(attr_vals) > 1:
-                raise Exception('Should have only one value for '
+                raise ValueError('Should have only one value for '
                                 'attribute "%s"' % attr)
             if len(attr_vals) > 0:
                 attr_val = attr_vals[0]
@@ -304,8 +304,8 @@ class PortSpec(object):
             return OutputPortSpec.from_xml(elt)
         elif elt.tag == "alternateSpec":
             return AlternatePortSpec.from_xml(elt)
-        raise Exception('Cannot create spec from element of type "%s"' % \
-                            elt.tag)
+        raise TypeError('Cannot create spec from element of type "%s"' %
+                        elt.tag)
 
 
     # @staticmethod

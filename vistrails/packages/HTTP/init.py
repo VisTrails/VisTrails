@@ -39,13 +39,14 @@ directory. This way, files that haven't been changed do not need
 downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
-from vistrails.core.modules.vistrails_module import ModuleError, NotCacheable
+from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.gui.utils import show_warning
 from vistrails.core.modules.vistrails_module import Module
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
+from vistrails.core.system import current_dot_vistrails
 import vistrails.gui.repository
 
 import datetime
@@ -62,13 +63,15 @@ from vistrails.core.repository.poster.streaminghttp import register_openers
 
 from vistrails.core.utils import DummyView
 
+from http_directory import download_directory
+
 # special file uploaders used to push files to repository
 
 package_directory = None
 
 ###############################################################################
 
-class HTTPFile(NotCacheable, Module):
+class HTTPFile(Module):
     """ Downloads file from URL """
 
     def compute(self):
@@ -226,6 +229,27 @@ class HTTPFile(NotCacheable, Module):
 
     def _local_filename(self, url):
         return package_directory + '/' + urllib.quote_plus(url)
+
+
+class HTTPDirectory(Module):
+    """Downloads a whole directory recursively from a URL
+    """
+
+    def compute(self):
+        self.checkInputPort('url')
+        url = self.getInputFromPort('url')
+        local_path = self.download(url)
+        self.setResult('local_path', local_path)
+        local_dir = vistrails.core.modules.basic_modules.Directory()
+        local_dir.name = local_path
+        self.setResult('directory', local_dir)
+
+    def download(self, url):
+        local_path = self.interpreter.filePool.create_directory(
+                prefix='vt_http').name
+        download_directory(url, local_path)
+        return local_path
+
 
 class RepoSync(Module):
     """ VisTrails Server version of RepoSync modules. Customized to play 
@@ -414,6 +438,13 @@ def initialize(*args, **keywords):
     reg.add_output_port(HTTPFile, "local_filename",
                         (basic.String, 'local filename'), optional=True)
 
+    reg.add_module(HTTPDirectory)
+    reg.add_input_port(HTTPDirectory, 'url', (basic.String, "URL"))
+    reg.add_output_port(HTTPDirectory, 'directory',
+                        (basic.Directory, "local Directory object"))
+    reg.add_output_port(HTTPDirectory, 'local_path',
+                        (basic.String, "local path"), optional=True)
+
     reg.add_module(RepoSync)
     reg.add_input_port(RepoSync, "file", (basic.File, 'File'))
     reg.add_input_port(RepoSync, "checksum",
@@ -424,7 +455,7 @@ def initialize(*args, **keywords):
                         (basic.String, 'Checksum'), optional=True)
 
     global package_directory
-    dotVistrails = get_vistrails_persistent_configuration().dotVistrails
+    dotVistrails = current_dot_vistrails()
     package_directory = os.path.join(dotVistrails, "HTTP")
 
     if not os.path.isdir(package_directory):
@@ -587,6 +618,37 @@ class TestHTTPFile(unittest.TestCase):
                   'view': DummyView(),
                   }
         interpreter.execute(p, **kwargs)
+
+class TestHTTPDirectory(unittest.TestCase):
+    def test_download(self):
+        url = 'http://www.vistrails.org/testing/httpdirectory/test/'
+
+        import shutil
+        import tempfile
+        testdir = tempfile.mkdtemp(prefix='vt_test_http_')
+        try:
+            download_directory(url, testdir)
+            files = {}
+            def addfiles(dirpath):
+                td = os.path.join(testdir, dirpath)
+                for name in os.listdir(td):
+                    filename = os.path.join(testdir, dirpath, name)
+                    dn = os.path.join(dirpath, name)
+                    if os.path.isdir(filename):
+                        addfiles(os.path.join(dirpath, name))
+                    else:
+                        with open(filename, 'rb') as f:
+                            files[dn.replace(os.sep, '/')] = f.read()
+            addfiles('')
+            self.assertEqual(len(files), 4)
+            del files['f.html']
+            self.assertEqual(files, {
+                    'a': 'aa\n',
+                    'bb': 'bb\n',
+                    'cc/d': 'dd\n',
+                })
+        finally:
+            shutil.rmtree(testdir)
 
 if __name__ == '__main__':
     unittest.main()

@@ -38,13 +38,34 @@ from vistrails.db.versions.v0_9_4.domain import DBVistrail, DBAction, DBTag, DBM
     DBChange, DBDelete, DBAnnotation, DBPort, DBGroup, \
     DBWorkflow, DBLog, DBAbstraction
 
+def update_workflow(old_obj, translate_dict):
+    return DBWorkflow.update_version(old_obj.db_workflow, 
+                                     translate_dict, DBWorkflow())
+
+def update_modules(old_obj, trans_dict):
+    new_modules = []
+    for obj in old_obj.db_modules:
+        if obj.vtType == 'module':
+            new_modules.append(DBModule.update_version(obj, trans_dict))
+        elif obj.vtType == 'abstractionRef':
+            new_modules.append(DBAbstraction.update_version(obj,
+                                                               trans_dict))
+        elif obj.vtType == 'group':
+            new_modules.append(DBGroup.update_version(obj, trans_dict))
+    return new_modules
+
 def translateVistrail(_vistrail):
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, 
-                                         translate_dict, DBWorkflow())
     def update_operations(old_obj, trans_dict):
         def update_abstractionRef(old_obj, trans_dict):
-            return DBAbstraction.update_version(old_obj.db_data, trans_dict)
+            def get_internal_version(old_obj, trans_dict):
+                return str(old_obj.db_version)
+            def get_version(old_obj, trans_dict):
+                return ''
+            new_dict = {'DBAbstraction':
+                        {'internal_version': get_internal_version,
+                         'version': get_version}}
+            new_dict.update(trans_dict)
+            return DBAbstraction.update_version(old_obj.db_data, new_dict)
         new_ops = []
         for obj in old_obj.db_operations:
             if obj.vtType == 'add':
@@ -76,27 +97,13 @@ def translateVistrail(_vistrail):
         return new_ops
 
     translate_dict = {'DBGroup': {'workflow': update_workflow},
-                      'DBAction': {'operations': update_operations}}
+                      'DBAction': {'operations': update_operations},
+                      'DBWorkflow': {'modules': update_modules}}
     vistrail = DBVistrail.update_version(_vistrail, translate_dict)
     vistrail.db_version = '0.9.4'
     return vistrail
 
 def translateWorkflow(_workflow):
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, 
-                                         translate_dict, DBWorkflow())
-    def update_modules(old_obj, trans_dict):
-        new_modules = []
-        for obj in old_obj.db_modules:
-            if obj.vtType == 'module':
-                new_modules.append(DBModule.update_version(obj, trans_dict))
-            elif obj.vtType == 'abstractionRef':
-                new_modules.append(DBAbstraction.update_version(obj,
-                                                                trans_dict))
-            elif obj.vtType == 'group':
-                new_modules.append(DBGroup.update_version(obj, trans_dict))
-        return new_modules
-
     translate_dict = {'DBGroup': {'workflow': update_workflow},
                       'DBWorkflow': {'modules': update_modules}}
     workflow = DBWorkflow.update_version(_workflow, translate_dict)

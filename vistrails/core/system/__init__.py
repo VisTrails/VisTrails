@@ -265,7 +265,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.1 beta'
+    return '2.1 beta2'
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
@@ -311,7 +311,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "19514847cab3"
+        release = "d13df0810af7"
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(['git', 'describe', '--always', '--abbrev=12'],
@@ -329,13 +329,16 @@ def current_ip():
     Gets current IP address trying to avoid the IPv6 interface """
     try:
         info = socket.getaddrinfo(socket.gethostname(), None)
+        # Try to find an IPv4
         for i in info:
-            if len(i[4][0]) <= 15:
+            if i[0] == socket.AF_INET:
                 return i[4][0]
-            else:
-                return '0.0.0.0'
+        # Return any address
+        for i in info:
+            if i[0] in (socket.AF_INET, socket.AF_INET6):
+                return i[4][0]
     except:
-        return '0.0.0.0'
+        return ''
 
 def current_time():
     """current_time() -> datetime.datetime

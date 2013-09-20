@@ -78,17 +78,24 @@ class ModuleBreakpoint(Exception):
             inputs[p] = self.module.getInputListFromPort(p)
 
         return inputs
-        
+
+class ModuleHadError(Exception):
+    """Exception occurring when a module that failed gets updated again.
+
+    It is caught by the interpreter that doesn't log it.
+    """
+
 class ModuleError(Exception):
 
     """Exception representing a VisTrails module runtime error. This
 exception is recognized by the interpreter and allows meaningful error
 reporting to the user and to the logging mechanism."""
     
-    def __init__(self, module, errormsg):
+    def __init__(self, module, errormsg, abort=False):
         """ModuleError should be passed the module instance that signaled the
 error and the error message as a string."""
         Exception.__init__(self, errormsg)
+        self.abort = abort # force abort even if stopOnError is False
         self.module = module
         self.msg = errormsg
         import traceback
@@ -157,13 +164,13 @@ class Serializable(object):
         """
         Method used to serialize a module.
         """
-        raise Exception('The serialize method is not defined for this module.')
+        raise NotImplementedError('The serialize method is not defined for this module.')
     
     def deserialize(self):
         """
         Method used to deserialize a module.
         """
-        raise Exception('The deserialize method is not defined for this module.')
+        raise NotImplementedError('The deserialize method is not defined for this module.')
 
 ################################################################################
 # Module
@@ -245,6 +252,7 @@ Designing New Modules
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
+        self.ran = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -272,11 +280,11 @@ Designing New Modules
 
         self.is_breakpoint = False
 
-        # is_fold_operator stores wether the module is a part of a fold
-        self.is_fold_operator = False
+        # is_looping stores wether the module is a part of a loop
+        self.is_looping = False
 
-        # is_fold_module stores whether the module is a fold module
-        self.is_fold_module = False
+        # is_looping_module stores whether the module is a looping module
+        self.is_looping_module = False
 
         # computed stores wether the module was computed
         # used for the logging stuff
@@ -346,14 +354,20 @@ context."""
         modules. Report to the logger if available
         
         """
-        self.logging.begin_update(self)
-        self.updateUpstream()
-        if self.suspended:
-            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
+            return
+        if self.ran:
+            if self.had_error:
+                raise ModuleHadError(self)
+            return
+        self.ran = True
+        self.had_error = True # Unset later in this method
+        self.logging.begin_update(self)
+        self.updateUpstream()
+        if self.suspended:
             return
         self.logging.begin_compute(self)
         try:
@@ -387,6 +401,7 @@ context."""
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True
+        self.had_error = False
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
@@ -581,27 +596,38 @@ class Converter(Module):
 ################################################################################
 
 class ModuleConnector(object):
-    def __init__(self, obj, port, spec=None):
+    def __init__(self, obj, port, spec=None, typecheck=None):
+        # typecheck is a list of booleans indicating which descriptors to
+        # typecheck
         self.obj = obj
         self.port = port
         self.spec = spec
+        self.typecheck = typecheck
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""
         self.obj = None
         self.port = None
-    
+
     def __call__(self):
         result = self.obj.get_output(self.port)
-        if self.spec is not None:
+        if self.spec is not None and self.typecheck is not None:
             descs = self.spec.descriptors()
+            typecheck = self.typecheck
             if len(descs) == 1:
+                if not typecheck[0]:
+                    return result
                 mod = descs[0].module
                 if hasattr(mod, 'validate') and not mod.validate(result):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s does not match destination type "
                                       "%s" % (self.port, descs[0].name))
             else:
+                if len(typecheck) == 1:
+                    if typecheck[0]:
+                        typecheck = [True] * len(descs)
+                    else:
+                        return result
                 if not isinstance(result, tuple):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s is not a tuple" % self.port)
@@ -609,8 +635,10 @@ class ModuleConnector(object):
                     raise ModuleError(self.obj, "Object passed on Variant "
                                       "port %s does not have the correct "
                                       "length (%d, expected %d)" % (
-                                      len(result), len(descs)))
+                                      self.port, len(result), len(descs)))
                 for i, desc in enumerate(descs):
+                    if not typecheck[i]:
+                        continue
                     mod = desc.module
                     if hasattr(mod, 'validate'):
                         if not mod.validate(result[i]):

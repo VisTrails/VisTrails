@@ -112,7 +112,7 @@ class Module(object):
                 port_spec = \
                     self._module.get_port_spec(port_spec.name, 'input')
             else:
-                raise Exception("cannot update an output port spec")
+                raise TypeError("cannot update an output port spec")
 
         # FIXME deal with kwargs
         num_ports = 0
@@ -162,7 +162,7 @@ class Module(object):
                             other_module.get_port_spec(port_spec.name, 
                                                         'output')
                     else:
-                        raise Exception("cannot update an input "
+                        raise TypeError("cannot update an input "
                                         "port spec")
                 else:
                     other_port_spec = other._port_spec
@@ -270,8 +270,8 @@ class VisTrailsAPI(object):
             return self._controller
         controller = self.app.get_controller()
         if controller is None:
-            raise Exception("You must have a vistrail open before calling "
-                            "this API method.")
+            raise ValueError("You must have a vistrail open before calling "
+                             "this API method.")
         return controller
     controller = property(_get_controller)
 
@@ -402,7 +402,7 @@ class VisTrailsAPI(object):
                 version = \
                     self.controller.vistrail.get_version_number(version)
             except:
-                raise Exception('Cannot locate version "%s"' % version)
+                raise ValueError('Cannot locate version "%s"' % version)
         return version
 
     def tag_version(self, tag, version=None):

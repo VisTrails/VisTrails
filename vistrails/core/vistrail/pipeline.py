@@ -103,6 +103,10 @@ class MissingVistrailVariable(Exception):
         return self._name
     _module_name = property(_get_module_name)
 
+class CycleInPipeline(Exception):
+    def __str__(self):
+        return "Pipeline contains a cycle"
+
 class Pipeline(DBWorkflow):
     """ A Pipeline is a set of modules and connections between them. """
     
@@ -803,15 +807,21 @@ class Pipeline(DBWorkflow):
 
     # Subpipelines
 
-    def subpipeline_signature(self, module_id):
+    def subpipeline_signature(self, module_id, visited_ids=None):
         """subpipeline_signature(module_id): string
         Returns the signature for the subpipeline whose sink id is module_id."""
+        if visited_ids is None:
+            visited_ids = set([module_id])
+        elif module_id in visited_ids:
+            raise CycleInPipeline()
         try:
             return self._subpipeline_signatures[module_id]
         except KeyError:
-            upstream_sigs = [(self.subpipeline_signature(m) +
+            upstream_sigs = [(self.subpipeline_signature(
+                                      m,
+                                      visited_ids | set([module_id])) +
                               Hasher.connection_signature(
-                                  self.connections[edge_id]))
+                                      self.connections[edge_id]))
                              for (m, edge_id) in
                              self.graph.edges_to(module_id)]
             module_sig = self.module_signature(module_id)
@@ -875,24 +885,15 @@ class Pipeline(DBWorkflow):
         elif isinstance(module_set, Graph):
             subgraph = module_set
         else:
-            raise Exception("Expected list of ints or graph")
+            raise TypeError("Expected list of ints or graph")
         result = Pipeline()
         for module_id in subgraph.iter_vertices():
             result.add_module(copy.copy(self.modules[module_id]))
         for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
             result.add_connection(copy.copy(self.connections[conn_id]))
-                # I haven't finished this yet. -cscheid
-        raise Exception("Incomplete implementation!")
+                # TODO : I haven't finished this yet. -cscheid
+        raise NotImplementedError
         return result
-
-    def dump_actions(self):
-        """dump_actions() -> [Action].
-
-        Returns a list of actions that can be used to create a copy of the
-        pipeline."""
-
-        # FIXME: Remove this call so we can find who calls it
-        raise Exception('broken')
 
     ##########################################################################
     # Registry-related

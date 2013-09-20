@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.vistrails_module import Module
 from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
@@ -47,12 +46,11 @@ from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import current_time
-from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.paramexplore.param import PEParam
+from vistrails.core.paramexplore.function import PEFunction
 from vistrails.core.vistrail.module import Module as VistrailModule
 from vistrails.core.paramexplore.paramexplore import ParameterExploration
 import vistrails.core.db.action
-import vistrails.gui
 
 """ The file describes the parameter exploration table for VisTrails
 
@@ -176,6 +174,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Construct xml for persisting parameter exploration
         escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
         palette = self.get_palette()
+        id_scope = self.controller.id_scope
         functions = []
         for i in xrange(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
@@ -188,9 +187,10 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                     intType = interpolator.exploration_name
                     # Write function tag prior to the first parameter of the function
                     if firstParam:
-                        function = ModuleFunction(id=paramInfo.module_id,
-                                                  name=paramInfo.name,
-                                                  pos=1 if paramInfo.is_alias else 0)
+                        function = PEFunction(id=id_scope.getNewId(PEFunction.vtType),
+                                              module_id=paramInfo.module_id,
+                                              port_name=paramInfo.name,
+                                              is_alias = 1 if paramInfo.is_alias else 0)
                         firstParam = False
 
                     if intType in ['Linear Interpolation', 'RGB Interpolation',
@@ -202,10 +202,11 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                     elif intType == 'User-defined Function':
                         value ='%s' % escape(interpolator.function, escape_dict)
                     # Write parameter tag
-                    param = ModuleParam(id=paramWidget.getDimension(),
-                                        pos=paramInfo.pos,
-                                        type=intType,
-                                        val=value)
+                    param = PEParam(id=id_scope.getNewId(PEParam.vtType),
+                                    pos=paramInfo.pos,
+                                    interpolator=intType,
+                                    value=value,
+                                    dimension=paramWidget.getDimension())
                     function.addParameter(param)
                 functions.append(function)
         pe = ParameterExploration(dims=str(self.table.label.getCounts()),
@@ -241,10 +242,11 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                 for cidx in xrange(moduleItem.childCount()):
                     paramInfo = moduleItem.child(cidx).parameter
                     name, params = paramInfo
-                    if params[0].module_id == f.real_id and \
-                       params[0].name == f.name and \
-                       params[0].is_alias == f.pos:
+                    if params[0].module_id == f.module_id and \
+                       params[0].name == f.port_name and \
+                       params[0].is_alias == f.is_alias:
                         newEditor = self.table.addParameter(paramInfo)
+                        
             # Retrieve params for this function and set their values in the UI
             if newEditor:
                 for p in f.parameters:
@@ -252,16 +254,17 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                     for paramWidget in newEditor.paramWidgets:
                         if paramWidget.param.pos == p.pos:
                             # Set Parameter Dimension (radio button)
-                            paramWidget.setDimension(p.real_id)
+                            paramWidget.setDimension(p.dimension)
                             # Set Interpolator Type (dropdown list)
-                            paramWidget.editor.selectInterpolator(p.type)
+                            paramWidget.editor.selectInterpolator(p.interpolator)
                             # Set Interpolator Value(s)
                             interpolator = paramWidget.editor.stackedEditors.currentWidget()
-                            if p.type in ['Linear Interpolation', 'RGB Interpolation',
-                                             'HSV Interpolation']:
+                            if p.interpolator in ['Linear Interpolation',
+                                                  'RGB Interpolation',
+                                                  'HSV Interpolation']:
                                 try:
                                     # Set min/max
-                                    i_range = eval('%s' % unescape(p.strValue,
+                                    i_range = eval('%s' % unescape(p.value,
                                                                unescape_dict))
                                     p_min = str(i_range[0])
                                     p_max =str(i_range[1])
@@ -269,8 +272,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     interpolator.toEdit.set_value(p_max)
                                 except:
                                     pass
-                            elif p.type == 'List':
-                                p_values = '%s' % unescape(p.strValue,
+                            elif p.interpolator == 'List':
+                                p_values = '%s' % unescape(p.value,
                                                         unescape_dict)
                                 # Set internal list structure
                                 interpolator._str_values = eval(p_values)
@@ -280,10 +283,10 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                 else:
                                     interpolator.listValues.setText(
                                      p_values.replace("'","").replace('"',''))
-                            elif p.type == 'User-defined Function':
+                            elif p.interpolator == 'User-defined Function':
                                 # Set function code
                                 interpolator.function = '%s' % unescape(
-                                                    str(p.strValue), unescape_dict)
+                                                  str(p.value), unescape_dict)
 
     def setParameterExplorationOld(self, xmlString):
         """ setParameterExploration(xmlString: string) -> None

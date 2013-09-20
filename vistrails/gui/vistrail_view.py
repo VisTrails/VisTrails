@@ -1107,8 +1107,15 @@ class QVistrailView(QtGui.QWidget):
             view.publish_to_paper()
 
     def open_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
+        """open_mashup_from_mashuptrail_id(mashuptrail_id: int,
+                                           mashupVersion: int/str) -> None
+        It will find the matching mashuptrail and run the mashup
+        mashupVersion can be either version number or version tag
+        and run the mashup """
         for mashuptrail in self.controller._mashups:
             if str(mashuptrail.id) == mashuptrail_id:
+                if type(mashupVersion) != int:
+                    mashupVersion = mashuptrail.getTagMap()[mashupVersion]
                 mashup = mashuptrail.getMashup(mashupVersion)
                 self.open_mashup(mashup)
                 break

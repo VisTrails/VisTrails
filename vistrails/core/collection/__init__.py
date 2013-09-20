@@ -95,22 +95,26 @@ class Collection(object):
 
     #Singleton technique
     _instance = None
-    class CollectionSingleton():
-        def __call__(self, *args, **kw):
-            if Collection._instance is None:
-                config = get_vistrails_configuration()
-                if config:
-                    self.dotVistrails = config.dotVistrails
-                else:
-                    self.dotVistrails = vistrails.core.system.current_dot_vistrails()
 
-                config = get_vistrails_configuration()
-                path = os.path.join(self.dotVistrails, "index.db")
-                obj = Collection(path)
-                Collection._instance = obj
-            return Collection._instance
+    @staticmethod
+    def getInstance():
+        if Collection._instance is False:
+            debug.critical("Collection.getInstance() called but the "
+                           "Collection has been deleted!")
+            raise RuntimeError("Collection has been deleted!")
+        elif Collection._instance is None:
+            dotVistrails = vistrails.core.system.current_dot_vistrails()
 
-    getInstance = CollectionSingleton()
+            path = os.path.join(dotVistrails, "index.db")
+            obj = Collection(path)
+            Collection._instance = obj
+        return Collection._instance
+
+    @staticmethod
+    def clearInstance():
+        if Collection._instance:
+            Collection._instance.conn.close()
+        Collection._instance = False
 
     def add_listener(self, c):
         """ Add objects that listen to entity creation/removal
@@ -358,7 +362,6 @@ class Collection(object):
 #            debug.critical("Locator is not valid!")
 
 def main():
-    from vistrails.db.services.locator import BaseLocator
     import sys
     sys.path.append('/home/tommy/git/vistrails/vistrails')
 

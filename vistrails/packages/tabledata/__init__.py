@@ -23,6 +23,8 @@ def package_dependencies():
     pm = get_package_manager()
     if pm.has_package('org.vistrails.vistrails.spreadsheet'):
         return ['org.vistrails.vistrails.spreadsheet']
+    else:
+        return []
 
 
 def package_requirements():

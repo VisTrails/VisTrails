@@ -47,7 +47,8 @@ from vistrails.core import debug, get_vistrails_application
 from vistrails.core.configuration import ConfigurationObject
 import vistrails.core.data_structures.graph
 import vistrails.core.db.io
-from vistrails.core.modules.module_registry import ModuleRegistry, MissingPackage
+from vistrails.core.modules.module_registry import ModuleRegistry, \
+                                         MissingPackage, MissingPackageVersion
 from vistrails.core.modules.package import Package
 from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
     versions_increasing
@@ -287,7 +288,7 @@ To do so, call initialize_packages()"""
 
     def initialize_abstraction_pkg(self, prefix_dictionary):
         if self._abstraction_pkg is None:
-            raise Exception("Subworkflows packages is None")
+            raise RuntimeError("Subworkflows packages is None")
         self.add_to_package_list(self._abstraction_pkg.codepath,
                                  self._abstraction_pkg)
         self.late_enable_package(self._abstraction_pkg.codepath, 
@@ -305,6 +306,10 @@ To do so, call initialize_packages()"""
     def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
         pkg = self._package_list[codepath]
+
+        from vistrails.core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.clear_package(pkg.identifier)
+
         self._dependency_graph.delete_vertex(pkg.identifier)
         del self._package_versions[pkg.identifier][pkg.version]
         if len(self._package_versions[pkg.identifier]) == 0:
@@ -344,7 +349,12 @@ Returns true if given package identifier is present."""
             if version is not None:
                 return package_versions[version]
         except KeyError:
-            raise MissingPackage(identifier)
+            # dynamic packages are only registered in the registry
+            try:
+                return self._registry.get_package_by_name(identifier, version)
+            except MissingPackageVersion:
+                return self._registry.get_package_by_name(identifier)
+            
 
         max_version = '0'
         max_pkg = None
@@ -616,22 +626,19 @@ Returns true if given package identifier is present."""
             except Package.MissingDependency, e:
                 debug.critical("Dependencies of package %s are missing "
                                "so it will be disabled" % package.name, str(e))
-                package.remove_own_dom_element()
-                self._dependency_graph.delete_vertex(package.identifier)
-                del self._package_versions[package.identifier][package.version]
-                if len(self._package_versions[package.identifier]) == 0:
-                    del self._package_versions[package.identifier]
-                self.remove_old_identifiers(package.identifier)
-                failed.append(package)
             except Exception, e:
-                debug.critical("Failed getting dependencies of package %s "
-                               "so it will be disabled" % package.name, str(e))
-                package.remove_own_dom_element()
-                self._dependency_graph.delete_vertex(package.identifier)
-                del self._package_versions[package.identifier][package.version]
-                if len(self._package_versions[package.identifier]) == 0:
-                    del self._package_versions[package.identifier]
-                failed.append(package)
+                debug.critical("Got an exception while getting dependencies "
+                               "of %s so it will be disabled" % package.name,
+                               str(e))
+            else:
+                continue
+            package.remove_own_dom_element()
+            self._dependency_graph.delete_vertex(package.identifier)
+            del self._package_versions[package.identifier][package.version]
+            if len(self._package_versions[package.identifier]) == 0:
+                del self._package_versions[package.identifier]
+            self.remove_old_identifiers(package.identifier)
+            failed.append(package)
 
         for pkg in failed:
             del self._package_list[pkg.codepath]

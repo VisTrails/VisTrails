@@ -49,10 +49,10 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "19514847cab3" # hash of version used on last release notes
+commit_start = "d13df0810af7" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.1" # git branch to be used
-release_name = "2.1 beta" 
+release_name = "2.1 beta2"
 clonepath = None # set this to the complete path of a vistrails clone to be used
                  # if None, the remote repository will be cloned to a temporary
                  # folder and removed at the end of the script
@@ -329,9 +329,8 @@ def build_release_notes(repo, branch):
     revisions = sorted(times)
     revisions.reverse()
     for (t,r) in revisions:
-        print "(%s): "%r[0:12]
         for c in changes[r]:
-            print "  - %s... "%c[0:100]
+            print " - %s (%s)" %(c.split('\n')[0][0:100],r[0:12])
 
 if __name__ == "__main__":
     repo = init_repo()

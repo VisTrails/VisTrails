@@ -1143,8 +1143,8 @@ def initialize():
                v.GetVTKMinorVersion(),
                v.GetVTKBuildVersion()]
     if version < [5, 0, 0]:
-        raise Exception("You need to upgrade your VTK install to version \
-        > >= 5.0.0")
+        raise RuntimeError("You need to upgrade your VTK install to version "
+                           ">= 5.0.0")
     inheritanceGraph = ClassTree(vtk)
     inheritanceGraph.create()
 

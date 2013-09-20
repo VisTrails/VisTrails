@@ -34,7 +34,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.1 beta
+AppVerName=VisTrails 2.1 beta2
 WizardImageFile=..\resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
@@ -49,7 +49,7 @@ LicenseFile=..\Input\license.txt
 OutputBaseFilename=vistrails-gdal-setup
 
 [Files]
-Source: C:\Python27\w9xpopen.exe; DestDir: {app}Python27
+Source: C:\Python27\w9xpopen.exe; DestDir: {app}\Python27
 Source: C:\Python27\LICENSE.txt; DestDir: {app}\Python27
 Source: C:\Python27\*.exe; DestDir: {app}\Python27
 ;Source: C:\Python27\qt.conf; DestDir: {app}\Python27

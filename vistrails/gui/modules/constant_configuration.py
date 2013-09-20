@@ -87,7 +87,7 @@ class StandardConstantWidgetBase(ConstantWidgetMixin):
         if 'param' in kwargs:
             param = kwargs['param']
         if param is None:
-            raise Exception("Must pass param as first argument.")
+            raise ValueError("Must pass param as first argument.")
         if param.port_spec_item and param.port_spec_item.entry_type and \
                 param.port_spec_item.entry_type.startswith("enum"):
             return StandardConstantEnumWidget.__new__(StandardConstantEnumWidget, *args, **kwargs)
@@ -281,7 +281,7 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
         if 'param' in kwargs:
             param = kwargs['param']
         if param is None:
-            raise Exception("Must pass param as first argument.")
+            raise ValueError("Must pass param as first argument.")
         if param.port_spec_item and param.port_spec_item.entry_type and \
                 param.port_spec_item.entry_type.startswith("enum"):
             # StandardConstantEnumWidget is not related to StringWidget, so
@@ -339,7 +339,8 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
 
     def setDefault(self, value):
         self._default = value
-        self._widget.setDefault(value)
+        if self._widget is not None:
+            self._widget.setDefault(value)
 
     def contents(self):
         return self._widget.contents()
@@ -619,13 +620,22 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         Initializes the line edit with contents
         """
         QtGui.QCheckBox.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param.strValue)
-        assert param.type == 'Boolean'
-        assert param.identifier == 'org.vistrails.vistrails.basic'
-        assert param.namespace is None
-        self._silent = False
-        self.setContents(param.strValue)
-        self._is_default = not param.strValue
+
+        psi = param.port_spec_item
+        if param.strValue:
+            value = param.strValue
+        elif psi and psi.default:
+            value = psi.default
+        else:
+            value = param.strValue
+        ConstantWidgetMixin.__init__(self, value)
+
+        if psi and psi.default:
+            self.setDefault(psi.default)
+        if param.strValue:
+            self.setContents(param.strValue)
+
+        self._silent= False
         self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
                      self.change_state)
         
@@ -633,24 +643,19 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         return self._values[self._states.index(self.checkState())]
 
     def setContents(self, strValue, silent=True):
-        if strValue:
-            value = strValue
-        else:
-            value = "False"
-        assert value in self._values
+        if not strValue:
+            return
+
+        assert strValue in self._values
         if silent:
             self._silent = True
-        self.setCheckState(self._states[self._values.index(value)])
+        self.setCheckState(self._states[self._values.index(strValue)])
         if not silent:
             self.update_parent()
-        else:
-            self._silent = False
-        self._is_default = False
+        self._silent = False
 
     def setDefault(self, strValue):
-        if self._is_default:
-            self.setContents(strValue)
-            self._is_default = True
+        self.setContents(strValue)
 
     def change_state(self, state):
         if not self._silent:

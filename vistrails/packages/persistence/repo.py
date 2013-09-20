@@ -39,6 +39,7 @@ py_import('dulwich', {
         'linux-debian': 'python-dulwich',
         'linux-ubuntu': 'python-dulwich',
         'linux-fedora': 'python-dulwich'})
+from vistrails.core import debug
 
 from dulwich.errors import NotCommitError, NotGitRepository
 from dulwich.repo import Repo
@@ -55,8 +56,8 @@ class GitRepo(object):
     def __init__(self, path):
         if os.path.exists(path):
             if not os.path.isdir(path):
-                raise Exception('Git repository "%s" must be a directory.' % \
-                                    path)
+                raise IOError('Git repository "%s" must be a directory.' %
+                              path)
         try:
             self.repo = Repo(path)
         except NotGitRepository:
@@ -76,7 +77,7 @@ class GitRepo(object):
 
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find object "%s"' % name)
+            raise KeyError('Cannot find object "%s"' % name)
         if tree[name][0] & stat.S_IFDIR:
             return "tree"
         else:
@@ -91,7 +92,7 @@ class GitRepo(object):
         elif path_type == 'blob':
             return self.get_file(name, version, out_name, out_suffix)
 
-        raise Exception("Unknown path type '%s'" % path_type)
+        raise TypeError("Unknown path type '%s'" % path_type)
 
     def _write_blob(self, blob_sha, out_fname=None, out_suffix=''):
         if out_fname is None:
@@ -116,7 +117,7 @@ class GitRepo(object):
         commit = self._get_commit(version)
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find blob "%s"' % name)
+            raise KeyError('Cannot find blob "%s"' % name)
         blob_sha = tree[name][1]
         out_fname = self._write_blob(blob_sha, out_fname, out_suffix)
         return out_fname
@@ -134,7 +135,7 @@ class GitRepo(object):
         commit = self._get_commit(version)
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find tree "%s"' % name)
+            raise KeyError('Cannot find tree "%s"' % name)
         subtree_id = tree[name][1]
         # subtree = self.repo.tree(subtree_id)
         for entry in self.repo.object_store.iter_tree_contents(subtree_id):
@@ -146,7 +147,7 @@ class GitRepo(object):
         commit = self._get_commit(version)
         tree = self.repo.tree(commit.tree)
         if name not in tree:
-            raise Exception('Cannot find object "%s"' % name)
+            raise KeyError('Cannot find object "%s"' % name)
         return tree[name][1]
 
     @staticmethod
@@ -181,7 +182,7 @@ class GitRepo(object):
             return GitRepo.compute_tree_hash(path)
         elif os.path.isfile(path):
             return GitRepo.compute_blob_hash(path)
-        raise Exception("Do not support this type of path")
+        raise TypeError("Do not support this type of path")
 
     def get_latest_version(self, path):
         head = self.repo.head()
@@ -189,11 +190,38 @@ class GitRepo(object):
                         paths=[path])
         return iter(walker).next().commit.id
 
+    def _stage(self, filename):
+        fullpath = os.path.join(self.repo.path, filename)
+        if os.path.islink(fullpath):
+            debug.warning("Warning: not staging symbolic link %s" % os.path.basename(filename))
+        elif os.path.isdir(fullpath):
+            for f in os.listdir(fullpath):
+                self._stage(os.path.join(filename, f))
+        else:
+            if os.path.sep != '/':
+                filename = filename.replace(os.path.sep, '/')
+            self.repo.stage(filename)
+
     def add_commit(self, filename):
-        self.repo.open_index()
-        self.repo.stage(filename)
+        self.setup_git()
+        self._stage(filename)
         commit_id = self.repo.do_commit('Updated %s' % filename)
         return commit_id
+
+    def setup_git(self):
+        config_stack = self.repo.get_config_stack()
+
+        try:
+            config_stack.get(('user',), 'name')
+            config_stack.get(('user',), 'email')
+        except KeyError:
+            from vistrails.core.system import current_user
+            from dulwich.config import ConfigFile
+            user = current_user()
+            repo_conf = self.repo.get_config()
+            repo_conf.set(('user',), 'name', user)
+            repo_conf.set(('user',), 'email', '%s@localhost' % user)
+            repo_conf.write_to_path()
 
 current_repo = None
 

@@ -40,7 +40,7 @@ import vistrails.core.db.io
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
-    ModuleError, ModuleBreakpoint, ModuleErrors
+    ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -92,7 +92,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         Removes modules from the persistent pipeline, and the modules that
         depend on them."""
-        if modules_to_clean == []:
+        if not modules_to_clean:
             return
         g = self._persistent_pipeline.graph
         dependencies = g.vertices_topological_sort(modules_to_clean)
@@ -111,7 +111,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                                  if not mod.is_cacheable() or \
                                  mod.suspended]
         self.clean_modules(non_cacheable_modules)
-        
+
+    def _clear_package(self, identifier):
+        """clear_package(identifier: str) -> None
+
+        Removes all modules from the given package from the persistent
+        pipeline.
+        """
+        modules = [mod.id
+                   for mod in self._persistent_pipeline.module_list
+                   if mod.module_descriptor.identifier == identifier]
+        self.clean_modules(modules)
 
     def setup_pipeline(self, pipeline, **kwargs):
         """setup_pipeline(controller, pipeline, locator, currentVersion,
@@ -140,6 +150,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
+
+        reg = modules.module_registry.get_module_registry()
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -153,7 +166,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         
         def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
-            reg = modules.module_registry.get_module_registry()
             getter = reg.get_descriptor_by_name
             desc = getter(param.identifier, param.type, param.namespace)
             constant = desc.module()
@@ -195,8 +207,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for i in module_added_set:
             persistent_id = tmp_to_persistent_module_map[i]
             module = self._persistent_pipeline.modules[persistent_id]
-            self._objects[persistent_id] = module.summon()
-            obj = self._objects[persistent_id]
+            obj = self._objects[persistent_id] = module.summon()
             obj.interpreter = self
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
@@ -208,8 +219,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 #print annotate_output
                 if annotate_output:
                     obj.annotate_output = True
-                
-            reg = modules.module_registry.get_module_registry()
+
             for f in module.functions:
                 connector = None
                 if len(f.params) == 0:
@@ -297,6 +307,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_suspended_hook = fetch('module_suspended_hook', [])
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
+        stop_on_error = fetch('stop_on_error', True)
         # parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
@@ -438,22 +449,27 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         # Update new sinks
         for obj in persistent_sinks:
+            abort = False
             try:
                 obj.update()
-            except AbortExecution:
+                continue
+            except ModuleHadError:
                 pass
+            except AbortExecution:
+                break
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
                     errors[me.module.id] = me
-                break
+                    abort = abort or me.abort
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg, me.errorTrace)
                 errors[me.module.id] = me
-                break
+                abort = me.abort
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
+            if stop_on_error or abort:
                 break
 
         if self.done_update_hook:
@@ -609,6 +625,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
+        stop_on_error = fetch('stop_on_error', True)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -752,13 +769,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             CachedInterpreter.__instance.clear()
         objs = gc.collect()
 
-
     @staticmethod
     def flush():
         if CachedInterpreter.__instance:
             CachedInterpreter.__instance.clear()
             CachedInterpreter.__instance.create()
         objs = gc.collect()
+
+    @staticmethod
+    def clear_package(identifier):
+        if CachedInterpreter.__instance:
+            CachedInterpreter.__instance._clear_package(identifier)
 
 ##############################################################################
 # Testing
