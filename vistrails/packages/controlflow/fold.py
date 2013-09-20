@@ -119,6 +119,13 @@ class FoldWithModule(Fold, NotCacheable):
                 priority=self.UPDATE_UPSTREAM_PRIORITY)
 
     def other_ports_ready(self):
+        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+            if port_name != 'FunctionPort':
+                for connector in connectorList:
+                    mod, port = connector.obj, connector.port
+                    if mod.get_output(port) is InvalidOutput:
+                        self.removeInputConnector(port_name, connector)
+
         self.setInitialValue()
         self.partialResult = self.initialValue
         self.elementResult = None
@@ -190,10 +197,7 @@ class FoldWithModule(Fold, NotCacheable):
                     len(suspended), suspended[0].msg)
             self._module_suspended = suspended
         if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
+            return
         self.setResult('Result', self.partialResult)
 
         self.upToDate = True

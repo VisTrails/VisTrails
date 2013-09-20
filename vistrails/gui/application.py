@@ -50,6 +50,7 @@ from vistrails.gui import qt
 import vistrails.gui.theme
 import os.path
 import getpass
+import re
 import sys
 
 ################################################################################
@@ -93,7 +94,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
-            self.timeout = 10000
+            self.timeout = 600000
             self._unique_key = os.path.join(system.home_directory(),
                                             "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
@@ -140,10 +141,18 @@ parameters from other instances")
 
     def found_another_instance_running(self):
         debug.critical("Found another instance of VisTrails running")
-        msg = str(sys.argv[1:])
+        msg = bytes(sys.argv[1:])
         debug.critical("Will send parameters to main instance %s" % msg)
-        return self.send_message(msg)
-            
+        res = self.send_message(msg)
+        if res is True:
+            debug.critical("Main instance succeeded")
+            return True
+        elif res is False:
+            return False
+        else:
+            debug.critical("Main instance reports: %s" % res)
+            return False
+
     def init(self, optionsDict=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
@@ -160,8 +169,8 @@ parameters from other instances")
         if singleInstance:
             self.run_single_instance()
             if self._is_running:
-                if self.found_another_instance_running() is True:
-                    return True
+                if self.found_another_instance_running():
+                    sys.exit(0)
                 else:
                     return False
         interactive = self.temp_configuration.check('interactiveMode')
@@ -582,13 +591,19 @@ parameters from other instances")
             self.temp_configuration.interactiveMode = True
             
             result = self.parse_input_args_from_other_instance(str(byte_array))
-            if result not in [True, False]:
+            if None == result:
+                result = True
+            if True == result:
+                result = "Command Completed"
+            elif False == result:
+                result = "Command Failed"
+            else:
                 result = '\n'.join(result[1])
             self.shared_memory.lock()
-            local_socket.write(str(result))
+            local_socket.write(bytes(result))
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
-                debug.debug("Writing failed: %s" %
+                debug.critical("Writing failed: %s" %
                             local_socket.errorString())
                 return
             local_socket.disconnectFromServer()
@@ -617,22 +632,26 @@ parameters from other instances")
             byte_array = local_socket.readAll()
             result = str(byte_array)
             debug.log("Other instance processed input (%s)"%result)
-            if result != 'True':
+            if result != 'Command Completed':
                 debug.critical(result)
             else:
+                local_socket.disconnectFromServer()
                 return True
             local_socket.disconnectFromServer()
-            return str(byte_array)
-    
+            return result
+
     def parse_input_args_from_other_instance(self, msg):
-        import re
-        options_re = re.compile(r"(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])")
+        options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
         if options_re.match(msg):
             #it's safe to eval as a list
             args = eval(msg)
             if isinstance(args, list):
                 #print "args from another instance %s"%args
-                command_line.CommandLineParser.init_options(args)
+                try:
+                    command_line.CommandLineParser.init_options(args)
+                except SystemExit:
+                    debug.critical("Invalid options: %s" % ' '.join(args))
+                    return False
                 self.readOptions()
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
@@ -649,7 +668,8 @@ parameters from other instances")
                 debug.critical("Invalid string: %s" % msg)
         else:
             debug.critical("Invalid input: %s" % msg)
-        
+        return False
+
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
