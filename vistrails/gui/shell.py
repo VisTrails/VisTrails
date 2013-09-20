@@ -852,7 +852,7 @@ def getIPythonDialog():
     class IPythonDialog(RichIPythonWidget, QVistrailsPaletteInterface):
         """This class incorporates an  IPython shell into a dockable widget for use in the
         VisTrails environment"""
-        def __init__(self, parent=None):
+        def __init__(self, parent=None, ui_hooks=None):
             RichIPythonWidget.__init__(self, parent)
             self.kernel_manager = km
             self.kernel_client = kernel_client
