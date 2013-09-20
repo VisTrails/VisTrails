@@ -204,3 +204,5 @@ rst_epilog = """
 .. |eg| replace:: *e.g.,*\ 
 .. |etc| replace:: *etc.*\ 
 """
+
+autoclass_content = "init"

@@ -65,7 +65,7 @@ Here is the definition of a very simple module:
                raise ModuleError(self, "Division by zero")
            self.setResult("result", arg1 / arg2)
 
-New VisTrails modules must subclass from Module, the base class that defines basic functionality. The only required override is the ``compute`` method, which performs the actual module computation. Input and output is specified through ports, which must be explicitly registered with |vistrails| using the ``_input_ports`` and ``_output_ports`` lists.
+New VisTrails modules must subclass from :py:class:`.Module`, the base class that defines basic functionality. The only required override is the ``compute`` method, which performs the actual module computation. Input and output is specified through ports, which must be explicitly registered with |vistrails| using the ``_input_ports`` and ``_output_ports`` lists.
 
 An Example Package
 ==================

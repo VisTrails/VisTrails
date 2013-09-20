@@ -34,79 +34,240 @@
 ###############################################################################
 
 from collections import namedtuple as _namedtuple, Mapping
+from itertools import izip
 
-def namedtuple(typename, field_names, default_values=None):
+def namedtuple(typename, fields):
+    field_names = [f[0][0] if isinstance(f[0], tuple) else f[0]
+                   for f in fields]
+    default_values = []
+    default_found = False
+    field_types = []
+    docstrings = []
+    for f in fields:
+        if isinstance(f[0], tuple):
+            default_found = True
+            default_values.append(f[0][1])
+        elif default_found:
+            raise Exception('Field "%s" must have default value since the '
+                            'preceding field does.' % f[0])
+        if len(f) > 1 and f[1]:
+            field_types.append("(%s)" % f[1])
+        else:
+            field_types.append("")
+        if len(f) > 2 and f[2]:
+            docstrings.append("\n        %s\n" % f[2])
+        else:
+            docstrings.append("")
+    
     T = _namedtuple(typename, field_names)
-    if default_values is not None:
-        T.__new__.__defaults__ = default_values
-    return T
-
-def subnamedtuple(typename, cls, new_fields=[], new_default_values=tuple(),
-                  overwrite_defaults=False):
-    if overwrite_defaults:
-        return namedtuple(typename, list(cls._fields) + new_fields, 
-                          new_default_values)
+    args = []
+    if len(default_values) > 0:
+        T.__new__.__defaults__ = tuple(default_values)
+        args.extend("%s=%s" % (field_name, '"%s"' % default_val \
+                               if isinstance(default_val, basestring) \
+                               else default_val) \
+                    for (field_name, default_val) in \
+                    izip(reversed(field_names), reversed(default_values)))
+        args.reverse()
+        args = field_names[:len(field_names)-len(default_values)] + args
     else:
-        if cls.__new__.__defaults__ is not None:
-            new_default_values = cls.__new__.__defaults__ + new_default_values
-        return namedtuple(typename, list(cls._fields) + new_fields, 
-                          new_default_values)
+        args = field_names
+    
+    init_docstring = ""
+    for (field_name, field_type, docstring) in \
+        izip(field_names, field_types, docstrings):
+        init_docstring += "    .. py:attribute:: %s %s\n%s\n" % \
+                          (field_name, field_type, docstring)
 
-ConstantWidgetConfig = namedtuple('ConstantWidgetConfig',
-                                  ['widget', 'widget_type', 'widget_use'],
-                                  (None, None))
+    init_template = "def __init__(self, %s): pass" % ', '.join(args)
+    d = {}
+    exec init_template in d
+    T.__init__ = d['__init__']
+    T.__init__.im_func.__doc__ = init_docstring
+    T._vistrails_fields = fields
+
+    return T
+    
+
+def subnamedtuple(typename, cls, new_fields=[], override_fields=[]):
+    def get_field_name(v):
+        if isinstance(v[0], tuple):
+            return v[0][0]
+        return v[0]
+            
+    override_dict = {get_field_name(f): f for f in override_fields}
+    fields = []
+    for f in cls._vistrails_fields:
+        field_name = get_field_name(f)
+        if field_name in override_dict:
+            fields.append(override_dict[field_name])
+        else:
+            fields.append(f)
+    fields.extend(new_fields)
+
+    return namedtuple(typename, fields)
+    
+ConstantWidgetConfig = \
+    namedtuple('ConstantWidgetConfig', 
+               [('widget',
+                 "QWidget | String",
+                 "The widget to be used, either as the class itself or a "
+                 "string of the form ``<py_module>:<class>`` (e.g. "
+                 '"vistrails.gui.modules.constant_configuration:'
+                 'BooleanWidget")'),
+                (('widget_type', None), "String",
+                 "A developer-available type that links a widget to a port "
+                 "entry_type"),
+                (('widget_use', None), "String",
+                 'Intended to differentiate widgets for different purposes in '
+                 'VisTrails.  Currently uses the values None, "query", and '
+                 '"paramexp" to define the widgets available for normal '
+                 'parameter, query, and parameter exploration configuration, '
+                 'respectively')])
 QueryWidgetConfig = subnamedtuple('QueryWidgetConfig', ConstantWidgetConfig, 
-                                  [], (None, 'query'), True)
+    override_fields=[(('widget_use', 'query'),
+                      "String",
+                      'Like :py:attr:`ConstantWidgetConfig.widget_use`, just defaulted '
+                      'to "query"')])
 ParamExpWidgetConfig = subnamedtuple('ParamExpWidgetConfig', 
-                                     ConstantWidgetConfig, [],
-                                     (None, 'paramexp'), True)
+    ConstantWidgetConfig,
+    override_fields=[(('widget_use', 'paramexp'),
+                      "String",
+                      'Like :py:attr:`ConstantWidgetConfig.widget_use`, just defaulted '
+                      'to "paramexp"')])
 
 ModuleSettings = namedtuple('ModuleSettings',
-                          ['name', 'configureWidgetType', 'constantWidget',
-                           'constantWidgets', 'signatureCallable', 
-                           'constantSignatureCallable', 'moduleColor', 
-                           'moduleFringe', 'moduleLeftFringe',
-                           'moduleRightFringe', 'abstract', 'package', 
-                           'namespace', 'version', 'package_version', 
-                           'hide_namespace', 'hide_descriptor', 'is_root', 
-                           'ghost_package', 'ghost_package_version', 
-                           'ghost_namespace'],
-                          (None, None, None, None, None, None, None, None, 
-                           None, None, False, None, None, None, None, False, 
-                           False, False, None, None, None))
+                          [(('name', None),),
+                           (('configureWidgetType', None),),
+                           (('constantWidget', None),),
+                           (('constantWidgets', None),),
+                           (('signatureCallable', None),),
+                           (('constantSignatureCallable', None),),
+                           (('moduleColor', None),),
+                           (('moduleFringe', None),),
+                           (('moduleLeftFringe', None),),
+                           (('moduleRightFringe', None),),
+                           (('abstract', False),),
+                           (('package', None),),
+                           (('namespace', None),),
+                           (('version', None),),
+                           (('package_version', None),),
+                           (('hide_namespace', False),),
+                           (('hide_descriptor', False),),
+                           (('is_root', False),),
+                           (('ghost_package', None),),
+                           (('ghost_package_version', None),),
+                           (('ghost_namespace', None),),])
 
-Port = namedtuple('Port',
-                  ['name', 'signature', 'optional', 'sort_key',
-                   'docstring', 'shape', 'min_conns', 'max_conns'],
-                  (False, -1, None, None, 0, -1))
+Port = namedtuple('Port', 
+                     [("name", "String",
+                       "The name of the of the port"),
+                      ("signature", "String",
+                       'The signature of the port (e.g. "basic:String")'),
+                      (("optional", True), "Boolean",
+                       'Whether the port should be visible by default '
+                       '(defaults to True)'),
+                      (("sort_key", -1), "Integer",
+                       'An integer value that indicates where, relative to'
+                       'other ports, this port should appear visually'),
+                      (("docstring", None), "String",
+                       'Documentation for the port'),
+                      (("shape", None), '"triangle" | "diamond" | "circle" | '
+                       '[(Float,Float)]',
+                       'The shape of the port.  If triangle, appending an '
+                       'angle (in degrees) rotates the triangle.  If a list '
+                       'of (x,y) tuples, specifies points of a polygon in the '
+                       '[0,1] x [0,1] region'),
+                      (("min_conns", 0), "Integer",
+                       'The minimum number of values required for the port'),
+                      (("max_conns", -1), "Integer",
+                       'The maximum number of values allowed for the port'),
+                      ])
+
 InputPort = subnamedtuple('InputPort', Port,
-                          ['label', 'default', 'values', 'entry_type'],
-                          (None, None, None, None))
+                          [(('label', None), "String",
+                            "A label to be shown with a port"),
+                           (('default', None), None,
+                            "The default value for a constant-typed port"),
+                           (('values', None), "List",
+                            'A list of enumerated values that a '
+                            ':py:class:`.ConstantWidgetConfig` uses to '
+                            'configure the widget.  For example, the "enum" '
+                            'widget uses the entries to present an exclusive'
+                            'list of choices.'),
+                           (('entry_type', None), "String",
+                            'The type of the configuration widget that should '
+                            'be used with this port. Developers may use '
+                            'custom widgets on a port-by-port basis by adding '
+                            'widgets with different '
+                            ':py:attr:`ConstantWidgetConfig.widget_type` '
+                            'values and defining the port\'s entry_type to '
+                            'match')])
 OutputPort = subnamedtuple('OutputPort', Port)
 
 CompoundPort = subnamedtuple('CompoundPort', Port,
-                             ['items'],
-                             (None, False, -1, None, None, 0, -1, None), 
-                             True)
+                             [(('items', None),)],
+                             [(('signature', None),)])
 CompoundInputPort = subnamedtuple('CompoundInputPort', CompoundPort,
-                                  ['labels', 'defaults', 'values', 
-                                   'entry_types'],
-                                  (None, None, None, None))
-CompoundOutputPort = subnamedtuple('CompoundOutputPort', CompoundPort)
+    [(('labels', None), "List(String)",
+      "A list of :py:attr:`InputPort.label`"), 
+     (('defaults', None), "List",
+      "A list of :py:attr:`InputPort.default`"),
+     (('values', None), "List(List)",
+      "A list of :py:attr:`InputPort.values`"),
+     (('entry_types', None), "List(String)",
+      "A list of :py:attr:`InputPort.entry_type`")],
+    [(('items', None), "List(InputPortItem)",
+      "Either use this field and break individual "
+      "labels/defaults/values/entry_types into :py:class:`.InputPortItem` "
+      "components or use the other four fields."),
+     (('signature', None), "String",
+      'The signature of the port (e.g. "basic:Integer, basic:Float").  Note '
+      'that for compound ports, this may be instead included on a '
+      'per-component basis in :py:attr:`InputPortItem.signature`.'),])
+CompoundOutputPort = subnamedtuple('CompoundOutputPort', CompoundPort,
+    override_fields=[(('items', None), "List(OutputPortItem)",
+                      "Either use this field and break individual "
+                      "signatures into :py:class:`.OutputPortItem` "
+                      "components or use the signature field."),
+                     (('signature', None), "String",
+                      'The signature of the port (e.g. "basic:Integer, '
+                      'basic:Float").  Note that for compound ports, '
+                      'this may be instead included on a per-component basis '
+                      'in :py:attr:`OutputPortItem.signature`.'),])
 
-PortItem = namedtuple('PortItem', ['signature'])
+PortItem = namedtuple('PortItem', [('signature', None,
+                                    'See :py:attr:`InputPort.signature`')])
 InputPortItem = subnamedtuple('InputPortItem', PortItem,
-                              ['label', 'default', 'values', 'entry_type'],
-                              (None, None, None, None))
+                              [(('label', None), "String",
+                                "See :py:attr:`InputPort.label`"),
+                               (('default', None), None,
+                                "See :py:attr:`InputPort.default`"),
+                               (('values', None), "List",
+                                "See :py:attr:`InputPort.values`"),
+                               (('entry_type', None), "String",
+                                "See :py:attr:`InputPort.entry_type`")])
 OutputPortItem = subnamedtuple('OutputPortItem', PortItem)
 
-DeprecatedInputPort = namedtuple('DeprecatedInputPort',
-                                 ['name', 'signature', 'optional', 'sort_key',
-                                  'labels', 'defaults', 'values', 
-                                  'entry_types', 'docstring', 'shape', 
-                                  'min_conns', 'max_conns'],
-                                 (False, -1, None, None, None, None, None, 
-                                  None, 0, -1))
+DeprecatedInputPort = \
+                      namedtuple('DeprecatedInputPort',
+                                 [("name", "String",
+                                   "The name of the of the port"),
+                                  ("signature", "String",
+                                   'The signature of the port (e.g. "basic:String")'),
+                                  (("optional", True), "Boolean",
+                                   'Whether the port should be visible by default '
+                                   '(defaults to True)'),
+                                  (("sort_key", -1),),
+                                  (('labels', None),), 
+                                  (('defaults', None),),
+                                  (('values', None),),
+                                  (('entry_types', None),),
+                                  (("docstring", None),),
+                                  (("shape", None),),
+                                  (("min_conns", 0),),
+                                  (("max_conns", -1),),
+                              ])
 
 IPort = InputPort
 OPort = OutputPort

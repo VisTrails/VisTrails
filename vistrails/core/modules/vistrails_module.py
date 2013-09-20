@@ -183,7 +183,7 @@ is derived from in VisTrails. It defines a set of basic interfaces to
 deal with data input/output (through ports, as will be explained
 later), as well as a basic mechanism for dataflow based updates.
 
-Execution Model
+*Execution Model*
 
   VisTrails assumes fundamentally that a pipeline is a dataflow. This
   means that pipeline cycles are disallowed, and that modules are
@@ -197,55 +197,50 @@ Execution Model
   VisTrails caches intermediate results to increase efficiency in
   exploration. It does so by reusing pieces of pipelines in later
   executions.
-  
-Terminology
+
+*Terminology*
 
   Module Interface: The module interface is the set of input and
   output ports a module exposes.
 
-Designing New Modules
+*Designing New Modules*
 
   Designing new modules is essentially a matter of subclassing this
   module class and overriding the compute() method. There is a
   fully-documented example of this on the default package
   'pythonCalc', available on the 'packages/pythonCalc' directory.
 
-  Caching
+*Caching*
 
-    Caching affects the design of a new module. Most importantly,
-    users have to account for compute() being called more than
-    once. Even though compute() is only called once per individual
-    execution, new connections might mean that previously uncomputed
-    output must be made available.
+  Caching affects the design of a new module. Most importantly,
+  users have to account for compute() being called more than
+  once. Even though compute() is only called once per individual
+  execution, new connections might mean that previously uncomputed
+  output must be made available.
 
-    Also, operating system side-effects must be carefully accounted
-    for. Some operations are fundamentally side-effectful (creating OS
-    output like uploading a file on the WWW or writing a file to a
-    local hard drive). These modules should probably not be cached at
-    all. VisTrails provides an easy way for modules to report that
-    they should not be cached: simply subclass from the NotCacheable
-    mixin provided in this python module. (NB: In order for the mixin
-    to work appropriately, NotCacheable must appear *BEFORE* any other
-    subclass in the class hierarchy declarations). These modules (and
-    anything that depends on their results) will then never be reused.
+  Also, operating system side-effects must be carefully accounted
+  for. Some operations are fundamentally side-effectful (creating OS
+  output like uploading a file on the WWW or writing a file to a
+  local hard drive). These modules should probably not be cached at
+  all. VisTrails provides an easy way for modules to report that
+  they should not be cached: simply subclass from the NotCacheable
+  mixin provided in this python module. (NB: In order for the mixin
+  to work appropriately, NotCacheable must appear *BEFORE* any other
+  subclass in the class hierarchy declarations). These modules (and
+  anything that depends on their results) will then never be reused.
 
+*Intermediate Files*
 
-  Intermediate Files
+  Many modules communicate through intermediate files. VisTrails
+  provides automatic filename and handle management to alleviate the
+  burden of determining tricky things (e.g. longevity) of these
+  files. Modules can request temporary file names through the file pool,
+  currently accessible through ``self.interpreter.filePool``.
 
-    Many modules communicate through intermediate files. VisTrails
-    provides automatic filename and handle management to alleviate the
-    burden of determining tricky things (e.g. longevity) of these
-    files. Modules can request temporary file names through the file pool,
-    currently accessible through
-
-    self.interpreter.filePool
-
-    The FilePool class is available in core/modules/module_utils.py -
-    consult its documentation for usage. Notably, using the file pool
-    will make temporary files work correctly with caching, and will
-    make sure the temporaries are correctly removed.
-
-
+  The FilePool class is available in core/modules/module_utils.py -
+  consult its documentation for usage. Notably, using the file pool
+  will make temporary files work correctly with caching, and will
+  make sure the temporaries are correctly removed.
 
 """
 
@@ -416,9 +411,19 @@ Makes sure input port 'name' is filled."""
             raise ModuleError(self, "'%s' is a mandatory port" % name)
 
     def compute(self):
+        """This method should be overridden in order to perform the module's
+        computation.
+
+        """
         pass
 
     def setResult(self, port, value):
+        """This method is used to set a value on an output port.
+
+        :param port: the name of the output port to be set
+        :param value: the value to be assigned to the port
+
+        """
         self.outputPorts[port] = value
         
     def annotate_output_values(self):
@@ -478,6 +483,16 @@ Makes sure input port 'name' is filled."""
         return None
 
     def getInputFromPort(self, inputPort, allowDefault=True):
+        """Returns the value coming in on the input port named **inputPort**.
+
+        :param inputPort: the name of the input port being queried
+        :type inputPort: String
+        :param allowDefault: whether to return the default value if it exists
+        :type allowDefault: Boolean
+        :returns: the value being passed in on the input port
+        :raises: ``ModuleError`` if there is no value on the port (and no default value if allowDefault is True)
+
+        """
         if inputPort not in self.inputPorts:
             if allowDefault and self.registry:
                 defaultValue = self.getDefaultValue(inputPort)
@@ -492,15 +507,45 @@ Makes sure input port 'name' is filled."""
         return self.inputPorts[inputPort][0]()
 
     def hasInputFromPort(self, inputPort):
+        """Checks if there is a value coming in on the input port named
+        **inputPort**.
+        
+        :param inputPort: the name of the input port being queried
+        :type inputPort: String 
+        :rtype: Boolean
+        
+        """
         return self.inputPorts.has_key(inputPort)
 
     def __str__(self):
         return "<<%s>>" % str(self.__class__)
 
     def annotate(self, d):
+
+        """Manually add provenance information to the module's execution
+        trace.  For example, a module that generates random numbers
+        might add the seed that was used to initialize the generator.
+        
+        :param d: a dictionary where both the keys and values are strings
+        :type d: Dictionary
+        
+        """
+
         self.logging.annotate(self, d)
 
     def forceGetInputFromPort(self, inputPort, defaultValue=None):
+
+        """Like :py:func:`getInputFromPort` except that if no value exists, it
+        returns a user-specified defaultValue or None.
+
+        :param inputPort: the name of the input port being queried
+        :type inputPort: String 
+        :param defaultValue: the default value to be used if there is \
+        no value on the input port
+        :returns: the value being passed in on the input port or the default
+
+        """
+
         if self.hasInputFromPort(inputPort):
             return self.getInputFromPort(inputPort)
         else:
@@ -516,6 +561,17 @@ Makes sure input port 'name' is filled."""
             self._latest_method_order += 1
 
     def getInputListFromPort(self, inputPort):
+
+        """Returns the value(s) coming in on the input port named
+        **inputPort**.  When a port can accept more than one input,
+        this method obtains all the values being passed in.
+
+        :param inputPort: the name of the input port being queried
+        :type inputPort: String 
+        :returns: a list of all the values being passed in on the input port
+        :raises: ``ModuleError`` if there is no value on the port
+        """
+
         if not self.inputPorts.has_key(inputPort):
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         # Cannot resolve circular reference here, need to be fixed later
@@ -528,11 +584,20 @@ Makes sure input port 'name' is filled."""
         return [connector() for connector in self.inputPorts[inputPort]]
 
     def forceGetInputListFromPort(self, inputPort):
+        """Like :py:func:`getInputListFromPort` except that if no values
+        exist, it returns an empty list
+
+        :param inputPort: the name of the input port being queried
+        :type inputPort: String
+        :returns: a list of all the values being passed in on the input port
+
+        """
         if not self.inputPorts.has_key(inputPort):
             return []
         return self.getInputListFromPort(inputPort)
 
     def enableOutputPort(self, outputPort):
+
         """ enableOutputPort(outputPort: str) -> None
         Set an output port to be active to store result of computation
         
