@@ -94,12 +94,11 @@ class LogController(object):
         self.log = log
         self.workflow_exec = None
         self.machine = machine
-        to_add = True
         for machine in self.log.machine_list:
             if self.machine.equals_no_id(machine):
-                to_add = False
                 self.machine = machine
-        if to_add:
+                break
+        else:
             self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
             self.log.add_machine(self.machine)
 
@@ -117,17 +116,17 @@ class LogController(object):
             session = vistrail.current_session
         else:
             session = None
-        self.workflow_exec = WorkflowExec(id=wf_exec_id,
-                                          user=vistrails.core.system.current_user(),
-                                          ip=vistrails.core.system.current_ip(),
-                                          vt_version= \
-                                              vistrails.core.system.vistrails_version(),
-                                          ts_start=vistrails.core.system.current_time(),
-                                          parent_type=parent_type,
-                                          parent_id=parent_id,
-                                          parent_version=currentVersion,
-                                          completed=0,
-                                          session=session)
+        self.workflow_exec = WorkflowExec(
+                id=wf_exec_id,
+                user=vistrails.core.system.current_user(),
+                ip=vistrails.core.system.current_ip(),
+                vt_version=vistrails.core.system.vistrails_version(),
+                ts_start=vistrails.core.system.current_time(),
+                parent_type=parent_type,
+                parent_id=parent_id,
+                parent_version=currentVersion,
+                completed=0,
+                session=session)
         self.log.add_workflow_exec(self.workflow_exec)
 
     def finish_workflow_execution(self, errors, suspended=False):
@@ -229,7 +228,7 @@ class LogController(object):
 
     def finish_module_execution(self, module, error, errorTrace=None,
                                 suspended=False):
-        if not hasattr(module,'module_exec'):
+        if not hasattr(module, 'module_exec'):
             return False
         module.module_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
@@ -262,7 +261,7 @@ class LogController(object):
         return group_exec
 
     def finish_group_execution(self, group, error, suspended=False):
-        if not hasattr(group,'group_exec'):
+        if not hasattr(group, 'group_exec'):
             return False
         group.group_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
@@ -300,7 +299,7 @@ class LogController(object):
         return True
 
     def insert_module_annotations(self, module, a_dict):
-        for k,v in a_dict.iteritems():
+        for k, v in a_dict.iteritems():
             a_id = self.log.id_scope.getNewId(Annotation.vtType)
             annotation = Annotation(id=a_id,
                                     key=k,
@@ -315,7 +314,7 @@ class LogController(object):
         This will create an annotation for each pair in a_dict in
         self.workflow_exec"""
         if self.workflow_exec:
-            for k,v in a_dict.iteritems():
+            for k, v in a_dict.iteritems():
                 a_id = self.log.id_scope.getNewId(Annotation.vtType)
                 annotation = Annotation(id=a_id,
                                         key=k,
