@@ -50,7 +50,7 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.db.action import create_action
 from vistrails.core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException
+    ModuleRegistryException, MissingModule
 from vistrails.core.system import systemType, get_vistrails_basic_pkg_id
 from vistrails.core.parallelization import Parallelization
 from vistrails.core.parallelization.preferences import localExecutionTarget
@@ -1474,19 +1474,23 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     def set_parallel_marker(self):
         if self.controller is None or self.controller.current_pipeline is None:
             return
-        module = self.controller.current_pipeline.modules[self.module.id]
+        try:
+            module = self.controller.current_pipeline.modules[self.module.id]
+            module_descriptor = module.module_descriptor
+            target = module.preferred_execution_target
+        except MissingModule:
+            return
 
         # Color a corner according to the execution target
         # If module not parallelizable: nothing
         # If unset (autoselection): white corner
         # If set to local (forbid parallelization): black cross
         # If a preferred target is set: target's color
-        target = module.preferred_execution_target
         if self.parallel_marker is not None:
             self.parallel_marker.setParentItem(None)
             self.parallel_marker = None
         tcolor = None
-        if module.module_descriptor.supported_execution is None:
+        if module_descriptor.supported_execution is None:
             pass
         elif target is None:
             tcolor = (1.0, 1.0, 1.0)
