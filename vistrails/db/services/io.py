@@ -37,7 +37,7 @@ from __future__ import with_statement
 from datetime import datetime
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
-from vistrails.core.system import get_elementtree_library, temporary_directory,\
+from vistrails.core.system import get_elementtree_library, \
      execute_cmdline, systemType, get_executable_path
 from vistrails.core.utils import Chdir
 from vistrails.core.log.log import Log
