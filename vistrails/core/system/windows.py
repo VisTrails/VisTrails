@@ -200,10 +200,26 @@ def execute_cmdline(lst, output):
     return proc.returncode
 
 def get_executable_path(executable_name):
-    filename = os.path.abspath(os.path.join(os.path.dirname(__file__),'../../../',executable_name))
-    if os.path.exists(filename) or os.path.exists(filename+'.exe'):
+    """get_executable_path(executable_name: str) -> str
+    Get the absolute filename of an executable, searching in VisTrails's top
+    directory then the PATH.
+    """
+    # Search in top directory
+    filename = os.path.abspath(os.path.join(
+            os.path.dirname(__file__),
+            '../../..',
+            executable_name))
+    if os.path.isfile(filename):
         return filename
-    return None
+
+    # Search in path
+    pathlist = os.environ['PATH'].split(os.pathsep) + ["."]
+    exts = os.environ['PATHEXT'].split(os.pathsep)
+    for path in pathlist:
+        for ext in exts:
+            fullpath = os.path.join(path, executable_name) + ext
+            if os.path.isfile(fullpath):
+                return os.path.abspath(fullpath)
 
 def execute_piped_cmdlines(cmd_list_list):
     stdin = subprocess.PIPE

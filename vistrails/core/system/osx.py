@@ -222,20 +222,17 @@ def link_or_copy(src, dst):
             raise e
 
 def get_executable_path(executable_name):
+    """get_executable_path(executable_name: str) -> str
+    Get the absolute filename of an executable, searching in the PATH.
+    """
+    pathlist = os.environ['PATH'].split(os.pathsep)
     vt_path = os.getenv("EXECUTABLEPATH")
-    if vt_path is not None:
-        vt_path = vt_path.strip()
-        executable_path = \
-            os.path.join(os.path.dirname(vt_path), executable_name)
-        if os.path.exists(executable_path):
-            return executable_path
-    paths = os.environ['PATH']
-    paths = paths.split(os.pathsep)
-    for prefix in paths:
-        path = os.path.join(prefix, executable_name)
-        if os.path.exists(path):
-            return path
-    return None
+    if vt_path:
+        pathlist.insert(0, vt_path.strip())
+    for path in pathlist:
+        fullpath = os.path.join(path, executable_name)
+        if os.path.isfile(fullpath):
+            return os.path.abspath(fullpath)
 
 ################################################################################
 

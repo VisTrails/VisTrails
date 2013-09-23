@@ -100,13 +100,14 @@ def execute_cmdline(lst, output):
     return result
 
 def get_executable_path(executable_name):
-    paths = os.environ['PATH']
-    paths = paths.split(os.pathsep)
-    for prefix in paths:
-        path = os.path.join(prefix, executable_name)
-        if os.path.exists(path):
-            return path
-    return None
+    """get_executable_path(executable_name: str) -> str
+    Get the absolute filename of an executable, searching in the PATH.
+    """
+    pathlist = os.environ['PATH'].split(os.pathsep)
+    for path in pathlist:
+        fullpath = os.path.join(path, executable_name)
+        if os.path.isfile(fullpath):
+            return os.path.abspath(fullpath)
 
 def execute_piped_cmdlines(cmd_list_list):
     stdin = subprocess.PIPE
