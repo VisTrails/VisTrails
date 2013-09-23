@@ -44,13 +44,11 @@ import subprocess
 import time
 
 from vistrails.core.system.unix import executable_is_in_path, list2cmdline, \
-     executable_is_in_pythonpath, execute_cmdline, execute_piped_cmdlines, \
-     execute_cmdline2
+     execute_cmdline, execute_piped_cmdlines, execute_cmdline2
 
 
 __all__ = ['executable_is_in_path', 'list2cmdline',
-           'executable_is_in_pythonpath', 'execute_cmdline',
-           'execute_piped_cmdlines', 'execute_cmdline2',
+           'execute_cmdline', 'execute_piped_cmdlines', 'execute_cmdline2',
 
            'guess_total_memory', 'temporary_directory',
            'home_directory', 'remote_copy_program', 'remote_shell_program',

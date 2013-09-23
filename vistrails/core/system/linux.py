@@ -39,13 +39,12 @@ import shutil
 from vistrails.core.utils import VistrailsInternalError
 
 from vistrails.core.system.unix import executable_is_in_path,\
-     executable_is_in_pythonpath, list2cmdline, execute_cmdline, \
+     list2cmdline, execute_cmdline, \
      get_executable_path, execute_piped_cmdlines
 
 
-__all__ = ['executable_is_in_path', 'executable_is_in_pythonpath',
-           'list2cmdline', 'execute_cmdline', 'get_executable_path',
-           'execute_piped_cmdlines',
+__all__ = ['executable_is_in_path', 'list2cmdline', 'execute_cmdline',
+           'get_executable_path', 'execute_piped_cmdlines',
 
            'guess_total_memory', 'temporary_directory',
            'home_directory', 'remote_copy_program', 'remote_shell_program',

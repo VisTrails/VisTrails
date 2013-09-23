@@ -61,7 +61,7 @@ def executable_file_exists(filename):
 Returns if certain file is in current path and is executable."""
     result = vistrails.core.system.executable_is_in_path(filename)
     if result == "":
-        result = vistrails.core.system.executable_is_in_pythonpath(filename)
+        result = vistrails.core.system.executable_is_in_path(filename)
     return result != ""
 
 # FIXME: Add documentation.

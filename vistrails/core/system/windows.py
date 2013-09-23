@@ -34,9 +34,7 @@
 ###############################################################################
 import os
 import shutil
-import stat
 import subprocess
-import sys
 
 try:
     from ctypes import windll, Structure, c_ulong, c_ulonglong, byref, sizeof
@@ -67,8 +65,7 @@ __all__ = ['guess_total_memory', 'temporary_directory', 'home_directory',
            'list2cmdline', 'remote_copy_program', 'remote_shell_program',
            'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
            'link_or_copy', 'executable_is_in_path', 'execute_cmdline',
-           'executable_is_in_pythonpath', 'get_executable_path',
-           'execute_piped_cmdlines', 'execute_cmdline2',
+           'get_executable_path', 'execute_piped_cmdlines', 'execute_cmdline2',
            'TestWindows']
 
 
@@ -159,26 +156,6 @@ def executable_is_in_path(filename):
             if os.path.isfile(fullpath):
                 return True
     return False
-
-def executable_is_in_pythonpath(filename):
-    """ executable_is_in_pythonpath(filename: str) -> string
-    Check if exename can be reached in the PYTHONPATH environment. Return
-    the filename if true, or an empty string if false.
-
-    """
-    pathlist = sys.path
-    for path in pathlist:
-        fullpath = os.path.join(path, filename)
-        try:
-            st = os.stat(fullpath)
-        except os.error:
-            try:
-                st = os.stat(fullpath+'.exe')
-            except:
-                continue
-        if stat.S_ISREG(st[stat.ST_MODE]):
-            return filename
-    return ""
 
 def list2cmdline(lst):
     for el in lst:

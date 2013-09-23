@@ -35,14 +35,11 @@
 
 """Routines common to Linux and OSX."""
 import os
-import stat
 import subprocess
-import sys
 
 
-__all__ = ['executable_is_in_path', 'executable_is_in_pythonpath',
-           'list2cmdline', 'execute_cmdline', 'get_executable_path',
-           'execute_piped_cmdlines', 'execute_cmdline2']
+__all__ = ['executable_is_in_path', 'list2cmdline', 'execute_cmdline',
+           'get_executable_path', 'execute_piped_cmdlines', 'execute_cmdline2']
 
 ###############################################################################
 
@@ -56,23 +53,6 @@ def executable_is_in_path(filename):
         if os.path.isfile(fullpath):
             return True
     return False
-
-def executable_is_in_pythonpath(filename):
-    """executable_is_in_pythonpath(filename: str)
-    Check if exename can be reached in the PYTHONPATH environment. Return
-    the filename if true, or an empty string if false.
-
-    """
-    pathlist = sys.path
-    for path in pathlist:
-        fullpath = os.path.join(path, filename)
-        try:
-            st = os.stat(fullpath)
-        except os.error:
-            continue
-        if stat.S_ISREG(st[stat.ST_MODE]):
-            return filename
-    return ""
 
 def list2cmdline(lst):
     for el in lst:
