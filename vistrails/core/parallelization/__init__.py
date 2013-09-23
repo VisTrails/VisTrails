@@ -109,18 +109,18 @@ class SupportedExecution(object):
     __str__ = __repr__
 
     def do_compute(self, module):
-        """This method is injected as do_compute in parallelizable modules.
+        """This method is called instead of a Module's do_compute.
 
         When the parallelizable() class decorator is used on a class, this
-        method is called instead of do_compute. The original arguments to
-        parallelizable() will be used to choose a specific scheme.
+        method is called by on_upstream_ready instead of do_compute. It will
+        choose a specific scheme.
         """
-        supported = module.supported_execution
+        supported = self
 
         # If we're already a remote machine, only use threads
         if Parallelization.is_subprocess:
             supported = SupportedExecution(
-                    thread=supported.parallelizable['thread'])
+                    thread=self.parallelizable['thread'])
 
         # First, try to use the preferred execution target
         target = module.preferred_execution_target
