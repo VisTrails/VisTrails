@@ -168,17 +168,19 @@ def get_executable_path(executable_name):
     Get the absolute filename of an executable, searching in VisTrails's top
     directory then the PATH.
     """
+    exts = os.environ['PATHEXT'].split(os.pathsep)
+
     # Search in top directory
     filename = os.path.abspath(os.path.join(
             os.path.dirname(__file__),
             '../../..',
             executable_name))
-    if os.path.isfile(filename):
-        return filename
+    for ext in exts:
+        if os.path.isfile(filename + ext):
+            return filename
 
     # Search in path
     pathlist = os.environ['PATH'].split(os.pathsep) + ["."]
-    exts = os.environ['PATHEXT'].split(os.pathsep)
     for path in pathlist:
         for ext in exts:
             fullpath = os.path.join(path, executable_name) + ext
