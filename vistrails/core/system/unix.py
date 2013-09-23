@@ -35,12 +35,17 @@
 
 """Routines common to Linux and OSX."""
 import os
-import os.path
 import stat
 import subprocess
 import sys
 import vistrails.core.utils
-import re
+
+
+__all__ = ['executable_is_in_path', 'executable_is_in_pythonpath',
+           'list2cmdline', 'execute_cmdline', 'get_executable_path',
+           'execute_piped_cmdlines', 'execute_cmdline2']
+
+###############################################################################
 
 def executable_is_in_path(filename):
     """executable_is_in_path(filename): string
@@ -63,15 +68,15 @@ def executable_is_in_pythonpath(filename):
     """executable_is_in_pythonpath(filename: str)
     Check if exename can be reached in the PYTHONPATH environment. Return
     the filename if true, or an empty string if false.
-    
+
     """
     pathlist = sys.path
-    for dir in pathlist:
-        fullpath = os.path.join(dir, filename)
+    for path in pathlist:
+        fullpath = os.path.join(path, filename)
         try:
             st = os.stat(fullpath)
         except os.error:
-            continue        
+            continue
         if stat.S_ISREG(st[stat.ST_MODE]):
             return filename
     return ""
@@ -123,3 +128,6 @@ def execute_piped_cmdlines(cmd_list_list):
     (output, errs) = process.communicate()
     result = process.returncode
     return (result, output, errs)
+
+def execute_cmdline2(cmd_list):
+    return execute_piped_cmdlines([cmd_list])

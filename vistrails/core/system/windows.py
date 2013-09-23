@@ -34,21 +34,20 @@
 ###############################################################################
 import os
 import shutil
-import sys
 import stat
 import subprocess
-import vistrails.core.system
+import sys
 
-import unittest
+import vistrails.core.system
 
 try:
     from ctypes import windll, Structure, c_ulong, c_ulonglong, byref, sizeof
     importSuccess = True
-    
+
     class WIN32MEMORYSTATUSEX(Structure):
-        """ Structure that represents memory information returned by 
+        """ Structure that represents memory information returned by
         Windows API
-        
+
         """
         _fields_ = [
             ('dwLength', c_ulong),
@@ -64,15 +63,25 @@ try:
 
 except ImportError:
     importSuccess = False
-    
+
+
+__all__ = ['guess_total_memory', 'temporary_directory', 'home_directory',
+           'list2cmdline', 'remote_copy_program', 'remote_shell_program',
+           'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
+           'link_or_copy', 'executable_is_in_path', 'execute_cmdline',
+           'executable_is_in_pythonpath', 'get_executable_path',
+           'execute_piped_cmdlines', 'execute_cmdline2',
+           'TestWindows']
+
+
 ##############################################################################
 def parse_meminfo():
-    """ 
+    """
     parse_meminfo() -> long
-    Calls Windows 32 API GlobalMemoryStatus(Ex) to get memory information 
+    Calls Windows 32 API GlobalMemoryStatus(Ex) to get memory information
     It requires ctypes module
-    
-    """ 
+
+    """
     try:
         kernel32 = windll.kernel32
 
@@ -84,9 +93,9 @@ def parse_meminfo():
     return long(result.dwTotalPhys / 1024)
 
 def guess_total_memory():
-    """ guess_total_memory() -> int 
-    Return system memory in megabytes. If ctypes is not installed it returns -1 
-    
+    """ guess_total_memory() -> int
+    Return system memory in megabytes. If ctypes is not installed it returns -1
+
     """
     if importSuccess:
         return parse_meminfo()
@@ -94,10 +103,10 @@ def guess_total_memory():
         return -1
 
 def temporary_directory():
-    """ temporary_directory() -> str 
-    Returns the path to the system's temporary directory. Tries to use the $TMP 
-    environment variable, if it is present. Else, tries $TEMP, else uses 'c:/' 
-    
+    """ temporary_directory() -> str
+    Returns the path to the system's temporary directory. Tries to use the $TMP
+    environment variable, if it is present. Else, tries $TEMP, else uses 'c:/'
+
     """
     if os.environ.has_key('TMP'):
         return os.environ['TMP'] + '\\'
@@ -107,10 +116,10 @@ def temporary_directory():
         return 'c:/'
 
 def home_directory():
-    """ home_directory() -> str 
+    """ home_directory() -> str
     Returns user's home directory using windows environment variables
     $HOMEDRIVE and $HOMEPATH
-    
+
     """
     if len(os.environ['HOMEPATH']) == 0:
         return '\\'
@@ -134,17 +143,17 @@ def remove_graph_viz_temporaries():
     pass
 
 def link_or_copy(src, dst):
-    """link_or_copy(src:str, dst:str) -> None 
-    Copies file src to dst 
-    
+    """link_or_copy(src:str, dst:str) -> None
+    Copies file src to dst
+
     """
     shutil.copyfile(src, dst)
 
 def executable_is_in_path(filename):
-    """ executable_is_in_path(filename: str) -> string    
+    """ executable_is_in_path(filename: str) -> string
     Check if exename can be reached in the PATH environment. Return
     the filename if true, or an empty string if false.
-    
+
     """
     pathlist = (os.environ['PATH'].split(os.pathsep) +
                 [vistrails.core.system.vistrails_root_directory(),
@@ -157,27 +166,27 @@ def executable_is_in_path(filename):
             try:
                 st = os.stat(fullpath+'.exe')
             except:
-                continue        
+                continue
         if stat.S_ISREG(st[stat.ST_MODE]):
             return filename
     return ""
 
 def executable_is_in_pythonpath(filename):
-    """ executable_is_in_pythonpath(filename: str) -> string    
+    """ executable_is_in_pythonpath(filename: str) -> string
     Check if exename can be reached in the PYTHONPATH environment. Return
     the filename if true, or an empty string if false.
-    
+
     """
     pathlist = sys.path
-    for dir in pathlist:
-        fullpath = os.path.join(dir, filename)
+    for path in pathlist:
+        fullpath = os.path.join(path, filename)
         try:
             st = os.stat(fullpath)
         except os.error:
             try:
                 st = os.stat(fullpath+'.exe')
             except:
-                continue        
+                continue
         if stat.S_ISREG(st[stat.ST_MODE]):
             return filename
     return ""
@@ -194,7 +203,7 @@ def execute_cmdline(lst, output):
     will always return 0
 
     """
-    proc = subprocess.Popen(lst, shell=True, stdin=subprocess.PIPE, 
+    proc = subprocess.Popen(lst, shell=True, stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     proc.wait()
     if proc.stdout:
@@ -220,31 +229,35 @@ def execute_piped_cmdlines(cmd_list_list):
     result = process.returncode
     return (result, output, errs)
 
+def execute_cmdline2(cmd_list):
+    return execute_piped_cmdlines([cmd_list])
+
 ################################################################################
 
+import unittest
 
 class TestWindows(unittest.TestCase):
-     """ Class to test Windows specific functions """
-     
-     def test1(self):
-         """ Test if guess_total_memory() is returning an int >= 0"""
-         result = guess_total_memory()
-         assert isinstance(result, (int, long))
-         assert result >= 0
+    """ Class to test Windows specific functions """
 
-     def test2(self):
-         """ Test if home_directory is not empty """
-         result = home_directory()
-         assert result != ""
+    def test1(self):
+        """ Test if guess_total_memory() is returning an int >= 0"""
+        result = guess_total_memory()
+        assert isinstance(result, (int, long))
+        assert result >= 0
 
-     def test3(self):
-         """ Test if temporary_directory is not empty """
-         result = temporary_directory()
-         assert result != ""
+    def test2(self):
+        """ Test if home_directory is not empty """
+        result = home_directory()
+        assert result != ""
 
-     def test_executable_file_in_path(self):
-         result = executable_is_in_path('cmd')
-         assert result != ""
+    def test3(self):
+        """ Test if temporary_directory is not empty """
+        result = temporary_directory()
+        assert result != ""
+
+    def test_executable_file_in_path(self):
+        result = executable_is_in_path('cmd')
+        assert result != ""
 
 if __name__ == '__main__':
     unittest.main()
