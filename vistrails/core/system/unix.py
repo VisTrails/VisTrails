@@ -38,7 +38,6 @@ import os
 import stat
 import subprocess
 import sys
-import vistrails.core.utils
 
 
 __all__ = ['executable_is_in_path', 'executable_is_in_pythonpath',
@@ -48,21 +47,15 @@ __all__ = ['executable_is_in_path', 'executable_is_in_pythonpath',
 ###############################################################################
 
 def executable_is_in_path(filename):
-    """executable_is_in_path(filename): string
-    Tests if filename corresponds to an executable file on the path. Returns
-the filename if true, or an empty string if false."""
-    cmdline = ['which','%s' % filename]
-    output = []
-    result = execute_cmdline(cmdline, output)
-    if result == 1:
-        return ""
-    if result != 0:
-        msg = ("'%s' failed. Return code %s. Output: %s" %
-               (cmdline, result, output))
-        raise vistrails.core.utils.VistrailsInternalError(msg)
-    else:
-        output = output[0][:-1]
-        return output
+    """ executable_is_in_path(filename: str) -> string
+    Check if exename can be reached in the PATH environment.
+    """
+    pathlist = os.environ['PATH'].split(os.pathsep) + ["."]
+    for path in pathlist:
+        fullpath = os.path.join(path, filename)
+        if os.path.isfile(fullpath):
+            return True
+    return False
 
 def executable_is_in_pythonpath(filename):
     """executable_is_in_pythonpath(filename: str)

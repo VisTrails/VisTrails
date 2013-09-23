@@ -38,8 +38,6 @@ import stat
 import subprocess
 import sys
 
-import vistrails.core.system
-
 try:
     from ctypes import windll, Structure, c_ulong, c_ulonglong, byref, sizeof
     importSuccess = True
@@ -150,26 +148,17 @@ def link_or_copy(src, dst):
     shutil.copyfile(src, dst)
 
 def executable_is_in_path(filename):
-    """ executable_is_in_path(filename: str) -> string
-    Check if exename can be reached in the PATH environment. Return
-    the filename if true, or an empty string if false.
-
+    """ executable_is_in_path(filename: str) -> bool
+    Check if exename can be reached in the PATH environment.
     """
-    pathlist = (os.environ['PATH'].split(os.pathsep) +
-                [vistrails.core.system.vistrails_root_directory(),
-                 "."])
-    for dir in pathlist:
-        fullpath = os.path.join(dir, filename)
-        try:
-            st = os.stat(fullpath)
-        except os.error:
-            try:
-                st = os.stat(fullpath+'.exe')
-            except:
-                continue
-        if stat.S_ISREG(st[stat.ST_MODE]):
-            return filename
-    return ""
+    pathlist = os.environ['PATH'].split(os.pathsep) + ["."]
+    exts = os.environ['PATHEXT'].split(os.pathsep)
+    for path in pathlist:
+        for ext in exts:
+            fullpath = os.path.join(path, filename) + ext
+            if os.path.isfile(fullpath):
+                return True
+    return False
 
 def executable_is_in_pythonpath(filename):
     """ executable_is_in_pythonpath(filename: str) -> string
