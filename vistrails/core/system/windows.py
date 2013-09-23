@@ -61,7 +61,7 @@ except ImportError:
     importSuccess = False
 
 
-__all__ = ['guess_total_memory', 'temporary_directory', 'home_directory',
+__all__ = ['guess_total_memory', 'home_directory',
            'list2cmdline', 'remote_copy_program', 'remote_shell_program',
            'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
            'link_or_copy', 'executable_is_in_path', 'execute_cmdline',
@@ -96,19 +96,6 @@ def guess_total_memory():
         return parse_meminfo()
     else:
         return -1
-
-def temporary_directory():
-    """ temporary_directory() -> str
-    Returns the path to the system's temporary directory. Tries to use the $TMP
-    environment variable, if it is present. Else, tries $TEMP, else uses 'c:/'
-
-    """
-    if os.environ.has_key('TMP'):
-        return os.environ['TMP'] + '\\'
-    elif os.environ.has_key('TEMP'):
-        return os.environ['TEMP'] + '\\'
-    else:
-        return 'c:/'
 
 def home_directory():
     """ home_directory() -> str
@@ -230,11 +217,6 @@ class TestWindows(unittest.TestCase):
     def test2(self):
         """ Test if home_directory is not empty """
         result = home_directory()
-        assert result != ""
-
-    def test3(self):
-        """ Test if temporary_directory is not empty """
-        result = temporary_directory()
         assert result != ""
 
     def test_executable_file_in_path(self):

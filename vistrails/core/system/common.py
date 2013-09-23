@@ -38,12 +38,14 @@ import getpass
 import socket
 import datetime
 import platform
+import tempfile
+import warnings
 
 
 __all__ = ['touch', 'mkdir', 'python_version',
            'current_user', 'current_ip', 'current_time',
            'current_machine', 'current_architecture', 'current_processor',
-           'get_elementtree_library']
+           'get_elementtree_library', 'temporary_directory']
 
 ###############################################################################
 
@@ -121,3 +123,10 @@ def get_elementtree_library():
         # try python 2.5-style
         import xml.etree.cElementTree as ElementTree
     return ElementTree
+
+def temporary_directory():
+    warnings.warn(
+            "temporary_directory() is deprecated; use the tempfile module "
+            "instead",
+            category=DeprecationWarning)
+    return tempfile.gettempdir()
