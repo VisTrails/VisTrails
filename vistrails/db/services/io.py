@@ -702,12 +702,17 @@ def open_vistrail_bundle_from_zip_xml(filename):
     and thumbnails inside archive are '.png' files in 'thumbs' dir
 
     """
-
-    vistrails.core.requirements.require_executable('unzip')
+    # on windows, we assume unzip.exe is in the current directory when
+    # running from the binary install
+    unzipcmd = 'unzip'
+    if systemType in ['Windows', 'Microsoft']:
+        unzipcmd = get_executable_path('unzip.exe')
+        if not unzipcmd or not os.path.exists(unzipcmd):
+            unzipcmd = 'unzip.exe' #assume zip is in path
 
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     output = []
-    cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
+    cmdline = [unzipcmd, '-q','-o','-d', vt_save_dir, filename]
     result = execute_cmdline(cmdline, output)
 
     if result != 0 and len(output) != 0:
