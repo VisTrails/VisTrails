@@ -114,9 +114,9 @@ main canvas control how the results of the parameter exploration will be display
 +-------------+----------------------------------+
 |   |dirx|    | exploration in the 'x' direction |
 +-------------+----------------------------------+
-|   |dirx|    | exploration in the 'y' direction |
+|   |diry|    | exploration in the 'y' direction |
 +-------------+----------------------------------+
-|   |dirx|    | exploration in the 'z' direction |
+|   |dirz|    | exploration in the 'z' direction |
 +-------------+----------------------------------+
 |  |dirtime|  | exploration in time              |
 +-------------+----------------------------------+
@@ -131,14 +131,13 @@ exploration for that parameter.
 
 To run a parameter exploration,
 click the ``Execute`` button in the |vistrails| toolbar or
-select ``Execute Parameter Exploration`` from
-``Run`` menu.
+select ``Execute`` from the ``Workflow`` menu.
 
 We now reinforce the above discussion with three examples, motivated by the problem of finding isosurfaces for medical imaging.  In the examples that follow, we'll look at determining the interfaces between different types of tissue captured by CT scans.  
 
 .. topic:: Try it now!
 
-   To begin, load the "terminator.vt" vistrail, select the "Isosurface" node in the version tree, and switch to parameter exploration.  From the ``Set Methods`` panel, click and drag the ``SetValue`` method of the ``vtkContourFilter`` module to the center canvas.
+   To begin, load the "terminator.vt" vistrail, select the "Isosurface" node in the version tree, and switch to parameter exploration.  From the ``Pipeline Methods`` panel, click and drag the ``SetValue`` method of the ``vtkContourFilter`` module to the center canvas.
 
    We'd like to compare different values for the isosurfaces so change the start and end values of the "Float" parameter to "30" and "75".  Since side-by-side visualization will look better on most monitors, select the radio button below the 'x' dimension control, and increase the value of the control to 2 (see Figure :ref:`Setting values for parameter exploration <fig-paramexp-adding>`). Execute the exploration and switch to the Spreadsheet to view the results.  They should match Figure :ref:`Parameter Exploration of two isovalues... <fig-paramexp-terminator2>`.
 
