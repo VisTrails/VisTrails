@@ -140,37 +140,6 @@ class OSXSystemProfiler(object):
                         results.append(v)
         return results
 
-#     def all(self):
-#         """Return the complete information from the system profiler
-#         as a Python data structure"""
-
-#         return self._convert_value_node(
-#             self.document.documentElement.firstChild)
-
-###############################################################################
-
-def example():
-    from optparse import OptionParser
-    from pprint import pprint
-
-    info = OSXSystemProfiler("SPHardwareDataType")
-    parser = OptionParser()
-    parser.add_option("-f", "--field", action="store", dest="field",
-                      help="display the value of the specified field")
-
-    (options, args) = parser.parse_args()
-    if len(args) != 0:
-        parser.error("no arguments are allowed")
-
-    if options.field is not None:
-        pprint(info[options.field])
-    else:
-        # just print some comment keys known to exist in only one important
-        # dictionary
-        for k in ['cpu_type', 'current_processor_speed', 'l2_cache_size',
-                  'physical_memory', 'user_name', 'os_version', 'ip_address']:
-            print '%s: %s' % (k, info[k][0])
-
 ###############################################################################
 
 def parse_meminfo():
