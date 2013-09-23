@@ -38,8 +38,8 @@ from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration
 from vistrails.core import debug
-from vistrails.core.system import get_executable_path, vistrails_root_directory
-from vistrails.core.system import systemType
+from vistrails.core.system import executable_is_in_path, get_executable_path
+from vistrails.core.system import vistrails_root_directory, systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 import subprocess
@@ -138,7 +138,7 @@ def linux_debian_install(package_name):
                            '/gui/bundles/linux_debian_install.py')
     else:
         cmd = '%s install -y' % ('aptitude'
-                                 if get_executable_path('aptitude')
+                                 if executable_is_in_path('aptitude')
                                  else 'apt-get')
 
     return run_install_command_as_root(qt, cmd, package_name)
@@ -162,7 +162,7 @@ def linux_fedora_install(package_name):
 def pip_install(package_name):
     hide_splash_if_necessary()
 
-    if vistrails.core.system.executable_is_in_path('pip'):
+    if executable_is_in_path('pip'):
         cmd = 'pip install'
     else:
         cmd = shell_escape(sys.executable) + ' -m pip install'

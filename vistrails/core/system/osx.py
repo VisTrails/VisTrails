@@ -246,8 +246,7 @@ class TestMacOSX(unittest.TestCase):
 
     def test_executable_file_in_path(self):
         # Should exist in any POSIX shell, which is what we have in OSX
-        result = executable_is_in_path('ls')
-        assert result == "/bin/ls" # Any UNIX should respect this.
+        self.assertTrue(executable_is_in_path('ls'))
 
 if __name__ == '__main__':
     unittest.main()

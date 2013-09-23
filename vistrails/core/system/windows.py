@@ -220,8 +220,7 @@ class TestWindows(unittest.TestCase):
         assert result != ""
 
     def test_executable_file_in_path(self):
-        result = executable_is_in_path('cmd')
-        assert result != ""
+        self.assertTrue(executable_is_in_path('cmd'))
 
 if __name__ == '__main__':
     unittest.main()

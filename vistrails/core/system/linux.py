@@ -197,9 +197,8 @@ class TestLinux(unittest.TestCase):
         os.unlink(name2)
 
     def test_executable_file_in_path(self):
-        # Should exist in any POSIX shell, which is what we have in OSX
-        result = executable_is_in_path('ls')
-        assert os.access(result, os.X_OK)
+        # Should exist in any POSIX shell
+        self.assertTrue(executable_is_in_path('ls'))
 
 if __name__ == '__main__':
     unittest.main()
