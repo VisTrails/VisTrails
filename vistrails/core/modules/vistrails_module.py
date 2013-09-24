@@ -325,7 +325,7 @@ class Module(Serializable):
         """
         return True
 
-    def updateUpstreamPort(self, port):
+    def update_upstream_port(self, port):
         # update single port
         if port in self.inputPorts:
             for connector in self.inputPorts[port]:
@@ -337,8 +337,8 @@ class Module(Serializable):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(port, connector)
 
-    def updateUpstream(self):
-        """ updateUpstream() -> None        
+    def update_upstream(self):
+        """ update_upstream() -> None        
         Go upstream from the current module, then update its upstream
         modules and check input connection based on upstream modules
         results
@@ -373,7 +373,7 @@ class Module(Serializable):
         self.ran = True
         self.had_error = True # Unset later in this method
         self.logging.begin_update(self)
-        self.updateUpstream()
+        self.update_upstream()
         if self.suspended:
             return
         self.logging.begin_compute(self)

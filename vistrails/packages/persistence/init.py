@@ -206,7 +206,7 @@ class PersistentPath(Module):
         persistent_path.upToDate = True
         self.set_output("value", persistent_path)
 
-    def updateUpstream(self, is_input=None, path_type=None):
+    def update_upstream(self, is_input=None, path_type=None):
         global db_access
 
         if is_input is None:
@@ -220,9 +220,9 @@ class PersistentPath(Module):
         self.persistent_ref = None
         self.persistent_path = None
         if is_input:
-            return super(PersistentPath, self).updateUpstream()
+            return super(PersistentPath, self).update_upstream()
 
-        # can check updateUpstream
+        # can check update_upstream
         if not hasattr(self, 'signature'):
             raise ModuleError(self, 'Module has no signature')
 
@@ -233,7 +233,7 @@ class PersistentPath(Module):
             ref.signature = self.signature
         else:
             # update single port
-            self.updateUpstreamPort('ref')
+            self.update_upstream_port('ref')
             ref = self.get_input('ref')
             if db_access.ref_exists(ref.id, ref.version):
                 ref_exists = True
@@ -276,7 +276,7 @@ class PersistentPath(Module):
 
         if self.persistent_ref is None or self.persistent_path is None:
             debug_print("NOT FOUND persistent path")
-            super(PersistentPath, self).updateUpstream()
+            super(PersistentPath, self).update_upstream()
 
     def compute(self, is_input=None, path_type=None):
         global db_access
@@ -429,8 +429,8 @@ class PersistentFile(PersistentPath):
                     ('localPath', '(basic:File)')]
     _output_ports = [('value', '(basic:File)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'blob')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'blob')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'blob')
@@ -447,8 +447,8 @@ class PersistentDir(PersistentPath):
                     ('localPath', '(basic:Directory)')]
     _output_ports = [('value', '(basic:Directory)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'tree')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'tree')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'tree')
@@ -463,15 +463,15 @@ class PersistentDir(PersistentPath):
 class PersistentInputDir(PersistentDir):
     _input_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, True)
 
     def compute(self):
         PersistentDir.compute(self, True)
         
 class PersistentIntermediateDir(PersistentDir):
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -479,8 +479,8 @@ class PersistentIntermediateDir(PersistentDir):
 class PersistentOutputDir(PersistentDir):
     _output_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -488,15 +488,15 @@ class PersistentOutputDir(PersistentDir):
 class PersistentInputFile(PersistentFile):
     _input_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, True)
 
     def compute(self):
         PersistentFile.compute(self, True)
     
 class PersistentIntermediateFile(PersistentFile):
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)
@@ -504,8 +504,8 @@ class PersistentIntermediateFile(PersistentFile):
 class PersistentOutputFile(PersistentFile):
     _output_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)

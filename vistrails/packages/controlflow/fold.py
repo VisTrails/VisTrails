@@ -103,15 +103,15 @@ class FoldWithModule(Fold, NotCacheable):
         Fold.__init__(self)
         self.is_looping_module = True
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update anything
         # upstream of FunctionPort
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    connector.obj.update_upstream()
             else:
                 for connector in connector_list:
                     connector.obj.update()

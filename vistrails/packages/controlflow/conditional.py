@@ -46,8 +46,8 @@ class If(Module, NotCacheable):
     executed through the use of a condition.
     """
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update anything
         # upstream of TruePort or FalsePort

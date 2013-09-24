@@ -47,12 +47,12 @@ class ExecuteInOrder(Module):
     modules.
     """
 
-    def updateUpstream(self):
+    def update_upstream(self):
         # don't do update until compute!
         pass
 
     def compute(self):
-        # do updateUpstream as compute, but sort by key
+        # do update_upstream as compute, but sort by key
         for _, connectorList in sorted(self.inputPorts.iteritems()):
             for connector in connectorList:
                 connector.obj.update()

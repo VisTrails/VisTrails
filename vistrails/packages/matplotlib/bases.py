@@ -124,7 +124,7 @@ class MplFigure(Module):
         Module.__init__(self)
         self.figInstance = None
 
-    def updateUpstream(self):
+    def update_upstream(self):
         # Create a figure
         if self.figInstance is None:
             self.figInstance = pylab.figure()
@@ -136,7 +136,7 @@ class MplFigure(Module):
                 connector.obj.set_figure(self.figInstance)
 
         # Now we can run upstream modules
-        super(MplFigure, self).updateUpstream()
+        super(MplFigure, self).update_upstream()
 
     def compute(self):
         plots = self.get_input_list("addPlot")
