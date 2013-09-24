@@ -26,7 +26,86 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.1 beta build 16ae99d82468 from v2.1 branch
+Release Name: v2.1 beta2 build 99faabb791a0 from v2.1 branch
+
+Bug fixes: 
+ - Ticket #735: Windows dulwich install via pip fails (14d362a695df)
+ - Ticket #718: persistence can't handle directories (2a668a6e9881)
+ - Fix issue with persistent paths in Windows (2a668a6e9881)
+ - Ticket #728: Upgrading vistrail with disabled package (b28c85b718ac)
+ - Fix issue with subworkflows using disabled packages (b28c85b718ac)
+ - Fix issue with staging persistent directories (6cddde545965)
+ - Fixed module upgrades not working with dynamic packages (bf997c6bb0c6)
+ - Fix issue with transfer function widget (11213143752c)
+ - Rewrites error-prone code for GitRepo#add_commit() (c1d2f60cc10d)
+ - Persistence sets up a Git username if none is set (f37129976ba5)
+ - Fixes default values on optional Boolean ports (34365eb22800)
+ - Ticket #705: zip.exe not found in Windows binary (69a16e3c5b84)
+ - Ticket #700: Upgrades with package identifier changes fail (32f934bef698)
+ - Ticket #716: The new IPython console does not receive console output (96d65c1d0e80)
+ - Ticket #699: Base classes for parameter config widgets do not enforce defaults (6e1a5624b2ae)
+ - Fix BooleanWidget default handling (6e1a5624b2ae)
+ - Fixed tricky upgrade bug (1385b1d04f4b)
+ - Ticket #626: Passing parameters to single instance still opens second instance of VisTrails (334c743f3c33)
+ - Fix issue with package identifier changes and upgrades (32f934bef698)
+ - run.py/fix_paths was broken (16aeafb32399)
+ - Looping over a failing PythonSource caused logger to fail (2b5ff8105562)
+ - Fixes line-endings for TestUnzip (05a41335f050)
+ - Disables deleting from the persistence store (3c816e2734b8)
+ - Adds tests for type-checking, using PythonSources (3f0c602b003a)
+ - Disables type-checking for InputPort modules (4cdad5f113df)
+ - module_info now shows a module's id (0c504fe06615)
+ - Limits copy and paste in module_info (b99c674c8494)
+ - Detects cycles when computing pipeline signature (3a0fe0b5a880)
+ - Adds some more checks for persistent path type (846631436bd0)
+ - Raises a ModuleError if persisting an empty dir (d3d8b2193b5f)
+ - Makes type-checking optional (30659a8b6525)
+ - Fixes adding a directory to persistence (0c26c5b68ee6)
+ - While requires *or* ConditionPort or MaxIterations (bdcd04e3366c)
+ - Fixes a package_dependencies() crashing VisTrails (3263be2d2a52)
+ - Lets PythonSource use the default source (7684997bd888)
+ - PythonSource configuration dialog now uses default (3dff503ce8ce)
+ - Fixes StringWidget not showing default correctly (49d9dbd161f0)
+ - Restores read-only mode removed by previous merge (4bdf4705a669)
+ - Removes most of the persistence_exp package (90c70ee525e6)
+ - Fixes matplotlib not able to reuse cells (243ae02dd499)
+ - Makes UntitledLocator inherit CoreLocator (fc863650a893)
+ - Fixes looping modules (34d3029f3419)
+ - Minor changes to persistence code (96a605e0ca3f)
+ - Adds back PersistentPath#git_command() (295f9ade09cf)
+ - Fixes an issue with fix_dates() (3ad431172b47)
+ - More fixes to found_another_instance_running() (916cdeb23f6f)
+ - Makes fix_dates static in PersistentRefModel (56dec62ea2aa)
+ - Fixes persistence view (1bbb9bfb5f45)
+ - Adds tests for Unzip and UnzipDirectory (22c9d361b78b)
+ - Makes HTTPFile cacheable again (5bc3619d5cba)
+ - Fixes running the CLTools wizard standalone (77bf72286a8c)
+ - Fixes CLTools test on Windows releases (c503e4df5cf9)
+ - Fixes UnicodeDecodeErrors in DebugView (5ce4fd3515d7)
+ - Adds an UnzipDirectory module (634e6415a62e)
+ - Fixes Unzip code (10a2a3753185)
+ - Fixes runtestsuite.py ignoring *system* (b1210c5dc5c7)
+ - ImageMagick fixes (b0994f0e5684)
+ - Cleans disabled packages from cache (51a4cf021a31)
+ - Removes QPackagesWidget#erase_cache attribute (2919064fcce2)
+ - Don't expand the module palette on package load (890b6796e4a2)
+ - Re-enables type checking after all (ec6539366bbd)
+ - Fixes optional tabledata->spreadsheet dependency (511ab651ad93)
+ - Makes numpy arrays valid Lists (6425d8d7a286)
+ - Merge branch 'optimize-module' into 'master' (906a6edf8e73)
+ - Minor fixes to installers (ba9550bb44f2)
+ - Moves rgb2hsv and hsv2rgb out of paramexplore (f00a710f2424)
+ - PythonSource now sets unconnected output ports (75f4d085c57f)
+ - Adds a Delay port on the While module (07087da25339)
+ - Renames 'optimization.py' to 'looping.py' (b4b2183e3bab)
+ - Renames Optimize to While, inverts condition (0a07b43c7a2f)
+ - Adds state output/input ports (e6f57d0f4999)
+ - Adds the Optimize module to ControlFlow (ea4ebd43293c)
+ - ExecuteInOrder now uses the ControlFlow style (3d286c21a17d)
+ - Adds a Delay port on the While module (2b2648c08820)
+ - Makes log-related flags not fold-specific (954c984cca31)
+
+From Release: v2.1 beta build 16ae99d82468 from v2.1 branch
 
 Enhancements: 
 
@@ -273,7 +352,7 @@ Bug fixes:
  - Mashups: slider and numericstepper widgets are only displayed for numeric aliases (3b8c4f954bce)
  - Mashups: Validating Min Max and Step edit boxes so they accept only numbers (3b8c4f954bce) 
  
- From release: v2.0.2 build 3813fdd2573b from v2.0 branch
+From release: v2.0.2 build 3813fdd2573b from v2.0 branch
 
 Enhancements: 
  - Added animation support to matplotlib/pylab (38fb971b6305)

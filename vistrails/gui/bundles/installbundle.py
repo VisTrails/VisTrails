@@ -134,10 +134,12 @@ def linux_debian_install(package_name):
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_debian_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_debian_install.py')
     else:
-        cmd = '%s install -y' % ('aptitude' if get_executable_path('aptitude') else 'apt-get')
+        cmd = '%s install -y' % ('aptitude'
+                                 if get_executable_path('aptitude')
+                                 else 'apt-get')
 
     return run_install_command_as_root(qt, cmd, package_name)
 
@@ -149,8 +151,8 @@ def linux_fedora_install(package_name):
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_fedora_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_debian_install.py')
     else:
         cmd = 'yum -y install'
 
@@ -163,7 +165,7 @@ def pip_install(package_name):
     if vistrails.core.system.executable_is_in_path('pip'):
         cmd = 'pip install'
     else:
-        cmd = sys.executable + ' -m pip install'
+        cmd = shell_escape(sys.executable) + ' -m pip install'
     return run_install_command_as_root(has_qt(), cmd, package_name)
 
 def show_question(which_files, has_distro_pkg, has_pip):

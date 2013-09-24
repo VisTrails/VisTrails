@@ -269,7 +269,6 @@ class QPackagesWidget(QtGui.QWidget):
         self.populate_lists()
 
         self._current_package = None
-        self.erase_cache = False
 
     def populate_lists(self):
         pkg_manager = get_package_manager()
@@ -322,7 +321,6 @@ class QPackagesWidget(QtGui.QWidget):
                 raise
             finally:
                 palette.setUpdatesEnabled(True)
-                palette.treeWidget.expandAll()
             # the old code that used to be here to update the lists
             # has been moved to package_added
             self.invalidate_current_pipeline()
@@ -361,7 +359,6 @@ class QPackagesWidget(QtGui.QWidget):
         palette = QModulePalette.instance()
         palette.setUpdatesEnabled(False)
         pm.reload_package_disable(codepath)
-        self.erase_cache = True
 
     def reload_current_package_finisher(self, codepath, reverse_deps, prefix_dictionary):
         # REENABLES the current package and all reverse dependencies
@@ -376,8 +373,6 @@ class QPackagesWidget(QtGui.QWidget):
             self.populate_lists()
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(True)
-            palette.treeWidget.expandAll()
-            self.erase_cache = True
             self.select_package_after_update(codepath)
             self.invalidate_current_pipeline()
 
@@ -396,7 +391,6 @@ class QPackagesWidget(QtGui.QWidget):
             av.takeItem(pos)
             inst.addItem(item)
             inst.sortItems()
-            self.erase_cache = True
             self.select_package_after_update(codepath)
 
     def package_removed(self, codepath):
@@ -404,7 +398,6 @@ class QPackagesWidget(QtGui.QWidget):
         # if we run a late-enable with a prefix (console_mode_test),
         # we don't actually have the package later
         self.populate_lists()
-        self.erase_cache = True
         self.select_package_after_update(codepath)
 
     def select_package_after_update(self, codepath):
@@ -662,15 +655,11 @@ class TestPreferencesDialog(unittest.TestCase):
         prefs._tab_widget.setCurrentWidget(packages)
 
         # check if package is loaded
-        pkg_manager = get_package_manager()
-        
-        if pkg not in pkg_manager.enabled_package_list():
-            # load package
-            av = packages._available_packages_list
-            for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
-                av.setCurrentItem(item)
-                packages.enable_current_package()
-                QtCore.QCoreApplication.processEvents()
+        av = packages._available_packages_list
+        for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
+            av.setCurrentItem(item)
+            packages.enable_current_package()
+            QtCore.QCoreApplication.processEvents()
 
         inst = packages._enabled_packages_list
         for item in inst.findItems(pkg, QtCore.Qt.MatchExactly):
@@ -678,6 +667,9 @@ class TestPreferencesDialog(unittest.TestCase):
             packages.disable_current_package()
             QtCore.QCoreApplication.processEvents()
 
+        # force delayed calls
+        packages.populate_lists()
+        packages.select_package_after_update_slot(pkg)
         QtCore.QCoreApplication.processEvents()
 
         # This does not work because the selection is delayed

@@ -39,6 +39,7 @@ py_import('dulwich', {
         'linux-debian': 'python-dulwich',
         'linux-ubuntu': 'python-dulwich',
         'linux-fedora': 'python-dulwich'})
+from vistrails.core import debug
 
 from dulwich.errors import NotCommitError, NotGitRepository
 from dulwich.repo import Repo
@@ -189,11 +190,38 @@ class GitRepo(object):
                         paths=[path])
         return iter(walker).next().commit.id
 
+    def _stage(self, filename):
+        fullpath = os.path.join(self.repo.path, filename)
+        if os.path.islink(fullpath):
+            debug.warning("Warning: not staging symbolic link %s" % os.path.basename(filename))
+        elif os.path.isdir(fullpath):
+            for f in os.listdir(fullpath):
+                self._stage(os.path.join(filename, f))
+        else:
+            if os.path.sep != '/':
+                filename = filename.replace(os.path.sep, '/')
+            self.repo.stage(filename)
+
     def add_commit(self, filename):
-        self.repo.open_index()
-        self.repo.stage(filename)
+        self.setup_git()
+        self._stage(filename)
         commit_id = self.repo.do_commit('Updated %s' % filename)
         return commit_id
+
+    def setup_git(self):
+        config_stack = self.repo.get_config_stack()
+
+        try:
+            config_stack.get(('user',), 'name')
+            config_stack.get(('user',), 'email')
+        except KeyError:
+            from vistrails.core.system import current_user
+            from dulwich.config import ConfigFile
+            user = current_user()
+            repo_conf = self.repo.get_config()
+            repo_conf.set(('user',), 'name', user)
+            repo_conf.set(('user',), 'email', '%s@localhost' % user)
+            repo_conf.write_to_path()
 
 current_repo = None
 

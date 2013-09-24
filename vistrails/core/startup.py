@@ -299,7 +299,7 @@ class VistrailsStartup(object):
         def install_default_startup():
             debug.log('Will try to create default startup script')
             try:
-                root_dir = vistrails.core.system.vistrails_root_directory()
+                root_dir = system.vistrails_root_directory()
                 default_file = os.path.join(root_dir,'core','resources',
                                             'default_vistrails_startup')
                 user_file = os.path.join(self.temp_configuration.dotVistrails,
@@ -316,7 +316,7 @@ class VistrailsStartup(object):
         def install_default_startupxml_if_needed():
             fname = os.path.join(self.temp_configuration.dotVistrails,
                                  'startup.xml')
-            root_dir = vistrails.core.system.vistrails_root_directory() 
+            root_dir = system.vistrails_root_directory()
             origin = os.path.join(root_dir, 'core','resources',
                                   'default_vistrails_startup_xml')
             def skip():

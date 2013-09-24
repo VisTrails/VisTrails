@@ -58,6 +58,9 @@ from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 
 VistrailsApplication = None
+APP_SUCCESS = 0 # Success exit code
+APP_FAIL = 1 # fialed exit code
+APP_DONE = 2 # Success but shut down prematurely (other instance called)
 
 def finalize_vistrails(app):
     vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
@@ -368,6 +371,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         """
         if hasattr(self, 'vistrailsStartup'):
             self.vistrailsStartup.destroy()
+        Collection.clearInstance()
 
     def __del__(self):
         """ __del__() -> None
@@ -420,13 +424,13 @@ The builder window can be accessed by a spreadsheet menu option.")
         if self.temp_db_options.host:
             usedb = True
         if self.input:
-            locator = None
             #check if versions are embedded in the filename
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
+                locator = None
                 if f_name is None:
-                    msg = "Could not find file %s" % filename
-                    debug.critical(msg)
+                    debug.critical("Could not find file %s" % filename)
+                    return False
                 elif not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                     #_vnode and _vtag will be set when a .vtl file is open and
@@ -474,8 +478,8 @@ The builder window can be accessed by a spreadsheet menu option.")
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
 
+        return True
 
-                
     def finishSession(self):
         vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
         

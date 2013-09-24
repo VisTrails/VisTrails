@@ -44,8 +44,8 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, Incompl
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.system import default_dot_vistrails, packages_directory, \
-    vistrails_root_directory
+import vistrails.core.system
+from vistrails.core.system import packages_directory, vistrails_root_directory
 
 import identifiers
 
@@ -60,7 +60,7 @@ class CLTools(Module):
 
     """
     def compute(self):
-        raise IncompleteImplementation
+        raise IncompleteImplementation # pragma: no cover
 
 
 SUFFIX = '.clt'
@@ -76,7 +76,7 @@ def _eintr_retry_call(func, *args):
     while True:
         try:
             return func(*args)
-        except (OSError, IOError), e:
+        except (OSError, IOError), e: # pragma: no cover
             if e.errno == errno.EINTR:
                 continue
             raise
@@ -85,15 +85,15 @@ def _eintr_retry_call(func, *args):
 def add_tool(path):
     # first create classes
     tool_name = os.path.basename(path)
-    if not tool_name.endswith(SUFFIX):
+    if not tool_name.endswith(SUFFIX): # pragma: no cover
         return
     (tool_name, _) = os.path.splitext(tool_name)
 
-    if tool_name in cl_tools:
+    if tool_name in cl_tools: # pragma: no cover
         debug.critical("Package CLTools already added: '%s'" % tool_name)
     try:
         conf = json.load(open(path))
-    except ValueError as exc:
+    except ValueError as exc: # pragma: no cover
         debug.critical("Package CLTools could not parse '%s'" % path, exc)
         return
 
@@ -170,7 +170,7 @@ def add_tool(path):
                         suffix=options.get('suffix', DEFAULTFILESUFFIX))
                 try:
                     shutil.copyfile(value.name, outfile.name)
-                except IOError, e:
+                except IOError, e: # pragma: no cover
                     raise ModuleError("Error copying file '%s': %s" %
                                       (value.name, e))
                 value = '%s%s' % (options.get('prefix', ''), outfile.name)
@@ -200,7 +200,7 @@ def add_tool(path):
                         f = open(file.name, 'rb')
                     else:
                         stdin = value
-                else:
+                else: # pragma: no cover
                     raise ValueError
                 if file_std:
                     open_files.append(f)
@@ -217,7 +217,7 @@ def add_tool(path):
                     self.setResult(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
-                else:
+                else: # pragma: no cover
                     raise ValueError
                 f = open(file.name, 'wb')
                 open_files.append(f)
@@ -234,7 +234,7 @@ def add_tool(path):
                     self.setResult(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
-                else:
+                else: # pragma: no cover
                     raise ValueError
                 f = open(file.name, 'wb')
                 open_files.append(f)
@@ -260,7 +260,7 @@ def add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e:
+            except Exception, e: # pragma: no cover
                 raise ModuleError('Error parsing configuration env: %s' % e)
 
         if 'options' in self.conf and 'env' in self.conf['options']:
@@ -271,7 +271,7 @@ def add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e:
+            except Exception, e: # pragma: no cover
                 raise ModuleError('Error parsing module env: %s' % e)
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
@@ -285,7 +285,7 @@ def add_tool(path):
                         value = value.strip()
                         if key:
                             env[key] = value
-                except Exception, e:
+                except Exception, e: # pragma: no cover
                     raise ModuleError('Error parsing env port: %s' % e)
 
         if env:
@@ -338,7 +338,7 @@ def add_tool(path):
                     self.setResult(name, file)
                 elif "string" == type:
                     self.setResult(name, stdout)
-                else:
+                else: # pragma: no cover
                     raise ValueError
             if stderr and "stderr" in self.conf:
                 name, type, options = self.conf["stderr"]
@@ -352,7 +352,7 @@ def add_tool(path):
                     self.setResult(name, file)
                 elif "string" == type:
                     self.setResult(name, stderr)
-                else:
+                else: # pragma: no cover
                     raise ValueError
 
 
@@ -403,35 +403,7 @@ def add_tool(path):
 
 
 def initialize(*args, **keywords):
-    if "CLTools" == identifiers.name:
-        # this is the original package 
-        location = os.path.join(vistrails.core.system.current_dot_vistrails(),
-                                "CLTools")
-        # make sure dir exist
-        if not os.path.isdir(location):
-            try:
-                debug.log("Creating CLTools directory...")
-                os.mkdir(location)
-            except:
-                debug.critical("""Could not create CLTools directory. Make
- sure '%s' does not exist and parent directory is writable""" % location)
-                sys.exit(1)
-    else:
-        # this is a standalone package so modules are placed in this directory
-        location = os.path.dirname(__file__)
-    
-
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-    reg.add_module(CLTools, abstract=True)
-    for path in os.listdir(location):
-        if path.endswith(SUFFIX):
-            try:
-                add_tool(os.path.join(location, path))
-            except Exception as exc:
-                import traceback
-                debug.critical("Package CLTools failed to create module "
-                   "from '%s': %s" % (os.path.join(location, path), exc),
-                   traceback.format_exc())
+    reload_scripts(initial=True)
 
 
 def remove_all_scripts():
@@ -440,14 +412,15 @@ def remove_all_scripts():
         del cl_tools[tool_name]
         reg.delete_module(identifiers.identifier, tool_name)
 
-def reload_scripts():
-    remove_all_scripts()
+def reload_scripts(initial=False):
+    if not initial:
+        remove_all_scripts()
     if "CLTools" == identifiers.name:
         # this is the original package
         location = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                 "CLTools")
         # make sure dir exist
-        if not os.path.isdir(location):
+        if not os.path.isdir(location): # pragma: no cover # pragma: no partial
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
@@ -455,22 +428,29 @@ def reload_scripts():
                 debug.critical("""Could not create CLTools directory. Make
  sure '%s' does not exist and parent directory is writable""" % location)
                 sys.exit(1)
-    else:
+    else: # pragma: no cover
         # this is a standalone package so modules are placed in this directory
         location = os.path.dirname(__file__)
-    
+
+    if initial:
+        reg = vistrails.core.modules.module_registry.get_module_registry()
+        reg.add_module(CLTools, abstract=True)
     for path in os.listdir(location):
-        if path.endswith(SUFFIX):
+        if path.endswith(SUFFIX): # pragma: no partial
             try:
                 add_tool(os.path.join(location, path))
-            except Exception as exc:
+            except Exception as exc: # pragma: no cover
                 import traceback
                 debug.critical("Package CLTools failed to create module "
                    "from '%s': %s" % (os.path.join(location, path), exc),
                    traceback.format_exc())
 
-    from vistrails.gui.vistrails_window import _app
-    _app.invalidate_pipelines()
+    if not initial:
+        from vistrails.core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.clear_package(identifiers.identifier)
+
+        from vistrails.gui.vistrails_window import _app
+        _app.invalidate_pipelines()
 
 
 wizards_list = []
@@ -481,13 +461,15 @@ def menu_items():
     callback function that will be executed when that menu item is selected.
     
     """
-    # if wizard.py does not exist, assume it is a standalone package and abort
     try:
         from wizard import QCLToolsWizardWindow
-    except:
-        return
+    except: # pragma: no cover
+        if "CLTools" == identifiers.name:
+            raise
+        else:
+            return
     lst = []
-    if "CLTools" == identifiers.name:
+    if "CLTools" == identifiers.name: # pragma: no partial
         def open_wizard():
             window = QCLToolsWizardWindow(reload_scripts=reload_scripts)
             wizards_list.append(window)
@@ -512,10 +494,10 @@ class TestCLTools(unittest.TestCase):
     def setUpClass(cls):
         # first make sure CLTools is loaded
         pm = get_package_manager()
-        if 'CLTools' not in pm._package_list:
+        if 'CLTools' not in pm._package_list: # pragma: no cover # pragma: no partial
             pm.late_enable_package('CLTools')
         remove_all_scripts()
-        cls.testdir = os.path.join(packages_directory(), 'cltools', 'test_files')
+        cls.testdir = os.path.join(packages_directory(), 'CLTools', 'test_files')
         cls._tools = {}
         for name in os.listdir(cls.testdir):
             if not name.endswith(SUFFIX):

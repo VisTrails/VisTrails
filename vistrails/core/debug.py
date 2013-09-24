@@ -77,14 +77,12 @@ class DebugPrint:
                                 logging.INFO) #python logging levels
     #Singleton technique
     _instance = None
-    class DebugPrintSingleton():
-        def __call__(self, *args, **kw):
-            if DebugPrint._instance is None:
-                obj = DebugPrint(*args, **kw)
-                DebugPrint._instance = obj
-            return DebugPrint._instance
-        
-    getInstance = DebugPrintSingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if DebugPrint._instance is None:
+            obj = DebugPrint(*args, **kwargs)
+            DebugPrint._instance = obj
+        return DebugPrint._instance
     
     def make_logger(self, f=None):
         self.fhandler = None

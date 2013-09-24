@@ -2420,9 +2420,6 @@ class QVistrailsWindow(QVistrailViewWindow):
             This should be called when a module in the module registry
             is changed/added/deleted
         """
-
-        from vistrails.core.interpreter.cached import CachedInterpreter
-        CachedInterpreter.flush()
         
         def reload_view(view):
             view.version_selected(view.controller.current_version,
