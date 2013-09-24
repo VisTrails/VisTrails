@@ -34,26 +34,21 @@
 ###############################################################################
 
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.utils import load_cls
 from constant_configuration import StandardConstantWidget, \
     StandardConstantEnumWidget
 from query_configuration import BaseQueryWidget
 
-def load_cls(cls_item):
-    path = None
-    if isinstance(cls_item, basestring):
-        [path, cls_name] = cls_item.split(':')[:2]
-    elif isinstance(cls_item, tuple):
-        (path, cls_name) = cls_item
-    if path is not None:
-        module = __import__(path, globals(), locals(), [cls_name])
-        return getattr(module, cls_name)
-    return cls_item
+def get_prefix(reg, descriptor):
+    package = reg.get_package_by_name(descriptor.identifier)
+    return  package.prefix + package.codepath
 
 def get_widget_class(descriptor, widget_type=None, widget_use=None,
                      return_default=True):        
     reg = get_module_registry()
     cls = reg.get_constant_config_widget(descriptor, widget_type, 
                                          widget_use)
+    prefix = get_prefix(reg, descriptor)
     if cls is None and return_default:
         if descriptor.module is not None and \
            hasattr(descriptor.module, 'get_widget_class'):
@@ -63,7 +58,7 @@ def get_widget_class(descriptor, widget_type=None, widget_use=None,
                 return StandardConstantEnumWidget
             else:
                 return StandardConstantWidget
-    return load_cls(cls)
+    return load_cls(cls, prefix)
         
 def get_query_widget_class(descriptor, widget_type=None):
     cls = get_widget_class(descriptor, widget_type, "query", False)
@@ -79,16 +74,20 @@ def get_query_widget_class(descriptor, widget_type=None):
                                              ["==", "!="],
                                              param, parent)
             return DefaultQueryWidget
-    return load_cls(cls)
+        reg = get_module_registry()
+        prefix = get_prefix(reg, descriptor)
+        return load_cls(cls, prefix)
+    return cls
 
 def get_param_explore_widget_list(descriptor, widget_type=None):
     widget_list = []
     reg = get_module_registry()
+    prefix = get_prefix(reg, descriptor)
     cls_list = reg.get_all_constant_config_widgets(descriptor, "paramexp")
     for cls in cls_list:
         if cls is None:
             pass
-        widget_list.append(load_cls(cls))
+        widget_list.append(load_cls(cls, prefix))
     return widget_list
 
 

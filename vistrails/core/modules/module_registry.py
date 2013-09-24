@@ -2091,16 +2091,10 @@ class ModuleRegistry(DBRegistry):
 
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
+        package = self.get_package_by_name(identifier)
+        prefix = package.prefix + package.codepath
         cls = descriptor.configuration_widget()
-        path = None
-        if isinstance(cls, tuple):
-            (path, cls_name) = cls
-        elif isinstance(cls, basestring):
-            [path, cls_name] = cls.split(':')[:2]
-        if path is not None:
-            module = __import__(path, globals(), locals(), [cls_name])
-            cls = getattr(module, cls_name)            
-        return cls
+        return vistrails.core.modules.utils.load_cls(cls, prefix)
 
     def get_constant_config_params(self, widget_type=None, widget_use=None):
         if widget_type is None:
