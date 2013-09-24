@@ -210,7 +210,7 @@ class PersistentPath(Module):
         global db_access
 
         if is_input is None:
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 # FIXME: check if the signature is the signature of
@@ -227,7 +227,7 @@ class PersistentPath(Module):
             raise ModuleError(self, 'Module has no signature')
 
         ref_exists = False
-        if not self.hasInputFromPort('ref'):
+        if not self.has_input('ref'):
             # create new reference with no name or tags
             ref = PersistentRef()
             ref.signature = self.signature
@@ -280,15 +280,15 @@ class PersistentPath(Module):
 
     def compute(self, is_input=None, path_type=None):
         global db_access
-        if not self.hasInputFromPort('value') and \
-                not self.hasInputFromPort('ref'):
+        if not self.has_input('value') and \
+                not self.has_input('ref'):
             raise ModuleError(self, "Need to specify path or reference")
 
         if self.persistent_path is not None:
             debug_print('using persistent path')
             ref = self.persistent_ref
             path = self.persistent_path
-        elif self.hasInputFromPort('ref'):
+        elif self.has_input('ref'):
             ref = self.get_input('ref')
             if ref.id is None:
                 ref.id = str(uuid.uuid1())
@@ -297,16 +297,16 @@ class PersistentPath(Module):
             ref = PersistentRef()
             ref.id = str(uuid.uuid1())
 
-        if self.hasInputFromPort('localPath'):
+        if self.has_input('localPath'):
             ref.local_path = self.get_input('localPath').name
-            if self.hasInputFromPort('readLocal'):
+            if self.has_input('readLocal'):
                 ref.local_read = self.get_input('readLocal')
-            if self.hasInputFromPort('writeLocal'):
+            if self.has_input('writeLocal'):
                 ref.local_writeback = self.get_input('writeLocal')
 
         if is_input is None:
             is_input = False
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 if ref.local_path and ref.local_read:
@@ -317,7 +317,7 @@ class PersistentPath(Module):
 
         # if just reference, pull path from repository (get latest
         # version unless specified as specific version)
-        if self.persistent_path is None and not self.hasInputFromPort('value') \
+        if self.persistent_path is None and not self.has_input('value') \
                 and is_input and not (ref.local_path and ref.local_read):
             _, suffix = os.path.splitext(ref.name)
             if not db_access.ref_exists(ref.id, ref.version):

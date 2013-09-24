@@ -34,17 +34,17 @@ class RBFInterpolate(ArrayInterpModule, Module):
         if dest.shape[1] != 3:
             raise ModuleError("Destination array must be in the form [[x,y,z]]")
         
-        if self.hasInputFromPort("Basis"):
+        if self.has_input("Basis"):
             self.basis = self.get_input("Basis")
         else:
             self.basis = 'inverse multiquadric'
 
-        if self.hasInputFromPort("Smoothing"):
+        if self.has_input("Smoothing"):
             self.smooth = self.get_input("Smoothing")
         else:
             self.smooth = 0.0
 
-        if self.hasInputFromPort("Epsilon"):
+        if self.has_input("Epsilon"):
             self.eps = self.get_input("Epsilon")
         else:
             self.eps = 1.0

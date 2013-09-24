@@ -290,7 +290,7 @@ class MultiTaperStockwellTransform(StockwellModule, Module):
         if len(signals.shape) == 1:
             signals.shape = (1, signals.shape[0])
 
-        if self.hasInputFromPort("Bandwidth"):
+        if self.has_input("Bandwidth"):
             self.k = smt.calcK(self.get_input("Bandwidth"),signals.shape[1], sr)
         else:
             self.k = self.get_input("K")

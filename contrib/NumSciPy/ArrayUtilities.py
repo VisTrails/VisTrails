@@ -181,7 +181,7 @@ class ArrayToVTKScalars(ArrayUtilModule, Module):
         a = self.get_input("Array")
         ds = self.get_input("VTK Data")
         scalar_name = ''
-        if self.hasInputFromPort("Scalar Name"):
+        if self.has_input("Scalar Name"):
             scalar_name = self.get_input("Scalar Name")
         else:
             scalar_name = 'scalars'

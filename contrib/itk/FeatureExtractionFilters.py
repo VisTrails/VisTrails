@@ -33,19 +33,19 @@ class GradientMagnitudeRecursiveGaussianImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -92,19 +92,19 @@ class DanielssonDistanceMapImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -157,19 +157,19 @@ class SobelEdgeDetectionImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()

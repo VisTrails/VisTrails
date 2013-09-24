@@ -61,13 +61,13 @@ class Afront(Module, AfrontRun):
     def compute(self):
         o = self.interpreter.filePool.create_file(suffix='.m')
         args = []
-        if not self.hasInputFromPort("file"):
+        if not self.has_input("file"):
             raise ModuleError(self, "Needs input file")
         args.append(self.get_input("file").name)
-        if self.hasInputFromPort("rho"):
+        if self.has_input("rho"):
             args.append("-rho")
             args.append(str(self.get_input("rho")))
-        if self.hasInputFromPort("eta"):
+        if self.has_input("eta"):
             args.append("-reduction")
             args.append(str(self.get_input("eta")))
         args.append("-outname")
@@ -95,13 +95,13 @@ class AfrontIso(Afront):
     def compute(self):
         o = self.interpreter.filePool.create_file(suffix='.m')
         args = []
-        if not self.hasInputFromPort("file"):
+        if not self.has_input("file"):
             raise ModuleError(self, "Needs input file")
         args.append(self.get_input("file").name)
-        if self.hasInputFromPort("rho"):
+        if self.has_input("rho"):
             args.append("-rho")
             args.append(str(self.get_input("rho")))
-        if self.hasInputFromPort("eta"):
+        if self.has_input("eta"):
             args.append("-eta")
             args.append(str(self.get_input("eta")))
         self.checkInputPort("iso")

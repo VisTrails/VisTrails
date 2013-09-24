@@ -40,35 +40,35 @@ class cdms_dataset(Module) :
 
 class cdms_get_data(Module) :
   def compute(self) :
-    if not self.hasInputFromPort('id') :
+    if not self.has_input('id') :
       print "Error: must have id input"
       return
 
-    if not self.hasInputFromPort('dataset') :
+    if not self.has_input('dataset') :
       print "Error: must have dataset input"
       return
     id = self.get_input('id')
     dataset = self.get_input('dataset')
     kwargs = {}
 
-    if (self.hasInputFromPort('arg_key_1') and
-        self.hasInputFromPort('arg_val_1')) :
+    if (self.has_input('arg_key_1') and
+        self.has_input('arg_val_1')) :
       
       k = self.get_input('arg_key_1')
       t = self.get_input('arg_val_1')
       kwargs[k] = t
 
 
-    if (self.hasInputFromPort('arg_key_2') and
-        self.hasInputFromPort('arg_val_2')) :
+    if (self.has_input('arg_key_2') and
+        self.has_input('arg_val_2')) :
       
       k = self.get_input('arg_key_2')
       t = self.get_input('arg_val_2')
       kwargs[k] = t
 
 
-    if (self.hasInputFromPort('arg_key_3') and
-        self.hasInputFromPort('arg_val_3')) :
+    if (self.has_input('arg_key_3') and
+        self.has_input('arg_val_3')) :
       
       k = self.get_input('arg_key_3')
       t = self.get_input('arg_val_3')
@@ -88,18 +88,18 @@ class cdms_open(Module) :
     template = def_args[1]
     dods = def_args[2]
 
-    if not self.hasInputFromPort('uri') :
+    if not self.has_input('uri') :
       print "Error: must have uri input"
       return
       
-    if self.hasInputFromPort('uri') :
+    if self.has_input('uri') :
       inuri = self.get_input('uri')
       uri = os.path.join(sys.prefix, inuri)
-    if self.hasInputFromPort('mode') :
+    if self.has_input('mode') :
       mode = self.get_input('mode')
-    if self.hasInputFromPort('template') :
+    if self.has_input('template') :
       template = self.get_input('template')
-    if self.hasInputFromPort('dods') :
+    if self.has_input('dods') :
       dods = self.get_input('dods')
 
     # output the cdmsfile object.
@@ -126,12 +126,12 @@ class vcs_canvas(Module) :
 
 class vcs_canvas_getboxfill(Module) :
   def compute(self) :
-    if not self.hasInputFromPort('canvas') :
+    if not self.has_input('canvas') :
       print "ERROR: Must have canvas input port"
       return
 
     bname = None
-    if self.hasInputFromPort('boxfill name') :
+    if self.has_input('boxfill name') :
       bname = self.get_input('boxfill name')
     vcs_c = self.get_input('canvas')
 
@@ -145,12 +145,12 @@ class vcs_canvas_getboxfill(Module) :
 
 class vcs_canvas_gettemplate(Module) :
   def compute(self) :
-    if not self.hasInputFromPort('canvas') :
+    if not self.has_input('canvas') :
       print "ERROR: Must have canvas input port"
       return
 
     tname = None
-    if self.hasInputFromPort('template name') :
+    if self.has_input('template name') :
       tname = self.get_input('template name')
     vcs_c = self.get_input('canvas')
 
@@ -168,7 +168,7 @@ class vcs_canvas_plot(Module) :
     canvas = self.get_input('vcs_canvas').canvas
     data1 = self.get_input('array1').arr
     data2 = None
-    if self.hasInputFromPort('array2') :
+    if self.has_input('array2') :
       data2 = self.get_input('array2').arr
       
     gm = self.get_input('graphics_method').data
@@ -178,81 +178,81 @@ class vcs_canvas_plot(Module) :
     # build up the kewword arguments from the optional inputs.
     kwargs = {}
     kwargs['bg'] = 1
-    if self.hasInputFromPort('ratio') :
+    if self.has_input('ratio') :
       kwargs['ratio'] = self.get_input('ratio')
 
     #variable attribute keys
-    if self.hasInputFromPort('comment1') :
+    if self.has_input('comment1') :
       kwargs['comment1'] = self.get_input('comment1')
-    if self.hasInputFromPort('comment2') :
+    if self.has_input('comment2') :
       kwargs['comment2'] = self.get_input('comment2')
-    if self.hasInputFromPort('comment3') :
+    if self.has_input('comment3') :
       kwargs['comment3'] = self.get_input('comment3')
-    if self.hasInputFromPort('comment4') :
+    if self.has_input('comment4') :
       kwargs['comment4'] = self.get_input('comment4')
-    if self.hasInputFromPort('file_comment') :
+    if self.has_input('file_comment') :
       kwargs['file_comment'] = self.get_input('file_comment')
-    if self.hasInputFromPort('hms') :
+    if self.has_input('hms') :
       kwargs['hms'] = self.get_input('hms')
-    if self.hasInputFromPort('long_name') :
+    if self.has_input('long_name') :
       kwargs['long_name'] = self.get_input('long_name')
-    if self.hasInputFromPort('name') :
+    if self.has_input('name') :
       kwargs['name'] = self.get_input('name')
-    if self.hasInputFromPort('time') :
+    if self.has_input('time') :
       kwargs['time'] = self.get_input('time')
-    if self.hasInputFromPort('units') :
+    if self.has_input('units') :
       kwargs['units'] = self.get_input('units')
-    if self.hasInputFromPort('ymd') :
+    if self.has_input('ymd') :
       kwargs['ymd'] = self.get_input('ymd')
 
     # dimension attribute keys
-    if self.hasInputFromPort('xarray1') :
+    if self.has_input('xarray1') :
       kwargs['xarray1'] = self.get_input('xarray1')
-    if self.hasInputFromPort('yarray1') :
+    if self.has_input('yarray1') :
       kwargs['yarray1'] = self.get_input('yarray1')
-    if self.hasInputFromPort('zarray1') :
+    if self.has_input('zarray1') :
       kwargs['zarray1'] = self.get_input('zarray1')
-    if self.hasInputFromPort('tarray1') :
+    if self.has_input('tarray1') :
       kwargs['tarray1'] = self.get_input('tarray1')
-    if self.hasInputFromPort('warray1') :
+    if self.has_input('warray1') :
       kwargs['warray1'] = self.get_input('warray1')
-    if self.hasInputFromPort('xarray2') :
+    if self.has_input('xarray2') :
       kwargs['xarray2'] = self.get_input('xarray2')
-    if self.hasInputFromPort('yarray2') :
+    if self.has_input('yarray2') :
       kwargs['yarray2'] = self.get_input('yarray2')
-    if self.hasInputFromPort('zarray2') :
+    if self.has_input('zarray2') :
       kwargs['zarray2'] = self.get_input('zarray2')
-    if self.hasInputFromPort('tarray2') :
+    if self.has_input('tarray2') :
       kwargs['tarray2'] = self.get_input('tarray2')
-    if self.hasInputFromPort('warray2') :
+    if self.has_input('warray2') :
       kwargs['warray2'] = self.get_input('warray2')
-    if self.hasInputFromPort('xbounds') :
+    if self.has_input('xbounds') :
       kwargs['xbounds'] = self.get_input('xbounds')
-    if self.hasInputFromPort('ybounds') :
+    if self.has_input('ybounds') :
       kwargs['ybounds'] = self.get_input('ybounds')
-    if self.hasInputFromPort('xname') :
+    if self.has_input('xname') :
       kwargs['xname'] = self.get_input('xname')
-    if self.hasInputFromPort('yname') :
+    if self.has_input('yname') :
       kwargs['yname'] = self.get_input('yname')
-    if self.hasInputFromPort('zname') :
+    if self.has_input('zname') :
       kwargs['zname'] = self.get_input('zname')
-    if self.hasInputFromPort('tname') :
+    if self.has_input('tname') :
       kwargs['tname'] = self.get_input('tname')
-    if self.hasInputFromPort('wname') :
+    if self.has_input('wname') :
       kwargs['wname'] = self.get_input('wname')
-    if self.hasInputFromPort('xunits') :
+    if self.has_input('xunits') :
       kwargs['xunits'] = self.get_input('xunits')
-    if self.hasInputFromPort('yunits') :
+    if self.has_input('yunits') :
       kwargs['yunits'] = self.get_input('yunits')
-    if self.hasInputFromPort('zunits') :
+    if self.has_input('zunits') :
       kwargs['zunits'] = self.get_input('zunits')
-    if self.hasInputFromPort('tunits') :
+    if self.has_input('tunits') :
       kwargs['tunits'] = self.get_input('tunits')
-    if self.hasInputFromPort('wunits') :
+    if self.has_input('wunits') :
       kwargs['wunits'] = self.get_input('wunits')
-    if self.hasInputFromPort('xweights') :
+    if self.has_input('xweights') :
       kwargs['xweights'] = self.get_input('xweights')
-    if self.hasInputFromPort('yweights') :
+    if self.has_input('yweights') :
       kwargs['yweights'] = self.get_input('yweights')
 
     if data2 == None :

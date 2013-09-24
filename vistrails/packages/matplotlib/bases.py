@@ -141,13 +141,13 @@ class MplFigure(Module):
     def compute(self):
         plots = self.getInputListFromPort("addPlot")
 
-        if self.hasInputFromPort("figureProperties"):
+        if self.has_input("figureProperties"):
             figure_props = self.get_input("figureProperties")
             figure_props.update_props(self.figInstance)
-        if self.hasInputFromPort("axesProperties"):
+        if self.has_input("axesProperties"):
             axes_props = self.get_input("axesProperties")
             axes_props.update_props(self.figInstance.gca())
-        if self.hasInputFromPort("setLegend"):
+        if self.has_input("setLegend"):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 

@@ -6,14 +6,14 @@ QUEUE_REGISTER = {}
 class Machine(Module):
     def get_kwargs(self, cls):
         
-        ret = dict([(a[0],self.get_input(a[0])) for a in self._input_ports if self.hasInputFromPort(a[0]) and a[0] in cls.__new_fields__ and isinstance(cls.__new_fields__[a[0]],Property)])
+        ret = dict([(a[0],self.get_input(a[0])) for a in self._input_ports if self.has_input(a[0]) and a[0] in cls.__new_fields__ and isinstance(cls.__new_fields__[a[0]],Property)])
         ret.update({'q_interact': False})
         return ret
 
     def compute(self):
         global QUEUE_REGISTER
         kwargs = self.get_kwargs(self.queue_cls)
-        inherits = self.get_input('inherits').queue if self.hasInputFromPort('inherits') else None
+        inherits = self.get_input('inherits').queue if self.has_input('inherits') else None
 
 # never disconnect because we want to check jobs later
 #        if self.signature in QUEUE_REGISTER:

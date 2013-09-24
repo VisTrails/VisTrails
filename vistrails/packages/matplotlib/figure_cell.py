@@ -63,7 +63,7 @@ class MplFigureCell(SpreadsheetCell):
         The class will take the figure manager and embed it into the spreadsheet
         
         """
-        if self.hasInputFromPort('figure'):
+        if self.has_input('figure'):
             fig = self.get_input('figure')
             self.displayAndWait(MplFigureCellWidget, (fig, ))
 

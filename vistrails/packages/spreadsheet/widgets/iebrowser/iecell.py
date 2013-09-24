@@ -52,10 +52,10 @@ class IECell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the URL to the spreadsheet
         """
-        if self.hasInputFromPort("url"):
+        if self.has_input("url"):
             urlValue = self.get_input("url")
             fileValue = None
-        elif self.hasInputFromPort("file"):
+        elif self.has_input("file"):
             fileValue = self.get_input("file")
             urlValue = None
         else:

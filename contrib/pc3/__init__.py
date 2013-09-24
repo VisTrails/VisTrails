@@ -370,7 +370,7 @@ class DetectionsHistogram(Module):
         self.checkInputPort('dbEntry')
         db_entry = self.get_input('dbEntry')
         high_quality = False
-        if self.hasInputFromPort('highQuality'):
+        if self.has_input('highQuality'):
             high_quality = self.get_input('highQuality')
         self.annotate({'used_tables':
                            str([(db_entry.db_entry.ConnectionString, 

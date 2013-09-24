@@ -32,7 +32,7 @@ import numpy
 class MatlabReader(SciPy):
 
     def compute(self):
-        if self.hasInputFromPort("Filename"):
+        if self.has_input("Filename"):
             fname = self.get_input("Filename")
         else:
             fname = self.get_input("File").name

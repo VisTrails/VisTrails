@@ -39,7 +39,7 @@ class NumPyArray(Module):
 
     def compute(self):
         filename = self.get_input('file').name
-        if self.hasInputFromPort('datatype'):
+        if self.has_input('datatype'):
             dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
         else:
             if filename[-4:].lower() == '.npy':
@@ -54,7 +54,7 @@ class NumPyArray(Module):
             # Numpy's plain binary format
             # Written with: array.tofile('xxx.dat')
             array = numpy.fromfile(filename, dtype)
-        if self.hasInputFromPort('shape'):
+        if self.has_input('shape'):
             array.shape = tuple(self.get_input('shape'))
         self.setResult('value', array)
 

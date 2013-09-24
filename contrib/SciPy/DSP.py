@@ -60,12 +60,12 @@ class WindowedFourierTransform(DSP):
         mat = self.get_input("Signal")
         
         sr = self.get_input("Sampling Rate")
-        if self.hasInputFromPort("Window Size"):
+        if self.has_input("Window Size"):
             window = self.get_input("Window Size")
         else:
             window = sr
 
-        if self.hasInputFromPort("Stride"):
+        if self.has_input("Stride"):
             stride = self.get_input("Stride")
         else:
             stride = int(sr / 2)
@@ -105,14 +105,14 @@ class ShortTimeFourierTransform(DSP):
         mat = self.get_input("Signal")
         sr = self.get_input("Sampling Rate")
 
-        if self.hasInputFromPort("Window"):
+        if self.has_input("Window"):
             window = self.get_input("Window").matrix.toarray()
             win_size = window.shape[1]
         else:
             win_size = self.get_input("WindowSize")
             window = scipy.signal.hamming(win_size)
 
-        if self.hasInputFromPort("Stride"):
+        if self.has_input("Stride"):
             stride = self.get_input("Stride")
         else:
             stride = int(win_size / 2)

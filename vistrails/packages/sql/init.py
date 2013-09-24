@@ -156,7 +156,7 @@ class DBConnection(Module):
         self.user = self.force_get_input('user', None)
         self.db_name = self.get_input('db_name')
         self.protocol = self.force_get_input('protocol', 'mysql')
-        if self.hasInputFromPort('password'):
+        if self.has_input('password'):
             self.password = self.get_input('password')
         else:
             self.password = None
@@ -178,7 +178,7 @@ class SQLSource(Module):
         
     def compute(self):
         cached = False
-        if self.hasInputFromPort('cacheResults'):
+        if self.has_input('cacheResults'):
             cached = self.get_input('cacheResults')
         self.checkInputPort('connection')
         connection = self.get_input('connection')

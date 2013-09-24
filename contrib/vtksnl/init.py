@@ -710,9 +710,9 @@ def class_dict(base_module, node):
                     vtksnl.vtkTIFFReader]):
                 old_compute(self)
                 return
-            if self.hasInputFromPort('SetFileName'):
+            if self.has_input('SetFileName'):
                 name = self.get_input('SetFileName')
-            elif self.hasInputFromPort('SetFile'):
+            elif self.has_input('SetFile'):
                 name = self.get_input('SetFile').name
             else:
                 raise ModuleError(self, 'Missing filename')

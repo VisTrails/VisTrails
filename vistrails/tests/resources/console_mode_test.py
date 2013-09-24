@@ -65,7 +65,7 @@ class TestDynamicModuleError(Module):
 class TestChangeVistrail(NotCacheable, Module):
 
     def compute(self):
-        if self.hasInputFromPort('foo'):
+        if self.has_input('foo'):
             v1 = self.get_input('foo')
         else:
             v1 = 0

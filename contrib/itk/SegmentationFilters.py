@@ -33,19 +33,19 @@ class IsolatedWatershedImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -56,19 +56,19 @@ class IsolatedWatershedImageFilter(Module):
 
         self.filter_ = itk.IsolatedWatershedImageFilter[inImgType, outImgType].New(im.getImg())
 
-        if self.hasInputFromPort("Seed1"):
+        if self.has_input("Seed1"):
             self.filter_.SetSeed1(self.get_input("Seed1").ind_)
 
-        if self.hasInputFromPort("Seed2"):
+        if self.has_input("Seed2"):
             self.filter_.SetSeed2(self.get_input("Seed2").ind_)
 
-        if self.hasInputFromPort("ReplaceValue1"):
+        if self.has_input("ReplaceValue1"):
             self.filter_.SetReplaceValue1(self.get_input("ReplaceValue1"))
 
-        if self.hasInputFromPort("ReplaceValue2"):
+        if self.has_input("ReplaceValue2"):
             self.filter_.SetReplaceValue2(self.get_input("ReplaceValue2"))
 
-        if self.hasInputFromPort("Threshold"):
+        if self.has_input("Threshold"):
             self.filter_.SetThreshold(self.get_input("Threshold"))
 
         self.filter_.Update()
@@ -108,24 +108,24 @@ class ConnectedThresholdImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
-        if self.hasInputFromPort("Seed2D"):
+        if self.has_input("Seed2D"):
             seed = self.get_input("Seed2D")
         else:
             seed = self.get_input("Seed3D")
@@ -180,24 +180,24 @@ class ConfidenceConnectedImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
-        if self.hasInputFromPort("Seed2D"):
+        if self.has_input("Seed2D"):
             seed = self.get_input("Seed2D")
         else:
             seed = self.get_input("Seed3D")
@@ -255,19 +255,19 @@ class IsolatedConnectedImageFilter(Module):
     def compute(self):
         im = self.get_input("Input Image")
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()

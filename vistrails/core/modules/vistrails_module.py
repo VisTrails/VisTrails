@@ -417,7 +417,7 @@ class Module(Serializable):
         Makes sure input port 'name' is filled.
 
         """
-        if not self.hasInputFromPort(name):
+        if not self.has_input(name):
             raise ModuleError(self, "'%s' is a mandatory port" % name)
 
     def compute(self):
@@ -516,7 +516,7 @@ class Module(Serializable):
                 return conn()
         return self.inputPorts[inputPort][0]()
 
-    def hasInputFromPort(self, inputPort):
+    def has_input(self, inputPort):
         """Checks if there is a value coming in on the input port named
         **inputPort**.
         
@@ -555,7 +555,7 @@ class Module(Serializable):
 
         """
 
-        if self.hasInputFromPort(inputPort):
+        if self.has_input(inputPort):
             return self.get_input(inputPort)
         else:
             return defaultValue

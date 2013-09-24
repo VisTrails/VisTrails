@@ -417,12 +417,12 @@ class RepoSync(Module):
                     self.data_sync()
 
                     # set checksum param in module
-                    if not self.hasInputFromPort('checksum'):
+                    if not self.has_input('checksum'):
                         self.change_parameter('checksum', [self.checksum])
 
             else:
                 # local file not present
-                if self.hasInputFromPort('checksum'):
+                if self.has_input('checksum'):
                     self.checksum = self.get_input("checksum")
 
                     # download file

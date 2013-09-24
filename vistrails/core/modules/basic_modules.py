@@ -322,7 +322,7 @@ class Path(Constant):
 
     def get_name(self):
         n = None
-        if self.hasInputFromPort("value"):
+        if self.has_input("value"):
             n = self.get_input("value").name
         if n is None:
             self.checkInputPort("name")
@@ -391,7 +391,7 @@ class File(Path):
 
     def compute(self):
         n = self.get_name()
-        if (self.hasInputFromPort("create_file") and
+        if (self.has_input("create_file") and
             self.get_input("create_file")):
             vistrails.core.system.touch(n)
         if not os.path.isfile(n):
@@ -425,7 +425,7 @@ class Directory(Path):
 
     def compute(self):
         n = self.get_name()
-        if (self.hasInputFromPort("create_directory") and
+        if (self.has_input("create_directory") and
             self.get_input("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
@@ -462,7 +462,7 @@ class OutputPath(Path):
 
     def get_name(self):
         n = None
-        if self.hasInputFromPort("value"):
+        if self.has_input("value"):
             n = self.get_input("value").name
         if n is None:
             self.checkInputPort("name")
@@ -500,7 +500,7 @@ class FileSink(NotCacheable, Module):
         try:
             vistrails.core.system.link_or_copy(input_file.name, full_path)
         except OSError, e:
-            if self.hasInputFromPort("overwrite") and \
+            if self.has_input("overwrite") and \
                     self.get_input("overwrite"):
                 try:
                     os.unlink(full_path)
@@ -513,9 +513,9 @@ class FileSink(NotCacheable, Module):
                 msg = "Could not create file '%s': %s" % (full_path, e)
                 raise ModuleError(self, msg)
             
-        if (self.hasInputFromPort("publishFile") and
+        if (self.has_input("publishFile") and
             self.get_input("publishFile") or 
-            not self.hasInputFromPort("publishFile")):
+            not self.has_input("publishFile")):
             if self.moduleInfo.has_key('extra_info'):
                 if self.moduleInfo['extra_info'].has_key('pathDumpCells'):
                     folder = self.moduleInfo['extra_info']['pathDumpCells']
@@ -555,7 +555,7 @@ class DirectorySink(NotCacheable, Module):
         full_path = output_path.name
 
         if os.path.exists(full_path):
-            if (self.hasInputFromPort("overwrite") and 
+            if (self.has_input("overwrite") and 
                 self.get_input("overwrite")):
                 try:
                     if os.path.isfile(full_path):
@@ -766,7 +766,7 @@ class Untuple(Module):
         self.output_ports_order = []
 
     def compute(self):
-        if self.hasInputFromPort("tuple"):
+        if self.has_input("tuple"):
             tuple = self.get_input("tuple")
             values = tuple.values
         else:
@@ -795,7 +795,7 @@ class ConcatenateString(Module):
         for i in xrange(self.fieldCount):
             v = i+1
             port = "str%s" % v
-            if self.hasInputFromPort(port):
+            if self.has_input(port):
                 inp = self.get_input(port)
                 result += inp
         self.setResult("value", result)
@@ -867,19 +867,19 @@ class List(Constant):
         head, middle, items, tail = [], [], [], []
         got_value = False
 
-        if self.hasInputFromPort('value'):
+        if self.has_input('value'):
             # run the regular compute here
             Constant.compute(self)
             middle = self.outputPorts['value']
             got_value = True
-        if self.hasInputFromPort('head'):
+        if self.has_input('head'):
             head = self.getInputListFromPort('head')
             got_value = True
         if self.input_ports_order:
             items = [self.get_input(p)
                      for p in self.input_ports_order]
             got_value = True
-        if self.hasInputFromPort('tail'):
+        if self.has_input('tail'):
             tail = self.get_input('tail')
             got_value = True
 
@@ -896,13 +896,13 @@ def dict_conv(v):
 
 def dict_compute(self):
     d = {}
-    if self.hasInputFromPort('value'):
+    if self.has_input('value'):
         Constant.compute(self)
         d.update(self.outputPorts['value'])
-    if self.hasInputFromPort('addPair'):
+    if self.has_input('addPair'):
         pairs_list = self.getInputListFromPort('addPair')
         d.update(pairs_list)
-    if self.hasInputFromPort('addPairs'):
+    if self.has_input('addPairs'):
         d.update(self.get_input('addPairs'))
         
     self.setResult("value", d)

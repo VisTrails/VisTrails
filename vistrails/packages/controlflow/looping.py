@@ -46,7 +46,7 @@ class While(Module):
         delay = self.force_get_input('Delay')
 
         if (name_condition is None and
-                not self.hasInputFromPort('MaxIterations')):
+                not self.has_input('MaxIterations')):
             raise ModuleError(self,
                               "Please set MaxIterations use a ConditionPort")
 

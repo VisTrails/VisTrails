@@ -147,7 +147,7 @@ class JobOperation(NotCacheable,Module):
     pass
 
 def joboperation_compute(self):
-    if self.hasInputFromPort("job"):
+    if self.has_input("job"):
         job = self.get_input('job')
         queue = job.queue
 #    print "TERMINAL ID", id(queue.terminal), id(queue.local_terminal)

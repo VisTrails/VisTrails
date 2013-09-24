@@ -49,7 +49,7 @@ class MeshChoose(Module):
         input_file_1 = self.get_input('input_file_1')
         input_file_2 = self.get_input('input_file_2')
 
-        if self.hasInputFromPort('output_format'):
+        if self.has_input('output_format'):
             output_suffix = self.get_input('output_format')
         else:
             output_suffix = self.guess_input_format(input_file_2.name)

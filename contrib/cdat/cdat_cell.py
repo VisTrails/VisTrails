@@ -34,9 +34,9 @@ class Variable(Module):
         # module none of the computation in this method is necessary 
         
         # Check ports
-        if not self.hasInputFromPort('cdmsfile'):
+        if not self.has_input('cdmsfile'):
             raise ModuleError(self, "'cdmsfile' is mandatory.")
-        if not self.hasInputFromPort('id'):
+        if not self.has_input('id'):
             raise ModuleError(self, "'id' is mandatory.")
 
         # Get input from ports
@@ -140,11 +140,11 @@ class GraphicsMethod(Module, NotCacheable):
     
     def compute(self):
         # Check required input ports
-        if not self.hasInputFromPort('gmName'):
+        if not self.has_input('gmName'):
             return
-        if not self.hasInputFromPort('plotType'):
+        if not self.has_input('plotType'):
             return
-        if not self.hasInputFromPort('slab1'):
+        if not self.has_input('slab1'):
             return
         
         # Get required input
@@ -155,7 +155,7 @@ class GraphicsMethod(Module, NotCacheable):
         # directly to CDATCell but I pass it to graphics method so it looks
         # nicer in the pipeline.
         slab1 = self.get_input('slab1')
-        if self.hasInputFromPort('slab2'):
+        if self.has_input('slab2'):
             self.setResult('slab2', self.get_input('slab2'))
                            
         # Initialize the canvas and get the graphics method
@@ -163,13 +163,13 @@ class GraphicsMethod(Module, NotCacheable):
         gm = canvas.get_gm(plotType.lower(), gmName)
 
         # Modify the graphics method's attributes
-        if self.hasInputFromPort('color_1'):
+        if self.has_input('color_1'):
             gm.color_1 = self.get_input('color_1')
-        if self.hasInputFromPort('color_2'):
+        if self.has_input('color_2'):
             gm.color_2 = self.get_input('color_2')
-        if self.hasInputFromPort('level_1'):
+        if self.has_input('level_1'):
             gm.level_1 = self.get_input('level_1')
-        if self.hasInputFromPort('level_2'):
+        if self.has_input('level_2'):
             gm.level_2 = self.get_input('level_2')
         # TODO: more gm attributes ...
 
@@ -187,27 +187,27 @@ class CDATCell(SpreadsheetCell, NotCacheable):
         Dispatch the vtkRenderer to the actual rendering widget
         """
         # Check required input ports
-        if self.hasInputFromPort('canvas'):
+        if self.has_input('canvas'):
             canvas = self.get_input('canvas')
         else:
             self.cellWidget = self.displayAndWait(QCDATWidget, (None,))
             self.setResult('canvas', self.cellWidget.canvas)
             return
         self.setResult('canvas', canvas)
-        if not self.hasInputFromPort('gmName'):
+        if not self.has_input('gmName'):
             return
-        if not self.hasInputFromPort('plotType'):
+        if not self.has_input('plotType'):
             return
-        if not self.hasInputFromPort('slab1'):
+        if not self.has_input('slab1'):
             return
-        if not self.hasInputFromPort('template'):
+        if not self.has_input('template'):
             return
 
         # Build up the argument list
         args = []
         slab1 = self.get_input('slab1')
         args.append(self.get_input('slab1'))
-        if self.hasInputFromPort('slab2'):
+        if self.has_input('slab2'):
             args.append(self.get_input('slab2'))
         args.append(self.get_input('template'))
         args.append(self.get_input('plotType'))
@@ -215,14 +215,14 @@ class CDATCell(SpreadsheetCell, NotCacheable):
 
         # Build up plot keyword args ...
         kwargs = {}
-        if self.hasInputFromPort('continents'):
+        if self.has_input('continents'):
             kwargs['continents'] = self.get_input('continents')
         
         # Set the cell row / col
         self.location = CellLocation()
-        if self.hasInputFromPort('row'):
+        if self.has_input('row'):
             self.location.row = self.get_input('row')
-        if self.hasInputFromPort('col'):
+        if self.has_input('col'):
             self.location.col = self.get_input('col')
 
         # Plot into the cell

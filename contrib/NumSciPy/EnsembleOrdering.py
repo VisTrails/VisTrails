@@ -100,7 +100,7 @@ class OrderByCorrelation(EnsembleModule, Module):
         ts = time.time()
         vol = self.get_input("Signals")
         ind = self.get_input("Key Slice")
-        if self.hasInputFromPort("Normalize"):
+        if self.has_input("Normalize"):
             self.normalize = self.get_input("Normalize")
         else:
             self.normalize = False

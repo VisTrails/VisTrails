@@ -84,7 +84,7 @@ class InputPort(Module):
         if exPipe is not None:
             self.setResult('InternalPipe', exPipe)
         else:
-            if self.hasInputFromPort('Default'):
+            if self.has_input('Default'):
                 self.setResult('InternalPipe',
                                self.get_input('Default'))
             else:

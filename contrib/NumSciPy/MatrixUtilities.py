@@ -12,7 +12,7 @@ class MatlabReader(ArrayUtilityModule, Module):
     """ Read a Matlab .mat file into a SciPy matrix """
     # Gather inputs here
     def get_inputs(self):
-        if self.hasInputFromPort("Filename"):
+        if self.has_input("Filename"):
             self.fname = self.get_input("Filename")
         else:
             self.fname = self.get_input("File").name
@@ -65,7 +65,7 @@ class MatlabReader(ArrayUtilityModule, Module):
 class MatlabWriter(ArrayUtilityModule, Module):
     """ Write a Matlab .mat file from a SciPy matrix """
     def compute(self):
-        if self.hasInputFromPort("Filename"):
+        if self.has_input("Filename"):
             fname = self.get_input("Filename")
         else:
             fname = self.get_input("File").name

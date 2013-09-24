@@ -85,7 +85,7 @@ class LocationCoordinate2D(Constant):
         return LocationCoordinate2D.to_xml_string(x)
         
     def compute(self):
-        if self.hasInputFromPort("value"):
+        if self.has_input("value"):
             data = self.get_input("value")
             self.latitude = data.latitude
             self.longitude = data.longitude
@@ -200,7 +200,7 @@ class Location(Constant):
         return Location.to_xml_string(x)
     
     def compute(self):
-        if self.hasInputFromPort("value"):
+        if self.has_input("value"):
             data = self.get_input("value")
             self.coordinate = data.coordinate
             self.altitude = data.altitude
@@ -217,22 +217,22 @@ class Location(Constant):
             self.altitude = self.get_input("altitude")
             
             #check optional ports
-            if self.hasInputFromPort("horizontalAccuracy"):
+            if self.has_input("horizontalAccuracy"):
                 self.horizontal_accuracy = \
                               self.get_input("horizontalAccuracy")
                               
-            if self.hasInputFromPort("verticalAccuracy"):
+            if self.has_input("verticalAccuracy"):
                 self.vertical_accuracy = \
                               self.get_input("verticalAccuracy")
                               
-            if self.hasInputFromPort("timestamp"):
+            if self.has_input("timestamp"):
                 data = self.get_input("timestamp")
                 self.timestamp = \
                             datetime(*strptime(data, '%Y-%m-%d %H:%M:%S')[0:6])
-            if self.hasInputFromPort("speed"):
+            if self.has_input("speed"):
                 self.speed = self.get_input("speed")
                 
-            if self.hasInputFromPort("course"):
+            if self.has_input("course"):
                 self.course = self.get_input("course")
         
         self.setResult("value", self)
@@ -307,12 +307,12 @@ class B64EncodedContents(Constant):
         return x.contents
     
     def compute(self):
-        if self.hasInputFromPort("value"):
+        if self.has_input("value"):
             data = self.get_input("value")
             self.contents = data.contents
         
         if self.contents is None:
-            if self.hasInputFromPort("file"):
+            if self.has_input("file"):
                 file_ = self.get_input("file")
                 c = open(file_.name)
                 self.contents = base64.b64encode(c.read()) 

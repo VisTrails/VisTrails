@@ -32,19 +32,19 @@ class RescaleIntensityImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -94,19 +94,19 @@ class SigmoidImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -116,22 +116,22 @@ class SigmoidImageFilter(Module):
         outImgType = itk.Image[outPixelType._type, dim]
 
         #default values are those that are recommended
-        if self.hasInputFromPort("Minimum"):
+        if self.has_input("Minimum"):
             min = self.get_input("Minimum")
         else:
             min = 10
 
-        if self.hasInputFromPort("Maximum"):
+        if self.has_input("Maximum"):
             max = self.get_input("Maximum")
         else:
             max = 240
 
-        if self.hasInputFromPort("Alpha"):
+        if self.has_input("Alpha"):
             alpha = self.get_input("Alpha")
         else:
             alpha = 10
 
-        if self.hasInputFromPort("Beta"):
+        if self.has_input("Beta"):
             beta = self.get_input("Beta")
         else:
             beta = 170
@@ -176,13 +176,13 @@ class ThresholdImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -226,19 +226,19 @@ class ShiftScaleImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -291,19 +291,19 @@ class NormalizeImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()

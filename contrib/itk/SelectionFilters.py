@@ -40,24 +40,24 @@ class RegionOfInterestImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Input Dimension"):
+        if self.has_input("Input Dimension"):
             dim = self.get_input("Input Dimension")
         else:
             dim = im.getDim()
 
-        if self.hasInputFromPort("Output Dimension"):
+        if self.has_input("Output Dimension"):
             outDim = self.get_input("Output Dimension")
         else:
             outDim = dim
@@ -69,7 +69,7 @@ class RegionOfInterestImageFilter(Module):
         self.filter_ = itk.RegionOfInterestImageFilter[inImgType, outImgType].New()
 
         #TODO this is not correct, needs fixing
-        if self.hasInputFromPort("Input Region"):
+        if self.has_input("Input Region"):
             self.region_ = self.get_input("Input Region").region_
         else:
             self.region_ = itk.ImageRegion[indim]()
@@ -113,25 +113,25 @@ class CastImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for in dimension
-        if self.hasInputFromPort("Input Dimension"):
+        if self.has_input("Input Dimension"):
             dim = self.get_input("Input Dimension")
         else:
             dim = im.getDim()
 
         #check for out dimension
-        if self.hasInputFromPort("Output Dimension"):
+        if self.has_input("Output Dimension"):
             outDim = self.get_input("Output Dimension")
         else:
             outDim = dim
@@ -176,7 +176,7 @@ class ExtractImageFilter(Module):
         #TODO should this be Input Volume?
         im = self.get_input("Input Volume")
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
@@ -185,13 +185,13 @@ class ExtractImageFilter(Module):
         outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
             
         #check for out dimension
-        if self.hasInputFromPort("Output Dimension"):
+        if self.has_input("Output Dimension"):
             outDim = self.get_input("Output Dimension")
         else:
             outDim = im.getDim()

@@ -137,25 +137,25 @@ class VtlFileCreator(NotCacheable, Module):
     def compute(self):
         self.get_locator_and_version()
         
-        if self.hasInputFromPort('execute'):
+        if self.has_input('execute'):
             self.execute = self.get_input('execute')
         
-        if self.hasInputFromPort('forceDB'):
+        if self.has_input('forceDB'):
             self.forceDB = self.get_input('forceDB')
         
-        if self.hasInputFromPort('showSpreadsheetOnly'):
+        if self.has_input('showSpreadsheetOnly'):
             self.showSpreadsheetOnly = self.get_input('showSpreadsheetOnly')
             
-        if self.hasInputFromPort('embedWorkflow'):
+        if self.has_input('embedWorkflow'):
             self.embedWorkflow = self.get_input('embedWorkflow')
         
         xmlstring = self.generate_vtl(self.locator,self.version,self.pipeline,
                                       self.execute,self.forceDB,
                                       self.showSpreadsheetOnly,self.embedWorkflow)
         
-        if self.hasInputFromPort('filename'):
+        if self.has_input('filename'):
             filename = self.get_input('filename')
-            if self.hasInputFromPort('directory'):
+            if self.has_input('directory'):
                 directory = self.get_input('directory').name
                 filename = os.path.join(directory,filename)
             file_ = open(filename,'w')

@@ -42,13 +42,13 @@ def build_params(input_ports, remap={}):
 def processActivePortData(inputPorts, object):
     portData = []
 
-    if object.hasInputFromPort('stem.globals'):       
+    if object.has_input('stem.globals'):       
         stemGlobals = object.get_input('stem.globals')
     else :
         stemGlobals = None
 
     for port in inputPorts:
-        if port[0] != 'stem.globals' and object.hasInputFromPort(port[0]) and object.get_input(port[0]) is not None:       
+        if port[0] != 'stem.globals' and object.has_input(port[0]) and object.get_input(port[0]) is not None:       
             portData.append((port[0], port[0]))
             if port[1] == '(edu.utah.sci.vistrails.basic:Directory)' or port[1] == '(edu.utah.sci.vistrails.basic:File)':
                 object.set_variable(port[0], object.get_input(port[0]).name)                          
@@ -129,7 +129,7 @@ class STEMGlobals(RSource):
         self.chdir(self.get_input('code.directory').name)
         self.set_variable('parent.dir', parent_dir.name)
         # FIXME code.directory defaults to parent.dir
-        if not self.hasInputFromPort('code.directory'):
+        if not self.has_input('code.directory'):
             self.set_variable('code.directory', parent_dir.name)
         else:
             self.set_variable('code.directory',
@@ -493,15 +493,15 @@ class ERDPredictSTMatrix(RSource):
 
         self.run_code(code_str)
 
-        if self.hasInputFromPort('stem.directory'):
-           if self.hasInputFromPort('st.matrix.name'):
+        if self.has_input('stem.directory'):
+           if self.has_input('st.matrix.name'):
                self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
                                                        self.get_input('st.matrix.name'))))
            else:
                self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
                                                        str(list(stem_globals.global_vars['st.matrix.name'])[0]))))
         else:
-           if self.hasInputFromPort('st.matrix.name'):
+           if self.has_input('st.matrix.name'):
                self.setResult('st.matrix.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
                                                        self.get_input('st.matrix.name'))))
            else:

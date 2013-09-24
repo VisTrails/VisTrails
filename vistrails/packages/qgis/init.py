@@ -54,7 +54,7 @@ class RasterLayer(Module):
 
     def compute(self):
         fname = self.get_input('file').name
-        if self.hasInputFromPort('name'):
+        if self.has_input('name'):
             name = self.get_input('name')
         else:
             name = os.path.splitext(os.path.basename(fname))[0]
@@ -72,7 +72,7 @@ class VectorLayer(Module):
 
     def compute(self):
         fname = self.get_input('file').name
-        if self.hasInputFromPort('name'):
+        if self.has_input('name'):
             name = self.get_input('name')
         else:
             name = os.path.splitext(os.path.basename(fname))[0]

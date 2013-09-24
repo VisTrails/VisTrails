@@ -68,7 +68,7 @@ class vtkDataSetToMatrix(SciPy):
             
         
     def compute(self):
-        if self.hasInputFromPort("vtkUnstructuredGrid"):
+        if self.has_input("vtkUnstructuredGrid"):
             self.from_unstructured_grid(self.get_input("vtkUnstructuredGrid"))
         else:
             pass

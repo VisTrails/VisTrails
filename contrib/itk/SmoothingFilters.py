@@ -31,13 +31,13 @@ class CurvatureAnisotropicDiffusionFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -51,12 +51,12 @@ class CurvatureAnisotropicDiffusionFilter(Module):
             raise ModuleError(self, "Filter requires a decimal PixelType")
 
         #default values are recommended
-        if self.hasInputFromPort("Iterations"):
+        if self.has_input("Iterations"):
             iterations = self.get_input("Iterations")
         else:
             iterations = 5
 
-        if self.hasInputFromPort("TimeStep"):
+        if self.has_input("TimeStep"):
             timestep = self.get_input("TimeStep")
         else:
             if dim == 2:
@@ -64,7 +64,7 @@ class CurvatureAnisotropicDiffusionFilter(Module):
             else:
                 timestep = 0.0625
 
-        if self.hasInputFromPort("Conductance"):
+        if self.has_input("Conductance"):
             conductance = self.get_input("Conductance")
         else:
             conductance = 3.0
@@ -104,19 +104,19 @@ class RecursiveGaussianImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -163,13 +163,13 @@ class CurvatureFlowImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -183,12 +183,12 @@ class CurvatureFlowImageFilter(Module):
             raise ModuleError(self, "Filter requires a decimal PixelType")
 
         #default values recommended
-        if self.hasInputFromPort("TimeStep"):
+        if self.has_input("TimeStep"):
             self.ts = self.get_input("TimeStep")
         else:
             self.ts = 0.125
 
-        if self.hasInputFromPort("Iterations"):
+        if self.has_input("Iterations"):
             self.iterations = self.get_input("Iterations")
         else:
             self.iterations = 5
@@ -225,19 +225,19 @@ class DiscreteGaussianImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -294,19 +294,19 @@ class BinomialBlurImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -355,19 +355,19 @@ class GradientAnisotropicDiffusionImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -429,19 +429,19 @@ class MinMaxCurvatureFlowImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -498,19 +498,19 @@ class BilateralImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()

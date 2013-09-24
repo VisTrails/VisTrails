@@ -163,7 +163,7 @@ def matrix_conv(v):
     create_matrix(v_list)
 
 def matrix_compute(self):
-    if self.hasInputFromPort('rvector'):
+    if self.has_input('rvector'):
         rvector = self.get_input('rvector')
         nrows = self.get_input('nrows')
         self.setResult('value', robjects.r.matrix(rvector, nrow=nrows))
@@ -321,7 +321,7 @@ class RRead(Module):
         fname = self.get_input('file').name
         options_dict = {}
         for port in RRead._input_ports:
-            if port[0] != 'file' and self.hasInputFromPort(port):
+            if port[0] != 'file' and self.has_input(port):
                 options_dict[port] = self.get_input(port)
         rdataframe = robjects.r[read_cmd](fname, **options_dict)
         self.setResult('rdataframe', rdataframe)

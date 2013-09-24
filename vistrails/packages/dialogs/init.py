@@ -56,23 +56,23 @@ class TextDialog(Dialog):
         return self.cacheable_dialog
 
     def compute(self):
-        if self.hasInputFromPort('title'):
+        if self.has_input('title'):
             title = self.get_input('title')
         else:
             title = 'VisTrails Dialog'
-        if self.hasInputFromPort('label'):
+        if self.has_input('label'):
             label = self.get_input('label')
         else:
             label = ''
             if self.password:
                 label = 'Password'
 
-        if self.hasInputFromPort('default'):
+        if self.has_input('default'):
             default = self.get_input('default')
         else:
             default = ''
             
-        if self.hasInputFromPort('cacheable') and self.get_input('cacheable'):
+        if self.has_input('cacheable') and self.get_input('cacheable'):
             self.cacheable_dialog = True
         else:
             self.cacheable_dialog = False

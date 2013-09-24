@@ -52,7 +52,7 @@ class FFT(DSPModule, Module):
         # If there is no input on the samples port,
         # use the number of samples in an array row for
         # the number of fft points.
-        if self.hasInputFromPort("Samples"):
+        if self.has_input("Samples"):
             pts = self.get_input("Samples")
             
         else:
@@ -99,7 +99,7 @@ class FFTN(DSPModule, Module):
         # If there is no input on the samples port,
         # use the number of samples in an array row for
         # the number of fft points.
-        if self.hasInputFromPort("Samples"):
+        if self.has_input("Samples"):
             pts = self.get_input("Samples")
             
         else:
@@ -139,14 +139,14 @@ class ShortTimeFourierTransform(DSPModule, Module):
 
         out_vol = None
 
-        if self.hasInputFromPort("Window"):
+        if self.has_input("Window"):
             window = self.get_input("Window").get_array()
             win_size = window.shape[0]
         else:
             win_size = self.get_input("Window Size")
             window = scipy.signal.hamming(win_size)
 
-        if self.hasInputFromPort("Stride"):
+        if self.has_input("Stride"):
             stride = self.get_input("Stride")
         else:
             stride = int(win_size / 2)

@@ -165,13 +165,13 @@ class Slicer(ProvenanceChallenge):
         cmd = ['slicer']
         i = self.get_input("input")
         cmd.append(i.name)
-        if self.hasInputFromPort("slice_x"):
+        if self.has_input("slice_x"):
             cmd.append('-x')
             cmd.append(str(self.get_input("slice_x")))
-        elif self.hasInputFromPort("slice_y"):
+        elif self.has_input("slice_y"):
             cmd.append('-y')
             cmd.append(str(self.get_input("slice_y")))
-        elif self.hasInputFromPort("slice_z"):
+        elif self.has_input("slice_z"):
             cmd.append('-z')
             cmd.append(str(self.get_input("slice_z")))
         o = self.interpreter.filePool.create_file(suffix='.pgm')

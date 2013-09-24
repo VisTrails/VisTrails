@@ -60,7 +60,7 @@ class JointHistogram(ArrayImaging, Module):
         size_y = self.get_input("Bins Y")
 
         take_log = True
-        if self.hasInputFromPort("Log10"):
+        if self.has_input("Log10"):
             take_log = self.get_input("Log10")
 
         out_ar = numpy.zeros((size_x, size_y))

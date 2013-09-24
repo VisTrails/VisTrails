@@ -201,7 +201,7 @@ class Predictor(Constant):
                      ('value_as_string', '(edu.utah.sci.vistrails.basic:String)', True)]
 
     def compute(self):
-        if (self.hasInputFromPort("ResampleMethod")):
+        if (self.has_input("ResampleMethod")):
             resampleMethod = self.get_input("ResampleMethod")
             if resampleMethod.lower() not in ['nearestneighbor', 'bilinear', 'cubic', 'cubicspline', 'lanczos']:
                 raise ModuleError(self, 
@@ -209,14 +209,14 @@ class Predictor(Constant):
         else:
             resampleMethod = 'Bilinear'
         
-        if (self.hasInputFromPort("AggregationMethod")):
+        if (self.has_input("AggregationMethod")):
             aggregationMethod = self.get_input("AggregationMethod")
             if self.get_input("AggregationMethod").lower() not in ['mean', 'max', 'min', 'majority', 'none']:
                 raise ModuleError(self, "No Aggregation Method specified")
         else:
             aggregationMethod = "Mean"
         
-        if (self.hasInputFromPort("categorical")):
+        if (self.has_input("categorical")):
             if self.get_input("categorical") == True:
                 categorical = '1'
             else:
@@ -224,7 +224,7 @@ class Predictor(Constant):
         else:
             categorical = '0'
         
-        if (self.hasInputFromPort("file")):
+        if (self.has_input("file")):
             inFile = utils.getRasterName(self.get_input("file").name)
         else:
             raise ModuleError(self, "No input file specified")
@@ -322,12 +322,12 @@ class PredictorListFile(Module):
         return type(x) == list
 
     def compute(self):
-        if not (self.hasInputFromPort("csvFileList") or
-                self.hasInputFromPort("addPredictor")):
+        if not (self.has_input("csvFileList") or
+                self.has_input("addPredictor")):
             raise ModuleError(self, "No inputs or CSV file provided")
 
         output_fname = utils.mknextfile(prefix='PredictorList_', suffix='.csv')
-        if (self.hasInputFromPort("csvFileList") and 
+        if (self.has_input("csvFileList") and 
             os.path.exists(self.get_input("csvFileList").name)):
             shutil.copy(self.get_input("csvFileList").name, 
                 output_fname)
@@ -337,14 +337,14 @@ class PredictorListFile(Module):
             csv_writer = csv.writer(open(output_fname, 'wb'))
             csv_writer.writerow(["file", "Resampling", "Aggregation"])
         
-        if self.hasInputFromPort("addPredictor"):
+        if self.has_input("addPredictor"):
             p_list = self.forceGetInputListFromPort("addPredictor")
             for p in p_list:
-                if p.hasInputFromPort('resampleMethod'):
+                if p.has_input('resampleMethod'):
                     resMethod = p.get_input('resampleMethod')
                 else:
                     resMethod = "NearestNeighbor"
-                if p.hasInputFromPort('aggregationMethod'):
+                if p.has_input('aggregationMethod'):
                     aggMethod = p.get_input('aggregationMethod')
                 else:
                     aggMethod = "Mean"  
@@ -467,19 +467,19 @@ class ApplyModel(Module):
         
         workspace = self.force_get_input('modelWorkspace').name
         output_dname = utils.mknextdir(prefix='AppliedModel_')
-        if self.hasInputFromPort('projectionTarget'):
+        if self.has_input('projectionTarget'):
             mdsFile = self.force_get_input('projectionTarget').name
             args = "ws=" + '"' + workspace + '"' + " c=" + '"' + mdsFile + '"' + " o=" + '"' + output_dname + '"'
         else:
             args = "ws=" + '"' + workspace + '"' + " o=" + '"' + output_dname + '"'
         
-        if self.hasInputFromPort('makeBinMap'):
+        if self.has_input('makeBinMap'):
             makeBinMap = self.force_get_input('makeBinMap')
             args += ' mbt=' + str(makeBinMap).upper()
         else:
             args += ' mbt=TRUE'
             
-        if self.hasInputFromPort('makeProbabilityMap'):
+        if self.has_input('makeProbabilityMap'):
             makeProbabilityMap = self.force_get_input('makeProbabilityMap')
             args += ' mpt=' + str(makeProbabilityMap).upper()
         else:
@@ -545,24 +545,24 @@ class Model(Module):
                 args += ' ' + '='.join([str(k),str(v)])
         args += " o=" + '"' + output_dname + '"'
         args += " rc=" + utils.MDSresponseCol(mdsFile)
-#        if self.hasInputFromPort('makeBinMap'):
+#        if self.has_input('makeBinMap'):
 #            makeBinMap = self.force_get_input('makeBinMap')
 #            args += ' mbt=' + str(makeBinMap).upper()
 #        else:
 #            makeBinMap = True
 #            args += ' mbt=TRUE'
 #            
-#        if self.hasInputFromPort('makeProbabilityMap'):
+#        if self.has_input('makeProbabilityMap'):
 #            makeProbabilityMap = self.force_get_input('makeProbabilityMap')
 #            args += ' mpt=' + str(makeProbabilityMap).upper()
 #        else:
 #            makeProbabilityMap = True
 #            args += ' mpt=TRUE'  
 #        
-#        if self.hasInputFromPort('seed'):
+#        if self.has_input('seed'):
 #            args += ' seed=' + str(self.force_get_input('seed'))
 #        
-#        if self.hasInputFromPort('someParam'):
+#        if self.has_input('someParam'):
 #            x = self.force_get_input('someParam')
 #            if x > 1:
 #                msg = "Expected output from " + ModelAbbrev + " was not found."
@@ -916,7 +916,7 @@ class PARC(Module):
         
         ourPARC.out_dir = output_dname
 
-        if self.hasInputFromPort("multipleCores"):
+        if self.has_input("multipleCores"):
              if self.get_input("multipleCores"):
                 ourPARC.multicores = "True"
 
@@ -925,7 +925,7 @@ class PARC(Module):
 
         #append additional inputs to the existing CSV if one was supplied
         #otherwise start a new CSV
-        if self.hasInputFromPort("RastersWithPARCInfoCSV"):
+        if self.has_input("RastersWithPARCInfoCSV"):
             inputCSV = self.force_get_input("RastersWithPARCInfoCSV").name
             shutil.copy(inputCSV, workingCSV)
             f = open(workingCSV, "ab")
@@ -935,13 +935,13 @@ class PARC(Module):
             csvWriter = csv.writer(f)
             csvWriter.writerow(["FilePath", "Categorical", "Resampling", "Aggregation"])
         
-        if self.hasInputFromPort("PredictorList"):
+        if self.has_input("PredictorList"):
             predictor_lists = self.forceGetInputListFromPort('PredictorList')
             for predictor_list in predictor_lists:
                 for predictor in predictor_list:
                     csvWriter.writerow(list(predictor))
         
-        if self.hasInputFromPort("predictor"):
+        if self.has_input("predictor"):
             predictor_list = self.forceGetInputListFromPort('predictor')
             for predictor in predictor_list:
                 csvWriter.writerow(list(predictor))
@@ -1022,18 +1022,18 @@ class RasterFormatConverter(Module):
     def compute(self):
         writetolog("\nRunning TiffConverter", True)
         ourRFC = RFC.FormatConverter()
-        if self.hasInputFromPort('inputMDS'):
+        if self.has_input('inputMDS'):
             ourRFC.MDSFile = self.force_get_input('inputMDS').name
-        elif self.hasInputFromPort('inputDir'):
+        elif self.has_input('inputDir'):
             ourRFC.inputDir = self.force_get_input('inputDir').name
             
-        if self.hasInputFromPort('format'):
+        if self.has_input('format'):
             format = self.force_get_input('format')
             if format == '':
                 format = 'asc'
             ourRFC.format = format
              
-        if self.hasInputFromPort("multipleCores"):
+        if self.has_input("multipleCores"):
              if self.get_input("multipleCores"):
                 ourRFC.multicores = "True"
         
@@ -1105,7 +1105,7 @@ class TestTrainingSplit(Module):
     _output_ports = [("outputMDS", "(gov.usgs.sahm:MergedDataSet:Other)")]
     
     def compute(self):
-        if self.hasInputFromPort('trainingProportion'):
+        if self.has_input('trainingProportion'):
             print 'real input'
         writetolog("\nGenerating Test Training split ", True)
         inputMDS = utils.dir_path_value(self.force_get_input('inputMDS', []))
@@ -1115,7 +1115,7 @@ class TestTrainingSplit(Module):
         
         args = "i=" + '"' + inputMDS + '"' + " o=" + '"' + outputMDS + '"'
         args += " rc=" + utils.MDSresponseCol(inputMDS) 
-        if (self.hasInputFromPort("trainingProportion")):
+        if (self.has_input("trainingProportion")):
             try:
                 trainingProportion = float(self.get_input("trainingProportion"))
                 if trainingProportion <= 0 or trainingProportion > 1:
@@ -1123,7 +1123,7 @@ class TestTrainingSplit(Module):
                 args += " p=" + str(trainingProportion)
             except:
                 raise ModuleError(self, "Train Proportion (trainProp) must be a number between 0 and 1 excluding 0")
-        if (self.hasInputFromPort("RatioPresAbs")):
+        if (self.has_input("RatioPresAbs")):
             try:
                 RatioPresAbs = float(self.get_input("RatioPresAbs"))
                 if RatioPresAbs <= 0:
@@ -1305,7 +1305,7 @@ class ProjectionLayers(Module):
         
         inputCSV = self.force_get_input('RastersWithPARCInfoCSV').name
     
-        if self.hasInputFromPort('templateLayer'):
+        if self.has_input('templateLayer'):
             template = self.force_get_input('templateLayer').name
         else:
             template = '' #we'll get a template below
@@ -1314,7 +1314,7 @@ class ProjectionLayers(Module):
         climargs = {}
         
         for input in ['model', 'scenario', 'year']:
-            if self.hasInputFromPort(input):
+            if self.has_input(input):
                 climargs[input] = self.force_get_input(input)
         if climargs <> {} and climargs.keys() <> ['model', 'scenario', 'year']:
             #they did not add in one of each, Not going to fly
@@ -1325,7 +1325,7 @@ class ProjectionLayers(Module):
                            os.path.join('I:\WorldClim_Future_Climate\RenamedBILs', 
                                         climargs['model'], climargs['scenario'], climargs['year'])])
         
-        if self.hasInputFromPort('directoryCrosswalkCSV'):
+        if self.has_input('directoryCrosswalkCSV'):
             crosswalkCSV = csv.reader(open(self.force_get_input('directoryCrosswalkCSV'), 'r'))
             header = crosswalkCSV
             for row in crosswalkCSV:
@@ -1448,7 +1448,7 @@ class MAXENT(Module):
         for port in self._input_ports:
             #print port
             if port[0] <> 'inputMDS' and port[0] <> 'projectionlayers':
-                if self.hasInputFromPort(port[0]):
+                if self.has_input(port[0]):
                     port_val = self.get_input(port[0])
                     if port[1] == "(edu.utah.sci.vistrails.basic:Boolean)":
                         port_val = str(port_val).lower()
@@ -1469,7 +1469,7 @@ class MAXENT(Module):
                         argWriter.writerow([port[0], default])
                     except KeyError:
                         pass
-        if self.hasInputFromPort('projectionlayers'):
+        if self.has_input('projectionlayers'):
             value = self.forceGetInputListFromPort('projectionlayers')
             projlayers = ','.join([path.name for path in value])
             argWriter.writerow(['projectionlayers', projlayers])
@@ -1577,7 +1577,7 @@ def load_max_ent_params():
 #
 #    def compute(self):
 #        fname = self.get_input('file').name
-#        if self.hasInputFromPort('name'):
+#        if self.has_input('name'):
 #            name = self.get_input('name')
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]
@@ -1595,7 +1595,7 @@ def load_max_ent_params():
 #
 #    def compute(self):
 #        fname = self.get_input('file').name
-#        if self.hasInputFromPort('name'):
+#        if self.has_input('name'):
 #            name = self.get_input('name')
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]

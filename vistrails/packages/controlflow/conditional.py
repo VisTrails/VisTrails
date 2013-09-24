@@ -67,7 +67,7 @@ class If(Module, NotCacheable):
     def compute(self):
         """ The compute method for the If module."""
 
-        if not self.hasInputFromPort('Condition'):
+        if not self.has_input('Condition'):
             raise ModuleError(self, 'Must set condition')
         cond = self.get_input('Condition')
 
@@ -78,18 +78,18 @@ class If(Module, NotCacheable):
             port_name = 'FalsePort'
             output_ports_name = 'FalseOutputPorts'
 
-        if self.hasInputFromPort(output_ports_name):
+        if self.has_input(output_ports_name):
             for connector in self.inputPorts.get(output_ports_name):
                 connector.obj.update()
 
-        if not self.hasInputFromPort(port_name):
+        if not self.has_input(port_name):
             raise ModuleError(self, 'Must set ' + port_name)
 
         for connector in self.inputPorts.get(port_name):
             connector.obj.upToDate = False
             connector.obj.update()
 
-            if self.hasInputFromPort(output_ports_name):
+            if self.has_input(output_ports_name):
                 output_ports = self.get_input(output_ports_name)
                 result = []
                 for output_port in output_ports:
@@ -115,7 +115,7 @@ class Default(Module, NotCacheable):
     """
 
     def compute(self):
-        if self.hasInputFromPort('Input'):
+        if self.has_input('Input'):
             self.setResult('Result', self.get_input('Input'))
         else:
             self.setResult('Result', self.get_input('Default'))

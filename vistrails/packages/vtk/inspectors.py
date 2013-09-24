@@ -101,7 +101,7 @@ class vtkDataSetInspector(vtkBaseInspector):
 
     def compute(self):
         vtk_object = None
-        if self.hasInputFromPort("SetInputConnection0"):
+        if self.has_input("SetInputConnection0"):
             ic = self.get_input("SetInputConnection0")
             port_object = ic.vtkInstance
             ix = port_object.GetIndex()
@@ -111,7 +111,7 @@ class vtkDataSetInspector(vtkBaseInspector):
             except AttributeError:
                 raise ModuleError(self, 
                                   "expected a module that supports GetOutput")
-        elif self.hasInputFromPort("SetInput"):
+        elif self.has_input("SetInput"):
             port_object = self.get_input("SetInput")
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance
@@ -141,7 +141,7 @@ class vtkDataSetAttributesInspector(vtkBaseInspector):
     
     def compute(self):
         vtk_object = None
-        if self.hasInputFromPort("SetInput"):
+        if self.has_input("SetInput"):
             port_object = self.get_input("SetInput")
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance
@@ -173,7 +173,7 @@ class vtkDataArrayInspector(vtkBaseInspector):
 
    def compute(self):
         vtk_object = None
-        if self.hasInputFromPort("SetInput"):
+        if self.has_input("SetInput"):
             port_object = self.get_input("SetInput")
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance
@@ -191,7 +191,7 @@ class vtkPolyDataInspector(vtkDataSetInspector):
 
     def compute(self):
         vtk_object = None
-        if self.hasInputFromPort("SetInputConnection0"):
+        if self.has_input("SetInputConnection0"):
             ic = self.get_input("SetInputConnection0")
             port_object = ic.vtkInstance
             ix = port_object.GetIndex()
@@ -201,7 +201,7 @@ class vtkPolyDataInspector(vtkDataSetInspector):
             except AttributeError:
                 raise ModuleError(self, 
                                   "expected a module that supports GetOutput")
-        elif self.hasInputFromPort("SetInput"):
+        elif self.has_input("SetInput"):
             port_object = self.get_input("SetInput")
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance

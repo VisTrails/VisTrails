@@ -60,19 +60,19 @@ compute = """
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -91,7 +91,7 @@ for param in filter_values:
     #check if default value is set
     if type(filter_values[param][1]).__name__ != "NoneType":
         compute += """
-        if self.hasInputFromPort("%s"):
+        if self.has_input("%s"):
             %s = self.get_input("%s")
         else:
             %s = %d\n"""%(SplitCap(param), param, SplitCap(param), param, filter_values[param][1])

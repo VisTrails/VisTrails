@@ -231,7 +231,7 @@ class ReadNHDR(ArrayIOModule, Module):
 
     def compute(self):
         fn = ''
-        if self.hasInputFromPort("File"):
+        if self.has_input("File"):
             fn = self.get_input("File").name
         else:
             fn = self.get_input("Filename")
@@ -272,7 +272,7 @@ class ReadStatisticalSummary(ArrayIOModule, Module):
     """
     def compute(self):
         fn = ''
-        if self.hasInputFromPort("File"):
+        if self.has_input("File"):
             fn = self.get_input("File").name
         else:
             fn = self.get_input("Filename")

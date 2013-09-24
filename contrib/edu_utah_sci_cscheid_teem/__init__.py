@@ -59,27 +59,27 @@ class Teem(Module):
         self.run_at_path(cmdline, _teemTenTestPath)
 
     def opt_command_line_val(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
+        if self.has_input(port_name):
             return [option_name, self.get_input(port_name)]
         else:
             return []
 
     def opt_command_line_vec(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
+        if self.has_input(port_name):
             t = self.get_input(port_name)
             return [option_name] + list(t)
         else:
             return []
 
     def opt_command_line_file(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
+        if self.has_input(port_name):
             t = self.get_input(port_name)
             return [option_name, t.name]
         else:
             return []
 
     def opt_command_line_noopt(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
+        if self.has_input(port_name):
             return [option_name]
         else:
             return []
@@ -156,10 +156,10 @@ class Soid(Teem):
         cmdline += self.opt_command_line_noopt(port_name='sphere',
                                                option_name='-sphere')
 
-        if self.hasInputFromPort('AB'):
+        if self.has_input('AB'):
             cmdline += self.opt_command_line_vec(port_name='AB',
                                                  option_name='-AB')
-        elif self.hasInputFromPort('A') and self.hasInputFromPort('B'):
+        elif self.has_input('A') and self.has_input('B'):
             cmdline += ['-AB',
                         self.get_input('A'),
                         self.get_input('B')]
@@ -263,7 +263,7 @@ class EpsToPpm(Teem):
 class Unu(Teem):
 
     def do_output(self):
-        if self.hasInputFromPort('format'):
+        if self.has_input('format'):
             suffix = '.'+self.get_input('format')
         else:
             suffix = '.nrrd'
@@ -347,7 +347,7 @@ class UnuMinmax(Teem):
     def compute(self):
         cmdline = ['unu minmax']
         cmdline += self.do_input()
-        if self.hasInputFromPort('blind8'):
+        if self.has_input('blind8'):
             cmdline += '-blind8 true'
         output_file = self.interpreter.filePool.create_file()
         # FIXME use popen*
@@ -458,7 +458,7 @@ class Unu1op(Unu):
 
     def do_input(self):
         r = []
-        if self.hasInputFromPort('in1_file'):
+        if self.has_input('in1_file'):
             r += ['-i', self.get_input('in1_file').name]
         return r
 
@@ -493,15 +493,15 @@ class Unu2op(Unu):
 
     def do_input(self):
         r = []
-        if self.hasInputFromPort('in1_file'):
+        if self.has_input('in1_file'):
             r += [self.get_input('in1_file').name]
-        elif self.hasInputFromPort('in1_value'):
+        elif self.has_input('in1_value'):
             r += [self.get_input('in1_value')]
         else:
             raise ModuleError(self, "Needs either in1_file or in1_value")
-        if self.hasInputFromPort('in2_file'):
+        if self.has_input('in2_file'):
             r += [self.get_input('in2_file').name]
-        elif self.hasInputFromPort('in2_value'):
+        elif self.has_input('in2_value'):
             r += [self.get_input('in2_value')]
         else:
             raise ModuleError(self, "Needs either in2_file or in2_value")
@@ -537,21 +537,21 @@ class Unu3op(Unu):
 
     def do_input(self):
         r = []
-        if self.hasInputFromPort('in1_file'):
+        if self.has_input('in1_file'):
             r += [self.get_input('in1_file').name]
-        elif self.hasInputFromPort('in1_value'):
+        elif self.has_input('in1_value'):
             r += [self.get_input('in1_value')]
         else:
             raise ModuleError(self, "Needs either in1_file or in1_value")
-        if self.hasInputFromPort('in2_file'):
+        if self.has_input('in2_file'):
             r += [self.get_input('in2_file').name]
-        elif self.hasInputFromPort('in2_value'):
+        elif self.has_input('in2_value'):
             r += [self.get_input('in2_value')]
         else:
             raise ModuleError(self, "Needs either in2_file or in2_value")
-        if self.hasInputFromPort('in3_file'):
+        if self.has_input('in3_file'):
             r += [self.get_input('in3_file').name]
-        elif self.hasInputFromPort('in3_value'):
+        elif self.has_input('in3_value'):
             r += [self.get_input('in3_value')]
         else:
             raise ModuleError(self, "Needs either in3_file or in3_value")

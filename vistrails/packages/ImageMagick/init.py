@@ -82,7 +82,7 @@ class ImageMagick(Module):
 
         """
         i = self.get_input("input")
-        if self.hasInputFromPort('inputFormat'):
+        if self.has_input('inputFormat'):
             return self.get_input('inputFormat') + ':' + i.name
         else:
             return i.name
@@ -92,7 +92,7 @@ class ImageMagick(Module):
         port.
 
         """
-        if self.hasInputFromPort('outputFormat'):
+        if self.has_input('outputFormat'):
             s = '.' + self.get_input('outputFormat')
             return self.interpreter.filePool.create_file(suffix=s)
         else:
@@ -163,9 +163,9 @@ class Scale(Convert):
         """returns a string with the description of the geometry as
 indicated by the appropriate ports (geometry or width and height)"""
         # if complete geometry is available, ignore rest
-        if self.hasInputFromPort("geometry"):
+        if self.has_input("geometry"):
             return self.get_input("geometry")
-        elif self.hasInputFromPort("width"):
+        elif self.has_input("width"):
             w = self.get_input("width")
             h = self.get_input("height")
             return "'%sx%s'" % (w, h)

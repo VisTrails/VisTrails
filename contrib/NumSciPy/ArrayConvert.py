@@ -45,7 +45,7 @@ class ArrayToFile(ArrayConvertModule, Module):
         a = self.get_input("Array")
         fn = self.get_input("Filename")
         sep = ""
-        if self.hasInputFromPort("Separator"):
+        if self.has_input("Separator"):
             sep = self.get_input("Separator")
         a.tofile(fn, sep)
 
@@ -125,15 +125,15 @@ class ArrayToVTKImageData(ArrayConvertModule, Module):
                         val = ar[ar_x, ar_y, ar_z]
                         vtk_set.vtkInstance.SetScalarComponentFromFloat(ar_x, ar_y, ar_z, 0, val)
 
-        if self.hasInputFromPort("SpacingX"):
+        if self.has_input("SpacingX"):
             x = self.get_input("SpacingX")
         else:
             x = 1.0
-        if self.hasInputFromPort("SpacingY"):
+        if self.has_input("SpacingY"):
             y = self.get_input("SpacingY")
         else:
             y = 1.0
-        if self.hasInputFromPort("SpacingZ"):
+        if self.has_input("SpacingZ"):
             z = self.get_input("SpacingZ")
         else:
             z = 1.0

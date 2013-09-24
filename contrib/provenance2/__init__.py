@@ -179,13 +179,13 @@ class Slicer(ProvenanceChallenge):
         cmd = ['slicer']
         i = self.get_input("input")
         cmd.append(i.baseName)
-        if self.hasInputFromPort("slice_x"):
+        if self.has_input("slice_x"):
             cmd.append('-x')
             cmd.append(str(self.get_input("slice_x")))
-        elif self.hasInputFromPort("slice_y"):
+        elif self.has_input("slice_y"):
             cmd.append('-y')
             cmd.append(str(self.get_input("slice_y")))
-        elif self.hasInputFromPort("slice_z"):
+        elif self.has_input("slice_z"):
             cmd.append('-z')
             cmd.append(str(self.get_input("slice_z")))
         o = self.interpreter.filePool.create_file(suffix='.pgm')
@@ -227,8 +227,8 @@ class FileSet(ProvenanceChallenge):
     def compute(self):
         self.checkInputPort("baseName")
         n = self.get_input("baseName")
-	if self.hasInputFromPort("file_hdr") and \
-		self.hasInputFromPort("file_img"):
+	if self.has_input("file_hdr") and \
+		self.has_input("file_img"):
 	    n1 = self.get_input("file_hdr").name
 	    n2 = self.get_input("file_img").name
 	    if n1.endswith('.hdr'):
@@ -274,7 +274,7 @@ class FileSetSink(ProvenanceChallenge):
                 outFilename = filename.replace(v1.baseName, v2, 1)
                 core.system.link_or_copy(filename, outFilename)
             except OSError, e:
-                if (self.hasInputFromPort("overrideFile") and
+                if (self.has_input("overrideFile") and
                     self.get_input("overrideFile")):
                     try:
                         os.unlink(outFilename)

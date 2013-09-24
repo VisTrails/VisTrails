@@ -92,11 +92,11 @@ class ArraySort(ArrayOperationModule, Module):
     """
     def compute(self):
         a = self.get_input("Array")
-        if self.hasInputFromPort("Axis"):
+        if self.has_input("Axis"):
             self.axis = self.get_input("Axis")
-        if self.hasInputFromPort("Sort"):
+        if self.has_input("Sort"):
             self.kind = self.get_input("Sort")
-        if self.hasInputFromPort("Order"):
+        if self.has_input("Order"):
             self.order = self.get_input("Order")
 
         b = a.sort_array(axis=self.axis, kind=self.kind, order=self.order)
@@ -135,7 +135,7 @@ class ArrayFill(ArrayOperationModule, Module):
     it is filled with 0.0"""
     def compute(self):
         a = self.get_input("Array")
-        if self.hasInputFromPort("Value"):
+        if self.has_input("Value"):
             val = self.get_input("Value")
         else:
             val = 0.
@@ -252,7 +252,7 @@ class ArrayRound(ArrayOperationModule, Module):
 
     def compute(self):
         a = self.get_input("Array")
-        if self.hasInputFromPort("Decimals"):
+        if self.has_input("Decimals"):
             self.decimals = self.get_input("Decimals")
 
         out = NDArray()
@@ -274,7 +274,7 @@ class ArrayGetSigma(ArrayOperationModule, Module):
 
     def compute(self):
         a = self.get_input("Array")
-        if self.hasInputFromPort("Axis"):
+        if self.has_input("Axis"):
             self.axis = self.get_input("Axis")
 
         out = NDArray()
@@ -323,12 +323,12 @@ class ArraySetElement(ArrayOperationModule, Module):
         on to preserve the original array data. """
     def compute(self):
         a = self.get_input("Array")
-        if self.hasInputFromPort("Scalar Value"):
+        if self.has_input("Scalar Value"):
             self.v = self.get_input("Scalar Value")
         else:
             self.v = self.get_input("Value Array")
 
-        if self.hasInputFromPort("Single Index"):
+        if self.has_input("Single Index"):
             self.ind = self.get_input("Single Index")
         else:
             self.ind = self.get_input("Index Array")
@@ -353,7 +353,7 @@ class ArrayVariance(ArrayOperationModule, Module):
     """ Calculate the variance of the elements of an array """
     def compute(self):
         a = self.get_input("Array")
-        if self.hasInputFromPort("Axis"):
+        if self.has_input("Axis"):
             self.setResult("Variance", float(a.get_variance(axis=self.get_input("Axis"))))
         else:
             self.setResult("Variance", float(a.get_variance()))
@@ -378,17 +378,17 @@ class ArrayTrace(ArrayOperationModule, Module):
     """
     def compute(self):
         a = self.get_input("Array")
-        if self.hasInputFromPort("Axis1"):
+        if self.has_input("Axis1"):
             self.axis1 = self.get_input("Axis1")
         else:
             self.axis1 = 0
 
-        if self.hasInputFromPort("Axis2"):
+        if self.has_input("Axis2"):
             self.axis2 = self.get_input("Axis2")
         else:
             self.axis2 = 1
 
-        if self.hasInputFromPort("Offset"):
+        if self.has_input("Offset"):
             self.offset = self.get_input("Offset")
         else:
             self.offset = 0

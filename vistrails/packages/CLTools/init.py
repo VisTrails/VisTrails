@@ -182,7 +182,7 @@ def add_tool(path):
         if "stdin" in self.conf:
             name, type, options = self.conf["stdin"]
             type = type.lower()
-            if self.hasInputFromPort(name):
+            if self.has_input(name):
                 value = self.get_input(name)
                 if "file" == type:
                     if file_std:

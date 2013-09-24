@@ -545,12 +545,12 @@ class vtkScaledTransferFunction(Module):
     def compute(self):
         tf = self.get_input('TransferFunction')
         new_tf = copy.copy(tf)
-        if self.hasInputFromPort('Input'):
+        if self.has_input('Input'):
             port = self.get_input('Input')
             algo = port.vtkInstance.GetProducer()
             output = algo.GetOutput(port.vtkInstance.GetIndex())
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
-        elif self.hasInputFromPort('Dataset'):
+        elif self.has_input('Dataset'):
             algo = self.get_input('Dataset').vtkInstance
             output = algo
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()

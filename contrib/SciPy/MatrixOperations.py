@@ -126,7 +126,7 @@ class GetColumnRange(Matrix):
         
 class ATan2(MatrixOperation):
     def compute(self):
-        if self.hasInputFromPort("InputMatrix"):
+        if self.has_input("InputMatrix"):
             m = self.get_input("InputMatrix")
             r = m.Reals().matrix
             im = m.Imaginaries().matrix

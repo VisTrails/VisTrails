@@ -33,19 +33,19 @@ class BinaryThresholdImageFilter(Module):
         im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
+        if self.has_input("Input PixelType"):
             inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
+        if self.has_input("Output PixelType"):
             outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
+        if self.has_input("Dimension"):
             dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
@@ -54,19 +54,19 @@ class BinaryThresholdImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        if self.hasInputFromPort("Upper Threshold"):
+        if self.has_input("Upper Threshold"):
             upper_threshold = self.get_input("Upper Threshold")
         else:
             upper_threshold = 255
 
         lower_threshold = self.get_input("Lower Threshold")
 
-        if self.hasInputFromPort("Outside Value"):
+        if self.has_input("Outside Value"):
             outside_value = self.get_input("Outside Value")
         else:
             outside_value = 0
 
-        if self.hasInputFromPort("Inside Value"):
+        if self.has_input("Inside Value"):
             inside_value = self.get_input("Inside Value")
         else:
             inside_value = 255

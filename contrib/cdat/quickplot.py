@@ -12,9 +12,9 @@ class quickplot(Module, NotCacheable):
 
     def compute(self):
         args = []
-        if not self.hasInputFromPort('dataset'):
+        if not self.has_input('dataset'):
             raise ModuleError(self, "'dataset' is mandatory.")
-        if not self.hasInputFromPort('plot'):
+        if not self.has_input('plot'):
             raise ModuleError(self, "'plot' is mandatory.")
 
         dataset = self.get_input('dataset')

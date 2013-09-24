@@ -64,12 +64,12 @@ class SAHMSpatialOutputViewerCell(SpreadsheetCell):
 
         inputs["model_tag"] = os.path.split(inputs["model_dir"])[1]
 
-        if self.hasInputFromPort("row"):
+        if self.has_input("row"):
             if not self.location:
                 self.location = CellLocation()
             self.location.row = self.get_input('row') - 1
         
-        if self.hasInputFromPort("column"):
+        if self.has_input("column"):
             if not self.location:
                 self.location = CellLocation()
             self.location.col = self.get_input('column') - 1
