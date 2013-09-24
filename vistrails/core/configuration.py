@@ -290,10 +290,11 @@ def default_thumbs():
 
 def add_specific_config(base_dir):
      """add_specific_config() -> dict
-    Returns a dict with other specific configuration
-    to the current platform added to base_dir
-    
-    """
+
+     Returns a dict with other specific configuration to the current
+     platform added to base_dir
+
+     """
      newdir = dict(base_dir)
      if system.systemType == 'Darwin':
          newdir['useMacBrushedMetalStyle'] = True

@@ -268,14 +268,14 @@ class QAliasDetailsWidget(QtGui.QWidget):
             return
         if new_alias in self.table.aliases.keys():
             show_warning("Mashup",
-                         """Label name %s already exists. 
-Please type a different name. """ % new_alias)
+                         "Label name %s already exists. "
+                         "Please type a different name." % new_alias)
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         elif new_alias == '':
             show_warning("Mashup",
-                         """Variables with empty name are not allowed. 
-Please type a unique name. """ % new_alias)
+                         "Variables with empty name are not allowed. "
+                         "Please type a unique name.")
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         else:

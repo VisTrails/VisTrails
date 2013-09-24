@@ -61,20 +61,24 @@ import os
 
 class ImageMagick(Module):
     """ImageMagick is the base Module for all Modules in the ImageMagick
-package. It simply defines some helper methods for subclasses."""
+    package. It simply defines some helper methods for subclasses.
+
+    """
 
     def compute(self):
         raise IncompleteImplementation
 
     def input_file_description(self):
-        """Returns a fully described name in the ImageMagick format. For example,
-a file stored in PNG format may be described by its extension
+        """Returns a fully described name in the ImageMagick format. For
+        example, a file stored in PNG format may be described by its extension
 
         - 'graphic.png' indicates the filename 'graphic.png', using the PNG
         file format.
 
         - 'graphic:png' indicates the filename 'graphic', still using the PNG
-        file format."""
+        file format.
+
+        """
         i = self.getInputFromPort("input")
         if self.hasInputFromPort('inputFormat'):
             return self.getInputFromPort('inputFormat') + ':' + i.name
@@ -84,13 +88,18 @@ a file stored in PNG format may be described by its extension
 
 class Convert(ImageMagick):
     """Convert is the base Module for VisTrails Modules in the ImageMagick
-package that deal with operations on images. Convert is a bit of a misnomer since
-the 'convert' tool does more than simply file format conversion. Each subclass
-has a descriptive name of the operation it implements."""
+    package that deal with operations on images. Convert is a bit of a
+    misnomer since the 'convert' tool does more than simply file
+    format conversion. Each subclass has a descriptive name of the
+    operation it implements.
+
+    """
 
     def create_output_file(self):
-        """Creates a File with the output format given by the
-outputFormat port."""
+        """Creates a File with the output format given by the outputFormat
+        port.
+
+        """
         if self.hasInputFromPort('outputFormat'):
             s = '.' + self.getInputFromPort('outputFormat')
             return self.interpreter.filePool.create_file(suffix=s)
@@ -98,8 +107,10 @@ outputFormat port."""
             return self.interpreter.filePool.create_file(suffix='.png')
 
     def geometry_description(self):
-        """returns a string with the description of the geometry as
-indicated by the appropriate ports (geometry or width and height)"""
+        """returns a string with the description of the geometry as indicated
+        by the appropriate ports (geometry or width and height)
+
+        """
         # if complete geometry is available, ignore rest
         if self.hasInputFromPort("geometry"):
             return self.getInputFromPort("geometry")
@@ -112,7 +123,9 @@ indicated by the appropriate ports (geometry or width and height)"""
 
     def run(self, *args):
         """run(*args), runs ImageMagick's 'convert' on a shell, passing all
-arguments to the program."""
+        arguments to the program.
+
+        """
         path = None
         if configuration.check('path'):
             path = configuration.path
@@ -138,8 +151,10 @@ arguments to the program."""
 class CombineRGBA(Module):
 
     def create_output_file(self):
-        """Creates a File with the output format given by the
-outputFormat port."""
+        """Creates a File with the output format given by the outputFormat
+        port.
+
+        """
         if self.hasInputFromPort('outputFormat'):
             s = '.' + self.getInputFromPort('outputFormat')
             return self.interpreter.filePool.create_file(suffix=s)
@@ -183,7 +198,10 @@ class Negate(Convert):
 
 
 class Scale(Convert):
-    """Scale rescales the input image to the given geometry description."""
+    """Scale rescales the input image to the given geometry
+    description.
+
+    """
 
     def compute(self):
         o = self.create_output_file()
@@ -195,8 +213,10 @@ class Scale(Convert):
 
 
 class GaussianBlur(Convert):
-    """GaussianBlur convolves the image with a Gaussian filter of given radius
-and standard deviation."""
+    """GaussianBlur convolves the image with a Gaussian filter of given
+    radius and standard deviation.
+
+    """
 
     def compute(self):
         (radius, sigma) = self.getInputFromPort('radiusSigma')
@@ -223,8 +243,10 @@ no_param_options = [("Negate", "-negate",
 
 def no_param_options_method_dict(optionName):
     """Creates a method dictionary for a module that takes no extra
-parameters. This dictionary will be used to dynamically create a
-VisTrails module."""
+    parameters. This dictionary will be used to dynamically create a
+    VisTrails module.
+
+    """
    
     def compute(self):
         o = self.create_output_file()
@@ -241,9 +263,11 @@ float_param_options = [("DetectEdges", "-edge", "radius", "filter radius"),
                        ("MedianFilter", "-median", "radius", "filter radius")]
 
 def float_param_options_method_dict(optionName, portName):
-    """Creates a method dictionary for a module that has one port
-taking a floating-point value. This dictionary will be used to
-dynamically create a VisTrails module."""
+    """Creates a method dictionary for a module that has one port taking a
+    floating-point value. This dictionary will be used to dynamically
+    create a VisTrails module.
+
+    """
 
     def compute(self):
         o = self.create_output_file()

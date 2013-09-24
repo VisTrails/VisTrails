@@ -169,7 +169,9 @@ class VistrailsStartup(object):
 
     def get_python_environment(self):
         """get_python_environment(): returns the python environment generated
-by startup.py. This should only be called after init()."""
+        by startup.py. This should only be called after init().
+
+        """
         return self._python_environment
 
     def create_default_directory(self):

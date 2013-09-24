@@ -36,12 +36,14 @@
 import copy
 
 class Bidict(dict):
-    """Subclass of mapping that automatically keeps track of the
-inverse mapping. Note: self.inverse is a simple dict, so it won't keep
-track of deletions directly to self.inverse and things like that. Use
-this for lookups ONLY!. Also, if mapping is not bijective, there's no
-guarantee the inverse mapping will be consistent (particularly in the
-presence of deletions.)"""
+    """Subclass of mapping that automatically keeps track of the inverse
+    mapping. Note: self.inverse is a simple dict, so it won't keep
+    track of deletions directly to self.inverse and things like
+    that. Use this for lookups ONLY!. Also, if mapping is not
+    bijective, there's no guarantee the inverse mapping will be
+    consistent (particularly in the presence of deletions.)
+
+    """
 
     def __init__(self, *args, **kwargs):
 

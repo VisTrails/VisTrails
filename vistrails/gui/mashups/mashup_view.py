@@ -273,10 +273,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         (pid, pname) = self.mshpController.findFirstTaggedParent(self.mshpController.currentVersion)
         if pid >= 1:
             res = show_question("VisTrails::Mashups", 
-                """You've decided to keep a modified version of '%s'.
-Would you like to update it (this will move the tag to the current version)?
-Click on No to create a new tag.""" %pname,
-                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
+                                "You've decided to keep a modified version "
+                                "of '%s'. Would you like to update it (this "
+                                "will move the tag to the current version)? "
+                                "Click on No to create a new tag." % pname,
+                                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
             if res == YES_BUTTON:
                 #move tag
                 self.mshpController.moveTag(pid, 

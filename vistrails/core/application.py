@@ -354,9 +354,11 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.vistrailsStartup.set_registry(reg)
         
     def get_python_environment(self):
-        """get_python_environment(): returns an environment that
-includes local definitions from startup.py. Should only be called
-after self.init()"""
+        """get_python_environment(): returns an environment that includes
+        local definitions from startup.py. Should only be called after
+        self.init()
+
+        """
         return self._python_environment
 
     def destroy(self):

@@ -139,11 +139,15 @@ _system_guesser.add_test(_guess_windows, 'windows')
 ##############################################################################
 
 def guess_system():
-    """guess_system will try to identify which system you're running. Result
-will be a string describing the system. This is more discriminating than
-Linux/OSX/Windows: We'll try to figure out whether you're running SuSE, Debian,
-Ubuntu, RedHat, fink, darwinports, etc.
+    """guess_system will try to identify which system you're
+    running. Result will be a string describing the system. This is
+    more discriminating than Linux/OSX/Windows: We'll try to figure
+    out whether you're running SuSE, Debian, Ubuntu, RedHat, fink,
+    darwinports, etc.
 
-Currently, we only support SuSE, Debian, Ubuntu and Fedora. However, we only
-have actual bundle installing for Debian, Ubuntu and Fedora."""
+    Currently, we only support SuSE, Debian, Ubuntu and
+    Fedora. However, we only have actual bundle installing for Debian,
+    Ubuntu and Fedora.
+
+    """
     return _system_guesser.guess_system()

@@ -1092,8 +1092,10 @@ class SmartSource(NotCacheable, Module):
 class _ZIPDecompressor(object):
 
     """_ZIPDecompressor extracts a file from a .zip file. On Win32, uses
-the zipfile library from python. On Linux/Macs, uses command line, because
-it avoids moving the entire file contents to/from memory."""
+    the zipfile library from python. On Linux/Macs, uses command line,
+    because it avoids moving the entire file contents to/from memory.
+
+    """
 
     # TODO: Figure out a way of doing this right on Win32
 
@@ -1108,13 +1110,13 @@ it avoids moving the entire file contents to/from memory."""
                       (self._archive,
                        self._filename_in_archive,
                        self._output_filename))
-# zipfile cannot handle big files
-#            import zipfile
-#             output_file = open(self._output_filename, 'w')
-#             zip_file = zipfile.ZipFile(self._archive)
-#             contents = zip_file.read(self._filename_in_archive)
-#             output_file.write(contents)
-#             output_file.close()
+            # zipfile cannot handle big files
+            # import zipfile
+            # output_file = open(self._output_filename, 'w')
+            # zip_file = zipfile.ZipFile(self._archive)
+            # contents = zip_file.read(self._filename_in_archive)
+            # output_file.write(contents)
+            # output_file.close()
     else:
         def extract(self):
             os.system("unzip -p %s %s > %s" %

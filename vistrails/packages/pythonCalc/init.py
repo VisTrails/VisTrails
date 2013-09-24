@@ -50,7 +50,9 @@ from vistrails.core.modules.config import IPort, OPort
 
 class PythonCalc(Module):
     """PythonCalc is a module that performs simple arithmetic operations
-on its inputs."""
+    on its inputs.
+
+    """
 
     # You need to report the ports the module wants to make
     # available. This is done by creating _input_ports and

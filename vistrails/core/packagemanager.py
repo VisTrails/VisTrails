@@ -255,8 +255,10 @@ class PackageManager(object):
         return self._orig_import(name, globals, locals, fromlist, level)
 
     def finalize_packages(self):
-        """Finalizes all installed packages. Call this only prior to
-exiting VisTrails."""
+        """Finalizes all installed packages. Call this only prior to exiting
+        VisTrails.
+
+        """
         for package in self._package_list.itervalues():
             package.finalize()
         self._package_list = {}
@@ -274,8 +276,10 @@ exiting VisTrails."""
         return pkg
 
     def add_package(self, codepath, add_to_package_list=True):
-        """Adds a new package to the manager. This does not initialize it.
-To do so, call initialize_packages()"""
+        """Adds a new package to the manager. This does not initialize it.  To
+        do so, call initialize_packages()
+
+        """
         package = self.get_available_package(codepath)
         if add_to_package_list:
             self.add_to_package_list(codepath, package)
@@ -318,8 +322,10 @@ To do so, call initialize_packages()"""
         app.send_notification("package_removed", codepath)
 
     def has_package(self, identifier, version=None):
-        """has_package(identifer: string) -> Boolean.
-Returns true if given package identifier is present."""
+        """has_package(identifer: string) -> Boolean.  
+        Returns true if given package identifier is present.
+
+        """
 
         # check if it's an old identifier
         identifier = self._old_identifier_map.get(identifier, identifier)

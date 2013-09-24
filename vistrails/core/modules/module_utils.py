@@ -48,7 +48,9 @@ import unittest
 class FilePool(object):
 
     """FilePool provides a convenient interface for Module developers to
-use temporary files. """
+    use temporary files.
+
+    """
     
     def __init__(self):
         d = {'prefix':'vt_tmp'}
@@ -65,9 +67,11 @@ use temporary files. """
     def cleanup(self):
         """cleanup() -> None
 
-Cleans up the file pool, by removing all temporary files
-and the directory they existed in. Module developers should never
-call this directly."""
+        Cleans up the file pool, by removing all temporary files and
+        the directory they existed in. Module developers should never
+        call this directly.
+
+        """
         if not os.path.isdir(self.directory):
             # cleanup has already happened
             return
@@ -86,8 +90,11 @@ call this directly."""
     def create_file(self, suffix = '', prefix = 'vt_tmp'):
         """create_file(suffix='', prefix='vt_tmp') -> File.
 
-Returns a File module representing a writable file for use in modules. To
-avoid race conditions, this file will already exist in the file system."""
+        Returns a File module representing a writable file for use in
+        modules. To avoid race conditions, this file will already
+        exist in the file system.
+
+        """
         (fd, name) = tempfile.mkstemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
@@ -101,8 +108,11 @@ avoid race conditions, this file will already exist in the file system."""
     def create_directory(self, suffix = '', prefix = 'vt_tmp'):
         """create_directory(suffix='', prefix='vt_tmp') -> Directory.
 
-Returns a Directory module representing a writable directory for use in modules. To
-avoid race conditions, this directory will already exist in the file system."""
+        Returns a Directory module representing a writable directory
+        for use in modules. To avoid race conditions, this directory
+        will already exist in the file system.
+
+        """
         name = tempfile.mkdtemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
@@ -122,11 +132,13 @@ avoid race conditions, this directory will already exist in the file system."""
     def make_local_copy(self, src):
         """make_local_copy(src) -> File
 
-Returns a file in the filePool that's either a link or a copy of the
-given file path. This ensures the file's longevity when
-necessary. Since it might use a hardlink for speed, modules should
-only use this method if the file is not going to be changed in the
-future."""
+        Returns a file in the filePool that's either a link or a copy
+        of the given file path. This ensures the file's longevity when
+        necessary. Since it might use a hardlink for speed, modules
+        should only use this method if the file is not going to be
+        changed in the future.
+
+        """
         (fd, name) = tempfile.mkstemp(suffix=self.guess_suffix(src),
                                       dir=self.directory)
         os.close(fd)

@@ -59,10 +59,13 @@ import tempfile
 ################################################################################
 
 def invert(d):
-    """invert(dict) -> dict. Returns an inverted dictionary by
-    switching key-value pairs. If you use this repeatedly,
-    consider switching the underlying data structure to a
-    core.data_structures.bijectivedict.Bidict instead."""
+    """invert(dict) -> dict. 
+
+    Returns an inverted dictionary by switching key-value pairs. If
+    you use this repeatedly, consider switching the underlying data
+    structure to a core.data_structures.bijectivedict.Bidict instead.
+
+    """
     return dict([[v,k] for k,v in d.items()])
 
 ################################################################################
@@ -78,35 +81,43 @@ def abstract():
 ################################################################################
 
 class NoMakeConnection(Exception):
-    """NoMakeConnection is raised when a VisConnection doesn't know
-    how to create a live version of itself. This is an internal error
-    that should never be seen by a user. Please report a bug if you
-    see this."""
+    """NoMakeConnection is raised when a VisConnection doesn't know how to
+    create a live version of itself. This is an internal error that
+    should never be seen by a user. Please report a bug if you see
+    this.
+
+    """
     def __init__(self, conn):
         self.conn = conn
     def __str__(self):
         return "Connection %s has no makeConnection method" % self.conn
 
 class NoSummon(Exception):
-    """NoSummon is raised when a VisObject doesn't know how to create
-    a live version of itself. This is an internal error that should
-    never be seen by a user. Please report a bug if you see this."""
+    """NoSummon is raised when a VisObject doesn't know how to create a
+    live version of itself. This is an internal error that should
+    never be seen by a user. Please report a bug if you see this.
+
+    """
     def __init__(self, obj):
         self.obj = obj
     def __str__(self):
         return "Module %s has no summon method" % self.obj
 
 class UnimplementedException(Exception):
-    """UnimplementedException is raised when some interface hasn't
-    been implemented yet. This is an internal error that should never
-    be seen by a user. Please report a bug if you see this."""
+    """UnimplementedException is raised when some interface hasn't been
+    implemented yet. This is an internal error that should never be
+    seen by a user. Please report a bug if you see this.
+
+    """
     def __str__(self):
         return "Object is Unimplemented"
 
 class AbstractException(Exception):
     """AbstractException is raised when an abstract method is called.
     This is an internal error that should never be seen by a
-    user. Please report a bug if you see this."""
+    user. Please report a bug if you see this.
+
+    """
     def __str__(self):
         return "Abstract Method was called"
 
@@ -114,15 +125,19 @@ class VistrailsInternalError(Exception):
     """VistrailsInternalError is raised when an unexpected internal
     inconsistency happens. This is (clearly) an internal error that
     should never be seen by a user. Please report a bug if you see
-    this."""
+    this.
+
+    """
     def __init__(self, msg):
         self.emsg = msg
     def __str__(self):
         return "Vistrails Internal Error: " + str(self.emsg)
 
 class VersionTooLow(Exception):
-    """VersionTooLow is raised when you're running an outdated version
-    of some necessary software or package."""
+    """VersionTooLow is raised when you're running an outdated version of
+    some necessary software or package.
+
+    """
     def __init__(self, sw, required_version):
         self.sw = sw
         self.required_version = required_version
@@ -134,8 +149,10 @@ class VersionTooLow(Exception):
                 " or later")
 
 class InvalidModuleClass(Exception):
-    """InvalidModuleClass is raised when there's something wrong with
-a class that's being registered as a module within VisTrails."""
+    """InvalidModuleClass is raised when there's something wrong with a
+    class that's being registered as a module within VisTrails.
+
+    """
 
     def __init__(self, klass):
         self.klass = klass
