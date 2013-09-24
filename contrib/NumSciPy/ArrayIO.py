@@ -191,7 +191,7 @@ class ReadRAW(ArrayIOModule, Module):
         
     def compute(self):
         fn = self.get_input("Filename")
-        sizes = self.getInputListFromPort("Sizes")
+        sizes = self.get_input_list("Sizes")
         dtype = self.get_input("DataType")
         ar = self.helper.read_raw(fn, sizes, dtype)
         out = NDArray()

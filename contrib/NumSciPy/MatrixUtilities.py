@@ -70,8 +70,8 @@ class MatlabWriter(ArrayUtilityModule, Module):
         else:
             fname = self.get_input("File").name
 
-        ar_list = self.getInputListFromPort("Arrays")
-        mat_list = self.getInputListFromPort("Matrices")
+        ar_list = self.get_input_list("Arrays")
+        mat_list = self.get_input_list("Matrices")
         ar_dict = {}
         for i in xrange(len(ar_list)):
             ar_name = "array_" + str(i)

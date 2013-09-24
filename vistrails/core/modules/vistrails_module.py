@@ -72,7 +72,7 @@ class ModuleBreakpoint(Exception):
         in_ports = self.module.__dict__["inputPorts"]
         inputs = {}
         for p in in_ports:
-            inputs[p] = self.module.getInputListFromPort(p)
+            inputs[p] = self.module.get_input_list(p)
 
         return inputs
 
@@ -569,7 +569,7 @@ class Module(Serializable):
             self.is_method[conn] = (self._latest_method_order, inputPort)
             self._latest_method_order += 1
 
-    def getInputListFromPort(self, inputPort):
+    def get_input_list(self, inputPort):
         """Returns the value(s) coming in on the input port named
         **inputPort**.  When a port can accept more than one input,
         this method obtains all the values being passed in.
@@ -592,7 +592,7 @@ class Module(Serializable):
         return [connector() for connector in self.inputPorts[inputPort]]
 
     def forceGetInputListFromPort(self, inputPort):
-        """Like :py:func:`getInputListFromPort` except that if no values
+        """Like :py:func:`get_input_list` except that if no values
         exist, it returns an empty list
 
         :param inputPort: the name of the input port being queried
@@ -602,7 +602,7 @@ class Module(Serializable):
         """
         if not self.inputPorts.has_key(inputPort):
             return []
-        return self.getInputListFromPort(inputPort)
+        return self.get_input_list(inputPort)
 
     def enableOutputPort(self, outputPort):
 

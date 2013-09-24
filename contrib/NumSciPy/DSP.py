@@ -17,7 +17,7 @@ class SignalGenerator(DSPModule, Module):
     def compute(self):
         samples = self.get_input("Samples")
         periods = self.get_input("Periods")
-        freqs = self.getInputListFromPort("Frequencies")
+        freqs = self.get_input_list("Frequencies")
 
         ar = numpy.linspace(0., float(periods) * 2. * scipy.pi, periods * samples)
         out_ar = numpy.zeros(periods * samples)

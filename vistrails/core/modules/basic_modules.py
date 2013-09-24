@@ -873,7 +873,7 @@ class List(Constant):
             middle = self.outputPorts['value']
             got_value = True
         if self.has_input('head'):
-            head = self.getInputListFromPort('head')
+            head = self.get_input_list('head')
             got_value = True
         if self.input_ports_order:
             items = [self.get_input(p)
@@ -900,7 +900,7 @@ def dict_compute(self):
         Constant.compute(self)
         d.update(self.outputPorts['value'])
     if self.has_input('addPair'):
-        pairs_list = self.getInputListFromPort('addPair')
+        pairs_list = self.get_input_list('addPair')
         d.update(pairs_list)
     if self.has_input('addPairs'):
         d.update(self.get_input('addPairs'))

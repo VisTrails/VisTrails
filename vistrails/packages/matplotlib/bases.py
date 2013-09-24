@@ -139,7 +139,7 @@ class MplFigure(Module):
         super(MplFigure, self).updateUpstream()
 
     def compute(self):
-        plots = self.getInputListFromPort("addPlot")
+        plots = self.get_input_list("addPlot")
 
         if self.has_input("figureProperties"):
             figure_props = self.get_input("figureProperties")

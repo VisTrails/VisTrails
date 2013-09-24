@@ -161,7 +161,7 @@ class Histogram(ArrayPlot, Module):
     enabling the Normalize option.
     '''
     def compute(self):
-        data = self.getInputListFromPort("Data Array")
+        data = self.get_input_list("Data Array")
         self.label_dict = None
         self.color_dict = None
         use_legend = self.force_get_input("Legend")
@@ -275,7 +275,7 @@ class BarChart(ArrayPlot, Module):
         return a
         
     def compute(self):
-        data = self.getInputListFromPort("Data")
+        data = self.get_input_list("Data")
         errs = self.forceGetInputListFromPort("Error Bars")
         if len(errs) == 0:
             errs = None
@@ -403,8 +403,8 @@ class ScatterPlot(ArrayPlot, Module):
     Markers input assigning a valid pylab symbol to a dataset.
     '''
     def compute(self):
-        xdata = self.getInputListFromPort("X Array")
-        ydata = self.getInputListFromPort("Y Array")
+        xdata = self.get_input_list("X Array")
+        ydata = self.get_input_list("Y Array")
         self.label_dict = None
         use_legend = self.force_get_input("Legend")
         randomcolors = self.force_get_input("Random Colors")

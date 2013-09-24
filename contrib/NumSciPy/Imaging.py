@@ -35,7 +35,7 @@ class GaussianGradientMagnitude(ArrayImaging, Module):
     or as a single number, in which case the filter will be isotropic. """
     def compute(self):
         im = self.get_input("Image")
-        sigma = self.getInputListFromPort("Sigmas")
+        sigma = self.get_input_list("Sigmas")
         if len(sigma) <= 1:
             sigma = sigma[0]
         der = scipy.ndimage.gaussian_gradient_magnitude(im.get_array(), sigma)
@@ -103,7 +103,7 @@ class GaussianSmooth(ArrayImaging, Module):
     or as a single number, in which case the filter will be isotropic. """
     def compute(self):
         im = self.get_input("Input Array")
-        sigma = self.getInputListFromPort("Sigmas")
+        sigma = self.get_input_list("Sigmas")
         if len(sigma) <= 1:
             sigma = sigma[0]
         der = scipy.ndimage.gaussian_filter(im.get_array(), sigma)
