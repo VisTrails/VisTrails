@@ -169,7 +169,7 @@ Name: {app}\extensions; Components: extensions; Tasks:
 Name: {app}\doc; Components: usersguide; Tasks:  
 Name: {app}\scripts
 Name: {app}\scripts\gen_vtk_examples
-Name: {app}libsrc
+Name: {app}\libsrc
 Name: {app}\Python27_64
 Name: {app}\Python27_64\include
 Name: {app}\Python27_64\Lib
@@ -202,7 +202,7 @@ LogFileAppend=false
 Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles; Flags: uninsdeletekey
-Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\Python27_64\python.exe"" ""{app}\runvistrails.py"" ""{app}\Python27_64\python.exe"" ""{app}vistrails\run.py"" ""{app}"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
+Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\Python27_64\python.exe"" ""{app}\runvistrails.py"" ""{app}\Python27_64\python.exe"" ""{app}\vistrails\run.py"" ""{app}"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
 Root: HKCR; Subkey: .vtl; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
 [InstallDelete]
 Name: {app}\dot.exe; Type: files

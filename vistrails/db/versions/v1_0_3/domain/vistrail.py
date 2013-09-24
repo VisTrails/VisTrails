@@ -37,7 +37,7 @@ import copy
 import hashlib
 from auto_gen import DBVistrail as _DBVistrail
 from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
-    DBModule, DBAnnotation, DBActionAnnotation
+    DBModule, DBAnnotation, DBActionAnnotation, DBParameterExploration
 from id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
@@ -52,6 +52,7 @@ class DBVistrail(_DBVistrail):
                                           DBAnnotation.vtType})
 
         self.idScope.setBeginId('action', 1)
+        self.idScope.setBeginId(DBParameterExploration.vtType, 1)
         self.db_objects = {}
 
         # keep a reference to the current logging information here
