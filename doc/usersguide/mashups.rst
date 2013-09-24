@@ -79,7 +79,7 @@ A Simple Example
    * Set the ``Values List`` to [0.3, 0.5].  See figure :ref:`Configuring the Opacity Alias <fig-opacity>`.
    * Select the ``Background`` alias and make sure the display widget is a ``combobox``.
    * Select ``Preview``.  See figure :ref:`The resulting mashup <fig-mashupcomp>`.
-   * Select ``Keep``, ``No``, and then enter "one" as the new tag name.
+   * Select ``Tag``, ``No``, and then enter "one" as the new tag name.
    * Save the file.
 
 .. _fig-opacityalias:
