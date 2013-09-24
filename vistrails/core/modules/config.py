@@ -441,8 +441,6 @@ def parse_documentation():
         _docs[(cls_name, field_name)] = (field_type, ' '.join(doc_lines))
 
 parse_documentation()
-for k,v in _docs.iteritems():
-    print k, ":", v
 
 ConstantWidgetConfig = \
     namedtuple('ConstantWidgetConfig', 
