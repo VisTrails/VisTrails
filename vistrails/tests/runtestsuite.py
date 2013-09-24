@@ -94,6 +94,7 @@ import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
 import vistrails.gui.application
+from vistrails.core.system import vistrails_root_directory
 
 ###############################################################################
 # Testing Examples
@@ -168,6 +169,12 @@ test_modules = None
 if len(args) > 0:
     test_modules = args
 
+if dotVistrails is None:
+    shutil.copyfile(
+            os.path.join(vistrails_root_directory(),
+                         'tests', 'resources', 'test_startup.xml'),
+            os.path.join(test_dotvistrails, 'startup.xml'))
+
 def module_filter(name):
     if test_modules is None:
         return True
@@ -189,6 +196,7 @@ optionsDict = {
         'singleInstance': False,
         'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
+        'enablePackagesSilently': True,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
