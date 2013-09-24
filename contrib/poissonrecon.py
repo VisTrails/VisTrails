@@ -23,7 +23,7 @@ class PoissonRecon(Module):
 
     def compute(self):
         self.checkInputPort('pts')
-        f1 = self.getInputFromPort('mesh1')
+        f1 = self.get_input('mesh1')
 
         make_file = self.interpreter.filePool.create_file
 

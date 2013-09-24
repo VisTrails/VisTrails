@@ -50,12 +50,12 @@ class ElementwiseProduct(Module):
     """
 
     def compute(self):
-        list1 = self.getInputFromPort('List1')
-        list2 = self.getInputFromPort('List2')
+        list1 = self.get_input('List1')
+        list2 = self.get_input('List2')
         if len(list1) != len(list2):
             raise ModuleError(self, "Both lists must have the same size.")
 
-        numerical = self.getInputFromPort('NumericalProduct')
+        numerical = self.get_input('NumericalProduct')
         if numerical:
             result = [a*b for a, b in itertools.izip(list1, list2)]
         else:
@@ -68,8 +68,8 @@ class Dot(Module):
     """This module produces a Dot product between two lists."""
 
     def compute(self):
-        list1 = self.getInputFromPort("List1")
-        list2 = self.getInputFromPort("List2")
+        list1 = self.get_input("List1")
+        list2 = self.get_input("List2")
         if len(list1) != len(list2):
             raise ModuleError(self, 'Both lists must have the same size.')
 
@@ -82,8 +82,8 @@ class Cross(Module):
     """This module produces a Cross product between two 3-D vectors."""
 
     def compute(self):
-        list1 = self.getInputFromPort("List1")
-        list2 = self.getInputFromPort("List2")
+        list1 = self.get_input("List1")
+        list2 = self.get_input("List2")
         if not (len(list1) == len(list2) == 3):
             raise ModuleError(self, 'Both lists must have size 3.')
 
@@ -102,8 +102,8 @@ class CartesianProduct(Module):
     """
 
     def compute(self):
-        list1 = self.getInputFromPort("List1")
-        list2 = self.getInputFromPort("List2")
+        list1 = self.get_input("List1")
+        list2 = self.get_input("List2")
         result = []
         # If CombineTuple is not set or True, existing tuples will be
         # concatenated instead of put inside a new tuple, eg:
@@ -111,7 +111,7 @@ class CartesianProduct(Module):
         #     [(1, 2)], [3, 4] -> [(1, 2, 3), (1, 2, 4)]
         #   without:
         #     [(1, 2)], [3, 4] -> [((1, 2), 3), ((1, 2), 4)]
-        if not self.getInputFromPort('CombineTuple'):
+        if not self.get_input('CombineTuple'):
             for i in list1:
                 for j in list2:
                     tuple_ = (i, j)

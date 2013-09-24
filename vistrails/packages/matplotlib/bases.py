@@ -97,7 +97,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
     def compute(self):
         """ compute() -> None
         """
-        source = self.getInputFromPort('source')
+        source = self.get_input('source')
         s = ('from pylab import *\n'
              'from numpy import *\n' +
              'figure(%d)' % self.figInstance.number +
@@ -142,13 +142,13 @@ class MplFigure(Module):
         plots = self.getInputListFromPort("addPlot")
 
         if self.hasInputFromPort("figureProperties"):
-            figure_props = self.getInputFromPort("figureProperties")
+            figure_props = self.get_input("figureProperties")
             figure_props.update_props(self.figInstance)
         if self.hasInputFromPort("axesProperties"):
-            axes_props = self.getInputFromPort("axesProperties")
+            axes_props = self.get_input("axesProperties")
             axes_props.update_props(self.figInstance.gca())
         if self.hasInputFromPort("setLegend"):
-            legend = self.getInputFromPort("setLegend")
+            legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
         #FIXME write file out if File port is attached!

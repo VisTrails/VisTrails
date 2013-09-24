@@ -115,7 +115,7 @@ class Constant(Module):
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
-        v = self.getInputFromPort("value")
+        v = self.get_input("value")
         b = self.validate(v)
         if not b:
             raise ModuleError(self, "Internal Error: Constant failed validation")
@@ -323,10 +323,10 @@ class Path(Constant):
     def get_name(self):
         n = None
         if self.hasInputFromPort("value"):
-            n = self.getInputFromPort("value").name
+            n = self.get_input("value").name
         if n is None:
             self.checkInputPort("name")
-            n = self.getInputFromPort("name")
+            n = self.get_input("name")
         return n
         
     def set_results(self, n):
@@ -392,7 +392,7 @@ class File(Path):
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_file") and
-            self.getInputFromPort("create_file")):
+            self.get_input("create_file")):
             vistrails.core.system.touch(n)
         if not os.path.isfile(n):
             raise ModuleError(self, 'File "%s" does not exist' % n)
@@ -426,7 +426,7 @@ class Directory(Path):
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_directory") and
-            self.getInputFromPort("create_directory")):
+            self.get_input("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
@@ -463,10 +463,10 @@ class OutputPath(Path):
     def get_name(self):
         n = None
         if self.hasInputFromPort("value"):
-            n = self.getInputFromPort("value").name
+            n = self.get_input("value").name
         if n is None:
             self.checkInputPort("name")
-            n = self.getInputFromPort("name")
+            n = self.get_input("name")
         return n
         
     def set_results(self, n):
@@ -493,15 +493,15 @@ class FileSink(NotCacheable, Module):
                     IPort("publishFile", Boolean, optional=True)]
     
     def compute(self):
-        input_file = self.getInputFromPort("file")
-        output_path = self.getInputFromPort("outputPath")
+        input_file = self.get_input("file")
+        output_path = self.get_input("outputPath")
         full_path = output_path.name
 
         try:
             vistrails.core.system.link_or_copy(input_file.name, full_path)
         except OSError, e:
             if self.hasInputFromPort("overwrite") and \
-                    self.getInputFromPort("overwrite"):
+                    self.get_input("overwrite"):
                 try:
                     os.unlink(full_path)
                     vistrails.core.system.link_or_copy(input_file.name, full_path)
@@ -514,7 +514,7 @@ class FileSink(NotCacheable, Module):
                 raise ModuleError(self, msg)
             
         if (self.hasInputFromPort("publishFile") and
-            self.getInputFromPort("publishFile") or 
+            self.get_input("publishFile") or 
             not self.hasInputFromPort("publishFile")):
             if self.moduleInfo.has_key('extra_info'):
                 if self.moduleInfo['extra_info'].has_key('pathDumpCells'):
@@ -550,13 +550,13 @@ class DirectorySink(NotCacheable, Module):
                     IPort("overwrite", Boolean, optional=True, default="True")]
 
     def compute(self):
-        input_dir = self.getInputFromPort("dir")
-        output_path = self.getInputFromPort("outputPath")
+        input_dir = self.get_input("dir")
+        output_path = self.get_input("outputPath")
         full_path = output_path.name
 
         if os.path.exists(full_path):
             if (self.hasInputFromPort("overwrite") and 
-                self.getInputFromPort("overwrite")):
+                self.get_input("overwrite")):
                 try:
                     if os.path.isfile(full_path):
                         os.remove(full_path)
@@ -588,7 +588,7 @@ class WriteFile(Converter):
     _output_ports = [OPort('out_value', File)]
 
     def compute(self):
-        contents = self.getInputFromPort('in_value')
+        contents = self.get_input('in_value')
         suffix = self.forceGetInputFromPort('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
         with open(result.name, 'wb') as fp:
@@ -723,7 +723,7 @@ class StandardOutput(NotCacheable, Module):
     _input_ports = [IPort("value", Module)]
     
     def compute(self):
-        v = self.getInputFromPort("value")
+        v = self.get_input("value")
         print v
 
 ##############################################################################
@@ -746,7 +746,7 @@ class Tuple(Module):
         self.values = tuple()
 
     def compute(self):
-        values = tuple([self.getInputFromPort(p)
+        values = tuple([self.get_input(p)
                         for p in self.input_ports_order])
         self.values = values
         self.setResult("value", values)
@@ -767,10 +767,10 @@ class Untuple(Module):
 
     def compute(self):
         if self.hasInputFromPort("tuple"):
-            tuple = self.getInputFromPort("tuple")
+            tuple = self.get_input("tuple")
             values = tuple.values
         else:
-            values = self.getInputFromPort("value")
+            values = self.get_input("value")
         for p, value in izip(self.output_ports_order, values):
             self.setResult(p, value)
 
@@ -796,7 +796,7 @@ class ConcatenateString(Module):
             v = i+1
             port = "str%s" % v
             if self.hasInputFromPort(port):
-                inp = self.getInputFromPort(port)
+                inp = self.get_input(port)
                 result += inp
         self.setResult("value", result)
 
@@ -809,7 +809,7 @@ class Not(Module):
     _output_ports = [OPort('value', 'Boolean')]
 
     def compute(self):
-        value = self.getInputFromPort('input')
+        value = self.get_input('input')
         self.setResult('value', not value)
 
 ##############################################################################
@@ -876,15 +876,15 @@ class List(Constant):
             head = self.getInputListFromPort('head')
             got_value = True
         if self.input_ports_order:
-            items = [self.getInputFromPort(p)
+            items = [self.get_input(p)
                      for p in self.input_ports_order]
             got_value = True
         if self.hasInputFromPort('tail'):
-            tail = self.getInputFromPort('tail')
+            tail = self.get_input('tail')
             got_value = True
 
         if not got_value:
-            self.getInputFromPort('value')
+            self.get_input('value')
         self.setResult('value', head + middle + items + tail)
 
 ##############################################################################
@@ -903,7 +903,7 @@ def dict_compute(self):
         pairs_list = self.getInputListFromPort('addPair')
         d.update(pairs_list)
     if self.hasInputFromPort('addPairs'):
-        d.update(self.getInputFromPort('addPairs'))
+        d.update(self.get_input('addPairs'))
         
     self.setResult("value", d)
         
@@ -933,7 +933,7 @@ class Unpickle(Module):
     _output_ports = [OPort('result', 'Variant')]
 
     def compute(self):
-        value = self.getInputFromPort('input')
+        value = self.get_input('input')
         self.setResult('result', pickle.loads(value))
 
 ##############################################################################
@@ -958,7 +958,7 @@ class CodeRunnerMixin(object):
         locals_ = locals()
         if use_input:
             for k in self.inputPorts:
-                locals_[k] = self.getInputFromPort(k)
+                locals_[k] = self.get_input(k)
         if use_output:
             for output_portname in self.output_ports_order:
                 locals_[output_portname] = None
@@ -999,7 +999,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     _output_pors = [OPort('self', 'Module')]
 
     def compute(self):
-        s = urllib.unquote(str(self.getInputFromPort('source')))
+        s = urllib.unquote(str(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################
@@ -1021,7 +1021,7 @@ class SmartSource(NotCacheable, Module):
         locals_ = locals()
 
         def smart_input_entry(k):
-            v = self.getInputFromPort(k)
+            v = self.get_input(k)
             if isinstance(v, Module) and hasattr(v, 'get_source'):
                 v = v.get_source()
             return (k, v)
@@ -1115,8 +1115,8 @@ class Unzip(Module):
     def compute(self):
         self.checkInputPort("archive_file")
         self.checkInputPort("filename_in_archive")
-        filename_in_archive = self.getInputFromPort("filename_in_archive")
-        archive_file = self.getInputFromPort("archive_file")
+        filename_in_archive = self.get_input("filename_in_archive")
+        archive_file = self.get_input("archive_file")
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
@@ -1136,7 +1136,7 @@ class UnzipDirectory(Module):
 
     def compute(self):
         self.checkInputPort("archive_file")
-        archive_file = self.getInputFromPort("archive_file")
+        archive_file = self.get_input("archive_file")
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         output = self.interpreter.filePool.create_directory()
@@ -1157,8 +1157,8 @@ class Round(Converter):
     _output_ports = [OPort('out_value', 'Integer')]
 
     def compute(self):
-        fl = self.getInputFromPort('in_value')
-        floor = self.getInputFromPort('floor')
+        fl = self.get_input('in_value')
+        floor = self.get_input('floor')
         if floor:
             integ = int(fl)         # just strip the decimals
         else:
@@ -1174,7 +1174,7 @@ class TupleToList(Converter):
     _output_ports = [OPort('out_value', 'List')]
     
     def compute(self):
-        tu = self.getInputFromPort('in_value')
+        tu = self.get_input('in_value')
         if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
             raise ModuleError(self, "Input is not a tuple")
         self.setResult('out_value', list(tu.values))
@@ -1198,7 +1198,7 @@ class Assert(Module):
     _input_ports = [IPort('condition', 'Boolean')]
 
     def compute(self):
-        condition = self.getInputFromPort('condition')
+        condition = self.get_input('condition')
         if not condition:
             raise ModuleError(self, "Assert: condition is False",
                               abort=True)
@@ -1215,8 +1215,8 @@ class AssertEqual(Module):
                     IPort('value2', 'Module')]
 
     def compute(self):
-        values = (self.getInputFromPort('value1'),
-                  self.getInputFromPort('value2'))
+        values = (self.get_input('value1'),
+                  self.get_input('value2'))
         if values[0] != values[1]:
             raise ModuleError(self, "AssertEqual: values are different",
                               abort=True)

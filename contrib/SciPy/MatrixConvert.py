@@ -30,8 +30,8 @@ import numpy, scipy
 class MatrixConvert(SciPy):
 
     def compute(self):
-        m = self.getInputFromPort("InputMatrix")
-        to = self.getInputFromPort("OutputType")
+        m = self.get_input("InputMatrix")
+        to = self.get_input("OutputType")
 
         to = to.upper()
         if to == 'Dense':
@@ -69,7 +69,7 @@ class vtkDataSetToMatrix(SciPy):
         
     def compute(self):
         if self.hasInputFromPort("vtkUnstructuredGrid"):
-            self.from_unstructured_grid(self.getInputFromPort("vtkUnstructuredGrid"))
+            self.from_unstructured_grid(self.get_input("vtkUnstructuredGrid"))
         else:
             pass
 
@@ -110,8 +110,8 @@ class PhaseHistogramToVTKPoints(SciPy):
     def compute(self):
         import vtk
         
-        phasors = self.getInputFromPort("FFT Input")
-        numbins = self.getInputFromPort("Num Bins")
+        phasors = self.get_input("FFT Input")
+        numbins = self.get_input("Num Bins")
         phasor_matrix = phasors.matrix.toarray()
         (timeslices,phases) = phasor_matrix.shape
 

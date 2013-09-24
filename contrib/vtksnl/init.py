@@ -711,9 +711,9 @@ def class_dict(base_module, node):
                 old_compute(self)
                 return
             if self.hasInputFromPort('SetFileName'):
-                name = self.getInputFromPort('SetFileName')
+                name = self.get_input('SetFileName')
             elif self.hasInputFromPort('SetFile'):
-                name = self.getInputFromPort('SetFile').name
+                name = self.get_input('SetFile').name
             else:
                 raise ModuleError(self, 'Missing filename')
             if not os.path.isfile(name):

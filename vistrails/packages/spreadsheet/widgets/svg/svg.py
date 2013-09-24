@@ -58,7 +58,7 @@ class SVGCell(SpreadsheetCell):
         """
         if self.hasInputFromPort("File"):
             window = spreadsheetController.findSpreadsheetWindow()
-            file_to_display = self.getInputFromPort("File")
+            file_to_display = self.get_input("File")
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
@@ -121,7 +121,7 @@ class SVGSplitter(Module):
         
         """
         if self.hasInputFromPort("File"):
-            fileValue = self.getInputFromPort("File")
+            fileValue = self.get_input("File")
         else:
             fileValue = None
         if fileValue:

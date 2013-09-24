@@ -29,23 +29,23 @@ from Image import Image
 class RescaleIntensityImageFilter(Module):
     my_namespace = "Filter|Intensity"
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -53,8 +53,8 @@ class RescaleIntensityImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        minimum = self.getInputFromPort("Minimum")
-        maximum = self.getInputFromPort("Maximum")
+        minimum = self.get_input("Minimum")
+        maximum = self.get_input("Maximum")
 
         self.filter_ = itk.RescaleIntensityImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.SetOutputMaximum(maximum)
@@ -91,23 +91,23 @@ class RescaleIntensityImageFilter(Module):
 class SigmoidImageFilter(Module):
     my_namespace = "Filter|Intensity"
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -117,22 +117,22 @@ class SigmoidImageFilter(Module):
 
         #default values are those that are recommended
         if self.hasInputFromPort("Minimum"):
-            min = self.getInputFromPort("Minimum")
+            min = self.get_input("Minimum")
         else:
             min = 10
 
         if self.hasInputFromPort("Maximum"):
-            max = self.getInputFromPort("Maximum")
+            max = self.get_input("Maximum")
         else:
             max = 240
 
         if self.hasInputFromPort("Alpha"):
-            alpha = self.getInputFromPort("Alpha")
+            alpha = self.get_input("Alpha")
         else:
             alpha = 10
 
         if self.hasInputFromPort("Beta"):
-            beta = self.getInputFromPort("Beta")
+            beta = self.get_input("Beta")
         else:
             beta = 170
 
@@ -173,24 +173,24 @@ class SigmoidImageFilter(Module):
 class ThresholdImageFilter(Module):
     my_namespace = "Filter|Intensity"
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
         #setup filter
         inImgType = itk.Image[inPixelType._type, dim]
-        up = self.getInputFromPort("Upper Value")
-        lo = self.getInputFromPort("Lower Value")
+        up = self.get_input("Upper Value")
+        lo = self.get_input("Lower Value")
 
         self.filter_ = itk.ThresholdImageFilter[inImgType].New(im.getImg())
 
@@ -223,23 +223,23 @@ class ShiftScaleImageFilter(Module):
     my_namespace = "Filter|Intensity"
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -247,9 +247,9 @@ class ShiftScaleImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        shift_value = self.getInputFromPort("Shift Value")
+        shift_value = self.get_input("Shift Value")
 
-        scale_value = self.getInputFromPort("Scale Value")
+        scale_value = self.get_input("Scale Value")
 
         self.filter_ = itk.ShiftScaleImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.SetShift(shift_value)
@@ -288,23 +288,23 @@ class NormalizeImageFilter(Module):
     my_namespace = 'Filter|Intensity'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 

@@ -40,8 +40,8 @@ class Variable(Module):
             raise ModuleError(self, "'id' is mandatory.")
 
         # Get input from ports
-        cdmsfile = self.getInputFromPort('cdmsfile')
-        id = self.getInputFromPort('id')
+        cdmsfile = self.get_input('cdmsfile')
+        id = self.get_input('id')
         axes = self.forceGetInputFromPort('axes') # None if no input
         axesOperations = self.forceGetInputFromPort('axesOperations') # None if no input
 
@@ -148,15 +148,15 @@ class GraphicsMethod(Module, NotCacheable):
             return
         
         # Get required input
-        gmName = self.getInputFromPort('gmName')
-        plotType = self.getInputFromPort('plotType')
+        gmName = self.get_input('gmName')
+        plotType = self.get_input('plotType')
 
         # GraphicsMethod doesn't need slab1/slab2 as input.  It can be passed
         # directly to CDATCell but I pass it to graphics method so it looks
         # nicer in the pipeline.
-        slab1 = self.getInputFromPort('slab1')
+        slab1 = self.get_input('slab1')
         if self.hasInputFromPort('slab2'):
-            self.setResult('slab2', self.getInputFromPort('slab2'))
+            self.setResult('slab2', self.get_input('slab2'))
                            
         # Initialize the canvas and get the graphics method
         canvas = vcs.init()
@@ -164,13 +164,13 @@ class GraphicsMethod(Module, NotCacheable):
 
         # Modify the graphics method's attributes
         if self.hasInputFromPort('color_1'):
-            gm.color_1 = self.getInputFromPort('color_1')
+            gm.color_1 = self.get_input('color_1')
         if self.hasInputFromPort('color_2'):
-            gm.color_2 = self.getInputFromPort('color_2')
+            gm.color_2 = self.get_input('color_2')
         if self.hasInputFromPort('level_1'):
-            gm.level_1 = self.getInputFromPort('level_1')
+            gm.level_1 = self.get_input('level_1')
         if self.hasInputFromPort('level_2'):
-            gm.level_2 = self.getInputFromPort('level_2')
+            gm.level_2 = self.get_input('level_2')
         # TODO: more gm attributes ...
 
         # Add canvas / slab to output Ports
@@ -188,7 +188,7 @@ class CDATCell(SpreadsheetCell, NotCacheable):
         """
         # Check required input ports
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             self.cellWidget = self.displayAndWait(QCDATWidget, (None,))
             self.setResult('canvas', self.cellWidget.canvas)
@@ -205,25 +205,25 @@ class CDATCell(SpreadsheetCell, NotCacheable):
 
         # Build up the argument list
         args = []
-        slab1 = self.getInputFromPort('slab1')
-        args.append(self.getInputFromPort('slab1'))
+        slab1 = self.get_input('slab1')
+        args.append(self.get_input('slab1'))
         if self.hasInputFromPort('slab2'):
-            args.append(self.getInputFromPort('slab2'))
-        args.append(self.getInputFromPort('template'))
-        args.append(self.getInputFromPort('plotType'))
-        args.append(self.getInputFromPort('gmName'))
+            args.append(self.get_input('slab2'))
+        args.append(self.get_input('template'))
+        args.append(self.get_input('plotType'))
+        args.append(self.get_input('gmName'))
 
         # Build up plot keyword args ...
         kwargs = {}
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         
         # Set the cell row / col
         self.location = CellLocation()
         if self.hasInputFromPort('row'):
-            self.location.row = self.getInputFromPort('row')
+            self.location.row = self.get_input('row')
         if self.hasInputFromPort('col'):
-            self.location.col = self.getInputFromPort('col')
+            self.location.col = self.get_input('col')
 
         # Plot into the cell
         inputPorts = (canvas, args, kwargs)

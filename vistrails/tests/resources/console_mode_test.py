@@ -49,7 +49,7 @@ old_identifiers = ['edu.utah.sci.vistrails.console_mode_test']
 class TestTupleExecution(Module):
 
     def compute(self):
-        v1, v2 = self.getInputFromPort('input')
+        v1, v2 = self.get_input('input')
         self.setResult('output', v1 + v2)
 
 
@@ -66,7 +66,7 @@ class TestChangeVistrail(NotCacheable, Module):
 
     def compute(self):
         if self.hasInputFromPort('foo'):
-            v1 = self.getInputFromPort('foo')
+            v1 = self.get_input('foo')
         else:
             v1 = 0
         if v1 != 12:

@@ -53,9 +53,9 @@ class RasterLayer(Module):
         self.qgis_obj = None
 
     def compute(self):
-        fname = self.getInputFromPort('file').name
+        fname = self.get_input('file').name
         if self.hasInputFromPort('name'):
-            name = self.getInputFromPort('name')
+            name = self.get_input('name')
         else:
             name = os.path.splitext(os.path.basename(fname))[0]
         self.qgis_obj = qgis.core.QgsRasterLayer(fname, name)
@@ -71,9 +71,9 @@ class VectorLayer(Module):
         self.qgis_obj = None
 
     def compute(self):
-        fname = self.getInputFromPort('file').name
+        fname = self.get_input('file').name
         if self.hasInputFromPort('name'):
-            name = self.getInputFromPort('name')
+            name = self.get_input('name')
         else:
             name = os.path.splitext(os.path.basename(fname))[0]
         self.qgis_obj = qgis.core.QgsVectorLayer(fname, name, "ogr")

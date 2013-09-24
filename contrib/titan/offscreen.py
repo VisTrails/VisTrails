@@ -27,7 +27,7 @@ from core.modules.basic_modules import File, Integer
 class VTKRenderOffscreen(Module):
 
     def compute(self):
-        r = self.getInputFromPort("renderer").vtkInstance
+        r = self.get_input("renderer").vtkInstance
         window = vtk.vtkRenderWindow()
         w = self.forceGetInputFromPort("width", 512)
         h = self.forceGetInputFromPort("height", 512)

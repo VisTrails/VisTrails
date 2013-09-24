@@ -160,10 +160,10 @@ class CellLocation(Module):
         self.rowSpan = self.forceGetInputFromPort("RowSpan", -1)
         self.colSpan = self.forceGetInputFromPort("ColumnSpan", -1)
         if self.hasInputFromPort("Row") and self.hasInputFromPort("Column"):
-            self.row = self.getInputFromPort("Row")-1
-            self.col = self.getInputFromPort("Column")-1
+            self.row = self.get_input("Row")-1
+            self.col = self.get_input("Column")-1
         elif self.hasInputFromPort("ColumnRowAddress"):
-            address = self.getInputFromPort("ColumnRowAddress")
+            address = self.get_input("ColumnRowAddress")
             address = address.replace(' ', '').upper()
             if len(address)>1:
                 if address[0] >= 'A' and address[0] <= 'Z':

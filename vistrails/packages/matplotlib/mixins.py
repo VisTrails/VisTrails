@@ -43,10 +43,10 @@ class MplAnnotateMixin(object):
     def compute_before():
         if self.hasInputFromPort("fancyArrowProperties"):
             kwargs['arrowprops'] = \
-                self.getInputFromPort("fancyArrowProperties").props
+                self.get_input("fancyArrowProperties").props
         elif self.hasInputFromPort("arrowProperties"):
             kwargs['arrowprops'] = \
-                self.getInputFromPort("arrowProperties").props
+                self.get_input("arrowProperties").props
 
 class MplSpyMixin(object):
     def compute_after():

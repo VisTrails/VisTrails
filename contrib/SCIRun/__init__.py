@@ -119,214 +119,214 @@ class WriteBundle(DataIO) :
   def compute(self) :
     p = sr_py.WriteBundleAlg()
     if self.hasInputFromPort('p_filetype') :
-      p.set_p_filetype(self.getInputFromPort('p_filetype'))
+      p.set_p_filetype(self.get_input('p_filetype'))
     if self.hasInputFromPort('p_confirm') :
-      p.set_p_confirm(self.getInputFromPort('p_confirm'))
+      p.set_p_confirm(self.get_input('p_confirm'))
     if self.hasInputFromPort('p_confirm_once') :
-      p.set_p_confirm_once(self.getInputFromPort('p_confirm_once'))
+      p.set_p_confirm_once(self.get_input('p_confirm_once'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(bundle, Filename)
 
 class WritePath(DataIO) :
   def compute(self) :
     p = sr_py.WritePathAlg()
     if self.hasInputFromPort('p_filetype') :
-      p.set_p_filetype(self.getInputFromPort('p_filetype'))
+      p.set_p_filetype(self.get_input('p_filetype'))
     if self.hasInputFromPort('p_confirm') :
-      p.set_p_confirm(self.getInputFromPort('p_confirm'))
+      p.set_p_confirm(self.get_input('p_confirm'))
     if self.hasInputFromPort('p_confirm_once') :
-      p.set_p_confirm_once(self.getInputFromPort('p_confirm_once'))
+      p.set_p_confirm_once(self.get_input('p_confirm_once'))
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
-      Input_Data = self.getInputFromPort('Input Data')
+      Input_Data = self.get_input('Input Data')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Input_Data, Filename)
 
 class WriteColorMap2D(DataIO) :
   def compute(self) :
     p = sr_py.WriteColorMap2DAlg()
     if self.hasInputFromPort('p_filetype') :
-      p.set_p_filetype(self.getInputFromPort('p_filetype'))
+      p.set_p_filetype(self.get_input('p_filetype'))
     if self.hasInputFromPort('p_confirm') :
-      p.set_p_confirm(self.getInputFromPort('p_confirm'))
+      p.set_p_confirm(self.get_input('p_confirm'))
     if self.hasInputFromPort('p_confirm_once') :
-      p.set_p_confirm_once(self.getInputFromPort('p_confirm_once'))
+      p.set_p_confirm_once(self.get_input('p_confirm_once'))
     if self.hasInputFromPort('p_exporttype') :
-      p.set_p_exporttype(self.getInputFromPort('p_exporttype'))
+      p.set_p_exporttype(self.get_input('p_exporttype'))
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
-      Input_Data = self.getInputFromPort('Input Data')
+      Input_Data = self.get_input('Input Data')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Input_Data, Filename)
 
 class ReadHDF5File(DataIO) :
   def compute(self) :
     p = sr_py.ReadHDF5FileAlg()
     if self.hasInputFromPort('p_have_HDF5') :
-      p.set_p_have_HDF5(self.getInputFromPort('p_have_HDF5'))
+      p.set_p_have_HDF5(self.get_input('p_have_HDF5'))
     if self.hasInputFromPort('p_power_app') :
-      p.set_p_power_app(self.getInputFromPort('p_power_app'))
+      p.set_p_power_app(self.get_input('p_power_app'))
     if self.hasInputFromPort('p_datasets') :
-      p.set_p_datasets(self.getInputFromPort('p_datasets'))
+      p.set_p_datasets(self.get_input('p_datasets'))
     if self.hasInputFromPort('p_dumpname') :
-      p.set_p_dumpname(self.getInputFromPort('p_dumpname'))
+      p.set_p_dumpname(self.get_input('p_dumpname'))
     if self.hasInputFromPort('p_ports') :
-      p.set_p_ports(self.getInputFromPort('p_ports'))
+      p.set_p_ports(self.get_input('p_ports'))
     if self.hasInputFromPort('p_ndims') :
-      p.set_p_ndims(self.getInputFromPort('p_ndims'))
+      p.set_p_ndims(self.get_input('p_ndims'))
     if self.hasInputFromPort('p_mergeData') :
-      p.set_p_mergeData(self.getInputFromPort('p_mergeData'))
+      p.set_p_mergeData(self.get_input('p_mergeData'))
     if self.hasInputFromPort('p_assumeSVT') :
-      p.set_p_assumeSVT(self.getInputFromPort('p_assumeSVT'))
+      p.set_p_assumeSVT(self.get_input('p_assumeSVT'))
     if self.hasInputFromPort('p_animate') :
-      p.set_p_animate(self.getInputFromPort('p_animate'))
+      p.set_p_animate(self.get_input('p_animate'))
     if self.hasInputFromPort('p_animate_tab') :
-      p.set_p_animate_tab(self.getInputFromPort('p_animate_tab'))
+      p.set_p_animate_tab(self.get_input('p_animate_tab'))
     if self.hasInputFromPort('p_basic_tab') :
-      p.set_p_basic_tab(self.getInputFromPort('p_basic_tab'))
+      p.set_p_basic_tab(self.get_input('p_basic_tab'))
     if self.hasInputFromPort('p_extended_tab') :
-      p.set_p_extended_tab(self.getInputFromPort('p_extended_tab'))
+      p.set_p_extended_tab(self.get_input('p_extended_tab'))
     if self.hasInputFromPort('p_playmode_tab') :
-      p.set_p_playmode_tab(self.getInputFromPort('p_playmode_tab'))
+      p.set_p_playmode_tab(self.get_input('p_playmode_tab'))
     if self.hasInputFromPort('p_selectable_min') :
-      p.set_p_selectable_min(self.getInputFromPort('p_selectable_min'))
+      p.set_p_selectable_min(self.get_input('p_selectable_min'))
     if self.hasInputFromPort('p_selectable_max') :
-      p.set_p_selectable_max(self.getInputFromPort('p_selectable_max'))
+      p.set_p_selectable_max(self.get_input('p_selectable_max'))
     if self.hasInputFromPort('p_selectable_inc') :
-      p.set_p_selectable_inc(self.getInputFromPort('p_selectable_inc'))
+      p.set_p_selectable_inc(self.get_input('p_selectable_inc'))
     if self.hasInputFromPort('p_range_min') :
-      p.set_p_range_min(self.getInputFromPort('p_range_min'))
+      p.set_p_range_min(self.get_input('p_range_min'))
     if self.hasInputFromPort('p_range_max') :
-      p.set_p_range_max(self.getInputFromPort('p_range_max'))
+      p.set_p_range_max(self.get_input('p_range_max'))
     if self.hasInputFromPort('p_playmode') :
-      p.set_p_playmode(self.getInputFromPort('p_playmode'))
+      p.set_p_playmode(self.get_input('p_playmode'))
     if self.hasInputFromPort('p_current') :
-      p.set_p_current(self.getInputFromPort('p_current'))
+      p.set_p_current(self.get_input('p_current'))
     if self.hasInputFromPort('p_execmode') :
-      p.set_p_execmode(self.getInputFromPort('p_execmode'))
+      p.set_p_execmode(self.get_input('p_execmode'))
     if self.hasInputFromPort('p_delay') :
-      p.set_p_delay(self.getInputFromPort('p_delay'))
+      p.set_p_delay(self.get_input('p_delay'))
     if self.hasInputFromPort('p_inc_amount') :
-      p.set_p_inc_amount(self.getInputFromPort('p_inc_amount'))
+      p.set_p_inc_amount(self.get_input('p_inc_amount'))
     if self.hasInputFromPort('p_update_type') :
-      p.set_p_update_type(self.getInputFromPort('p_update_type'))
+      p.set_p_update_type(self.get_input('p_update_type'))
     if self.hasInputFromPort('p_have_group') :
-      p.set_p_have_group(self.getInputFromPort('p_have_group'))
+      p.set_p_have_group(self.get_input('p_have_group'))
     if self.hasInputFromPort('p_have_attributes') :
-      p.set_p_have_attributes(self.getInputFromPort('p_have_attributes'))
+      p.set_p_have_attributes(self.get_input('p_have_attributes'))
     if self.hasInputFromPort('p_have_datasets') :
-      p.set_p_have_datasets(self.getInputFromPort('p_have_datasets'))
+      p.set_p_have_datasets(self.get_input('p_have_datasets'))
     if self.hasInputFromPort('p_continuous') :
-      p.set_p_continuous(self.getInputFromPort('p_continuous'))
+      p.set_p_continuous(self.get_input('p_continuous'))
     if self.hasInputFromPort('p_selectionString') :
-      p.set_p_selectionString(self.getInputFromPort('p_selectionString'))
+      p.set_p_selectionString(self.get_input('p_selectionString'))
     if self.hasInputFromPort('p_regexp') :
-      p.set_p_regexp(self.getInputFromPort('p_regexp'))
+      p.set_p_regexp(self.get_input('p_regexp'))
     if self.hasInputFromPort('p_allow_selection') :
-      p.set_p_allow_selection(self.getInputFromPort('p_allow_selection'))
+      p.set_p_allow_selection(self.get_input('p_allow_selection'))
     if self.hasInputFromPort('p_read_error') :
-      p.set_p_read_error(self.getInputFromPort('p_read_error'))
+      p.set_p_read_error(self.get_input('p_read_error'))
     if self.hasInputFromPort('p_max_dims') :
-      p.set_p_max_dims(self.getInputFromPort('p_max_dims'))
+      p.set_p_max_dims(self.get_input('p_max_dims'))
     if self.hasInputFromPort('p_0_dim') :
-      p.set_p_0_dim(self.getInputFromPort('p_0_dim'))
+      p.set_p_0_dim(self.get_input('p_0_dim'))
     if self.hasInputFromPort('p_0_start') :
-      p.set_p_0_start(self.getInputFromPort('p_0_start'))
+      p.set_p_0_start(self.get_input('p_0_start'))
     if self.hasInputFromPort('p_0_start2') :
-      p.set_p_0_start2(self.getInputFromPort('p_0_start2'))
+      p.set_p_0_start2(self.get_input('p_0_start2'))
     if self.hasInputFromPort('p_0_count') :
-      p.set_p_0_count(self.getInputFromPort('p_0_count'))
+      p.set_p_0_count(self.get_input('p_0_count'))
     if self.hasInputFromPort('p_0_count2') :
-      p.set_p_0_count2(self.getInputFromPort('p_0_count2'))
+      p.set_p_0_count2(self.get_input('p_0_count2'))
     if self.hasInputFromPort('p_0_stride') :
-      p.set_p_0_stride(self.getInputFromPort('p_0_stride'))
+      p.set_p_0_stride(self.get_input('p_0_stride'))
     if self.hasInputFromPort('p_0_stride2') :
-      p.set_p_0_stride2(self.getInputFromPort('p_0_stride2'))
+      p.set_p_0_stride2(self.get_input('p_0_stride2'))
     if self.hasInputFromPort('p_1_dim') :
-      p.set_p_1_dim(self.getInputFromPort('p_1_dim'))
+      p.set_p_1_dim(self.get_input('p_1_dim'))
     if self.hasInputFromPort('p_1_start') :
-      p.set_p_1_start(self.getInputFromPort('p_1_start'))
+      p.set_p_1_start(self.get_input('p_1_start'))
     if self.hasInputFromPort('p_1_start2') :
-      p.set_p_1_start2(self.getInputFromPort('p_1_start2'))
+      p.set_p_1_start2(self.get_input('p_1_start2'))
     if self.hasInputFromPort('p_1_count') :
-      p.set_p_1_count(self.getInputFromPort('p_1_count'))
+      p.set_p_1_count(self.get_input('p_1_count'))
     if self.hasInputFromPort('p_1_count2') :
-      p.set_p_1_count2(self.getInputFromPort('p_1_count2'))
+      p.set_p_1_count2(self.get_input('p_1_count2'))
     if self.hasInputFromPort('p_1_stride') :
-      p.set_p_1_stride(self.getInputFromPort('p_1_stride'))
+      p.set_p_1_stride(self.get_input('p_1_stride'))
     if self.hasInputFromPort('p_1_stride2') :
-      p.set_p_1_stride2(self.getInputFromPort('p_1_stride2'))
+      p.set_p_1_stride2(self.get_input('p_1_stride2'))
     if self.hasInputFromPort('p_2_dim') :
-      p.set_p_2_dim(self.getInputFromPort('p_2_dim'))
+      p.set_p_2_dim(self.get_input('p_2_dim'))
     if self.hasInputFromPort('p_2_start') :
-      p.set_p_2_start(self.getInputFromPort('p_2_start'))
+      p.set_p_2_start(self.get_input('p_2_start'))
     if self.hasInputFromPort('p_2_start2') :
-      p.set_p_2_start2(self.getInputFromPort('p_2_start2'))
+      p.set_p_2_start2(self.get_input('p_2_start2'))
     if self.hasInputFromPort('p_2_count') :
-      p.set_p_2_count(self.getInputFromPort('p_2_count'))
+      p.set_p_2_count(self.get_input('p_2_count'))
     if self.hasInputFromPort('p_2_count2') :
-      p.set_p_2_count2(self.getInputFromPort('p_2_count2'))
+      p.set_p_2_count2(self.get_input('p_2_count2'))
     if self.hasInputFromPort('p_2_stride') :
-      p.set_p_2_stride(self.getInputFromPort('p_2_stride'))
+      p.set_p_2_stride(self.get_input('p_2_stride'))
     if self.hasInputFromPort('p_2_stride2') :
-      p.set_p_2_stride2(self.getInputFromPort('p_2_stride2'))
+      p.set_p_2_stride2(self.get_input('p_2_stride2'))
     if self.hasInputFromPort('p_3_dim') :
-      p.set_p_3_dim(self.getInputFromPort('p_3_dim'))
+      p.set_p_3_dim(self.get_input('p_3_dim'))
     if self.hasInputFromPort('p_3_start') :
-      p.set_p_3_start(self.getInputFromPort('p_3_start'))
+      p.set_p_3_start(self.get_input('p_3_start'))
     if self.hasInputFromPort('p_3_start2') :
-      p.set_p_3_start2(self.getInputFromPort('p_3_start2'))
+      p.set_p_3_start2(self.get_input('p_3_start2'))
     if self.hasInputFromPort('p_3_count') :
-      p.set_p_3_count(self.getInputFromPort('p_3_count'))
+      p.set_p_3_count(self.get_input('p_3_count'))
     if self.hasInputFromPort('p_3_count2') :
-      p.set_p_3_count2(self.getInputFromPort('p_3_count2'))
+      p.set_p_3_count2(self.get_input('p_3_count2'))
     if self.hasInputFromPort('p_3_stride') :
-      p.set_p_3_stride(self.getInputFromPort('p_3_stride'))
+      p.set_p_3_stride(self.get_input('p_3_stride'))
     if self.hasInputFromPort('p_3_stride2') :
-      p.set_p_3_stride2(self.getInputFromPort('p_3_stride2'))
+      p.set_p_3_stride2(self.get_input('p_3_stride2'))
     if self.hasInputFromPort('p_4_dim') :
-      p.set_p_4_dim(self.getInputFromPort('p_4_dim'))
+      p.set_p_4_dim(self.get_input('p_4_dim'))
     if self.hasInputFromPort('p_4_start') :
-      p.set_p_4_start(self.getInputFromPort('p_4_start'))
+      p.set_p_4_start(self.get_input('p_4_start'))
     if self.hasInputFromPort('p_4_start2') :
-      p.set_p_4_start2(self.getInputFromPort('p_4_start2'))
+      p.set_p_4_start2(self.get_input('p_4_start2'))
     if self.hasInputFromPort('p_4_count') :
-      p.set_p_4_count(self.getInputFromPort('p_4_count'))
+      p.set_p_4_count(self.get_input('p_4_count'))
     if self.hasInputFromPort('p_4_count2') :
-      p.set_p_4_count2(self.getInputFromPort('p_4_count2'))
+      p.set_p_4_count2(self.get_input('p_4_count2'))
     if self.hasInputFromPort('p_4_stride') :
-      p.set_p_4_stride(self.getInputFromPort('p_4_stride'))
+      p.set_p_4_stride(self.get_input('p_4_stride'))
     if self.hasInputFromPort('p_4_stride2') :
-      p.set_p_4_stride2(self.getInputFromPort('p_4_stride2'))
+      p.set_p_4_stride2(self.get_input('p_4_stride2'))
     if self.hasInputFromPort('p_5_dim') :
-      p.set_p_5_dim(self.getInputFromPort('p_5_dim'))
+      p.set_p_5_dim(self.get_input('p_5_dim'))
     if self.hasInputFromPort('p_5_start') :
-      p.set_p_5_start(self.getInputFromPort('p_5_start'))
+      p.set_p_5_start(self.get_input('p_5_start'))
     if self.hasInputFromPort('p_5_start2') :
-      p.set_p_5_start2(self.getInputFromPort('p_5_start2'))
+      p.set_p_5_start2(self.get_input('p_5_start2'))
     if self.hasInputFromPort('p_5_count') :
-      p.set_p_5_count(self.getInputFromPort('p_5_count'))
+      p.set_p_5_count(self.get_input('p_5_count'))
     if self.hasInputFromPort('p_5_count2') :
-      p.set_p_5_count2(self.getInputFromPort('p_5_count2'))
+      p.set_p_5_count2(self.get_input('p_5_count2'))
     if self.hasInputFromPort('p_5_stride') :
-      p.set_p_5_stride(self.getInputFromPort('p_5_stride'))
+      p.set_p_5_stride(self.get_input('p_5_stride'))
     if self.hasInputFromPort('p_5_stride2') :
-      p.set_p_5_stride2(self.getInputFromPort('p_5_stride2'))
+      p.set_p_5_stride2(self.get_input('p_5_stride2'))
     Full_filename = ''
     if self.hasInputFromPort('Full filename') :
-      Full_filename = self.getInputFromPort('Full filename')
+      Full_filename = self.get_input('Full filename')
     Current_Index = 0
     if self.hasInputFromPort('Current Index') :
-      Current_Index = self.getInputFromPort('Current Index')
+      Current_Index = self.get_input('Current Index')
     results = p.execute(Full_filename, Current_Index)
     self.setResult('Output 0 Nrrd', results[0])
     self.setResult('Output 1 Nrrd', results[1])
@@ -342,10 +342,10 @@ class ReadField(DataIO) :
   def compute(self) :
     p = sr_py.ReadFieldAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Output Data', results[0])
     self.setResult('Filename', results[1])
@@ -354,29 +354,29 @@ class WriteColorMap(DataIO) :
   def compute(self) :
     p = sr_py.WriteColorMapAlg()
     if self.hasInputFromPort('p_filetype') :
-      p.set_p_filetype(self.getInputFromPort('p_filetype'))
+      p.set_p_filetype(self.get_input('p_filetype'))
     if self.hasInputFromPort('p_confirm') :
-      p.set_p_confirm(self.getInputFromPort('p_confirm'))
+      p.set_p_confirm(self.get_input('p_confirm'))
     if self.hasInputFromPort('p_confirm_once') :
-      p.set_p_confirm_once(self.getInputFromPort('p_confirm_once'))
+      p.set_p_confirm_once(self.get_input('p_confirm_once'))
     if self.hasInputFromPort('p_exporttype') :
-      p.set_p_exporttype(self.getInputFromPort('p_exporttype'))
+      p.set_p_exporttype(self.get_input('p_exporttype'))
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
-      Input_Data = self.getInputFromPort('Input Data')
+      Input_Data = self.get_input('Input Data')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Input_Data, Filename)
 
 class ReadColorMap2D(DataIO) :
   def compute(self) :
     p = sr_py.ReadColorMap2DAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Output Data', results[0])
     self.setResult('Filename', results[1])
@@ -385,10 +385,10 @@ class ReadString(DataIO) :
   def compute(self) :
     p = sr_py.ReadStringAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Output Data', results[0])
     self.setResult('Filename', results[1])
@@ -397,10 +397,10 @@ class ReadColorMap(DataIO) :
   def compute(self) :
     p = sr_py.ReadColorMapAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Output Data', results[0])
     self.setResult('Filename', results[1])
@@ -409,10 +409,10 @@ class ReadMatrix(DataIO) :
   def compute(self) :
     p = sr_py.ReadMatrixAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Output Data', results[0])
     self.setResult('Filename', results[1])
@@ -421,27 +421,27 @@ class WriteString(DataIO) :
   def compute(self) :
     p = sr_py.WriteStringAlg()
     if self.hasInputFromPort('p_filetype') :
-      p.set_p_filetype(self.getInputFromPort('p_filetype'))
+      p.set_p_filetype(self.get_input('p_filetype'))
     if self.hasInputFromPort('p_confirm') :
-      p.set_p_confirm(self.getInputFromPort('p_confirm'))
+      p.set_p_confirm(self.get_input('p_confirm'))
     if self.hasInputFromPort('p_confirm_once') :
-      p.set_p_confirm_once(self.getInputFromPort('p_confirm_once'))
+      p.set_p_confirm_once(self.get_input('p_confirm_once'))
     String = ''
     if self.hasInputFromPort('String') :
-      String = self.getInputFromPort('String')
+      String = self.get_input('String')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(String, Filename)
 
 class ReadPath(DataIO) :
   def compute(self) :
     p = sr_py.ReadPathAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Output Data', results[0])
     self.setResult('Filename', results[1])
@@ -450,35 +450,35 @@ class WriteField(DataIO) :
   def compute(self) :
     p = sr_py.WriteFieldAlg()
     if self.hasInputFromPort('p_filetype') :
-      p.set_p_filetype(self.getInputFromPort('p_filetype'))
+      p.set_p_filetype(self.get_input('p_filetype'))
     if self.hasInputFromPort('p_confirm') :
-      p.set_p_confirm(self.getInputFromPort('p_confirm'))
+      p.set_p_confirm(self.get_input('p_confirm'))
     if self.hasInputFromPort('p_confirm_once') :
-      p.set_p_confirm_once(self.getInputFromPort('p_confirm_once'))
+      p.set_p_confirm_once(self.get_input('p_confirm_once'))
     if self.hasInputFromPort('p_exporttype') :
-      p.set_p_exporttype(self.getInputFromPort('p_exporttype'))
+      p.set_p_exporttype(self.get_input('p_exporttype'))
     if self.hasInputFromPort('p_increment') :
-      p.set_p_increment(self.getInputFromPort('p_increment'))
+      p.set_p_increment(self.get_input('p_increment'))
     if self.hasInputFromPort('p_current') :
-      p.set_p_current(self.getInputFromPort('p_current'))
+      p.set_p_current(self.get_input('p_current'))
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
-      Input_Data = self.getInputFromPort('Input Data')
+      Input_Data = self.get_input('Input Data')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Input_Data, Filename)
 
 class ReadBundle(DataIO) :
   def compute(self) :
     p = sr_py.ReadBundleAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     if self.hasInputFromPort('p_types') :
-      p.set_p_types(self.getInputFromPort('p_types'))
+      p.set_p_types(self.get_input('p_types'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('bundle', results[0])
     self.setResult('Filename', results[1])
@@ -487,36 +487,36 @@ class StreamMatrixFromDisk(DataIO) :
   def compute(self) :
     p = sr_py.StreamMatrixFromDiskAlg()
     if self.hasInputFromPort('p_row_or_col') :
-      p.set_p_row_or_col(self.getInputFromPort('p_row_or_col'))
+      p.set_p_row_or_col(self.get_input('p_row_or_col'))
     if self.hasInputFromPort('p_slider_min') :
-      p.set_p_slider_min(self.getInputFromPort('p_slider_min'))
+      p.set_p_slider_min(self.get_input('p_slider_min'))
     if self.hasInputFromPort('p_slider_max') :
-      p.set_p_slider_max(self.getInputFromPort('p_slider_max'))
+      p.set_p_slider_max(self.get_input('p_slider_max'))
     if self.hasInputFromPort('p_range_min') :
-      p.set_p_range_min(self.getInputFromPort('p_range_min'))
+      p.set_p_range_min(self.get_input('p_range_min'))
     if self.hasInputFromPort('p_range_max') :
-      p.set_p_range_max(self.getInputFromPort('p_range_max'))
+      p.set_p_range_max(self.get_input('p_range_max'))
     if self.hasInputFromPort('p_playmode') :
-      p.set_p_playmode(self.getInputFromPort('p_playmode'))
+      p.set_p_playmode(self.get_input('p_playmode'))
     if self.hasInputFromPort('p_current') :
-      p.set_p_current(self.getInputFromPort('p_current'))
+      p.set_p_current(self.get_input('p_current'))
     if self.hasInputFromPort('p_execmode') :
-      p.set_p_execmode(self.getInputFromPort('p_execmode'))
+      p.set_p_execmode(self.get_input('p_execmode'))
     if self.hasInputFromPort('p_delay') :
-      p.set_p_delay(self.getInputFromPort('p_delay'))
+      p.set_p_delay(self.get_input('p_delay'))
     if self.hasInputFromPort('p_inc_amount') :
-      p.set_p_inc_amount(self.getInputFromPort('p_inc_amount'))
+      p.set_p_inc_amount(self.get_input('p_inc_amount'))
     if self.hasInputFromPort('p_send_amount') :
-      p.set_p_send_amount(self.getInputFromPort('p_send_amount'))
+      p.set_p_send_amount(self.get_input('p_send_amount'))
     Indices = 0
     if self.hasInputFromPort('Indices') :
-      Indices = self.getInputFromPort('Indices')
+      Indices = self.get_input('Indices')
     Weights = 0
     if self.hasInputFromPort('Weights') :
-      Weights = self.getInputFromPort('Weights')
+      Weights = self.get_input('Weights')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Indices, Weights, Filename)
     self.setResult('DataVector', results[0])
     self.setResult('Index', results[1])
@@ -527,31 +527,31 @@ class WriteMatrix(DataIO) :
   def compute(self) :
     p = sr_py.WriteMatrixAlg()
     if self.hasInputFromPort('p_filetype') :
-      p.set_p_filetype(self.getInputFromPort('p_filetype'))
+      p.set_p_filetype(self.get_input('p_filetype'))
     if self.hasInputFromPort('p_confirm') :
-      p.set_p_confirm(self.getInputFromPort('p_confirm'))
+      p.set_p_confirm(self.get_input('p_confirm'))
     if self.hasInputFromPort('p_confirm_once') :
-      p.set_p_confirm_once(self.getInputFromPort('p_confirm_once'))
+      p.set_p_confirm_once(self.get_input('p_confirm_once'))
     if self.hasInputFromPort('p_exporttype') :
-      p.set_p_exporttype(self.getInputFromPort('p_exporttype'))
+      p.set_p_exporttype(self.get_input('p_exporttype'))
     if self.hasInputFromPort('p_split') :
-      p.set_p_split(self.getInputFromPort('p_split'))
+      p.set_p_split(self.get_input('p_split'))
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
-      Input_Data = self.getInputFromPort('Input Data')
+      Input_Data = self.get_input('Input Data')
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Input_Data, Filename)
 
 class ReadNrrd(DataIO) :
   def compute(self) :
     p = sr_py.ReadNrrdAlg()
     if self.hasInputFromPort('p_from_env') :
-      p.set_p_from_env(self.getInputFromPort('p_from_env'))
+      p.set_p_from_env(self.get_input('p_from_env'))
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Output Data', results[0])
     self.setResult('Filename', results[1])
@@ -560,18 +560,18 @@ class JoinFields(NewField) :
   def compute(self) :
     p = sr_py.JoinFieldsAlg()
     if self.hasInputFromPort('p_tolerance') :
-      p.set_p_tolerance(self.getInputFromPort('p_tolerance'))
+      p.set_p_tolerance(self.get_input('p_tolerance'))
     if self.hasInputFromPort('p_force_nodemerge') :
-      p.set_p_force_nodemerge(self.getInputFromPort('p_force_nodemerge'))
+      p.set_p_force_nodemerge(self.get_input('p_force_nodemerge'))
     if self.hasInputFromPort('p_force_pointcloud') :
-      p.set_p_force_pointcloud(self.getInputFromPort('p_force_pointcloud'))
+      p.set_p_force_pointcloud(self.get_input('p_force_pointcloud'))
     if self.hasInputFromPort('p_matchval') :
-      p.set_p_matchval(self.getInputFromPort('p_matchval'))
+      p.set_p_matchval(self.get_input('p_matchval'))
     if self.hasInputFromPort('p_meshonly') :
-      p.set_p_meshonly(self.getInputFromPort('p_meshonly'))
+      p.set_p_meshonly(self.get_input('p_meshonly'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Output Field', results)
 
@@ -579,15 +579,15 @@ class RefineMeshByIsovalue(NewField) :
   def compute(self) :
     p = sr_py.RefineMeshByIsovalueAlg()
     if self.hasInputFromPort('p_isoval') :
-      p.set_p_isoval(self.getInputFromPort('p_isoval'))
+      p.set_p_isoval(self.get_input('p_isoval'))
     if self.hasInputFromPort('p_lte') :
-      p.set_p_lte(self.getInputFromPort('p_lte'))
+      p.set_p_lte(self.get_input('p_lte'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     Optional_Isovalue = 0
     if self.hasInputFromPort('Optional Isovalue') :
-      Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
+      Optional_Isovalue = self.get_input('Optional Isovalue')
     results = p.execute(Input, Optional_Isovalue)
     self.setResult('Refined', results[0])
     self.setResult('Mapping', results[1])
@@ -596,12 +596,12 @@ class FairMesh(NewField) :
   def compute(self) :
     p = sr_py.FairMeshAlg()
     if self.hasInputFromPort('p_iterations') :
-      p.set_p_iterations(self.getInputFromPort('p_iterations'))
+      p.set_p_iterations(self.get_input('p_iterations'))
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     Input_Mesh = 0
     if self.hasInputFromPort('Input Mesh') :
-      Input_Mesh = self.getInputFromPort('Input Mesh')
+      Input_Mesh = self.get_input('Input Mesh')
     results = p.execute(Input_Mesh)
     self.setResult('Faired Mesh', results)
 
@@ -609,18 +609,18 @@ class CreateStructHex(NewField) :
   def compute(self) :
     p = sr_py.CreateStructHexAlg()
     if self.hasInputFromPort('p_sizex') :
-      p.set_p_sizex(self.getInputFromPort('p_sizex'))
+      p.set_p_sizex(self.get_input('p_sizex'))
     if self.hasInputFromPort('p_sizey') :
-      p.set_p_sizey(self.getInputFromPort('p_sizey'))
+      p.set_p_sizey(self.get_input('p_sizey'))
     if self.hasInputFromPort('p_sizez') :
-      p.set_p_sizez(self.getInputFromPort('p_sizez'))
+      p.set_p_sizez(self.get_input('p_sizez'))
     if self.hasInputFromPort('p_padpercent') :
-      p.set_p_padpercent(self.getInputFromPort('p_padpercent'))
+      p.set_p_padpercent(self.get_input('p_padpercent'))
     if self.hasInputFromPort('p_data_at') :
-      p.set_p_data_at(self.getInputFromPort('p_data_at'))
+      p.set_p_data_at(self.get_input('p_data_at'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Sample Field', results)
 
@@ -628,22 +628,22 @@ class ClipLatVolByIndicesOrWidget(NewField) :
   def compute(self) :
     p = sr_py.ClipLatVolByIndicesOrWidgetAlg()
     if self.hasInputFromPort('p_use_text_bbox') :
-      p.set_p_use_text_bbox(self.getInputFromPort('p_use_text_bbox'))
+      p.set_p_use_text_bbox(self.get_input('p_use_text_bbox'))
     if self.hasInputFromPort('p_text_min_x') :
-      p.set_p_text_min_x(self.getInputFromPort('p_text_min_x'))
+      p.set_p_text_min_x(self.get_input('p_text_min_x'))
     if self.hasInputFromPort('p_text_min_y') :
-      p.set_p_text_min_y(self.getInputFromPort('p_text_min_y'))
+      p.set_p_text_min_y(self.get_input('p_text_min_y'))
     if self.hasInputFromPort('p_text_min_z') :
-      p.set_p_text_min_z(self.getInputFromPort('p_text_min_z'))
+      p.set_p_text_min_z(self.get_input('p_text_min_z'))
     if self.hasInputFromPort('p_text_max_x') :
-      p.set_p_text_max_x(self.getInputFromPort('p_text_max_x'))
+      p.set_p_text_max_x(self.get_input('p_text_max_x'))
     if self.hasInputFromPort('p_text_max_y') :
-      p.set_p_text_max_y(self.getInputFromPort('p_text_max_y'))
+      p.set_p_text_max_y(self.get_input('p_text_max_y'))
     if self.hasInputFromPort('p_text_max_z') :
-      p.set_p_text_max_z(self.getInputFromPort('p_text_max_z'))
+      p.set_p_text_max_z(self.get_input('p_text_max_z'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Selection Widget', results[0])
     self.setResult('Output Field', results[1])
@@ -654,7 +654,7 @@ class GetFieldBoundary(NewField) :
     p = sr_py.GetFieldBoundaryAlg()
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('BoundaryField', results[0])
     self.setResult('Mapping', results[1])
@@ -663,22 +663,22 @@ class ConvertMatricesToMesh(NewField) :
   def compute(self) :
     p = sr_py.ConvertMatricesToMeshAlg()
     if self.hasInputFromPort('p_fieldname') :
-      p.set_p_fieldname(self.getInputFromPort('p_fieldname'))
+      p.set_p_fieldname(self.get_input('p_fieldname'))
     if self.hasInputFromPort('p_meshname') :
-      p.set_p_meshname(self.getInputFromPort('p_meshname'))
+      p.set_p_meshname(self.get_input('p_meshname'))
     if self.hasInputFromPort('p_fieldbasetype') :
-      p.set_p_fieldbasetype(self.getInputFromPort('p_fieldbasetype'))
+      p.set_p_fieldbasetype(self.get_input('p_fieldbasetype'))
     if self.hasInputFromPort('p_datatype') :
-      p.set_p_datatype(self.getInputFromPort('p_datatype'))
+      p.set_p_datatype(self.get_input('p_datatype'))
     Mesh_Elements = 0
     if self.hasInputFromPort('Mesh Elements') :
-      Mesh_Elements = self.getInputFromPort('Mesh Elements')
+      Mesh_Elements = self.get_input('Mesh Elements')
     Mesh_Positions = 0
     if self.hasInputFromPort('Mesh Positions') :
-      Mesh_Positions = self.getInputFromPort('Mesh Positions')
+      Mesh_Positions = self.get_input('Mesh Positions')
     Mesh_Normals = 0
     if self.hasInputFromPort('Mesh Normals') :
-      Mesh_Normals = self.getInputFromPort('Mesh Normals')
+      Mesh_Normals = self.get_input('Mesh Normals')
     results = p.execute(Mesh_Elements, Mesh_Positions, Mesh_Normals)
     self.setResult('Output Field', results)
 
@@ -686,47 +686,47 @@ class ClipFieldToFieldOrWidget(NewField) :
   def compute(self) :
     p = sr_py.ClipFieldToFieldOrWidgetAlg()
     if self.hasInputFromPort('p_clip_location') :
-      p.set_p_clip_location(self.getInputFromPort('p_clip_location'))
+      p.set_p_clip_location(self.get_input('p_clip_location'))
     if self.hasInputFromPort('p_clipmode') :
-      p.set_p_clipmode(self.getInputFromPort('p_clipmode'))
+      p.set_p_clipmode(self.get_input('p_clipmode'))
     if self.hasInputFromPort('p_autoexecute') :
-      p.set_p_autoexecute(self.getInputFromPort('p_autoexecute'))
+      p.set_p_autoexecute(self.get_input('p_autoexecute'))
     if self.hasInputFromPort('p_autoinvert') :
-      p.set_p_autoinvert(self.getInputFromPort('p_autoinvert'))
+      p.set_p_autoinvert(self.get_input('p_autoinvert'))
     if self.hasInputFromPort('p_execmode') :
-      p.set_p_execmode(self.getInputFromPort('p_execmode'))
+      p.set_p_execmode(self.get_input('p_execmode'))
     if self.hasInputFromPort('p_center_x') :
-      p.set_p_center_x(self.getInputFromPort('p_center_x'))
+      p.set_p_center_x(self.get_input('p_center_x'))
     if self.hasInputFromPort('p_center_y') :
-      p.set_p_center_y(self.getInputFromPort('p_center_y'))
+      p.set_p_center_y(self.get_input('p_center_y'))
     if self.hasInputFromPort('p_center_z') :
-      p.set_p_center_z(self.getInputFromPort('p_center_z'))
+      p.set_p_center_z(self.get_input('p_center_z'))
     if self.hasInputFromPort('p_right_x') :
-      p.set_p_right_x(self.getInputFromPort('p_right_x'))
+      p.set_p_right_x(self.get_input('p_right_x'))
     if self.hasInputFromPort('p_right_y') :
-      p.set_p_right_y(self.getInputFromPort('p_right_y'))
+      p.set_p_right_y(self.get_input('p_right_y'))
     if self.hasInputFromPort('p_right_z') :
-      p.set_p_right_z(self.getInputFromPort('p_right_z'))
+      p.set_p_right_z(self.get_input('p_right_z'))
     if self.hasInputFromPort('p_down_x') :
-      p.set_p_down_x(self.getInputFromPort('p_down_x'))
+      p.set_p_down_x(self.get_input('p_down_x'))
     if self.hasInputFromPort('p_down_y') :
-      p.set_p_down_y(self.getInputFromPort('p_down_y'))
+      p.set_p_down_y(self.get_input('p_down_y'))
     if self.hasInputFromPort('p_down_z') :
-      p.set_p_down_z(self.getInputFromPort('p_down_z'))
+      p.set_p_down_z(self.get_input('p_down_z'))
     if self.hasInputFromPort('p_in_x') :
-      p.set_p_in_x(self.getInputFromPort('p_in_x'))
+      p.set_p_in_x(self.get_input('p_in_x'))
     if self.hasInputFromPort('p_in_y') :
-      p.set_p_in_y(self.getInputFromPort('p_in_y'))
+      p.set_p_in_y(self.get_input('p_in_y'))
     if self.hasInputFromPort('p_in_z') :
-      p.set_p_in_z(self.getInputFromPort('p_in_z'))
+      p.set_p_in_z(self.get_input('p_in_z'))
     if self.hasInputFromPort('p_scale') :
-      p.set_p_scale(self.getInputFromPort('p_scale'))
+      p.set_p_scale(self.get_input('p_scale'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Clip_Field = 0
     if self.hasInputFromPort('Clip Field') :
-      Clip_Field = self.getInputFromPort('Clip Field')
+      Clip_Field = self.get_input('Clip Field')
     results = p.execute(Input_Field, Clip_Field)
     self.setResult('Selection Widget', results[0])
     self.setResult('Output Field', results[1])
@@ -735,15 +735,15 @@ class RefineMeshByIsovalue2(NewField) :
   def compute(self) :
     p = sr_py.RefineMeshByIsovalue2Alg()
     if self.hasInputFromPort('p_isoval') :
-      p.set_p_isoval(self.getInputFromPort('p_isoval'))
+      p.set_p_isoval(self.get_input('p_isoval'))
     if self.hasInputFromPort('p_lte') :
-      p.set_p_lte(self.getInputFromPort('p_lte'))
+      p.set_p_lte(self.get_input('p_lte'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     Optional_Isovalue = 0
     if self.hasInputFromPort('Optional Isovalue') :
-      Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
+      Optional_Isovalue = self.get_input('Optional Isovalue')
     results = p.execute(Input, Optional_Isovalue)
     self.setResult('Refined', results[0])
     self.setResult('Mapping', results[1])
@@ -752,23 +752,23 @@ class CreateLatVol(NewField) :
   def compute(self) :
     p = sr_py.CreateLatVolAlg()
     if self.hasInputFromPort('p_sizex') :
-      p.set_p_sizex(self.getInputFromPort('p_sizex'))
+      p.set_p_sizex(self.get_input('p_sizex'))
     if self.hasInputFromPort('p_sizey') :
-      p.set_p_sizey(self.getInputFromPort('p_sizey'))
+      p.set_p_sizey(self.get_input('p_sizey'))
     if self.hasInputFromPort('p_sizez') :
-      p.set_p_sizez(self.getInputFromPort('p_sizez'))
+      p.set_p_sizez(self.get_input('p_sizez'))
     if self.hasInputFromPort('p_padpercent') :
-      p.set_p_padpercent(self.getInputFromPort('p_padpercent'))
+      p.set_p_padpercent(self.get_input('p_padpercent'))
     if self.hasInputFromPort('p_data_at') :
-      p.set_p_data_at(self.getInputFromPort('p_data_at'))
+      p.set_p_data_at(self.get_input('p_data_at'))
     if self.hasInputFromPort('p_element_size') :
-      p.set_p_element_size(self.getInputFromPort('p_element_size'))
+      p.set_p_element_size(self.get_input('p_element_size'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     LatVol_Size = 0
     if self.hasInputFromPort('LatVol Size') :
-      LatVol_Size = self.getInputFromPort('LatVol Size')
+      LatVol_Size = self.get_input('LatVol Size')
     results = p.execute(Input_Field, LatVol_Size)
     self.setResult('Output Sample Field', results)
 
@@ -777,7 +777,7 @@ class InterfaceWithCamal(NewField) :
     p = sr_py.InterfaceWithCamalAlg()
     TriSurf = 0
     if self.hasInputFromPort('TriSurf') :
-      TriSurf = self.getInputFromPort('TriSurf')
+      TriSurf = self.get_input('TriSurf')
     results = p.execute(TriSurf)
     self.setResult('TetVol', results)
 
@@ -785,21 +785,21 @@ class ClipVolumeByIsovalue(NewField) :
   def compute(self) :
     p = sr_py.ClipVolumeByIsovalueAlg()
     if self.hasInputFromPort('p_isoval_min') :
-      p.set_p_isoval_min(self.getInputFromPort('p_isoval_min'))
+      p.set_p_isoval_min(self.get_input('p_isoval_min'))
     if self.hasInputFromPort('p_isoval_max') :
-      p.set_p_isoval_max(self.getInputFromPort('p_isoval_max'))
+      p.set_p_isoval_max(self.get_input('p_isoval_max'))
     if self.hasInputFromPort('p_isoval') :
-      p.set_p_isoval(self.getInputFromPort('p_isoval'))
+      p.set_p_isoval(self.get_input('p_isoval'))
     if self.hasInputFromPort('p_lte') :
-      p.set_p_lte(self.getInputFromPort('p_lte'))
+      p.set_p_lte(self.get_input('p_lte'))
     if self.hasInputFromPort('p_update_type') :
-      p.set_p_update_type(self.getInputFromPort('p_update_type'))
+      p.set_p_update_type(self.get_input('p_update_type'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     Optional_Isovalue = 0
     if self.hasInputFromPort('Optional Isovalue') :
-      Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
+      Optional_Isovalue = self.get_input('Optional Isovalue')
     results = p.execute(Input, Optional_Isovalue)
     self.setResult('Clipped', results[0])
     self.setResult('Mapping', results[1])
@@ -808,17 +808,17 @@ class RefineMesh(NewField) :
   def compute(self) :
     p = sr_py.RefineMeshAlg()
     if self.hasInputFromPort('p_select') :
-      p.set_p_select(self.getInputFromPort('p_select'))
+      p.set_p_select(self.get_input('p_select'))
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     if self.hasInputFromPort('p_isoval') :
-      p.set_p_isoval(self.getInputFromPort('p_isoval'))
+      p.set_p_isoval(self.get_input('p_isoval'))
     Mesh = 0
     if self.hasInputFromPort('Mesh') :
-      Mesh = self.getInputFromPort('Mesh')
+      Mesh = self.get_input('Mesh')
     Isovalue = 0
     if self.hasInputFromPort('Isovalue') :
-      Isovalue = self.getInputFromPort('Isovalue')
+      Isovalue = self.get_input('Isovalue')
     results = p.execute(Mesh, Isovalue)
     self.setResult('RefinedMesh', results[0])
     self.setResult('Mapping', results[1])
@@ -828,10 +828,10 @@ class MergeFields(NewField) :
     p = sr_py.MergeFieldsAlg()
     Container_Mesh = 0
     if self.hasInputFromPort('Container Mesh') :
-      Container_Mesh = self.getInputFromPort('Container Mesh')
+      Container_Mesh = self.get_input('Container Mesh')
     Insert_Field = 0
     if self.hasInputFromPort('Insert Field') :
-      Insert_Field = self.getInputFromPort('Insert Field')
+      Insert_Field = self.get_input('Insert Field')
     results = p.execute(Container_Mesh, Insert_Field)
     self.setResult('Combined Field', results[0])
     self.setResult('Extended Insert Field', results[1])
@@ -842,7 +842,7 @@ class GetCentroidsFromMesh(NewField) :
     p = sr_py.GetCentroidsFromMeshAlg()
     TetVolField = 0
     if self.hasInputFromPort('TetVolField') :
-      TetVolField = self.getInputFromPort('TetVolField')
+      TetVolField = self.get_input('TetVolField')
     results = p.execute(TetVolField)
     self.setResult('PointCloudField', results)
 
@@ -850,47 +850,47 @@ class ExtractIsosurfaceByFunction(NewField) :
   def compute(self) :
     p = sr_py.ExtractIsosurfaceByFunctionAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_zero_checks') :
-      p.set_p_zero_checks(self.getInputFromPort('p_zero_checks'))
+      p.set_p_zero_checks(self.get_input('p_zero_checks'))
     if self.hasInputFromPort('p_slice_value_min') :
-      p.set_p_slice_value_min(self.getInputFromPort('p_slice_value_min'))
+      p.set_p_slice_value_min(self.get_input('p_slice_value_min'))
     if self.hasInputFromPort('p_slice_value_max') :
-      p.set_p_slice_value_max(self.getInputFromPort('p_slice_value_max'))
+      p.set_p_slice_value_max(self.get_input('p_slice_value_max'))
     if self.hasInputFromPort('p_slice_value') :
-      p.set_p_slice_value(self.getInputFromPort('p_slice_value'))
+      p.set_p_slice_value(self.get_input('p_slice_value'))
     if self.hasInputFromPort('p_slice_value_typed') :
-      p.set_p_slice_value_typed(self.getInputFromPort('p_slice_value_typed'))
+      p.set_p_slice_value_typed(self.get_input('p_slice_value_typed'))
     if self.hasInputFromPort('p_slice_value_quantity') :
-      p.set_p_slice_value_quantity(self.getInputFromPort('p_slice_value_quantity'))
+      p.set_p_slice_value_quantity(self.get_input('p_slice_value_quantity'))
     if self.hasInputFromPort('p_quantity_range') :
-      p.set_p_quantity_range(self.getInputFromPort('p_quantity_range'))
+      p.set_p_quantity_range(self.get_input('p_quantity_range'))
     if self.hasInputFromPort('p_quantity_clusive') :
-      p.set_p_quantity_clusive(self.getInputFromPort('p_quantity_clusive'))
+      p.set_p_quantity_clusive(self.get_input('p_quantity_clusive'))
     if self.hasInputFromPort('p_quantity_min') :
-      p.set_p_quantity_min(self.getInputFromPort('p_quantity_min'))
+      p.set_p_quantity_min(self.get_input('p_quantity_min'))
     if self.hasInputFromPort('p_quantity_max') :
-      p.set_p_quantity_max(self.getInputFromPort('p_quantity_max'))
+      p.set_p_quantity_max(self.get_input('p_quantity_max'))
     if self.hasInputFromPort('p_quantity_list') :
-      p.set_p_quantity_list(self.getInputFromPort('p_quantity_list'))
+      p.set_p_quantity_list(self.get_input('p_quantity_list'))
     if self.hasInputFromPort('p_slice_value_list') :
-      p.set_p_slice_value_list(self.getInputFromPort('p_slice_value_list'))
+      p.set_p_slice_value_list(self.get_input('p_slice_value_list'))
     if self.hasInputFromPort('p_matrix_list') :
-      p.set_p_matrix_list(self.getInputFromPort('p_matrix_list'))
+      p.set_p_matrix_list(self.get_input('p_matrix_list'))
     if self.hasInputFromPort('p_algorithm') :
-      p.set_p_algorithm(self.getInputFromPort('p_algorithm'))
+      p.set_p_algorithm(self.get_input('p_algorithm'))
     if self.hasInputFromPort('p_active_slice_value_selection_tab') :
-      p.set_p_active_slice_value_selection_tab(self.getInputFromPort('p_active_slice_value_selection_tab'))
+      p.set_p_active_slice_value_selection_tab(self.get_input('p_active_slice_value_selection_tab'))
     if self.hasInputFromPort('p_active_tab') :
-      p.set_p_active_tab(self.getInputFromPort('p_active_tab'))
+      p.set_p_active_tab(self.get_input('p_active_tab'))
     if self.hasInputFromPort('p_update_type') :
-      p.set_p_update_type(self.getInputFromPort('p_update_type'))
+      p.set_p_update_type(self.get_input('p_update_type'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Optional_Slice_values = 0
     if self.hasInputFromPort('Optional Slice values') :
-      Optional_Slice_values = self.getInputFromPort('Optional Slice values')
+      Optional_Slice_values = self.get_input('Optional Slice values')
     results = p.execute(Input_Field, Optional_Slice_values)
     self.setResult('Output Field', results)
 
@@ -899,7 +899,7 @@ class MergeTriSurfs(NewField) :
     p = sr_py.MergeTriSurfsAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results)
 
@@ -907,19 +907,19 @@ class InterfaceWithTetGen(NewField) :
   def compute(self) :
     p = sr_py.InterfaceWithTetGenAlg()
     if self.hasInputFromPort('p_switch') :
-      p.set_p_switch(self.getInputFromPort('p_switch'))
+      p.set_p_switch(self.get_input('p_switch'))
     Main = 0
     if self.hasInputFromPort('Main') :
-      Main = self.getInputFromPort('Main')
+      Main = self.get_input('Main')
     Points = 0
     if self.hasInputFromPort('Points') :
-      Points = self.getInputFromPort('Points')
+      Points = self.get_input('Points')
     Region_Attribs = 0
     if self.hasInputFromPort('Region Attribs') :
-      Region_Attribs = self.getInputFromPort('Region Attribs')
+      Region_Attribs = self.get_input('Region Attribs')
     Regions = 0
     if self.hasInputFromPort('Regions') :
-      Regions = self.getInputFromPort('Regions')
+      Regions = self.get_input('Regions')
     results = p.execute(Main, Points, Region_Attribs, Regions)
     self.setResult('TetVol', results)
 
@@ -927,40 +927,40 @@ class CreateImage(NewField) :
   def compute(self) :
     p = sr_py.CreateImageAlg()
     if self.hasInputFromPort('p_sizex') :
-      p.set_p_sizex(self.getInputFromPort('p_sizex'))
+      p.set_p_sizex(self.get_input('p_sizex'))
     if self.hasInputFromPort('p_sizey') :
-      p.set_p_sizey(self.getInputFromPort('p_sizey'))
+      p.set_p_sizey(self.get_input('p_sizey'))
     if self.hasInputFromPort('p_sizez') :
-      p.set_p_sizez(self.getInputFromPort('p_sizez'))
+      p.set_p_sizez(self.get_input('p_sizez'))
     if self.hasInputFromPort('p_z_value') :
-      p.set_p_z_value(self.getInputFromPort('p_z_value'))
+      p.set_p_z_value(self.get_input('p_z_value'))
     if self.hasInputFromPort('p_auto_size') :
-      p.set_p_auto_size(self.getInputFromPort('p_auto_size'))
+      p.set_p_auto_size(self.get_input('p_auto_size'))
     if self.hasInputFromPort('p_axis') :
-      p.set_p_axis(self.getInputFromPort('p_axis'))
+      p.set_p_axis(self.get_input('p_axis'))
     if self.hasInputFromPort('p_padpercent') :
-      p.set_p_padpercent(self.getInputFromPort('p_padpercent'))
+      p.set_p_padpercent(self.get_input('p_padpercent'))
     if self.hasInputFromPort('p_pos') :
-      p.set_p_pos(self.getInputFromPort('p_pos'))
+      p.set_p_pos(self.get_input('p_pos'))
     if self.hasInputFromPort('p_data_at') :
-      p.set_p_data_at(self.getInputFromPort('p_data_at'))
+      p.set_p_data_at(self.get_input('p_data_at'))
     if self.hasInputFromPort('p_update_type') :
-      p.set_p_update_type(self.getInputFromPort('p_update_type'))
+      p.set_p_update_type(self.get_input('p_update_type'))
     if self.hasInputFromPort('p_corigin_x') :
-      p.set_p_corigin_x(self.getInputFromPort('p_corigin_x'))
+      p.set_p_corigin_x(self.get_input('p_corigin_x'))
     if self.hasInputFromPort('p_corigin_y') :
-      p.set_p_corigin_y(self.getInputFromPort('p_corigin_y'))
+      p.set_p_corigin_y(self.get_input('p_corigin_y'))
     if self.hasInputFromPort('p_corigin_z') :
-      p.set_p_corigin_z(self.getInputFromPort('p_corigin_z'))
+      p.set_p_corigin_z(self.get_input('p_corigin_z'))
     if self.hasInputFromPort('p_cnormal_x') :
-      p.set_p_cnormal_x(self.getInputFromPort('p_cnormal_x'))
+      p.set_p_cnormal_x(self.get_input('p_cnormal_x'))
     if self.hasInputFromPort('p_cnormal_y') :
-      p.set_p_cnormal_y(self.getInputFromPort('p_cnormal_y'))
+      p.set_p_cnormal_y(self.get_input('p_cnormal_y'))
     if self.hasInputFromPort('p_cnormal_z') :
-      p.set_p_cnormal_z(self.getInputFromPort('p_cnormal_z'))
+      p.set_p_cnormal_z(self.get_input('p_cnormal_z'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Sample Field', results)
 
@@ -968,15 +968,15 @@ class InsertHexVolSheetAlongSurface(NewField) :
   def compute(self) :
     p = sr_py.InsertHexVolSheetAlongSurfaceAlg()
     if self.hasInputFromPort('p_side') :
-      p.set_p_side(self.getInputFromPort('p_side'))
+      p.set_p_side(self.get_input('p_side'))
     if self.hasInputFromPort('p_addlayer') :
-      p.set_p_addlayer(self.getInputFromPort('p_addlayer'))
+      p.set_p_addlayer(self.get_input('p_addlayer'))
     HexField = 0
     if self.hasInputFromPort('HexField') :
-      HexField = self.getInputFromPort('HexField')
+      HexField = self.get_input('HexField')
     TriField = 0
     if self.hasInputFromPort('TriField') :
-      TriField = self.getInputFromPort('TriField')
+      TriField = self.get_input('TriField')
     results = p.execute(HexField, TriField)
     self.setResult('Side1Field', results[0])
     self.setResult('Side2Field', results[1])
@@ -985,38 +985,38 @@ class GenerateSinglePointProbeFromField(NewField) :
   def compute(self) :
     p = sr_py.GenerateSinglePointProbeFromFieldAlg()
     if self.hasInputFromPort('p_main_frame') :
-      p.set_p_main_frame(self.getInputFromPort('p_main_frame'))
+      p.set_p_main_frame(self.get_input('p_main_frame'))
     if self.hasInputFromPort('p_locx') :
-      p.set_p_locx(self.getInputFromPort('p_locx'))
+      p.set_p_locx(self.get_input('p_locx'))
     if self.hasInputFromPort('p_locy') :
-      p.set_p_locy(self.getInputFromPort('p_locy'))
+      p.set_p_locy(self.get_input('p_locy'))
     if self.hasInputFromPort('p_locz') :
-      p.set_p_locz(self.getInputFromPort('p_locz'))
+      p.set_p_locz(self.get_input('p_locz'))
     if self.hasInputFromPort('p_value') :
-      p.set_p_value(self.getInputFromPort('p_value'))
+      p.set_p_value(self.get_input('p_value'))
     if self.hasInputFromPort('p_node') :
-      p.set_p_node(self.getInputFromPort('p_node'))
+      p.set_p_node(self.get_input('p_node'))
     if self.hasInputFromPort('p_edge') :
-      p.set_p_edge(self.getInputFromPort('p_edge'))
+      p.set_p_edge(self.get_input('p_edge'))
     if self.hasInputFromPort('p_face') :
-      p.set_p_face(self.getInputFromPort('p_face'))
+      p.set_p_face(self.get_input('p_face'))
     if self.hasInputFromPort('p_cell') :
-      p.set_p_cell(self.getInputFromPort('p_cell'))
+      p.set_p_cell(self.get_input('p_cell'))
     if self.hasInputFromPort('p_show_value') :
-      p.set_p_show_value(self.getInputFromPort('p_show_value'))
+      p.set_p_show_value(self.get_input('p_show_value'))
     if self.hasInputFromPort('p_show_node') :
-      p.set_p_show_node(self.getInputFromPort('p_show_node'))
+      p.set_p_show_node(self.get_input('p_show_node'))
     if self.hasInputFromPort('p_show_edge') :
-      p.set_p_show_edge(self.getInputFromPort('p_show_edge'))
+      p.set_p_show_edge(self.get_input('p_show_edge'))
     if self.hasInputFromPort('p_show_face') :
-      p.set_p_show_face(self.getInputFromPort('p_show_face'))
+      p.set_p_show_face(self.get_input('p_show_face'))
     if self.hasInputFromPort('p_show_cell') :
-      p.set_p_show_cell(self.getInputFromPort('p_show_cell'))
+      p.set_p_show_cell(self.get_input('p_show_cell'))
     if self.hasInputFromPort('p_probe_scale') :
-      p.set_p_probe_scale(self.getInputFromPort('p_probe_scale'))
+      p.set_p_probe_scale(self.get_input('p_probe_scale'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('GenerateSinglePointProbeFromField Widget', results[0])
     self.setResult('GenerateSinglePointProbeFromField Point', results[1])
@@ -1026,15 +1026,15 @@ class InterfaceWithCubit(NewField) :
   def compute(self) :
     p = sr_py.InterfaceWithCubitAlg()
     if self.hasInputFromPort('p_cubitdir') :
-      p.set_p_cubitdir(self.getInputFromPort('p_cubitdir'))
+      p.set_p_cubitdir(self.get_input('p_cubitdir'))
     if self.hasInputFromPort('p_ncdump') :
-      p.set_p_ncdump(self.getInputFromPort('p_ncdump'))
+      p.set_p_ncdump(self.get_input('p_ncdump'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     PointCloudField = 0
     if self.hasInputFromPort('PointCloudField') :
-      PointCloudField = self.getInputFromPort('PointCloudField')
+      PointCloudField = self.get_input('PointCloudField')
     results = p.execute(Field, PointCloudField)
     self.setResult('Field', results)
 
@@ -1042,15 +1042,15 @@ class ClipFieldByFunction(NewField) :
   def compute(self) :
     p = sr_py.ClipFieldByFunctionAlg()
     if self.hasInputFromPort('p_mode') :
-      p.set_p_mode(self.getInputFromPort('p_mode'))
+      p.set_p_mode(self.get_input('p_mode'))
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Function, Input)
     self.setResult('Clipped', results[0])
     self.setResult('Mapping', results[1])
@@ -1060,32 +1060,32 @@ class GetDomainBoundary(NewField) :
   def compute(self) :
     p = sr_py.GetDomainBoundaryAlg()
     if self.hasInputFromPort('p_userange') :
-      p.set_p_userange(self.getInputFromPort('p_userange'))
+      p.set_p_userange(self.get_input('p_userange'))
     if self.hasInputFromPort('p_minrange') :
-      p.set_p_minrange(self.getInputFromPort('p_minrange'))
+      p.set_p_minrange(self.get_input('p_minrange'))
     if self.hasInputFromPort('p_maxrange') :
-      p.set_p_maxrange(self.getInputFromPort('p_maxrange'))
+      p.set_p_maxrange(self.get_input('p_maxrange'))
     if self.hasInputFromPort('p_usevalue') :
-      p.set_p_usevalue(self.getInputFromPort('p_usevalue'))
+      p.set_p_usevalue(self.get_input('p_usevalue'))
     if self.hasInputFromPort('p_value') :
-      p.set_p_value(self.getInputFromPort('p_value'))
+      p.set_p_value(self.get_input('p_value'))
     if self.hasInputFromPort('p_includeouterboundary') :
-      p.set_p_includeouterboundary(self.getInputFromPort('p_includeouterboundary'))
+      p.set_p_includeouterboundary(self.get_input('p_includeouterboundary'))
     if self.hasInputFromPort('p_innerboundaryonly') :
-      p.set_p_innerboundaryonly(self.getInputFromPort('p_innerboundaryonly'))
+      p.set_p_innerboundaryonly(self.get_input('p_innerboundaryonly'))
     if self.hasInputFromPort('p_noinnerboundary') :
-      p.set_p_noinnerboundary(self.getInputFromPort('p_noinnerboundary'))
+      p.set_p_noinnerboundary(self.get_input('p_noinnerboundary'))
     if self.hasInputFromPort('p_disconnect') :
-      p.set_p_disconnect(self.getInputFromPort('p_disconnect'))
+      p.set_p_disconnect(self.get_input('p_disconnect'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     MinValueValue = 0
     if self.hasInputFromPort('MinValueValue') :
-      MinValueValue = self.getInputFromPort('MinValueValue')
+      MinValueValue = self.get_input('MinValueValue')
     MaxValue = 0
     if self.hasInputFromPort('MaxValue') :
-      MaxValue = self.getInputFromPort('MaxValue')
+      MaxValue = self.get_input('MaxValue')
     results = p.execute(Field, MinValueValue, MaxValue)
     self.setResult('Field', results)
 
@@ -1093,13 +1093,13 @@ class CollectFields(NewField) :
   def compute(self) :
     p = sr_py.CollectFieldsAlg()
     if self.hasInputFromPort('p_buffersize') :
-      p.set_p_buffersize(self.getInputFromPort('p_buffersize'))
+      p.set_p_buffersize(self.get_input('p_buffersize'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     BufferSize = 0
     if self.hasInputFromPort('BufferSize') :
-      BufferSize = self.getInputFromPort('BufferSize')
+      BufferSize = self.get_input('BufferSize')
     results = p.execute(Field, BufferSize)
     self.setResult('Fields', results)
 
@@ -1107,24 +1107,24 @@ class GeneratePointSamplesFromField(NewField) :
   def compute(self) :
     p = sr_py.GeneratePointSamplesFromFieldAlg()
     if self.hasInputFromPort('p_num_seeds') :
-      p.set_p_num_seeds(self.getInputFromPort('p_num_seeds'))
+      p.set_p_num_seeds(self.get_input('p_num_seeds'))
     if self.hasInputFromPort('p_probe_scale') :
-      p.set_p_probe_scale(self.getInputFromPort('p_probe_scale'))
+      p.set_p_probe_scale(self.get_input('p_probe_scale'))
     if self.hasInputFromPort('p_send') :
-      p.set_p_send(self.getInputFromPort('p_send'))
+      p.set_p_send(self.get_input('p_send'))
     if self.hasInputFromPort('p_widget') :
-      p.set_p_widget(self.getInputFromPort('p_widget'))
+      p.set_p_widget(self.get_input('p_widget'))
     if self.hasInputFromPort('p_red') :
-      p.set_p_red(self.getInputFromPort('p_red'))
+      p.set_p_red(self.get_input('p_red'))
     if self.hasInputFromPort('p_green') :
-      p.set_p_green(self.getInputFromPort('p_green'))
+      p.set_p_green(self.get_input('p_green'))
     if self.hasInputFromPort('p_blue') :
-      p.set_p_blue(self.getInputFromPort('p_blue'))
+      p.set_p_blue(self.get_input('p_blue'))
     if self.hasInputFromPort('p_auto_execute') :
-      p.set_p_auto_execute(self.getInputFromPort('p_auto_execute'))
+      p.set_p_auto_execute(self.get_input('p_auto_execute'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('GeneratePointSamplesFromField Widget', results[0])
     self.setResult('GeneratePointSamplesFromField Point', results[1])
@@ -1133,28 +1133,28 @@ class GeneratePointSamplesFromFieldOrWidget(NewField) :
   def compute(self) :
     p = sr_py.GeneratePointSamplesFromFieldOrWidgetAlg()
     if self.hasInputFromPort('p_wtype') :
-      p.set_p_wtype(self.getInputFromPort('p_wtype'))
+      p.set_p_wtype(self.get_input('p_wtype'))
     if self.hasInputFromPort('p_endpoints') :
-      p.set_p_endpoints(self.getInputFromPort('p_endpoints'))
+      p.set_p_endpoints(self.get_input('p_endpoints'))
     if self.hasInputFromPort('p_maxseeds') :
-      p.set_p_maxseeds(self.getInputFromPort('p_maxseeds'))
+      p.set_p_maxseeds(self.get_input('p_maxseeds'))
     if self.hasInputFromPort('p_numseeds') :
-      p.set_p_numseeds(self.getInputFromPort('p_numseeds'))
+      p.set_p_numseeds(self.get_input('p_numseeds'))
     if self.hasInputFromPort('p_rngseed') :
-      p.set_p_rngseed(self.getInputFromPort('p_rngseed'))
+      p.set_p_rngseed(self.get_input('p_rngseed'))
     if self.hasInputFromPort('p_rnginc') :
-      p.set_p_rnginc(self.getInputFromPort('p_rnginc'))
+      p.set_p_rnginc(self.get_input('p_rnginc'))
     if self.hasInputFromPort('p_clamp') :
-      p.set_p_clamp(self.getInputFromPort('p_clamp'))
+      p.set_p_clamp(self.get_input('p_clamp'))
     if self.hasInputFromPort('p_autoexecute') :
-      p.set_p_autoexecute(self.getInputFromPort('p_autoexecute'))
+      p.set_p_autoexecute(self.get_input('p_autoexecute'))
     if self.hasInputFromPort('p_dist') :
-      p.set_p_dist(self.getInputFromPort('p_dist'))
+      p.set_p_dist(self.get_input('p_dist'))
     if self.hasInputFromPort('p_whichtab') :
-      p.set_p_whichtab(self.getInputFromPort('p_whichtab'))
+      p.set_p_whichtab(self.get_input('p_whichtab'))
     Field_to_Sample = 0
     if self.hasInputFromPort('Field to Sample') :
-      Field_to_Sample = self.getInputFromPort('Field to Sample')
+      Field_to_Sample = self.get_input('Field to Sample')
     results = p.execute(Field_to_Sample)
     self.setResult('Samples', results[0])
     self.setResult('Sampling Widget', results[1])
@@ -1164,7 +1164,7 @@ class DecimateTriSurf(NewField) :
     p = sr_py.DecimateTriSurfAlg()
     TriSurf = 0
     if self.hasInputFromPort('TriSurf') :
-      TriSurf = self.getInputFromPort('TriSurf')
+      TriSurf = self.get_input('TriSurf')
     results = p.execute(TriSurf)
     self.setResult('Decimated', results)
 
@@ -1172,31 +1172,31 @@ class GetSliceFromStructuredFieldByIndices(NewField) :
   def compute(self) :
     p = sr_py.GetSliceFromStructuredFieldByIndicesAlg()
     if self.hasInputFromPort('p_axis') :
-      p.set_p_axis(self.getInputFromPort('p_axis'))
+      p.set_p_axis(self.get_input('p_axis'))
     if self.hasInputFromPort('p_dims') :
-      p.set_p_dims(self.getInputFromPort('p_dims'))
+      p.set_p_dims(self.get_input('p_dims'))
     if self.hasInputFromPort('p_dim_i') :
-      p.set_p_dim_i(self.getInputFromPort('p_dim_i'))
+      p.set_p_dim_i(self.get_input('p_dim_i'))
     if self.hasInputFromPort('p_dim_j') :
-      p.set_p_dim_j(self.getInputFromPort('p_dim_j'))
+      p.set_p_dim_j(self.get_input('p_dim_j'))
     if self.hasInputFromPort('p_dim_k') :
-      p.set_p_dim_k(self.getInputFromPort('p_dim_k'))
+      p.set_p_dim_k(self.get_input('p_dim_k'))
     if self.hasInputFromPort('p_index_i') :
-      p.set_p_index_i(self.getInputFromPort('p_index_i'))
+      p.set_p_index_i(self.get_input('p_index_i'))
     if self.hasInputFromPort('p_index_j') :
-      p.set_p_index_j(self.getInputFromPort('p_index_j'))
+      p.set_p_index_j(self.get_input('p_index_j'))
     if self.hasInputFromPort('p_index_k') :
-      p.set_p_index_k(self.getInputFromPort('p_index_k'))
+      p.set_p_index_k(self.get_input('p_index_k'))
     if self.hasInputFromPort('p_update_type') :
-      p.set_p_update_type(self.getInputFromPort('p_update_type'))
+      p.set_p_update_type(self.get_input('p_update_type'))
     if self.hasInputFromPort('p_continuous') :
-      p.set_p_continuous(self.getInputFromPort('p_continuous'))
+      p.set_p_continuous(self.get_input('p_continuous'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Input_Matrix = 0
     if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
+      Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
     self.setResult('Output Field', results[0])
     self.setResult('Output Matrix', results[1])
@@ -1205,10 +1205,10 @@ class RemoveHexVolSheet(NewField) :
   def compute(self) :
     p = sr_py.RemoveHexVolSheetAlg()
     if self.hasInputFromPort('p_edge_list') :
-      p.set_p_edge_list(self.getInputFromPort('p_edge_list'))
+      p.set_p_edge_list(self.get_input('p_edge_list'))
     HexField = 0
     if self.hasInputFromPort('HexField') :
-      HexField = self.getInputFromPort('HexField')
+      HexField = self.get_input('HexField')
     results = p.execute(HexField)
     self.setResult('NewHexField', results[0])
     self.setResult('ExtractedHexes', results[1])
@@ -1217,47 +1217,47 @@ class SubsampleStructuredFieldByIndices(NewField) :
   def compute(self) :
     p = sr_py.SubsampleStructuredFieldByIndicesAlg()
     if self.hasInputFromPort('p_power_app') :
-      p.set_p_power_app(self.getInputFromPort('p_power_app'))
+      p.set_p_power_app(self.get_input('p_power_app'))
     if self.hasInputFromPort('p_wrap') :
-      p.set_p_wrap(self.getInputFromPort('p_wrap'))
+      p.set_p_wrap(self.get_input('p_wrap'))
     if self.hasInputFromPort('p_dims') :
-      p.set_p_dims(self.getInputFromPort('p_dims'))
+      p.set_p_dims(self.get_input('p_dims'))
     if self.hasInputFromPort('p_dim_i') :
-      p.set_p_dim_i(self.getInputFromPort('p_dim_i'))
+      p.set_p_dim_i(self.get_input('p_dim_i'))
     if self.hasInputFromPort('p_dim_j') :
-      p.set_p_dim_j(self.getInputFromPort('p_dim_j'))
+      p.set_p_dim_j(self.get_input('p_dim_j'))
     if self.hasInputFromPort('p_dim_k') :
-      p.set_p_dim_k(self.getInputFromPort('p_dim_k'))
+      p.set_p_dim_k(self.get_input('p_dim_k'))
     if self.hasInputFromPort('p_start_i') :
-      p.set_p_start_i(self.getInputFromPort('p_start_i'))
+      p.set_p_start_i(self.get_input('p_start_i'))
     if self.hasInputFromPort('p_start_j') :
-      p.set_p_start_j(self.getInputFromPort('p_start_j'))
+      p.set_p_start_j(self.get_input('p_start_j'))
     if self.hasInputFromPort('p_start_k') :
-      p.set_p_start_k(self.getInputFromPort('p_start_k'))
+      p.set_p_start_k(self.get_input('p_start_k'))
     if self.hasInputFromPort('p_stop_i') :
-      p.set_p_stop_i(self.getInputFromPort('p_stop_i'))
+      p.set_p_stop_i(self.get_input('p_stop_i'))
     if self.hasInputFromPort('p_stop_j') :
-      p.set_p_stop_j(self.getInputFromPort('p_stop_j'))
+      p.set_p_stop_j(self.get_input('p_stop_j'))
     if self.hasInputFromPort('p_stop_k') :
-      p.set_p_stop_k(self.getInputFromPort('p_stop_k'))
+      p.set_p_stop_k(self.get_input('p_stop_k'))
     if self.hasInputFromPort('p_stride_i') :
-      p.set_p_stride_i(self.getInputFromPort('p_stride_i'))
+      p.set_p_stride_i(self.get_input('p_stride_i'))
     if self.hasInputFromPort('p_stride_j') :
-      p.set_p_stride_j(self.getInputFromPort('p_stride_j'))
+      p.set_p_stride_j(self.get_input('p_stride_j'))
     if self.hasInputFromPort('p_stride_k') :
-      p.set_p_stride_k(self.getInputFromPort('p_stride_k'))
+      p.set_p_stride_k(self.get_input('p_stride_k'))
     if self.hasInputFromPort('p_wrap_i') :
-      p.set_p_wrap_i(self.getInputFromPort('p_wrap_i'))
+      p.set_p_wrap_i(self.get_input('p_wrap_i'))
     if self.hasInputFromPort('p_wrap_j') :
-      p.set_p_wrap_j(self.getInputFromPort('p_wrap_j'))
+      p.set_p_wrap_j(self.get_input('p_wrap_j'))
     if self.hasInputFromPort('p_wrap_k') :
-      p.set_p_wrap_k(self.getInputFromPort('p_wrap_k'))
+      p.set_p_wrap_k(self.get_input('p_wrap_k'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Input_Matrix = 0
     if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
+      Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
     self.setResult('Output Field', results[0])
     self.setResult('Output Matrix', results[1])
@@ -1267,7 +1267,7 @@ class GetAllSegmentationBoundaries(NewField) :
     p = sr_py.GetAllSegmentationBoundariesAlg()
     Segmentations = 0
     if self.hasInputFromPort('Segmentations') :
-      Segmentations = self.getInputFromPort('Segmentations')
+      Segmentations = self.get_input('Segmentations')
     results = p.execute(Segmentations)
     self.setResult('Boundaries', results)
 
@@ -1275,18 +1275,18 @@ class ClipFieldWithSeed(NewField) :
   def compute(self) :
     p = sr_py.ClipFieldWithSeedAlg()
     if self.hasInputFromPort('p_mode') :
-      p.set_p_mode(self.getInputFromPort('p_mode'))
+      p.set_p_mode(self.get_input('p_mode'))
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     Seeds = 0
     if self.hasInputFromPort('Seeds') :
-      Seeds = self.getInputFromPort('Seeds')
+      Seeds = self.get_input('Seeds')
     results = p.execute(Function, Input, Seeds)
     self.setResult('Clipped', results[0])
     self.setResult('Mapping', results[1])
@@ -1297,7 +1297,7 @@ class SplitNodesByDomain(NewField) :
     p = sr_py.SplitNodesByDomainAlg()
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('SplitField', results)
 
@@ -1306,13 +1306,13 @@ class ApplyMappingMatrix(ChangeFieldData) :
     p = sr_py.ApplyMappingMatrixAlg()
     Source = 0
     if self.hasInputFromPort('Source') :
-      Source = self.getInputFromPort('Source')
+      Source = self.get_input('Source')
     Destination = 0
     if self.hasInputFromPort('Destination') :
-      Destination = self.getInputFromPort('Destination')
+      Destination = self.get_input('Destination')
     Mapping = 0
     if self.hasInputFromPort('Mapping') :
-      Mapping = self.getInputFromPort('Mapping')
+      Mapping = self.get_input('Mapping')
     results = p.execute(Source, Destination, Mapping)
     self.setResult('Output', results)
 
@@ -1321,10 +1321,10 @@ class MaskLatVolWithTriSurf(ChangeFieldData) :
     p = sr_py.MaskLatVolWithTriSurfAlg()
     LatVolField = 0
     if self.hasInputFromPort('LatVolField') :
-      LatVolField = self.getInputFromPort('LatVolField')
+      LatVolField = self.get_input('LatVolField')
     TriSurfField = 0
     if self.hasInputFromPort('TriSurfField') :
-      TriSurfField = self.getInputFromPort('TriSurfField')
+      TriSurfField = self.get_input('TriSurfField')
     results = p.execute(LatVolField, TriSurfField)
     self.setResult('LatVol Mask', results)
 
@@ -1332,10 +1332,10 @@ class ConvertFieldBasis(ChangeFieldData) :
   def compute(self) :
     p = sr_py.ConvertFieldBasisAlg()
     if self.hasInputFromPort('p_output_basis') :
-      p.set_p_output_basis(self.getInputFromPort('p_output_basis'))
+      p.set_p_output_basis(self.get_input('p_output_basis'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
     self.setResult('Output', results[0])
     self.setResult('Mapping', results[1])
@@ -1345,7 +1345,7 @@ class ReportMeshQualityMeasures(ChangeFieldData) :
     p = sr_py.ReportMeshQualityMeasuresAlg()
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
     self.setResult('Checked', results)
 
@@ -1353,31 +1353,31 @@ class SelectAndSetFieldData(ChangeFieldData) :
   def compute(self) :
     p = sr_py.SelectAndSetFieldDataAlg()
     if self.hasInputFromPort('p_selection1') :
-      p.set_p_selection1(self.getInputFromPort('p_selection1'))
+      p.set_p_selection1(self.get_input('p_selection1'))
     if self.hasInputFromPort('p_function1') :
-      p.set_p_function1(self.getInputFromPort('p_function1'))
+      p.set_p_function1(self.get_input('p_function1'))
     if self.hasInputFromPort('p_selection2') :
-      p.set_p_selection2(self.getInputFromPort('p_selection2'))
+      p.set_p_selection2(self.get_input('p_selection2'))
     if self.hasInputFromPort('p_function2') :
-      p.set_p_function2(self.getInputFromPort('p_function2'))
+      p.set_p_function2(self.get_input('p_function2'))
     if self.hasInputFromPort('p_selection3') :
-      p.set_p_selection3(self.getInputFromPort('p_selection3'))
+      p.set_p_selection3(self.get_input('p_selection3'))
     if self.hasInputFromPort('p_function3') :
-      p.set_p_function3(self.getInputFromPort('p_function3'))
+      p.set_p_function3(self.get_input('p_function3'))
     if self.hasInputFromPort('p_selection4') :
-      p.set_p_selection4(self.getInputFromPort('p_selection4'))
+      p.set_p_selection4(self.get_input('p_selection4'))
     if self.hasInputFromPort('p_function4') :
-      p.set_p_function4(self.getInputFromPort('p_function4'))
+      p.set_p_function4(self.get_input('p_function4'))
     if self.hasInputFromPort('p_functiondef') :
-      p.set_p_functiondef(self.getInputFromPort('p_functiondef'))
+      p.set_p_functiondef(self.get_input('p_functiondef'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Field, Array)
     self.setResult('Field', results)
 
@@ -1385,24 +1385,24 @@ class CalculateFieldData3(ChangeFieldData) :
   def compute(self) :
     p = sr_py.CalculateFieldData3Alg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     Field1 = 0
     if self.hasInputFromPort('Field1') :
-      Field1 = self.getInputFromPort('Field1')
+      Field1 = self.get_input('Field1')
     Field2 = 0
     if self.hasInputFromPort('Field2') :
-      Field2 = self.getInputFromPort('Field2')
+      Field2 = self.get_input('Field2')
     Field3 = 0
     if self.hasInputFromPort('Field3') :
-      Field3 = self.getInputFromPort('Field3')
+      Field3 = self.get_input('Field3')
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Field1, Field2, Field3, Function, Array)
     self.setResult('Field', results)
 
@@ -1410,16 +1410,16 @@ class SetFieldData(ChangeFieldData) :
   def compute(self) :
     p = sr_py.SetFieldDataAlg()
     if self.hasInputFromPort('p_keepscalartype') :
-      p.set_p_keepscalartype(self.getInputFromPort('p_keepscalartype'))
+      p.set_p_keepscalartype(self.get_input('p_keepscalartype'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Matrix_Data = 0
     if self.hasInputFromPort('Matrix Data') :
-      Matrix_Data = self.getInputFromPort('Matrix Data')
+      Matrix_Data = self.get_input('Matrix Data')
     Nrrd_Data = 0
     if self.hasInputFromPort('Nrrd Data') :
-      Nrrd_Data = self.getInputFromPort('Nrrd Data')
+      Nrrd_Data = self.get_input('Nrrd Data')
     results = p.execute(Field, Matrix_Data, Nrrd_Data)
     self.setResult('Field', results)
 
@@ -1427,13 +1427,13 @@ class SwapFieldDataWithMatrixEntries(ChangeFieldData) :
   def compute(self) :
     p = sr_py.SwapFieldDataWithMatrixEntriesAlg()
     if self.hasInputFromPort('p_preserve_scalar_type') :
-      p.set_p_preserve_scalar_type(self.getInputFromPort('p_preserve_scalar_type'))
+      p.set_p_preserve_scalar_type(self.get_input('p_preserve_scalar_type'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Input_Matrix = 0
     if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
+      Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
     self.setResult('Output Field', results[0])
     self.setResult('Output Matrix', results[1])
@@ -1443,7 +1443,7 @@ class ConvertLatVolDataFromElemToNode(ChangeFieldData) :
     p = sr_py.ConvertLatVolDataFromElemToNodeAlg()
     Elem_Field = 0
     if self.hasInputFromPort('Elem Field') :
-      Elem_Field = self.getInputFromPort('Elem Field')
+      Elem_Field = self.get_input('Elem Field')
     results = p.execute(Elem_Field)
     self.setResult('Node Field', results)
 
@@ -1452,10 +1452,10 @@ class CalculateNodeNormals(ChangeFieldData) :
     p = sr_py.CalculateNodeNormalsAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Input_Point = 0
     if self.hasInputFromPort('Input Point') :
-      Input_Point = self.getInputFromPort('Input Point')
+      Input_Point = self.get_input('Input Point')
     results = p.execute(Input_Field, Input_Point)
     self.setResult('Output Field', results)
 
@@ -1464,7 +1464,7 @@ class CalculateVectorMagnitudes(ChangeFieldData) :
     p = sr_py.CalculateVectorMagnitudesAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output CalculateVectorMagnitudes', results)
 
@@ -1472,13 +1472,13 @@ class ConvertIndicesToFieldData(ChangeFieldData) :
   def compute(self) :
     p = sr_py.ConvertIndicesToFieldDataAlg()
     if self.hasInputFromPort('p_outputtype') :
-      p.set_p_outputtype(self.getInputFromPort('p_outputtype'))
+      p.set_p_outputtype(self.get_input('p_outputtype'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Data = 0
     if self.hasInputFromPort('Data') :
-      Data = self.getInputFromPort('Data')
+      Data = self.get_input('Data')
     results = p.execute(Field, Data)
     self.setResult('Field', results)
 
@@ -1487,7 +1487,7 @@ class CalculateDistanceToFieldBoundary(ChangeFieldData) :
     p = sr_py.CalculateDistanceToFieldBoundaryAlg()
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('DistanceField', results)
 
@@ -1495,21 +1495,21 @@ class MapFieldDataFromSourceToDestination(ChangeFieldData) :
   def compute(self) :
     p = sr_py.MapFieldDataFromSourceToDestinationAlg()
     if self.hasInputFromPort('p_interpolation_basis') :
-      p.set_p_interpolation_basis(self.getInputFromPort('p_interpolation_basis'))
+      p.set_p_interpolation_basis(self.get_input('p_interpolation_basis'))
     if self.hasInputFromPort('p_map_source_to_single_dest') :
-      p.set_p_map_source_to_single_dest(self.getInputFromPort('p_map_source_to_single_dest'))
+      p.set_p_map_source_to_single_dest(self.get_input('p_map_source_to_single_dest'))
     if self.hasInputFromPort('p_exhaustive_search') :
-      p.set_p_exhaustive_search(self.getInputFromPort('p_exhaustive_search'))
+      p.set_p_exhaustive_search(self.get_input('p_exhaustive_search'))
     if self.hasInputFromPort('p_exhaustive_search_max_dist') :
-      p.set_p_exhaustive_search_max_dist(self.getInputFromPort('p_exhaustive_search_max_dist'))
+      p.set_p_exhaustive_search_max_dist(self.get_input('p_exhaustive_search_max_dist'))
     if self.hasInputFromPort('p_np') :
-      p.set_p_np(self.getInputFromPort('p_np'))
+      p.set_p_np(self.get_input('p_np'))
     Source = 0
     if self.hasInputFromPort('Source') :
-      Source = self.getInputFromPort('Source')
+      Source = self.get_input('Source')
     Destination = 0
     if self.hasInputFromPort('Destination') :
-      Destination = self.getInputFromPort('Destination')
+      Destination = self.get_input('Destination')
     results = p.execute(Source, Destination)
     self.setResult('Remapped Destination', results)
 
@@ -1517,37 +1517,37 @@ class SelectAndSetFieldData3(ChangeFieldData) :
   def compute(self) :
     p = sr_py.SelectAndSetFieldData3Alg()
     if self.hasInputFromPort('p_selection1') :
-      p.set_p_selection1(self.getInputFromPort('p_selection1'))
+      p.set_p_selection1(self.get_input('p_selection1'))
     if self.hasInputFromPort('p_function1') :
-      p.set_p_function1(self.getInputFromPort('p_function1'))
+      p.set_p_function1(self.get_input('p_function1'))
     if self.hasInputFromPort('p_selection2') :
-      p.set_p_selection2(self.getInputFromPort('p_selection2'))
+      p.set_p_selection2(self.get_input('p_selection2'))
     if self.hasInputFromPort('p_function2') :
-      p.set_p_function2(self.getInputFromPort('p_function2'))
+      p.set_p_function2(self.get_input('p_function2'))
     if self.hasInputFromPort('p_selection3') :
-      p.set_p_selection3(self.getInputFromPort('p_selection3'))
+      p.set_p_selection3(self.get_input('p_selection3'))
     if self.hasInputFromPort('p_function3') :
-      p.set_p_function3(self.getInputFromPort('p_function3'))
+      p.set_p_function3(self.get_input('p_function3'))
     if self.hasInputFromPort('p_selection4') :
-      p.set_p_selection4(self.getInputFromPort('p_selection4'))
+      p.set_p_selection4(self.get_input('p_selection4'))
     if self.hasInputFromPort('p_function4') :
-      p.set_p_function4(self.getInputFromPort('p_function4'))
+      p.set_p_function4(self.get_input('p_function4'))
     if self.hasInputFromPort('p_functiondef') :
-      p.set_p_functiondef(self.getInputFromPort('p_functiondef'))
+      p.set_p_functiondef(self.get_input('p_functiondef'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     Field1 = 0
     if self.hasInputFromPort('Field1') :
-      Field1 = self.getInputFromPort('Field1')
+      Field1 = self.get_input('Field1')
     Field2 = 0
     if self.hasInputFromPort('Field2') :
-      Field2 = self.getInputFromPort('Field2')
+      Field2 = self.get_input('Field2')
     Field3 = 0
     if self.hasInputFromPort('Field3') :
-      Field3 = self.getInputFromPort('Field3')
+      Field3 = self.get_input('Field3')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Field1, Field2, Field3, Array)
     self.setResult('Field', results)
 
@@ -1555,20 +1555,20 @@ class CreateFieldData(ChangeFieldData) :
   def compute(self) :
     p = sr_py.CreateFieldDataAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     if self.hasInputFromPort('p_basis') :
-      p.set_p_basis(self.getInputFromPort('p_basis'))
+      p.set_p_basis(self.get_input('p_basis'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     DataArray = 0
     if self.hasInputFromPort('DataArray') :
-      DataArray = self.getInputFromPort('DataArray')
+      DataArray = self.get_input('DataArray')
     results = p.execute(Field, Function, DataArray)
     self.setResult('Field', results)
 
@@ -1577,7 +1577,7 @@ class ConvertLatVolDataFromNodeToElem(ChangeFieldData) :
     p = sr_py.ConvertLatVolDataFromNodeToElemAlg()
     Node_Field = 0
     if self.hasInputFromPort('Node Field') :
-      Node_Field = self.getInputFromPort('Node Field')
+      Node_Field = self.get_input('Node Field')
     results = p.execute(Node_Field)
     self.setResult('Elem Field', results)
 
@@ -1585,17 +1585,17 @@ class CalculateFieldDataCompiled(ChangeFieldData) :
   def compute(self) :
     p = sr_py.CalculateFieldDataCompiledAlg()
     if self.hasInputFromPort('p_outputdatatype') :
-      p.set_p_outputdatatype(self.getInputFromPort('p_outputdatatype'))
+      p.set_p_outputdatatype(self.get_input('p_outputdatatype'))
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_cache') :
-      p.set_p_cache(self.getInputFromPort('p_cache'))
+      p.set_p_cache(self.get_input('p_cache'))
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Function, Input_Field)
     self.setResult('Output Field', results)
 
@@ -1603,10 +1603,10 @@ class MapFieldDataFromElemToNode(ChangeFieldData) :
   def compute(self) :
     p = sr_py.MapFieldDataFromElemToNodeAlg()
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Field', results)
 
@@ -1614,14 +1614,14 @@ class ApplyFilterToFieldData(ChangeFieldData) :
   def compute(self) :
     p = sr_py.ApplyFilterToFieldDataAlg()
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     if self.hasInputFromPort('p_ed_method') :
-      p.set_p_ed_method(self.getInputFromPort('p_ed_method'))
+      p.set_p_ed_method(self.get_input('p_ed_method'))
     if self.hasInputFromPort('p_ed_iterations') :
-      p.set_p_ed_iterations(self.getInputFromPort('p_ed_iterations'))
+      p.set_p_ed_iterations(self.get_input('p_ed_iterations'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Field', results)
 
@@ -1630,7 +1630,7 @@ class GetFieldData(ChangeFieldData) :
     p = sr_py.GetFieldDataAlg()
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Data', results)
 
@@ -1638,21 +1638,21 @@ class CalculateFieldData2(ChangeFieldData) :
   def compute(self) :
     p = sr_py.CalculateFieldData2Alg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     Field1 = 0
     if self.hasInputFromPort('Field1') :
-      Field1 = self.getInputFromPort('Field1')
+      Field1 = self.get_input('Field1')
     Field2 = 0
     if self.hasInputFromPort('Field2') :
-      Field2 = self.getInputFromPort('Field2')
+      Field2 = self.get_input('Field2')
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Field1, Field2, Function, Array)
     self.setResult('Field', results)
 
@@ -1661,7 +1661,7 @@ class CalculateLatVolGradientsAtNodes(ChangeFieldData) :
     p = sr_py.CalculateLatVolGradientsAtNodesAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Gradient', results)
 
@@ -1670,7 +1670,7 @@ class CalculateGradients(ChangeFieldData) :
     p = sr_py.CalculateGradientsAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output CalculateGradients', results)
 
@@ -1679,10 +1679,10 @@ class CalculateSignedDistanceToField(ChangeFieldData) :
     p = sr_py.CalculateSignedDistanceToFieldAlg()
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     ObjectField = 0
     if self.hasInputFromPort('ObjectField') :
-      ObjectField = self.getInputFromPort('ObjectField')
+      ObjectField = self.get_input('ObjectField')
     results = p.execute(Field, ObjectField)
     self.setResult('SignedDistanceField', results)
 
@@ -1690,15 +1690,15 @@ class CalculateInsideWhichField(ChangeFieldData) :
   def compute(self) :
     p = sr_py.CalculateInsideWhichFieldAlg()
     if self.hasInputFromPort('p_outputbasis') :
-      p.set_p_outputbasis(self.getInputFromPort('p_outputbasis'))
+      p.set_p_outputbasis(self.get_input('p_outputbasis'))
     if self.hasInputFromPort('p_outputtype') :
-      p.set_p_outputtype(self.getInputFromPort('p_outputtype'))
+      p.set_p_outputtype(self.get_input('p_outputtype'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Object = 0
     if self.hasInputFromPort('Object') :
-      Object = self.getInputFromPort('Object')
+      Object = self.get_input('Object')
     results = p.execute(Field, Object)
     self.setResult('Field', results)
 
@@ -1706,10 +1706,10 @@ class MapFieldDataFromNodeToElem(ChangeFieldData) :
   def compute(self) :
     p = sr_py.MapFieldDataFromNodeToElemAlg()
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Field', results)
 
@@ -1717,10 +1717,10 @@ class ConvertFieldDataType(ChangeFieldData) :
   def compute(self) :
     p = sr_py.ConvertFieldDataTypeAlg()
     if self.hasInputFromPort('p_outputdatatype') :
-      p.set_p_outputdatatype(self.getInputFromPort('p_outputdatatype'))
+      p.set_p_outputdatatype(self.get_input('p_outputdatatype'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results)
 
@@ -1728,17 +1728,17 @@ class CalculateIsInsideField(ChangeFieldData) :
   def compute(self) :
     p = sr_py.CalculateIsInsideFieldAlg()
     if self.hasInputFromPort('p_outputtype') :
-      p.set_p_outputtype(self.getInputFromPort('p_outputtype'))
+      p.set_p_outputtype(self.get_input('p_outputtype'))
     if self.hasInputFromPort('p_outval') :
-      p.set_p_outval(self.getInputFromPort('p_outval'))
+      p.set_p_outval(self.get_input('p_outval'))
     if self.hasInputFromPort('p_inval') :
-      p.set_p_inval(self.getInputFromPort('p_inval'))
+      p.set_p_inval(self.get_input('p_inval'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     ObjectField = 0
     if self.hasInputFromPort('ObjectField') :
-      ObjectField = self.getInputFromPort('ObjectField')
+      ObjectField = self.get_input('ObjectField')
     results = p.execute(Field, ObjectField)
     self.setResult('Field', results)
 
@@ -1746,18 +1746,18 @@ class CalculateFieldData(ChangeFieldData) :
   def compute(self) :
     p = sr_py.CalculateFieldDataAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Field, Function, Array)
     self.setResult('Field', results)
 
@@ -1766,10 +1766,10 @@ class CalculateDistanceToField(ChangeFieldData) :
     p = sr_py.CalculateDistanceToFieldAlg()
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     ObjectField = 0
     if self.hasInputFromPort('ObjectField') :
-      ObjectField = self.getInputFromPort('ObjectField')
+      ObjectField = self.get_input('ObjectField')
     results = p.execute(Field, ObjectField)
     self.setResult('DistanceField', results)
 
@@ -1777,19 +1777,19 @@ class TransformPlanarMesh(ChangeMesh) :
   def compute(self) :
     p = sr_py.TransformPlanarMeshAlg()
     if self.hasInputFromPort('p_axis') :
-      p.set_p_axis(self.getInputFromPort('p_axis'))
+      p.set_p_axis(self.get_input('p_axis'))
     if self.hasInputFromPort('p_invert') :
-      p.set_p_invert(self.getInputFromPort('p_invert'))
+      p.set_p_invert(self.get_input('p_invert'))
     if self.hasInputFromPort('p_trans_x') :
-      p.set_p_trans_x(self.getInputFromPort('p_trans_x'))
+      p.set_p_trans_x(self.get_input('p_trans_x'))
     if self.hasInputFromPort('p_trans_y') :
-      p.set_p_trans_y(self.getInputFromPort('p_trans_y'))
+      p.set_p_trans_y(self.get_input('p_trans_y'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Index_Matrix = 0
     if self.hasInputFromPort('Index Matrix') :
-      Index_Matrix = self.getInputFromPort('Index Matrix')
+      Index_Matrix = self.get_input('Index Matrix')
     results = p.execute(Input_Field, Index_Matrix)
     self.setResult('Transformed Field', results)
 
@@ -1798,7 +1798,7 @@ class ConvertMeshToUnstructuredMesh(ChangeMesh) :
     p = sr_py.ConvertMeshToUnstructuredMeshAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results)
 
@@ -1807,7 +1807,7 @@ class ConvertQuadSurfToTriSurf(ChangeMesh) :
     p = sr_py.ConvertQuadSurfToTriSurfAlg()
     QuadSurf = 0
     if self.hasInputFromPort('QuadSurf') :
-      QuadSurf = self.getInputFromPort('QuadSurf')
+      QuadSurf = self.get_input('QuadSurf')
     results = p.execute(QuadSurf)
     self.setResult('TriSurf', results)
 
@@ -1815,10 +1815,10 @@ class TransformMeshWithFunction(ChangeMesh) :
   def compute(self) :
     p = sr_py.TransformMeshWithFunctionAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results)
 
@@ -1827,7 +1827,7 @@ class ConvertHexVolToTetVol(ChangeMesh) :
     p = sr_py.ConvertHexVolToTetVolAlg()
     HexVol = 0
     if self.hasInputFromPort('HexVol') :
-      HexVol = self.getInputFromPort('HexVol')
+      HexVol = self.get_input('HexVol')
     results = p.execute(HexVol)
     self.setResult('TetVol', results)
 
@@ -1835,12 +1835,12 @@ class ConvertMeshCoordinateSystem(ChangeMesh) :
   def compute(self) :
     p = sr_py.ConvertMeshCoordinateSystemAlg()
     if self.hasInputFromPort('p_oldsystem') :
-      p.set_p_oldsystem(self.getInputFromPort('p_oldsystem'))
+      p.set_p_oldsystem(self.get_input('p_oldsystem'))
     if self.hasInputFromPort('p_newsystem') :
-      p.set_p_newsystem(self.getInputFromPort('p_newsystem'))
+      p.set_p_newsystem(self.get_input('p_newsystem'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results)
 
@@ -1848,10 +1848,10 @@ class ConvertMeshToPointCloud(ChangeMesh) :
   def compute(self) :
     p = sr_py.ConvertMeshToPointCloudAlg()
     if self.hasInputFromPort('p_datalocation') :
-      p.set_p_datalocation(self.getInputFromPort('p_datalocation'))
+      p.set_p_datalocation(self.get_input('p_datalocation'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Field', results)
 
@@ -1860,10 +1860,10 @@ class TransformMeshWithTransform(ChangeMesh) :
     p = sr_py.TransformMeshWithTransformAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Transform_Matrix = 0
     if self.hasInputFromPort('Transform Matrix') :
-      Transform_Matrix = self.getInputFromPort('Transform Matrix')
+      Transform_Matrix = self.get_input('Transform Matrix')
     results = p.execute(Input_Field, Transform_Matrix)
     self.setResult('Transformed Field', results)
 
@@ -1872,7 +1872,7 @@ class ConvertRegularMeshToStructuredMesh(ChangeMesh) :
     p = sr_py.ConvertRegularMeshToStructuredMeshAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results)
 
@@ -1880,16 +1880,16 @@ class CalculateMeshNodes(ChangeMesh) :
   def compute(self) :
     p = sr_py.CalculateMeshNodesAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Field, Function, Array)
     self.setResult('Field', results)
 
@@ -1898,10 +1898,10 @@ class SmoothMesh(ChangeMesh) :
     p = sr_py.SmoothMeshAlg()
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     IsoValue = 0
     if self.hasInputFromPort('IsoValue') :
-      IsoValue = self.getInputFromPort('IsoValue')
+      IsoValue = self.get_input('IsoValue')
     results = p.execute(Input, IsoValue)
     self.setResult('Smoothed', results)
 
@@ -1909,54 +1909,54 @@ class EditMeshBoundingBox(ChangeMesh) :
   def compute(self) :
     p = sr_py.EditMeshBoundingBoxAlg()
     if self.hasInputFromPort('p_outputcenterx') :
-      p.set_p_outputcenterx(self.getInputFromPort('p_outputcenterx'))
+      p.set_p_outputcenterx(self.get_input('p_outputcenterx'))
     if self.hasInputFromPort('p_outputcentery') :
-      p.set_p_outputcentery(self.getInputFromPort('p_outputcentery'))
+      p.set_p_outputcentery(self.get_input('p_outputcentery'))
     if self.hasInputFromPort('p_outputcenterz') :
-      p.set_p_outputcenterz(self.getInputFromPort('p_outputcenterz'))
+      p.set_p_outputcenterz(self.get_input('p_outputcenterz'))
     if self.hasInputFromPort('p_outputsizex') :
-      p.set_p_outputsizex(self.getInputFromPort('p_outputsizex'))
+      p.set_p_outputsizex(self.get_input('p_outputsizex'))
     if self.hasInputFromPort('p_outputsizey') :
-      p.set_p_outputsizey(self.getInputFromPort('p_outputsizey'))
+      p.set_p_outputsizey(self.get_input('p_outputsizey'))
     if self.hasInputFromPort('p_outputsizez') :
-      p.set_p_outputsizez(self.getInputFromPort('p_outputsizez'))
+      p.set_p_outputsizez(self.get_input('p_outputsizez'))
     if self.hasInputFromPort('p_useoutputcenter') :
-      p.set_p_useoutputcenter(self.getInputFromPort('p_useoutputcenter'))
+      p.set_p_useoutputcenter(self.get_input('p_useoutputcenter'))
     if self.hasInputFromPort('p_useoutputsize') :
-      p.set_p_useoutputsize(self.getInputFromPort('p_useoutputsize'))
+      p.set_p_useoutputsize(self.get_input('p_useoutputsize'))
     if self.hasInputFromPort('p_box_scale') :
-      p.set_p_box_scale(self.getInputFromPort('p_box_scale'))
+      p.set_p_box_scale(self.get_input('p_box_scale'))
     if self.hasInputFromPort('p_box_mode') :
-      p.set_p_box_mode(self.getInputFromPort('p_box_mode'))
+      p.set_p_box_mode(self.get_input('p_box_mode'))
     if self.hasInputFromPort('p_box_real_scale') :
-      p.set_p_box_real_scale(self.getInputFromPort('p_box_real_scale'))
+      p.set_p_box_real_scale(self.get_input('p_box_real_scale'))
     if self.hasInputFromPort('p_box_center_x') :
-      p.set_p_box_center_x(self.getInputFromPort('p_box_center_x'))
+      p.set_p_box_center_x(self.get_input('p_box_center_x'))
     if self.hasInputFromPort('p_box_center_y') :
-      p.set_p_box_center_y(self.getInputFromPort('p_box_center_y'))
+      p.set_p_box_center_y(self.get_input('p_box_center_y'))
     if self.hasInputFromPort('p_box_center_z') :
-      p.set_p_box_center_z(self.getInputFromPort('p_box_center_z'))
+      p.set_p_box_center_z(self.get_input('p_box_center_z'))
     if self.hasInputFromPort('p_box_right_x') :
-      p.set_p_box_right_x(self.getInputFromPort('p_box_right_x'))
+      p.set_p_box_right_x(self.get_input('p_box_right_x'))
     if self.hasInputFromPort('p_box_right_y') :
-      p.set_p_box_right_y(self.getInputFromPort('p_box_right_y'))
+      p.set_p_box_right_y(self.get_input('p_box_right_y'))
     if self.hasInputFromPort('p_box_right_z') :
-      p.set_p_box_right_z(self.getInputFromPort('p_box_right_z'))
+      p.set_p_box_right_z(self.get_input('p_box_right_z'))
     if self.hasInputFromPort('p_box_down_x') :
-      p.set_p_box_down_x(self.getInputFromPort('p_box_down_x'))
+      p.set_p_box_down_x(self.get_input('p_box_down_x'))
     if self.hasInputFromPort('p_box_down_y') :
-      p.set_p_box_down_y(self.getInputFromPort('p_box_down_y'))
+      p.set_p_box_down_y(self.get_input('p_box_down_y'))
     if self.hasInputFromPort('p_box_down_z') :
-      p.set_p_box_down_z(self.getInputFromPort('p_box_down_z'))
+      p.set_p_box_down_z(self.get_input('p_box_down_z'))
     if self.hasInputFromPort('p_box_in_x') :
-      p.set_p_box_in_x(self.getInputFromPort('p_box_in_x'))
+      p.set_p_box_in_x(self.get_input('p_box_in_x'))
     if self.hasInputFromPort('p_box_in_y') :
-      p.set_p_box_in_y(self.getInputFromPort('p_box_in_y'))
+      p.set_p_box_in_y(self.get_input('p_box_in_y'))
     if self.hasInputFromPort('p_box_in_z') :
-      p.set_p_box_in_z(self.getInputFromPort('p_box_in_z'))
+      p.set_p_box_in_z(self.get_input('p_box_in_z'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results[0])
     self.setResult('Transformation Widget', results[1])
@@ -1967,10 +1967,10 @@ class SwapNodeLocationsWithMatrixEntries(ChangeMesh) :
     p = sr_py.SwapNodeLocationsWithMatrixEntriesAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     Input_Matrix = 0
     if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
+      Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
     self.setResult('Output Field', results[0])
     self.setResult('Output Matrix', results[1])
@@ -1979,10 +1979,10 @@ class MapFieldDataToNodeCoordinate(ChangeMesh) :
   def compute(self) :
     p = sr_py.MapFieldDataToNodeCoordinateAlg()
     if self.hasInputFromPort('p_coord') :
-      p.set_p_coord(self.getInputFromPort('p_coord'))
+      p.set_p_coord(self.get_input('p_coord'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Field', results)
 
@@ -1990,20 +1990,20 @@ class ScaleFieldMeshAndData(ChangeMesh) :
   def compute(self) :
     p = sr_py.ScaleFieldMeshAndDataAlg()
     if self.hasInputFromPort('p_datascale') :
-      p.set_p_datascale(self.getInputFromPort('p_datascale'))
+      p.set_p_datascale(self.get_input('p_datascale'))
     if self.hasInputFromPort('p_geomscale') :
-      p.set_p_geomscale(self.getInputFromPort('p_geomscale'))
+      p.set_p_geomscale(self.get_input('p_geomscale'))
     if self.hasInputFromPort('p_usegeomcenter') :
-      p.set_p_usegeomcenter(self.getInputFromPort('p_usegeomcenter'))
+      p.set_p_usegeomcenter(self.get_input('p_usegeomcenter'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     GeomScaleFactor = 0
     if self.hasInputFromPort('GeomScaleFactor') :
-      GeomScaleFactor = self.getInputFromPort('GeomScaleFactor')
+      GeomScaleFactor = self.get_input('GeomScaleFactor')
     DataScaleFactor = 0
     if self.hasInputFromPort('DataScaleFactor') :
-      DataScaleFactor = self.getInputFromPort('DataScaleFactor')
+      DataScaleFactor = self.get_input('DataScaleFactor')
     results = p.execute(Field, GeomScaleFactor, DataScaleFactor)
     self.setResult('Field', results)
 
@@ -2011,17 +2011,17 @@ class ReportColumnMatrixMisfit(Math) :
   def compute(self) :
     p = sr_py.ReportColumnMatrixMisfitAlg()
     if self.hasInputFromPort('p_have_ui') :
-      p.set_p_have_ui(self.getInputFromPort('p_have_ui'))
+      p.set_p_have_ui(self.get_input('p_have_ui'))
     if self.hasInputFromPort('p_methodTCL') :
-      p.set_p_methodTCL(self.getInputFromPort('p_methodTCL'))
+      p.set_p_methodTCL(self.get_input('p_methodTCL'))
     if self.hasInputFromPort('p_pTCL') :
-      p.set_p_pTCL(self.getInputFromPort('p_pTCL'))
+      p.set_p_pTCL(self.get_input('p_pTCL'))
     Vec1 = 0
     if self.hasInputFromPort('Vec1') :
-      Vec1 = self.getInputFromPort('Vec1')
+      Vec1 = self.get_input('Vec1')
     Vec2 = 0
     if self.hasInputFromPort('Vec2') :
-      Vec2 = self.getInputFromPort('Vec2')
+      Vec2 = self.get_input('Vec2')
     results = p.execute(Vec1, Vec2)
     self.setResult('Error Out', results)
 
@@ -2029,22 +2029,22 @@ class EvaluateLinAlgGeneral(Math) :
   def compute(self) :
     p = sr_py.EvaluateLinAlgGeneralAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     i1 = 0
     if self.hasInputFromPort('i1') :
-      i1 = self.getInputFromPort('i1')
+      i1 = self.get_input('i1')
     i2 = 0
     if self.hasInputFromPort('i2') :
-      i2 = self.getInputFromPort('i2')
+      i2 = self.get_input('i2')
     i3 = 0
     if self.hasInputFromPort('i3') :
-      i3 = self.getInputFromPort('i3')
+      i3 = self.get_input('i3')
     i4 = 0
     if self.hasInputFromPort('i4') :
-      i4 = self.getInputFromPort('i4')
+      i4 = self.get_input('i4')
     i5 = 0
     if self.hasInputFromPort('i5') :
-      i5 = self.getInputFromPort('i5')
+      i5 = self.get_input('i5')
     results = p.execute(i1, i2, i3, i4, i5)
     self.setResult('o1', results[0])
     self.setResult('o2', results[1])
@@ -2056,13 +2056,13 @@ class AppendMatrix(Math) :
   def compute(self) :
     p = sr_py.AppendMatrixAlg()
     if self.hasInputFromPort('p_row_or_column') :
-      p.set_p_row_or_column(self.getInputFromPort('p_row_or_column'))
+      p.set_p_row_or_column(self.get_input('p_row_or_column'))
     BaseMatrix = 0
     if self.hasInputFromPort('BaseMatrix') :
-      BaseMatrix = self.getInputFromPort('BaseMatrix')
+      BaseMatrix = self.get_input('BaseMatrix')
     AppendMatrix = 0
     if self.hasInputFromPort('AppendMatrix') :
-      AppendMatrix = self.getInputFromPort('AppendMatrix')
+      AppendMatrix = self.get_input('AppendMatrix')
     results = p.execute(BaseMatrix, AppendMatrix)
     self.setResult('Matrix', results)
 
@@ -2070,15 +2070,15 @@ class EvaluateLinAlgBinary(Math) :
   def compute(self) :
     p = sr_py.EvaluateLinAlgBinaryAlg()
     if self.hasInputFromPort('p_op') :
-      p.set_p_op(self.getInputFromPort('p_op'))
+      p.set_p_op(self.get_input('p_op'))
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     A = 0
     if self.hasInputFromPort('A') :
-      A = self.getInputFromPort('A')
+      A = self.get_input('A')
     B = 0
     if self.hasInputFromPort('B') :
-      B = self.getInputFromPort('B')
+      B = self.get_input('B')
     results = p.execute(A, B)
     self.setResult('Output', results)
 
@@ -2087,7 +2087,7 @@ class ConvertMaskVectorToMappingMatrix(Math) :
     p = sr_py.ConvertMaskVectorToMappingMatrixAlg()
     MaskVector = 0
     if self.hasInputFromPort('MaskVector') :
-      MaskVector = self.getInputFromPort('MaskVector')
+      MaskVector = self.get_input('MaskVector')
     results = p.execute(MaskVector)
     self.setResult('MappingMatrix', results)
 
@@ -2095,43 +2095,43 @@ class SolveLinearSystem(Math) :
   def compute(self) :
     p = sr_py.SolveLinearSystemAlg()
     if self.hasInputFromPort('p_target_error') :
-      p.set_p_target_error(self.getInputFromPort('p_target_error'))
+      p.set_p_target_error(self.get_input('p_target_error'))
     if self.hasInputFromPort('p_flops') :
-      p.set_p_flops(self.getInputFromPort('p_flops'))
+      p.set_p_flops(self.get_input('p_flops'))
     if self.hasInputFromPort('p_floprate') :
-      p.set_p_floprate(self.getInputFromPort('p_floprate'))
+      p.set_p_floprate(self.get_input('p_floprate'))
     if self.hasInputFromPort('p_memrefs') :
-      p.set_p_memrefs(self.getInputFromPort('p_memrefs'))
+      p.set_p_memrefs(self.get_input('p_memrefs'))
     if self.hasInputFromPort('p_memrate') :
-      p.set_p_memrate(self.getInputFromPort('p_memrate'))
+      p.set_p_memrate(self.get_input('p_memrate'))
     if self.hasInputFromPort('p_orig_error') :
-      p.set_p_orig_error(self.getInputFromPort('p_orig_error'))
+      p.set_p_orig_error(self.get_input('p_orig_error'))
     if self.hasInputFromPort('p_current_error') :
-      p.set_p_current_error(self.getInputFromPort('p_current_error'))
+      p.set_p_current_error(self.get_input('p_current_error'))
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     if self.hasInputFromPort('p_precond') :
-      p.set_p_precond(self.getInputFromPort('p_precond'))
+      p.set_p_precond(self.get_input('p_precond'))
     if self.hasInputFromPort('p_iteration') :
-      p.set_p_iteration(self.getInputFromPort('p_iteration'))
+      p.set_p_iteration(self.get_input('p_iteration'))
     if self.hasInputFromPort('p_maxiter') :
-      p.set_p_maxiter(self.getInputFromPort('p_maxiter'))
+      p.set_p_maxiter(self.get_input('p_maxiter'))
     if self.hasInputFromPort('p_use_previous_soln') :
-      p.set_p_use_previous_soln(self.getInputFromPort('p_use_previous_soln'))
+      p.set_p_use_previous_soln(self.get_input('p_use_previous_soln'))
     if self.hasInputFromPort('p_emit_partial') :
-      p.set_p_emit_partial(self.getInputFromPort('p_emit_partial'))
+      p.set_p_emit_partial(self.get_input('p_emit_partial'))
     if self.hasInputFromPort('p_emit_iter') :
-      p.set_p_emit_iter(self.getInputFromPort('p_emit_iter'))
+      p.set_p_emit_iter(self.get_input('p_emit_iter'))
     if self.hasInputFromPort('p_status') :
-      p.set_p_status(self.getInputFromPort('p_status'))
+      p.set_p_status(self.get_input('p_status'))
     if self.hasInputFromPort('p_np') :
-      p.set_p_np(self.getInputFromPort('p_np'))
+      p.set_p_np(self.get_input('p_np'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     RHS = 0
     if self.hasInputFromPort('RHS') :
-      RHS = self.getInputFromPort('RHS')
+      RHS = self.get_input('RHS')
     results = p.execute(Matrix, RHS)
     self.setResult('Solution', results)
 
@@ -2139,10 +2139,10 @@ class ReportMatrixColumnMeasure(Math) :
   def compute(self) :
     p = sr_py.ReportMatrixColumnMeasureAlg()
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Vector', results)
 
@@ -2150,10 +2150,10 @@ class SortMatrix(Math) :
   def compute(self) :
     p = sr_py.SortMatrixAlg()
     if self.hasInputFromPort('p_row_or_col') :
-      p.set_p_row_or_col(self.getInputFromPort('p_row_or_col'))
+      p.set_p_row_or_col(self.get_input('p_row_or_col'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Matrix', results)
 
@@ -2161,52 +2161,52 @@ class CreateGeometricTransform(Math) :
   def compute(self) :
     p = sr_py.CreateGeometricTransformAlg()
     if self.hasInputFromPort('p_rotate_x') :
-      p.set_p_rotate_x(self.getInputFromPort('p_rotate_x'))
+      p.set_p_rotate_x(self.get_input('p_rotate_x'))
     if self.hasInputFromPort('p_rotate_y') :
-      p.set_p_rotate_y(self.getInputFromPort('p_rotate_y'))
+      p.set_p_rotate_y(self.get_input('p_rotate_y'))
     if self.hasInputFromPort('p_rotate_z') :
-      p.set_p_rotate_z(self.getInputFromPort('p_rotate_z'))
+      p.set_p_rotate_z(self.get_input('p_rotate_z'))
     if self.hasInputFromPort('p_rotate_theta') :
-      p.set_p_rotate_theta(self.getInputFromPort('p_rotate_theta'))
+      p.set_p_rotate_theta(self.get_input('p_rotate_theta'))
     if self.hasInputFromPort('p_translate_x') :
-      p.set_p_translate_x(self.getInputFromPort('p_translate_x'))
+      p.set_p_translate_x(self.get_input('p_translate_x'))
     if self.hasInputFromPort('p_translate_y') :
-      p.set_p_translate_y(self.getInputFromPort('p_translate_y'))
+      p.set_p_translate_y(self.get_input('p_translate_y'))
     if self.hasInputFromPort('p_translate_z') :
-      p.set_p_translate_z(self.getInputFromPort('p_translate_z'))
+      p.set_p_translate_z(self.get_input('p_translate_z'))
     if self.hasInputFromPort('p_scale_uniform') :
-      p.set_p_scale_uniform(self.getInputFromPort('p_scale_uniform'))
+      p.set_p_scale_uniform(self.get_input('p_scale_uniform'))
     if self.hasInputFromPort('p_scale_x') :
-      p.set_p_scale_x(self.getInputFromPort('p_scale_x'))
+      p.set_p_scale_x(self.get_input('p_scale_x'))
     if self.hasInputFromPort('p_scale_y') :
-      p.set_p_scale_y(self.getInputFromPort('p_scale_y'))
+      p.set_p_scale_y(self.get_input('p_scale_y'))
     if self.hasInputFromPort('p_scale_z') :
-      p.set_p_scale_z(self.getInputFromPort('p_scale_z'))
+      p.set_p_scale_z(self.get_input('p_scale_z'))
     if self.hasInputFromPort('p_shear_plane_a') :
-      p.set_p_shear_plane_a(self.getInputFromPort('p_shear_plane_a'))
+      p.set_p_shear_plane_a(self.get_input('p_shear_plane_a'))
     if self.hasInputFromPort('p_shear_plane_b') :
-      p.set_p_shear_plane_b(self.getInputFromPort('p_shear_plane_b'))
+      p.set_p_shear_plane_b(self.get_input('p_shear_plane_b'))
     if self.hasInputFromPort('p_shear_plane_c') :
-      p.set_p_shear_plane_c(self.getInputFromPort('p_shear_plane_c'))
+      p.set_p_shear_plane_c(self.get_input('p_shear_plane_c'))
     if self.hasInputFromPort('p_widget_resizable') :
-      p.set_p_widget_resizable(self.getInputFromPort('p_widget_resizable'))
+      p.set_p_widget_resizable(self.get_input('p_widget_resizable'))
     if self.hasInputFromPort('p_permute_x') :
-      p.set_p_permute_x(self.getInputFromPort('p_permute_x'))
+      p.set_p_permute_x(self.get_input('p_permute_x'))
     if self.hasInputFromPort('p_permute_y') :
-      p.set_p_permute_y(self.getInputFromPort('p_permute_y'))
+      p.set_p_permute_y(self.get_input('p_permute_y'))
     if self.hasInputFromPort('p_permute_z') :
-      p.set_p_permute_z(self.getInputFromPort('p_permute_z'))
+      p.set_p_permute_z(self.get_input('p_permute_z'))
     if self.hasInputFromPort('p_pre_transform') :
-      p.set_p_pre_transform(self.getInputFromPort('p_pre_transform'))
+      p.set_p_pre_transform(self.get_input('p_pre_transform'))
     if self.hasInputFromPort('p_which_transform') :
-      p.set_p_which_transform(self.getInputFromPort('p_which_transform'))
+      p.set_p_which_transform(self.get_input('p_which_transform'))
     if self.hasInputFromPort('p_widget_scale') :
-      p.set_p_widget_scale(self.getInputFromPort('p_widget_scale'))
+      p.set_p_widget_scale(self.get_input('p_widget_scale'))
     if self.hasInputFromPort('p_ignoring_widget_changes') :
-      p.set_p_ignoring_widget_changes(self.getInputFromPort('p_ignoring_widget_changes'))
+      p.set_p_ignoring_widget_changes(self.get_input('p_ignoring_widget_changes'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Matrix', results[0])
     self.setResult('Geometry', results[1])
@@ -2215,14 +2215,14 @@ class ChooseMatrix(Math) :
   def compute(self) :
     p = sr_py.ChooseMatrixAlg()
     if self.hasInputFromPort('p_use_first_valid') :
-      p.set_p_use_first_valid(self.getInputFromPort('p_use_first_valid'))
+      p.set_p_use_first_valid(self.get_input('p_use_first_valid'))
     if self.hasInputFromPort('p_port_valid_index') :
-      p.set_p_port_valid_index(self.getInputFromPort('p_port_valid_index'))
+      p.set_p_port_valid_index(self.get_input('p_port_valid_index'))
     if self.hasInputFromPort('p_port_selected_index') :
-      p.set_p_port_selected_index(self.getInputFromPort('p_port_selected_index'))
+      p.set_p_port_selected_index(self.get_input('p_port_selected_index'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Matrix', results)
 
@@ -2231,7 +2231,7 @@ class ConvertMappingMatrixToMaskVector(Math) :
     p = sr_py.ConvertMappingMatrixToMaskVectorAlg()
     MappingMatrix = 0
     if self.hasInputFromPort('MappingMatrix') :
-      MappingMatrix = self.getInputFromPort('MappingMatrix')
+      MappingMatrix = self.get_input('MappingMatrix')
     results = p.execute(MappingMatrix)
     self.setResult('MaskVector', results)
 
@@ -2239,18 +2239,18 @@ class ResizeMatrix(Math) :
   def compute(self) :
     p = sr_py.ResizeMatrixAlg()
     if self.hasInputFromPort('p_dim_m') :
-      p.set_p_dim_m(self.getInputFromPort('p_dim_m'))
+      p.set_p_dim_m(self.get_input('p_dim_m'))
     if self.hasInputFromPort('p_dim_n') :
-      p.set_p_dim_n(self.getInputFromPort('p_dim_n'))
+      p.set_p_dim_n(self.get_input('p_dim_n'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     M = 0
     if self.hasInputFromPort('M') :
-      M = self.getInputFromPort('M')
+      M = self.get_input('M')
     N = 0
     if self.hasInputFromPort('N') :
-      N = self.getInputFromPort('N')
+      N = self.get_input('N')
     results = p.execute(Matrix, M, N)
     self.setResult('Matrix', results)
 
@@ -2258,17 +2258,17 @@ class CollectMatrices(Math) :
   def compute(self) :
     p = sr_py.CollectMatricesAlg()
     if self.hasInputFromPort('p_append') :
-      p.set_p_append(self.getInputFromPort('p_append'))
+      p.set_p_append(self.get_input('p_append'))
     if self.hasInputFromPort('p_row') :
-      p.set_p_row(self.getInputFromPort('p_row'))
+      p.set_p_row(self.get_input('p_row'))
     if self.hasInputFromPort('p_front') :
-      p.set_p_front(self.getInputFromPort('p_front'))
+      p.set_p_front(self.get_input('p_front'))
     Optional_BaseMatrix = 0
     if self.hasInputFromPort('Optional BaseMatrix') :
-      Optional_BaseMatrix = self.getInputFromPort('Optional BaseMatrix')
+      Optional_BaseMatrix = self.get_input('Optional BaseMatrix')
     SubMatrix = 0
     if self.hasInputFromPort('SubMatrix') :
-      SubMatrix = self.getInputFromPort('SubMatrix')
+      SubMatrix = self.get_input('SubMatrix')
     results = p.execute(Optional_BaseMatrix, SubMatrix)
     self.setResult('CompositeMatrix', results)
 
@@ -2276,42 +2276,42 @@ class GetColumnOrRowFromMatrix(Math) :
   def compute(self) :
     p = sr_py.GetColumnOrRowFromMatrixAlg()
     if self.hasInputFromPort('p_row_or_col') :
-      p.set_p_row_or_col(self.getInputFromPort('p_row_or_col'))
+      p.set_p_row_or_col(self.get_input('p_row_or_col'))
     if self.hasInputFromPort('p_selectable_min') :
-      p.set_p_selectable_min(self.getInputFromPort('p_selectable_min'))
+      p.set_p_selectable_min(self.get_input('p_selectable_min'))
     if self.hasInputFromPort('p_selectable_max') :
-      p.set_p_selectable_max(self.getInputFromPort('p_selectable_max'))
+      p.set_p_selectable_max(self.get_input('p_selectable_max'))
     if self.hasInputFromPort('p_selectable_inc') :
-      p.set_p_selectable_inc(self.getInputFromPort('p_selectable_inc'))
+      p.set_p_selectable_inc(self.get_input('p_selectable_inc'))
     if self.hasInputFromPort('p_selectable_units') :
-      p.set_p_selectable_units(self.getInputFromPort('p_selectable_units'))
+      p.set_p_selectable_units(self.get_input('p_selectable_units'))
     if self.hasInputFromPort('p_range_min') :
-      p.set_p_range_min(self.getInputFromPort('p_range_min'))
+      p.set_p_range_min(self.get_input('p_range_min'))
     if self.hasInputFromPort('p_range_max') :
-      p.set_p_range_max(self.getInputFromPort('p_range_max'))
+      p.set_p_range_max(self.get_input('p_range_max'))
     if self.hasInputFromPort('p_playmode') :
-      p.set_p_playmode(self.getInputFromPort('p_playmode'))
+      p.set_p_playmode(self.get_input('p_playmode'))
     if self.hasInputFromPort('p_current') :
-      p.set_p_current(self.getInputFromPort('p_current'))
+      p.set_p_current(self.get_input('p_current'))
     if self.hasInputFromPort('p_execmode') :
-      p.set_p_execmode(self.getInputFromPort('p_execmode'))
+      p.set_p_execmode(self.get_input('p_execmode'))
     if self.hasInputFromPort('p_delay') :
-      p.set_p_delay(self.getInputFromPort('p_delay'))
+      p.set_p_delay(self.get_input('p_delay'))
     if self.hasInputFromPort('p_inc_amount') :
-      p.set_p_inc_amount(self.getInputFromPort('p_inc_amount'))
+      p.set_p_inc_amount(self.get_input('p_inc_amount'))
     if self.hasInputFromPort('p_send_amount') :
-      p.set_p_send_amount(self.getInputFromPort('p_send_amount'))
+      p.set_p_send_amount(self.get_input('p_send_amount'))
     if self.hasInputFromPort('p_data_series_done') :
-      p.set_p_data_series_done(self.getInputFromPort('p_data_series_done'))
+      p.set_p_data_series_done(self.get_input('p_data_series_done'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     Weight_Vector = 0
     if self.hasInputFromPort('Weight Vector') :
-      Weight_Vector = self.getInputFromPort('Weight Vector')
+      Weight_Vector = self.get_input('Weight Vector')
     Current_Index = 0
     if self.hasInputFromPort('Current Index') :
-      Current_Index = self.getInputFromPort('Current Index')
+      Current_Index = self.get_input('Current Index')
     results = p.execute(Matrix, Weight_Vector, Current_Index)
     self.setResult('Vector', results[0])
     self.setResult('Selected Index', results[1])
@@ -2320,10 +2320,10 @@ class BuildNoiseColumnMatrix(Math) :
   def compute(self) :
     p = sr_py.BuildNoiseColumnMatrixAlg()
     if self.hasInputFromPort('p_snr') :
-      p.set_p_snr(self.getInputFromPort('p_snr'))
+      p.set_p_snr(self.get_input('p_snr'))
     Signal = 0
     if self.hasInputFromPort('Signal') :
-      Signal = self.getInputFromPort('Signal')
+      Signal = self.get_input('Signal')
     results = p.execute(Signal)
     self.setResult('Noise', results)
 
@@ -2331,12 +2331,12 @@ class EvaluateLinAlgUnary(Math) :
   def compute(self) :
     p = sr_py.EvaluateLinAlgUnaryAlg()
     if self.hasInputFromPort('p_op') :
-      p.set_p_op(self.getInputFromPort('p_op'))
+      p.set_p_op(self.get_input('p_op'))
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
     self.setResult('Output', results)
 
@@ -2344,23 +2344,23 @@ class GetSubmatrix(Math) :
   def compute(self) :
     p = sr_py.GetSubmatrixAlg()
     if self.hasInputFromPort('p_mincol') :
-      p.set_p_mincol(self.getInputFromPort('p_mincol'))
+      p.set_p_mincol(self.get_input('p_mincol'))
     if self.hasInputFromPort('p_maxcol') :
-      p.set_p_maxcol(self.getInputFromPort('p_maxcol'))
+      p.set_p_maxcol(self.get_input('p_maxcol'))
     if self.hasInputFromPort('p_minrow') :
-      p.set_p_minrow(self.getInputFromPort('p_minrow'))
+      p.set_p_minrow(self.get_input('p_minrow'))
     if self.hasInputFromPort('p_maxrow') :
-      p.set_p_maxrow(self.getInputFromPort('p_maxrow'))
+      p.set_p_maxrow(self.get_input('p_maxrow'))
     if self.hasInputFromPort('p_nrow') :
-      p.set_p_nrow(self.getInputFromPort('p_nrow'))
+      p.set_p_nrow(self.get_input('p_nrow'))
     if self.hasInputFromPort('p_ncol') :
-      p.set_p_ncol(self.getInputFromPort('p_ncol'))
+      p.set_p_ncol(self.get_input('p_ncol'))
     Input_Matrix = 0
     if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
+      Input_Matrix = self.get_input('Input Matrix')
     Optional_Range_Bounds = 0
     if self.hasInputFromPort('Optional Range Bounds') :
-      Optional_Range_Bounds = self.getInputFromPort('Optional Range Bounds')
+      Optional_Range_Bounds = self.get_input('Optional Range Bounds')
     results = p.execute(Input_Matrix, Optional_Range_Bounds)
     self.setResult('Output Matrix', results)
 
@@ -2369,7 +2369,7 @@ class ReorderMatrixByReverseCuthillMcKee(Math) :
     p = sr_py.ReorderMatrixByReverseCuthillMcKeeAlg()
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Matrix', results[0])
     self.setResult('Mapping', results[1])
@@ -2379,15 +2379,15 @@ class CreateMatrix(Math) :
   def compute(self) :
     p = sr_py.CreateMatrixAlg()
     if self.hasInputFromPort('p_rows') :
-      p.set_p_rows(self.getInputFromPort('p_rows'))
+      p.set_p_rows(self.get_input('p_rows'))
     if self.hasInputFromPort('p_cols') :
-      p.set_p_cols(self.getInputFromPort('p_cols'))
+      p.set_p_cols(self.get_input('p_cols'))
     if self.hasInputFromPort('p_data') :
-      p.set_p_data(self.getInputFromPort('p_data'))
+      p.set_p_data(self.get_input('p_data'))
     if self.hasInputFromPort('p_clabel') :
-      p.set_p_clabel(self.getInputFromPort('p_clabel'))
+      p.set_p_clabel(self.get_input('p_clabel'))
     if self.hasInputFromPort('p_rlabel') :
-      p.set_p_rlabel(self.getInputFromPort('p_rlabel'))
+      p.set_p_rlabel(self.get_input('p_rlabel'))
     results = p.execute()
     self.setResult('matrix', results)
 
@@ -2396,16 +2396,16 @@ class SolveMinNormLeastSqSystem(Math) :
     p = sr_py.SolveMinNormLeastSqSystemAlg()
     BasisVec1 = 0
     if self.hasInputFromPort('BasisVec1') :
-      BasisVec1 = self.getInputFromPort('BasisVec1')
+      BasisVec1 = self.get_input('BasisVec1')
     BasisVec2 = 0
     if self.hasInputFromPort('BasisVec2') :
-      BasisVec2 = self.getInputFromPort('BasisVec2')
+      BasisVec2 = self.get_input('BasisVec2')
     BasisVec3 = 0
     if self.hasInputFromPort('BasisVec3') :
-      BasisVec3 = self.getInputFromPort('BasisVec3')
+      BasisVec3 = self.get_input('BasisVec3')
     TargetVec = 0
     if self.hasInputFromPort('TargetVec') :
-      TargetVec = self.getInputFromPort('TargetVec')
+      TargetVec = self.get_input('TargetVec')
     results = p.execute(BasisVec1, BasisVec2, BasisVec3, TargetVec)
     self.setResult('WeightVec(Col)', results[0])
     self.setResult('ResultVec(Col)', results[1])
@@ -2414,16 +2414,16 @@ class ConvertMatrixType(Math) :
   def compute(self) :
     p = sr_py.ConvertMatrixTypeAlg()
     if self.hasInputFromPort('p_oldtype') :
-      p.set_p_oldtype(self.getInputFromPort('p_oldtype'))
+      p.set_p_oldtype(self.get_input('p_oldtype'))
     if self.hasInputFromPort('p_newtype') :
-      p.set_p_newtype(self.getInputFromPort('p_newtype'))
+      p.set_p_newtype(self.get_input('p_newtype'))
     if self.hasInputFromPort('p_nrow') :
-      p.set_p_nrow(self.getInputFromPort('p_nrow'))
+      p.set_p_nrow(self.get_input('p_nrow'))
     if self.hasInputFromPort('p_ncol') :
-      p.set_p_ncol(self.getInputFromPort('p_ncol'))
+      p.set_p_ncol(self.get_input('p_ncol'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
     self.setResult('Output', results)
 
@@ -2431,10 +2431,10 @@ class ReportMatrixRowMeasure(Math) :
   def compute(self) :
     p = sr_py.ReportMatrixRowMeasureAlg()
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Vector', results)
 
@@ -2443,7 +2443,7 @@ class ReorderMatrixByCuthillMcKee(Math) :
     p = sr_py.ReorderMatrixByCuthillMcKeeAlg()
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Matrix', results[0])
     self.setResult('Mapping', results[1])
@@ -2454,7 +2454,7 @@ class ReportMatrixInfo(Math) :
     p = sr_py.ReportMatrixInfoAlg()
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
     self.setResult('NumRows', results[0])
     self.setResult('NumCols', results[1])
@@ -2464,10 +2464,10 @@ class RemoveZerosFromMatrix(Math) :
   def compute(self) :
     p = sr_py.RemoveZerosFromMatrixAlg()
     if self.hasInputFromPort('p_row_or_col') :
-      p.set_p_row_or_col(self.getInputFromPort('p_row_or_col'))
+      p.set_p_row_or_col(self.get_input('p_row_or_col'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Matrix', results)
 
@@ -2476,7 +2476,7 @@ class RemoveZeroRowsAndColumns(Math) :
     p = sr_py.RemoveZeroRowsAndColumnsAlg()
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('ReducedMatrix', results[0])
     self.setResult('LeftMapping', results[1])
@@ -2486,18 +2486,18 @@ class CreateDataArray(DataArrayMath) :
   def compute(self) :
     p = sr_py.CreateDataArrayAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     Size = 0
     if self.hasInputFromPort('Size') :
-      Size = self.getInputFromPort('Size')
+      Size = self.get_input('Size')
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Size, Function, Array)
     self.setResult('DataArray', results)
 
@@ -2506,10 +2506,10 @@ class CreateDataArrayFromIndices(DataArrayMath) :
     p = sr_py.CreateDataArrayFromIndicesAlg()
     Indices = 0
     if self.hasInputFromPort('Indices') :
-      Indices = self.getInputFromPort('Indices')
+      Indices = self.get_input('Indices')
     Template = 0
     if self.hasInputFromPort('Template') :
-      Template = self.getInputFromPort('Template')
+      Template = self.get_input('Template')
     results = p.execute(Indices, Template)
     self.setResult('DataArray', results)
 
@@ -2518,7 +2518,7 @@ class ReportDataArrayInfo(DataArrayMath) :
     p = sr_py.ReportDataArrayInfoAlg()
     DataArray = 0
     if self.hasInputFromPort('DataArray') :
-      DataArray = self.getInputFromPort('DataArray')
+      DataArray = self.get_input('DataArray')
     results = p.execute(DataArray)
     self.setResult('NumElements', results)
 
@@ -2527,13 +2527,13 @@ class CreateVectorArray(DataArrayMath) :
     p = sr_py.CreateVectorArrayAlg()
     X = 0
     if self.hasInputFromPort('X') :
-      X = self.getInputFromPort('X')
+      X = self.get_input('X')
     Y = 0
     if self.hasInputFromPort('Y') :
-      Y = self.getInputFromPort('Y')
+      Y = self.get_input('Y')
     Z = 0
     if self.hasInputFromPort('Z') :
-      Z = self.getInputFromPort('Z')
+      Z = self.get_input('Z')
     results = p.execute(X, Y, Z)
     self.setResult('Vector', results)
 
@@ -2541,13 +2541,13 @@ class ReplicateDataArray(DataArrayMath) :
   def compute(self) :
     p = sr_py.ReplicateDataArrayAlg()
     if self.hasInputFromPort('p_size') :
-      p.set_p_size(self.getInputFromPort('p_size'))
+      p.set_p_size(self.get_input('p_size'))
     DataArray = 0
     if self.hasInputFromPort('DataArray') :
-      DataArray = self.getInputFromPort('DataArray')
+      DataArray = self.get_input('DataArray')
     Size = 0
     if self.hasInputFromPort('Size') :
-      Size = self.getInputFromPort('Size')
+      Size = self.get_input('Size')
     results = p.execute(DataArray, Size)
     self.setResult('DataArray', results)
 
@@ -2556,7 +2556,7 @@ class SplitVectorArrayInXYZ(DataArrayMath) :
     p = sr_py.SplitVectorArrayInXYZAlg()
     VectorArray = 0
     if self.hasInputFromPort('VectorArray') :
-      VectorArray = self.getInputFromPort('VectorArray')
+      VectorArray = self.get_input('VectorArray')
     results = p.execute(VectorArray)
     self.setResult('X', results[0])
     self.setResult('Y', results[1])
@@ -2567,7 +2567,7 @@ class DecomposeTensorArrayIntoEigenVectors(DataArrayMath) :
     p = sr_py.DecomposeTensorArrayIntoEigenVectorsAlg()
     TensorArray = 0
     if self.hasInputFromPort('TensorArray') :
-      TensorArray = self.getInputFromPort('TensorArray')
+      TensorArray = self.get_input('TensorArray')
     results = p.execute(TensorArray)
     self.setResult('EigenVector1', results[0])
     self.setResult('EigenVector2', results[1])
@@ -2580,18 +2580,18 @@ class CalculateDataArray(DataArrayMath) :
   def compute(self) :
     p = sr_py.CalculateDataArrayAlg()
     if self.hasInputFromPort('p_function') :
-      p.set_p_function(self.getInputFromPort('p_function'))
+      p.set_p_function(self.get_input('p_function'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     DataArray = 0
     if self.hasInputFromPort('DataArray') :
-      DataArray = self.getInputFromPort('DataArray')
+      DataArray = self.get_input('DataArray')
     Function = ''
     if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
+      Function = self.get_input('Function')
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(DataArray, Function, Array)
     self.setResult('DataArray', results)
 
@@ -2599,10 +2599,10 @@ class ReportDataArrayMeasure(DataArrayMath) :
   def compute(self) :
     p = sr_py.ReportDataArrayMeasureAlg()
     if self.hasInputFromPort('p_measure') :
-      p.set_p_measure(self.getInputFromPort('p_measure'))
+      p.set_p_measure(self.get_input('p_measure'))
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Array)
     self.setResult('Measure', results)
 
@@ -2611,7 +2611,7 @@ class AppendDataArrays(DataArrayMath) :
     p = sr_py.AppendDataArraysAlg()
     Array = 0
     if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
+      Array = self.get_input('Array')
     results = p.execute(Array)
     self.setResult('Array', results)
 
@@ -2620,19 +2620,19 @@ class CreateTensorArray(DataArrayMath) :
     p = sr_py.CreateTensorArrayAlg()
     EigenVector1 = 0
     if self.hasInputFromPort('EigenVector1') :
-      EigenVector1 = self.getInputFromPort('EigenVector1')
+      EigenVector1 = self.get_input('EigenVector1')
     EigenVector2 = 0
     if self.hasInputFromPort('EigenVector2') :
-      EigenVector2 = self.getInputFromPort('EigenVector2')
+      EigenVector2 = self.get_input('EigenVector2')
     EigenValue1 = 0
     if self.hasInputFromPort('EigenValue1') :
-      EigenValue1 = self.getInputFromPort('EigenValue1')
+      EigenValue1 = self.get_input('EigenValue1')
     EigenValue2 = 0
     if self.hasInputFromPort('EigenValue2') :
-      EigenValue2 = self.getInputFromPort('EigenValue2')
+      EigenValue2 = self.get_input('EigenValue2')
     EigenValue3 = 0
     if self.hasInputFromPort('EigenValue3') :
-      EigenValue3 = self.getInputFromPort('EigenValue3')
+      EigenValue3 = self.get_input('EigenValue3')
     results = p.execute(EigenVector1, EigenVector2, EigenValue1, EigenValue2, EigenValue3)
     self.setResult('TensorArray', results)
 
@@ -2640,13 +2640,13 @@ class PrintMatrixIntoString(String) :
   def compute(self) :
     p = sr_py.PrintMatrixIntoStringAlg()
     if self.hasInputFromPort('p_formatstring') :
-      p.set_p_formatstring(self.getInputFromPort('p_formatstring'))
+      p.set_p_formatstring(self.get_input('p_formatstring'))
     Format = ''
     if self.hasInputFromPort('Format') :
-      Format = self.getInputFromPort('Format')
+      Format = self.get_input('Format')
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Format, Input)
     self.setResult('Output', results)
 
@@ -2654,11 +2654,11 @@ class GetFileName(String) :
   def compute(self) :
     p = sr_py.GetFileNameAlg()
     if self.hasInputFromPort('p_filename_base') :
-      p.set_p_filename_base(self.getInputFromPort('p_filename_base'))
+      p.set_p_filename_base(self.get_input('p_filename_base'))
     if self.hasInputFromPort('p_delay') :
-      p.set_p_delay(self.getInputFromPort('p_delay'))
+      p.set_p_delay(self.get_input('p_delay'))
     if self.hasInputFromPort('p_pinned') :
-      p.set_p_pinned(self.getInputFromPort('p_pinned'))
+      p.set_p_pinned(self.get_input('p_pinned'))
     results = p.execute()
     self.setResult('Full Filename', results)
 
@@ -2667,7 +2667,7 @@ class SplitFileName(String) :
     p = sr_py.SplitFileNameAlg()
     Filename = ''
     if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
+      Filename = self.get_input('Filename')
     results = p.execute(Filename)
     self.setResult('Pathname', results[0])
     self.setResult('Filename Base', results[1])
@@ -2678,13 +2678,13 @@ class PrintStringIntoString(String) :
   def compute(self) :
     p = sr_py.PrintStringIntoStringAlg()
     if self.hasInputFromPort('p_formatstring') :
-      p.set_p_formatstring(self.getInputFromPort('p_formatstring'))
+      p.set_p_formatstring(self.get_input('p_formatstring'))
     Format = ''
     if self.hasInputFromPort('Format') :
-      Format = self.getInputFromPort('Format')
+      Format = self.get_input('Format')
     Input = ''
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Format, Input)
     self.setResult('Output', results)
 
@@ -2692,7 +2692,7 @@ class CreateString(String) :
   def compute(self) :
     p = sr_py.CreateStringAlg()
     if self.hasInputFromPort('p_inputstring') :
-      p.set_p_inputstring(self.getInputFromPort('p_inputstring'))
+      p.set_p_inputstring(self.get_input('p_inputstring'))
     results = p.execute()
     self.setResult('Output', results)
 
@@ -2700,10 +2700,10 @@ class ReportStringInfo(String) :
   def compute(self) :
     p = sr_py.ReportStringInfoAlg()
     if self.hasInputFromPort('p_inputstring') :
-      p.set_p_inputstring(self.getInputFromPort('p_inputstring'))
+      p.set_p_inputstring(self.get_input('p_inputstring'))
     Input = ''
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
 
 class JoinStrings(String) :
@@ -2711,7 +2711,7 @@ class JoinStrings(String) :
     p = sr_py.JoinStringsAlg()
     input = ''
     if self.hasInputFromPort('input') :
-      input = self.getInputFromPort('input')
+      input = self.get_input('input')
     results = p.execute(input)
     self.setResult('Output', results)
 
@@ -2725,18 +2725,18 @@ class SetFieldProperty(MiscField) :
   def compute(self) :
     p = sr_py.SetFieldPropertyAlg()
     if self.hasInputFromPort('p_num_entries') :
-      p.set_p_num_entries(self.getInputFromPort('p_num_entries'))
+      p.set_p_num_entries(self.get_input('p_num_entries'))
     if self.hasInputFromPort('p_property') :
-      p.set_p_property(self.getInputFromPort('p_property'))
+      p.set_p_property(self.get_input('p_property'))
     if self.hasInputFromPort('p_type') :
-      p.set_p_type(self.getInputFromPort('p_type'))
+      p.set_p_type(self.get_input('p_type'))
     if self.hasInputFromPort('p_value') :
-      p.set_p_value(self.getInputFromPort('p_value'))
+      p.set_p_value(self.get_input('p_value'))
     if self.hasInputFromPort('p_readonly') :
-      p.set_p_readonly(self.getInputFromPort('p_readonly'))
+      p.set_p_readonly(self.get_input('p_readonly'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Field', results)
 
@@ -2744,34 +2744,34 @@ class ReportScalarFieldStats(MiscField) :
   def compute(self) :
     p = sr_py.ReportScalarFieldStatsAlg()
     if self.hasInputFromPort('p_min') :
-      p.set_p_min(self.getInputFromPort('p_min'))
+      p.set_p_min(self.get_input('p_min'))
     if self.hasInputFromPort('p_max') :
-      p.set_p_max(self.getInputFromPort('p_max'))
+      p.set_p_max(self.get_input('p_max'))
     if self.hasInputFromPort('p_mean') :
-      p.set_p_mean(self.getInputFromPort('p_mean'))
+      p.set_p_mean(self.get_input('p_mean'))
     if self.hasInputFromPort('p_median') :
-      p.set_p_median(self.getInputFromPort('p_median'))
+      p.set_p_median(self.get_input('p_median'))
     if self.hasInputFromPort('p_sigma') :
-      p.set_p_sigma(self.getInputFromPort('p_sigma'))
+      p.set_p_sigma(self.get_input('p_sigma'))
     if self.hasInputFromPort('p_is_fixed') :
-      p.set_p_is_fixed(self.getInputFromPort('p_is_fixed'))
+      p.set_p_is_fixed(self.get_input('p_is_fixed'))
     if self.hasInputFromPort('p_nbuckets') :
-      p.set_p_nbuckets(self.getInputFromPort('p_nbuckets'))
+      p.set_p_nbuckets(self.get_input('p_nbuckets'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
 
 class SelectFieldROIWithBoxWidget(MiscField) :
   def compute(self) :
     p = sr_py.SelectFieldROIWithBoxWidgetAlg()
     if self.hasInputFromPort('p_stampvalue') :
-      p.set_p_stampvalue(self.getInputFromPort('p_stampvalue'))
+      p.set_p_stampvalue(self.get_input('p_stampvalue'))
     if self.hasInputFromPort('p_runmode') :
-      p.set_p_runmode(self.getInputFromPort('p_runmode'))
+      p.set_p_runmode(self.get_input('p_runmode'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Selection Widget', results[0])
     self.setResult('Output Field', results[1])
@@ -2781,7 +2781,7 @@ class BuildMatrixOfSurfaceNormals(MiscField) :
     p = sr_py.BuildMatrixOfSurfaceNormalsAlg()
     Surface_Field = 0
     if self.hasInputFromPort('Surface Field') :
-      Surface_Field = self.getInputFromPort('Surface Field')
+      Surface_Field = self.get_input('Surface Field')
     results = p.execute(Surface_Field)
     self.setResult('Nodal Surface Normals', results)
 
@@ -2790,7 +2790,7 @@ class ReportFieldInfo(MiscField) :
     p = sr_py.ReportFieldInfoAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('NumNodes', results[0])
     self.setResult('NumElements', results[1])
@@ -2805,22 +2805,22 @@ class ReportFieldGeometryMeasures(MiscField) :
   def compute(self) :
     p = sr_py.ReportFieldGeometryMeasuresAlg()
     if self.hasInputFromPort('p_simplexString') :
-      p.set_p_simplexString(self.getInputFromPort('p_simplexString'))
+      p.set_p_simplexString(self.get_input('p_simplexString'))
     if self.hasInputFromPort('p_xFlag') :
-      p.set_p_xFlag(self.getInputFromPort('p_xFlag'))
+      p.set_p_xFlag(self.get_input('p_xFlag'))
     if self.hasInputFromPort('p_yFlag') :
-      p.set_p_yFlag(self.getInputFromPort('p_yFlag'))
+      p.set_p_yFlag(self.get_input('p_yFlag'))
     if self.hasInputFromPort('p_zFlag') :
-      p.set_p_zFlag(self.getInputFromPort('p_zFlag'))
+      p.set_p_zFlag(self.get_input('p_zFlag'))
     if self.hasInputFromPort('p_idxFlag') :
-      p.set_p_idxFlag(self.getInputFromPort('p_idxFlag'))
+      p.set_p_idxFlag(self.get_input('p_idxFlag'))
     if self.hasInputFromPort('p_sizeFlag') :
-      p.set_p_sizeFlag(self.getInputFromPort('p_sizeFlag'))
+      p.set_p_sizeFlag(self.get_input('p_sizeFlag'))
     if self.hasInputFromPort('p_normalsFlag') :
-      p.set_p_normalsFlag(self.getInputFromPort('p_normalsFlag'))
+      p.set_p_normalsFlag(self.get_input('p_normalsFlag'))
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Measures Matrix', results)
 
@@ -2828,14 +2828,14 @@ class SetFieldOrMeshStringProperty(MiscField) :
   def compute(self) :
     p = sr_py.SetFieldOrMeshStringPropertyAlg()
     if self.hasInputFromPort('p_prop') :
-      p.set_p_prop(self.getInputFromPort('p_prop'))
+      p.set_p_prop(self.get_input('p_prop'))
     if self.hasInputFromPort('p_val') :
-      p.set_p_val(self.getInputFromPort('p_val'))
+      p.set_p_val(self.get_input('p_val'))
     if self.hasInputFromPort('p_meshprop') :
-      p.set_p_meshprop(self.getInputFromPort('p_meshprop'))
+      p.set_p_meshprop(self.get_input('p_meshprop'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
     self.setResult('Output', results)
 
@@ -2843,10 +2843,10 @@ class ManageFieldSeries(MiscField) :
   def compute(self) :
     p = sr_py.ManageFieldSeriesAlg()
     if self.hasInputFromPort('p_num_ports') :
-      p.set_p_num_ports(self.getInputFromPort('p_num_ports'))
+      p.set_p_num_ports(self.get_input('p_num_ports'))
     Input = 0
     if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
+      Input = self.get_input('Input')
     results = p.execute(Input)
     self.setResult('Output 0', results[0])
     self.setResult('Output 1', results[1])
@@ -2858,7 +2858,7 @@ class ReportSearchGridInfo(MiscField) :
     p = sr_py.ReportSearchGridInfoAlg()
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
+      Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
     self.setResult('Output Sample Field', results)
 
@@ -2866,14 +2866,14 @@ class ChooseField(MiscField) :
   def compute(self) :
     p = sr_py.ChooseFieldAlg()
     if self.hasInputFromPort('p_use_first_valid') :
-      p.set_p_use_first_valid(self.getInputFromPort('p_use_first_valid'))
+      p.set_p_use_first_valid(self.get_input('p_use_first_valid'))
     if self.hasInputFromPort('p_port_valid_index') :
-      p.set_p_port_valid_index(self.getInputFromPort('p_port_valid_index'))
+      p.set_p_port_valid_index(self.get_input('p_port_valid_index'))
     if self.hasInputFromPort('p_port_selected_index') :
-      p.set_p_port_selected_index(self.getInputFromPort('p_port_selected_index'))
+      p.set_p_port_selected_index(self.get_input('p_port_selected_index'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Field', results)
 
@@ -2881,13 +2881,13 @@ class BuildPointCloudToLatVolMappingMatrix(MiscField) :
   def compute(self) :
     p = sr_py.BuildPointCloudToLatVolMappingMatrixAlg()
     if self.hasInputFromPort('p_epsilon') :
-      p.set_p_epsilon(self.getInputFromPort('p_epsilon'))
+      p.set_p_epsilon(self.get_input('p_epsilon'))
     PointCloudField = 0
     if self.hasInputFromPort('PointCloudField') :
-      PointCloudField = self.getInputFromPort('PointCloudField')
+      PointCloudField = self.get_input('PointCloudField')
     LatVolField = 0
     if self.hasInputFromPort('LatVolField') :
-      LatVolField = self.getInputFromPort('LatVolField')
+      LatVolField = self.get_input('LatVolField')
     results = p.execute(PointCloudField, LatVolField)
     self.setResult('MappingMatrix', results)
 
@@ -2895,21 +2895,21 @@ class BuildMappingMatrix(MiscField) :
   def compute(self) :
     p = sr_py.BuildMappingMatrixAlg()
     if self.hasInputFromPort('p_interpolation_basis') :
-      p.set_p_interpolation_basis(self.getInputFromPort('p_interpolation_basis'))
+      p.set_p_interpolation_basis(self.get_input('p_interpolation_basis'))
     if self.hasInputFromPort('p_map_source_to_single_dest') :
-      p.set_p_map_source_to_single_dest(self.getInputFromPort('p_map_source_to_single_dest'))
+      p.set_p_map_source_to_single_dest(self.get_input('p_map_source_to_single_dest'))
     if self.hasInputFromPort('p_exhaustive_search') :
-      p.set_p_exhaustive_search(self.getInputFromPort('p_exhaustive_search'))
+      p.set_p_exhaustive_search(self.get_input('p_exhaustive_search'))
     if self.hasInputFromPort('p_exhaustive_search_max_dist') :
-      p.set_p_exhaustive_search_max_dist(self.getInputFromPort('p_exhaustive_search_max_dist'))
+      p.set_p_exhaustive_search_max_dist(self.get_input('p_exhaustive_search_max_dist'))
     if self.hasInputFromPort('p_np') :
-      p.set_p_np(self.getInputFromPort('p_np'))
+      p.set_p_np(self.get_input('p_np'))
     Source = 0
     if self.hasInputFromPort('Source') :
-      Source = self.getInputFromPort('Source')
+      Source = self.get_input('Source')
     Destination = 0
     if self.hasInputFromPort('Destination') :
-      Destination = self.getInputFromPort('Destination')
+      Destination = self.get_input('Destination')
     results = p.execute(Source, Destination)
     self.setResult('Mapping', results)
 
@@ -2917,28 +2917,28 @@ class CoregisterPointClouds(MiscField) :
   def compute(self) :
     p = sr_py.CoregisterPointCloudsAlg()
     if self.hasInputFromPort('p_allowScale') :
-      p.set_p_allowScale(self.getInputFromPort('p_allowScale'))
+      p.set_p_allowScale(self.get_input('p_allowScale'))
     if self.hasInputFromPort('p_allowRotate') :
-      p.set_p_allowRotate(self.getInputFromPort('p_allowRotate'))
+      p.set_p_allowRotate(self.get_input('p_allowRotate'))
     if self.hasInputFromPort('p_allowTranslate') :
-      p.set_p_allowTranslate(self.getInputFromPort('p_allowTranslate'))
+      p.set_p_allowTranslate(self.get_input('p_allowTranslate'))
     if self.hasInputFromPort('p_seed') :
-      p.set_p_seed(self.getInputFromPort('p_seed'))
+      p.set_p_seed(self.get_input('p_seed'))
     if self.hasInputFromPort('p_iters') :
-      p.set_p_iters(self.getInputFromPort('p_iters'))
+      p.set_p_iters(self.get_input('p_iters'))
     if self.hasInputFromPort('p_misfitTol') :
-      p.set_p_misfitTol(self.getInputFromPort('p_misfitTol'))
+      p.set_p_misfitTol(self.get_input('p_misfitTol'))
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     Fixed_PointCloudField = 0
     if self.hasInputFromPort('Fixed PointCloudField') :
-      Fixed_PointCloudField = self.getInputFromPort('Fixed PointCloudField')
+      Fixed_PointCloudField = self.get_input('Fixed PointCloudField')
     Mobile_PointCloudField = 0
     if self.hasInputFromPort('Mobile PointCloudField') :
-      Mobile_PointCloudField = self.getInputFromPort('Mobile PointCloudField')
+      Mobile_PointCloudField = self.get_input('Mobile PointCloudField')
     DistanceField_From_Fixed = 0
     if self.hasInputFromPort('DistanceField From Fixed') :
-      DistanceField_From_Fixed = self.getInputFromPort('DistanceField From Fixed')
+      DistanceField_From_Fixed = self.get_input('DistanceField From Fixed')
     results = p.execute(Fixed_PointCloudField, Mobile_PointCloudField, DistanceField_From_Fixed)
     self.setResult('Transform', results)
 
@@ -2946,10 +2946,10 @@ class CollectPointClouds(MiscField) :
   def compute(self) :
     p = sr_py.CollectPointCloudsAlg()
     if self.hasInputFromPort('p_num_fields') :
-      p.set_p_num_fields(self.getInputFromPort('p_num_fields'))
+      p.set_p_num_fields(self.get_input('p_num_fields'))
     Point_Cloud = 0
     if self.hasInputFromPort('Point Cloud') :
-      Point_Cloud = self.getInputFromPort('Point Cloud')
+      Point_Cloud = self.get_input('Point Cloud')
     results = p.execute(Point_Cloud)
     self.setResult('Curve', results)
 
@@ -2957,22 +2957,22 @@ class GetColorMapsFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetColorMapsFromBundleAlg()
     if self.hasInputFromPort('p_colormap1_name') :
-      p.set_p_colormap1_name(self.getInputFromPort('p_colormap1_name'))
+      p.set_p_colormap1_name(self.get_input('p_colormap1_name'))
     if self.hasInputFromPort('p_colormap2_name') :
-      p.set_p_colormap2_name(self.getInputFromPort('p_colormap2_name'))
+      p.set_p_colormap2_name(self.get_input('p_colormap2_name'))
     if self.hasInputFromPort('p_colormap3_name') :
-      p.set_p_colormap3_name(self.getInputFromPort('p_colormap3_name'))
+      p.set_p_colormap3_name(self.get_input('p_colormap3_name'))
     if self.hasInputFromPort('p_colormap4_name') :
-      p.set_p_colormap4_name(self.getInputFromPort('p_colormap4_name'))
+      p.set_p_colormap4_name(self.get_input('p_colormap4_name'))
     if self.hasInputFromPort('p_colormap5_name') :
-      p.set_p_colormap5_name(self.getInputFromPort('p_colormap5_name'))
+      p.set_p_colormap5_name(self.get_input('p_colormap5_name'))
     if self.hasInputFromPort('p_colormap6_name') :
-      p.set_p_colormap6_name(self.getInputFromPort('p_colormap6_name'))
+      p.set_p_colormap6_name(self.get_input('p_colormap6_name'))
     if self.hasInputFromPort('p_colormap_selection') :
-      p.set_p_colormap_selection(self.getInputFromPort('p_colormap_selection'))
+      p.set_p_colormap_selection(self.get_input('p_colormap_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('colormap1', results[1])
@@ -2986,52 +2986,52 @@ class InsertFieldsIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertFieldsIntoBundleAlg()
     if self.hasInputFromPort('p_field1_name') :
-      p.set_p_field1_name(self.getInputFromPort('p_field1_name'))
+      p.set_p_field1_name(self.get_input('p_field1_name'))
     if self.hasInputFromPort('p_field2_name') :
-      p.set_p_field2_name(self.getInputFromPort('p_field2_name'))
+      p.set_p_field2_name(self.get_input('p_field2_name'))
     if self.hasInputFromPort('p_field3_name') :
-      p.set_p_field3_name(self.getInputFromPort('p_field3_name'))
+      p.set_p_field3_name(self.get_input('p_field3_name'))
     if self.hasInputFromPort('p_field4_name') :
-      p.set_p_field4_name(self.getInputFromPort('p_field4_name'))
+      p.set_p_field4_name(self.get_input('p_field4_name'))
     if self.hasInputFromPort('p_field5_name') :
-      p.set_p_field5_name(self.getInputFromPort('p_field5_name'))
+      p.set_p_field5_name(self.get_input('p_field5_name'))
     if self.hasInputFromPort('p_field6_name') :
-      p.set_p_field6_name(self.getInputFromPort('p_field6_name'))
+      p.set_p_field6_name(self.get_input('p_field6_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     if self.hasInputFromPort('p_bundlename') :
-      p.set_p_bundlename(self.getInputFromPort('p_bundlename'))
+      p.set_p_bundlename(self.get_input('p_bundlename'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     field1 = 0
     if self.hasInputFromPort('field1') :
-      field1 = self.getInputFromPort('field1')
+      field1 = self.get_input('field1')
     field2 = 0
     if self.hasInputFromPort('field2') :
-      field2 = self.getInputFromPort('field2')
+      field2 = self.get_input('field2')
     field3 = 0
     if self.hasInputFromPort('field3') :
-      field3 = self.getInputFromPort('field3')
+      field3 = self.get_input('field3')
     field4 = 0
     if self.hasInputFromPort('field4') :
-      field4 = self.getInputFromPort('field4')
+      field4 = self.get_input('field4')
     field5 = 0
     if self.hasInputFromPort('field5') :
-      field5 = self.getInputFromPort('field5')
+      field5 = self.get_input('field5')
     field6 = 0
     if self.hasInputFromPort('field6') :
-      field6 = self.getInputFromPort('field6')
+      field6 = self.get_input('field6')
     results = p.execute(bundle, field1, field2, field3, field4, field5, field6)
     self.setResult('bundle', results)
 
@@ -3039,22 +3039,22 @@ class GetFieldsFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetFieldsFromBundleAlg()
     if self.hasInputFromPort('p_field1_name') :
-      p.set_p_field1_name(self.getInputFromPort('p_field1_name'))
+      p.set_p_field1_name(self.get_input('p_field1_name'))
     if self.hasInputFromPort('p_field2_name') :
-      p.set_p_field2_name(self.getInputFromPort('p_field2_name'))
+      p.set_p_field2_name(self.get_input('p_field2_name'))
     if self.hasInputFromPort('p_field3_name') :
-      p.set_p_field3_name(self.getInputFromPort('p_field3_name'))
+      p.set_p_field3_name(self.get_input('p_field3_name'))
     if self.hasInputFromPort('p_field4_name') :
-      p.set_p_field4_name(self.getInputFromPort('p_field4_name'))
+      p.set_p_field4_name(self.get_input('p_field4_name'))
     if self.hasInputFromPort('p_field5_name') :
-      p.set_p_field5_name(self.getInputFromPort('p_field5_name'))
+      p.set_p_field5_name(self.get_input('p_field5_name'))
     if self.hasInputFromPort('p_field6_name') :
-      p.set_p_field6_name(self.getInputFromPort('p_field6_name'))
+      p.set_p_field6_name(self.get_input('p_field6_name'))
     if self.hasInputFromPort('p_field_selection') :
-      p.set_p_field_selection(self.getInputFromPort('p_field_selection'))
+      p.set_p_field_selection(self.get_input('p_field_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('field1', results[1])
@@ -3068,52 +3068,52 @@ class InsertColorMap2sIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertColorMap2sIntoBundleAlg()
     if self.hasInputFromPort('p_colormap21_name') :
-      p.set_p_colormap21_name(self.getInputFromPort('p_colormap21_name'))
+      p.set_p_colormap21_name(self.get_input('p_colormap21_name'))
     if self.hasInputFromPort('p_colormap22_name') :
-      p.set_p_colormap22_name(self.getInputFromPort('p_colormap22_name'))
+      p.set_p_colormap22_name(self.get_input('p_colormap22_name'))
     if self.hasInputFromPort('p_colormap23_name') :
-      p.set_p_colormap23_name(self.getInputFromPort('p_colormap23_name'))
+      p.set_p_colormap23_name(self.get_input('p_colormap23_name'))
     if self.hasInputFromPort('p_colormap24_name') :
-      p.set_p_colormap24_name(self.getInputFromPort('p_colormap24_name'))
+      p.set_p_colormap24_name(self.get_input('p_colormap24_name'))
     if self.hasInputFromPort('p_colormap25_name') :
-      p.set_p_colormap25_name(self.getInputFromPort('p_colormap25_name'))
+      p.set_p_colormap25_name(self.get_input('p_colormap25_name'))
     if self.hasInputFromPort('p_colormap26_name') :
-      p.set_p_colormap26_name(self.getInputFromPort('p_colormap26_name'))
+      p.set_p_colormap26_name(self.get_input('p_colormap26_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     if self.hasInputFromPort('p_bundlename') :
-      p.set_p_bundlename(self.getInputFromPort('p_bundlename'))
+      p.set_p_bundlename(self.get_input('p_bundlename'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     colormap21 = 0
     if self.hasInputFromPort('colormap21') :
-      colormap21 = self.getInputFromPort('colormap21')
+      colormap21 = self.get_input('colormap21')
     colormap22 = 0
     if self.hasInputFromPort('colormap22') :
-      colormap22 = self.getInputFromPort('colormap22')
+      colormap22 = self.get_input('colormap22')
     colormap23 = 0
     if self.hasInputFromPort('colormap23') :
-      colormap23 = self.getInputFromPort('colormap23')
+      colormap23 = self.get_input('colormap23')
     colormap24 = 0
     if self.hasInputFromPort('colormap24') :
-      colormap24 = self.getInputFromPort('colormap24')
+      colormap24 = self.get_input('colormap24')
     colormap25 = 0
     if self.hasInputFromPort('colormap25') :
-      colormap25 = self.getInputFromPort('colormap25')
+      colormap25 = self.get_input('colormap25')
     colormap26 = 0
     if self.hasInputFromPort('colormap26') :
-      colormap26 = self.getInputFromPort('colormap26')
+      colormap26 = self.get_input('colormap26')
     results = p.execute(bundle, colormap21, colormap22, colormap23, colormap24, colormap25, colormap26)
     self.setResult('bundle', results)
 
@@ -3121,22 +3121,22 @@ class GetBundlesFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetBundlesFromBundleAlg()
     if self.hasInputFromPort('p_bundle1_name') :
-      p.set_p_bundle1_name(self.getInputFromPort('p_bundle1_name'))
+      p.set_p_bundle1_name(self.get_input('p_bundle1_name'))
     if self.hasInputFromPort('p_bundle2_name') :
-      p.set_p_bundle2_name(self.getInputFromPort('p_bundle2_name'))
+      p.set_p_bundle2_name(self.get_input('p_bundle2_name'))
     if self.hasInputFromPort('p_bundle3_name') :
-      p.set_p_bundle3_name(self.getInputFromPort('p_bundle3_name'))
+      p.set_p_bundle3_name(self.get_input('p_bundle3_name'))
     if self.hasInputFromPort('p_bundle4_name') :
-      p.set_p_bundle4_name(self.getInputFromPort('p_bundle4_name'))
+      p.set_p_bundle4_name(self.get_input('p_bundle4_name'))
     if self.hasInputFromPort('p_bundle5_name') :
-      p.set_p_bundle5_name(self.getInputFromPort('p_bundle5_name'))
+      p.set_p_bundle5_name(self.get_input('p_bundle5_name'))
     if self.hasInputFromPort('p_bundle6_name') :
-      p.set_p_bundle6_name(self.getInputFromPort('p_bundle6_name'))
+      p.set_p_bundle6_name(self.get_input('p_bundle6_name'))
     if self.hasInputFromPort('p_bundle_selection') :
-      p.set_p_bundle_selection(self.getInputFromPort('p_bundle_selection'))
+      p.set_p_bundle_selection(self.get_input('p_bundle_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('bundle1', results[1])
@@ -3150,22 +3150,22 @@ class GetPathsFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetPathsFromBundleAlg()
     if self.hasInputFromPort('p_path1_name') :
-      p.set_p_path1_name(self.getInputFromPort('p_path1_name'))
+      p.set_p_path1_name(self.get_input('p_path1_name'))
     if self.hasInputFromPort('p_path2_name') :
-      p.set_p_path2_name(self.getInputFromPort('p_path2_name'))
+      p.set_p_path2_name(self.get_input('p_path2_name'))
     if self.hasInputFromPort('p_path3_name') :
-      p.set_p_path3_name(self.getInputFromPort('p_path3_name'))
+      p.set_p_path3_name(self.get_input('p_path3_name'))
     if self.hasInputFromPort('p_path4_name') :
-      p.set_p_path4_name(self.getInputFromPort('p_path4_name'))
+      p.set_p_path4_name(self.get_input('p_path4_name'))
     if self.hasInputFromPort('p_path5_name') :
-      p.set_p_path5_name(self.getInputFromPort('p_path5_name'))
+      p.set_p_path5_name(self.get_input('p_path5_name'))
     if self.hasInputFromPort('p_path6_name') :
-      p.set_p_path6_name(self.getInputFromPort('p_path6_name'))
+      p.set_p_path6_name(self.get_input('p_path6_name'))
     if self.hasInputFromPort('p_path_selection') :
-      p.set_p_path_selection(self.getInputFromPort('p_path_selection'))
+      p.set_p_path_selection(self.get_input('p_path_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('path1', results[1])
@@ -3179,50 +3179,50 @@ class InsertStringsIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertStringsIntoBundleAlg()
     if self.hasInputFromPort('p_string1_name') :
-      p.set_p_string1_name(self.getInputFromPort('p_string1_name'))
+      p.set_p_string1_name(self.get_input('p_string1_name'))
     if self.hasInputFromPort('p_string2_name') :
-      p.set_p_string2_name(self.getInputFromPort('p_string2_name'))
+      p.set_p_string2_name(self.get_input('p_string2_name'))
     if self.hasInputFromPort('p_string3_name') :
-      p.set_p_string3_name(self.getInputFromPort('p_string3_name'))
+      p.set_p_string3_name(self.get_input('p_string3_name'))
     if self.hasInputFromPort('p_string4_name') :
-      p.set_p_string4_name(self.getInputFromPort('p_string4_name'))
+      p.set_p_string4_name(self.get_input('p_string4_name'))
     if self.hasInputFromPort('p_string5_name') :
-      p.set_p_string5_name(self.getInputFromPort('p_string5_name'))
+      p.set_p_string5_name(self.get_input('p_string5_name'))
     if self.hasInputFromPort('p_string6_name') :
-      p.set_p_string6_name(self.getInputFromPort('p_string6_name'))
+      p.set_p_string6_name(self.get_input('p_string6_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     string1 = ''
     if self.hasInputFromPort('string1') :
-      string1 = self.getInputFromPort('string1')
+      string1 = self.get_input('string1')
     string2 = ''
     if self.hasInputFromPort('string2') :
-      string2 = self.getInputFromPort('string2')
+      string2 = self.get_input('string2')
     string3 = ''
     if self.hasInputFromPort('string3') :
-      string3 = self.getInputFromPort('string3')
+      string3 = self.get_input('string3')
     string4 = ''
     if self.hasInputFromPort('string4') :
-      string4 = self.getInputFromPort('string4')
+      string4 = self.get_input('string4')
     string5 = ''
     if self.hasInputFromPort('string5') :
-      string5 = self.getInputFromPort('string5')
+      string5 = self.get_input('string5')
     string6 = ''
     if self.hasInputFromPort('string6') :
-      string6 = self.getInputFromPort('string6')
+      string6 = self.get_input('string6')
     results = p.execute(bundle, string1, string2, string3, string4, string5, string6)
     self.setResult('bundle', results)
 
@@ -3230,34 +3230,34 @@ class GetNrrdsFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetNrrdsFromBundleAlg()
     if self.hasInputFromPort('p_nrrd1_name') :
-      p.set_p_nrrd1_name(self.getInputFromPort('p_nrrd1_name'))
+      p.set_p_nrrd1_name(self.get_input('p_nrrd1_name'))
     if self.hasInputFromPort('p_nrrd2_name') :
-      p.set_p_nrrd2_name(self.getInputFromPort('p_nrrd2_name'))
+      p.set_p_nrrd2_name(self.get_input('p_nrrd2_name'))
     if self.hasInputFromPort('p_nrrd3_name') :
-      p.set_p_nrrd3_name(self.getInputFromPort('p_nrrd3_name'))
+      p.set_p_nrrd3_name(self.get_input('p_nrrd3_name'))
     if self.hasInputFromPort('p_nrrd4_name') :
-      p.set_p_nrrd4_name(self.getInputFromPort('p_nrrd4_name'))
+      p.set_p_nrrd4_name(self.get_input('p_nrrd4_name'))
     if self.hasInputFromPort('p_nrrd5_name') :
-      p.set_p_nrrd5_name(self.getInputFromPort('p_nrrd5_name'))
+      p.set_p_nrrd5_name(self.get_input('p_nrrd5_name'))
     if self.hasInputFromPort('p_nrrd6_name') :
-      p.set_p_nrrd6_name(self.getInputFromPort('p_nrrd6_name'))
+      p.set_p_nrrd6_name(self.get_input('p_nrrd6_name'))
     if self.hasInputFromPort('p_transposenrrd1') :
-      p.set_p_transposenrrd1(self.getInputFromPort('p_transposenrrd1'))
+      p.set_p_transposenrrd1(self.get_input('p_transposenrrd1'))
     if self.hasInputFromPort('p_transposenrrd2') :
-      p.set_p_transposenrrd2(self.getInputFromPort('p_transposenrrd2'))
+      p.set_p_transposenrrd2(self.get_input('p_transposenrrd2'))
     if self.hasInputFromPort('p_transposenrrd3') :
-      p.set_p_transposenrrd3(self.getInputFromPort('p_transposenrrd3'))
+      p.set_p_transposenrrd3(self.get_input('p_transposenrrd3'))
     if self.hasInputFromPort('p_transposenrrd4') :
-      p.set_p_transposenrrd4(self.getInputFromPort('p_transposenrrd4'))
+      p.set_p_transposenrrd4(self.get_input('p_transposenrrd4'))
     if self.hasInputFromPort('p_transposenrrd5') :
-      p.set_p_transposenrrd5(self.getInputFromPort('p_transposenrrd5'))
+      p.set_p_transposenrrd5(self.get_input('p_transposenrrd5'))
     if self.hasInputFromPort('p_transposenrrd6') :
-      p.set_p_transposenrrd6(self.getInputFromPort('p_transposenrrd6'))
+      p.set_p_transposenrrd6(self.get_input('p_transposenrrd6'))
     if self.hasInputFromPort('p_nrrd_selection') :
-      p.set_p_nrrd_selection(self.getInputFromPort('p_nrrd_selection'))
+      p.set_p_nrrd_selection(self.get_input('p_nrrd_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('nrrd1', results[1])
@@ -3271,34 +3271,34 @@ class GetMatricesFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetMatricesFromBundleAlg()
     if self.hasInputFromPort('p_matrix1_name') :
-      p.set_p_matrix1_name(self.getInputFromPort('p_matrix1_name'))
+      p.set_p_matrix1_name(self.get_input('p_matrix1_name'))
     if self.hasInputFromPort('p_matrix2_name') :
-      p.set_p_matrix2_name(self.getInputFromPort('p_matrix2_name'))
+      p.set_p_matrix2_name(self.get_input('p_matrix2_name'))
     if self.hasInputFromPort('p_matrix3_name') :
-      p.set_p_matrix3_name(self.getInputFromPort('p_matrix3_name'))
+      p.set_p_matrix3_name(self.get_input('p_matrix3_name'))
     if self.hasInputFromPort('p_matrix4_name') :
-      p.set_p_matrix4_name(self.getInputFromPort('p_matrix4_name'))
+      p.set_p_matrix4_name(self.get_input('p_matrix4_name'))
     if self.hasInputFromPort('p_matrix5_name') :
-      p.set_p_matrix5_name(self.getInputFromPort('p_matrix5_name'))
+      p.set_p_matrix5_name(self.get_input('p_matrix5_name'))
     if self.hasInputFromPort('p_matrix6_name') :
-      p.set_p_matrix6_name(self.getInputFromPort('p_matrix6_name'))
+      p.set_p_matrix6_name(self.get_input('p_matrix6_name'))
     if self.hasInputFromPort('p_transposenrrd1') :
-      p.set_p_transposenrrd1(self.getInputFromPort('p_transposenrrd1'))
+      p.set_p_transposenrrd1(self.get_input('p_transposenrrd1'))
     if self.hasInputFromPort('p_transposenrrd2') :
-      p.set_p_transposenrrd2(self.getInputFromPort('p_transposenrrd2'))
+      p.set_p_transposenrrd2(self.get_input('p_transposenrrd2'))
     if self.hasInputFromPort('p_transposenrrd3') :
-      p.set_p_transposenrrd3(self.getInputFromPort('p_transposenrrd3'))
+      p.set_p_transposenrrd3(self.get_input('p_transposenrrd3'))
     if self.hasInputFromPort('p_transposenrrd4') :
-      p.set_p_transposenrrd4(self.getInputFromPort('p_transposenrrd4'))
+      p.set_p_transposenrrd4(self.get_input('p_transposenrrd4'))
     if self.hasInputFromPort('p_transposenrrd5') :
-      p.set_p_transposenrrd5(self.getInputFromPort('p_transposenrrd5'))
+      p.set_p_transposenrrd5(self.get_input('p_transposenrrd5'))
     if self.hasInputFromPort('p_transposenrrd6') :
-      p.set_p_transposenrrd6(self.getInputFromPort('p_transposenrrd6'))
+      p.set_p_transposenrrd6(self.get_input('p_transposenrrd6'))
     if self.hasInputFromPort('p_matrix_selection') :
-      p.set_p_matrix_selection(self.getInputFromPort('p_matrix_selection'))
+      p.set_p_matrix_selection(self.get_input('p_matrix_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('matrix1', results[1])
@@ -3313,7 +3313,7 @@ class JoinBundles(Bundle) :
     p = sr_py.JoinBundlesAlg()
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results)
 
@@ -3321,62 +3321,62 @@ class ReportBundleInfo(Bundle) :
   def compute(self) :
     p = sr_py.ReportBundleInfoAlg()
     if self.hasInputFromPort('p_tclinfostring') :
-      p.set_p_tclinfostring(self.getInputFromPort('p_tclinfostring'))
+      p.set_p_tclinfostring(self.get_input('p_tclinfostring'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
 
 class InsertPathsIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertPathsIntoBundleAlg()
     if self.hasInputFromPort('p_path1_name') :
-      p.set_p_path1_name(self.getInputFromPort('p_path1_name'))
+      p.set_p_path1_name(self.get_input('p_path1_name'))
     if self.hasInputFromPort('p_path2_name') :
-      p.set_p_path2_name(self.getInputFromPort('p_path2_name'))
+      p.set_p_path2_name(self.get_input('p_path2_name'))
     if self.hasInputFromPort('p_path3_name') :
-      p.set_p_path3_name(self.getInputFromPort('p_path3_name'))
+      p.set_p_path3_name(self.get_input('p_path3_name'))
     if self.hasInputFromPort('p_path4_name') :
-      p.set_p_path4_name(self.getInputFromPort('p_path4_name'))
+      p.set_p_path4_name(self.get_input('p_path4_name'))
     if self.hasInputFromPort('p_path5_name') :
-      p.set_p_path5_name(self.getInputFromPort('p_path5_name'))
+      p.set_p_path5_name(self.get_input('p_path5_name'))
     if self.hasInputFromPort('p_path6_name') :
-      p.set_p_path6_name(self.getInputFromPort('p_path6_name'))
+      p.set_p_path6_name(self.get_input('p_path6_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     if self.hasInputFromPort('p_bundlename') :
-      p.set_p_bundlename(self.getInputFromPort('p_bundlename'))
+      p.set_p_bundlename(self.get_input('p_bundlename'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     path1 = 0
     if self.hasInputFromPort('path1') :
-      path1 = self.getInputFromPort('path1')
+      path1 = self.get_input('path1')
     path2 = 0
     if self.hasInputFromPort('path2') :
-      path2 = self.getInputFromPort('path2')
+      path2 = self.get_input('path2')
     path3 = 0
     if self.hasInputFromPort('path3') :
-      path3 = self.getInputFromPort('path3')
+      path3 = self.get_input('path3')
     path4 = 0
     if self.hasInputFromPort('path4') :
-      path4 = self.getInputFromPort('path4')
+      path4 = self.get_input('path4')
     path5 = 0
     if self.hasInputFromPort('path5') :
-      path5 = self.getInputFromPort('path5')
+      path5 = self.get_input('path5')
     path6 = 0
     if self.hasInputFromPort('path6') :
-      path6 = self.getInputFromPort('path6')
+      path6 = self.get_input('path6')
     results = p.execute(bundle, path1, path2, path3, path4, path5, path6)
     self.setResult('bundle', results)
 
@@ -3384,22 +3384,22 @@ class GetColorMap2sFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetColorMap2sFromBundleAlg()
     if self.hasInputFromPort('p_colormap21_name') :
-      p.set_p_colormap21_name(self.getInputFromPort('p_colormap21_name'))
+      p.set_p_colormap21_name(self.get_input('p_colormap21_name'))
     if self.hasInputFromPort('p_colormap22_name') :
-      p.set_p_colormap22_name(self.getInputFromPort('p_colormap22_name'))
+      p.set_p_colormap22_name(self.get_input('p_colormap22_name'))
     if self.hasInputFromPort('p_colormap23_name') :
-      p.set_p_colormap23_name(self.getInputFromPort('p_colormap23_name'))
+      p.set_p_colormap23_name(self.get_input('p_colormap23_name'))
     if self.hasInputFromPort('p_colormap24_name') :
-      p.set_p_colormap24_name(self.getInputFromPort('p_colormap24_name'))
+      p.set_p_colormap24_name(self.get_input('p_colormap24_name'))
     if self.hasInputFromPort('p_colormap25_name') :
-      p.set_p_colormap25_name(self.getInputFromPort('p_colormap25_name'))
+      p.set_p_colormap25_name(self.get_input('p_colormap25_name'))
     if self.hasInputFromPort('p_colormap26_name') :
-      p.set_p_colormap26_name(self.getInputFromPort('p_colormap26_name'))
+      p.set_p_colormap26_name(self.get_input('p_colormap26_name'))
     if self.hasInputFromPort('p_colormap2_selection') :
-      p.set_p_colormap2_selection(self.getInputFromPort('p_colormap2_selection'))
+      p.set_p_colormap2_selection(self.get_input('p_colormap2_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('colormap21', results[1])
@@ -3413,52 +3413,52 @@ class InsertMatricesIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertMatricesIntoBundleAlg()
     if self.hasInputFromPort('p_matrix1_name') :
-      p.set_p_matrix1_name(self.getInputFromPort('p_matrix1_name'))
+      p.set_p_matrix1_name(self.get_input('p_matrix1_name'))
     if self.hasInputFromPort('p_matrix2_name') :
-      p.set_p_matrix2_name(self.getInputFromPort('p_matrix2_name'))
+      p.set_p_matrix2_name(self.get_input('p_matrix2_name'))
     if self.hasInputFromPort('p_matrix3_name') :
-      p.set_p_matrix3_name(self.getInputFromPort('p_matrix3_name'))
+      p.set_p_matrix3_name(self.get_input('p_matrix3_name'))
     if self.hasInputFromPort('p_matrix4_name') :
-      p.set_p_matrix4_name(self.getInputFromPort('p_matrix4_name'))
+      p.set_p_matrix4_name(self.get_input('p_matrix4_name'))
     if self.hasInputFromPort('p_matrix5_name') :
-      p.set_p_matrix5_name(self.getInputFromPort('p_matrix5_name'))
+      p.set_p_matrix5_name(self.get_input('p_matrix5_name'))
     if self.hasInputFromPort('p_matrix6_name') :
-      p.set_p_matrix6_name(self.getInputFromPort('p_matrix6_name'))
+      p.set_p_matrix6_name(self.get_input('p_matrix6_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     if self.hasInputFromPort('p_bundlename') :
-      p.set_p_bundlename(self.getInputFromPort('p_bundlename'))
+      p.set_p_bundlename(self.get_input('p_bundlename'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     matrix1 = 0
     if self.hasInputFromPort('matrix1') :
-      matrix1 = self.getInputFromPort('matrix1')
+      matrix1 = self.get_input('matrix1')
     matrix2 = 0
     if self.hasInputFromPort('matrix2') :
-      matrix2 = self.getInputFromPort('matrix2')
+      matrix2 = self.get_input('matrix2')
     matrix3 = 0
     if self.hasInputFromPort('matrix3') :
-      matrix3 = self.getInputFromPort('matrix3')
+      matrix3 = self.get_input('matrix3')
     matrix4 = 0
     if self.hasInputFromPort('matrix4') :
-      matrix4 = self.getInputFromPort('matrix4')
+      matrix4 = self.get_input('matrix4')
     matrix5 = 0
     if self.hasInputFromPort('matrix5') :
-      matrix5 = self.getInputFromPort('matrix5')
+      matrix5 = self.get_input('matrix5')
     matrix6 = 0
     if self.hasInputFromPort('matrix6') :
-      matrix6 = self.getInputFromPort('matrix6')
+      matrix6 = self.get_input('matrix6')
     results = p.execute(bundle, matrix1, matrix2, matrix3, matrix4, matrix5, matrix6)
     self.setResult('bundle', results)
 
@@ -3466,52 +3466,52 @@ class InsertNrrdsIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertNrrdsIntoBundleAlg()
     if self.hasInputFromPort('p_nrrd1_name') :
-      p.set_p_nrrd1_name(self.getInputFromPort('p_nrrd1_name'))
+      p.set_p_nrrd1_name(self.get_input('p_nrrd1_name'))
     if self.hasInputFromPort('p_nrrd2_name') :
-      p.set_p_nrrd2_name(self.getInputFromPort('p_nrrd2_name'))
+      p.set_p_nrrd2_name(self.get_input('p_nrrd2_name'))
     if self.hasInputFromPort('p_nrrd3_name') :
-      p.set_p_nrrd3_name(self.getInputFromPort('p_nrrd3_name'))
+      p.set_p_nrrd3_name(self.get_input('p_nrrd3_name'))
     if self.hasInputFromPort('p_nrrd4_name') :
-      p.set_p_nrrd4_name(self.getInputFromPort('p_nrrd4_name'))
+      p.set_p_nrrd4_name(self.get_input('p_nrrd4_name'))
     if self.hasInputFromPort('p_nrrd5_name') :
-      p.set_p_nrrd5_name(self.getInputFromPort('p_nrrd5_name'))
+      p.set_p_nrrd5_name(self.get_input('p_nrrd5_name'))
     if self.hasInputFromPort('p_nrrd6_name') :
-      p.set_p_nrrd6_name(self.getInputFromPort('p_nrrd6_name'))
+      p.set_p_nrrd6_name(self.get_input('p_nrrd6_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     if self.hasInputFromPort('p_bundlename') :
-      p.set_p_bundlename(self.getInputFromPort('p_bundlename'))
+      p.set_p_bundlename(self.get_input('p_bundlename'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     nrrd1 = 0
     if self.hasInputFromPort('nrrd1') :
-      nrrd1 = self.getInputFromPort('nrrd1')
+      nrrd1 = self.get_input('nrrd1')
     nrrd2 = 0
     if self.hasInputFromPort('nrrd2') :
-      nrrd2 = self.getInputFromPort('nrrd2')
+      nrrd2 = self.get_input('nrrd2')
     nrrd3 = 0
     if self.hasInputFromPort('nrrd3') :
-      nrrd3 = self.getInputFromPort('nrrd3')
+      nrrd3 = self.get_input('nrrd3')
     nrrd4 = 0
     if self.hasInputFromPort('nrrd4') :
-      nrrd4 = self.getInputFromPort('nrrd4')
+      nrrd4 = self.get_input('nrrd4')
     nrrd5 = 0
     if self.hasInputFromPort('nrrd5') :
-      nrrd5 = self.getInputFromPort('nrrd5')
+      nrrd5 = self.get_input('nrrd5')
     nrrd6 = 0
     if self.hasInputFromPort('nrrd6') :
-      nrrd6 = self.getInputFromPort('nrrd6')
+      nrrd6 = self.get_input('nrrd6')
     results = p.execute(bundle, nrrd1, nrrd2, nrrd3, nrrd4, nrrd5, nrrd6)
     self.setResult('bundle', results)
 
@@ -3519,52 +3519,52 @@ class InsertBundlesIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertBundlesIntoBundleAlg()
     if self.hasInputFromPort('p_bundle1_name') :
-      p.set_p_bundle1_name(self.getInputFromPort('p_bundle1_name'))
+      p.set_p_bundle1_name(self.get_input('p_bundle1_name'))
     if self.hasInputFromPort('p_bundle2_name') :
-      p.set_p_bundle2_name(self.getInputFromPort('p_bundle2_name'))
+      p.set_p_bundle2_name(self.get_input('p_bundle2_name'))
     if self.hasInputFromPort('p_bundle3_name') :
-      p.set_p_bundle3_name(self.getInputFromPort('p_bundle3_name'))
+      p.set_p_bundle3_name(self.get_input('p_bundle3_name'))
     if self.hasInputFromPort('p_bundle4_name') :
-      p.set_p_bundle4_name(self.getInputFromPort('p_bundle4_name'))
+      p.set_p_bundle4_name(self.get_input('p_bundle4_name'))
     if self.hasInputFromPort('p_bundle5_name') :
-      p.set_p_bundle5_name(self.getInputFromPort('p_bundle5_name'))
+      p.set_p_bundle5_name(self.get_input('p_bundle5_name'))
     if self.hasInputFromPort('p_bundle6_name') :
-      p.set_p_bundle6_name(self.getInputFromPort('p_bundle6_name'))
+      p.set_p_bundle6_name(self.get_input('p_bundle6_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     if self.hasInputFromPort('p_bundlename') :
-      p.set_p_bundlename(self.getInputFromPort('p_bundlename'))
+      p.set_p_bundlename(self.get_input('p_bundlename'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     bundle1 = 0
     if self.hasInputFromPort('bundle1') :
-      bundle1 = self.getInputFromPort('bundle1')
+      bundle1 = self.get_input('bundle1')
     bundle2 = 0
     if self.hasInputFromPort('bundle2') :
-      bundle2 = self.getInputFromPort('bundle2')
+      bundle2 = self.get_input('bundle2')
     bundle3 = 0
     if self.hasInputFromPort('bundle3') :
-      bundle3 = self.getInputFromPort('bundle3')
+      bundle3 = self.get_input('bundle3')
     bundle4 = 0
     if self.hasInputFromPort('bundle4') :
-      bundle4 = self.getInputFromPort('bundle4')
+      bundle4 = self.get_input('bundle4')
     bundle5 = 0
     if self.hasInputFromPort('bundle5') :
-      bundle5 = self.getInputFromPort('bundle5')
+      bundle5 = self.get_input('bundle5')
     bundle6 = 0
     if self.hasInputFromPort('bundle6') :
-      bundle6 = self.getInputFromPort('bundle6')
+      bundle6 = self.get_input('bundle6')
     results = p.execute(bundle, bundle1, bundle2, bundle3, bundle4, bundle5, bundle6)
     self.setResult('bundle', results)
 
@@ -3572,22 +3572,22 @@ class GetStringsFromBundle(Bundle) :
   def compute(self) :
     p = sr_py.GetStringsFromBundleAlg()
     if self.hasInputFromPort('p_string1_name') :
-      p.set_p_string1_name(self.getInputFromPort('p_string1_name'))
+      p.set_p_string1_name(self.get_input('p_string1_name'))
     if self.hasInputFromPort('p_string2_name') :
-      p.set_p_string2_name(self.getInputFromPort('p_string2_name'))
+      p.set_p_string2_name(self.get_input('p_string2_name'))
     if self.hasInputFromPort('p_string3_name') :
-      p.set_p_string3_name(self.getInputFromPort('p_string3_name'))
+      p.set_p_string3_name(self.get_input('p_string3_name'))
     if self.hasInputFromPort('p_string4_name') :
-      p.set_p_string4_name(self.getInputFromPort('p_string4_name'))
+      p.set_p_string4_name(self.get_input('p_string4_name'))
     if self.hasInputFromPort('p_string5_name') :
-      p.set_p_string5_name(self.getInputFromPort('p_string5_name'))
+      p.set_p_string5_name(self.get_input('p_string5_name'))
     if self.hasInputFromPort('p_string6_name') :
-      p.set_p_string6_name(self.getInputFromPort('p_string6_name'))
+      p.set_p_string6_name(self.get_input('p_string6_name'))
     if self.hasInputFromPort('p_string_selection') :
-      p.set_p_string_selection(self.getInputFromPort('p_string_selection'))
+      p.set_p_string_selection(self.get_input('p_string_selection'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     results = p.execute(bundle)
     self.setResult('bundle', results[0])
     self.setResult('string1', results[1])
@@ -3601,52 +3601,52 @@ class InsertColorMapsIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertColorMapsIntoBundleAlg()
     if self.hasInputFromPort('p_colormap1_name') :
-      p.set_p_colormap1_name(self.getInputFromPort('p_colormap1_name'))
+      p.set_p_colormap1_name(self.get_input('p_colormap1_name'))
     if self.hasInputFromPort('p_colormap2_name') :
-      p.set_p_colormap2_name(self.getInputFromPort('p_colormap2_name'))
+      p.set_p_colormap2_name(self.get_input('p_colormap2_name'))
     if self.hasInputFromPort('p_colormap3_name') :
-      p.set_p_colormap3_name(self.getInputFromPort('p_colormap3_name'))
+      p.set_p_colormap3_name(self.get_input('p_colormap3_name'))
     if self.hasInputFromPort('p_colormap4_name') :
-      p.set_p_colormap4_name(self.getInputFromPort('p_colormap4_name'))
+      p.set_p_colormap4_name(self.get_input('p_colormap4_name'))
     if self.hasInputFromPort('p_colormap5_name') :
-      p.set_p_colormap5_name(self.getInputFromPort('p_colormap5_name'))
+      p.set_p_colormap5_name(self.get_input('p_colormap5_name'))
     if self.hasInputFromPort('p_colormap6_name') :
-      p.set_p_colormap6_name(self.getInputFromPort('p_colormap6_name'))
+      p.set_p_colormap6_name(self.get_input('p_colormap6_name'))
     if self.hasInputFromPort('p_replace1') :
-      p.set_p_replace1(self.getInputFromPort('p_replace1'))
+      p.set_p_replace1(self.get_input('p_replace1'))
     if self.hasInputFromPort('p_replace2') :
-      p.set_p_replace2(self.getInputFromPort('p_replace2'))
+      p.set_p_replace2(self.get_input('p_replace2'))
     if self.hasInputFromPort('p_replace3') :
-      p.set_p_replace3(self.getInputFromPort('p_replace3'))
+      p.set_p_replace3(self.get_input('p_replace3'))
     if self.hasInputFromPort('p_replace4') :
-      p.set_p_replace4(self.getInputFromPort('p_replace4'))
+      p.set_p_replace4(self.get_input('p_replace4'))
     if self.hasInputFromPort('p_replace5') :
-      p.set_p_replace5(self.getInputFromPort('p_replace5'))
+      p.set_p_replace5(self.get_input('p_replace5'))
     if self.hasInputFromPort('p_replace6') :
-      p.set_p_replace6(self.getInputFromPort('p_replace6'))
+      p.set_p_replace6(self.get_input('p_replace6'))
     if self.hasInputFromPort('p_bundlename') :
-      p.set_p_bundlename(self.getInputFromPort('p_bundlename'))
+      p.set_p_bundlename(self.get_input('p_bundlename'))
     bundle = 0
     if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
+      bundle = self.get_input('bundle')
     colormap1 = 0
     if self.hasInputFromPort('colormap1') :
-      colormap1 = self.getInputFromPort('colormap1')
+      colormap1 = self.get_input('colormap1')
     colormap2 = 0
     if self.hasInputFromPort('colormap2') :
-      colormap2 = self.getInputFromPort('colormap2')
+      colormap2 = self.get_input('colormap2')
     colormap3 = 0
     if self.hasInputFromPort('colormap3') :
-      colormap3 = self.getInputFromPort('colormap3')
+      colormap3 = self.get_input('colormap3')
     colormap4 = 0
     if self.hasInputFromPort('colormap4') :
-      colormap4 = self.getInputFromPort('colormap4')
+      colormap4 = self.get_input('colormap4')
     colormap5 = 0
     if self.hasInputFromPort('colormap5') :
-      colormap5 = self.getInputFromPort('colormap5')
+      colormap5 = self.get_input('colormap5')
     colormap6 = 0
     if self.hasInputFromPort('colormap6') :
-      colormap6 = self.getInputFromPort('colormap6')
+      colormap6 = self.get_input('colormap6')
     results = p.execute(bundle, colormap1, colormap2, colormap3, colormap4, colormap5, colormap6)
     self.setResult('bundle', results)
 
@@ -3654,11 +3654,11 @@ class CreateParameterBundle(Bundle) :
   def compute(self) :
     p = sr_py.CreateParameterBundleAlg()
     if self.hasInputFromPort('p_data') :
-      p.set_p_data(self.getInputFromPort('p_data'))
+      p.set_p_data(self.get_input('p_data'))
     if self.hasInputFromPort('p_new_field_count') :
-      p.set_p_new_field_count(self.getInputFromPort('p_new_field_count'))
+      p.set_p_new_field_count(self.get_input('p_new_field_count'))
     if self.hasInputFromPort('p_update_all') :
-      p.set_p_update_all(self.getInputFromPort('p_update_all'))
+      p.set_p_update_all(self.get_input('p_update_all'))
     results = p.execute()
     self.setResult('ParameterList', results)
 
@@ -3672,30 +3672,30 @@ class ShowColorMap(Visualization) :
   def compute(self) :
     p = sr_py.ShowColorMapAlg()
     if self.hasInputFromPort('p_length') :
-      p.set_p_length(self.getInputFromPort('p_length'))
+      p.set_p_length(self.get_input('p_length'))
     if self.hasInputFromPort('p_side') :
-      p.set_p_side(self.getInputFromPort('p_side'))
+      p.set_p_side(self.get_input('p_side'))
     if self.hasInputFromPort('p_numlabels') :
-      p.set_p_numlabels(self.getInputFromPort('p_numlabels'))
+      p.set_p_numlabels(self.get_input('p_numlabels'))
     if self.hasInputFromPort('p_scale') :
-      p.set_p_scale(self.getInputFromPort('p_scale'))
+      p.set_p_scale(self.get_input('p_scale'))
     if self.hasInputFromPort('p_numsigdigits') :
-      p.set_p_numsigdigits(self.getInputFromPort('p_numsigdigits'))
+      p.set_p_numsigdigits(self.get_input('p_numsigdigits'))
     if self.hasInputFromPort('p_units') :
-      p.set_p_units(self.getInputFromPort('p_units'))
+      p.set_p_units(self.get_input('p_units'))
     if self.hasInputFromPort('p_color_r') :
-      p.set_p_color_r(self.getInputFromPort('p_color_r'))
+      p.set_p_color_r(self.get_input('p_color_r'))
     if self.hasInputFromPort('p_color_g') :
-      p.set_p_color_g(self.getInputFromPort('p_color_g'))
+      p.set_p_color_g(self.get_input('p_color_g'))
     if self.hasInputFromPort('p_color_b') :
-      p.set_p_color_b(self.getInputFromPort('p_color_b'))
+      p.set_p_color_b(self.get_input('p_color_b'))
     if self.hasInputFromPort('p_text_fontsize') :
-      p.set_p_text_fontsize(self.getInputFromPort('p_text_fontsize'))
+      p.set_p_text_fontsize(self.get_input('p_text_fontsize'))
     if self.hasInputFromPort('p_extra_padding') :
-      p.set_p_extra_padding(self.getInputFromPort('p_extra_padding'))
+      p.set_p_extra_padding(self.get_input('p_extra_padding'))
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     results = p.execute(ColorMap)
     self.setResult('Geometry', results)
 
@@ -3703,25 +3703,25 @@ class CreateAndEditColorMap2D(Visualization) :
   def compute(self) :
     p = sr_py.CreateAndEditColorMap2DAlg()
     if self.hasInputFromPort('p_histo') :
-      p.set_p_histo(self.getInputFromPort('p_histo'))
+      p.set_p_histo(self.get_input('p_histo'))
     if self.hasInputFromPort('p_selected_widget') :
-      p.set_p_selected_widget(self.getInputFromPort('p_selected_widget'))
+      p.set_p_selected_widget(self.get_input('p_selected_widget'))
     if self.hasInputFromPort('p_selected_object') :
-      p.set_p_selected_object(self.getInputFromPort('p_selected_object'))
+      p.set_p_selected_object(self.get_input('p_selected_object'))
     if self.hasInputFromPort('p_num_entries') :
-      p.set_p_num_entries(self.getInputFromPort('p_num_entries'))
+      p.set_p_num_entries(self.get_input('p_num_entries'))
     if self.hasInputFromPort('p_marker') :
-      p.set_p_marker(self.getInputFromPort('p_marker'))
+      p.set_p_marker(self.get_input('p_marker'))
     if self.hasInputFromPort('p_cm2view_targ') :
-      p.set_p_cm2view_targ(self.getInputFromPort('p_cm2view_targ'))
+      p.set_p_cm2view_targ(self.get_input('p_cm2view_targ'))
     if self.hasInputFromPort('p_id') :
-      p.set_p_id(self.getInputFromPort('p_id'))
+      p.set_p_id(self.get_input('p_id'))
     Input_Colormap = 0
     if self.hasInputFromPort('Input Colormap') :
-      Input_Colormap = self.getInputFromPort('Input Colormap')
+      Input_Colormap = self.get_input('Input Colormap')
     Histogram = 0
     if self.hasInputFromPort('Histogram') :
-      Histogram = self.getInputFromPort('Histogram')
+      Histogram = self.get_input('Histogram')
     results = p.execute(Input_Colormap, Histogram)
     self.setResult('Output Colormap', results)
 
@@ -3729,101 +3729,101 @@ class ShowField(Visualization) :
   def compute(self) :
     p = sr_py.ShowFieldAlg()
     if self.hasInputFromPort('p_nodes_on') :
-      p.set_p_nodes_on(self.getInputFromPort('p_nodes_on'))
+      p.set_p_nodes_on(self.get_input('p_nodes_on'))
     if self.hasInputFromPort('p_nodes_transparency') :
-      p.set_p_nodes_transparency(self.getInputFromPort('p_nodes_transparency'))
+      p.set_p_nodes_transparency(self.get_input('p_nodes_transparency'))
     if self.hasInputFromPort('p_nodes_color_type') :
-      p.set_p_nodes_color_type(self.getInputFromPort('p_nodes_color_type'))
+      p.set_p_nodes_color_type(self.get_input('p_nodes_color_type'))
     if self.hasInputFromPort('p_nodes_display_type') :
-      p.set_p_nodes_display_type(self.getInputFromPort('p_nodes_display_type'))
+      p.set_p_nodes_display_type(self.get_input('p_nodes_display_type'))
     if self.hasInputFromPort('p_edges_on') :
-      p.set_p_edges_on(self.getInputFromPort('p_edges_on'))
+      p.set_p_edges_on(self.get_input('p_edges_on'))
     if self.hasInputFromPort('p_edges_transparency') :
-      p.set_p_edges_transparency(self.getInputFromPort('p_edges_transparency'))
+      p.set_p_edges_transparency(self.get_input('p_edges_transparency'))
     if self.hasInputFromPort('p_edges_color_type') :
-      p.set_p_edges_color_type(self.getInputFromPort('p_edges_color_type'))
+      p.set_p_edges_color_type(self.get_input('p_edges_color_type'))
     if self.hasInputFromPort('p_edges_display_type') :
-      p.set_p_edges_display_type(self.getInputFromPort('p_edges_display_type'))
+      p.set_p_edges_display_type(self.get_input('p_edges_display_type'))
     if self.hasInputFromPort('p_faces_on') :
-      p.set_p_faces_on(self.getInputFromPort('p_faces_on'))
+      p.set_p_faces_on(self.get_input('p_faces_on'))
     if self.hasInputFromPort('p_faces_transparency') :
-      p.set_p_faces_transparency(self.getInputFromPort('p_faces_transparency'))
+      p.set_p_faces_transparency(self.get_input('p_faces_transparency'))
     if self.hasInputFromPort('p_faces_color_type') :
-      p.set_p_faces_color_type(self.getInputFromPort('p_faces_color_type'))
+      p.set_p_faces_color_type(self.get_input('p_faces_color_type'))
     if self.hasInputFromPort('p_faces_normals') :
-      p.set_p_faces_normals(self.getInputFromPort('p_faces_normals'))
+      p.set_p_faces_normals(self.get_input('p_faces_normals'))
     if self.hasInputFromPort('p_faces_usetexture') :
-      p.set_p_faces_usetexture(self.getInputFromPort('p_faces_usetexture'))
+      p.set_p_faces_usetexture(self.get_input('p_faces_usetexture'))
     if self.hasInputFromPort('p_text_on') :
-      p.set_p_text_on(self.getInputFromPort('p_text_on'))
+      p.set_p_text_on(self.get_input('p_text_on'))
     if self.hasInputFromPort('p_text_color_type') :
-      p.set_p_text_color_type(self.getInputFromPort('p_text_color_type'))
+      p.set_p_text_color_type(self.get_input('p_text_color_type'))
     if self.hasInputFromPort('p_text_color_r') :
-      p.set_p_text_color_r(self.getInputFromPort('p_text_color_r'))
+      p.set_p_text_color_r(self.get_input('p_text_color_r'))
     if self.hasInputFromPort('p_text_color_g') :
-      p.set_p_text_color_g(self.getInputFromPort('p_text_color_g'))
+      p.set_p_text_color_g(self.get_input('p_text_color_g'))
     if self.hasInputFromPort('p_text_color_b') :
-      p.set_p_text_color_b(self.getInputFromPort('p_text_color_b'))
+      p.set_p_text_color_b(self.get_input('p_text_color_b'))
     if self.hasInputFromPort('p_text_backface_cull') :
-      p.set_p_text_backface_cull(self.getInputFromPort('p_text_backface_cull'))
+      p.set_p_text_backface_cull(self.get_input('p_text_backface_cull'))
     if self.hasInputFromPort('p_text_always_visible') :
-      p.set_p_text_always_visible(self.getInputFromPort('p_text_always_visible'))
+      p.set_p_text_always_visible(self.get_input('p_text_always_visible'))
     if self.hasInputFromPort('p_text_fontsize') :
-      p.set_p_text_fontsize(self.getInputFromPort('p_text_fontsize'))
+      p.set_p_text_fontsize(self.get_input('p_text_fontsize'))
     if self.hasInputFromPort('p_text_precision') :
-      p.set_p_text_precision(self.getInputFromPort('p_text_precision'))
+      p.set_p_text_precision(self.get_input('p_text_precision'))
     if self.hasInputFromPort('p_text_render_locations') :
-      p.set_p_text_render_locations(self.getInputFromPort('p_text_render_locations'))
+      p.set_p_text_render_locations(self.get_input('p_text_render_locations'))
     if self.hasInputFromPort('p_text_show_data') :
-      p.set_p_text_show_data(self.getInputFromPort('p_text_show_data'))
+      p.set_p_text_show_data(self.get_input('p_text_show_data'))
     if self.hasInputFromPort('p_text_show_nodes') :
-      p.set_p_text_show_nodes(self.getInputFromPort('p_text_show_nodes'))
+      p.set_p_text_show_nodes(self.get_input('p_text_show_nodes'))
     if self.hasInputFromPort('p_text_show_edges') :
-      p.set_p_text_show_edges(self.getInputFromPort('p_text_show_edges'))
+      p.set_p_text_show_edges(self.get_input('p_text_show_edges'))
     if self.hasInputFromPort('p_text_show_faces') :
-      p.set_p_text_show_faces(self.getInputFromPort('p_text_show_faces'))
+      p.set_p_text_show_faces(self.get_input('p_text_show_faces'))
     if self.hasInputFromPort('p_text_show_cells') :
-      p.set_p_text_show_cells(self.getInputFromPort('p_text_show_cells'))
+      p.set_p_text_show_cells(self.get_input('p_text_show_cells'))
     if self.hasInputFromPort('p_def_color_r') :
-      p.set_p_def_color_r(self.getInputFromPort('p_def_color_r'))
+      p.set_p_def_color_r(self.get_input('p_def_color_r'))
     if self.hasInputFromPort('p_def_color_g') :
-      p.set_p_def_color_g(self.getInputFromPort('p_def_color_g'))
+      p.set_p_def_color_g(self.get_input('p_def_color_g'))
     if self.hasInputFromPort('p_def_color_b') :
-      p.set_p_def_color_b(self.getInputFromPort('p_def_color_b'))
+      p.set_p_def_color_b(self.get_input('p_def_color_b'))
     if self.hasInputFromPort('p_def_color_a') :
-      p.set_p_def_color_a(self.getInputFromPort('p_def_color_a'))
+      p.set_p_def_color_a(self.get_input('p_def_color_a'))
     if self.hasInputFromPort('p_nodes_scale') :
-      p.set_p_nodes_scale(self.getInputFromPort('p_nodes_scale'))
+      p.set_p_nodes_scale(self.get_input('p_nodes_scale'))
     if self.hasInputFromPort('p_nodes_scaleNV') :
-      p.set_p_nodes_scaleNV(self.getInputFromPort('p_nodes_scaleNV'))
+      p.set_p_nodes_scaleNV(self.get_input('p_nodes_scaleNV'))
     if self.hasInputFromPort('p_edges_scale') :
-      p.set_p_edges_scale(self.getInputFromPort('p_edges_scale'))
+      p.set_p_edges_scale(self.get_input('p_edges_scale'))
     if self.hasInputFromPort('p_edges_scaleNV') :
-      p.set_p_edges_scaleNV(self.getInputFromPort('p_edges_scaleNV'))
+      p.set_p_edges_scaleNV(self.get_input('p_edges_scaleNV'))
     if self.hasInputFromPort('p_active_tab') :
-      p.set_p_active_tab(self.getInputFromPort('p_active_tab'))
+      p.set_p_active_tab(self.get_input('p_active_tab'))
     if self.hasInputFromPort('p_interactive_mode') :
-      p.set_p_interactive_mode(self.getInputFromPort('p_interactive_mode'))
+      p.set_p_interactive_mode(self.get_input('p_interactive_mode'))
     if self.hasInputFromPort('p_show_progress') :
-      p.set_p_show_progress(self.getInputFromPort('p_show_progress'))
+      p.set_p_show_progress(self.get_input('p_show_progress'))
     if self.hasInputFromPort('p_field_name') :
-      p.set_p_field_name(self.getInputFromPort('p_field_name'))
+      p.set_p_field_name(self.get_input('p_field_name'))
     if self.hasInputFromPort('p_field_name_override') :
-      p.set_p_field_name_override(self.getInputFromPort('p_field_name_override'))
+      p.set_p_field_name_override(self.get_input('p_field_name_override'))
     if self.hasInputFromPort('p_nodes_resolution') :
-      p.set_p_nodes_resolution(self.getInputFromPort('p_nodes_resolution'))
+      p.set_p_nodes_resolution(self.get_input('p_nodes_resolution'))
     if self.hasInputFromPort('p_edges_resolution') :
-      p.set_p_edges_resolution(self.getInputFromPort('p_edges_resolution'))
+      p.set_p_edges_resolution(self.get_input('p_edges_resolution'))
     if self.hasInputFromPort('p_approx_div') :
-      p.set_p_approx_div(self.getInputFromPort('p_approx_div'))
+      p.set_p_approx_div(self.get_input('p_approx_div'))
     if self.hasInputFromPort('p_use_default_size') :
-      p.set_p_use_default_size(self.getInputFromPort('p_use_default_size'))
+      p.set_p_use_default_size(self.get_input('p_use_default_size'))
     Mesh = 0
     if self.hasInputFromPort('Mesh') :
-      Mesh = self.getInputFromPort('Mesh')
+      Mesh = self.get_input('Mesh')
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     results = p.execute(Mesh, ColorMap)
     self.setResult('Scene Graph', results)
 
@@ -3831,62 +3831,62 @@ class ExtractIsosurface(Visualization) :
   def compute(self) :
     p = sr_py.ExtractIsosurfaceAlg()
     if self.hasInputFromPort('p_isoval_min') :
-      p.set_p_isoval_min(self.getInputFromPort('p_isoval_min'))
+      p.set_p_isoval_min(self.get_input('p_isoval_min'))
     if self.hasInputFromPort('p_isoval_max') :
-      p.set_p_isoval_max(self.getInputFromPort('p_isoval_max'))
+      p.set_p_isoval_max(self.get_input('p_isoval_max'))
     if self.hasInputFromPort('p_isoval') :
-      p.set_p_isoval(self.getInputFromPort('p_isoval'))
+      p.set_p_isoval(self.get_input('p_isoval'))
     if self.hasInputFromPort('p_isoval_typed') :
-      p.set_p_isoval_typed(self.getInputFromPort('p_isoval_typed'))
+      p.set_p_isoval_typed(self.get_input('p_isoval_typed'))
     if self.hasInputFromPort('p_isoval_quantity') :
-      p.set_p_isoval_quantity(self.getInputFromPort('p_isoval_quantity'))
+      p.set_p_isoval_quantity(self.get_input('p_isoval_quantity'))
     if self.hasInputFromPort('p_quantity_range') :
-      p.set_p_quantity_range(self.getInputFromPort('p_quantity_range'))
+      p.set_p_quantity_range(self.get_input('p_quantity_range'))
     if self.hasInputFromPort('p_quantity_clusive') :
-      p.set_p_quantity_clusive(self.getInputFromPort('p_quantity_clusive'))
+      p.set_p_quantity_clusive(self.get_input('p_quantity_clusive'))
     if self.hasInputFromPort('p_quantity_min') :
-      p.set_p_quantity_min(self.getInputFromPort('p_quantity_min'))
+      p.set_p_quantity_min(self.get_input('p_quantity_min'))
     if self.hasInputFromPort('p_quantity_max') :
-      p.set_p_quantity_max(self.getInputFromPort('p_quantity_max'))
+      p.set_p_quantity_max(self.get_input('p_quantity_max'))
     if self.hasInputFromPort('p_quantity_list') :
-      p.set_p_quantity_list(self.getInputFromPort('p_quantity_list'))
+      p.set_p_quantity_list(self.get_input('p_quantity_list'))
     if self.hasInputFromPort('p_isoval_list') :
-      p.set_p_isoval_list(self.getInputFromPort('p_isoval_list'))
+      p.set_p_isoval_list(self.get_input('p_isoval_list'))
     if self.hasInputFromPort('p_matrix_list') :
-      p.set_p_matrix_list(self.getInputFromPort('p_matrix_list'))
+      p.set_p_matrix_list(self.get_input('p_matrix_list'))
     if self.hasInputFromPort('p_algorithm') :
-      p.set_p_algorithm(self.getInputFromPort('p_algorithm'))
+      p.set_p_algorithm(self.get_input('p_algorithm'))
     if self.hasInputFromPort('p_build_trisurf') :
-      p.set_p_build_trisurf(self.getInputFromPort('p_build_trisurf'))
+      p.set_p_build_trisurf(self.get_input('p_build_trisurf'))
     if self.hasInputFromPort('p_build_geom') :
-      p.set_p_build_geom(self.getInputFromPort('p_build_geom'))
+      p.set_p_build_geom(self.get_input('p_build_geom'))
     if self.hasInputFromPort('p_transparency') :
-      p.set_p_transparency(self.getInputFromPort('p_transparency'))
+      p.set_p_transparency(self.get_input('p_transparency'))
     if self.hasInputFromPort('p_np') :
-      p.set_p_np(self.getInputFromPort('p_np'))
+      p.set_p_np(self.get_input('p_np'))
     if self.hasInputFromPort('p_active_isoval_selection_tab') :
-      p.set_p_active_isoval_selection_tab(self.getInputFromPort('p_active_isoval_selection_tab'))
+      p.set_p_active_isoval_selection_tab(self.get_input('p_active_isoval_selection_tab'))
     if self.hasInputFromPort('p_active_tab') :
-      p.set_p_active_tab(self.getInputFromPort('p_active_tab'))
+      p.set_p_active_tab(self.get_input('p_active_tab'))
     if self.hasInputFromPort('p_update_type') :
-      p.set_p_update_type(self.getInputFromPort('p_update_type'))
+      p.set_p_update_type(self.get_input('p_update_type'))
     if self.hasInputFromPort('p_color_r') :
-      p.set_p_color_r(self.getInputFromPort('p_color_r'))
+      p.set_p_color_r(self.get_input('p_color_r'))
     if self.hasInputFromPort('p_color_g') :
-      p.set_p_color_g(self.getInputFromPort('p_color_g'))
+      p.set_p_color_g(self.get_input('p_color_g'))
     if self.hasInputFromPort('p_color_b') :
-      p.set_p_color_b(self.getInputFromPort('p_color_b'))
+      p.set_p_color_b(self.get_input('p_color_b'))
     if self.hasInputFromPort('p_color_a') :
-      p.set_p_color_a(self.getInputFromPort('p_color_a'))
+      p.set_p_color_a(self.get_input('p_color_a'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     Optional_Color_Map = 0
     if self.hasInputFromPort('Optional Color Map') :
-      Optional_Color_Map = self.getInputFromPort('Optional Color Map')
+      Optional_Color_Map = self.get_input('Optional Color Map')
     Optional_Isovalues = 0
     if self.hasInputFromPort('Optional Isovalues') :
-      Optional_Isovalues = self.getInputFromPort('Optional Isovalues')
+      Optional_Isovalues = self.get_input('Optional Isovalues')
     results = p.execute(Field, Optional_Color_Map, Optional_Isovalues)
     self.setResult('Surface', results[0])
     self.setResult('Geometry', results[1])
@@ -3896,304 +3896,304 @@ class CreateViewerAxes(Visualization) :
   def compute(self) :
     p = sr_py.CreateViewerAxesAlg()
     if self.hasInputFromPort('p_precision') :
-      p.set_p_precision(self.getInputFromPort('p_precision'))
+      p.set_p_precision(self.get_input('p_precision'))
     if self.hasInputFromPort('p_squash') :
-      p.set_p_squash(self.getInputFromPort('p_squash'))
+      p.set_p_squash(self.get_input('p_squash'))
     if self.hasInputFromPort('p_valuerez') :
-      p.set_p_valuerez(self.getInputFromPort('p_valuerez'))
+      p.set_p_valuerez(self.get_input('p_valuerez'))
     if self.hasInputFromPort('p_labelrez') :
-      p.set_p_labelrez(self.getInputFromPort('p_labelrez'))
+      p.set_p_labelrez(self.get_input('p_labelrez'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_absolute') :
-      p.set_p_Plane_01_0_Axis_absolute(self.getInputFromPort('p_Plane_01_0_Axis_absolute'))
+      p.set_p_Plane_01_0_Axis_absolute(self.get_input('p_Plane_01_0_Axis_absolute'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_divisions') :
-      p.set_p_Plane_01_0_Axis_divisions(self.getInputFromPort('p_Plane_01_0_Axis_divisions'))
+      p.set_p_Plane_01_0_Axis_divisions(self.get_input('p_Plane_01_0_Axis_divisions'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_offset') :
-      p.set_p_Plane_01_0_Axis_offset(self.getInputFromPort('p_Plane_01_0_Axis_offset'))
+      p.set_p_Plane_01_0_Axis_offset(self.get_input('p_Plane_01_0_Axis_offset'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_range_first') :
-      p.set_p_Plane_01_0_Axis_range_first(self.getInputFromPort('p_Plane_01_0_Axis_range_first'))
+      p.set_p_Plane_01_0_Axis_range_first(self.get_input('p_Plane_01_0_Axis_range_first'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_range_second') :
-      p.set_p_Plane_01_0_Axis_range_second(self.getInputFromPort('p_Plane_01_0_Axis_range_second'))
+      p.set_p_Plane_01_0_Axis_range_second(self.get_input('p_Plane_01_0_Axis_range_second'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_min_absolute') :
-      p.set_p_Plane_01_0_Axis_min_absolute(self.getInputFromPort('p_Plane_01_0_Axis_min_absolute'))
+      p.set_p_Plane_01_0_Axis_min_absolute(self.get_input('p_Plane_01_0_Axis_min_absolute'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_max_absolute') :
-      p.set_p_Plane_01_0_Axis_max_absolute(self.getInputFromPort('p_Plane_01_0_Axis_max_absolute'))
+      p.set_p_Plane_01_0_Axis_max_absolute(self.get_input('p_Plane_01_0_Axis_max_absolute'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_minplane') :
-      p.set_p_Plane_01_0_Axis_minplane(self.getInputFromPort('p_Plane_01_0_Axis_minplane'))
+      p.set_p_Plane_01_0_Axis_minplane(self.get_input('p_Plane_01_0_Axis_minplane'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_maxplane') :
-      p.set_p_Plane_01_0_Axis_maxplane(self.getInputFromPort('p_Plane_01_0_Axis_maxplane'))
+      p.set_p_Plane_01_0_Axis_maxplane(self.get_input('p_Plane_01_0_Axis_maxplane'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_lines') :
-      p.set_p_Plane_01_0_Axis_lines(self.getInputFromPort('p_Plane_01_0_Axis_lines'))
+      p.set_p_Plane_01_0_Axis_lines(self.get_input('p_Plane_01_0_Axis_lines'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_minticks') :
-      p.set_p_Plane_01_0_Axis_minticks(self.getInputFromPort('p_Plane_01_0_Axis_minticks'))
+      p.set_p_Plane_01_0_Axis_minticks(self.get_input('p_Plane_01_0_Axis_minticks'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_maxticks') :
-      p.set_p_Plane_01_0_Axis_maxticks(self.getInputFromPort('p_Plane_01_0_Axis_maxticks'))
+      p.set_p_Plane_01_0_Axis_maxticks(self.get_input('p_Plane_01_0_Axis_maxticks'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_minlabel') :
-      p.set_p_Plane_01_0_Axis_minlabel(self.getInputFromPort('p_Plane_01_0_Axis_minlabel'))
+      p.set_p_Plane_01_0_Axis_minlabel(self.get_input('p_Plane_01_0_Axis_minlabel'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_maxlabel') :
-      p.set_p_Plane_01_0_Axis_maxlabel(self.getInputFromPort('p_Plane_01_0_Axis_maxlabel'))
+      p.set_p_Plane_01_0_Axis_maxlabel(self.get_input('p_Plane_01_0_Axis_maxlabel'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_minvalue') :
-      p.set_p_Plane_01_0_Axis_minvalue(self.getInputFromPort('p_Plane_01_0_Axis_minvalue'))
+      p.set_p_Plane_01_0_Axis_minvalue(self.get_input('p_Plane_01_0_Axis_minvalue'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_maxvalue') :
-      p.set_p_Plane_01_0_Axis_maxvalue(self.getInputFromPort('p_Plane_01_0_Axis_maxvalue'))
+      p.set_p_Plane_01_0_Axis_maxvalue(self.get_input('p_Plane_01_0_Axis_maxvalue'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_width') :
-      p.set_p_Plane_01_0_Axis_width(self.getInputFromPort('p_Plane_01_0_Axis_width'))
+      p.set_p_Plane_01_0_Axis_width(self.get_input('p_Plane_01_0_Axis_width'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_tickangle') :
-      p.set_p_Plane_01_0_Axis_tickangle(self.getInputFromPort('p_Plane_01_0_Axis_tickangle'))
+      p.set_p_Plane_01_0_Axis_tickangle(self.get_input('p_Plane_01_0_Axis_tickangle'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_ticktilt') :
-      p.set_p_Plane_01_0_Axis_ticktilt(self.getInputFromPort('p_Plane_01_0_Axis_ticktilt'))
+      p.set_p_Plane_01_0_Axis_ticktilt(self.get_input('p_Plane_01_0_Axis_ticktilt'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_ticksize') :
-      p.set_p_Plane_01_0_Axis_ticksize(self.getInputFromPort('p_Plane_01_0_Axis_ticksize'))
+      p.set_p_Plane_01_0_Axis_ticksize(self.get_input('p_Plane_01_0_Axis_ticksize'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_labelangle') :
-      p.set_p_Plane_01_0_Axis_labelangle(self.getInputFromPort('p_Plane_01_0_Axis_labelangle'))
+      p.set_p_Plane_01_0_Axis_labelangle(self.get_input('p_Plane_01_0_Axis_labelangle'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_labelheight') :
-      p.set_p_Plane_01_0_Axis_labelheight(self.getInputFromPort('p_Plane_01_0_Axis_labelheight'))
+      p.set_p_Plane_01_0_Axis_labelheight(self.get_input('p_Plane_01_0_Axis_labelheight'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_valuesize') :
-      p.set_p_Plane_01_0_Axis_valuesize(self.getInputFromPort('p_Plane_01_0_Axis_valuesize'))
+      p.set_p_Plane_01_0_Axis_valuesize(self.get_input('p_Plane_01_0_Axis_valuesize'))
     if self.hasInputFromPort('p_Plane_01_0_Axis_valuesquash') :
-      p.set_p_Plane_01_0_Axis_valuesquash(self.getInputFromPort('p_Plane_01_0_Axis_valuesquash'))
+      p.set_p_Plane_01_0_Axis_valuesquash(self.get_input('p_Plane_01_0_Axis_valuesquash'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_absolute') :
-      p.set_p_Plane_01_1_Axis_absolute(self.getInputFromPort('p_Plane_01_1_Axis_absolute'))
+      p.set_p_Plane_01_1_Axis_absolute(self.get_input('p_Plane_01_1_Axis_absolute'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_divisions') :
-      p.set_p_Plane_01_1_Axis_divisions(self.getInputFromPort('p_Plane_01_1_Axis_divisions'))
+      p.set_p_Plane_01_1_Axis_divisions(self.get_input('p_Plane_01_1_Axis_divisions'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_offset') :
-      p.set_p_Plane_01_1_Axis_offset(self.getInputFromPort('p_Plane_01_1_Axis_offset'))
+      p.set_p_Plane_01_1_Axis_offset(self.get_input('p_Plane_01_1_Axis_offset'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_range_first') :
-      p.set_p_Plane_01_1_Axis_range_first(self.getInputFromPort('p_Plane_01_1_Axis_range_first'))
+      p.set_p_Plane_01_1_Axis_range_first(self.get_input('p_Plane_01_1_Axis_range_first'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_range_second') :
-      p.set_p_Plane_01_1_Axis_range_second(self.getInputFromPort('p_Plane_01_1_Axis_range_second'))
+      p.set_p_Plane_01_1_Axis_range_second(self.get_input('p_Plane_01_1_Axis_range_second'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_min_absolute') :
-      p.set_p_Plane_01_1_Axis_min_absolute(self.getInputFromPort('p_Plane_01_1_Axis_min_absolute'))
+      p.set_p_Plane_01_1_Axis_min_absolute(self.get_input('p_Plane_01_1_Axis_min_absolute'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_max_absolute') :
-      p.set_p_Plane_01_1_Axis_max_absolute(self.getInputFromPort('p_Plane_01_1_Axis_max_absolute'))
+      p.set_p_Plane_01_1_Axis_max_absolute(self.get_input('p_Plane_01_1_Axis_max_absolute'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_minplane') :
-      p.set_p_Plane_01_1_Axis_minplane(self.getInputFromPort('p_Plane_01_1_Axis_minplane'))
+      p.set_p_Plane_01_1_Axis_minplane(self.get_input('p_Plane_01_1_Axis_minplane'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_maxplane') :
-      p.set_p_Plane_01_1_Axis_maxplane(self.getInputFromPort('p_Plane_01_1_Axis_maxplane'))
+      p.set_p_Plane_01_1_Axis_maxplane(self.get_input('p_Plane_01_1_Axis_maxplane'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_lines') :
-      p.set_p_Plane_01_1_Axis_lines(self.getInputFromPort('p_Plane_01_1_Axis_lines'))
+      p.set_p_Plane_01_1_Axis_lines(self.get_input('p_Plane_01_1_Axis_lines'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_minticks') :
-      p.set_p_Plane_01_1_Axis_minticks(self.getInputFromPort('p_Plane_01_1_Axis_minticks'))
+      p.set_p_Plane_01_1_Axis_minticks(self.get_input('p_Plane_01_1_Axis_minticks'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_maxticks') :
-      p.set_p_Plane_01_1_Axis_maxticks(self.getInputFromPort('p_Plane_01_1_Axis_maxticks'))
+      p.set_p_Plane_01_1_Axis_maxticks(self.get_input('p_Plane_01_1_Axis_maxticks'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_minlabel') :
-      p.set_p_Plane_01_1_Axis_minlabel(self.getInputFromPort('p_Plane_01_1_Axis_minlabel'))
+      p.set_p_Plane_01_1_Axis_minlabel(self.get_input('p_Plane_01_1_Axis_minlabel'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_maxlabel') :
-      p.set_p_Plane_01_1_Axis_maxlabel(self.getInputFromPort('p_Plane_01_1_Axis_maxlabel'))
+      p.set_p_Plane_01_1_Axis_maxlabel(self.get_input('p_Plane_01_1_Axis_maxlabel'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_minvalue') :
-      p.set_p_Plane_01_1_Axis_minvalue(self.getInputFromPort('p_Plane_01_1_Axis_minvalue'))
+      p.set_p_Plane_01_1_Axis_minvalue(self.get_input('p_Plane_01_1_Axis_minvalue'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_maxvalue') :
-      p.set_p_Plane_01_1_Axis_maxvalue(self.getInputFromPort('p_Plane_01_1_Axis_maxvalue'))
+      p.set_p_Plane_01_1_Axis_maxvalue(self.get_input('p_Plane_01_1_Axis_maxvalue'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_width') :
-      p.set_p_Plane_01_1_Axis_width(self.getInputFromPort('p_Plane_01_1_Axis_width'))
+      p.set_p_Plane_01_1_Axis_width(self.get_input('p_Plane_01_1_Axis_width'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_tickangle') :
-      p.set_p_Plane_01_1_Axis_tickangle(self.getInputFromPort('p_Plane_01_1_Axis_tickangle'))
+      p.set_p_Plane_01_1_Axis_tickangle(self.get_input('p_Plane_01_1_Axis_tickangle'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_ticktilt') :
-      p.set_p_Plane_01_1_Axis_ticktilt(self.getInputFromPort('p_Plane_01_1_Axis_ticktilt'))
+      p.set_p_Plane_01_1_Axis_ticktilt(self.get_input('p_Plane_01_1_Axis_ticktilt'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_ticksize') :
-      p.set_p_Plane_01_1_Axis_ticksize(self.getInputFromPort('p_Plane_01_1_Axis_ticksize'))
+      p.set_p_Plane_01_1_Axis_ticksize(self.get_input('p_Plane_01_1_Axis_ticksize'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_labelangle') :
-      p.set_p_Plane_01_1_Axis_labelangle(self.getInputFromPort('p_Plane_01_1_Axis_labelangle'))
+      p.set_p_Plane_01_1_Axis_labelangle(self.get_input('p_Plane_01_1_Axis_labelangle'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_labelheight') :
-      p.set_p_Plane_01_1_Axis_labelheight(self.getInputFromPort('p_Plane_01_1_Axis_labelheight'))
+      p.set_p_Plane_01_1_Axis_labelheight(self.get_input('p_Plane_01_1_Axis_labelheight'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_valuesize') :
-      p.set_p_Plane_01_1_Axis_valuesize(self.getInputFromPort('p_Plane_01_1_Axis_valuesize'))
+      p.set_p_Plane_01_1_Axis_valuesize(self.get_input('p_Plane_01_1_Axis_valuesize'))
     if self.hasInputFromPort('p_Plane_01_1_Axis_valuesquash') :
-      p.set_p_Plane_01_1_Axis_valuesquash(self.getInputFromPort('p_Plane_01_1_Axis_valuesquash'))
+      p.set_p_Plane_01_1_Axis_valuesquash(self.get_input('p_Plane_01_1_Axis_valuesquash'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_absolute') :
-      p.set_p_Plane_02_0_Axis_absolute(self.getInputFromPort('p_Plane_02_0_Axis_absolute'))
+      p.set_p_Plane_02_0_Axis_absolute(self.get_input('p_Plane_02_0_Axis_absolute'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_divisions') :
-      p.set_p_Plane_02_0_Axis_divisions(self.getInputFromPort('p_Plane_02_0_Axis_divisions'))
+      p.set_p_Plane_02_0_Axis_divisions(self.get_input('p_Plane_02_0_Axis_divisions'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_offset') :
-      p.set_p_Plane_02_0_Axis_offset(self.getInputFromPort('p_Plane_02_0_Axis_offset'))
+      p.set_p_Plane_02_0_Axis_offset(self.get_input('p_Plane_02_0_Axis_offset'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_range_first') :
-      p.set_p_Plane_02_0_Axis_range_first(self.getInputFromPort('p_Plane_02_0_Axis_range_first'))
+      p.set_p_Plane_02_0_Axis_range_first(self.get_input('p_Plane_02_0_Axis_range_first'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_range_second') :
-      p.set_p_Plane_02_0_Axis_range_second(self.getInputFromPort('p_Plane_02_0_Axis_range_second'))
+      p.set_p_Plane_02_0_Axis_range_second(self.get_input('p_Plane_02_0_Axis_range_second'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_min_absolute') :
-      p.set_p_Plane_02_0_Axis_min_absolute(self.getInputFromPort('p_Plane_02_0_Axis_min_absolute'))
+      p.set_p_Plane_02_0_Axis_min_absolute(self.get_input('p_Plane_02_0_Axis_min_absolute'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_max_absolute') :
-      p.set_p_Plane_02_0_Axis_max_absolute(self.getInputFromPort('p_Plane_02_0_Axis_max_absolute'))
+      p.set_p_Plane_02_0_Axis_max_absolute(self.get_input('p_Plane_02_0_Axis_max_absolute'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_minplane') :
-      p.set_p_Plane_02_0_Axis_minplane(self.getInputFromPort('p_Plane_02_0_Axis_minplane'))
+      p.set_p_Plane_02_0_Axis_minplane(self.get_input('p_Plane_02_0_Axis_minplane'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_maxplane') :
-      p.set_p_Plane_02_0_Axis_maxplane(self.getInputFromPort('p_Plane_02_0_Axis_maxplane'))
+      p.set_p_Plane_02_0_Axis_maxplane(self.get_input('p_Plane_02_0_Axis_maxplane'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_lines') :
-      p.set_p_Plane_02_0_Axis_lines(self.getInputFromPort('p_Plane_02_0_Axis_lines'))
+      p.set_p_Plane_02_0_Axis_lines(self.get_input('p_Plane_02_0_Axis_lines'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_minticks') :
-      p.set_p_Plane_02_0_Axis_minticks(self.getInputFromPort('p_Plane_02_0_Axis_minticks'))
+      p.set_p_Plane_02_0_Axis_minticks(self.get_input('p_Plane_02_0_Axis_minticks'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_maxticks') :
-      p.set_p_Plane_02_0_Axis_maxticks(self.getInputFromPort('p_Plane_02_0_Axis_maxticks'))
+      p.set_p_Plane_02_0_Axis_maxticks(self.get_input('p_Plane_02_0_Axis_maxticks'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_minlabel') :
-      p.set_p_Plane_02_0_Axis_minlabel(self.getInputFromPort('p_Plane_02_0_Axis_minlabel'))
+      p.set_p_Plane_02_0_Axis_minlabel(self.get_input('p_Plane_02_0_Axis_minlabel'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_maxlabel') :
-      p.set_p_Plane_02_0_Axis_maxlabel(self.getInputFromPort('p_Plane_02_0_Axis_maxlabel'))
+      p.set_p_Plane_02_0_Axis_maxlabel(self.get_input('p_Plane_02_0_Axis_maxlabel'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_minvalue') :
-      p.set_p_Plane_02_0_Axis_minvalue(self.getInputFromPort('p_Plane_02_0_Axis_minvalue'))
+      p.set_p_Plane_02_0_Axis_minvalue(self.get_input('p_Plane_02_0_Axis_minvalue'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_maxvalue') :
-      p.set_p_Plane_02_0_Axis_maxvalue(self.getInputFromPort('p_Plane_02_0_Axis_maxvalue'))
+      p.set_p_Plane_02_0_Axis_maxvalue(self.get_input('p_Plane_02_0_Axis_maxvalue'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_width') :
-      p.set_p_Plane_02_0_Axis_width(self.getInputFromPort('p_Plane_02_0_Axis_width'))
+      p.set_p_Plane_02_0_Axis_width(self.get_input('p_Plane_02_0_Axis_width'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_tickangle') :
-      p.set_p_Plane_02_0_Axis_tickangle(self.getInputFromPort('p_Plane_02_0_Axis_tickangle'))
+      p.set_p_Plane_02_0_Axis_tickangle(self.get_input('p_Plane_02_0_Axis_tickangle'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_ticktilt') :
-      p.set_p_Plane_02_0_Axis_ticktilt(self.getInputFromPort('p_Plane_02_0_Axis_ticktilt'))
+      p.set_p_Plane_02_0_Axis_ticktilt(self.get_input('p_Plane_02_0_Axis_ticktilt'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_ticksize') :
-      p.set_p_Plane_02_0_Axis_ticksize(self.getInputFromPort('p_Plane_02_0_Axis_ticksize'))
+      p.set_p_Plane_02_0_Axis_ticksize(self.get_input('p_Plane_02_0_Axis_ticksize'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_labelangle') :
-      p.set_p_Plane_02_0_Axis_labelangle(self.getInputFromPort('p_Plane_02_0_Axis_labelangle'))
+      p.set_p_Plane_02_0_Axis_labelangle(self.get_input('p_Plane_02_0_Axis_labelangle'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_labelheight') :
-      p.set_p_Plane_02_0_Axis_labelheight(self.getInputFromPort('p_Plane_02_0_Axis_labelheight'))
+      p.set_p_Plane_02_0_Axis_labelheight(self.get_input('p_Plane_02_0_Axis_labelheight'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_valuesize') :
-      p.set_p_Plane_02_0_Axis_valuesize(self.getInputFromPort('p_Plane_02_0_Axis_valuesize'))
+      p.set_p_Plane_02_0_Axis_valuesize(self.get_input('p_Plane_02_0_Axis_valuesize'))
     if self.hasInputFromPort('p_Plane_02_0_Axis_valuesquash') :
-      p.set_p_Plane_02_0_Axis_valuesquash(self.getInputFromPort('p_Plane_02_0_Axis_valuesquash'))
+      p.set_p_Plane_02_0_Axis_valuesquash(self.get_input('p_Plane_02_0_Axis_valuesquash'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_absolute') :
-      p.set_p_Plane_02_2_Axis_absolute(self.getInputFromPort('p_Plane_02_2_Axis_absolute'))
+      p.set_p_Plane_02_2_Axis_absolute(self.get_input('p_Plane_02_2_Axis_absolute'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_divisions') :
-      p.set_p_Plane_02_2_Axis_divisions(self.getInputFromPort('p_Plane_02_2_Axis_divisions'))
+      p.set_p_Plane_02_2_Axis_divisions(self.get_input('p_Plane_02_2_Axis_divisions'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_offset') :
-      p.set_p_Plane_02_2_Axis_offset(self.getInputFromPort('p_Plane_02_2_Axis_offset'))
+      p.set_p_Plane_02_2_Axis_offset(self.get_input('p_Plane_02_2_Axis_offset'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_range_first') :
-      p.set_p_Plane_02_2_Axis_range_first(self.getInputFromPort('p_Plane_02_2_Axis_range_first'))
+      p.set_p_Plane_02_2_Axis_range_first(self.get_input('p_Plane_02_2_Axis_range_first'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_range_second') :
-      p.set_p_Plane_02_2_Axis_range_second(self.getInputFromPort('p_Plane_02_2_Axis_range_second'))
+      p.set_p_Plane_02_2_Axis_range_second(self.get_input('p_Plane_02_2_Axis_range_second'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_min_absolute') :
-      p.set_p_Plane_02_2_Axis_min_absolute(self.getInputFromPort('p_Plane_02_2_Axis_min_absolute'))
+      p.set_p_Plane_02_2_Axis_min_absolute(self.get_input('p_Plane_02_2_Axis_min_absolute'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_max_absolute') :
-      p.set_p_Plane_02_2_Axis_max_absolute(self.getInputFromPort('p_Plane_02_2_Axis_max_absolute'))
+      p.set_p_Plane_02_2_Axis_max_absolute(self.get_input('p_Plane_02_2_Axis_max_absolute'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_minplane') :
-      p.set_p_Plane_02_2_Axis_minplane(self.getInputFromPort('p_Plane_02_2_Axis_minplane'))
+      p.set_p_Plane_02_2_Axis_minplane(self.get_input('p_Plane_02_2_Axis_minplane'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_maxplane') :
-      p.set_p_Plane_02_2_Axis_maxplane(self.getInputFromPort('p_Plane_02_2_Axis_maxplane'))
+      p.set_p_Plane_02_2_Axis_maxplane(self.get_input('p_Plane_02_2_Axis_maxplane'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_lines') :
-      p.set_p_Plane_02_2_Axis_lines(self.getInputFromPort('p_Plane_02_2_Axis_lines'))
+      p.set_p_Plane_02_2_Axis_lines(self.get_input('p_Plane_02_2_Axis_lines'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_minticks') :
-      p.set_p_Plane_02_2_Axis_minticks(self.getInputFromPort('p_Plane_02_2_Axis_minticks'))
+      p.set_p_Plane_02_2_Axis_minticks(self.get_input('p_Plane_02_2_Axis_minticks'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_maxticks') :
-      p.set_p_Plane_02_2_Axis_maxticks(self.getInputFromPort('p_Plane_02_2_Axis_maxticks'))
+      p.set_p_Plane_02_2_Axis_maxticks(self.get_input('p_Plane_02_2_Axis_maxticks'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_minlabel') :
-      p.set_p_Plane_02_2_Axis_minlabel(self.getInputFromPort('p_Plane_02_2_Axis_minlabel'))
+      p.set_p_Plane_02_2_Axis_minlabel(self.get_input('p_Plane_02_2_Axis_minlabel'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_maxlabel') :
-      p.set_p_Plane_02_2_Axis_maxlabel(self.getInputFromPort('p_Plane_02_2_Axis_maxlabel'))
+      p.set_p_Plane_02_2_Axis_maxlabel(self.get_input('p_Plane_02_2_Axis_maxlabel'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_minvalue') :
-      p.set_p_Plane_02_2_Axis_minvalue(self.getInputFromPort('p_Plane_02_2_Axis_minvalue'))
+      p.set_p_Plane_02_2_Axis_minvalue(self.get_input('p_Plane_02_2_Axis_minvalue'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_maxvalue') :
-      p.set_p_Plane_02_2_Axis_maxvalue(self.getInputFromPort('p_Plane_02_2_Axis_maxvalue'))
+      p.set_p_Plane_02_2_Axis_maxvalue(self.get_input('p_Plane_02_2_Axis_maxvalue'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_width') :
-      p.set_p_Plane_02_2_Axis_width(self.getInputFromPort('p_Plane_02_2_Axis_width'))
+      p.set_p_Plane_02_2_Axis_width(self.get_input('p_Plane_02_2_Axis_width'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_tickangle') :
-      p.set_p_Plane_02_2_Axis_tickangle(self.getInputFromPort('p_Plane_02_2_Axis_tickangle'))
+      p.set_p_Plane_02_2_Axis_tickangle(self.get_input('p_Plane_02_2_Axis_tickangle'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_ticktilt') :
-      p.set_p_Plane_02_2_Axis_ticktilt(self.getInputFromPort('p_Plane_02_2_Axis_ticktilt'))
+      p.set_p_Plane_02_2_Axis_ticktilt(self.get_input('p_Plane_02_2_Axis_ticktilt'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_ticksize') :
-      p.set_p_Plane_02_2_Axis_ticksize(self.getInputFromPort('p_Plane_02_2_Axis_ticksize'))
+      p.set_p_Plane_02_2_Axis_ticksize(self.get_input('p_Plane_02_2_Axis_ticksize'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_labelangle') :
-      p.set_p_Plane_02_2_Axis_labelangle(self.getInputFromPort('p_Plane_02_2_Axis_labelangle'))
+      p.set_p_Plane_02_2_Axis_labelangle(self.get_input('p_Plane_02_2_Axis_labelangle'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_labelheight') :
-      p.set_p_Plane_02_2_Axis_labelheight(self.getInputFromPort('p_Plane_02_2_Axis_labelheight'))
+      p.set_p_Plane_02_2_Axis_labelheight(self.get_input('p_Plane_02_2_Axis_labelheight'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_valuesize') :
-      p.set_p_Plane_02_2_Axis_valuesize(self.getInputFromPort('p_Plane_02_2_Axis_valuesize'))
+      p.set_p_Plane_02_2_Axis_valuesize(self.get_input('p_Plane_02_2_Axis_valuesize'))
     if self.hasInputFromPort('p_Plane_02_2_Axis_valuesquash') :
-      p.set_p_Plane_02_2_Axis_valuesquash(self.getInputFromPort('p_Plane_02_2_Axis_valuesquash'))
+      p.set_p_Plane_02_2_Axis_valuesquash(self.get_input('p_Plane_02_2_Axis_valuesquash'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_absolute') :
-      p.set_p_Plane_12_1_Axis_absolute(self.getInputFromPort('p_Plane_12_1_Axis_absolute'))
+      p.set_p_Plane_12_1_Axis_absolute(self.get_input('p_Plane_12_1_Axis_absolute'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_divisions') :
-      p.set_p_Plane_12_1_Axis_divisions(self.getInputFromPort('p_Plane_12_1_Axis_divisions'))
+      p.set_p_Plane_12_1_Axis_divisions(self.get_input('p_Plane_12_1_Axis_divisions'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_offset') :
-      p.set_p_Plane_12_1_Axis_offset(self.getInputFromPort('p_Plane_12_1_Axis_offset'))
+      p.set_p_Plane_12_1_Axis_offset(self.get_input('p_Plane_12_1_Axis_offset'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_range_first') :
-      p.set_p_Plane_12_1_Axis_range_first(self.getInputFromPort('p_Plane_12_1_Axis_range_first'))
+      p.set_p_Plane_12_1_Axis_range_first(self.get_input('p_Plane_12_1_Axis_range_first'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_range_second') :
-      p.set_p_Plane_12_1_Axis_range_second(self.getInputFromPort('p_Plane_12_1_Axis_range_second'))
+      p.set_p_Plane_12_1_Axis_range_second(self.get_input('p_Plane_12_1_Axis_range_second'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_min_absolute') :
-      p.set_p_Plane_12_1_Axis_min_absolute(self.getInputFromPort('p_Plane_12_1_Axis_min_absolute'))
+      p.set_p_Plane_12_1_Axis_min_absolute(self.get_input('p_Plane_12_1_Axis_min_absolute'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_max_absolute') :
-      p.set_p_Plane_12_1_Axis_max_absolute(self.getInputFromPort('p_Plane_12_1_Axis_max_absolute'))
+      p.set_p_Plane_12_1_Axis_max_absolute(self.get_input('p_Plane_12_1_Axis_max_absolute'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_minplane') :
-      p.set_p_Plane_12_1_Axis_minplane(self.getInputFromPort('p_Plane_12_1_Axis_minplane'))
+      p.set_p_Plane_12_1_Axis_minplane(self.get_input('p_Plane_12_1_Axis_minplane'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_maxplane') :
-      p.set_p_Plane_12_1_Axis_maxplane(self.getInputFromPort('p_Plane_12_1_Axis_maxplane'))
+      p.set_p_Plane_12_1_Axis_maxplane(self.get_input('p_Plane_12_1_Axis_maxplane'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_lines') :
-      p.set_p_Plane_12_1_Axis_lines(self.getInputFromPort('p_Plane_12_1_Axis_lines'))
+      p.set_p_Plane_12_1_Axis_lines(self.get_input('p_Plane_12_1_Axis_lines'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_minticks') :
-      p.set_p_Plane_12_1_Axis_minticks(self.getInputFromPort('p_Plane_12_1_Axis_minticks'))
+      p.set_p_Plane_12_1_Axis_minticks(self.get_input('p_Plane_12_1_Axis_minticks'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_maxticks') :
-      p.set_p_Plane_12_1_Axis_maxticks(self.getInputFromPort('p_Plane_12_1_Axis_maxticks'))
+      p.set_p_Plane_12_1_Axis_maxticks(self.get_input('p_Plane_12_1_Axis_maxticks'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_minlabel') :
-      p.set_p_Plane_12_1_Axis_minlabel(self.getInputFromPort('p_Plane_12_1_Axis_minlabel'))
+      p.set_p_Plane_12_1_Axis_minlabel(self.get_input('p_Plane_12_1_Axis_minlabel'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_maxlabel') :
-      p.set_p_Plane_12_1_Axis_maxlabel(self.getInputFromPort('p_Plane_12_1_Axis_maxlabel'))
+      p.set_p_Plane_12_1_Axis_maxlabel(self.get_input('p_Plane_12_1_Axis_maxlabel'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_minvalue') :
-      p.set_p_Plane_12_1_Axis_minvalue(self.getInputFromPort('p_Plane_12_1_Axis_minvalue'))
+      p.set_p_Plane_12_1_Axis_minvalue(self.get_input('p_Plane_12_1_Axis_minvalue'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_maxvalue') :
-      p.set_p_Plane_12_1_Axis_maxvalue(self.getInputFromPort('p_Plane_12_1_Axis_maxvalue'))
+      p.set_p_Plane_12_1_Axis_maxvalue(self.get_input('p_Plane_12_1_Axis_maxvalue'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_width') :
-      p.set_p_Plane_12_1_Axis_width(self.getInputFromPort('p_Plane_12_1_Axis_width'))
+      p.set_p_Plane_12_1_Axis_width(self.get_input('p_Plane_12_1_Axis_width'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_tickangle') :
-      p.set_p_Plane_12_1_Axis_tickangle(self.getInputFromPort('p_Plane_12_1_Axis_tickangle'))
+      p.set_p_Plane_12_1_Axis_tickangle(self.get_input('p_Plane_12_1_Axis_tickangle'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_ticktilt') :
-      p.set_p_Plane_12_1_Axis_ticktilt(self.getInputFromPort('p_Plane_12_1_Axis_ticktilt'))
+      p.set_p_Plane_12_1_Axis_ticktilt(self.get_input('p_Plane_12_1_Axis_ticktilt'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_ticksize') :
-      p.set_p_Plane_12_1_Axis_ticksize(self.getInputFromPort('p_Plane_12_1_Axis_ticksize'))
+      p.set_p_Plane_12_1_Axis_ticksize(self.get_input('p_Plane_12_1_Axis_ticksize'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_labelangle') :
-      p.set_p_Plane_12_1_Axis_labelangle(self.getInputFromPort('p_Plane_12_1_Axis_labelangle'))
+      p.set_p_Plane_12_1_Axis_labelangle(self.get_input('p_Plane_12_1_Axis_labelangle'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_labelheight') :
-      p.set_p_Plane_12_1_Axis_labelheight(self.getInputFromPort('p_Plane_12_1_Axis_labelheight'))
+      p.set_p_Plane_12_1_Axis_labelheight(self.get_input('p_Plane_12_1_Axis_labelheight'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_valuesize') :
-      p.set_p_Plane_12_1_Axis_valuesize(self.getInputFromPort('p_Plane_12_1_Axis_valuesize'))
+      p.set_p_Plane_12_1_Axis_valuesize(self.get_input('p_Plane_12_1_Axis_valuesize'))
     if self.hasInputFromPort('p_Plane_12_1_Axis_valuesquash') :
-      p.set_p_Plane_12_1_Axis_valuesquash(self.getInputFromPort('p_Plane_12_1_Axis_valuesquash'))
+      p.set_p_Plane_12_1_Axis_valuesquash(self.get_input('p_Plane_12_1_Axis_valuesquash'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_absolute') :
-      p.set_p_Plane_12_2_Axis_absolute(self.getInputFromPort('p_Plane_12_2_Axis_absolute'))
+      p.set_p_Plane_12_2_Axis_absolute(self.get_input('p_Plane_12_2_Axis_absolute'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_divisions') :
-      p.set_p_Plane_12_2_Axis_divisions(self.getInputFromPort('p_Plane_12_2_Axis_divisions'))
+      p.set_p_Plane_12_2_Axis_divisions(self.get_input('p_Plane_12_2_Axis_divisions'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_offset') :
-      p.set_p_Plane_12_2_Axis_offset(self.getInputFromPort('p_Plane_12_2_Axis_offset'))
+      p.set_p_Plane_12_2_Axis_offset(self.get_input('p_Plane_12_2_Axis_offset'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_range_first') :
-      p.set_p_Plane_12_2_Axis_range_first(self.getInputFromPort('p_Plane_12_2_Axis_range_first'))
+      p.set_p_Plane_12_2_Axis_range_first(self.get_input('p_Plane_12_2_Axis_range_first'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_range_second') :
-      p.set_p_Plane_12_2_Axis_range_second(self.getInputFromPort('p_Plane_12_2_Axis_range_second'))
+      p.set_p_Plane_12_2_Axis_range_second(self.get_input('p_Plane_12_2_Axis_range_second'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_min_absolute') :
-      p.set_p_Plane_12_2_Axis_min_absolute(self.getInputFromPort('p_Plane_12_2_Axis_min_absolute'))
+      p.set_p_Plane_12_2_Axis_min_absolute(self.get_input('p_Plane_12_2_Axis_min_absolute'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_max_absolute') :
-      p.set_p_Plane_12_2_Axis_max_absolute(self.getInputFromPort('p_Plane_12_2_Axis_max_absolute'))
+      p.set_p_Plane_12_2_Axis_max_absolute(self.get_input('p_Plane_12_2_Axis_max_absolute'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_minplane') :
-      p.set_p_Plane_12_2_Axis_minplane(self.getInputFromPort('p_Plane_12_2_Axis_minplane'))
+      p.set_p_Plane_12_2_Axis_minplane(self.get_input('p_Plane_12_2_Axis_minplane'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_maxplane') :
-      p.set_p_Plane_12_2_Axis_maxplane(self.getInputFromPort('p_Plane_12_2_Axis_maxplane'))
+      p.set_p_Plane_12_2_Axis_maxplane(self.get_input('p_Plane_12_2_Axis_maxplane'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_lines') :
-      p.set_p_Plane_12_2_Axis_lines(self.getInputFromPort('p_Plane_12_2_Axis_lines'))
+      p.set_p_Plane_12_2_Axis_lines(self.get_input('p_Plane_12_2_Axis_lines'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_minticks') :
-      p.set_p_Plane_12_2_Axis_minticks(self.getInputFromPort('p_Plane_12_2_Axis_minticks'))
+      p.set_p_Plane_12_2_Axis_minticks(self.get_input('p_Plane_12_2_Axis_minticks'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_maxticks') :
-      p.set_p_Plane_12_2_Axis_maxticks(self.getInputFromPort('p_Plane_12_2_Axis_maxticks'))
+      p.set_p_Plane_12_2_Axis_maxticks(self.get_input('p_Plane_12_2_Axis_maxticks'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_minlabel') :
-      p.set_p_Plane_12_2_Axis_minlabel(self.getInputFromPort('p_Plane_12_2_Axis_minlabel'))
+      p.set_p_Plane_12_2_Axis_minlabel(self.get_input('p_Plane_12_2_Axis_minlabel'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_maxlabel') :
-      p.set_p_Plane_12_2_Axis_maxlabel(self.getInputFromPort('p_Plane_12_2_Axis_maxlabel'))
+      p.set_p_Plane_12_2_Axis_maxlabel(self.get_input('p_Plane_12_2_Axis_maxlabel'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_minvalue') :
-      p.set_p_Plane_12_2_Axis_minvalue(self.getInputFromPort('p_Plane_12_2_Axis_minvalue'))
+      p.set_p_Plane_12_2_Axis_minvalue(self.get_input('p_Plane_12_2_Axis_minvalue'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_maxvalue') :
-      p.set_p_Plane_12_2_Axis_maxvalue(self.getInputFromPort('p_Plane_12_2_Axis_maxvalue'))
+      p.set_p_Plane_12_2_Axis_maxvalue(self.get_input('p_Plane_12_2_Axis_maxvalue'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_width') :
-      p.set_p_Plane_12_2_Axis_width(self.getInputFromPort('p_Plane_12_2_Axis_width'))
+      p.set_p_Plane_12_2_Axis_width(self.get_input('p_Plane_12_2_Axis_width'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_tickangle') :
-      p.set_p_Plane_12_2_Axis_tickangle(self.getInputFromPort('p_Plane_12_2_Axis_tickangle'))
+      p.set_p_Plane_12_2_Axis_tickangle(self.get_input('p_Plane_12_2_Axis_tickangle'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_ticktilt') :
-      p.set_p_Plane_12_2_Axis_ticktilt(self.getInputFromPort('p_Plane_12_2_Axis_ticktilt'))
+      p.set_p_Plane_12_2_Axis_ticktilt(self.get_input('p_Plane_12_2_Axis_ticktilt'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_ticksize') :
-      p.set_p_Plane_12_2_Axis_ticksize(self.getInputFromPort('p_Plane_12_2_Axis_ticksize'))
+      p.set_p_Plane_12_2_Axis_ticksize(self.get_input('p_Plane_12_2_Axis_ticksize'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_labelangle') :
-      p.set_p_Plane_12_2_Axis_labelangle(self.getInputFromPort('p_Plane_12_2_Axis_labelangle'))
+      p.set_p_Plane_12_2_Axis_labelangle(self.get_input('p_Plane_12_2_Axis_labelangle'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_labelheight') :
-      p.set_p_Plane_12_2_Axis_labelheight(self.getInputFromPort('p_Plane_12_2_Axis_labelheight'))
+      p.set_p_Plane_12_2_Axis_labelheight(self.get_input('p_Plane_12_2_Axis_labelheight'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_valuesize') :
-      p.set_p_Plane_12_2_Axis_valuesize(self.getInputFromPort('p_Plane_12_2_Axis_valuesize'))
+      p.set_p_Plane_12_2_Axis_valuesize(self.get_input('p_Plane_12_2_Axis_valuesize'))
     if self.hasInputFromPort('p_Plane_12_2_Axis_valuesquash') :
-      p.set_p_Plane_12_2_Axis_valuesquash(self.getInputFromPort('p_Plane_12_2_Axis_valuesquash'))
+      p.set_p_Plane_12_2_Axis_valuesquash(self.get_input('p_Plane_12_2_Axis_valuesquash'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Axes', results)
 
@@ -4201,21 +4201,21 @@ class RescaleColorMap(Visualization) :
   def compute(self) :
     p = sr_py.RescaleColorMapAlg()
     if self.hasInputFromPort('p_main_frame') :
-      p.set_p_main_frame(self.getInputFromPort('p_main_frame'))
+      p.set_p_main_frame(self.get_input('p_main_frame'))
     if self.hasInputFromPort('p_isFixed') :
-      p.set_p_isFixed(self.getInputFromPort('p_isFixed'))
+      p.set_p_isFixed(self.get_input('p_isFixed'))
     if self.hasInputFromPort('p_min') :
-      p.set_p_min(self.getInputFromPort('p_min'))
+      p.set_p_min(self.get_input('p_min'))
     if self.hasInputFromPort('p_max') :
-      p.set_p_max(self.getInputFromPort('p_max'))
+      p.set_p_max(self.get_input('p_max'))
     if self.hasInputFromPort('p_makeSymmetric') :
-      p.set_p_makeSymmetric(self.getInputFromPort('p_makeSymmetric'))
+      p.set_p_makeSymmetric(self.get_input('p_makeSymmetric'))
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(ColorMap, Field)
     self.setResult('ColorMap', results)
 
@@ -4223,35 +4223,35 @@ class ConvertNrrdsToTexture(Visualization) :
   def compute(self) :
     p = sr_py.ConvertNrrdsToTextureAlg()
     if self.hasInputFromPort('p_vmin') :
-      p.set_p_vmin(self.getInputFromPort('p_vmin'))
+      p.set_p_vmin(self.get_input('p_vmin'))
     if self.hasInputFromPort('p_vmax') :
-      p.set_p_vmax(self.getInputFromPort('p_vmax'))
+      p.set_p_vmax(self.get_input('p_vmax'))
     if self.hasInputFromPort('p_gmin') :
-      p.set_p_gmin(self.getInputFromPort('p_gmin'))
+      p.set_p_gmin(self.get_input('p_gmin'))
     if self.hasInputFromPort('p_gmax') :
-      p.set_p_gmax(self.getInputFromPort('p_gmax'))
+      p.set_p_gmax(self.get_input('p_gmax'))
     if self.hasInputFromPort('p_mmin') :
-      p.set_p_mmin(self.getInputFromPort('p_mmin'))
+      p.set_p_mmin(self.get_input('p_mmin'))
     if self.hasInputFromPort('p_mmax') :
-      p.set_p_mmax(self.getInputFromPort('p_mmax'))
+      p.set_p_mmax(self.get_input('p_mmax'))
     if self.hasInputFromPort('p_is_fixed') :
-      p.set_p_is_fixed(self.getInputFromPort('p_is_fixed'))
+      p.set_p_is_fixed(self.get_input('p_is_fixed'))
     if self.hasInputFromPort('p_card_mem') :
-      p.set_p_card_mem(self.getInputFromPort('p_card_mem'))
+      p.set_p_card_mem(self.get_input('p_card_mem'))
     if self.hasInputFromPort('p_card_mem_auto') :
-      p.set_p_card_mem_auto(self.getInputFromPort('p_card_mem_auto'))
+      p.set_p_card_mem_auto(self.get_input('p_card_mem_auto'))
     if self.hasInputFromPort('p_is_uchar') :
-      p.set_p_is_uchar(self.getInputFromPort('p_is_uchar'))
+      p.set_p_is_uchar(self.get_input('p_is_uchar'))
     if self.hasInputFromPort('p_histogram') :
-      p.set_p_histogram(self.getInputFromPort('p_histogram'))
+      p.set_p_histogram(self.get_input('p_histogram'))
     if self.hasInputFromPort('p_gamma') :
-      p.set_p_gamma(self.getInputFromPort('p_gamma'))
+      p.set_p_gamma(self.get_input('p_gamma'))
     Value_Nrrd = 0
     if self.hasInputFromPort('Value Nrrd') :
-      Value_Nrrd = self.getInputFromPort('Value Nrrd')
+      Value_Nrrd = self.get_input('Value Nrrd')
     Gradient_Magnitude_Nrrd = 0
     if self.hasInputFromPort('Gradient Magnitude Nrrd') :
-      Gradient_Magnitude_Nrrd = self.getInputFromPort('Gradient Magnitude Nrrd')
+      Gradient_Magnitude_Nrrd = self.get_input('Gradient Magnitude Nrrd')
     results = p.execute(Value_Nrrd, Gradient_Magnitude_Nrrd)
     self.setResult('Texture', results[0])
     self.setResult('JointHistoGram', results[1])
@@ -4260,14 +4260,14 @@ class ChooseColorMap(Visualization) :
   def compute(self) :
     p = sr_py.ChooseColorMapAlg()
     if self.hasInputFromPort('p_use_first_valid') :
-      p.set_p_use_first_valid(self.getInputFromPort('p_use_first_valid'))
+      p.set_p_use_first_valid(self.get_input('p_use_first_valid'))
     if self.hasInputFromPort('p_port_valid_index') :
-      p.set_p_port_valid_index(self.getInputFromPort('p_port_valid_index'))
+      p.set_p_port_valid_index(self.get_input('p_port_valid_index'))
     if self.hasInputFromPort('p_port_selected_index') :
-      p.set_p_port_selected_index(self.getInputFromPort('p_port_selected_index'))
+      p.set_p_port_selected_index(self.get_input('p_port_selected_index'))
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     results = p.execute(ColorMap)
     self.setResult('ColorMap', results)
 
@@ -4275,23 +4275,23 @@ class CreateLightForViewer(Visualization) :
   def compute(self) :
     p = sr_py.CreateLightForViewerAlg()
     if self.hasInputFromPort('p_control_pos_saved') :
-      p.set_p_control_pos_saved(self.getInputFromPort('p_control_pos_saved'))
+      p.set_p_control_pos_saved(self.get_input('p_control_pos_saved'))
     if self.hasInputFromPort('p_control_x') :
-      p.set_p_control_x(self.getInputFromPort('p_control_x'))
+      p.set_p_control_x(self.get_input('p_control_x'))
     if self.hasInputFromPort('p_control_y') :
-      p.set_p_control_y(self.getInputFromPort('p_control_y'))
+      p.set_p_control_y(self.get_input('p_control_y'))
     if self.hasInputFromPort('p_control_z') :
-      p.set_p_control_z(self.getInputFromPort('p_control_z'))
+      p.set_p_control_z(self.get_input('p_control_z'))
     if self.hasInputFromPort('p_at_x') :
-      p.set_p_at_x(self.getInputFromPort('p_at_x'))
+      p.set_p_at_x(self.get_input('p_at_x'))
     if self.hasInputFromPort('p_at_y') :
-      p.set_p_at_y(self.getInputFromPort('p_at_y'))
+      p.set_p_at_y(self.get_input('p_at_y'))
     if self.hasInputFromPort('p_at_z') :
-      p.set_p_at_z(self.getInputFromPort('p_at_z'))
+      p.set_p_at_z(self.get_input('p_at_z'))
     if self.hasInputFromPort('p_type') :
-      p.set_p_type(self.getInputFromPort('p_type'))
+      p.set_p_type(self.get_input('p_type'))
     if self.hasInputFromPort('p_on') :
-      p.set_p_on(self.getInputFromPort('p_on'))
+      p.set_p_on(self.get_input('p_on'))
     results = p.execute()
     self.setResult('Geometry', results)
 
@@ -4299,64 +4299,64 @@ class ShowTextureVolume(Visualization) :
   def compute(self) :
     p = sr_py.ShowTextureVolumeAlg()
     if self.hasInputFromPort('p_sampling_rate_hi') :
-      p.set_p_sampling_rate_hi(self.getInputFromPort('p_sampling_rate_hi'))
+      p.set_p_sampling_rate_hi(self.get_input('p_sampling_rate_hi'))
     if self.hasInputFromPort('p_sampling_rate_lo') :
-      p.set_p_sampling_rate_lo(self.getInputFromPort('p_sampling_rate_lo'))
+      p.set_p_sampling_rate_lo(self.get_input('p_sampling_rate_lo'))
     if self.hasInputFromPort('p_gradient_min') :
-      p.set_p_gradient_min(self.getInputFromPort('p_gradient_min'))
+      p.set_p_gradient_min(self.get_input('p_gradient_min'))
     if self.hasInputFromPort('p_gradient_max') :
-      p.set_p_gradient_max(self.getInputFromPort('p_gradient_max'))
+      p.set_p_gradient_max(self.get_input('p_gradient_max'))
     if self.hasInputFromPort('p_adaptive') :
-      p.set_p_adaptive(self.getInputFromPort('p_adaptive'))
+      p.set_p_adaptive(self.get_input('p_adaptive'))
     if self.hasInputFromPort('p_cmap_size') :
-      p.set_p_cmap_size(self.getInputFromPort('p_cmap_size'))
+      p.set_p_cmap_size(self.get_input('p_cmap_size'))
     if self.hasInputFromPort('p_sw_raster') :
-      p.set_p_sw_raster(self.getInputFromPort('p_sw_raster'))
+      p.set_p_sw_raster(self.get_input('p_sw_raster'))
     if self.hasInputFromPort('p_render_style') :
-      p.set_p_render_style(self.getInputFromPort('p_render_style'))
+      p.set_p_render_style(self.get_input('p_render_style'))
     if self.hasInputFromPort('p_alpha_scale') :
-      p.set_p_alpha_scale(self.getInputFromPort('p_alpha_scale'))
+      p.set_p_alpha_scale(self.get_input('p_alpha_scale'))
     if self.hasInputFromPort('p_interp_mode') :
-      p.set_p_interp_mode(self.getInputFromPort('p_interp_mode'))
+      p.set_p_interp_mode(self.get_input('p_interp_mode'))
     if self.hasInputFromPort('p_shading') :
-      p.set_p_shading(self.getInputFromPort('p_shading'))
+      p.set_p_shading(self.get_input('p_shading'))
     if self.hasInputFromPort('p_ambient') :
-      p.set_p_ambient(self.getInputFromPort('p_ambient'))
+      p.set_p_ambient(self.get_input('p_ambient'))
     if self.hasInputFromPort('p_diffuse') :
-      p.set_p_diffuse(self.getInputFromPort('p_diffuse'))
+      p.set_p_diffuse(self.get_input('p_diffuse'))
     if self.hasInputFromPort('p_specular') :
-      p.set_p_specular(self.getInputFromPort('p_specular'))
+      p.set_p_specular(self.get_input('p_specular'))
     if self.hasInputFromPort('p_shine') :
-      p.set_p_shine(self.getInputFromPort('p_shine'))
+      p.set_p_shine(self.get_input('p_shine'))
     if self.hasInputFromPort('p_light') :
-      p.set_p_light(self.getInputFromPort('p_light'))
+      p.set_p_light(self.get_input('p_light'))
     if self.hasInputFromPort('p_blend_res') :
-      p.set_p_blend_res(self.getInputFromPort('p_blend_res'))
+      p.set_p_blend_res(self.get_input('p_blend_res'))
     if self.hasInputFromPort('p_multi_level') :
-      p.set_p_multi_level(self.getInputFromPort('p_multi_level'))
+      p.set_p_multi_level(self.get_input('p_multi_level'))
     if self.hasInputFromPort('p_use_stencil') :
-      p.set_p_use_stencil(self.getInputFromPort('p_use_stencil'))
+      p.set_p_use_stencil(self.get_input('p_use_stencil'))
     if self.hasInputFromPort('p_invert_opacity') :
-      p.set_p_invert_opacity(self.getInputFromPort('p_invert_opacity'))
+      p.set_p_invert_opacity(self.get_input('p_invert_opacity'))
     if self.hasInputFromPort('p_num_clipping_planes') :
-      p.set_p_num_clipping_planes(self.getInputFromPort('p_num_clipping_planes'))
+      p.set_p_num_clipping_planes(self.get_input('p_num_clipping_planes'))
     if self.hasInputFromPort('p_show_clipping_widgets') :
-      p.set_p_show_clipping_widgets(self.getInputFromPort('p_show_clipping_widgets'))
+      p.set_p_show_clipping_widgets(self.get_input('p_show_clipping_widgets'))
     if self.hasInputFromPort('p_level_on') :
-      p.set_p_level_on(self.getInputFromPort('p_level_on'))
+      p.set_p_level_on(self.get_input('p_level_on'))
     if self.hasInputFromPort('p_level_vals') :
-      p.set_p_level_vals(self.getInputFromPort('p_level_vals'))
+      p.set_p_level_vals(self.get_input('p_level_vals'))
     if self.hasInputFromPort('p_id') :
-      p.set_p_id(self.getInputFromPort('p_id'))
+      p.set_p_id(self.get_input('p_id'))
     Texture = 0
     if self.hasInputFromPort('Texture') :
-      Texture = self.getInputFromPort('Texture')
+      Texture = self.get_input('Texture')
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     ColorMap2 = 0
     if self.hasInputFromPort('ColorMap2') :
-      ColorMap2 = self.getInputFromPort('ColorMap2')
+      ColorMap2 = self.get_input('ColorMap2')
     results = p.execute(Texture, ColorMap, ColorMap2)
     self.setResult('Geometry', results[0])
     self.setResult('ColorMap', results[1])
@@ -4365,145 +4365,145 @@ class ShowFieldGlyphs(Visualization) :
   def compute(self) :
     p = sr_py.ShowFieldGlyphsAlg()
     if self.hasInputFromPort('p_scalars_has_data') :
-      p.set_p_scalars_has_data(self.getInputFromPort('p_scalars_has_data'))
+      p.set_p_scalars_has_data(self.get_input('p_scalars_has_data'))
     if self.hasInputFromPort('p_scalars_on') :
-      p.set_p_scalars_on(self.getInputFromPort('p_scalars_on'))
+      p.set_p_scalars_on(self.get_input('p_scalars_on'))
     if self.hasInputFromPort('p_scalars_display_type') :
-      p.set_p_scalars_display_type(self.getInputFromPort('p_scalars_display_type'))
+      p.set_p_scalars_display_type(self.get_input('p_scalars_display_type'))
     if self.hasInputFromPort('p_scalars_transparency') :
-      p.set_p_scalars_transparency(self.getInputFromPort('p_scalars_transparency'))
+      p.set_p_scalars_transparency(self.get_input('p_scalars_transparency'))
     if self.hasInputFromPort('p_scalars_normalize') :
-      p.set_p_scalars_normalize(self.getInputFromPort('p_scalars_normalize'))
+      p.set_p_scalars_normalize(self.get_input('p_scalars_normalize'))
     if self.hasInputFromPort('p_scalars_color_type') :
-      p.set_p_scalars_color_type(self.getInputFromPort('p_scalars_color_type'))
+      p.set_p_scalars_color_type(self.get_input('p_scalars_color_type'))
     if self.hasInputFromPort('p_scalars_resolution') :
-      p.set_p_scalars_resolution(self.getInputFromPort('p_scalars_resolution'))
+      p.set_p_scalars_resolution(self.get_input('p_scalars_resolution'))
     if self.hasInputFromPort('p_vectors_has_data') :
-      p.set_p_vectors_has_data(self.getInputFromPort('p_vectors_has_data'))
+      p.set_p_vectors_has_data(self.get_input('p_vectors_has_data'))
     if self.hasInputFromPort('p_vectors_on') :
-      p.set_p_vectors_on(self.getInputFromPort('p_vectors_on'))
+      p.set_p_vectors_on(self.get_input('p_vectors_on'))
     if self.hasInputFromPort('p_vectors_display_type') :
-      p.set_p_vectors_display_type(self.getInputFromPort('p_vectors_display_type'))
+      p.set_p_vectors_display_type(self.get_input('p_vectors_display_type'))
     if self.hasInputFromPort('p_vectors_transparency') :
-      p.set_p_vectors_transparency(self.getInputFromPort('p_vectors_transparency'))
+      p.set_p_vectors_transparency(self.get_input('p_vectors_transparency'))
     if self.hasInputFromPort('p_vectors_normalize') :
-      p.set_p_vectors_normalize(self.getInputFromPort('p_vectors_normalize'))
+      p.set_p_vectors_normalize(self.get_input('p_vectors_normalize'))
     if self.hasInputFromPort('p_vectors_bidirectional') :
-      p.set_p_vectors_bidirectional(self.getInputFromPort('p_vectors_bidirectional'))
+      p.set_p_vectors_bidirectional(self.get_input('p_vectors_bidirectional'))
     if self.hasInputFromPort('p_vectors_color_type') :
-      p.set_p_vectors_color_type(self.getInputFromPort('p_vectors_color_type'))
+      p.set_p_vectors_color_type(self.get_input('p_vectors_color_type'))
     if self.hasInputFromPort('p_vectors_resolution') :
-      p.set_p_vectors_resolution(self.getInputFromPort('p_vectors_resolution'))
+      p.set_p_vectors_resolution(self.get_input('p_vectors_resolution'))
     if self.hasInputFromPort('p_tensors_has_data') :
-      p.set_p_tensors_has_data(self.getInputFromPort('p_tensors_has_data'))
+      p.set_p_tensors_has_data(self.get_input('p_tensors_has_data'))
     if self.hasInputFromPort('p_tensors_on') :
-      p.set_p_tensors_on(self.getInputFromPort('p_tensors_on'))
+      p.set_p_tensors_on(self.get_input('p_tensors_on'))
     if self.hasInputFromPort('p_tensors_display_type') :
-      p.set_p_tensors_display_type(self.getInputFromPort('p_tensors_display_type'))
+      p.set_p_tensors_display_type(self.get_input('p_tensors_display_type'))
     if self.hasInputFromPort('p_tensors_transparency') :
-      p.set_p_tensors_transparency(self.getInputFromPort('p_tensors_transparency'))
+      p.set_p_tensors_transparency(self.get_input('p_tensors_transparency'))
     if self.hasInputFromPort('p_tensors_normalize') :
-      p.set_p_tensors_normalize(self.getInputFromPort('p_tensors_normalize'))
+      p.set_p_tensors_normalize(self.get_input('p_tensors_normalize'))
     if self.hasInputFromPort('p_tensors_color_type') :
-      p.set_p_tensors_color_type(self.getInputFromPort('p_tensors_color_type'))
+      p.set_p_tensors_color_type(self.get_input('p_tensors_color_type'))
     if self.hasInputFromPort('p_tensors_resolution') :
-      p.set_p_tensors_resolution(self.getInputFromPort('p_tensors_resolution'))
+      p.set_p_tensors_resolution(self.get_input('p_tensors_resolution'))
     if self.hasInputFromPort('p_tensors_emphasis') :
-      p.set_p_tensors_emphasis(self.getInputFromPort('p_tensors_emphasis'))
+      p.set_p_tensors_emphasis(self.get_input('p_tensors_emphasis'))
     if self.hasInputFromPort('p_secondary_has_data') :
-      p.set_p_secondary_has_data(self.getInputFromPort('p_secondary_has_data'))
+      p.set_p_secondary_has_data(self.get_input('p_secondary_has_data'))
     if self.hasInputFromPort('p_secondary_on') :
-      p.set_p_secondary_on(self.getInputFromPort('p_secondary_on'))
+      p.set_p_secondary_on(self.get_input('p_secondary_on'))
     if self.hasInputFromPort('p_secondary_display_type') :
-      p.set_p_secondary_display_type(self.getInputFromPort('p_secondary_display_type'))
+      p.set_p_secondary_display_type(self.get_input('p_secondary_display_type'))
     if self.hasInputFromPort('p_secondary_color_type') :
-      p.set_p_secondary_color_type(self.getInputFromPort('p_secondary_color_type'))
+      p.set_p_secondary_color_type(self.get_input('p_secondary_color_type'))
     if self.hasInputFromPort('p_secondary_alpha') :
-      p.set_p_secondary_alpha(self.getInputFromPort('p_secondary_alpha'))
+      p.set_p_secondary_alpha(self.get_input('p_secondary_alpha'))
     if self.hasInputFromPort('p_secondary_value') :
-      p.set_p_secondary_value(self.getInputFromPort('p_secondary_value'))
+      p.set_p_secondary_value(self.get_input('p_secondary_value'))
     if self.hasInputFromPort('p_tertiary_has_data') :
-      p.set_p_tertiary_has_data(self.getInputFromPort('p_tertiary_has_data'))
+      p.set_p_tertiary_has_data(self.get_input('p_tertiary_has_data'))
     if self.hasInputFromPort('p_tertiary_on') :
-      p.set_p_tertiary_on(self.getInputFromPort('p_tertiary_on'))
+      p.set_p_tertiary_on(self.get_input('p_tertiary_on'))
     if self.hasInputFromPort('p_tertiary_display_type') :
-      p.set_p_tertiary_display_type(self.getInputFromPort('p_tertiary_display_type'))
+      p.set_p_tertiary_display_type(self.get_input('p_tertiary_display_type'))
     if self.hasInputFromPort('p_tertiary_color_type') :
-      p.set_p_tertiary_color_type(self.getInputFromPort('p_tertiary_color_type'))
+      p.set_p_tertiary_color_type(self.get_input('p_tertiary_color_type'))
     if self.hasInputFromPort('p_tertiary_alpha') :
-      p.set_p_tertiary_alpha(self.getInputFromPort('p_tertiary_alpha'))
+      p.set_p_tertiary_alpha(self.get_input('p_tertiary_alpha'))
     if self.hasInputFromPort('p_tertiary_value') :
-      p.set_p_tertiary_value(self.getInputFromPort('p_tertiary_value'))
+      p.set_p_tertiary_value(self.get_input('p_tertiary_value'))
     if self.hasInputFromPort('p_text_on') :
-      p.set_p_text_on(self.getInputFromPort('p_text_on'))
+      p.set_p_text_on(self.get_input('p_text_on'))
     if self.hasInputFromPort('p_text_color_type') :
-      p.set_p_text_color_type(self.getInputFromPort('p_text_color_type'))
+      p.set_p_text_color_type(self.get_input('p_text_color_type'))
     if self.hasInputFromPort('p_text_color_r') :
-      p.set_p_text_color_r(self.getInputFromPort('p_text_color_r'))
+      p.set_p_text_color_r(self.get_input('p_text_color_r'))
     if self.hasInputFromPort('p_text_color_g') :
-      p.set_p_text_color_g(self.getInputFromPort('p_text_color_g'))
+      p.set_p_text_color_g(self.get_input('p_text_color_g'))
     if self.hasInputFromPort('p_text_color_b') :
-      p.set_p_text_color_b(self.getInputFromPort('p_text_color_b'))
+      p.set_p_text_color_b(self.get_input('p_text_color_b'))
     if self.hasInputFromPort('p_text_backface_cull') :
-      p.set_p_text_backface_cull(self.getInputFromPort('p_text_backface_cull'))
+      p.set_p_text_backface_cull(self.get_input('p_text_backface_cull'))
     if self.hasInputFromPort('p_text_always_visible') :
-      p.set_p_text_always_visible(self.getInputFromPort('p_text_always_visible'))
+      p.set_p_text_always_visible(self.get_input('p_text_always_visible'))
     if self.hasInputFromPort('p_text_fontsize') :
-      p.set_p_text_fontsize(self.getInputFromPort('p_text_fontsize'))
+      p.set_p_text_fontsize(self.get_input('p_text_fontsize'))
     if self.hasInputFromPort('p_text_precision') :
-      p.set_p_text_precision(self.getInputFromPort('p_text_precision'))
+      p.set_p_text_precision(self.get_input('p_text_precision'))
     if self.hasInputFromPort('p_text_render_locations') :
-      p.set_p_text_render_locations(self.getInputFromPort('p_text_render_locations'))
+      p.set_p_text_render_locations(self.get_input('p_text_render_locations'))
     if self.hasInputFromPort('p_text_show_data') :
-      p.set_p_text_show_data(self.getInputFromPort('p_text_show_data'))
+      p.set_p_text_show_data(self.get_input('p_text_show_data'))
     if self.hasInputFromPort('p_text_show_nodes') :
-      p.set_p_text_show_nodes(self.getInputFromPort('p_text_show_nodes'))
+      p.set_p_text_show_nodes(self.get_input('p_text_show_nodes'))
     if self.hasInputFromPort('p_text_show_edges') :
-      p.set_p_text_show_edges(self.getInputFromPort('p_text_show_edges'))
+      p.set_p_text_show_edges(self.get_input('p_text_show_edges'))
     if self.hasInputFromPort('p_text_show_faces') :
-      p.set_p_text_show_faces(self.getInputFromPort('p_text_show_faces'))
+      p.set_p_text_show_faces(self.get_input('p_text_show_faces'))
     if self.hasInputFromPort('p_text_show_cells') :
-      p.set_p_text_show_cells(self.getInputFromPort('p_text_show_cells'))
+      p.set_p_text_show_cells(self.get_input('p_text_show_cells'))
     if self.hasInputFromPort('p_def_color_r') :
-      p.set_p_def_color_r(self.getInputFromPort('p_def_color_r'))
+      p.set_p_def_color_r(self.get_input('p_def_color_r'))
     if self.hasInputFromPort('p_def_color_g') :
-      p.set_p_def_color_g(self.getInputFromPort('p_def_color_g'))
+      p.set_p_def_color_g(self.get_input('p_def_color_g'))
     if self.hasInputFromPort('p_def_color_b') :
-      p.set_p_def_color_b(self.getInputFromPort('p_def_color_b'))
+      p.set_p_def_color_b(self.get_input('p_def_color_b'))
     if self.hasInputFromPort('p_def_color_a') :
-      p.set_p_def_color_a(self.getInputFromPort('p_def_color_a'))
+      p.set_p_def_color_a(self.get_input('p_def_color_a'))
     if self.hasInputFromPort('p_active_tab') :
-      p.set_p_active_tab(self.getInputFromPort('p_active_tab'))
+      p.set_p_active_tab(self.get_input('p_active_tab'))
     if self.hasInputFromPort('p_interactive_mode') :
-      p.set_p_interactive_mode(self.getInputFromPort('p_interactive_mode'))
+      p.set_p_interactive_mode(self.get_input('p_interactive_mode'))
     if self.hasInputFromPort('p_show_progress') :
-      p.set_p_show_progress(self.getInputFromPort('p_show_progress'))
+      p.set_p_show_progress(self.get_input('p_show_progress'))
     if self.hasInputFromPort('p_field_name') :
-      p.set_p_field_name(self.getInputFromPort('p_field_name'))
+      p.set_p_field_name(self.get_input('p_field_name'))
     if self.hasInputFromPort('p_field_name_override') :
-      p.set_p_field_name_override(self.getInputFromPort('p_field_name_override'))
+      p.set_p_field_name_override(self.get_input('p_field_name_override'))
     if self.hasInputFromPort('p_approx_div') :
-      p.set_p_approx_div(self.getInputFromPort('p_approx_div'))
+      p.set_p_approx_div(self.get_input('p_approx_div'))
     if self.hasInputFromPort('p_use_default_size') :
-      p.set_p_use_default_size(self.getInputFromPort('p_use_default_size'))
+      p.set_p_use_default_size(self.get_input('p_use_default_size'))
     Primary_Data = 0
     if self.hasInputFromPort('Primary Data') :
-      Primary_Data = self.getInputFromPort('Primary Data')
+      Primary_Data = self.get_input('Primary Data')
     Primary_ColorMap = 0
     if self.hasInputFromPort('Primary ColorMap') :
-      Primary_ColorMap = self.getInputFromPort('Primary ColorMap')
+      Primary_ColorMap = self.get_input('Primary ColorMap')
     Secondary_Data = 0
     if self.hasInputFromPort('Secondary Data') :
-      Secondary_Data = self.getInputFromPort('Secondary Data')
+      Secondary_Data = self.get_input('Secondary Data')
     Secondary_ColorMap = 0
     if self.hasInputFromPort('Secondary ColorMap') :
-      Secondary_ColorMap = self.getInputFromPort('Secondary ColorMap')
+      Secondary_ColorMap = self.get_input('Secondary ColorMap')
     Tertiary_Data = 0
     if self.hasInputFromPort('Tertiary Data') :
-      Tertiary_Data = self.getInputFromPort('Tertiary Data')
+      Tertiary_Data = self.get_input('Tertiary Data')
     Tertiary_ColorMap = 0
     if self.hasInputFromPort('Tertiary ColorMap') :
-      Tertiary_ColorMap = self.getInputFromPort('Tertiary ColorMap')
+      Tertiary_ColorMap = self.get_input('Tertiary ColorMap')
     results = p.execute(Primary_Data, Primary_ColorMap, Secondary_Data, Secondary_ColorMap, Tertiary_Data, Tertiary_ColorMap)
     self.setResult('Scene Graph', results)
 
@@ -4511,29 +4511,29 @@ class GenerateStreamLines(Visualization) :
   def compute(self) :
     p = sr_py.GenerateStreamLinesAlg()
     if self.hasInputFromPort('p_stepsize') :
-      p.set_p_stepsize(self.getInputFromPort('p_stepsize'))
+      p.set_p_stepsize(self.get_input('p_stepsize'))
     if self.hasInputFromPort('p_tolerance') :
-      p.set_p_tolerance(self.getInputFromPort('p_tolerance'))
+      p.set_p_tolerance(self.get_input('p_tolerance'))
     if self.hasInputFromPort('p_maxsteps') :
-      p.set_p_maxsteps(self.getInputFromPort('p_maxsteps'))
+      p.set_p_maxsteps(self.get_input('p_maxsteps'))
     if self.hasInputFromPort('p_direction') :
-      p.set_p_direction(self.getInputFromPort('p_direction'))
+      p.set_p_direction(self.get_input('p_direction'))
     if self.hasInputFromPort('p_value') :
-      p.set_p_value(self.getInputFromPort('p_value'))
+      p.set_p_value(self.get_input('p_value'))
     if self.hasInputFromPort('p_remove_colinear_pts') :
-      p.set_p_remove_colinear_pts(self.getInputFromPort('p_remove_colinear_pts'))
+      p.set_p_remove_colinear_pts(self.get_input('p_remove_colinear_pts'))
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     if self.hasInputFromPort('p_nthreads') :
-      p.set_p_nthreads(self.getInputFromPort('p_nthreads'))
+      p.set_p_nthreads(self.get_input('p_nthreads'))
     if self.hasInputFromPort('p_auto_parameterize') :
-      p.set_p_auto_parameterize(self.getInputFromPort('p_auto_parameterize'))
+      p.set_p_auto_parameterize(self.get_input('p_auto_parameterize'))
     Vector_Field = 0
     if self.hasInputFromPort('Vector Field') :
-      Vector_Field = self.getInputFromPort('Vector Field')
+      Vector_Field = self.get_input('Vector Field')
     Seed_Points = 0
     if self.hasInputFromPort('Seed Points') :
-      Seed_Points = self.getInputFromPort('Seed Points')
+      Seed_Points = self.get_input('Seed Points')
     results = p.execute(Vector_Field, Seed_Points)
     self.setResult('Streamlines', results)
 
@@ -4541,46 +4541,46 @@ class GenerateStreamLinesWithPlacementHeuristic(Visualization) :
   def compute(self) :
     p = sr_py.GenerateStreamLinesWithPlacementHeuristicAlg()
     if self.hasInputFromPort('p_numsl') :
-      p.set_p_numsl(self.getInputFromPort('p_numsl'))
+      p.set_p_numsl(self.get_input('p_numsl'))
     if self.hasInputFromPort('p_numpts') :
-      p.set_p_numpts(self.getInputFromPort('p_numpts'))
+      p.set_p_numpts(self.get_input('p_numpts'))
     if self.hasInputFromPort('p_minper') :
-      p.set_p_minper(self.getInputFromPort('p_minper'))
+      p.set_p_minper(self.get_input('p_minper'))
     if self.hasInputFromPort('p_maxper') :
-      p.set_p_maxper(self.getInputFromPort('p_maxper'))
+      p.set_p_maxper(self.get_input('p_maxper'))
     if self.hasInputFromPort('p_ming') :
-      p.set_p_ming(self.getInputFromPort('p_ming'))
+      p.set_p_ming(self.get_input('p_ming'))
     if self.hasInputFromPort('p_maxg') :
-      p.set_p_maxg(self.getInputFromPort('p_maxg'))
+      p.set_p_maxg(self.get_input('p_maxg'))
     if self.hasInputFromPort('p_numsamples') :
-      p.set_p_numsamples(self.getInputFromPort('p_numsamples'))
+      p.set_p_numsamples(self.get_input('p_numsamples'))
     if self.hasInputFromPort('p_method') :
-      p.set_p_method(self.getInputFromPort('p_method'))
+      p.set_p_method(self.get_input('p_method'))
     if self.hasInputFromPort('p_stepsize') :
-      p.set_p_stepsize(self.getInputFromPort('p_stepsize'))
+      p.set_p_stepsize(self.get_input('p_stepsize'))
     if self.hasInputFromPort('p_stepout') :
-      p.set_p_stepout(self.getInputFromPort('p_stepout'))
+      p.set_p_stepout(self.get_input('p_stepout'))
     if self.hasInputFromPort('p_maxsteps') :
-      p.set_p_maxsteps(self.getInputFromPort('p_maxsteps'))
+      p.set_p_maxsteps(self.get_input('p_maxsteps'))
     if self.hasInputFromPort('p_minmag') :
-      p.set_p_minmag(self.getInputFromPort('p_minmag'))
+      p.set_p_minmag(self.get_input('p_minmag'))
     if self.hasInputFromPort('p_direction') :
-      p.set_p_direction(self.getInputFromPort('p_direction'))
+      p.set_p_direction(self.get_input('p_direction'))
     Source = 0
     if self.hasInputFromPort('Source') :
-      Source = self.getInputFromPort('Source')
+      Source = self.get_input('Source')
     Weighting = 0
     if self.hasInputFromPort('Weighting') :
-      Weighting = self.getInputFromPort('Weighting')
+      Weighting = self.get_input('Weighting')
     Flow = 0
     if self.hasInputFromPort('Flow') :
-      Flow = self.getInputFromPort('Flow')
+      Flow = self.get_input('Flow')
     Compare = 0
     if self.hasInputFromPort('Compare') :
-      Compare = self.getInputFromPort('Compare')
+      Compare = self.get_input('Compare')
     Seed_points = 0
     if self.hasInputFromPort('Seed points') :
-      Seed_points = self.getInputFromPort('Seed points')
+      Seed_points = self.get_input('Seed points')
     results = p.execute(Source, Weighting, Flow, Compare, Seed_points)
     self.setResult('Streamlines', results[0])
     self.setResult('Render', results[1])
@@ -4589,22 +4589,22 @@ class ShowString(Visualization) :
   def compute(self) :
     p = sr_py.ShowStringAlg()
     if self.hasInputFromPort('p_bbox') :
-      p.set_p_bbox(self.getInputFromPort('p_bbox'))
+      p.set_p_bbox(self.get_input('p_bbox'))
     if self.hasInputFromPort('p_size') :
-      p.set_p_size(self.getInputFromPort('p_size'))
+      p.set_p_size(self.get_input('p_size'))
     if self.hasInputFromPort('p_location_x') :
-      p.set_p_location_x(self.getInputFromPort('p_location_x'))
+      p.set_p_location_x(self.get_input('p_location_x'))
     if self.hasInputFromPort('p_location_y') :
-      p.set_p_location_y(self.getInputFromPort('p_location_y'))
+      p.set_p_location_y(self.get_input('p_location_y'))
     if self.hasInputFromPort('p_color_r') :
-      p.set_p_color_r(self.getInputFromPort('p_color_r'))
+      p.set_p_color_r(self.get_input('p_color_r'))
     if self.hasInputFromPort('p_color_g') :
-      p.set_p_color_g(self.getInputFromPort('p_color_g'))
+      p.set_p_color_g(self.get_input('p_color_g'))
     if self.hasInputFromPort('p_color_b') :
-      p.set_p_color_b(self.getInputFromPort('p_color_b'))
+      p.set_p_color_b(self.get_input('p_color_b'))
     Format_String = ''
     if self.hasInputFromPort('Format String') :
-      Format_String = self.getInputFromPort('Format String')
+      Format_String = self.get_input('Format String')
     results = p.execute(Format_String)
     self.setResult('Title', results)
 
@@ -4612,16 +4612,16 @@ class CreateAndEditColorMap(Visualization) :
   def compute(self) :
     p = sr_py.CreateAndEditColorMapAlg()
     if self.hasInputFromPort('p_rgbhsv') :
-      p.set_p_rgbhsv(self.getInputFromPort('p_rgbhsv'))
+      p.set_p_rgbhsv(self.get_input('p_rgbhsv'))
     if self.hasInputFromPort('p_rgb_points') :
-      p.set_p_rgb_points(self.getInputFromPort('p_rgb_points'))
+      p.set_p_rgb_points(self.get_input('p_rgb_points'))
     if self.hasInputFromPort('p_alpha_points') :
-      p.set_p_alpha_points(self.getInputFromPort('p_alpha_points'))
+      p.set_p_alpha_points(self.get_input('p_alpha_points'))
     if self.hasInputFromPort('p_resolution') :
-      p.set_p_resolution(self.getInputFromPort('p_resolution'))
+      p.set_p_resolution(self.get_input('p_resolution'))
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     results = p.execute(ColorMap)
     self.setResult('ColorMap', results[0])
     self.setResult('Geometry', results[1])
@@ -4630,14 +4630,14 @@ class ShowMeshBoundingBox(Visualization) :
   def compute(self) :
     p = sr_py.ShowMeshBoundingBoxAlg()
     if self.hasInputFromPort('p_sizex') :
-      p.set_p_sizex(self.getInputFromPort('p_sizex'))
+      p.set_p_sizex(self.get_input('p_sizex'))
     if self.hasInputFromPort('p_sizey') :
-      p.set_p_sizey(self.getInputFromPort('p_sizey'))
+      p.set_p_sizey(self.get_input('p_sizey'))
     if self.hasInputFromPort('p_sizez') :
-      p.set_p_sizez(self.getInputFromPort('p_sizez'))
+      p.set_p_sizez(self.get_input('p_sizez'))
     Field = 0
     if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
+      Field = self.get_input('Field')
     results = p.execute(Field)
     self.setResult('Scene Graph', results)
 
@@ -4645,23 +4645,23 @@ class CreateStandardColorMaps(Visualization) :
   def compute(self) :
     p = sr_py.CreateStandardColorMapsAlg()
     if self.hasInputFromPort('p_mapName') :
-      p.set_p_mapName(self.getInputFromPort('p_mapName'))
+      p.set_p_mapName(self.get_input('p_mapName'))
     if self.hasInputFromPort('p_gamma') :
-      p.set_p_gamma(self.getInputFromPort('p_gamma'))
+      p.set_p_gamma(self.get_input('p_gamma'))
     if self.hasInputFromPort('p_resolution') :
-      p.set_p_resolution(self.getInputFromPort('p_resolution'))
+      p.set_p_resolution(self.get_input('p_resolution'))
     if self.hasInputFromPort('p_reverse') :
-      p.set_p_reverse(self.getInputFromPort('p_reverse'))
+      p.set_p_reverse(self.get_input('p_reverse'))
     if self.hasInputFromPort('p_faux') :
-      p.set_p_faux(self.getInputFromPort('p_faux'))
+      p.set_p_faux(self.get_input('p_faux'))
     if self.hasInputFromPort('p_positionList') :
-      p.set_p_positionList(self.getInputFromPort('p_positionList'))
+      p.set_p_positionList(self.get_input('p_positionList'))
     if self.hasInputFromPort('p_nodeList') :
-      p.set_p_nodeList(self.getInputFromPort('p_nodeList'))
+      p.set_p_nodeList(self.get_input('p_nodeList'))
     if self.hasInputFromPort('p_width') :
-      p.set_p_width(self.getInputFromPort('p_width'))
+      p.set_p_width(self.get_input('p_width'))
     if self.hasInputFromPort('p_height') :
-      p.set_p_height(self.getInputFromPort('p_height'))
+      p.set_p_height(self.get_input('p_height'))
     results = p.execute()
     self.setResult('ColorMap', results)
 
@@ -4669,46 +4669,46 @@ class ShowTextureSlices(Visualization) :
   def compute(self) :
     p = sr_py.ShowTextureSlicesAlg()
     if self.hasInputFromPort('p_control_pos_saved') :
-      p.set_p_control_pos_saved(self.getInputFromPort('p_control_pos_saved'))
+      p.set_p_control_pos_saved(self.get_input('p_control_pos_saved'))
     if self.hasInputFromPort('p_drawX') :
-      p.set_p_drawX(self.getInputFromPort('p_drawX'))
+      p.set_p_drawX(self.get_input('p_drawX'))
     if self.hasInputFromPort('p_drawY') :
-      p.set_p_drawY(self.getInputFromPort('p_drawY'))
+      p.set_p_drawY(self.get_input('p_drawY'))
     if self.hasInputFromPort('p_drawZ') :
-      p.set_p_drawZ(self.getInputFromPort('p_drawZ'))
+      p.set_p_drawZ(self.get_input('p_drawZ'))
     if self.hasInputFromPort('p_drawView') :
-      p.set_p_drawView(self.getInputFromPort('p_drawView'))
+      p.set_p_drawView(self.get_input('p_drawView'))
     if self.hasInputFromPort('p_interp_mode') :
-      p.set_p_interp_mode(self.getInputFromPort('p_interp_mode'))
+      p.set_p_interp_mode(self.get_input('p_interp_mode'))
     if self.hasInputFromPort('p_draw_phi_0') :
-      p.set_p_draw_phi_0(self.getInputFromPort('p_draw_phi_0'))
+      p.set_p_draw_phi_0(self.get_input('p_draw_phi_0'))
     if self.hasInputFromPort('p_draw_phi_1') :
-      p.set_p_draw_phi_1(self.getInputFromPort('p_draw_phi_1'))
+      p.set_p_draw_phi_1(self.get_input('p_draw_phi_1'))
     if self.hasInputFromPort('p_phi_0') :
-      p.set_p_phi_0(self.getInputFromPort('p_phi_0'))
+      p.set_p_phi_0(self.get_input('p_phi_0'))
     if self.hasInputFromPort('p_phi_1') :
-      p.set_p_phi_1(self.getInputFromPort('p_phi_1'))
+      p.set_p_phi_1(self.get_input('p_phi_1'))
     if self.hasInputFromPort('p_multi_level') :
-      p.set_p_multi_level(self.getInputFromPort('p_multi_level'))
+      p.set_p_multi_level(self.get_input('p_multi_level'))
     if self.hasInputFromPort('p_color_changed') :
-      p.set_p_color_changed(self.getInputFromPort('p_color_changed'))
+      p.set_p_color_changed(self.get_input('p_color_changed'))
     if self.hasInputFromPort('p_colors') :
-      p.set_p_colors(self.getInputFromPort('p_colors'))
+      p.set_p_colors(self.get_input('p_colors'))
     if self.hasInputFromPort('p_level_on') :
-      p.set_p_level_on(self.getInputFromPort('p_level_on'))
+      p.set_p_level_on(self.get_input('p_level_on'))
     if self.hasInputFromPort('p_outline_levels') :
-      p.set_p_outline_levels(self.getInputFromPort('p_outline_levels'))
+      p.set_p_outline_levels(self.get_input('p_outline_levels'))
     if self.hasInputFromPort('p_use_stencil') :
-      p.set_p_use_stencil(self.getInputFromPort('p_use_stencil'))
+      p.set_p_use_stencil(self.get_input('p_use_stencil'))
     Texture = 0
     if self.hasInputFromPort('Texture') :
-      Texture = self.getInputFromPort('Texture')
+      Texture = self.get_input('Texture')
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     ColorMap2 = 0
     if self.hasInputFromPort('ColorMap2') :
-      ColorMap2 = self.getInputFromPort('ColorMap2')
+      ColorMap2 = self.get_input('ColorMap2')
     results = p.execute(Texture, ColorMap, ColorMap2)
     self.setResult('Geometry', results[0])
     self.setResult('ColorMap', results[1])
@@ -4717,35 +4717,35 @@ class ShowMatrix(Visualization) :
   def compute(self) :
     p = sr_py.ShowMatrixAlg()
     if self.hasInputFromPort('p_xpos') :
-      p.set_p_xpos(self.getInputFromPort('p_xpos'))
+      p.set_p_xpos(self.get_input('p_xpos'))
     if self.hasInputFromPort('p_ypos') :
-      p.set_p_ypos(self.getInputFromPort('p_ypos'))
+      p.set_p_ypos(self.get_input('p_ypos'))
     if self.hasInputFromPort('p_xscale') :
-      p.set_p_xscale(self.getInputFromPort('p_xscale'))
+      p.set_p_xscale(self.get_input('p_xscale'))
     if self.hasInputFromPort('p_yscale') :
-      p.set_p_yscale(self.getInputFromPort('p_yscale'))
+      p.set_p_yscale(self.get_input('p_yscale'))
     if self.hasInputFromPort('p_3d_mode') :
-      p.set_p_3d_mode(self.getInputFromPort('p_3d_mode'))
+      p.set_p_3d_mode(self.get_input('p_3d_mode'))
     if self.hasInputFromPort('p_gmode') :
-      p.set_p_gmode(self.getInputFromPort('p_gmode'))
+      p.set_p_gmode(self.get_input('p_gmode'))
     if self.hasInputFromPort('p_showtext') :
-      p.set_p_showtext(self.getInputFromPort('p_showtext'))
+      p.set_p_showtext(self.get_input('p_showtext'))
     if self.hasInputFromPort('p_row_begin') :
-      p.set_p_row_begin(self.getInputFromPort('p_row_begin'))
+      p.set_p_row_begin(self.get_input('p_row_begin'))
     if self.hasInputFromPort('p_rows') :
-      p.set_p_rows(self.getInputFromPort('p_rows'))
+      p.set_p_rows(self.get_input('p_rows'))
     if self.hasInputFromPort('p_col_begin') :
-      p.set_p_col_begin(self.getInputFromPort('p_col_begin'))
+      p.set_p_col_begin(self.get_input('p_col_begin'))
     if self.hasInputFromPort('p_cols') :
-      p.set_p_cols(self.getInputFromPort('p_cols'))
+      p.set_p_cols(self.get_input('p_cols'))
     if self.hasInputFromPort('p_colormapmode') :
-      p.set_p_colormapmode(self.getInputFromPort('p_colormapmode'))
+      p.set_p_colormapmode(self.get_input('p_colormapmode'))
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
+      ColorMap = self.get_input('ColorMap')
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(ColorMap, Matrix)
     self.setResult('Geometry', results)
 
@@ -4753,35 +4753,35 @@ class CreateViewerClockIcon(Visualization) :
   def compute(self) :
     p = sr_py.CreateViewerClockIconAlg()
     if self.hasInputFromPort('p_type') :
-      p.set_p_type(self.getInputFromPort('p_type'))
+      p.set_p_type(self.get_input('p_type'))
     if self.hasInputFromPort('p_bbox') :
-      p.set_p_bbox(self.getInputFromPort('p_bbox'))
+      p.set_p_bbox(self.get_input('p_bbox'))
     if self.hasInputFromPort('p_format') :
-      p.set_p_format(self.getInputFromPort('p_format'))
+      p.set_p_format(self.get_input('p_format'))
     if self.hasInputFromPort('p_min') :
-      p.set_p_min(self.getInputFromPort('p_min'))
+      p.set_p_min(self.get_input('p_min'))
     if self.hasInputFromPort('p_max') :
-      p.set_p_max(self.getInputFromPort('p_max'))
+      p.set_p_max(self.get_input('p_max'))
     if self.hasInputFromPort('p_current') :
-      p.set_p_current(self.getInputFromPort('p_current'))
+      p.set_p_current(self.get_input('p_current'))
     if self.hasInputFromPort('p_size') :
-      p.set_p_size(self.getInputFromPort('p_size'))
+      p.set_p_size(self.get_input('p_size'))
     if self.hasInputFromPort('p_location_x') :
-      p.set_p_location_x(self.getInputFromPort('p_location_x'))
+      p.set_p_location_x(self.get_input('p_location_x'))
     if self.hasInputFromPort('p_location_y') :
-      p.set_p_location_y(self.getInputFromPort('p_location_y'))
+      p.set_p_location_y(self.get_input('p_location_y'))
     if self.hasInputFromPort('p_color_r') :
-      p.set_p_color_r(self.getInputFromPort('p_color_r'))
+      p.set_p_color_r(self.get_input('p_color_r'))
     if self.hasInputFromPort('p_color_g') :
-      p.set_p_color_g(self.getInputFromPort('p_color_g'))
+      p.set_p_color_g(self.get_input('p_color_g'))
     if self.hasInputFromPort('p_color_b') :
-      p.set_p_color_b(self.getInputFromPort('p_color_b'))
+      p.set_p_color_b(self.get_input('p_color_b'))
     Time_Matrix = 0
     if self.hasInputFromPort('Time Matrix') :
-      Time_Matrix = self.getInputFromPort('Time Matrix')
+      Time_Matrix = self.get_input('Time Matrix')
     Time_Nrrd = 0
     if self.hasInputFromPort('Time Nrrd') :
-      Time_Nrrd = self.getInputFromPort('Time Nrrd')
+      Time_Nrrd = self.get_input('Time Nrrd')
     results = p.execute(Time_Matrix, Time_Nrrd)
     self.setResult('Clock', results)
 
@@ -4789,29 +4789,29 @@ class ConvertFieldsToTexture(Visualization) :
   def compute(self) :
     p = sr_py.ConvertFieldsToTextureAlg()
     if self.hasInputFromPort('p_vmin') :
-      p.set_p_vmin(self.getInputFromPort('p_vmin'))
+      p.set_p_vmin(self.get_input('p_vmin'))
     if self.hasInputFromPort('p_vmax') :
-      p.set_p_vmax(self.getInputFromPort('p_vmax'))
+      p.set_p_vmax(self.get_input('p_vmax'))
     if self.hasInputFromPort('p_gmin') :
-      p.set_p_gmin(self.getInputFromPort('p_gmin'))
+      p.set_p_gmin(self.get_input('p_gmin'))
     if self.hasInputFromPort('p_gmax') :
-      p.set_p_gmax(self.getInputFromPort('p_gmax'))
+      p.set_p_gmax(self.get_input('p_gmax'))
     if self.hasInputFromPort('p_is_fixed') :
-      p.set_p_is_fixed(self.getInputFromPort('p_is_fixed'))
+      p.set_p_is_fixed(self.get_input('p_is_fixed'))
     if self.hasInputFromPort('p_card_mem') :
-      p.set_p_card_mem(self.getInputFromPort('p_card_mem'))
+      p.set_p_card_mem(self.get_input('p_card_mem'))
     if self.hasInputFromPort('p_card_mem_auto') :
-      p.set_p_card_mem_auto(self.getInputFromPort('p_card_mem_auto'))
+      p.set_p_card_mem_auto(self.get_input('p_card_mem_auto'))
     if self.hasInputFromPort('p_histogram') :
-      p.set_p_histogram(self.getInputFromPort('p_histogram'))
+      p.set_p_histogram(self.get_input('p_histogram'))
     if self.hasInputFromPort('p_gamma') :
-      p.set_p_gamma(self.getInputFromPort('p_gamma'))
+      p.set_p_gamma(self.get_input('p_gamma'))
     Value_Field = 0
     if self.hasInputFromPort('Value Field') :
-      Value_Field = self.getInputFromPort('Value Field')
+      Value_Field = self.get_input('Value Field')
     Gradient_Magnitude_Field = 0
     if self.hasInputFromPort('Gradient Magnitude Field') :
-      Gradient_Magnitude_Field = self.getInputFromPort('Gradient Magnitude Field')
+      Gradient_Magnitude_Field = self.get_input('Gradient Magnitude Field')
     results = p.execute(Value_Field, Gradient_Magnitude_Field)
     self.setResult('Texture', results[0])
     self.setResult('JointHistoGram', results[1])
@@ -4821,7 +4821,7 @@ class ColorMap2DSemantics(Visualization) :
     p = sr_py.ColorMap2DSemanticsAlg()
     Input_Colormap = 0
     if self.hasInputFromPort('Input Colormap') :
-      Input_Colormap = self.getInputFromPort('Input Colormap')
+      Input_Colormap = self.get_input('Input Colormap')
     results = p.execute(Input_Colormap)
     self.setResult('Output Colormap', results)
 
@@ -4830,7 +4830,7 @@ class ConvertMatrixToString(Converters) :
     p = sr_py.ConvertMatrixToStringAlg()
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('String', results)
 
@@ -4838,10 +4838,10 @@ class ConvertMatrixToField(Converters) :
   def compute(self) :
     p = sr_py.ConvertMatrixToFieldAlg()
     if self.hasInputFromPort('p_datalocation') :
-      p.set_p_datalocation(self.getInputFromPort('p_datalocation'))
+      p.set_p_datalocation(self.get_input('p_datalocation'))
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
+      Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
     self.setResult('Field', results)
 
@@ -4849,9 +4849,9 @@ class TimeControls(Time) :
   def compute(self) :
     p = sr_py.TimeControlsAlg()
     if self.hasInputFromPort('p_execmode') :
-      p.set_p_execmode(self.getInputFromPort('p_execmode'))
+      p.set_p_execmode(self.get_input('p_execmode'))
     if self.hasInputFromPort('p_scale_factor') :
-      p.set_p_scale_factor(self.getInputFromPort('p_scale_factor'))
+      p.set_p_scale_factor(self.get_input('p_scale_factor'))
     results = p.execute()
     self.setResult('time', results)
 

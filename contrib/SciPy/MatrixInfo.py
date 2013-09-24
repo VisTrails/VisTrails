@@ -41,5 +41,5 @@ class MatrixInfo(SciPy):
         return out
 
     def compute(self):
-        m = self.getInputFromPort("InputMatrix")
+        m = self.get_input("InputMatrix")
         self.setResult("output", self.getString(m))

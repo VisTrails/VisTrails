@@ -38,9 +38,9 @@ class NumPyArray(Module):
     )
 
     def compute(self):
-        filename = self.getInputFromPort('file').name
+        filename = self.get_input('file').name
         if self.hasInputFromPort('datatype'):
-            dtype = NumPyArray.FORMAT_MAP[self.getInputFromPort('datatype')]
+            dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
         else:
             if filename[-4:].lower() == '.npy':
                 dtype = self.NPY_FMT
@@ -55,7 +55,7 @@ class NumPyArray(Module):
             # Written with: array.tofile('xxx.dat')
             array = numpy.fromfile(filename, dtype)
         if self.hasInputFromPort('shape'):
-            array.shape = tuple(self.getInputFromPort('shape'))
+            array.shape = tuple(self.get_input('shape'))
         self.setResult('value', array)
 
 

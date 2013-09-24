@@ -49,10 +49,10 @@ class tetrahedralize(Module):
     def compute(self):
         switches = None
         if self.hasInputFromPort("switches") :
-            switches = self.getInputFromPort("switches")
+            switches = self.get_input("switches")
             print switches
         if self.hasInputFromPort("tgio in") :
-            tgio_in = self.getInputFromPort("tgio in").data
+            tgio_in = self.get_input("tgio in").data
 
         print "input has %d nodes!" % tgio_in.numberofpoints
         tgio_in.save_nodes("/tmp/tgIN.vt")

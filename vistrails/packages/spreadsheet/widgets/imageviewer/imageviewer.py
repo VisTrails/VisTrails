@@ -56,7 +56,7 @@ class ImageViewerCell(SpreadsheetCell):
         """
         if self.hasInputFromPort("File"):
             window = spreadsheetController.findSpreadsheetWindow()
-            file_to_display = self.getInputFromPort("File")
+            file_to_display = self.get_input("File")
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None

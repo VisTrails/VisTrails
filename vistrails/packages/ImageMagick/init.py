@@ -81,9 +81,9 @@ class ImageMagick(Module):
         the PNG file format.
 
         """
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         if self.hasInputFromPort('inputFormat'):
-            return self.getInputFromPort('inputFormat') + ':' + i.name
+            return self.get_input('inputFormat') + ':' + i.name
         else:
             return i.name
 
@@ -93,7 +93,7 @@ class ImageMagick(Module):
 
         """
         if self.hasInputFromPort('outputFormat'):
-            s = '.' + self.getInputFromPort('outputFormat')
+            s = '.' + self.get_input('outputFormat')
             return self.interpreter.filePool.create_file(suffix=s)
         else:
             return self.interpreter.filePool.create_file(suffix='.png')
@@ -136,9 +136,9 @@ class CombineRGBA(ImageMagick):
 
     def compute(self):
         o = self.create_output_file()
-        r = self.getInputFromPort("r")
-        g = self.getInputFromPort("g")
-        b = self.getInputFromPort("b")
+        r = self.get_input("r")
+        g = self.get_input("g")
+        b = self.get_input("b")
         a = self.forceGetInputFromPort("a")
 
         if a is not None:
@@ -164,10 +164,10 @@ class Scale(Convert):
 indicated by the appropriate ports (geometry or width and height)"""
         # if complete geometry is available, ignore rest
         if self.hasInputFromPort("geometry"):
-            return self.getInputFromPort("geometry")
+            return self.get_input("geometry")
         elif self.hasInputFromPort("width"):
-            w = self.getInputFromPort("width")
-            h = self.getInputFromPort("height")
+            w = self.get_input("width")
+            h = self.get_input("height")
             return "'%sx%s'" % (w, h)
         else:
             raise ModuleError(self, "Needs geometry or width/height")
@@ -188,7 +188,7 @@ class GaussianBlur(Convert):
     """
 
     def compute(self):
-        (radius, sigma) = self.getInputFromPort('radiusSigma')
+        (radius, sigma) = self.get_input('radiusSigma')
         o = self.create_output_file()
         self.run(self.input_file_description(),
                  "-blur",
@@ -240,7 +240,7 @@ def float_param_options_method_dict(optionName, portName):
 
     def compute(self):
         o = self.create_output_file()
-        optionValue = self.getInputFromPort(portName)
+        optionValue = self.get_input(portName)
         i = self.input_file_description()
         self.run(i, optionName, str(optionValue), o.name)
         self.setResult("output", o)

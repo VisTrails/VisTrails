@@ -64,7 +64,7 @@ class MplFigureCell(SpreadsheetCell):
         
         """
         if self.hasInputFromPort('figure'):
-            fig = self.getInputFromPort('figure')
+            fig = self.get_input('figure')
             self.displayAndWait(MplFigureCellWidget, (fig, ))
 
 class MplFigureCellWidget(QCellWidget):

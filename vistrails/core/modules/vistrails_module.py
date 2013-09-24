@@ -492,7 +492,7 @@ class Module(Serializable):
 
         return None
 
-    def getInputFromPort(self, inputPort, allowDefault=True):
+    def get_input(self, inputPort, allowDefault=True):
         """Returns the value coming in on the input port named **inputPort**.
 
         :param inputPort: the name of the input port being queried
@@ -544,7 +544,7 @@ class Module(Serializable):
         self.logging.annotate(self, d)
 
     def forceGetInputFromPort(self, inputPort, defaultValue=None):
-        """Like :py:func:`getInputFromPort` except that if no value exists, it
+        """Like :py:func:`get_input` except that if no value exists, it
         returns a user-specified defaultValue or None.
 
         :param inputPort: the name of the input port being queried
@@ -556,7 +556,7 @@ class Module(Serializable):
         """
 
         if self.hasInputFromPort(inputPort):
-            return self.getInputFromPort(inputPort)
+            return self.get_input(inputPort)
         else:
             return defaultValue
 

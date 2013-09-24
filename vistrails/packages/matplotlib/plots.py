@@ -87,21 +87,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('normed'):
-            val = self.getInputFromPort('normed')
+            val = self.get_input('normed')
             kwargs['normed'] = val
         if self.hasInputFromPort('usevlines'):
-            val = self.getInputFromPort('usevlines')
+            val = self.get_input('usevlines')
             kwargs['usevlines'] = val
         if self.hasInputFromPort('detrend'):
-            val = self.getInputFromPort('detrend')
+            val = self.get_input('detrend')
             kwargs['detrend'] = val
         if self.hasInputFromPort('maxlags'):
-            val = self.getInputFromPort('maxlags')
+            val = self.get_input('maxlags')
             kwargs['maxlags'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
 
         output = matplotlib.pyplot.acorr(*args, **kwargs)        
@@ -113,15 +113,15 @@ Additional kwargs: hold = [True|False] overrides default hold state
         xaxis = output[3]
         lineCollection = output[4]
         if self.hasInputFromPort('lineCollectionProperties'):
-            properties = self.getInputFromPort('lineCollectionProperties')
+            properties = self.get_input('lineCollectionProperties')
             if lineCollection is not None:
                 properties.update_props(lineCollection)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
         if self.hasInputFromPort('xaxisProperties'):
-            properties = self.getInputFromPort('xaxisProperties')
+            properties = self.get_input('xaxisProperties')
             if xaxis is not None:
                 properties.update_props(xaxis)
 
@@ -169,19 +169,19 @@ Additional kwargs: hold = [True|False] overrides default hold state
         args = []
 
         kwargs = {}
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
-        val = self.getInputFromPort('dx')
+        val = self.get_input('dx')
         kwargs['dx'] = val
-        val = self.getInputFromPort('dy')
+        val = self.get_input('dy')
         kwargs['dy'] = val
         if self.hasInputFromPort('arrowProperties'):
-            properties = self.getInputFromPort('arrowProperties')
+            properties = self.get_input('arrowProperties')
             properties.update_kwargs(kwargs)
 
         matplotlib.pyplot.arrow(*args, **kwargs)        
@@ -241,21 +241,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('y'):
-            val = self.getInputFromPort('y')
+            val = self.get_input('y')
             kwargs['y'] = val
         if self.hasInputFromPort('xmin'):
-            val = self.getInputFromPort('xmin')
+            val = self.get_input('xmin')
             kwargs['xmin'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('xmax'):
-            val = self.getInputFromPort('xmax')
+            val = self.get_input('xmax')
             kwargs['xmax'] = val
 
         line = matplotlib.pyplot.axhline(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if line is not None:
                 properties.update_props(line)
 
@@ -314,22 +314,22 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('xmin'):
-            val = self.getInputFromPort('xmin')
+            val = self.get_input('xmin')
             kwargs['xmin'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
-        val = self.getInputFromPort('ymin')
+        val = self.get_input('ymin')
         kwargs['ymin'] = val
-        val = self.getInputFromPort('ymax')
+        val = self.get_input('ymax')
         kwargs['ymax'] = val
         if self.hasInputFromPort('xmax'):
-            val = self.getInputFromPort('xmax')
+            val = self.get_input('xmax')
             kwargs['xmax'] = val
 
         patch = matplotlib.pyplot.axhspan(*args, **kwargs)
         if self.hasInputFromPort('patchProperties'):
-            properties = self.getInputFromPort('patchProperties')
+            properties = self.get_input('patchProperties')
             if patch is not None:
                 properties.update_props(patch)
 
@@ -388,21 +388,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('x'):
-            val = self.getInputFromPort('x')
+            val = self.get_input('x')
             kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('ymin'):
-            val = self.getInputFromPort('ymin')
+            val = self.get_input('ymin')
             kwargs['ymin'] = val
         if self.hasInputFromPort('ymax'):
-            val = self.getInputFromPort('ymax')
+            val = self.get_input('ymax')
             kwargs['ymax'] = val
 
         line = matplotlib.pyplot.axvline(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if line is not None:
                 properties.update_props(line)
 
@@ -458,23 +458,23 @@ Additional kwargs: hold = [True|False] overrides default hold state
         args = []
 
         kwargs = {}
-        val = self.getInputFromPort('xmin')
+        val = self.get_input('xmin')
         kwargs['xmin'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('ymin'):
-            val = self.getInputFromPort('ymin')
+            val = self.get_input('ymin')
             kwargs['ymin'] = val
         if self.hasInputFromPort('ymax'):
-            val = self.getInputFromPort('ymax')
+            val = self.get_input('ymax')
             kwargs['ymax'] = val
-        val = self.getInputFromPort('xmax')
+        val = self.get_input('xmax')
         kwargs['xmax'] = val
 
         patch = matplotlib.pyplot.axvspan(*args, **kwargs)
         if self.hasInputFromPort('patchProperties'):
-            properties = self.getInputFromPort('patchProperties')
+            properties = self.get_input('patchProperties')
             if patch is not None:
                 properties.update_props(patch)
 
@@ -571,76 +571,76 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('edgecolor'):
-            val = self.getInputFromPort('edgecolor')
+            val = self.get_input('edgecolor')
             val = translate_color(val)
             kwargs['edgecolor'] = val
         if self.hasInputFromPort('linewidth'):
-            val = self.getInputFromPort('linewidth')
+            val = self.get_input('linewidth')
             kwargs['linewidth'] = val
         if self.hasInputFromPort('capsize'):
-            val = self.getInputFromPort('capsize')
+            val = self.get_input('capsize')
             kwargs['capsize'] = val
         if self.hasInputFromPort('orientation'):
-            val = self.getInputFromPort('orientation')
+            val = self.get_input('orientation')
             kwargs['orientation'] = val
         if self.hasInputFromPort('bottom'):
-            val = self.getInputFromPort('bottom')
+            val = self.get_input('bottom')
             kwargs['bottom'] = val
         elif self.hasInputFromPort('bottomSequence'):
-            val = self.getInputFromPort('bottomSequence')
+            val = self.get_input('bottomSequence')
             kwargs['bottom'] = val
         if self.hasInputFromPort('color'):
-            val = self.getInputFromPort('color')
+            val = self.get_input('color')
             val = translate_color(val)
             kwargs['color'] = val
         if self.hasInputFromPort('xerr'):
-            val = self.getInputFromPort('xerr')
+            val = self.get_input('xerr')
             kwargs['xerr'] = val
         if self.hasInputFromPort('align'):
-            val = self.getInputFromPort('align')
+            val = self.get_input('align')
             kwargs['align'] = val
         if self.hasInputFromPort('ecolor'):
-            val = self.getInputFromPort('ecolor')
+            val = self.get_input('ecolor')
             val = translate_color(val)
             kwargs['ecolor'] = val
         if self.hasInputFromPort('height'):
-            val = self.getInputFromPort('height')
+            val = self.get_input('height')
             kwargs['height'] = val
         elif self.hasInputFromPort('heightScalar'):
-            val = self.getInputFromPort('heightScalar')
+            val = self.get_input('heightScalar')
             kwargs['height'] = val
         else:
             raise ModuleError(self, 'Must set one of "height", '                                   '"heightScalar"')
         if self.hasInputFromPort('width'):
-            val = self.getInputFromPort('width')
+            val = self.get_input('width')
             kwargs['width'] = val
         elif self.hasInputFromPort('widthSequence'):
-            val = self.getInputFromPort('widthSequence')
+            val = self.get_input('widthSequence')
             kwargs['width'] = val
         if self.hasInputFromPort('error_kw'):
-            val = self.getInputFromPort('error_kw')
+            val = self.get_input('error_kw')
             kwargs['error_kw'] = val
         if self.hasInputFromPort('log'):
-            val = self.getInputFromPort('log')
+            val = self.get_input('log')
             kwargs['log'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('yerr'):
-            val = self.getInputFromPort('yerr')
+            val = self.get_input('yerr')
             kwargs['yerr'] = val
         if self.hasInputFromPort('left'):
-            val = self.getInputFromPort('left')
+            val = self.get_input('left')
             kwargs['left'] = val
         elif self.hasInputFromPort('leftScalar'):
-            val = self.getInputFromPort('leftScalar')
+            val = self.get_input('leftScalar')
             kwargs['left'] = val
 
         if not kwargs.has_key('left'):
             kwargs['left'] = range(len(kwargs['height']))
         rectangles = matplotlib.pyplot.bar(*args, **kwargs)
         if self.hasInputFromPort('rectangleProperties'):
-            properties = self.getInputFromPort('rectangleProperties')
+            properties = self.get_input('rectangleProperties')
             if rectangles is not None:
                 properties.update_props(rectangles)
 
@@ -731,70 +731,70 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('edgecolor'):
-            val = self.getInputFromPort('edgecolor')
+            val = self.get_input('edgecolor')
             val = translate_color(val)
             kwargs['edgecolor'] = val
         if self.hasInputFromPort('linewidth'):
-            val = self.getInputFromPort('linewidth')
+            val = self.get_input('linewidth')
             kwargs['linewidth'] = val
         if self.hasInputFromPort('capsize'):
-            val = self.getInputFromPort('capsize')
+            val = self.get_input('capsize')
             kwargs['capsize'] = val
         if self.hasInputFromPort('log'):
-            val = self.getInputFromPort('log')
+            val = self.get_input('log')
             kwargs['log'] = val
         if self.hasInputFromPort('bottom'):
-            val = self.getInputFromPort('bottom')
+            val = self.get_input('bottom')
             kwargs['bottom'] = val
         elif self.hasInputFromPort('bottomScalar'):
-            val = self.getInputFromPort('bottomScalar')
+            val = self.get_input('bottomScalar')
             kwargs['bottom'] = val
         else:
             raise ModuleError(self, 'Must set one of "bottom", '                                   '"bottomScalar"')
         if self.hasInputFromPort('color'):
-            val = self.getInputFromPort('color')
+            val = self.get_input('color')
             val = translate_color(val)
             kwargs['color'] = val
         if self.hasInputFromPort('xerr'):
-            val = self.getInputFromPort('xerr')
+            val = self.get_input('xerr')
             kwargs['xerr'] = val
         if self.hasInputFromPort('align'):
-            val = self.getInputFromPort('align')
+            val = self.get_input('align')
             kwargs['align'] = val
         if self.hasInputFromPort('ecolor'):
-            val = self.getInputFromPort('ecolor')
+            val = self.get_input('ecolor')
             val = translate_color(val)
             kwargs['ecolor'] = val
         if self.hasInputFromPort('height'):
-            val = self.getInputFromPort('height')
+            val = self.get_input('height')
             kwargs['height'] = val
         elif self.hasInputFromPort('heightSequence'):
-            val = self.getInputFromPort('heightSequence')
+            val = self.get_input('heightSequence')
             kwargs['height'] = val
         if self.hasInputFromPort('width'):
-            val = self.getInputFromPort('width')
+            val = self.get_input('width')
             kwargs['width'] = val
         elif self.hasInputFromPort('widthScalar'):
-            val = self.getInputFromPort('widthScalar')
+            val = self.get_input('widthScalar')
             kwargs['width'] = val
         else:
             raise ModuleError(self, 'Must set one of "width", '                                   '"widthScalar"')
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('yerr'):
-            val = self.getInputFromPort('yerr')
+            val = self.get_input('yerr')
             kwargs['yerr'] = val
         if self.hasInputFromPort('left'):
-            val = self.getInputFromPort('left')
+            val = self.get_input('left')
             kwargs['left'] = val
         elif self.hasInputFromPort('leftSequence'):
-            val = self.getInputFromPort('leftSequence')
+            val = self.get_input('leftSequence')
             kwargs['left'] = val
 
         rectangles = matplotlib.pyplot.barh(*args, **kwargs)
         if self.hasInputFromPort('rectangleProperties'):
-            properties = self.getInputFromPort('rectangleProperties')
+            properties = self.get_input('rectangleProperties')
             if rectangles is not None:
                 properties.update_props(rectangles)
 
@@ -850,17 +850,17 @@ Additional kwargs: hold = [True|False] overrides default hold state
         args = []
 
         kwargs = {}
-        val = self.getInputFromPort('xranges')
+        val = self.get_input('xranges')
         kwargs['xranges'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
-        val = self.getInputFromPort('yrange')
+        val = self.get_input('yrange')
         kwargs['yrange'] = val
 
         matplotlib.pyplot.broken_barh(*args, **kwargs)        
         if self.hasInputFromPort('brokenBarHCollectionProperties'):
-            properties = self.getInputFromPort('brokenBarHCollectionProperties')
+            properties = self.get_input('brokenBarHCollectionProperties')
             if brokenBarHCollection is not None:
                 properties.update_props(brokenBarHCollection)
 
@@ -945,39 +945,39 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('vert'):
-            val = self.getInputFromPort('vert')
+            val = self.get_input('vert')
             kwargs['vert'] = val
         if self.hasInputFromPort('positions'):
-            val = self.getInputFromPort('positions')
+            val = self.get_input('positions')
             kwargs['positions'] = val
         if self.hasInputFromPort('bootstrap'):
-            val = self.getInputFromPort('bootstrap')
+            val = self.get_input('bootstrap')
             kwargs['bootstrap'] = val
         if self.hasInputFromPort('usermedians'):
-            val = self.getInputFromPort('usermedians')
+            val = self.get_input('usermedians')
             kwargs['usermedians'] = val
         if self.hasInputFromPort('sym'):
-            val = self.getInputFromPort('sym')
+            val = self.get_input('sym')
             kwargs['sym'] = val
         if self.hasInputFromPort('widths'):
-            val = self.getInputFromPort('widths')
+            val = self.get_input('widths')
             kwargs['widths'] = val
         if self.hasInputFromPort('patch_artist'):
-            val = self.getInputFromPort('patch_artist')
+            val = self.get_input('patch_artist')
             kwargs['patch_artist'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('notch'):
-            val = self.getInputFromPort('notch')
+            val = self.get_input('notch')
             kwargs['notch'] = val
         if self.hasInputFromPort('whis'):
-            val = self.getInputFromPort('whis')
+            val = self.get_input('whis')
             kwargs['whis'] = val
         if self.hasInputFromPort('conf_intervals'):
-            val = self.getInputFromPort('conf_intervals')
+            val = self.get_input('conf_intervals')
             kwargs['conf_intervals'] = val
 
         output = matplotlib.pyplot.boxplot(*args, **kwargs)        
@@ -993,27 +993,27 @@ Additional kwargs: hold = [True|False] overrides default hold state
         boxPatches = output['boxPatches']
         whiskers = output['whiskers']
         if self.hasInputFromPort('boxProperties'):
-            properties = self.getInputFromPort('boxProperties')
+            properties = self.get_input('boxProperties')
             if boxes is not None:
                 properties.update_props(boxes)
         if self.hasInputFromPort('flierProperties'):
-            properties = self.getInputFromPort('flierProperties')
+            properties = self.get_input('flierProperties')
             if fliers is not None:
                 properties.update_props(fliers)
         if self.hasInputFromPort('capProperties'):
-            properties = self.getInputFromPort('capProperties')
+            properties = self.get_input('capProperties')
             if caps is not None:
                 properties.update_props(caps)
         if self.hasInputFromPort('medianProperties'):
-            properties = self.getInputFromPort('medianProperties')
+            properties = self.get_input('medianProperties')
             if medians is not None:
                 properties.update_props(medians)
         if self.hasInputFromPort('boxPatchProperties'):
-            properties = self.getInputFromPort('boxPatchProperties')
+            properties = self.get_input('boxPatchProperties')
             if boxPatches is not None:
                 properties.update_props(boxPatches)
         if self.hasInputFromPort('whiskerProperties'):
-            properties = self.getInputFromPort('whiskerProperties')
+            properties = self.get_input('whiskerProperties')
             if whiskers is not None:
                 properties.update_props(whiskers)
 
@@ -1090,41 +1090,41 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('Fs'):
-            val = self.getInputFromPort('Fs')
+            val = self.get_input('Fs')
             kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            val = self.getInputFromPort('pad_to')
+            val = self.get_input('pad_to')
             kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            val = self.getInputFromPort('scale_by_freq')
+            val = self.get_input('scale_by_freq')
             kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('detrend'):
-            val = self.getInputFromPort('detrend')
+            val = self.get_input('detrend')
             kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            val = self.getInputFromPort('window')
+            val = self.get_input('window')
             kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            val = self.getInputFromPort('Fc')
+            val = self.get_input('Fc')
             kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            val = self.getInputFromPort('NFFT')
+            val = self.get_input('NFFT')
             kwargs['NFFT'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            val = self.getInputFromPort('sides')
+            val = self.get_input('sides')
             kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            val = self.getInputFromPort('noverlap')
+            val = self.get_input('noverlap')
             kwargs['noverlap'] = val
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             properties.update_kwargs(kwargs)
 
         matplotlib.pyplot.cohere(*args, **kwargs)        
@@ -1183,42 +1183,42 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('cs')
+        val = self.get_input('cs')
         args.append(val)
         if self.hasInputFromPort('v'):
-            val = self.getInputFromPort('v')
+            val = self.get_input('v')
             args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('inline_spacing'):
-            val = self.getInputFromPort('inline_spacing')
+            val = self.get_input('inline_spacing')
             kwargs['inline_spacing'] = val
         if self.hasInputFromPort('use_clabeltext'):
-            val = self.getInputFromPort('use_clabeltext')
+            val = self.get_input('use_clabeltext')
             kwargs['use_clabeltext'] = val
         if self.hasInputFromPort('fmt'):
-            val = self.getInputFromPort('fmt')
+            val = self.get_input('fmt')
             kwargs['fmt'] = val
         if self.hasInputFromPort('manual'):
-            val = self.getInputFromPort('manual')
+            val = self.get_input('manual')
             kwargs['manual'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             val = translate_color(val)
             kwargs['colors'] = val
         if self.hasInputFromPort('fontsize'):
-            val = self.getInputFromPort('fontsize')
+            val = self.get_input('fontsize')
             kwargs['fontsize'] = val
         if self.hasInputFromPort('rightside_up'):
-            val = self.getInputFromPort('rightside_up')
+            val = self.get_input('rightside_up')
             kwargs['rightside_up'] = val
         if self.hasInputFromPort('inline'):
-            val = self.getInputFromPort('inline')
+            val = self.get_input('inline')
             kwargs['inline'] = val
 
         texts = matplotlib.pyplot.clabel(*args, **kwargs)
         if self.hasInputFromPort('textProperties'):
-            properties = self.getInputFromPort('textProperties')
+            properties = self.get_input('textProperties')
             if texts is not None:
                 properties.update_props(texts)
 
@@ -1347,78 +1347,78 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # write out translations
         args = []
         if self.hasInputFromPort('X'):
-            val = self.getInputFromPort('X')
+            val = self.get_input('X')
             args.append(val)
         if self.hasInputFromPort('Y'):
-            val = self.getInputFromPort('Y')
+            val = self.get_input('Y')
             args.append(val)
-        val = self.getInputFromPort('Z')
+        val = self.get_input('Z')
         args.append(val)
         if self.hasInputFromPort('V'):
-            val = self.getInputFromPort('V')
+            val = self.get_input('V')
             args.append(val)
         if self.hasInputFromPort('N'):
-            val = self.getInputFromPort('N')
+            val = self.get_input('N')
             args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('origin'):
-            val = self.getInputFromPort('origin')
+            val = self.get_input('origin')
             kwargs['origin'] = val
         if self.hasInputFromPort('xunits'):
-            val = self.getInputFromPort('xunits')
+            val = self.get_input('xunits')
             kwargs['xunits'] = val
         if self.hasInputFromPort('extend'):
-            val = self.getInputFromPort('extend')
+            val = self.get_input('extend')
             kwargs['extend'] = val
         if self.hasInputFromPort('vmin'):
-            val = self.getInputFromPort('vmin')
+            val = self.get_input('vmin')
             kwargs['vmin'] = val
         if self.hasInputFromPort('nchunk'):
-            val = self.getInputFromPort('nchunk')
+            val = self.get_input('nchunk')
             kwargs['nchunk'] = val
         if self.hasInputFromPort('linestyles'):
-            val = self.getInputFromPort('linestyles')
+            val = self.get_input('linestyles')
             kwargs['linestyles'] = val
         if self.hasInputFromPort('hatches'):
-            val = self.getInputFromPort('hatches')
+            val = self.get_input('hatches')
             kwargs['hatches'] = val
         if self.hasInputFromPort('levelsSequence'):
-            val = self.getInputFromPort('levelsSequence')
+            val = self.get_input('levelsSequence')
             kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            val = self.getInputFromPort('levelsScalar')
+            val = self.get_input('levelsScalar')
             kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            val = self.getInputFromPort('linewidths')
+            val = self.get_input('linewidths')
             kwargs['linewidths'] = val
         if self.hasInputFromPort('locator'):
-            val = self.getInputFromPort('locator')
+            val = self.get_input('locator')
             kwargs['locator'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             val = translate_color(val)
             kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('yunits'):
-            val = self.getInputFromPort('yunits')
+            val = self.get_input('yunits')
             kwargs['yunits'] = val
         if self.hasInputFromPort('extent'):
-            val = self.getInputFromPort('extent')
+            val = self.get_input('extent')
             kwargs['extent'] = val
         if self.hasInputFromPort('vmax'):
-            val = self.getInputFromPort('vmax')
+            val = self.get_input('vmax')
             kwargs['vmax'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
         if self.hasInputFromPort('antialiased'):
-            val = self.getInputFromPort('antialiased')
+            val = self.get_input('antialiased')
             kwargs['antialiased'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
@@ -1429,7 +1429,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         lineCollections = output[1]
         self.setResult('contourSet', contourSet)
         if self.hasInputFromPort('lineCollectionProperties'):
-            properties = self.getInputFromPort('lineCollectionProperties')
+            properties = self.get_input('lineCollectionProperties')
             if lineCollections is not None:
                 properties.update_props(lineCollections)
 
@@ -1550,60 +1550,60 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # write out translations
         args = []
         if self.hasInputFromPort('X'):
-            val = self.getInputFromPort('X')
+            val = self.get_input('X')
             args.append(val)
         if self.hasInputFromPort('Y'):
-            val = self.getInputFromPort('Y')
+            val = self.get_input('Y')
             args.append(val)
-        val = self.getInputFromPort('Z')
+        val = self.get_input('Z')
         args.append(val)
         if self.hasInputFromPort('V'):
-            val = self.getInputFromPort('V')
+            val = self.get_input('V')
             args.append(val)
         if self.hasInputFromPort('N'):
-            val = self.getInputFromPort('N')
+            val = self.get_input('N')
             args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('origin'):
-            val = self.getInputFromPort('origin')
+            val = self.get_input('origin')
             kwargs['origin'] = val
         if self.hasInputFromPort('linestyles'):
-            val = self.getInputFromPort('linestyles')
+            val = self.get_input('linestyles')
             kwargs['linestyles'] = val
         if self.hasInputFromPort('vmin'):
-            val = self.getInputFromPort('vmin')
+            val = self.get_input('vmin')
             kwargs['vmin'] = val
         if self.hasInputFromPort('nchunk'):
-            val = self.getInputFromPort('nchunk')
+            val = self.get_input('nchunk')
             kwargs['nchunk'] = val
         if self.hasInputFromPort('hatches'):
-            val = self.getInputFromPort('hatches')
+            val = self.get_input('hatches')
             kwargs['hatches'] = val
         if self.hasInputFromPort('levelsSequence'):
-            val = self.getInputFromPort('levelsSequence')
+            val = self.get_input('levelsSequence')
             kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            val = self.getInputFromPort('levelsScalar')
+            val = self.get_input('levelsScalar')
             kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            val = self.getInputFromPort('linewidths')
+            val = self.get_input('linewidths')
             kwargs['linewidths'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             val = translate_color(val)
             kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('vmax'):
-            val = self.getInputFromPort('vmax')
+            val = self.get_input('vmax')
             kwargs['vmax'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
@@ -1614,7 +1614,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         polyCollections = output[1]
         self.setResult('contourSet', contourSet)
         if self.hasInputFromPort('polyCollectionProperties'):
-            properties = self.getInputFromPort('polyCollectionProperties')
+            properties = self.get_input('polyCollectionProperties')
             if polyCollections is not None:
                 properties.update_props(polyCollections)
 
@@ -1685,41 +1685,41 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('Fs'):
-            val = self.getInputFromPort('Fs')
+            val = self.get_input('Fs')
             kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            val = self.getInputFromPort('pad_to')
+            val = self.get_input('pad_to')
             kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            val = self.getInputFromPort('scale_by_freq')
+            val = self.get_input('scale_by_freq')
             kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('detrend'):
-            val = self.getInputFromPort('detrend')
+            val = self.get_input('detrend')
             kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            val = self.getInputFromPort('window')
+            val = self.get_input('window')
             kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            val = self.getInputFromPort('Fc')
+            val = self.get_input('Fc')
             kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            val = self.getInputFromPort('NFFT')
+            val = self.get_input('NFFT')
             kwargs['NFFT'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            val = self.getInputFromPort('sides')
+            val = self.get_input('sides')
             kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            val = self.getInputFromPort('noverlap')
+            val = self.get_input('noverlap')
             kwargs['noverlap'] = val
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             properties.update_kwargs(kwargs)
 
         matplotlib.pyplot.csd(*args, **kwargs)        
@@ -1815,57 +1815,57 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('lolims'):
-            val = self.getInputFromPort('lolims')
+            val = self.get_input('lolims')
             kwargs['lolims'] = val
         if self.hasInputFromPort('capsize'):
-            val = self.getInputFromPort('capsize')
+            val = self.get_input('capsize')
             kwargs['capsize'] = val
         if self.hasInputFromPort('uplims'):
-            val = self.getInputFromPort('uplims')
+            val = self.get_input('uplims')
             kwargs['uplims'] = val
         if self.hasInputFromPort('xlolims'):
-            val = self.getInputFromPort('xlolims')
+            val = self.get_input('xlolims')
             kwargs['xlolims'] = val
         if self.hasInputFromPort('barsabove'):
-            val = self.getInputFromPort('barsabove')
+            val = self.get_input('barsabove')
             kwargs['barsabove'] = val
         if self.hasInputFromPort('xerr'):
-            val = self.getInputFromPort('xerr')
+            val = self.get_input('xerr')
             kwargs['xerr'] = val
         elif self.hasInputFromPort('xerrScalar'):
-            val = self.getInputFromPort('xerrScalar')
+            val = self.get_input('xerrScalar')
             kwargs['xerr'] = val
         if self.hasInputFromPort('fmt'):
-            val = self.getInputFromPort('fmt')
+            val = self.get_input('fmt')
             kwargs['fmt'] = val
         if self.hasInputFromPort('ecolor'):
-            val = self.getInputFromPort('ecolor')
+            val = self.get_input('ecolor')
             val = translate_color(val)
             kwargs['ecolor'] = val
         if self.hasInputFromPort('errorevery'):
-            val = self.getInputFromPort('errorevery')
+            val = self.get_input('errorevery')
             kwargs['errorevery'] = val
         if self.hasInputFromPort('capthick'):
-            val = self.getInputFromPort('capthick')
+            val = self.get_input('capthick')
             kwargs['capthick'] = val
         if self.hasInputFromPort('xuplims'):
-            val = self.getInputFromPort('xuplims')
+            val = self.get_input('xuplims')
             kwargs['xuplims'] = val
         if self.hasInputFromPort('elinewidth'):
-            val = self.getInputFromPort('elinewidth')
+            val = self.get_input('elinewidth')
             kwargs['elinewidth'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('yerr'):
-            val = self.getInputFromPort('yerr')
+            val = self.get_input('yerr')
             kwargs['yerr'] = val
         elif self.hasInputFromPort('yerrScalar'):
-            val = self.getInputFromPort('yerrScalar')
+            val = self.get_input('yerrScalar')
             kwargs['yerr'] = val
 
         output = matplotlib.pyplot.errorbar(*args, **kwargs)        
@@ -1873,15 +1873,15 @@ Additional kwargs: hold = [True|False] overrides default hold state
         caplines = output[1]
         barlines = output[2]
         if self.hasInputFromPort('caplineProperties'):
-            properties = self.getInputFromPort('caplineProperties')
+            properties = self.get_input('caplineProperties')
             if caplines is not None:
                 properties.update_props(caplines)
         if self.hasInputFromPort('barlineProperties'):
-            properties = self.getInputFromPort('barlineProperties')
+            properties = self.get_input('barlineProperties')
             if barlines is not None:
                 properties.update_props(barlines)
         if self.hasInputFromPort('plotlineProperties'):
-            properties = self.getInputFromPort('plotlineProperties')
+            properties = self.get_input('plotlineProperties')
             if plotline is not None:
                 properties.update_props(plotline)
 
@@ -1935,16 +1935,16 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         args.append(val)
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
 
         kwargs = {}
 
         polygons = matplotlib.pyplot.fill(*args, **kwargs)
         if self.hasInputFromPort('polygonProperties'):
-            properties = self.getInputFromPort('polygonProperties')
+            properties = self.get_input('polygonProperties')
             if polygons is not None:
                 properties.update_props(polygons)
 
@@ -1996,37 +1996,37 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         args.append(val)
         if self.hasInputFromPort('y1'):
-            val = self.getInputFromPort('y1')
+            val = self.get_input('y1')
             args.append(val)
         elif self.hasInputFromPort('y1Scalar'):
-            val = self.getInputFromPort('y1Scalar')
+            val = self.get_input('y1Scalar')
             args.append(val)
         else:
             raise ModuleError(self, 'Must set one of "y1", '                                   '"y1Scalar"')
 
         kwargs = {}
         if self.hasInputFromPort('y2'):
-            val = self.getInputFromPort('y2')
+            val = self.get_input('y2')
             kwargs['y2'] = val
         elif self.hasInputFromPort('y2Sequence'):
-            val = self.getInputFromPort('y2Sequence')
+            val = self.get_input('y2Sequence')
             kwargs['y2'] = val
         if self.hasInputFromPort('interpolate'):
-            val = self.getInputFromPort('interpolate')
+            val = self.get_input('interpolate')
             kwargs['interpolate'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('where'):
-            val = self.getInputFromPort('where')
+            val = self.get_input('where')
             kwargs['where'] = val
 
         polyCollection = matplotlib.pyplot.fill_between(*args, **kwargs)
         if self.hasInputFromPort('polyCollectionProperties'):
-            properties = self.getInputFromPort('polyCollectionProperties')
+            properties = self.get_input('polyCollectionProperties')
             if polyCollection is not None:
                 properties.update_props(polyCollection)
 
@@ -2076,34 +2076,34 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
         if self.hasInputFromPort('x1'):
-            val = self.getInputFromPort('x1')
+            val = self.get_input('x1')
             args.append(val)
         elif self.hasInputFromPort('x1Scalar'):
-            val = self.getInputFromPort('x1Scalar')
+            val = self.get_input('x1Scalar')
             args.append(val)
         else:
             raise ModuleError(self, 'Must set one of "x1", '                                   '"x1Scalar"')
 
         kwargs = {}
         if self.hasInputFromPort('x2'):
-            val = self.getInputFromPort('x2')
+            val = self.get_input('x2')
             kwargs['x2'] = val
         elif self.hasInputFromPort('x2Sequence'):
-            val = self.getInputFromPort('x2Sequence')
+            val = self.get_input('x2Sequence')
             kwargs['x2'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('where'):
-            val = self.getInputFromPort('where')
+            val = self.get_input('where')
             kwargs['where'] = val
 
         polyCollection = matplotlib.pyplot.fill_betweenx(*args, **kwargs)
         if self.hasInputFromPort('polyCollectionProperties'):
-            properties = self.getInputFromPort('polyCollectionProperties')
+            properties = self.get_input('polyCollectionProperties')
             if polyCollection is not None:
                 properties.update_props(polyCollection)
 
@@ -2196,70 +2196,70 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('vmax'):
-            val = self.getInputFromPort('vmax')
+            val = self.get_input('vmax')
             kwargs['vmax'] = val
         if self.hasInputFromPort('edgecolorsSequence'):
-            val = self.getInputFromPort('edgecolorsSequence')
+            val = self.get_input('edgecolorsSequence')
             kwargs['edgecolors'] = val
         elif self.hasInputFromPort('edgecolorsScalar'):
-            val = self.getInputFromPort('edgecolorsScalar')
+            val = self.get_input('edgecolorsScalar')
             kwargs['edgecolors'] = val
         if self.hasInputFromPort('C'):
-            val = self.getInputFromPort('C')
+            val = self.get_input('C')
             kwargs['C'] = val
         if self.hasInputFromPort('gridsize'):
-            val = self.getInputFromPort('gridsize')
+            val = self.get_input('gridsize')
             kwargs['gridsize'] = val
         if self.hasInputFromPort('vmin'):
-            val = self.getInputFromPort('vmin')
+            val = self.get_input('vmin')
             kwargs['vmin'] = val
         if self.hasInputFromPort('yscale'):
-            val = self.getInputFromPort('yscale')
+            val = self.get_input('yscale')
             kwargs['yscale'] = val
         if self.hasInputFromPort('reduce_C_function'):
-            val = self.getInputFromPort('reduce_C_function')
+            val = self.get_input('reduce_C_function')
             kwargs['reduce_C_function'] = val
         if self.hasInputFromPort('linewidths'):
-            val = self.getInputFromPort('linewidths')
+            val = self.get_input('linewidths')
             kwargs['linewidths'] = val
         if self.hasInputFromPort('xscale'):
-            val = self.getInputFromPort('xscale')
+            val = self.get_input('xscale')
             kwargs['xscale'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
         if self.hasInputFromPort('extent'):
-            val = self.getInputFromPort('extent')
+            val = self.get_input('extent')
             kwargs['extent'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('mincnt'):
-            val = self.getInputFromPort('mincnt')
+            val = self.get_input('mincnt')
             kwargs['mincnt'] = val
         if self.hasInputFromPort('marginals'):
-            val = self.getInputFromPort('marginals')
+            val = self.get_input('marginals')
             kwargs['marginals'] = val
         if self.hasInputFromPort('bins'):
-            val = self.getInputFromPort('bins')
+            val = self.get_input('bins')
             kwargs['bins'] = val
         if self.hasInputFromPort('scale'):
-            val = self.getInputFromPort('scale')
+            val = self.get_input('scale')
             kwargs['scale'] = val
 
         polyCollection = matplotlib.pyplot.hexbin(*args, **kwargs)
         if self.hasInputFromPort('polyCollectionProperties'):
-            properties = self.getInputFromPort('polyCollectionProperties')
+            properties = self.get_input('polyCollectionProperties')
             if polyCollection is not None:
                 properties.update_props(polyCollection)
 
@@ -2344,67 +2344,67 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('rwidth'):
-            val = self.getInputFromPort('rwidth')
+            val = self.get_input('rwidth')
             kwargs['rwidth'] = val
         if self.hasInputFromPort('normed'):
-            val = self.getInputFromPort('normed')
+            val = self.get_input('normed')
             kwargs['normed'] = val
         if self.hasInputFromPort('stacked'):
-            val = self.getInputFromPort('stacked')
+            val = self.get_input('stacked')
             kwargs['stacked'] = val
         if self.hasInputFromPort('orientation'):
-            val = self.getInputFromPort('orientation')
+            val = self.get_input('orientation')
             kwargs['orientation'] = val
         if self.hasInputFromPort('bottom'):
-            val = self.getInputFromPort('bottom')
+            val = self.get_input('bottom')
             kwargs['bottom'] = val
         if self.hasInputFromPort('colorSequence'):
-            val = self.getInputFromPort('colorSequence')
+            val = self.get_input('colorSequence')
             val = translate_color(val)
             kwargs['color'] = val
         elif self.hasInputFromPort('colorScalar'):
-            val = self.getInputFromPort('colorScalar')
+            val = self.get_input('colorScalar')
             kwargs['color'] = val
         if self.hasInputFromPort('histtype'):
-            val = self.getInputFromPort('histtype')
+            val = self.get_input('histtype')
             kwargs['histtype'] = val
         if self.hasInputFromPort('align'):
-            val = self.getInputFromPort('align')
+            val = self.get_input('align')
             kwargs['align'] = val
         if self.hasInputFromPort('cumulative'):
-            val = self.getInputFromPort('cumulative')
+            val = self.get_input('cumulative')
             kwargs['cumulative'] = val
         if self.hasInputFromPort('labelSequence'):
-            val = self.getInputFromPort('labelSequence')
+            val = self.get_input('labelSequence')
             kwargs['label'] = val
         elif self.hasInputFromPort('labelScalar'):
-            val = self.getInputFromPort('labelScalar')
+            val = self.get_input('labelScalar')
             kwargs['label'] = val
         if self.hasInputFromPort('range'):
-            val = self.getInputFromPort('range')
+            val = self.get_input('range')
             kwargs['range'] = val
         if self.hasInputFromPort('weights'):
-            val = self.getInputFromPort('weights')
+            val = self.get_input('weights')
             kwargs['weights'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('bins'):
-            val = self.getInputFromPort('bins')
+            val = self.get_input('bins')
             kwargs['bins'] = val
         elif self.hasInputFromPort('binsSequence'):
-            val = self.getInputFromPort('binsSequence')
+            val = self.get_input('binsSequence')
             kwargs['bins'] = val
         if self.hasInputFromPort('log'):
-            val = self.getInputFromPort('log')
+            val = self.get_input('log')
             kwargs['log'] = val
 
         output = matplotlib.pyplot.hist(*args, **kwargs)        
         rectangles = output[2]
         if self.hasInputFromPort('rectangleProperties'):
-            properties = self.getInputFromPort('rectangleProperties')
+            properties = self.get_input('rectangleProperties')
             if rectangles is not None:
                 properties.update_props(rectangles)
 
@@ -2475,29 +2475,29 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('normed'):
-            val = self.getInputFromPort('normed')
+            val = self.get_input('normed')
             kwargs['normed'] = val
         if self.hasInputFromPort('cmin'):
-            val = self.getInputFromPort('cmin')
+            val = self.get_input('cmin')
             kwargs['cmin'] = val
         if self.hasInputFromPort('range'):
-            val = self.getInputFromPort('range')
+            val = self.get_input('range')
             kwargs['range'] = val
         if self.hasInputFromPort('weights'):
-            val = self.getInputFromPort('weights')
+            val = self.get_input('weights')
             kwargs['weights'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('cmax'):
-            val = self.getInputFromPort('cmax')
+            val = self.get_input('cmax')
             kwargs['cmax'] = val
         if self.hasInputFromPort('bins'):
-            val = self.getInputFromPort('bins')
+            val = self.get_input('bins')
             kwargs['bins'] = val
 
         matplotlib.pyplot.hist2d(*args, **kwargs)        
@@ -2563,42 +2563,42 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('linestyles'):
-            val = self.getInputFromPort('linestyles')
+            val = self.get_input('linestyles')
             kwargs['linestyles'] = val
         if self.hasInputFromPort('label'):
-            val = self.getInputFromPort('label')
+            val = self.get_input('label')
             kwargs['label'] = val
         if self.hasInputFromPort('xminScalar'):
-            val = self.getInputFromPort('xminScalar')
+            val = self.get_input('xminScalar')
             kwargs['xmin'] = val
         elif self.hasInputFromPort('xminSequence'):
-            val = self.getInputFromPort('xminSequence')
+            val = self.get_input('xminSequence')
             kwargs['xmin'] = val
         else:
             raise ModuleError(self, 'Must set one of "xminScalar", '                                   '"xminSequence"')
         if self.hasInputFromPort('colorsSequence'):
-            val = self.getInputFromPort('colorsSequence')
+            val = self.get_input('colorsSequence')
             kwargs['colors'] = val
         elif self.hasInputFromPort('colorsScalar'):
-            val = self.getInputFromPort('colorsScalar')
+            val = self.get_input('colorsScalar')
             kwargs['colors'] = val
         if self.hasInputFromPort('xmaxScalar'):
-            val = self.getInputFromPort('xmaxScalar')
+            val = self.get_input('xmaxScalar')
             kwargs['xmax'] = val
         elif self.hasInputFromPort('xmaxSequence'):
-            val = self.getInputFromPort('xmaxSequence')
+            val = self.get_input('xmaxSequence')
             kwargs['xmax'] = val
         else:
             raise ModuleError(self, 'Must set one of "xmaxScalar", '                                   '"xmaxSequence"')
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
 
         lines = matplotlib.pyplot.hlines(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
@@ -2689,54 +2689,54 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('origin'):
-            val = self.getInputFromPort('origin')
+            val = self.get_input('origin')
             kwargs['origin'] = val
         if self.hasInputFromPort('imlim'):
-            val = self.getInputFromPort('imlim')
+            val = self.get_input('imlim')
             kwargs['imlim'] = val
         if self.hasInputFromPort('extent'):
-            val = self.getInputFromPort('extent')
+            val = self.get_input('extent')
             kwargs['extent'] = val
         if self.hasInputFromPort('vmin'):
-            val = self.getInputFromPort('vmin')
+            val = self.get_input('vmin')
             kwargs['vmin'] = val
         if self.hasInputFromPort('url'):
-            val = self.getInputFromPort('url')
+            val = self.get_input('url')
             kwargs['url'] = val
         if self.hasInputFromPort('resample'):
-            val = self.getInputFromPort('resample')
+            val = self.get_input('resample')
             kwargs['resample'] = val
         if self.hasInputFromPort('shape'):
-            val = self.getInputFromPort('shape')
+            val = self.get_input('shape')
             kwargs['shape'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('filterrad'):
-            val = self.getInputFromPort('filterrad')
+            val = self.get_input('filterrad')
             kwargs['filterrad'] = val
         if self.hasInputFromPort('filternorm'):
-            val = self.getInputFromPort('filternorm')
+            val = self.get_input('filternorm')
             kwargs['filternorm'] = val
         if self.hasInputFromPort('aspect'):
-            val = self.getInputFromPort('aspect')
+            val = self.get_input('aspect')
             kwargs['aspect'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
         if self.hasInputFromPort('vmax'):
-            val = self.getInputFromPort('vmax')
+            val = self.get_input('vmax')
             kwargs['vmax'] = val
-        val = self.getInputFromPort('X')
+        val = self.get_input('X')
         kwargs['X'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
         if self.hasInputFromPort('interpolation'):
-            val = self.getInputFromPort('interpolation')
+            val = self.get_input('interpolation')
             kwargs['interpolation'] = val
 
         matplotlib.pyplot.imshow(*args, **kwargs)        
@@ -2797,40 +2797,40 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         args.append(val)
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('nonposx'):
-            val = self.getInputFromPort('nonposx')
+            val = self.get_input('nonposx')
             kwargs['nonposx'] = val
         if self.hasInputFromPort('nonposy'):
-            val = self.getInputFromPort('nonposy')
+            val = self.get_input('nonposy')
             kwargs['nonposy'] = val
         if self.hasInputFromPort('basex'):
-            val = self.getInputFromPort('basex')
+            val = self.get_input('basex')
             kwargs['basex'] = val
         if self.hasInputFromPort('basey'):
-            val = self.getInputFromPort('basey')
+            val = self.get_input('basey')
             kwargs['basey'] = val
         if self.hasInputFromPort('subsxSequence'):
-            val = self.getInputFromPort('subsxSequence')
+            val = self.get_input('subsxSequence')
             kwargs['subsx'] = val
         elif self.hasInputFromPort('subsxScalar'):
-            val = self.getInputFromPort('subsxScalar')
+            val = self.get_input('subsxScalar')
             kwargs['subsx'] = val
         if self.hasInputFromPort('subsySequence'):
-            val = self.getInputFromPort('subsySequence')
+            val = self.get_input('subsySequence')
             kwargs['subsy'] = val
         elif self.hasInputFromPort('subsyScalar'):
-            val = self.getInputFromPort('subsyScalar')
+            val = self.get_input('subsyScalar')
             kwargs['subsy'] = val
 
         lines = matplotlib.pyplot.loglog(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
@@ -2933,43 +2933,43 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # write out translations
         args = []
         if self.hasInputFromPort('X'):
-            val = self.getInputFromPort('X')
+            val = self.get_input('X')
             args.append(val)
         if self.hasInputFromPort('Y'):
-            val = self.getInputFromPort('Y')
+            val = self.get_input('Y')
             args.append(val)
-        val = self.getInputFromPort('Z')
+        val = self.get_input('Z')
         args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('edgecolorsSequence'):
-            val = self.getInputFromPort('edgecolorsSequence')
+            val = self.get_input('edgecolorsSequence')
             kwargs['edgecolors'] = val
         elif self.hasInputFromPort('edgecolorsScalar'):
-            val = self.getInputFromPort('edgecolorsScalar')
+            val = self.get_input('edgecolorsScalar')
             kwargs['edgecolors'] = val
         if self.hasInputFromPort('vmin'):
-            val = self.getInputFromPort('vmin')
+            val = self.get_input('vmin')
             kwargs['vmin'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
         if self.hasInputFromPort('vmax'):
-            val = self.getInputFromPort('vmax')
+            val = self.get_input('vmax')
             kwargs['vmax'] = val
         if self.hasInputFromPort('shading'):
-            val = self.getInputFromPort('shading')
+            val = self.get_input('shading')
             kwargs['shading'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         polyCollection = matplotlib.pyplot.pcolor(*args, **kwargs)
         if self.hasInputFromPort('polyCollectionProperties'):
-            properties = self.getInputFromPort('polyCollectionProperties')
+            properties = self.get_input('polyCollectionProperties')
             if polyCollection is not None:
                 properties.update_props(polyCollection)
 
@@ -3030,28 +3030,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('edgecolorsSequence'):
-            val = self.getInputFromPort('edgecolorsSequence')
+            val = self.get_input('edgecolorsSequence')
             kwargs['edgecolors'] = val
         elif self.hasInputFromPort('edgecolorsScalar'):
-            val = self.getInputFromPort('edgecolorsScalar')
+            val = self.get_input('edgecolorsScalar')
             kwargs['edgecolors'] = val
         if self.hasInputFromPort('vmin'):
-            val = self.getInputFromPort('vmin')
+            val = self.get_input('vmin')
             kwargs['vmin'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
         if self.hasInputFromPort('vmax'):
-            val = self.getInputFromPort('vmax')
+            val = self.get_input('vmax')
             kwargs['vmax'] = val
         if self.hasInputFromPort('shading'):
-            val = self.getInputFromPort('shading')
+            val = self.get_input('shading')
             kwargs['shading'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         matplotlib.pyplot.pcolormesh(*args, **kwargs)        
@@ -3123,43 +3123,43 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('autopct'):
-            val = self.getInputFromPort('autopct')
+            val = self.get_input('autopct')
             kwargs['autopct'] = val
         if self.hasInputFromPort('pctdistance'):
-            val = self.getInputFromPort('pctdistance')
+            val = self.get_input('pctdistance')
             kwargs['pctdistance'] = val
         if self.hasInputFromPort('labelsSequence'):
-            val = self.getInputFromPort('labelsSequence')
+            val = self.get_input('labelsSequence')
             kwargs['labels'] = val
         elif self.hasInputFromPort('labelsScalar'):
-            val = self.getInputFromPort('labelsScalar')
+            val = self.get_input('labelsScalar')
             kwargs['labels'] = val
         if self.hasInputFromPort('explodeSequence'):
-            val = self.getInputFromPort('explodeSequence')
+            val = self.get_input('explodeSequence')
             kwargs['explode'] = val
         elif self.hasInputFromPort('explodeScalar'):
-            val = self.getInputFromPort('explodeScalar')
+            val = self.get_input('explodeScalar')
             kwargs['explode'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             val = translate_color(val)
             kwargs['colors'] = val
         if self.hasInputFromPort('radius'):
-            val = self.getInputFromPort('radius')
+            val = self.get_input('radius')
             kwargs['radius'] = val
         if self.hasInputFromPort('startangle'):
-            val = self.getInputFromPort('startangle')
+            val = self.get_input('startangle')
             kwargs['startangle'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('shadow'):
-            val = self.getInputFromPort('shadow')
+            val = self.get_input('shadow')
             kwargs['shadow'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('labeldistance'):
-            val = self.getInputFromPort('labeldistance')
+            val = self.get_input('labeldistance')
             kwargs['labeldistance'] = val
 
         output = matplotlib.pyplot.pie(*args, **kwargs)        
@@ -3169,15 +3169,15 @@ Additional kwargs: hold = [True|False] overrides default hold state
         texts = output[1]
         autotexts = output[2]
         if self.hasInputFromPort('autotextProperties'):
-            properties = self.getInputFromPort('autotextProperties')
+            properties = self.get_input('autotextProperties')
             if autotexts is not None:
                 properties.update_props(autotexts)
         if self.hasInputFromPort('wedgeProperties'):
-            properties = self.getInputFromPort('wedgeProperties')
+            properties = self.get_input('wedgeProperties')
             if wedges is not None:
                 properties.update_props(wedges)
         if self.hasInputFromPort('textProperties'):
-            properties = self.getInputFromPort('textProperties')
+            properties = self.get_input('textProperties')
             if texts is not None:
                 properties.update_props(texts)
 
@@ -3233,31 +3233,31 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         args.append(val)
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('tz'):
-            val = self.getInputFromPort('tz')
+            val = self.get_input('tz')
             kwargs['tz'] = val
         if self.hasInputFromPort('fmt'):
-            val = self.getInputFromPort('fmt')
+            val = self.get_input('fmt')
             kwargs['fmt'] = val
         if self.hasInputFromPort('ydate'):
-            val = self.getInputFromPort('ydate')
+            val = self.get_input('ydate')
             kwargs['ydate'] = val
         if self.hasInputFromPort('xdate'):
-            val = self.getInputFromPort('xdate')
+            val = self.get_input('xdate')
             kwargs['xdate'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
 
         lines = matplotlib.pyplot.plot_date(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
@@ -3326,39 +3326,39 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('Fs'):
-            val = self.getInputFromPort('Fs')
+            val = self.get_input('Fs')
             kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            val = self.getInputFromPort('pad_to')
+            val = self.get_input('pad_to')
             kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            val = self.getInputFromPort('scale_by_freq')
+            val = self.get_input('scale_by_freq')
             kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('detrend'):
-            val = self.getInputFromPort('detrend')
+            val = self.get_input('detrend')
             kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            val = self.getInputFromPort('window')
+            val = self.get_input('window')
             kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            val = self.getInputFromPort('Fc')
+            val = self.get_input('Fc')
             kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            val = self.getInputFromPort('NFFT')
+            val = self.get_input('NFFT')
             kwargs['NFFT'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            val = self.getInputFromPort('sides')
+            val = self.get_input('sides')
             kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            val = self.getInputFromPort('noverlap')
+            val = self.get_input('noverlap')
             kwargs['noverlap'] = val
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             properties.update_kwargs(kwargs)
 
         matplotlib.pyplot.psd(*args, **kwargs)        
@@ -3444,66 +3444,66 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # write out translations
         args = []
         if self.hasInputFromPort('X'):
-            val = self.getInputFromPort('X')
+            val = self.get_input('X')
             args.append(val)
         if self.hasInputFromPort('Y'):
-            val = self.getInputFromPort('Y')
+            val = self.get_input('Y')
             args.append(val)
-        val = self.getInputFromPort('U')
+        val = self.get_input('U')
         args.append(val)
-        val = self.getInputFromPort('V')
+        val = self.get_input('V')
         args.append(val)
         if self.hasInputFromPort('C'):
-            val = self.getInputFromPort('C')
+            val = self.get_input('C')
             args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('headaxislength'):
-            val = self.getInputFromPort('headaxislength')
+            val = self.get_input('headaxislength')
             kwargs['headaxislength'] = val
         if self.hasInputFromPort('scale'):
-            val = self.getInputFromPort('scale')
+            val = self.get_input('scale')
             kwargs['scale'] = val
         if self.hasInputFromPort('width'):
-            val = self.getInputFromPort('width')
+            val = self.get_input('width')
             kwargs['width'] = val
         if self.hasInputFromPort('headlength'):
-            val = self.getInputFromPort('headlength')
+            val = self.get_input('headlength')
             kwargs['headlength'] = val
         if self.hasInputFromPort('minlength'):
-            val = self.getInputFromPort('minlength')
+            val = self.get_input('minlength')
             kwargs['minlength'] = val
         if self.hasInputFromPort('minshaft'):
-            val = self.getInputFromPort('minshaft')
+            val = self.get_input('minshaft')
             kwargs['minshaft'] = val
         if self.hasInputFromPort('pivot'):
-            val = self.getInputFromPort('pivot')
+            val = self.get_input('pivot')
             kwargs['pivot'] = val
         if self.hasInputFromPort('unitsSequence'):
-            val = self.getInputFromPort('unitsSequence')
+            val = self.get_input('unitsSequence')
             kwargs['units'] = val
         elif self.hasInputFromPort('unitsScalar'):
-            val = self.getInputFromPort('unitsScalar')
+            val = self.get_input('unitsScalar')
             kwargs['units'] = val
         if self.hasInputFromPort('headwidth'):
-            val = self.getInputFromPort('headwidth')
+            val = self.get_input('headwidth')
             kwargs['headwidth'] = val
         if self.hasInputFromPort('angles'):
-            val = self.getInputFromPort('angles')
+            val = self.get_input('angles')
             kwargs['angles'] = val
         if self.hasInputFromPort('scale_units'):
-            val = self.getInputFromPort('scale_units')
+            val = self.get_input('scale_units')
             kwargs['scale_units'] = val
         if self.hasInputFromPort('colorSequence'):
-            val = self.getInputFromPort('colorSequence')
+            val = self.get_input('colorSequence')
             kwargs['color'] = val
         elif self.hasInputFromPort('colorScalar'):
-            val = self.getInputFromPort('colorScalar')
+            val = self.get_input('colorScalar')
             kwargs['color'] = val
 
         polyCollection = matplotlib.pyplot.quiver(*args, **kwargs)
         if self.hasInputFromPort('polyCollectionProperties'):
-            properties = self.getInputFromPort('polyCollectionProperties')
+            properties = self.get_input('polyCollectionProperties')
             if polyCollection is not None:
                 properties.update_props(polyCollection)
 
@@ -3568,37 +3568,37 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('color'):
-            val = self.getInputFromPort('color')
+            val = self.get_input('color')
             val = translate_color(val)
             kwargs['color'] = val
         if self.hasInputFromPort('coordinatesSequence'):
-            val = self.getInputFromPort('coordinatesSequence')
+            val = self.get_input('coordinatesSequence')
             kwargs['coordinates'] = val
         elif self.hasInputFromPort('coordinatesScalar'):
-            val = self.getInputFromPort('coordinatesScalar')
+            val = self.get_input('coordinatesScalar')
             kwargs['coordinates'] = val
-        val = self.getInputFromPort('label')
+        val = self.get_input('label')
         kwargs['label'] = val
-        val = self.getInputFromPort('Q')
+        val = self.get_input('Q')
         kwargs['Q'] = val
         if self.hasInputFromPort('labelcolor'):
-            val = self.getInputFromPort('labelcolor')
+            val = self.get_input('labelcolor')
             val = translate_color(val)
             kwargs['labelcolor'] = val
         if self.hasInputFromPort('fontproperties'):
-            val = self.getInputFromPort('fontproperties')
+            val = self.get_input('fontproperties')
             kwargs['fontproperties'] = val
-        val = self.getInputFromPort('U')
+        val = self.get_input('U')
         kwargs['U'] = val
         if self.hasInputFromPort('labelpos'):
-            val = self.getInputFromPort('labelpos')
+            val = self.get_input('labelpos')
             kwargs['labelpos'] = val
-        val = self.getInputFromPort('Y')
+        val = self.get_input('Y')
         kwargs['Y'] = val
-        val = self.getInputFromPort('X')
+        val = self.get_input('X')
         kwargs['X'] = val
         if self.hasInputFromPort('labelsep'):
-            val = self.getInputFromPort('labelsep')
+            val = self.get_input('labelsep')
             kwargs['labelsep'] = val
 
         matplotlib.pyplot.quiverkey(*args, **kwargs)        
@@ -3686,58 +3686,58 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('vmax'):
-            val = self.getInputFromPort('vmax')
+            val = self.get_input('vmax')
             kwargs['vmax'] = val
         if self.hasInputFromPort('edgecolors'):
-            val = self.getInputFromPort('edgecolors')
+            val = self.get_input('edgecolors')
             kwargs['edgecolors'] = val
         if self.hasInputFromPort('cSequence'):
-            val = self.getInputFromPort('cSequence')
+            val = self.get_input('cSequence')
             kwargs['c'] = val
         elif self.hasInputFromPort('cScalar'):
-            val = self.getInputFromPort('cScalar')
+            val = self.get_input('cScalar')
             kwargs['c'] = val
         if self.hasInputFromPort('vmin'):
-            val = self.getInputFromPort('vmin')
+            val = self.get_input('vmin')
             kwargs['vmin'] = val
         if self.hasInputFromPort('faceted'):
-            val = self.getInputFromPort('faceted')
+            val = self.get_input('faceted')
             kwargs['faceted'] = val
         if self.hasInputFromPort('linewidths'):
-            val = self.getInputFromPort('linewidths')
+            val = self.get_input('linewidths')
             kwargs['linewidths'] = val
         if self.hasInputFromPort('marker'):
-            val = self.getInputFromPort('marker')
+            val = self.get_input('marker')
             kwargs['marker'] = val
         if self.hasInputFromPort('s'):
-            val = self.getInputFromPort('s')
+            val = self.get_input('s')
             kwargs['s'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('verts'):
-            val = self.getInputFromPort('verts')
+            val = self.get_input('verts')
             kwargs['verts'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('facecolors'):
-            val = self.getInputFromPort('facecolors')
+            val = self.get_input('facecolors')
             kwargs['facecolors'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         pathCollection = matplotlib.pyplot.scatter(*args, **kwargs)
         if self.hasInputFromPort('pathCollectionProperties'):
-            properties = self.getInputFromPort('pathCollectionProperties')
+            properties = self.get_input('pathCollectionProperties')
             if pathCollection is not None:
                 properties.update_props(pathCollection)
 
@@ -3787,28 +3787,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         args.append(val)
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('basex'):
-            val = self.getInputFromPort('basex')
+            val = self.get_input('basex')
             kwargs['basex'] = val
         if self.hasInputFromPort('nonposx'):
-            val = self.getInputFromPort('nonposx')
+            val = self.get_input('nonposx')
             kwargs['nonposx'] = val
         if self.hasInputFromPort('subsxSequence'):
-            val = self.getInputFromPort('subsxSequence')
+            val = self.get_input('subsxSequence')
             kwargs['subsx'] = val
         elif self.hasInputFromPort('subsxScalar'):
-            val = self.getInputFromPort('subsxScalar')
+            val = self.get_input('subsxScalar')
             kwargs['subsx'] = val
 
         lines = matplotlib.pyplot.semilogx(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
@@ -3858,28 +3858,28 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         args.append(val)
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('basey'):
-            val = self.getInputFromPort('basey')
+            val = self.get_input('basey')
             kwargs['basey'] = val
         if self.hasInputFromPort('nonposy'):
-            val = self.getInputFromPort('nonposy')
+            val = self.get_input('nonposy')
             kwargs['nonposy'] = val
         if self.hasInputFromPort('subsySequence'):
-            val = self.getInputFromPort('subsySequence')
+            val = self.get_input('subsySequence')
             kwargs['subsy'] = val
         elif self.hasInputFromPort('subsyScalar'):
-            val = self.getInputFromPort('subsyScalar')
+            val = self.get_input('subsyScalar')
             kwargs['subsy'] = val
 
         lines = matplotlib.pyplot.semilogy(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
@@ -3956,42 +3956,42 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('Fs'):
-            val = self.getInputFromPort('Fs')
+            val = self.get_input('Fs')
             kwargs['Fs'] = val
         if self.hasInputFromPort('pad_to'):
-            val = self.getInputFromPort('pad_to')
+            val = self.get_input('pad_to')
             kwargs['pad_to'] = val
         if self.hasInputFromPort('scale_by_freq'):
-            val = self.getInputFromPort('scale_by_freq')
+            val = self.get_input('scale_by_freq')
             kwargs['scale_by_freq'] = val
         if self.hasInputFromPort('xextent'):
-            val = self.getInputFromPort('xextent')
+            val = self.get_input('xextent')
             kwargs['xextent'] = val
         if self.hasInputFromPort('detrend'):
-            val = self.getInputFromPort('detrend')
+            val = self.get_input('detrend')
             kwargs['detrend'] = val
         if self.hasInputFromPort('window'):
-            val = self.getInputFromPort('window')
+            val = self.get_input('window')
             kwargs['window'] = val
         if self.hasInputFromPort('Fc'):
-            val = self.getInputFromPort('Fc')
+            val = self.get_input('Fc')
             kwargs['Fc'] = val
         if self.hasInputFromPort('NFFT'):
-            val = self.getInputFromPort('NFFT')
+            val = self.get_input('NFFT')
             kwargs['NFFT'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('sides'):
-            val = self.getInputFromPort('sides')
+            val = self.get_input('sides')
             kwargs['sides'] = val
         if self.hasInputFromPort('noverlap'):
-            val = self.getInputFromPort('noverlap')
+            val = self.get_input('noverlap')
             kwargs['noverlap'] = val
 
         matplotlib.pyplot.specgram(*args, **kwargs)        
@@ -4026,10 +4026,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
         args = []
 
         kwargs = {}
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             val = translate_color(val)
             kwargs['colors'] = val
 
@@ -4088,26 +4088,26 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('bottom'):
-            val = self.getInputFromPort('bottom')
+            val = self.get_input('bottom')
             kwargs['bottom'] = val
         if self.hasInputFromPort('label'):
-            val = self.getInputFromPort('label')
+            val = self.get_input('label')
             kwargs['label'] = val
         if self.hasInputFromPort('linefmt'):
-            val = self.getInputFromPort('linefmt')
+            val = self.get_input('linefmt')
             kwargs['linefmt'] = val
         if self.hasInputFromPort('markerfmt'):
-            val = self.getInputFromPort('markerfmt')
+            val = self.get_input('markerfmt')
             kwargs['markerfmt'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('basefmt'):
-            val = self.getInputFromPort('basefmt')
+            val = self.get_input('basefmt')
             kwargs['basefmt'] = val
 
         output = matplotlib.pyplot.stem(*args, **kwargs)        
@@ -4115,15 +4115,15 @@ Additional kwargs: hold = [True|False] overrides default hold state
         stemlines = output[1]
         baseline = output[2]
         if self.hasInputFromPort('stemlineProperties'):
-            properties = self.getInputFromPort('stemlineProperties')
+            properties = self.get_input('stemlineProperties')
             if stemlines is not None:
                 properties.update_props(stemlines)
         if self.hasInputFromPort('markerlineProperties'):
-            properties = self.getInputFromPort('markerlineProperties')
+            properties = self.get_input('markerlineProperties')
             if markerline is not None:
                 properties.update_props(markerline)
         if self.hasInputFromPort('baselineProperties'):
-            properties = self.getInputFromPort('baselineProperties')
+            properties = self.get_input('baselineProperties')
             if baseline is not None:
                 properties.update_props(baseline)
 
@@ -4163,19 +4163,19 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         args.append(val)
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('where'):
-            val = self.getInputFromPort('where')
+            val = self.get_input('where')
             kwargs['where'] = val
 
         lines = matplotlib.pyplot.step(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
@@ -4230,42 +4230,42 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('arrowstyle'):
-            val = self.getInputFromPort('arrowstyle')
+            val = self.get_input('arrowstyle')
             kwargs['arrowstyle'] = val
         if self.hasInputFromPort('density'):
-            val = self.getInputFromPort('density')
+            val = self.get_input('density')
             kwargs['density'] = val
         if self.hasInputFromPort('color'):
-            val = self.getInputFromPort('color')
+            val = self.get_input('color')
             kwargs['color'] = val
         if self.hasInputFromPort('minlength'):
-            val = self.getInputFromPort('minlength')
+            val = self.get_input('minlength')
             kwargs['minlength'] = val
         if self.hasInputFromPort('transform'):
-            val = self.getInputFromPort('transform')
+            val = self.get_input('transform')
             kwargs['transform'] = val
         if self.hasInputFromPort('arrowsize'):
-            val = self.getInputFromPort('arrowsize')
+            val = self.get_input('arrowsize')
             kwargs['arrowsize'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
-        val = self.getInputFromPort('u')
+        val = self.get_input('u')
         kwargs['u'] = val
-        val = self.getInputFromPort('v')
+        val = self.get_input('v')
         kwargs['v'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('linewidth'):
-            val = self.getInputFromPort('linewidth')
+            val = self.get_input('linewidth')
             kwargs['linewidth'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         matplotlib.pyplot.streamplot(*args, **kwargs)        
@@ -4371,38 +4371,38 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('origin'):
-            val = self.getInputFromPort('origin')
+            val = self.get_input('origin')
             kwargs['origin'] = val
         if self.hasInputFromPort('linestyles'):
-            val = self.getInputFromPort('linestyles')
+            val = self.get_input('linestyles')
             kwargs['linestyles'] = val
         if self.hasInputFromPort('levelsSequence'):
-            val = self.getInputFromPort('levelsSequence')
+            val = self.get_input('levelsSequence')
             kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            val = self.getInputFromPort('levelsScalar')
+            val = self.get_input('levelsScalar')
             kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            val = self.getInputFromPort('linewidths')
+            val = self.get_input('linewidths')
             kwargs['linewidths'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             val = translate_color(val)
             kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('antialiased'):
-            val = self.getInputFromPort('antialiased')
+            val = self.get_input('antialiased')
             kwargs['antialiased'] = val
         if self.hasInputFromPort('nchunk'):
-            val = self.getInputFromPort('nchunk')
+            val = self.get_input('nchunk')
             kwargs['nchunk'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         matplotlib.pyplot.tricontour(*args, **kwargs)        
@@ -4508,38 +4508,38 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('origin'):
-            val = self.getInputFromPort('origin')
+            val = self.get_input('origin')
             kwargs['origin'] = val
         if self.hasInputFromPort('linestyles'):
-            val = self.getInputFromPort('linestyles')
+            val = self.get_input('linestyles')
             kwargs['linestyles'] = val
         if self.hasInputFromPort('levelsSequence'):
-            val = self.getInputFromPort('levelsSequence')
+            val = self.get_input('levelsSequence')
             kwargs['levels'] = val
         elif self.hasInputFromPort('levelsScalar'):
-            val = self.getInputFromPort('levelsScalar')
+            val = self.get_input('levelsScalar')
             kwargs['levels'] = val
         if self.hasInputFromPort('linewidths'):
-            val = self.getInputFromPort('linewidths')
+            val = self.get_input('linewidths')
             kwargs['linewidths'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             val = translate_color(val)
             kwargs['colors'] = val
         if self.hasInputFromPort('cmap'):
-            val = self.getInputFromPort('cmap')
+            val = self.get_input('cmap')
             kwargs['cmap'] = val
         if self.hasInputFromPort('antialiased'):
-            val = self.getInputFromPort('antialiased')
+            val = self.get_input('antialiased')
             kwargs['antialiased'] = val
         if self.hasInputFromPort('nchunk'):
-            val = self.getInputFromPort('nchunk')
+            val = self.get_input('nchunk')
             kwargs['nchunk'] = val
         if self.hasInputFromPort('alpha'):
-            val = self.getInputFromPort('alpha')
+            val = self.get_input('alpha')
             kwargs['alpha'] = val
         if self.hasInputFromPort('norm'):
-            val = self.getInputFromPort('norm')
+            val = self.get_input('norm')
             kwargs['norm'] = val
 
         matplotlib.pyplot.tricontourf(*args, **kwargs)        
@@ -4677,25 +4677,25 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
-        val = self.getInputFromPort('ymax')
+        val = self.get_input('ymax')
         kwargs['ymax'] = val
         if self.hasInputFromPort('linestyles'):
-            val = self.getInputFromPort('linestyles')
+            val = self.get_input('linestyles')
             kwargs['linestyles'] = val
         if self.hasInputFromPort('color'):
-            val = self.getInputFromPort('color')
+            val = self.get_input('color')
             kwargs['color'] = val
         if self.hasInputFromPort('label'):
-            val = self.getInputFromPort('label')
+            val = self.get_input('label')
             kwargs['label'] = val
         if self.hasInputFromPort('colors'):
-            val = self.getInputFromPort('colors')
+            val = self.get_input('colors')
             kwargs['colors'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
-        val = self.getInputFromPort('ymin')
+        val = self.get_input('ymin')
         kwargs['ymin'] = val
 
         matplotlib.pyplot.vlines(*args, **kwargs)        
@@ -4769,23 +4769,23 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('normed'):
-            val = self.getInputFromPort('normed')
+            val = self.get_input('normed')
             kwargs['normed'] = val
         if self.hasInputFromPort('usevlines'):
-            val = self.getInputFromPort('usevlines')
+            val = self.get_input('usevlines')
             kwargs['usevlines'] = val
         if self.hasInputFromPort('detrend'):
-            val = self.getInputFromPort('detrend')
+            val = self.get_input('detrend')
             kwargs['detrend'] = val
         if self.hasInputFromPort('maxlags'):
-            val = self.getInputFromPort('maxlags')
+            val = self.get_input('maxlags')
             kwargs['maxlags'] = val
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         kwargs['y'] = val
-        val = self.getInputFromPort('x')
+        val = self.get_input('x')
         kwargs['x'] = val
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
 
         output = matplotlib.pyplot.xcorr(*args, **kwargs)        
@@ -4797,15 +4797,15 @@ Additional kwargs: hold = [True|False] overrides default hold state
         xaxis = output[3]
         lineCollection = output[4]
         if self.hasInputFromPort('lineCollectionProperties'):
-            properties = self.getInputFromPort('lineCollectionProperties')
+            properties = self.get_input('lineCollectionProperties')
             if lineCollection is not None:
                 properties.update_props(lineCollection)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
         if self.hasInputFromPort('xaxisProperties'):
-            properties = self.getInputFromPort('xaxisProperties')
+            properties = self.get_input('xaxisProperties')
             if xaxis is not None:
                 properties.update_props(xaxis)
 
@@ -4896,62 +4896,62 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # write out translations
         args = []
         if self.hasInputFromPort('X'):
-            val = self.getInputFromPort('X')
+            val = self.get_input('X')
             args.append(val)
         if self.hasInputFromPort('Y'):
-            val = self.getInputFromPort('Y')
+            val = self.get_input('Y')
             args.append(val)
-        val = self.getInputFromPort('U')
+        val = self.get_input('U')
         args.append(val)
-        val = self.getInputFromPort('V')
+        val = self.get_input('V')
         args.append(val)
         if self.hasInputFromPort('C'):
-            val = self.getInputFromPort('C')
+            val = self.get_input('C')
             args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('barbcolor'):
-            val = self.getInputFromPort('barbcolor')
+            val = self.get_input('barbcolor')
             val = translate_color(val)
             kwargs['barbcolor'] = val
         elif self.hasInputFromPort('barbcolorSequence'):
-            val = self.getInputFromPort('barbcolorSequence')
+            val = self.get_input('barbcolorSequence')
             kwargs['barbcolor'] = val
         if self.hasInputFromPort('sizes'):
-            val = self.getInputFromPort('sizes')
+            val = self.get_input('sizes')
             kwargs['sizes'] = val
         if self.hasInputFromPort('rounding'):
-            val = self.getInputFromPort('rounding')
+            val = self.get_input('rounding')
             kwargs['rounding'] = val
         if self.hasInputFromPort('pivot'):
-            val = self.getInputFromPort('pivot')
+            val = self.get_input('pivot')
             kwargs['pivot'] = val
         if self.hasInputFromPort('flip_barb'):
-            val = self.getInputFromPort('flip_barb')
+            val = self.get_input('flip_barb')
             kwargs['flip_barb'] = val
         elif self.hasInputFromPort('flip_barbSequence'):
-            val = self.getInputFromPort('flip_barbSequence')
+            val = self.get_input('flip_barbSequence')
             kwargs['flip_barb'] = val
         if self.hasInputFromPort('length'):
-            val = self.getInputFromPort('length')
+            val = self.get_input('length')
             kwargs['length'] = val
         if self.hasInputFromPort('barb_increments'):
-            val = self.getInputFromPort('barb_increments')
+            val = self.get_input('barb_increments')
             kwargs['barb_increments'] = val
         if self.hasInputFromPort('flagcolor'):
-            val = self.getInputFromPort('flagcolor')
+            val = self.get_input('flagcolor')
             val = translate_color(val)
             kwargs['flagcolor'] = val
         elif self.hasInputFromPort('flagcolorSequence'):
-            val = self.getInputFromPort('flagcolorSequence')
+            val = self.get_input('flagcolorSequence')
             kwargs['flagcolor'] = val
         if self.hasInputFromPort('fill_empty'):
-            val = self.getInputFromPort('fill_empty')
+            val = self.get_input('fill_empty')
             kwargs['fill_empty'] = val
 
         polyCollection = matplotlib.pyplot.barbs(*args, **kwargs)
         if self.hasInputFromPort('polyCollectionProperties'):
-            properties = self.getInputFromPort('polyCollectionProperties')
+            properties = self.get_input('polyCollectionProperties')
             if polyCollection is not None:
                 properties.update_props(polyCollection)
 
@@ -5038,21 +5038,21 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
         if self.hasInputFromPort('hold'):
-            val = self.getInputFromPort('hold')
+            val = self.get_input('hold')
             kwargs['hold'] = val
         if self.hasInputFromPort('markersize'):
-            val = self.getInputFromPort('markersize')
+            val = self.get_input('markersize')
             kwargs['markersize'] = val
         if self.hasInputFromPort('precision'):
-            val = self.getInputFromPort('precision')
+            val = self.get_input('precision')
             kwargs['precision'] = val
         if self.hasInputFromPort('aspect'):
-            val = self.getInputFromPort('aspect')
+            val = self.get_input('aspect')
             kwargs['aspect'] = val
         if self.hasInputFromPort('marker'):
-            val = self.getInputFromPort('marker')
+            val = self.get_input('marker')
             kwargs['marker'] = val
-        val = self.getInputFromPort('Z')
+        val = self.get_input('Z')
         kwargs['Z'] = val
 
         output = matplotlib.pyplot.spy(*args, **kwargs)        
@@ -5064,11 +5064,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         image = output[0]
         marks = output[1]
         if self.hasInputFromPort('imageProperties'):
-            properties = self.getInputFromPort('imageProperties')
+            properties = self.get_input('imageProperties')
             if image is not None:
                 properties.update_props(image)
         if self.hasInputFromPort('marksProperties'):
-            properties = self.getInputFromPort('marksProperties')
+            properties = self.get_input('marksProperties')
             if marks is not None:
                 properties.update_props(marks)
 
@@ -5100,16 +5100,16 @@ Multiple theta, r arguments are supported, with format strings, as in :func:`~ma
         # get args into args, kwargs
         # write out translations
         args = []
-        val = self.getInputFromPort('theta')
+        val = self.get_input('theta')
         args.append(val)
-        val = self.getInputFromPort('r')
+        val = self.get_input('r')
         args.append(val)
 
         kwargs = {}
 
         lines = matplotlib.pyplot.polar(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
@@ -5236,68 +5236,68 @@ Example:
 
         kwargs = {}
         if self.hasInputFromPort('loc'):
-            val = self.getInputFromPort('loc')
+            val = self.get_input('loc')
             val = translate_MplLegend_loc(val)
             kwargs['loc'] = val
         if self.hasInputFromPort('fancybox'):
-            val = self.getInputFromPort('fancybox')
+            val = self.get_input('fancybox')
             kwargs['fancybox'] = val
         if self.hasInputFromPort('bbox_to_anchor'):
-            val = self.getInputFromPort('bbox_to_anchor')
+            val = self.get_input('bbox_to_anchor')
             kwargs['bbox_to_anchor'] = val
         if self.hasInputFromPort('title'):
-            val = self.getInputFromPort('title')
+            val = self.get_input('title')
             kwargs['title'] = val
         if self.hasInputFromPort('handlelength'):
-            val = self.getInputFromPort('handlelength')
+            val = self.get_input('handlelength')
             kwargs['handlelength'] = val
         if self.hasInputFromPort('markerscale'):
-            val = self.getInputFromPort('markerscale')
+            val = self.get_input('markerscale')
             kwargs['markerscale'] = val
         if self.hasInputFromPort('numpoints'):
-            val = self.getInputFromPort('numpoints')
+            val = self.get_input('numpoints')
             kwargs['numpoints'] = val
         if self.hasInputFromPort('labelspacing'):
-            val = self.getInputFromPort('labelspacing')
+            val = self.get_input('labelspacing')
             kwargs['labelspacing'] = val
         if self.hasInputFromPort('scatterpoints'):
-            val = self.getInputFromPort('scatterpoints')
+            val = self.get_input('scatterpoints')
             kwargs['scatterpoints'] = val
         if self.hasInputFromPort('frameon'):
-            val = self.getInputFromPort('frameon')
+            val = self.get_input('frameon')
             kwargs['frameon'] = val
         if self.hasInputFromPort('columnspacing'):
-            val = self.getInputFromPort('columnspacing')
+            val = self.get_input('columnspacing')
             kwargs['columnspacing'] = val
         if self.hasInputFromPort('handletextpad'):
-            val = self.getInputFromPort('handletextpad')
+            val = self.get_input('handletextpad')
             kwargs['handletextpad'] = val
         if self.hasInputFromPort('scatteroffsetsSequence'):
-            val = self.getInputFromPort('scatteroffsetsSequence')
+            val = self.get_input('scatteroffsetsSequence')
             kwargs['scatteroffsets'] = val
         elif self.hasInputFromPort('scatteroffsetsScalar'):
-            val = self.getInputFromPort('scatteroffsetsScalar')
+            val = self.get_input('scatteroffsetsScalar')
             kwargs['scatteroffsets'] = val
         if self.hasInputFromPort('mode'):
-            val = self.getInputFromPort('mode')
+            val = self.get_input('mode')
             kwargs['mode'] = val
         if self.hasInputFromPort('ncol'):
-            val = self.getInputFromPort('ncol')
+            val = self.get_input('ncol')
             kwargs['ncol'] = val
         if self.hasInputFromPort('shadow'):
-            val = self.getInputFromPort('shadow')
+            val = self.get_input('shadow')
             kwargs['shadow'] = val
         if self.hasInputFromPort('prop'):
-            val = self.getInputFromPort('prop')
+            val = self.get_input('prop')
             kwargs['prop'] = val
         if self.hasInputFromPort('borderpad'):
-            val = self.getInputFromPort('borderpad')
+            val = self.get_input('borderpad')
             kwargs['borderpad'] = val
         if self.hasInputFromPort('bbox_transform'):
-            val = self.getInputFromPort('bbox_transform')
+            val = self.get_input('bbox_transform')
             kwargs['bbox_transform'] = val
         if self.hasInputFromPort('borderaxespad'):
-            val = self.getInputFromPort('borderaxespad')
+            val = self.get_input('borderaxespad')
             kwargs['borderaxespad'] = val
 
         matplotlib.pyplot.legend(*args, **kwargs)        
@@ -5365,28 +5365,28 @@ Additional kwargs are Text properties:
 
         kwargs = {}
         if self.hasInputFromPort('xycoords'):
-            val = self.getInputFromPort('xycoords')
+            val = self.get_input('xycoords')
             kwargs['xycoords'] = val
         if self.hasInputFromPort('xytext'):
-            val = self.getInputFromPort('xytext')
+            val = self.get_input('xytext')
             kwargs['xytext'] = val
-        val = self.getInputFromPort('s')
+        val = self.get_input('s')
         kwargs['s'] = val
-        val = self.getInputFromPort('xy')
+        val = self.get_input('xy')
         kwargs['xy'] = val
         if self.hasInputFromPort('textcoords'):
-            val = self.getInputFromPort('textcoords')
+            val = self.get_input('textcoords')
             kwargs['textcoords'] = val
 
         if self.hasInputFromPort("fancyArrowProperties"):
             kwargs['arrowprops'] = \
-                self.getInputFromPort("fancyArrowProperties").props
+                self.get_input("fancyArrowProperties").props
         elif self.hasInputFromPort("arrowProperties"):
             kwargs['arrowprops'] = \
-                self.getInputFromPort("arrowProperties").props
+                self.get_input("arrowProperties").props
         annotation = matplotlib.pyplot.annotate(*args, **kwargs)
         if self.hasInputFromPort('annotationProperties'):
-            properties = self.getInputFromPort('annotationProperties')
+            properties = self.get_input('annotationProperties')
             if annotation is not None:
                 properties.update_props(annotation)
 
@@ -5459,20 +5459,20 @@ Additional kwargs: hold = [True|False] overrides default hold state
         # write out translations
         args = []
         if self.hasInputFromPort('x'):
-            val = self.getInputFromPort('x')
+            val = self.get_input('x')
             args.append(val)
-        val = self.getInputFromPort('y')
+        val = self.get_input('y')
         args.append(val)
 
         kwargs = {}
         if self.hasInputFromPort('marker'):
-            val = self.getInputFromPort('marker')
+            val = self.get_input('marker')
             val = translate_MplLinePlot_marker(val)
             kwargs['marker'] = val
 
         lines = matplotlib.pyplot.plot(*args, **kwargs)
         if self.hasInputFromPort('lineProperties'):
-            properties = self.getInputFromPort('lineProperties')
+            properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 

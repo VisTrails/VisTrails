@@ -86,7 +86,7 @@ class InputPort(Module):
         else:
             if self.hasInputFromPort('Default'):
                 self.setResult('InternalPipe',
-                               self.getInputFromPort('Default'))
+                               self.get_input('Default'))
             else:
                 self.setResult('InternalPipe', InvalidOutput)
 
@@ -100,7 +100,7 @@ class OutputPort(Module):
     _output_ports = [OPort("ExternalPipe", "Variant", optional=True)]
     
     def compute(self):
-        inPipe = self.getInputFromPort('InternalPipe')
+        inPipe = self.get_input('InternalPipe')
         self.setResult('ExternalPipe', inPipe)
     
 ###############################################################################

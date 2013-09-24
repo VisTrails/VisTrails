@@ -56,10 +56,10 @@ class Macet(Module):
         self.checkInputPort('input_file')
         self.checkInputPort('iso_value')
         
-        input_file = self.getInputFromPort('input_file')
+        input_file = self.get_input('input_file')
         output_file = self.interpreter.filePool.create_file(suffix='.off')
 
-        iso_value = self.getInputFromPort('iso_value')
+        iso_value = self.get_input('iso_value')
 
         values = [get_path(), input_file.name,
                   str(iso_value), output_file.name, '-isCombined']
@@ -77,10 +77,10 @@ class MarchingCubes(Module):
         self.checkInputPort('input_file')
         self.checkInputPort('iso_value')
         
-        input_file = self.getInputFromPort('input_file')
+        input_file = self.get_input('input_file')
         output_file = self.interpreter.filePool.create_file(suffix='.off')
 
-        iso_value = self.getInputFromPort('iso_value')
+        iso_value = self.get_input('iso_value')
 
         values = [get_path(), input_file.name,
                   str(iso_value), output_file.name]

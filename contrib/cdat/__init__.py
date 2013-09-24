@@ -122,7 +122,7 @@ class boxfill(SpreadsheetCell,NotCacheable):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
             print 'got canvas'
             print canvas
         else:
@@ -133,7 +133,7 @@ class boxfill(SpreadsheetCell,NotCacheable):
         args = []        
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
             args.append(slab)
         # slab is a required port
         if slab is None:
@@ -141,7 +141,7 @@ class boxfill(SpreadsheetCell,NotCacheable):
 
         template = None
         if self.hasInputFromPort('template'):
-            template = self.getInputFromPort('template')
+            template = self.get_input('template')
             args.append(template)
         # template is a required port
         if template is None:
@@ -151,7 +151,7 @@ class boxfill(SpreadsheetCell,NotCacheable):
 
         gm_name = None
         if self.hasInputFromPort('gm_name'):
-            gm_name = self.getInputFromPort('gm_name')
+            gm_name = self.get_input('gm_name')
             args.append(gm_name)
         # gm_name is a required port
         if gm_name is None:
@@ -160,111 +160,111 @@ class boxfill(SpreadsheetCell,NotCacheable):
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
             
         # force images to be created in the background
         # kwargs['bg'] = 1
@@ -312,133 +312,133 @@ class createboxfill(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
             
         source_GM_name = None
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         gm = canvas.createboxfill(*args,**kwargs)
         self.setResult('boxfill', gm)
@@ -475,133 +475,133 @@ class createisofill(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
 
         source_GM_name = None
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createisofill(*args,**kwargs)
@@ -640,133 +640,133 @@ class createisoline(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
         source_GM_name = None
 
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createisoline(*args,**kwargs)
@@ -805,134 +805,134 @@ class createoutfill(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
             
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
         
         source_GM_name = None
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createoutfill(*args,**kwargs)
@@ -971,133 +971,133 @@ class createoutline(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
         source_GM_name = None
 
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createoutline(*args,**kwargs)
@@ -1135,133 +1135,133 @@ class createscatter(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
 
         source_GM_name = None
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createscatter(*args,**kwargs)
@@ -1299,133 +1299,133 @@ class createxvsy(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
         source_GM_name = None
 
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createxvsy(*args,**kwargs)
@@ -1464,133 +1464,133 @@ class createxyvsy(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
         source_GM_name = None
 
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createxyvsy(*args,**kwargs)
@@ -1629,133 +1629,133 @@ class createyxvsx(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         new_GM_name = None
         if self.hasInputFromPort('new_GM_name'):
-            new_GM_name = self.getInputFromPort('new_GM_name')
+            new_GM_name = self.get_input('new_GM_name')
             args.append(new_GM_name)
         source_GM_name = None
 
         if self.hasInputFromPort('source_GM_name'):
-            source_GM_name = self.getInputFromPort('source_GM_name')
+            source_GM_name = self.get_input('source_GM_name')
             args.append(source_GM_name)
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
         self.setResult('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         #kwargs['bg'] = 1
 
@@ -1792,124 +1792,124 @@ class getboxfill(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getboxfill(*args)
         self.setResult('boxfill',res)
@@ -1944,123 +1944,123 @@ class getisofill(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getisofill(*args)
         
@@ -2096,123 +2096,123 @@ class getisoline(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getisoline(*args)
         self.setResult('isoline',res)
@@ -2248,123 +2248,123 @@ class getoutfill(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getoutfill(*args,**kwargs)
         self.setResult('outfill',res)
@@ -2400,123 +2400,123 @@ class getoutline(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getoutline(*args)
         self.setResult('outline',res)
@@ -2552,123 +2552,123 @@ class getscatter(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getscatter(*args)
         self.setResult('scatter',res)
@@ -2704,123 +2704,123 @@ class getxvsy(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getxvsy(*args)
         self.setResult('xvsy',res)
@@ -2855,123 +2855,123 @@ class getxyvsy(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getxyvsy(*args)
         self.setResult('xyvsy',res)
@@ -3006,123 +3006,123 @@ class getyxvsx(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         GM_name = None
         if self.hasInputFromPort('GM_name'):
-            GM_name = self.getInputFromPort('GM_name')
+            GM_name = self.get_input('GM_name')
             args.append(GM_name)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getyxvsx(*args,**kwargs)
         self.setResult('yxvsx',res)
@@ -3156,19 +3156,19 @@ class isofill(Module,NotCacheable):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
             
         args = []
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
             args.append(slab)
             
         template = None
         if self.hasInputFromPort('template'):
-            template = self.getInputFromPort('template')
+            template = self.get_input('template')
             args.append(template)
         # template is a required port
         if template is None:
@@ -3178,7 +3178,7 @@ class isofill(Module,NotCacheable):
 
         gm_name = None
         if self.hasInputFromPort('gm_name'):
-            gm_name = self.getInputFromPort('gm_name')
+            gm_name = self.get_input('gm_name')
             args.append(gm_name)
         # gm_name is a required port
         if gm_name is None:
@@ -3187,111 +3187,111 @@ class isofill(Module,NotCacheable):
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.isofill(*args,**kwargs)
@@ -3326,19 +3326,19 @@ class isoline(Module,NotCacheable):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
             
         args = []
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
             args.append(slab)
 
         template = None
         if self.hasInputFromPort('template'):
-            template = self.getInputFromPort('template')
+            template = self.get_input('template')
             args.append(template)
         # template is a required port
         if template is None:
@@ -3348,7 +3348,7 @@ class isoline(Module,NotCacheable):
 
         gm_name = None
         if self.hasInputFromPort('gm_name'):
-            gm_name = self.getInputFromPort('gm_name')
+            gm_name = self.get_input('gm_name')
             args.append(gm_name)
         # gm_name is a required port
         if gm_name is None:
@@ -3357,111 +3357,111 @@ class isoline(Module,NotCacheable):
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.isoline(*args,**kwargs)
@@ -3496,19 +3496,19 @@ class outfill(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
 
         args = []
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
             args.append(slab)
 
         template = None
         if self.hasInputFromPort('template'):
-            template = self.getInputFromPort('template')
+            template = self.get_input('template')
             args.append(template)
         # template is a required port
         if template is None:
@@ -3518,7 +3518,7 @@ class outfill(Module):
 
         gm_name = None
         if self.hasInputFromPort('gm_name'):
-            gm_name = self.getInputFromPort('gm_name')
+            gm_name = self.get_input('gm_name')
             args.append(gm_name)
         # gm_name is a required port
         if gm_name is None:
@@ -3527,111 +3527,111 @@ class outfill(Module):
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.outfill(*args,**kwargs)
@@ -3666,19 +3666,19 @@ class outline(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
 
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
             args.append(slab)
 
         template = None
         if self.hasInputFromPort('template'):
-            template = self.getInputFromPort('template')
+            template = self.get_input('template')
             args.append(template)
         # template is a required port
         if template is None:
@@ -3688,7 +3688,7 @@ class outline(Module):
 
         gm_name = None
         if self.hasInputFromPort('gm_name'):
-            gm_name = self.getInputFromPort('gm_name')
+            gm_name = self.get_input('gm_name')
             args.append(gm_name)
         # gm_name is a required port
         if gm_name is None:
@@ -3697,111 +3697,111 @@ class outline(Module):
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.outline(*args,**kwargs)
@@ -3917,7 +3917,7 @@ class plot(SpreadsheetCell,NotCacheable):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
             
@@ -3925,23 +3925,23 @@ class plot(SpreadsheetCell,NotCacheable):
         args = []
         slab2 = None
         if self.hasInputFromPort('slab2_0'):
-            slab2 = self.getInputFromPort('slab2_0')
+            slab2 = self.get_input('slab2_0')
             args.append(slab2)
         slab1 = None
         if self.hasInputFromPort('slab1_0'):
-            slab1 = self.getInputFromPort('slab1_0')
+            slab1 = self.get_input('slab1_0')
             args.append(slab1)
         template = None
         if self.hasInputFromPort('template'):
-            template = self.getInputFromPort('template')
+            template = self.get_input('template')
             args.append(template)
         plot_type = None
         if self.hasInputFromPort('plot_type'):
-            plot_type = self.getInputFromPort('plot_type')
+            plot_type = self.get_input('plot_type')
             args.append(plot_type)
         gm_name = None
         if self.hasInputFromPort('gm_name'):
-            gm_name = self.getInputFromPort('gm_name')
+            gm_name = self.get_input('gm_name')
             args.append(gm_name)
 
         # slab1 is a required port
@@ -3960,118 +3960,118 @@ class plot(SpreadsheetCell,NotCacheable):
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
 
         # Set the cell row / col
         self.location = CellLocation()
         if self.hasInputFromPort('row'):
-            self.location.row = self.getInputFromPort('row')
+            self.location.row = self.get_input('row')
         if self.hasInputFromPort('col'):
-            self.location.col = self.getInputFromPort('col')            
+            self.location.col = self.get_input('col')            
 
         # Plot into the cell
         inputPorts = (canvas, args, kwargs)
@@ -4107,127 +4107,127 @@ class scatter(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         slab2 = None
         if self.hasInputFromPort('slab2_0'):
-            slab2 = self.getInputFromPort('slab2_0')
+            slab2 = self.get_input('slab2_0')
             args.append(slab2)
         slab1 = None
         if self.hasInputFromPort('slab1_0'):
-            slab1 = self.getInputFromPort('slab1_0')
+            slab1 = self.get_input('slab1_0')
             args.append(slab1)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.scatter(*args,**kwargs)
@@ -4262,127 +4262,127 @@ class xvsy(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         slab2 = None
         if self.hasInputFromPort('slab2_0'):
-            slab2 = self.getInputFromPort('slab2_0')
+            slab2 = self.get_input('slab2_0')
             args.append(slab2)
         slab1 = None
         if self.hasInputFromPort('slab1_0'):
-            slab1 = self.getInputFromPort('slab1_0')
+            slab1 = self.get_input('slab1_0')
             args.append(slab1)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('yaxisconvert'):
-            kwargs['yaxisconvert'] = self.getInputFromPort('yaxisconvert')
+            kwargs['yaxisconvert'] = self.get_input('yaxisconvert')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.xvsy(*args,**kwargs)
@@ -4417,121 +4417,121 @@ class xyvsy(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
             args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.xyvsy(*args,**kwargs)
@@ -4566,121 +4566,121 @@ class yxvsx(Module):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         slab = None
         if self.hasInputFromPort('slab_0'):
-            slab = self.getInputFromPort('slab_0')
+            slab = self.get_input('slab_0')
             args.append(slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
         if self.hasInputFromPort('datawc_timeunits'):
-            kwargs['datawc_timeunits'] = self.getInputFromPort('datawc_timeunits')
+            kwargs['datawc_timeunits'] = self.get_input('datawc_timeunits')
         if self.hasInputFromPort('long_name'):
-            kwargs['long_name'] = self.getInputFromPort('long_name')
+            kwargs['long_name'] = self.get_input('long_name')
         if self.hasInputFromPort('projection_0'):
-            kwargs['projection'] = self.getInputFromPort('projection_0')
+            kwargs['projection'] = self.get_input('projection_0')
         if self.hasInputFromPort('xticlabels2_0'):
-            kwargs['xticlabels2'] = self.getInputFromPort('xticlabels2_0')
+            kwargs['xticlabels2'] = self.get_input('xticlabels2_0')
         if self.hasInputFromPort('xarray_0'):
-            kwargs['xarray'] = self.getInputFromPort('xarray_0')
+            kwargs['xarray'] = self.get_input('xarray_0')
         if self.hasInputFromPort('yweights_0'):
-            kwargs['yweights'] = self.getInputFromPort('yweights_0')
+            kwargs['yweights'] = self.get_input('yweights_0')
         if self.hasInputFromPort('xweights_0'):
-            kwargs['xweights'] = self.getInputFromPort('xweights_0')
+            kwargs['xweights'] = self.get_input('xweights_0')
         if self.hasInputFromPort('warray_0'):
-            kwargs['warray'] = self.getInputFromPort('warray_0')
+            kwargs['warray'] = self.get_input('warray_0')
         if self.hasInputFromPort('tunits'):
-            kwargs['tunits'] = self.getInputFromPort('tunits')
+            kwargs['tunits'] = self.get_input('tunits')
         if self.hasInputFromPort('ymtics1_0'):
-            kwargs['ymtics1'] = self.getInputFromPort('ymtics1_0')
+            kwargs['ymtics1'] = self.get_input('ymtics1_0')
         if self.hasInputFromPort('ymtics2_0'):
-            kwargs['ymtics2'] = self.getInputFromPort('ymtics2_0')
+            kwargs['ymtics2'] = self.get_input('ymtics2_0')
         if self.hasInputFromPort('datawc_x1'):
-            kwargs['datawc_x1'] = self.getInputFromPort('datawc_x1')
+            kwargs['datawc_x1'] = self.get_input('datawc_x1')
         if self.hasInputFromPort('datawc_x2'):
-            kwargs['datawc_x2'] = self.getInputFromPort('datawc_x2')
+            kwargs['datawc_x2'] = self.get_input('datawc_x2')
         if self.hasInputFromPort('continents'):
-            kwargs['continents'] = self.getInputFromPort('continents')
+            kwargs['continents'] = self.get_input('continents')
         if self.hasInputFromPort('xmtics1_0'):
-            kwargs['xmtics1'] = self.getInputFromPort('xmtics1_0')
+            kwargs['xmtics1'] = self.get_input('xmtics1_0')
         if self.hasInputFromPort('xmtics2_0'):
-            kwargs['xmtics2'] = self.getInputFromPort('xmtics2_0')
+            kwargs['xmtics2'] = self.get_input('xmtics2_0')
         if self.hasInputFromPort('xbounds_0'):
-            kwargs['xbounds'] = self.getInputFromPort('xbounds_0')
+            kwargs['xbounds'] = self.get_input('xbounds_0')
         if self.hasInputFromPort('ybounds_0'):
-            kwargs['ybounds'] = self.getInputFromPort('ybounds_0')
+            kwargs['ybounds'] = self.get_input('ybounds_0')
         if self.hasInputFromPort('datawc_y2'):
-            kwargs['datawc_y2'] = self.getInputFromPort('datawc_y2')
+            kwargs['datawc_y2'] = self.get_input('datawc_y2')
         if self.hasInputFromPort('wname'):
-            kwargs['wname'] = self.getInputFromPort('wname')
+            kwargs['wname'] = self.get_input('wname')
         if self.hasInputFromPort('file_comment'):
-            kwargs['file_comment'] = self.getInputFromPort('file_comment')
+            kwargs['file_comment'] = self.get_input('file_comment')
         if self.hasInputFromPort('datawc_calendar'):
-            kwargs['datawc_calendar'] = self.getInputFromPort('datawc_calendar')
+            kwargs['datawc_calendar'] = self.get_input('datawc_calendar')
         if self.hasInputFromPort('wunits'):
-            kwargs['wunits'] = self.getInputFromPort('wunits')
+            kwargs['wunits'] = self.get_input('wunits')
         if self.hasInputFromPort('xrev'):
-            kwargs['xrev'] = self.getInputFromPort('xrev')
+            kwargs['xrev'] = self.get_input('xrev')
         if self.hasInputFromPort('ymd'):
-            kwargs['ymd'] = self.getInputFromPort('ymd')
+            kwargs['ymd'] = self.get_input('ymd')
         if self.hasInputFromPort('yarray_0'):
-            kwargs['yarray'] = self.getInputFromPort('yarray_0')
+            kwargs['yarray'] = self.get_input('yarray_0')
         if self.hasInputFromPort('units'):
-            kwargs['units'] = self.getInputFromPort('units')
+            kwargs['units'] = self.get_input('units')
         if self.hasInputFromPort('yunits'):
-            kwargs['yunits'] = self.getInputFromPort('yunits')
+            kwargs['yunits'] = self.get_input('yunits')
         if self.hasInputFromPort('zarray_0'):
-            kwargs['zarray'] = self.getInputFromPort('zarray_0')
+            kwargs['zarray'] = self.get_input('zarray_0')
         if self.hasInputFromPort('xname'):
-            kwargs['xname'] = self.getInputFromPort('xname')
+            kwargs['xname'] = self.get_input('xname')
         if self.hasInputFromPort('tarray_0'):
-            kwargs['tarray'] = self.getInputFromPort('tarray_0')
+            kwargs['tarray'] = self.get_input('tarray_0')
         if self.hasInputFromPort('bg_0'):
-            kwargs['bg'] = self.getInputFromPort('bg_0')
+            kwargs['bg'] = self.get_input('bg_0')
         elif self.hasInputFromPort('bg_1'):
-            kwargs['bg'] = self.getInputFromPort('bg_1')
+            kwargs['bg'] = self.get_input('bg_1')
         if self.hasInputFromPort('xaxisconvert'):
-            kwargs['xaxisconvert'] = self.getInputFromPort('xaxisconvert')
+            kwargs['xaxisconvert'] = self.get_input('xaxisconvert')
         if self.hasInputFromPort('zname'):
-            kwargs['zname'] = self.getInputFromPort('zname')
+            kwargs['zname'] = self.get_input('zname')
         if self.hasInputFromPort('hms'):
-            kwargs['hms'] = self.getInputFromPort('hms')
+            kwargs['hms'] = self.get_input('hms')
         if self.hasInputFromPort('tname'):
-            kwargs['tname'] = self.getInputFromPort('tname')
+            kwargs['tname'] = self.get_input('tname')
         if self.hasInputFromPort('yname'):
-            kwargs['yname'] = self.getInputFromPort('yname')
+            kwargs['yname'] = self.get_input('yname')
         if self.hasInputFromPort('ratio_0'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_0')
+            kwargs['ratio'] = self.get_input('ratio_0')
         elif self.hasInputFromPort('ratio_1'):
-            kwargs['ratio'] = self.getInputFromPort('ratio_1')
+            kwargs['ratio'] = self.get_input('ratio_1')
         if self.hasInputFromPort('datawc_y1'):
-            kwargs['datawc_y1'] = self.getInputFromPort('datawc_y1')
+            kwargs['datawc_y1'] = self.get_input('datawc_y1')
         if self.hasInputFromPort('xunits'):
-            kwargs['xunits'] = self.getInputFromPort('xunits')
+            kwargs['xunits'] = self.get_input('xunits')
         if self.hasInputFromPort('name'):
-            kwargs['name'] = self.getInputFromPort('name')
+            kwargs['name'] = self.get_input('name')
         if self.hasInputFromPort('yticlabels1_0'):
-            kwargs['yticlabels1'] = self.getInputFromPort('yticlabels1_0')
+            kwargs['yticlabels1'] = self.get_input('yticlabels1_0')
         if self.hasInputFromPort('yticlabels2_0'):
-            kwargs['yticlabels2'] = self.getInputFromPort('yticlabels2_0')
+            kwargs['yticlabels2'] = self.get_input('yticlabels2_0')
         if self.hasInputFromPort('comment1'):
-            kwargs['comment1'] = self.getInputFromPort('comment1')
+            kwargs['comment1'] = self.get_input('comment1')
         if self.hasInputFromPort('zunits'):
-            kwargs['zunits'] = self.getInputFromPort('zunits')
+            kwargs['zunits'] = self.get_input('zunits')
         if self.hasInputFromPort('comment3'):
-            kwargs['comment3'] = self.getInputFromPort('comment3')
+            kwargs['comment3'] = self.get_input('comment3')
         if self.hasInputFromPort('comment2'):
-            kwargs['comment2'] = self.getInputFromPort('comment2')
+            kwargs['comment2'] = self.get_input('comment2')
         if self.hasInputFromPort('xticlabels1_0'):
-            kwargs['xticlabels1'] = self.getInputFromPort('xticlabels1_0')
+            kwargs['xticlabels1'] = self.get_input('xticlabels1_0')
         if self.hasInputFromPort('comment4'):
-            kwargs['comment4'] = self.getInputFromPort('comment4')
+            kwargs['comment4'] = self.get_input('comment4')
         if self.hasInputFromPort('yrev'):
-            kwargs['yrev'] = self.getInputFromPort('yrev')
+            kwargs['yrev'] = self.get_input('yrev')
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.yxvsx(*args,**kwargs)
@@ -4709,13 +4709,13 @@ class png(Module,NotCacheable):
     """
     def compute(self):
         if self.hasInputFromPort('canvas'):
-            canvas = self.getInputFromPort('canvas')
+            canvas = self.get_input('canvas')
         else:
             canvas = vcs.init()
         args = []
         file = None
         if self.hasInputFromPort('file'):
-            file = self.getInputFromPort('file')
+            file = self.get_input('file')
             args.append(file)
 
         # file is a required port
@@ -4723,15 +4723,15 @@ class png(Module,NotCacheable):
             raise ModuleError(self, "'file' is a mandatory port")
         width = None
         if self.hasInputFromPort('width'):
-            width = self.getInputFromPort('width')
+            width = self.get_input('width')
             args.append(width)
         height = None
         if self.hasInputFromPort('height'):
-            height = self.getInputFromPort('height')
+            height = self.get_input('height')
             args.append(height)
         units = None
         if self.hasInputFromPort('units'):
-            units = self.getInputFromPort('units')
+            units = self.get_input('units')
             args.append(units)
         ofile = core.modules.basic_modules.File()
         ofile.name = file
@@ -4757,7 +4757,7 @@ Description of Function:
         args = []
         uri = None
         if self.hasInputFromPort('uri'):
-            uri = self.getInputFromPort('uri')
+            uri = self.get_input('uri')
             args.append(uri)
 
         # uri is a required port
@@ -4765,15 +4765,15 @@ Description of Function:
             raise ModuleError(self, "'uri' is a mandatory port")
         mode = None
         if self.hasInputFromPort('mode'):
-            mode = self.getInputFromPort('mode')
+            mode = self.get_input('mode')
             args.append(mode)
         template = None
         if self.hasInputFromPort('template'):
-            template = self.getInputFromPort('template')
+            template = self.get_input('template')
             args.append(template)
         dods = None
         if self.hasInputFromPort('dods'):
-            dods = self.getInputFromPort('dods')
+            dods = self.get_input('dods')
             args.append(dods)
         res = cdms2.open(*args)
         self.setResult('dataset',res)
@@ -4807,11 +4807,11 @@ Description of Function:
             raise ModuleError(self, "'axesOperations' is mandatory.")
 
         # Get input from ports
-        cdmsfile = self.getInputFromPort('cdmsfile')
-        varType = self.getInputFromPort('type')
-        id = self.getInputFromPort('id')
-        axes = self.getInputFromPort('axes')
-        axesOperations = self.getInputFromPort('axesOperations')                
+        cdmsfile = self.get_input('cdmsfile')
+        varType = self.get_input('type')
+        id = self.get_input('id')
+        axes = self.get_input('axes')
+        axesOperations = self.get_input('axesOperations')                
 
         # Get the variable
         if (varType == 'variable'):

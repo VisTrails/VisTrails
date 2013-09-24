@@ -57,8 +57,8 @@ class Metro(Module):
     def compute(self):
         self.checkInputPort('mesh1')
         self.checkInputPort('mesh2')
-        f1 = self.getInputFromPort('mesh1')
-        f2 = self.getInputFromPort('mesh2')
+        f1 = self.get_input('mesh1')
+        f2 = self.get_input('mesh2')
 
         make_file = self.interpreter.filePool.create_file
 

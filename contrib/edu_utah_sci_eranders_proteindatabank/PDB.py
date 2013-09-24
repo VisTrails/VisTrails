@@ -98,7 +98,7 @@ class PDBParser(ProteinDataBank):
     ############################################################################
 
     def compute(self):
-        f = self.getInputFromPort("File")
+        f = self.get_input("File")
 
         p = Protein()
 
@@ -112,33 +112,33 @@ class PDBParser(ProteinDataBank):
 
 class GetAtoms(ProteinDataBank):
     def compute(self):
-        prot = self.getInputFromPort("Protein")
-        aType = self.getInputFromPort("Atom Type")
+        prot = self.get_input("Protein")
+        aType = self.get_input("Atom Type")
         self.setResult("NumAtoms", prot.getAtomOfType(aType))
 
 class GetHetAtoms(ProteinDataBank):
     def compute(self):
-        prot = self.getInputFromPort("Protein")
-        aType = self.getInputFromPort("Atom Type")
+        prot = self.get_input("Protein")
+        aType = self.get_input("Atom Type")
         self.setResult("NumAtoms", prot.getHetAtomOfType(aType))
 
 class GetSequence(ProteinDataBank):
     def compute(self):
-        prot = self.getInputFromPort("Protein")
-        sID = self.getInputFromPort("SequenceID")
+        prot = self.get_input("Protein")
+        sID = self.get_input("SequenceID")
         self.setResult("Sequence", prot.getSequence(sID))
 
 class GetTitle(ProteinDataBank):
     def compute(self):
-        prot = self.getInputFromPort("Protein")
+        prot = self.get_input("Protein")
         self.setResult("Title", prot.title)
 
 class GetAuthor(ProteinDataBank):
     def compute(self):
-        prot = self.getInputFromPort("Protein")
+        prot = self.get_input("Protein")
         self.setResult("Title", prot.author)
 
 class GetPDBName(ProteinDataBank):
     def compute(self):
-        prot = self.getInputFromPort("Protein")
+        prot = self.get_input("Protein")
         self.setResult("name", prot.pdb_name)

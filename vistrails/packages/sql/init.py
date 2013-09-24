@@ -154,10 +154,10 @@ class DBConnection(Module):
         self.host = self.forceGetInputFromPort('host', 'localhost')
         self.port = self.forceGetInputFromPort('port', 3306)
         self.user = self.forceGetInputFromPort('user', None)
-        self.db_name = self.getInputFromPort('db_name')
+        self.db_name = self.get_input('db_name')
         self.protocol = self.forceGetInputFromPort('protocol', 'mysql')
         if self.hasInputFromPort('password'):
-            self.password = self.getInputFromPort('password')
+            self.password = self.get_input('password')
         else:
             self.password = None
 
@@ -179,10 +179,10 @@ class SQLSource(Module):
     def compute(self):
         cached = False
         if self.hasInputFromPort('cacheResults'):
-            cached = self.getInputFromPort('cacheResults')
+            cached = self.get_input('cacheResults')
         self.checkInputPort('connection')
-        connection = self.getInputFromPort('connection')
-        inputs = [self.getInputFromPort(k) for k in self.inputPorts
+        connection = self.get_input('connection')
+        inputs = [self.get_input(k) for k in self.inputPorts
                   if k != 'source' and k != 'connection' and k!= 'cacheResults']
         #print 'inputs:', inputs
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))

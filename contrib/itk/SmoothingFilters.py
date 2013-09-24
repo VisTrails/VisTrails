@@ -28,17 +28,17 @@ from Image import Image
 class CurvatureAnisotropicDiffusionFilter(Module):
     my_namespace="Filter|Smoothing"
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -52,12 +52,12 @@ class CurvatureAnisotropicDiffusionFilter(Module):
 
         #default values are recommended
         if self.hasInputFromPort("Iterations"):
-            iterations = self.getInputFromPort("Iterations")
+            iterations = self.get_input("Iterations")
         else:
             iterations = 5
 
         if self.hasInputFromPort("TimeStep"):
-            timestep = self.getInputFromPort("TimeStep")
+            timestep = self.get_input("TimeStep")
         else:
             if dim == 2:
                 timestep = 0.125
@@ -65,7 +65,7 @@ class CurvatureAnisotropicDiffusionFilter(Module):
                 timestep = 0.0625
 
         if self.hasInputFromPort("Conductance"):
-            conductance = self.getInputFromPort("Conductance")
+            conductance = self.get_input("Conductance")
         else:
             conductance = 3.0
 
@@ -101,23 +101,23 @@ class CurvatureAnisotropicDiffusionFilter(Module):
 class RecursiveGaussianImageFilter(Module):
     my_namespace="Filter|Smoothing"
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -129,7 +129,7 @@ class RecursiveGaussianImageFilter(Module):
 
         self.filter_ = itk.RecursiveGaussianImageFilter[inImgType, outImgType].New(im.getImg())
 
-        sigma = self.getInputFromPort("Sigma")
+        sigma = self.get_input("Sigma")
         self.filter_.SetSigma(sigma)
 
         self.filter_.Update()
@@ -160,17 +160,17 @@ class RecursiveGaussianImageFilter(Module):
 class CurvatureFlowImageFilter(Module):
     my_namespace="Filter|Smoothing"
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -184,12 +184,12 @@ class CurvatureFlowImageFilter(Module):
 
         #default values recommended
         if self.hasInputFromPort("TimeStep"):
-            self.ts = self.getInputFromPort("TimeStep")
+            self.ts = self.get_input("TimeStep")
         else:
             self.ts = 0.125
 
         if self.hasInputFromPort("Iterations"):
-            self.iterations = self.getInputFromPort("Iterations")
+            self.iterations = self.get_input("Iterations")
         else:
             self.iterations = 5
 
@@ -222,23 +222,23 @@ class DiscreteGaussianImageFilter(Module):
     my_namespace = 'Filter|Smoothing'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -246,9 +246,9 @@ class DiscreteGaussianImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        gaussian_variance = self.getInputFromPort("Gaussian Variance")
+        gaussian_variance = self.get_input("Gaussian Variance")
 
-        max_kernel_width = self.getInputFromPort("Max Kernel Width")
+        max_kernel_width = self.get_input("Max Kernel Width")
 
         try:
             self.filter_ = itk.DiscreteGaussianImageFilter[inImgType, outImgType].New(im.getImg())
@@ -291,23 +291,23 @@ class BinomialBlurImageFilter(Module):
     my_namespace = 'Filter|Smoothing'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -315,7 +315,7 @@ class BinomialBlurImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        repetitions = self.getInputFromPort("Repetitions")
+        repetitions = self.get_input("Repetitions")
 
         self.filter_ = itk.BinomialBlurImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.SetRepetitions(repetitions)
@@ -352,23 +352,23 @@ class GradientAnisotropicDiffusionImageFilter(Module):
     my_namespace = 'Filter|Smoothing'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -376,11 +376,11 @@ class GradientAnisotropicDiffusionImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        timestep = self.getInputFromPort("Timestep")
+        timestep = self.get_input("Timestep")
 
-        conductance = self.getInputFromPort("Conductance")
+        conductance = self.get_input("Conductance")
 
-        iterations = self.getInputFromPort("Iterations")
+        iterations = self.get_input("Iterations")
 
         try:
             self.filter_ = itk.GradientAnisotropicDiffusionImageFilter[inImgType, outImgType].New(im.getImg())
@@ -426,23 +426,23 @@ class MinMaxCurvatureFlowImageFilter(Module):
     my_namespace = 'Filter|Smoothing'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -450,11 +450,11 @@ class MinMaxCurvatureFlowImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        timestep = self.getInputFromPort("Timestep")
+        timestep = self.get_input("Timestep")
 
-        radius = self.getInputFromPort("Radius")
+        radius = self.get_input("Radius")
 
-        iterations = self.getInputFromPort("Iterations")
+        iterations = self.get_input("Iterations")
 
         self.filter_ = itk.MinMaxCurvatureFlowImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.SetTimeStep(timestep)
@@ -495,23 +495,23 @@ class BilateralImageFilter(Module):
     my_namespace = 'Filter|Smoothing'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -519,9 +519,9 @@ class BilateralImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        range_sigma = self.getInputFromPort("Range Sigma")
+        range_sigma = self.get_input("Range Sigma")
 
-        domain_sigma = self.getInputFromPort("Domain Sigma")
+        domain_sigma = self.get_input("Domain Sigma")
 
         self.filter_ = itk.BilateralImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.SetRangeSigma(range_sigma)

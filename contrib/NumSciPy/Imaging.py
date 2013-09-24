@@ -15,8 +15,8 @@ class ExtractRGBAChannel(ArrayImaging, Module):
     RGBA type image.  This will return a 2D array with the single channel
     specified as the scalar elements """
     def compute(self):
-        im = self.getInputFromPort("Image").get_array()
-        chan = self.getInputFromPort("Channel")
+        im = self.get_input("Image").get_array()
+        chan = self.get_input("Channel")
         ar = im[:,:,chan]
         out = NDArray()
         out.set_array(ar)
@@ -34,7 +34,7 @@ class GaussianGradientMagnitude(ArrayImaging, Module):
     The standard-deviation of the Gaussian filter are given for each axis as a sequence
     or as a single number, in which case the filter will be isotropic. """
     def compute(self):
-        im = self.getInputFromPort("Image")
+        im = self.get_input("Image")
         sigma = self.getInputListFromPort("Sigmas")
         if len(sigma) <= 1:
             sigma = sigma[0]
@@ -54,14 +54,14 @@ class JointHistogram(ArrayImaging, Module):
     """ Calculate the Joint Histogram of 2 inputs.  The inputs can be of arbitrary dimension,
     but must be equivalently sized. """
     def compute(self):
-        in_x = self.getInputFromPort("Array One").get_array()
-        in_y = self.getInputFromPort("Array Two").get_array()
-        size_x = self.getInputFromPort("Bins X")
-        size_y = self.getInputFromPort("Bins Y")
+        in_x = self.get_input("Array One").get_array()
+        in_y = self.get_input("Array Two").get_array()
+        size_x = self.get_input("Bins X")
+        size_y = self.get_input("Bins Y")
 
         take_log = True
         if self.hasInputFromPort("Log10"):
-            take_log = self.getInputFromPort("Log10")
+            take_log = self.get_input("Log10")
 
         out_ar = numpy.zeros((size_x, size_y))
         min_x = in_x.min()
@@ -102,7 +102,7 @@ class GaussianSmooth(ArrayImaging, Module):
     The standard-deviation of the Gaussian filter are given for each axis as a sequence
     or as a single number, in which case the filter will be isotropic. """
     def compute(self):
-        im = self.getInputFromPort("Input Array")
+        im = self.get_input("Input Array")
         sigma = self.getInputListFromPort("Sigmas")
         if len(sigma) <= 1:
             sigma = sigma[0]
@@ -121,8 +121,8 @@ class GaussianSmooth(ArrayImaging, Module):
 class MedianFilter(ArrayImaging, Module):
     """ Smooth the Input array with a multi-dimensional median filter.  """
     def compute(self):
-        im = self.getInputFromPort("Input Array")
-        k_size = self.getInputFromPort("Size")
+        im = self.get_input("Input Array")
+        k_size = self.get_input("Size")
         der = scipy.ndimage.median_filter(im.get_array(), size=k_size)
         out = NDArray()
         out.set_array(der)
@@ -138,8 +138,8 @@ class MedianFilter(ArrayImaging, Module):
 class ImageDifference(ArrayImaging, Module):
     """ Calculate the difference between two input images. """
     def compute(self):
-        im = self.getInputFromPort("Input 1")
-        im2 = self.getInputFromPort("Input 2")
+        im = self.get_input("Input 1")
+        im2 = self.get_input("Input 2")
 
         da_ar = im.get_array() - im2.get_array()
         da_ar = numpy.abs(da_ar)
@@ -158,7 +158,7 @@ class ImageDifference(ArrayImaging, Module):
 class ImageNormalize(ArrayImaging, Module):
     """ Move the range of the image to [0,1] """
     def compute(self):
-        im = self.getInputFromPort("Input")
+        im = self.get_input("Input")
         im_max = im.get_array().max()
         im_ar = im.get_array() / im_max
 
@@ -176,7 +176,7 @@ class SobelGradientMagnitude(ArrayImaging, Module):
     """ Use n-dimensional sobel kernels to compute the gradient magnitude
     of an image """
     def compute(self):
-        im = self.getInputFromPort("Input").get_array()
+        im = self.get_input("Input").get_array()
         mag = numpy.zeros(im.shape)
         for i in xrange(im.ndim):
             kern = scipy.ndimage.sobel(im, axis=i)

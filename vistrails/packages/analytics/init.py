@@ -83,10 +83,10 @@ class ReadVistrail(Module):
         return None
 
     def compute(self):
-        fname = self.getInputFromPort('file').name
+        fname = self.get_input('file').name
         vistrail = self.read_vistrail(fname)
         self.setResult('vistrail', vistrail)
-        fname = self.getInputFromPort('file').name
+        fname = self.get_input('file').name
         log = self.read_log(fname)
         self.setResult('log', log)
 
@@ -119,7 +119,7 @@ class CountActions(Module):
         return Tally
 
     def compute(self):
-        vistrail = self.getInputFromPort('vistrail')
+        vistrail = self.get_input('vistrail')
         Tally = self.count_actions(vistrail)
         self.setResult('counts', Tally)
 
@@ -137,7 +137,7 @@ class CountExecutedWorkflows(Module):
         return users
 
     def compute(self):
-        log = self.getInputFromPort('log')
+        log = self.get_input('log')
         users = self.count_executed_workflows(log)
         self.setResult('completed', users)
 
@@ -169,7 +169,7 @@ class TotalDays(Module):
         return totals
                 
     def compute(self):
-        vistrail = self.getInputFromPort('vistrail')
+        vistrail = self.get_input('vistrail')
         totals = self.calc_time(vistrail)
         self.setResult('completed', totals)
 

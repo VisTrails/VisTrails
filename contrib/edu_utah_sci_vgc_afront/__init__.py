@@ -63,13 +63,13 @@ class Afront(Module, AfrontRun):
         args = []
         if not self.hasInputFromPort("file"):
             raise ModuleError(self, "Needs input file")
-        args.append(self.getInputFromPort("file").name)
+        args.append(self.get_input("file").name)
         if self.hasInputFromPort("rho"):
             args.append("-rho")
-            args.append(str(self.getInputFromPort("rho")))
+            args.append(str(self.get_input("rho")))
         if self.hasInputFromPort("eta"):
             args.append("-reduction")
-            args.append(str(self.getInputFromPort("eta")))
+            args.append(str(self.get_input("eta")))
         args.append("-outname")
         args.append(o.name)
         args.append("-tri")
@@ -83,7 +83,7 @@ class MeshQualityHistogram(Module, AfrontRun):
         o = self.interpreter.filePool.create_file(suffix='.csv')
         args = []
         self.checkInputPort("file")
-        args.append(self.getInputFromPort("file").name)
+        args.append(self.get_input("file").name)
         args.append('-histname')
         args.append(o.name)
         args.append('-histogram')
@@ -97,18 +97,18 @@ class AfrontIso(Afront):
         args = []
         if not self.hasInputFromPort("file"):
             raise ModuleError(self, "Needs input file")
-        args.append(self.getInputFromPort("file").name)
+        args.append(self.get_input("file").name)
         if self.hasInputFromPort("rho"):
             args.append("-rho")
-            args.append(str(self.getInputFromPort("rho")))
+            args.append(str(self.get_input("rho")))
         if self.hasInputFromPort("eta"):
             args.append("-eta")
-            args.append(str(self.getInputFromPort("eta")))
+            args.append(str(self.get_input("eta")))
         self.checkInputPort("iso")
         args.append("-outname")
         args.append(o.name)
         args.append("-tri")
-        args.append(str(self.getInputFromPort("iso")))
+        args.append(str(self.get_input("iso")))
         self.run(args)
         self.setResult("output", o)
         

@@ -14,7 +14,7 @@ class MeshArea(Module):
 
     def compute(self):
         self.checkInputPort('input_file')
-        f1 = self.getInputFromPort('input_file')
+        f1 = self.get_input('input_file')
         text_output = self.interpreter.filePool.create_file()
 
         cmdline = []
@@ -46,11 +46,11 @@ class MeshChoose(Module):
         self.checkInputPort('input_file_1')
         self.checkInputPort('input_file_2')
 
-        input_file_1 = self.getInputFromPort('input_file_1')
-        input_file_2 = self.getInputFromPort('input_file_2')
+        input_file_1 = self.get_input('input_file_1')
+        input_file_2 = self.get_input('input_file_2')
 
         if self.hasInputFromPort('output_format'):
-            output_suffix = self.getInputFromPort('output_format')
+            output_suffix = self.get_input('output_format')
         else:
             output_suffix = self.guess_input_format(input_file_2.name)
 

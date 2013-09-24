@@ -94,7 +94,7 @@ def get_image_compute_method(action, ident=''):
     lines = []
     lines.append(ident + "def compute(self):\n")
     lines.append(ident + "    if self.hasInputFromPort('canvas'):\n")
-    lines.append(ident + "        canvas = self.getInputFromPort('canvas')\n")
+    lines.append(ident + "        canvas = self.get_input('canvas')\n")
     lines.append(ident + "    else:\n")
     lines.append(ident + "        canvas = vcs.init()\n")
     lines.append(ident + "    args = []\n")
@@ -103,11 +103,11 @@ def get_image_compute_method(action, ident=''):
         for inst in inp._valid_instances:
             if inp._valid_instances.index(inst) == 0:
                 lines.append(ident + "    if self.hasInputFromPort('%s'):\n" % inst)
-                lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
             else:
                 lines.append(ident + "    elif self.hasInputFromPort('%s'):\n" % inst)
-                lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
         if inp._required:
             lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)
@@ -131,11 +131,11 @@ def get_cdms2_compute_method(action, ident=''):
         for inst in inp._valid_instances:
             if inp._valid_instances.index(inst) == 0:
                 lines.append(ident + "    if self.hasInputFromPort('%s'):\n" % inst)
-                lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
             else:
                 lines.append(ident + "    elif self.hasInputFromPort('%s'):\n" % inst)
-                lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
         if inp._required:
             lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)
@@ -151,18 +151,18 @@ def get_CdmsFile_compute_method(action, ident=''):
     lines = []
     lines.append(ident + "def compute(self):\n")
     lines.append(ident + "    self.checkInputPort('cdmsfile')\n")
-    lines.append(ident + "    cdmsfile = self.getInputFromPort('cdmsfile')\n")
+    lines.append(ident + "    cdmsfile = self.get_input('cdmsfile')\n")
     lines.append(ident + "    args = []\n")
     for inp in action._inputs:
         lines.append(ident + "    %s = None\n"%inp._name)
         for inst in inp._valid_instances:
             if inp._valid_instances.index(inst) == 0:
                 lines.append(ident + "    if self.hasInputFromPort('%s'):\n" % inst)
-                lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
             else:
                 lines.append(ident + "    elif self.hasInputFromPort('%s'):\n" % inst)
-                lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
         if inp._required:
             lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)

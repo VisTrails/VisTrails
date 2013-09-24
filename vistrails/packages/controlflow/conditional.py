@@ -69,7 +69,7 @@ class If(Module, NotCacheable):
 
         if not self.hasInputFromPort('Condition'):
             raise ModuleError(self, 'Must set condition')
-        cond = self.getInputFromPort('Condition')
+        cond = self.get_input('Condition')
 
         if cond:
             port_name = 'TruePort'
@@ -90,7 +90,7 @@ class If(Module, NotCacheable):
             connector.obj.update()
 
             if self.hasInputFromPort(output_ports_name):
-                output_ports = self.getInputFromPort(output_ports_name)
+                output_ports = self.get_input(output_ports_name)
                 result = []
                 for output_port in output_ports:
                     result.append(connector.obj.get_output(output_port))
@@ -116,9 +116,9 @@ class Default(Module, NotCacheable):
 
     def compute(self):
         if self.hasInputFromPort('Input'):
-            self.setResult('Result', self.getInputFromPort('Input'))
+            self.setResult('Result', self.get_input('Input'))
         else:
-            self.setResult('Result', self.getInputFromPort('Default'))
+            self.setResult('Result', self.get_input('Default'))
 
 
 ###############################################################################

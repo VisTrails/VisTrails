@@ -30,35 +30,35 @@ class RegionOfInterestImageFilter(Module):
 
     def setStart(self, start):
         if start == 2:
-            self.index = self.getInputFromPort("Input 2D Index").ind_
+            self.index = self.get_input("Input 2D Index").ind_
         else:
-            self.index = self.getInputFromPort("Input 3D Index").ind_
+            self.index = self.get_input("Input 3D Index").ind_
 
         self.region_.SetIndex(self.index)
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Input Dimension"):
-            dim = self.getInputFromPort("Input Dimension")
+            dim = self.get_input("Input Dimension")
         else:
             dim = im.getDim()
 
         if self.hasInputFromPort("Output Dimension"):
-            outDim = self.getInputFromPort("Output Dimension")
+            outDim = self.get_input("Output Dimension")
         else:
             outDim = dim
 
@@ -70,11 +70,11 @@ class RegionOfInterestImageFilter(Module):
 
         #TODO this is not correct, needs fixing
         if self.hasInputFromPort("Input Region"):
-            self.region_ = self.getInputFromPort("Input Region").region_
+            self.region_ = self.get_input("Input Region").region_
         else:
             self.region_ = itk.ImageRegion[indim]()
             self.setStart(indim)
-            self.region_.SetSize(self.getInputFromPort("Region Size").size_)
+            self.region_.SetSize(self.get_input("Region Size").size_)
 
         self.filter_.SetRegionOfInterest(self.region_)
         self.filter_.SetInput(im.getImg())
@@ -110,29 +110,29 @@ class RegionOfInterestImageFilter(Module):
 class CastImageFilter(Module):
     my_namespace="Filter|Selection"
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for in dimension
         if self.hasInputFromPort("Input Dimension"):
-            dim = self.getInputFromPort("Input Dimension")
+            dim = self.get_input("Input Dimension")
         else:
             dim = im.getDim()
 
         #check for out dimension
         if self.hasInputFromPort("Output Dimension"):
-            outDim = self.getInputFromPort("Output Dimension")
+            outDim = self.get_input("Output Dimension")
         else:
             outDim = dim
 
@@ -174,10 +174,10 @@ class ExtractImageFilter(Module):
     my_namespace="Filter|Selection"
     def compute(self):
         #TODO should this be Input Volume?
-        im = self.getInputFromPort("Input Volume")
+        im = self.get_input("Input Volume")
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
@@ -186,13 +186,13 @@ class ExtractImageFilter(Module):
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
             
         #check for out dimension
         if self.hasInputFromPort("Output Dimension"):
-            outDim = self.getInputFromPort("Output Dimension")
+            outDim = self.get_input("Output Dimension")
         else:
             outDim = im.getDim()
 
@@ -202,7 +202,7 @@ class ExtractImageFilter(Module):
 
         self.filter_ = itk.ExtractImageFilter[inImgType,outImgType].New(im.getImg())
 
-        region = self.getInputFromPort("Extraction Region")
+        region = self.get_input("Extraction Region")
         self.filter_.SetExtractionRegion(region.region_)
         self.filter_.Update()
 

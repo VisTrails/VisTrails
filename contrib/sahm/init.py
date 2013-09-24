@@ -202,7 +202,7 @@ class Predictor(Constant):
 
     def compute(self):
         if (self.hasInputFromPort("ResampleMethod")):
-            resampleMethod = self.getInputFromPort("ResampleMethod")
+            resampleMethod = self.get_input("ResampleMethod")
             if resampleMethod.lower() not in ['nearestneighbor', 'bilinear', 'cubic', 'cubicspline', 'lanczos']:
                 raise ModuleError(self, 
                                   "Resample Method not one of 'nearestneighbor', 'bilinear', 'cubic', 'cubicspline', or 'lanczos'")
@@ -210,14 +210,14 @@ class Predictor(Constant):
             resampleMethod = 'Bilinear'
         
         if (self.hasInputFromPort("AggregationMethod")):
-            aggregationMethod = self.getInputFromPort("AggregationMethod")
-            if self.getInputFromPort("AggregationMethod").lower() not in ['mean', 'max', 'min', 'majority', 'none']:
+            aggregationMethod = self.get_input("AggregationMethod")
+            if self.get_input("AggregationMethod").lower() not in ['mean', 'max', 'min', 'majority', 'none']:
                 raise ModuleError(self, "No Aggregation Method specified")
         else:
             aggregationMethod = "Mean"
         
         if (self.hasInputFromPort("categorical")):
-            if self.getInputFromPort("categorical") == True:
+            if self.get_input("categorical") == True:
                 categorical = '1'
             else:
                 categorical = '0'
@@ -225,7 +225,7 @@ class Predictor(Constant):
             categorical = '0'
         
         if (self.hasInputFromPort("file")):
-            inFile = utils.getRasterName(self.getInputFromPort("file").name)
+            inFile = utils.getRasterName(self.get_input("file").name)
         else:
             raise ModuleError(self, "No input file specified")
         self.setResult('value', (inFile, categorical, resampleMethod, aggregationMethod))
@@ -328,8 +328,8 @@ class PredictorListFile(Module):
 
         output_fname = utils.mknextfile(prefix='PredictorList_', suffix='.csv')
         if (self.hasInputFromPort("csvFileList") and 
-            os.path.exists(self.getInputFromPort("csvFileList").name)):
-            shutil.copy(self.getInputFromPort("csvFileList").name, 
+            os.path.exists(self.get_input("csvFileList").name)):
+            shutil.copy(self.get_input("csvFileList").name, 
                 output_fname)
             csv_writer = csv.writer(open(output_fname, 'ab'))
         else:
@@ -341,11 +341,11 @@ class PredictorListFile(Module):
             p_list = self.forceGetInputListFromPort("addPredictor")
             for p in p_list:
                 if p.hasInputFromPort('resampleMethod'):
-                    resMethod = p.getInputFromPort('resampleMethod')
+                    resMethod = p.get_input('resampleMethod')
                 else:
                     resMethod = "NearestNeighbor"
                 if p.hasInputFromPort('aggregationMethod'):
-                    aggMethod = p.getInputFromPort('aggregationMethod')
+                    aggMethod = p.get_input('aggregationMethod')
                 else:
                     aggMethod = "Mean"  
                 csv_writer.writerow([os.path.normpath(p.name), resMethod, aggMethod])
@@ -917,7 +917,7 @@ class PARC(Module):
         ourPARC.out_dir = output_dname
 
         if self.hasInputFromPort("multipleCores"):
-             if self.getInputFromPort("multipleCores"):
+             if self.get_input("multipleCores"):
                 ourPARC.multicores = "True"
 
         workingCSV = utils.mknextfile(prefix='tmpFilesToPARC_', suffix='.csv')
@@ -1034,7 +1034,7 @@ class RasterFormatConverter(Module):
             ourRFC.format = format
              
         if self.hasInputFromPort("multipleCores"):
-             if self.getInputFromPort("multipleCores"):
+             if self.get_input("multipleCores"):
                 ourRFC.multicores = "True"
         
         ourRFC.outputDir = utils.mknextdir(prefix='ConvertedRasters_')
@@ -1117,7 +1117,7 @@ class TestTrainingSplit(Module):
         args += " rc=" + utils.MDSresponseCol(inputMDS) 
         if (self.hasInputFromPort("trainingProportion")):
             try:
-                trainingProportion = float(self.getInputFromPort("trainingProportion"))
+                trainingProportion = float(self.get_input("trainingProportion"))
                 if trainingProportion <= 0 or trainingProportion > 1:
                     raise ModuleError(self, "Train Proportion (trainProp) must be a number between 0 and 1 excluding 0")
                 args += " p=" + str(trainingProportion)
@@ -1125,7 +1125,7 @@ class TestTrainingSplit(Module):
                 raise ModuleError(self, "Train Proportion (trainProp) must be a number between 0 and 1 excluding 0")
         if (self.hasInputFromPort("RatioPresAbs")):
             try:
-                RatioPresAbs = float(self.getInputFromPort("RatioPresAbs"))
+                RatioPresAbs = float(self.get_input("RatioPresAbs"))
                 if RatioPresAbs <= 0:
                     raise ModuleError(self, "The ratio of presence to absence (RatioPresAbs) must be a number greater than 0") 
                 args += " m=" + str(trainingProportion) 
@@ -1449,7 +1449,7 @@ class MAXENT(Module):
             #print port
             if port[0] <> 'inputMDS' and port[0] <> 'projectionlayers':
                 if self.hasInputFromPort(port[0]):
-                    port_val = self.getInputFromPort(port[0])
+                    port_val = self.get_input(port[0])
                     if port[1] == "(edu.utah.sci.vistrails.basic:Boolean)":
                         port_val = str(port_val).lower()
                     elif (port[1] == "(edu.utah.sci.vistrails.basic:Path)" or \
@@ -1576,9 +1576,9 @@ def load_max_ent_params():
 #        self.qgis_obj = None
 #
 #    def compute(self):
-#        fname = self.getInputFromPort('file').name
+#        fname = self.get_input('file').name
 #        if self.hasInputFromPort('name'):
-#            name = self.getInputFromPort('name')
+#            name = self.get_input('name')
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]
 #        self.qgis_obj = qgis.core.QgsRasterLayer(fname, name)
@@ -1594,9 +1594,9 @@ def load_max_ent_params():
 #        self.qgis_obj = None
 #
 #    def compute(self):
-#        fname = self.getInputFromPort('file').name
+#        fname = self.get_input('file').name
 #        if self.hasInputFromPort('name'):
-#            name = self.getInputFromPort('name')
+#            name = self.get_input('name')
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]
 #        self.qgis_obj = qgis.core.QgsVectorLayer(fname, name, "ogr")

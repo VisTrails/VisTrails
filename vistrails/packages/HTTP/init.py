@@ -76,7 +76,7 @@ class HTTPFile(Module):
 
     def compute(self):
         self.checkInputPort('url')
-        url = self.getInputFromPort("url")
+        url = self.get_input("url")
         (result, downloaded_file, local_filename) = self.download(url)
         self.setResult("local_filename", local_filename)
         if result == 2:
@@ -237,7 +237,7 @@ class HTTPDirectory(Module):
 
     def compute(self):
         self.checkInputPort('url')
-        url = self.getInputFromPort('url')
+        url = self.get_input('url')
         local_path = self.download(url)
         self.setResult('local_path', local_path)
         local_dir = vistrails.core.modules.basic_modules.Directory()
@@ -379,7 +379,7 @@ class RepoSync(Module):
         # if server, grab local file using checksum id
         if self.is_server:
             self.checkInputPort('checksum')
-            self.checksum = self.getInputFromPort("checksum")
+            self.checksum = self.get_input("checksum")
             # get file path
             path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
             try:
@@ -394,7 +394,7 @@ class RepoSync(Module):
                 self.setResult("file", out_file)
         else: # is client
             self.checkInputPort('file')
-            self.in_file = self.getInputFromPort("file")
+            self.in_file = self.get_input("file")
             if os.path.isfile(self.in_file.name):
                 # do size check
                 size = os.path.getsize(self.in_file.name)
@@ -423,7 +423,7 @@ class RepoSync(Module):
             else:
                 # local file not present
                 if self.hasInputFromPort('checksum'):
-                    self.checksum = self.getInputFromPort("checksum")
+                    self.checksum = self.get_input("checksum")
 
                     # download file
                     self.data_sync()

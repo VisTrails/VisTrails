@@ -66,7 +66,7 @@ class Fold(Module):
         self.partialResult = self.initialValue
         self.elementResult = None
 
-        for element in self.getInputFromPort('InputList'):
+        for element in self.get_input('InputList'):
             self.element = element
             self.operation()
 
@@ -128,9 +128,9 @@ class FoldWithModule(Fold, NotCacheable):
         FoldWithModule module. It updates the modules connected to the
         FunctionPort port.
         """
-        nameInput = self.getInputFromPort('InputPort')
-        nameOutput = self.getInputFromPort('OutputPort')
-        rawInputList = self.getInputFromPort('InputList')
+        nameInput = self.get_input('InputPort')
+        nameOutput = self.get_input('OutputPort')
+        rawInputList = self.get_input('InputList')
 
         # Create inputList to always have iterable elements
         # to simplify code

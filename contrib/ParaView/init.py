@@ -43,7 +43,7 @@ class PVServerPythonSource(PVBase.PVModule):
         for k in self.inputPorts:
             if k=='Script':
                 continue
-            value = self.getInputFromPort(k)
+            value = self.get_input(k)
             if type(value)==str:
                 inputDefs += '%s = "%s"\n' % (k, value.replace('"', '\\"'))
             elif type(value)==int:
@@ -85,7 +85,7 @@ import paraview.servermanager as sm
 import paraview.vtk.dataset_adapter as DA
 proc = sm.vtkProcessModule.GetProcessModule()
 nPartitions = proc.GetNumberOfPartitions(sm.ActiveConnection.ID)
-module = self.getInputFromPort('ServerModule')
+module = self.get_input('ServerModule')
 results = []
 for i in xrange(nPartitions):
     data = sm.Fetch(module.pvInstance, i)

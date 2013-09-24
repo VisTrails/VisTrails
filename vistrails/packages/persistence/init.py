@@ -234,7 +234,7 @@ class PersistentPath(Module):
         else:
             # update single port
             self.updateUpstreamPort('ref')
-            ref = self.getInputFromPort('ref')
+            ref = self.get_input('ref')
             if db_access.ref_exists(ref.id, ref.version):
                 ref_exists = True
                 if ref.version is None:
@@ -289,7 +289,7 @@ class PersistentPath(Module):
             ref = self.persistent_ref
             path = self.persistent_path
         elif self.hasInputFromPort('ref'):
-            ref = self.getInputFromPort('ref')
+            ref = self.get_input('ref')
             if ref.id is None:
                 ref.id = str(uuid.uuid1())
         else:
@@ -298,11 +298,11 @@ class PersistentPath(Module):
             ref.id = str(uuid.uuid1())
 
         if self.hasInputFromPort('localPath'):
-            ref.local_path = self.getInputFromPort('localPath').name
+            ref.local_path = self.get_input('localPath').name
             if self.hasInputFromPort('readLocal'):
-                ref.local_read = self.getInputFromPort('readLocal')
+                ref.local_read = self.get_input('readLocal')
             if self.hasInputFromPort('writeLocal'):
-                ref.local_writeback = self.getInputFromPort('writeLocal')
+                ref.local_writeback = self.get_input('writeLocal')
 
         if is_input is None:
             is_input = False
@@ -336,7 +336,7 @@ class PersistentPath(Module):
                 debug_print('using local_path')
                 path = ref.local_path
             else:
-                path = self.getInputFromPort('value').name
+                path = self.get_input('value').name
             # this is a static method so we need to add module ourselves
             try:
                 new_hash = repo.get_current_repo().compute_hash(path)

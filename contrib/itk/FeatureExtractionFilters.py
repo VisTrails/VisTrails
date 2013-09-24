@@ -30,23 +30,23 @@ class GradientMagnitudeRecursiveGaussianImageFilter(Module):
     my_namespace = "Filter|Feature"
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -54,7 +54,7 @@ class GradientMagnitudeRecursiveGaussianImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        sigma_ = self.getInputFromPort("Sigma")
+        sigma_ = self.get_input("Sigma")
 
         self.filter_ = itk.GradientMagnitudeRecursiveGaussianImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.SetSigma(sigma_)
@@ -89,23 +89,23 @@ class DanielssonDistanceMapImageFilter(Module):
     my_namespace = 'Filter|Feature'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -113,9 +113,9 @@ class DanielssonDistanceMapImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        squared_distance = self.getInputFromPort("Squared Distance")
+        squared_distance = self.get_input("Squared Distance")
 
-        image_spaceing = self.getInputFromPort("Image Spaceing")
+        image_spaceing = self.get_input("Image Spaceing")
 
         self.filter_ = itk.DanielssonDistanceMapImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.SetSquaredDistance(squared_distance)
@@ -154,23 +154,23 @@ class SobelEdgeDetectionImageFilter(Module):
     my_namespace = 'Filter|Feature'
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
         if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
         if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
         if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 

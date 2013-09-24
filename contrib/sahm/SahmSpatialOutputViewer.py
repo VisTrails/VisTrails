@@ -67,12 +67,12 @@ class SAHMSpatialOutputViewerCell(SpreadsheetCell):
         if self.hasInputFromPort("row"):
             if not self.location:
                 self.location = CellLocation()
-            self.location.row = self.getInputFromPort('row') - 1
+            self.location.row = self.get_input('row') - 1
         
         if self.hasInputFromPort("column"):
             if not self.location:
                 self.location = CellLocation()
-            self.location.col = self.getInputFromPort('column') - 1
+            self.location.col = self.get_input('column') - 1
 
         self.displayAndWait(SAHMSpatialOutputViewerCellWidget,
                             inputs)

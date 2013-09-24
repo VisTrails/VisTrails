@@ -13,9 +13,9 @@ class MatlabReader(ArrayUtilityModule, Module):
     # Gather inputs here
     def get_inputs(self):
         if self.hasInputFromPort("Filename"):
-            self.fname = self.getInputFromPort("Filename")
+            self.fname = self.get_input("Filename")
         else:
-            self.fname = self.getInputFromPort("File").name
+            self.fname = self.get_input("File").name
 
     # Set required members externally.  This is just a helper function!
     def set_member(self, name, val):
@@ -66,9 +66,9 @@ class MatlabWriter(ArrayUtilityModule, Module):
     """ Write a Matlab .mat file from a SciPy matrix """
     def compute(self):
         if self.hasInputFromPort("Filename"):
-            fname = self.getInputFromPort("Filename")
+            fname = self.get_input("Filename")
         else:
-            fname = self.getInputFromPort("File").name
+            fname = self.get_input("File").name
 
         ar_list = self.getInputListFromPort("Arrays")
         mat_list = self.getInputListFromPort("Matrices")

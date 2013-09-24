@@ -119,7 +119,7 @@ _modules.append((Job, {'abstract':True}))
 
 
 def compute_jobpreparation(self):  
-    mac = self.getInputFromPort("machine")
+    mac = self.get_input("machine")
     queue, cls = mac.queue, mac.queue_cls
     kwargs = self.get_kwargs(cls)
 
@@ -148,7 +148,7 @@ class JobOperation(NotCacheable,Module):
 
 def joboperation_compute(self):
     if self.hasInputFromPort("job"):
-        job = self.getInputFromPort('job')
+        job = self.get_input('job')
         queue = job.queue
 #    print "TERMINAL ID", id(queue.terminal), id(queue.local_terminal)
         self.anno_counter = 1
@@ -229,7 +229,7 @@ for name in operations.iterkeys():
 
 
 def jobinfo_compute(self):
-    job = self.getInputFromPort("job")
+    job = self.get_input("job")
     queue = job.queue
     for function in self.queue_functions:
         name = function[0]
@@ -290,8 +290,8 @@ class CollectiveOperation(NotCacheable,Module):
 _modules.append((CollectiveOperation, {'abstract':True}))
 
 def collective_compute(self):
-    job = self.getInputFromPort('job')
-    operation = self.getInputFromPort('operation')
+    job = self.get_input('job')
+    operation = self.get_input('operation')
     col = Collection() 
     col += job.queue
 

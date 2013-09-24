@@ -185,9 +185,9 @@ class Map(Module, NotCacheable):
         updates the module connected to the FunctionPort port, executing it in
         parallel.
         """
-        nameInput = self.getInputFromPort('InputPort')
-        nameOutput = self.getInputFromPort('OutputPort')
-        rawInputList = self.getInputFromPort('InputList')
+        nameInput = self.get_input('InputPort')
+        nameOutput = self.get_input('OutputPort')
+        rawInputList = self.get_input('InputList')
 
         # Create inputList to always have iterable elements
         # to simplify code

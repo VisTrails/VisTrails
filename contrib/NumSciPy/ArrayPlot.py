@@ -64,7 +64,7 @@ class ArrayImage(ArrayPlot, Module):
     viewed at a time.
     '''
     def compute(self):
-        data = self.getInputFromPort("Data Array")
+        data = self.get_input("Data Array")
         da_ar = data.get_array().squeeze()
         if da_ar.ndim != 2:
             raise ModuleError("Input Data Array must have dimension = 2")
@@ -517,7 +517,7 @@ class LinePlot(ArrayPlot, Module):
     new line.
     '''    
     def compute(self):
-        data = self.getInputFromPort("Input Array")
+        data = self.get_input("Input Array")
         indexes = self.forceGetInputFromPort("Indexes")
         self.label_dict = None
         use_legend = self.forceGetInputFromPort("Legend")

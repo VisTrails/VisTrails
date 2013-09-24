@@ -24,11 +24,11 @@ class ExtractColumn(Module):
             ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
-        table = self.getInputFromPort('table')
+        table = self.get_input('table')
         if self.hasInputFromPort('column_index'):
-            column_index = self.getInputFromPort('column_index')
+            column_index = self.get_input('column_index')
         if self.hasInputFromPort('column_name'):
-            name = self.getInputFromPort('column_name')
+            name = self.get_input('column_name')
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
             if table.names is None:
@@ -56,7 +56,7 @@ class ExtractColumn(Module):
 
         result = table.get_column(
                 index,
-                numeric=self.getInputFromPort('numeric', allowDefault=True))
+                numeric=self.get_input('numeric', allowDefault=True))
 
         self.setResult('value', result)
 

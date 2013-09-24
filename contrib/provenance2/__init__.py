@@ -126,9 +126,9 @@ class AlignWarp(ProvenanceChallenge):
     """AlignWarp executes the AIR warping tool on the input."""
 
     def compute(self):
-        image = self.getInputFromPort("image")
-        ref = self.getInputFromPort("reference")
-        model = self.getInputFromPort("model")
+        image = self.get_input("image")
+        ref = self.get_input("reference")
+        model = self.get_input("model")
         o = self.interpreter.filePool.create_file(suffix='.warp')
         cmd = self.air_cmd_line('align_warp',
                                   image.baseName,
@@ -145,7 +145,7 @@ class Reslice(ProvenanceChallenge):
     """AlignWarp executes the AIR reslicing tool on the input."""
 
     def compute(self):
-        warp = self.getInputFromPort("warp")
+        warp = self.get_input("warp")
         o = self.interpreter.filePool.create_file()
         cmd = self.air_cmd_line('reslice',
                                  warp.name,
@@ -160,7 +160,7 @@ class SoftMean(ProvenanceChallenge):
     """SoftMean executes the AIR softmean averaging tool on the input."""
 
     def compute(self):
-        imageList = self.getInputFromPort("imageList")
+        imageList = self.get_input("imageList")
         o = self.interpreter.filePool.create_file()
         cmd = self.air_cmd_line('softmean',
                                 o.name,
@@ -177,17 +177,17 @@ class Slicer(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['slicer']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.baseName)
         if self.hasInputFromPort("slice_x"):
             cmd.append('-x')
-            cmd.append(str(self.getInputFromPort("slice_x")))
+            cmd.append(str(self.get_input("slice_x")))
         elif self.hasInputFromPort("slice_y"):
             cmd.append('-y')
-            cmd.append(str(self.getInputFromPort("slice_y")))
+            cmd.append(str(self.get_input("slice_y")))
         elif self.hasInputFromPort("slice_z"):
             cmd.append('-z')
-            cmd.append(str(self.getInputFromPort("slice_z")))
+            cmd.append(str(self.get_input("slice_z")))
         o = self.interpreter.filePool.create_file(suffix='.pgm')
         cmd.append(o.name)
         self.run(self.fsl_cmd_line(*cmd))
@@ -199,7 +199,7 @@ class PGMToPPM(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['pgmtoppm white']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.name)
         o = self.interpreter.filePool.create_file(suffix='.ppm')
         cmd.append(' >')
@@ -213,7 +213,7 @@ class PNMToJpeg(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['pnmtojpeg']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.name)
         o = self.interpreter.filePool.create_file(suffix='.jpg')
         cmd.append(' >')
@@ -226,11 +226,11 @@ class FileSet(ProvenanceChallenge):
 
     def compute(self):
         self.checkInputPort("baseName")
-        n = self.getInputFromPort("baseName")
+        n = self.get_input("baseName")
 	if self.hasInputFromPort("file_hdr") and \
 		self.hasInputFromPort("file_img"):
-	    n1 = self.getInputFromPort("file_hdr").name
-	    n2 = self.getInputFromPort("file_img").name
+	    n1 = self.get_input("file_hdr").name
+	    n2 = self.get_input("file_img").name
 	    if n1.endswith('.hdr'):
 		n1base = n1.rsplit('.hdr',1)[0]
 	    else:
@@ -266,8 +266,8 @@ class FileSetSink(ProvenanceChallenge):
     def compute(self):
         self.checkInputPort("fileSet")
         self.checkInputPort("outputBaseName")
-        v1 = self.getInputFromPort("fileSet")
-        v2 = self.getInputFromPort("outputBaseName")
+        v1 = self.get_input("fileSet")
+        v2 = self.get_input("outputBaseName")
         filenames = glob.glob('%s.*' % v1.baseName)
         for filename in filenames:
             try:
@@ -275,7 +275,7 @@ class FileSetSink(ProvenanceChallenge):
                 core.system.link_or_copy(filename, outFilename)
             except OSError, e:
                 if (self.hasInputFromPort("overrideFile") and
-                    self.getInputFromPort("overrideFile")):
+                    self.get_input("overrideFile")):
                     try:
                         os.unlink(outFilename)
                         core.system.link_or_copy(filename, outFilename)

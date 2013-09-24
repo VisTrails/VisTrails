@@ -13,7 +13,7 @@ class EnsembleModule(object):
 
 class ComputeDistance(EnsembleModule, Module):
     def compute(self):
-        vol = self.getInputFromPort("Signals").get_array()
+        vol = self.get_input("Signals").get_array()
         num_im = vol.shape[0]
 
         out_ar = numpy.zeros((num_im, num_im))
@@ -43,8 +43,8 @@ class OrderByIndexes(EnsembleModule, Module):
     """ Order the inputs using an array containing the
     indexes they should appear in """
     def compute(self):
-        vol = self.getInputFromPort("Signals")
-        inds = self.getInputFromPort("Indexes")
+        vol = self.get_input("Signals")
+        inds = self.get_input("Indexes")
 
         sh = vol.get_shape()
         vol = vol.get_array()
@@ -98,10 +98,10 @@ class OrderByCorrelation(EnsembleModule, Module):
         
     def compute(self):
         ts = time.time()
-        vol = self.getInputFromPort("Signals")
-        ind = self.getInputFromPort("Key Slice")
+        vol = self.get_input("Signals")
+        ind = self.get_input("Key Slice")
         if self.hasInputFromPort("Normalize"):
-            self.normalize = self.getInputFromPort("Normalize")
+            self.normalize = self.get_input("Normalize")
         else:
             self.normalize = False
 
@@ -231,8 +231,8 @@ class OrderByProgressiveCorrelation(EnsembleModule, Module):
         return val
     
     def compute(self):
-        vol = self.getInputFromPort("Signals").get_array()
-        ind = self.getInputFromPort("Key Slice")
+        vol = self.get_input("Signals").get_array()
+        ind = self.get_input("Key Slice")
         normalize = self.forceGetInputFromPort("Normalize")
 
         if normalize:

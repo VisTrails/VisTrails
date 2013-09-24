@@ -86,15 +86,15 @@ class LocationCoordinate2D(Constant):
         
     def compute(self):
         if self.hasInputFromPort("value"):
-            data = self.getInputFromPort("value")
+            data = self.get_input("value")
             self.latitude = data.latitude
             self.longitude = data.longitude
         
         if self.latitude is None or self.longitude is None:
             self.checkInputPort("latitude")
             self.checkInputPort("longitude")
-            self.latitude = self.getInputFromPort("latitude")
-            self.longitude = self.getInputFromPort("longitude")
+            self.latitude = self.get_input("latitude")
+            self.longitude = self.get_input("longitude")
         self.setResult("value", self)
         self.setResult("value_as_string", self.translate_to_string(self))
         
@@ -201,7 +201,7 @@ class Location(Constant):
     
     def compute(self):
         if self.hasInputFromPort("value"):
-            data = self.getInputFromPort("value")
+            data = self.get_input("value")
             self.coordinate = data.coordinate
             self.altitude = data.altitude
             self.horizontal_accuracy = data.horizontal_accuracy
@@ -213,27 +213,27 @@ class Location(Constant):
         if self.coordinate is None or self.altitude is None:
             self.checkInputPort("coordinate")
             self.checkInputPort("altitude")
-            self.coordinate = self.getInputFromPort("coordinate")
-            self.altitude = self.getInputFromPort("altitude")
+            self.coordinate = self.get_input("coordinate")
+            self.altitude = self.get_input("altitude")
             
             #check optional ports
             if self.hasInputFromPort("horizontalAccuracy"):
                 self.horizontal_accuracy = \
-                              self.getInputFromPort("horizontalAccuracy")
+                              self.get_input("horizontalAccuracy")
                               
             if self.hasInputFromPort("verticalAccuracy"):
                 self.vertical_accuracy = \
-                              self.getInputFromPort("verticalAccuracy")
+                              self.get_input("verticalAccuracy")
                               
             if self.hasInputFromPort("timestamp"):
-                data = self.getInputFromPort("timestamp")
+                data = self.get_input("timestamp")
                 self.timestamp = \
                             datetime(*strptime(data, '%Y-%m-%d %H:%M:%S')[0:6])
             if self.hasInputFromPort("speed"):
-                self.speed = self.getInputFromPort("speed")
+                self.speed = self.get_input("speed")
                 
             if self.hasInputFromPort("course"):
-                self.course = self.getInputFromPort("course")
+                self.course = self.get_input("course")
         
         self.setResult("value", self)
         self.setResult("value_as_string", self.translate_to_string(self))
@@ -308,12 +308,12 @@ class B64EncodedContents(Constant):
     
     def compute(self):
         if self.hasInputFromPort("value"):
-            data = self.getInputFromPort("value")
+            data = self.get_input("value")
             self.contents = data.contents
         
         if self.contents is None:
             if self.hasInputFromPort("file"):
-                file_ = self.getInputFromPort("file")
+                file_ = self.get_input("file")
                 c = open(file_.name)
                 self.contents = base64.b64encode(c.read()) 
             

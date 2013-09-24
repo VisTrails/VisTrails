@@ -163,7 +163,7 @@ def add_tool(path):
                     raise ValueError
             elif "inputoutput" == type:
                 # handle single file that is both input and output
-                value = self.getInputFromPort(name)
+                value = self.get_input(name)
 
                 # create copy of infile to operate on
                 outfile = self.interpreter.filePool.create_file(
@@ -183,7 +183,7 @@ def add_tool(path):
             name, type, options = self.conf["stdin"]
             type = type.lower()
             if self.hasInputFromPort(name):
-                value = self.getInputFromPort(name)
+                value = self.get_input(name)
                 if "file" == type:
                     if file_std:
                         f = open(value.name, 'rb')

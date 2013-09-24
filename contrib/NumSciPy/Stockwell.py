@@ -18,9 +18,9 @@ class StockwellModule(object):
 
 class IsotropicScaleVolumes(StockwellModule, Module):
     def compute(self):
-        vol = self.getInputFromPort("Input").get_array()
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("Hi Freq")
+        vol = self.get_input("Input").get_array()
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("Hi Freq")
         max_vol = numpy.zeros(vol.shape)
         grav_vol = numpy.zeros(vol.shape)
 
@@ -70,9 +70,9 @@ class IsotropicScaleVolumes(StockwellModule, Module):
 
 class ScaleVolumes(StockwellModule, Module):
     def compute(self):
-        vol = self.getInputFromPort("Input").get_array()
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("Hi Freq")
+        vol = self.get_input("Input").get_array()
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("Hi Freq")
         sigma = self.forceGetInputFromPort("Sigma")
         max_vol = numpy.zeros(vol.shape)
         grav_vol = numpy.zeros(vol.shape)
@@ -150,9 +150,9 @@ class ScaleVolumes(StockwellModule, Module):
 
 class MaximalScaleVolume(StockwellModule, Module):
     def compute(self):
-        vol = self.getInputFromPort("Input").get_array()
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("Hi Freq")
+        vol = self.get_input("Input").get_array()
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("Hi Freq")
         sigma = self.forceGetInputFromPort("Sigma")
         out_vol = numpy.zeros(vol.shape)
 
@@ -207,9 +207,9 @@ class MaximalScaleVolume(StockwellModule, Module):
 class StockwellTransform(StockwellModule, Module):
     def compute(self):
         t = time.time()
-        signals = self.getInputFromPort("Signals").get_array()
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("Hi Freq")
+        signals = self.get_input("Signals").get_array()
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("Hi Freq")
         if len(signals.shape) == 1:
             signals.shape = (1, signals.shape[0])
 
@@ -244,7 +244,7 @@ class PyStockwellTransform(StockwellModule, Module):
     
     def compute(self):
         t = time.time()
-        signal = self.getInputFromPort("Signal").get_array().squeeze()
+        signal = self.get_input("Signal").get_array().squeeze()
         print "signal.shape = ", signal.shape
         f = scipy.fftpack.fft(signal)
         print "got f made"
@@ -252,8 +252,8 @@ class PyStockwellTransform(StockwellModule, Module):
         print "got hilbert done"
 #        f2 = numpy.concatenate((f,f))
 
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("Hi Freq")
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("Hi Freq")
 
         out_ar = numpy.zeros((hif-lof+1, signal.shape[0]))
 
@@ -282,18 +282,18 @@ class PyStockwellTransform(StockwellModule, Module):
         
 class MultiTaperStockwellTransform(StockwellModule, Module):
     def compute(self):
-        signals = self.getInputFromPort("Signals").get_array()
-        sr = self.getInputFromPort("Sample Rate")
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("Hi Freq")
+        signals = self.get_input("Signals").get_array()
+        sr = self.get_input("Sample Rate")
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("Hi Freq")
 
         if len(signals.shape) == 1:
             signals.shape = (1, signals.shape[0])
 
         if self.hasInputFromPort("Bandwidth"):
-            self.k = smt.calcK(self.getInputFromPort("Bandwidth"),signals.shape[1], sr)
+            self.k = smt.calcK(self.get_input("Bandwidth"),signals.shape[1], sr)
         else:
-            self.k = self.getInputFromPort("K")
+            self.k = self.get_input("K")
 
         outl = []
         for i in xrange(signals.shape[0]):
@@ -324,9 +324,9 @@ class FastStockwell3D(StockwellModule, Module):
     output.shape = (voices, slices, rows, columns)
     """
     def compute(self):
-        in_ar = self.getInputFromPort("Input").get_array()
-        lo_f  = self.getInputFromPort("Low Freq")
-        hi_f  = self.getInputFromPort("High Freq")
+        in_ar = self.get_input("Input").get_array()
+        lo_f  = self.get_input("Low Freq")
+        hi_f  = self.get_input("High Freq")
         num_f = hi_f - lo_f + 1
 
         (slices, rows, cols) = in_ar.shape
@@ -376,9 +376,9 @@ class FastStockwell3D(StockwellModule, Module):
 
 class ScaleSpaceHistogram(StockwellModule, Module):
     def compute(self):
-        signal = self.getInputFromPort("Input").get_array()
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("High Freq")
+        signal = self.get_input("Input").get_array()
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("High Freq")
 
         num_pts = signal.size
         min_s = signal.min()
@@ -463,12 +463,12 @@ class PyScaleSpaceHistogram(StockwellModule, Module):
         return ret
     
     def compute(self):
-        signal = self.getInputFromPort("Input").get_array().squeeze()
+        signal = self.get_input("Input").get_array().squeeze()
         print "signal.shape = ", signal.shape
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("High Freq")
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("High Freq")
 
-        num_scalar_bins = self.getInputFromPort("Scalar Bins")
+        num_scalar_bins = self.get_input("Scalar Bins")
 
         num_pts = signal.size
         min_s = signal.min()
@@ -534,13 +534,13 @@ class PyScaleSpaceHistogram(StockwellModule, Module):
 
 class PointBasedStockwell(StockwellModule, Module):
     def compute(self):
-        signal = self.getInputFromPort("Input").get_array()
-        ptx = self.getInputFromPort("X")
-        pty = self.getInputFromPort("Y")
-        ptz = self.getInputFromPort("Z")
+        signal = self.get_input("Input").get_array()
+        ptx = self.get_input("X")
+        pty = self.get_input("Y")
+        ptz = self.get_input("Z")
 
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("High Freq")
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("High Freq")
 
         sigx = signal[ptz,pty,:]
         sigy = signal[ptz,:,ptx]
@@ -607,9 +607,9 @@ class Stockwell2D(StockwellModule, Module):
         return gwin
 
     def compute(self):
-        in_ar = self.getInputFromPort("Input").get_array()
-        lof = self.getInputFromPort("Low Freq")
-        hif = self.getInputFromPort("High Freq")
+        in_ar = self.get_input("Input").get_array()
+        lof = self.get_input("Low Freq")
+        hif = self.get_input("High Freq")
         (nx,ny) = in_ar.shape
         nf = hif-lof
         kx_len = nf
@@ -707,10 +707,10 @@ class FrequencyPhaseLocking(StockwellModule, Module):
         return dphi_ar
     
     def compute(self):
-        trial_ar = self.getInputFromPort("Single Trials").get_array()
+        trial_ar = self.get_input("Single Trials").get_array()
         print "trial_ar.shape = ", trial_ar.shape
-        self.lof = self.getInputFromPort("Low Freq")
-        self.hif = self.getInputFromPort("High Freq")
+        self.lof = self.get_input("Low Freq")
+        self.hif = self.get_input("High Freq")
         sensor_list = self.forceGetInputListFromPort("Sensors")
         
         if len(trial_ar.shape) != 3:

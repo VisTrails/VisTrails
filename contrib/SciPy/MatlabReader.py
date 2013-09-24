@@ -33,9 +33,9 @@ class MatlabReader(SciPy):
 
     def compute(self):
         if self.hasInputFromPort("Filename"):
-            fname = self.getInputFromPort("Filename")
+            fname = self.get_input("Filename")
         else:
-            fname = self.getInputFromPort("File").name
+            fname = self.get_input("File").name
         self.readFileAsCSC(fname)
    
     def readFileAsCSC(self, filename):

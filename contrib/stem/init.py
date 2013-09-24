@@ -43,17 +43,17 @@ def processActivePortData(inputPorts, object):
     portData = []
 
     if object.hasInputFromPort('stem.globals'):       
-        stemGlobals = object.getInputFromPort('stem.globals')
+        stemGlobals = object.get_input('stem.globals')
     else :
         stemGlobals = None
 
     for port in inputPorts:
-        if port[0] != 'stem.globals' and object.hasInputFromPort(port[0]) and object.getInputFromPort(port[0]) is not None:       
+        if port[0] != 'stem.globals' and object.hasInputFromPort(port[0]) and object.get_input(port[0]) is not None:       
             portData.append((port[0], port[0]))
             if port[1] == '(edu.utah.sci.vistrails.basic:Directory)' or port[1] == '(edu.utah.sci.vistrails.basic:File)':
-                object.set_variable(port[0], object.getInputFromPort(port[0]).name)                          
+                object.set_variable(port[0], object.get_input(port[0]).name)                          
             else:
-                object.set_variable(port[0], object.getInputFromPort(port[0]))                          
+                object.set_variable(port[0], object.get_input(port[0]))                          
         elif stemGlobals:
             if stemGlobals.global_vars.has_key(port[0]) and stemGlobals.global_vars[port[0]] is not None:          
                 portData.append((port[0], port[0]))
@@ -76,11 +76,11 @@ class RunModels(RSource):
     _output_ports = [('config', '(edu.cornell.birds.stem:STEMConfiguration)')]
     def compute(self):
         self.chdir(get_path())
-        self.set_variable('spp.dir.name', self.getInputFromPort('spp.name'))
+        self.set_variable('spp.dir.name', self.get_input('spp.name'))
         self.run_file(get_path('STEM_ModelingEngine.R'),
                       excluded_inputs=set(['source', 'config']), 
                       excluded_outputs=set(['config']))
-        self.setResult('config', self.getInputFromPort('config'))
+        self.setResult('config', self.get_input('config'))
 
 class BuildVisualizations(RSource):
     _input_ports = [('config', '(edu.cornell.birds.stem:STEMConfiguration)')]
@@ -103,7 +103,7 @@ class STEMFigure(RFigure):
     def compute(self):
         self.chdir(get_path())
         self.set_variable('results.dir', 
-                          self.getInputFromPort('results.dir').name)
+                          self.get_input('results.dir').name)
         self.run_figure_file(get_path('STEM_Figure.R'), 'png', 800, 600, 
                              excluded_inputs=set(['source',
                                                   'results.dir']))
@@ -125,24 +125,24 @@ class STEMGlobals(RSource):
     _output_ports = [('self', '(edu.cornell.birds.stem:STEMGlobals)')]
     def compute(self):
         # run the requires and the loading of STEM libs
-        parent_dir = self.getInputFromPort('parent.dir')
-        self.chdir(self.getInputFromPort('code.directory').name)
+        parent_dir = self.get_input('parent.dir')
+        self.chdir(self.get_input('code.directory').name)
         self.set_variable('parent.dir', parent_dir.name)
         # FIXME code.directory defaults to parent.dir
         if not self.hasInputFromPort('code.directory'):
             self.set_variable('code.directory', parent_dir.name)
         else:
             self.set_variable('code.directory',
-                              self.getInputFromPort('code.directory').name)
+                              self.get_input('code.directory').name)
         self.set_variable('erd.data.filename',
-                              ''.join([parent_dir.name, "Data/", self.getInputFromPort('erd.data.file').name]))
+                              ''.join([parent_dir.name, "Data/", self.get_input('erd.data.file').name]))
         self.set_variable('srd.pred.design.filename',
-                          ''.join([parent_dir.name, "Data/", self.getInputFromPort('srd.pred.design.file').name]))
-        species_name = self.getInputFromPort('species.name')
+                          ''.join([parent_dir.name, "Data/", self.get_input('srd.pred.design.file').name]))
+        species_name = self.get_input('species.name')
         stem_directory = create_dir_module(os.path.join(parent_dir.name, species_name))
         self.set_variable('stem.directory', stem_directory.name)
         self.set_variable('species.name', species_name)
-        self.set_variable('common.name', self.getInputFromPort('common.name'))
+        self.set_variable('common.name', self.get_input('common.name'))
 
         # FIXME add erd.data.filename and srd.pred.design.filename
         # No tags needed, then
@@ -212,43 +212,43 @@ class InitERDMapAnalysis(RSource):
     _output_ports = [('self', '(edu.cornell.birds.stem:InitERDMapAnalysis)')]
     def compute(self):
         # run the requires and the loading of STEM libs
-        self.chdir(self.getInputFromPort('project.directory'))
+        self.chdir(self.get_input('project.directory'))
 
-        self.set_variable('project.directory', self.getInputFromPort('project.directory'))
-        self.set_variable('species.directory.nametag', self.getInputFromPort('species.directory.nametag'))
-        self.set_variable('map.directory.nametag', self.getInputFromPort('map.directory.nametag'))
-        self.set_variable('map.file.nametag', self.getInputFromPort('map.file.nametag'))
-        self.set_variable('map.rows', self.getInputFromPort('map.rows'))
-        self.set_variable('z.max', self.getInputFromPort('z.max'))
-        self.set_variable('z.min', self.getInputFromPort('z.min'))
-        self.set_variable('map.number', self.getInputFromPort('map.number'))
+        self.set_variable('project.directory', self.get_input('project.directory'))
+        self.set_variable('species.directory.nametag', self.get_input('species.directory.nametag'))
+        self.set_variable('map.directory.nametag', self.get_input('map.directory.nametag'))
+        self.set_variable('map.file.nametag', self.get_input('map.file.nametag'))
+        self.set_variable('map.rows', self.get_input('map.rows'))
+        self.set_variable('z.max', self.get_input('z.max'))
+        self.set_variable('z.min', self.get_input('z.min'))
+        self.set_variable('map.number', self.get_input('map.number'))
 
-        latMax = self.getInputFromPort('lat.max')
+        latMax = self.get_input('lat.max')
         if latMax:
             self.set_variable('lat.max', latMax)
         else:
             ## self.set_variable('lat.max', "as.null(lat.max)")
             self.run_code("lat.max <- NULL")
 
-        latMin = self.getInputFromPort('lat.min')
+        latMin = self.get_input('lat.min')
         if latMin:
             self.set_variable('lat.min', latMin)
         else :
             self.run_code("lat.min <- NULL")
 
-        lonMax = self.getInputFromPort('lon.max') 
+        lonMax = self.get_input('lon.max') 
         if lonMax:
             self.set_variable('lon.max', lonMax)
         else:
             self.run_code("lon.max <- NULL")
 
-        lonMin = self.getInputFromPort('lon.min')
+        lonMin = self.get_input('lon.min')
         if lonMin:
             self.set_variable('lon.min', lonMin)
         else:
             self.run_code("lon.min <- NULL")
 
-        self.run_code(''.join(["source(\"", self.getInputFromPort('project.directory'), '/code/stem.vt.erd.map.function.R', "\")"]))
+        self.run_code(''.join(["source(\"", self.get_input('project.directory'), '/code/stem.vt.erd.map.function.R', "\")"]))
 
         global_var_list = ['project.directory', 
                            'species.directory.nametag', 
@@ -283,7 +283,7 @@ class PlotERDMaps(RSource):
     _output_ports = [('map_file', '(edu.utah.sci.vistrails.basic:File)')]
 
     def compute(self):
-        ## stem_globals = self.getInputFromPort('stem.globals')
+        ## stem_globals = self.get_input('stem.globals')
         ## for k, v in stem_globals.global_vars.iteritems():
         ##     self.set_variable(k,v)                          
 
@@ -333,7 +333,7 @@ class ERDDataCreation(RSource):
     def compute(self):
         self.chdir(get_path())
         self.set_variable('ebird.data.dir',
-                          self.getInputFromPort('ebird.data.dir').name)
+                          self.get_input('ebird.data.dir').name)
         self.run_file(get_path('STEM_Globals.R'),
                       excluded_inputs=set(['source', 'ebird.data.dir']))
         srd_fname = list(self.get_variable('srd.pred.design.filename'))[0]
@@ -360,7 +360,7 @@ class ERDDataSubsetting(RSource):
     # Get train.data, test.data, srd.data from eBird.data and expose
     # these three as the output ports
     def compute(self):
-        ## stem_globals = self.getInputFromPort('stem.globals')
+        ## stem_globals = self.get_input('stem.globals')
         ## for k, v in stem_globals.global_vars.iteritems():
         ##     self.set_variable(k,v)
 
@@ -402,7 +402,7 @@ class FitSTEM(RSource):
         # use a single models dir with a variable number of
         # subdirectories depending on the cv.folds value
         # same for results, now -- models/stem.models.[1-10]
-        ## stem_globals = self.getInputFromPort('stem.globals')
+        ## stem_globals = self.get_input('stem.globals')
         ## for k, v in stem_globals.global_vars.iteritems():
         ##     self.set_variable(k,v)
 
@@ -443,8 +443,8 @@ class ERDPredictivePerformance(RSource):
                       '(edu.utah.sci.vistrails.basic:Directory)')]
     def compute(self):
         self.set_variable('stem.directory', 
-                          self.getInputFromPort('stem.directory').name)
-        pp_directory = self.getInputFromPort('pp.directory')
+                          self.get_input('stem.directory').name)
+        pp_directory = self.get_input('pp.directory')
         self.set_variable('pp.directory', pp_directory.name)
         self.run_file('')
         self.setResult('pp.directory', pp_directory)
@@ -481,7 +481,7 @@ class ERDPredictSTMatrix(RSource):
     _output_ports = [('st.matrix.directory',
                       '(edu.utah.sci.vistrails.basic:Directory)')]
     def compute(self): 
-        stem_globals = self.getInputFromPort('stem.globals')
+        stem_globals = self.get_input('stem.globals')
         ## for k, v in stem_globals.global_vars.iteritems():
         ##     self.set_variable(k,v)
                                           
@@ -495,15 +495,15 @@ class ERDPredictSTMatrix(RSource):
 
         if self.hasInputFromPort('stem.directory'):
            if self.hasInputFromPort('st.matrix.name'):
-               self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.getInputFromPort('stem.directory').name,
-                                                       self.getInputFromPort('st.matrix.name'))))
+               self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
+                                                       self.get_input('st.matrix.name'))))
            else:
-               self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.getInputFromPort('stem.directory').name,
+               self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
                                                        str(list(stem_globals.global_vars['st.matrix.name'])[0]))))
         else:
            if self.hasInputFromPort('st.matrix.name'):
                self.setResult('st.matrix.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
-                                                       self.getInputFromPort('st.matrix.name'))))
+                                                       self.get_input('st.matrix.name'))))
            else:
                self.setResult('st.matrix.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
                                                        str(list(stem_globals.global_vars['st.matrix.name'])[0]))))
@@ -520,11 +520,11 @@ class STMatrixCVAvg(RSource):
     _output_ports = [('st.matrix.directory', '(edu.utah.sci.vistrails.basic:Directory)'),
                      ('map.directory', '(edu.utah.sci.vistrails.basic:Directory)')]
     def compute(self):
-        self.set_variable('st.matrix.input.directory', self.getInputFromPort('st.matrix.input.directory').name)        
-        st_matrix_output_directory = self.getInputFromPort('st.matrix.input.directory')
+        self.set_variable('st.matrix.input.directory', self.get_input('st.matrix.input.directory').name)        
+        st_matrix_output_directory = self.get_input('st.matrix.input.directory')
         self.set_variable('st.matrix.output.directory', st_matrix_output_directory.name)
 
-        stem_globals = self.getInputFromPort('stem.globals')
+        stem_globals = self.get_input('stem.globals')
         ## for k, v in stem_globals.global_vars.iteritems():
         ##     self.set_variable(k,v)
 
@@ -585,11 +585,11 @@ class STMatrixMaps(RSource):
                      ('map_file_1', 
                       '(edu.utah.sci.vistrails.basic:File)')]
     def compute(self):
-        self.set_variable('st.matrix.directory', ''.join([self.getInputFromPort('st.matrix.directory').name]))
-        map_directory = self.getInputFromPort('map.directory')
+        self.set_variable('st.matrix.directory', ''.join([self.get_input('st.matrix.directory').name]))
+        map_directory = self.get_input('map.directory')
         self.set_variable('map.directory', map_directory.name)
 
-        ## stem_globals = self.getInputFromPort('stem.globals')
+        ## stem_globals = self.get_input('stem.globals')
         ## for k, v in stem_globals.global_vars.iteritems():
         ##     self.set_variable(k,v)                          
 

@@ -26,26 +26,26 @@ class RBFInterpolate(ArrayInterpModule, Module):
     """
 
     def compute(self):
-        src = self.getInputFromPort("Source").get_array()
+        src = self.get_input("Source").get_array()
         if src.shape[1] != 4:
             raise ModuleError("Source array must be in the form [[x,y,z,v]]")
         
-        dest = self.getInputFromPort("Destination").get_array()
+        dest = self.get_input("Destination").get_array()
         if dest.shape[1] != 3:
             raise ModuleError("Destination array must be in the form [[x,y,z]]")
         
         if self.hasInputFromPort("Basis"):
-            self.basis = self.getInputFromPort("Basis")
+            self.basis = self.get_input("Basis")
         else:
             self.basis = 'inverse multiquadric'
 
         if self.hasInputFromPort("Smoothing"):
-            self.smooth = self.getInputFromPort("Smoothing")
+            self.smooth = self.get_input("Smoothing")
         else:
             self.smooth = 0.0
 
         if self.hasInputFromPort("Epsilon"):
-            self.eps = self.getInputFromPort("Epsilon")
+            self.eps = self.get_input("Epsilon")
         else:
             self.eps = 1.0
 
@@ -73,7 +73,7 @@ class BSplineInterpolate(ArrayInterpModule, Module):
     """
 
     def compute(self):
-        in_ar = self.getInputFromPort("Input").get_array()
+        in_ar = self.get_input("Input").get_array()
         num_samp = self.forceGetInputFromPort("Interpolant Support")
         if not num_samp:
             num_samp = in_ar.shape[0]
@@ -112,13 +112,13 @@ class BSplineResample(ArrayInterpModule, Module):
     Resample the input array using an order-n bspline
     """
     def compute(self):
-        in_ar = self.getInputFromPort("Input").get_array()
+        in_ar = self.get_input("Input").get_array()
         order = self.forceGetInputFromPort("Order")
         if order == None:
             order = 3
         planes = self.forceGetInputFromPort("Planes")
         ndim = in_ar.ndim
-        gridshape = self.getInputFromPort("New Shape").values
+        gridshape = self.get_input("New Shape").values
 
         out_ar = None
         if planes:

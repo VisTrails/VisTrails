@@ -36,8 +36,8 @@ class DSP(SciPy):
 
 class FFT(DSP):
     def compute(self):
-        mat = self.getInputFromPort("Signals")
-        pts = self.getInputFromPort("FFT Samples")
+        mat = self.get_input("Signals")
+        pts = self.get_input("FFT Samples")
 
         phasors = fftpack.fft(mat.matrix.data, pts)
         outmat = sparse.csc_matrix(phasors)
@@ -47,7 +47,7 @@ class FFT(DSP):
 
 class FFT2(DSP):
     def compute(self):
-        mat = self.getInputFromPort("Signals")
+        mat = self.get_input("Signals")
 
         phasors = fftpack.fftn(mat.matrix.data)
         outmat = sparse.csc_matrix(phasors)
@@ -57,16 +57,16 @@ class FFT2(DSP):
 
 class WindowedFourierTransform(DSP):
     def compute(self):
-        mat = self.getInputFromPort("Signal")
+        mat = self.get_input("Signal")
         
-        sr = self.getInputFromPort("Sampling Rate")
+        sr = self.get_input("Sampling Rate")
         if self.hasInputFromPort("Window Size"):
-            window = self.getInputFromPort("Window Size")
+            window = self.get_input("Window Size")
         else:
             window = sr
 
         if self.hasInputFromPort("Stride"):
-            stride = self.getInputFromPort("Stride")
+            stride = self.get_input("Stride")
         else:
             stride = int(sr / 2)
 
@@ -102,18 +102,18 @@ class ShortTimeFourierTransform(DSP):
         return part
     
     def compute(self):
-        mat = self.getInputFromPort("Signal")
-        sr = self.getInputFromPort("Sampling Rate")
+        mat = self.get_input("Signal")
+        sr = self.get_input("Sampling Rate")
 
         if self.hasInputFromPort("Window"):
-            window = self.getInputFromPort("Window").matrix.toarray()
+            window = self.get_input("Window").matrix.toarray()
             win_size = window.shape[1]
         else:
-            win_size = self.getInputFromPort("WindowSize")
+            win_size = self.get_input("WindowSize")
             window = scipy.signal.hamming(win_size)
 
         if self.hasInputFromPort("Stride"):
-            stride = self.getInputFromPort("Stride")
+            stride = self.get_input("Stride")
         else:
             stride = int(win_size / 2)
 

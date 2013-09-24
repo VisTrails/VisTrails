@@ -15,8 +15,8 @@ class SignalGenerator(DSPModule, Module):
     my_namespace = 'scipy|signals|generator'
 
     def compute(self):
-        samples = self.getInputFromPort("Samples")
-        periods = self.getInputFromPort("Periods")
+        samples = self.get_input("Samples")
+        periods = self.get_input("Periods")
         freqs = self.getInputListFromPort("Frequencies")
 
         ar = numpy.linspace(0., float(periods) * 2. * scipy.pi, periods * samples)
@@ -47,13 +47,13 @@ class FFT(DSPModule, Module):
     my_namespace = 'scipy|signals|fourier'
     
     def compute(self):
-        sig_array = self.getInputFromPort("Signals")
+        sig_array = self.get_input("Signals")
 
         # If there is no input on the samples port,
         # use the number of samples in an array row for
         # the number of fft points.
         if self.hasInputFromPort("Samples"):
-            pts = self.getInputFromPort("Samples")
+            pts = self.get_input("Samples")
             
         else:
             try:
@@ -95,12 +95,12 @@ class FFTN(DSPModule, Module):
     my_namespace = 'scipy|signals|fourier'
 
     def compute(self):
-        sig_array = self.getInputFromPort("Signals")
+        sig_array = self.get_input("Signals")
         # If there is no input on the samples port,
         # use the number of samples in an array row for
         # the number of fft points.
         if self.hasInputFromPort("Samples"):
-            pts = self.getInputFromPort("Samples")
+            pts = self.get_input("Samples")
             
         else:
             pts = sig_array.get_shape()[1]
@@ -134,20 +134,20 @@ class ShortTimeFourierTransform(DSPModule, Module):
         return part
 
     def compute(self):
-        sigs = self.getInputFromPort("Signals")
-        sr = self.getInputFromPort("SamplingRate")
+        sigs = self.get_input("Signals")
+        sr = self.get_input("SamplingRate")
 
         out_vol = None
 
         if self.hasInputFromPort("Window"):
-            window = self.getInputFromPort("Window").get_array()
+            window = self.get_input("Window").get_array()
             win_size = window.shape[0]
         else:
-            win_size = self.getInputFromPort("Window Size")
+            win_size = self.get_input("Window Size")
             window = scipy.signal.hamming(win_size)
 
         if self.hasInputFromPort("Stride"):
-            stride = self.getInputFromPort("Stride")
+            stride = self.get_input("Stride")
         else:
             stride = int(win_size / 2)
 
@@ -207,8 +207,8 @@ class SignalSmoothing(DSPModule, Module):
     Documentation
     """
     def compute(self):
-        window = self.getInputFromPort("Window").get_array()
-        in_signal = self.getInputFromPort("Signal").get_array()
+        window = self.get_input("Window").get_array()
+        in_signal = self.get_input("Signal").get_array()
 
         to_conv = window/window.sum() # Make sure the window is normalized
         if in_signal.ndim > 1:
@@ -252,8 +252,8 @@ class SignalSmoothing(DSPModule, Module):
 #         return pli
     
 #     def compute(self):
-#         phasors = self.getInputFromPort("Phasor Array").get_array()
-#         time_window = self.getInputFromPort("Time Window")
+#         phasors = self.get_input("Phasor Array").get_array()
+#         time_window = self.get_input("Time Window")
 #         time_step = self.forceGetInputFromPort("Time Step")
 #         if time_step == None:
 #             time_step = 1
@@ -311,13 +311,13 @@ class SignalSmoothing(DSPModule, Module):
 #         return scipy.arctan2(p.real, p.imag)
     
 #     def compute(self):
-#         phasors = self.getInputFromPort("Phasor Array").get_array()
+#         phasors = self.get_input("Phasor Array").get_array()
 #         if phasors.ndim != 3:
 #             raise ModuleError("Cannot handle phasor array with less than 3 dimensions")
 
 #         (trials, times, frequencies) = phasors.shape
-#         lowestF = self.getInputFromPort("Lowest Freq")
-# #        highestF = self.getInputFromPort("Highest Freq")
+#         lowestF = self.get_input("Lowest Freq")
+# #        highestF = self.get_input("Highest Freq")
         
 #         Phi = self.Phi(phasors)
 
@@ -358,7 +358,7 @@ class SignalSmoothing(DSPModule, Module):
 #     documentation
 #     """
 #     def compute(self):
-#         phasors = self.getInputFromPort("Phasor Array").get_array()
+#         phasors = self.get_input("Phasor Array").get_array()
 #         if phasors.ndim != 2:
 #             raise ModuleError("Cannot handle phasor array with more than 2 dimensions")
 

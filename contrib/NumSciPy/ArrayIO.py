@@ -148,7 +148,7 @@ class NrrdHelper(object):
 class ReadPNG(ArrayIOModule, Module):
     """ Load a .png type image into a Numpy Array. """
     def compute(self):
-        fn = self.getInputFromPort("Filename")
+        fn = self.get_input("Filename")
         ar = pylab.imread(fn)
         out = NDArray()
         out.set_array(ar)
@@ -163,8 +163,8 @@ class ReadPNG(ArrayIOModule, Module):
 class WritePNG(ArrayIOModule, Module):
     """ Write a .png type image from a Numpy Array. """
     def compute(self):
-        fn = self.getInputFromPort("Filename")
-        ar = self.getInputFromPort("Image")
+        fn = self.get_input("Filename")
+        ar = self.get_input("Image")
         minv = self.forceGetInputFromPort("Min")
         maxv = self.forceGetInputFromPort("Max")
         if minv == None:
@@ -190,9 +190,9 @@ class ReadRAW(ArrayIOModule, Module):
         self.helper = NrrdHelper()
         
     def compute(self):
-        fn = self.getInputFromPort("Filename")
+        fn = self.get_input("Filename")
         sizes = self.getInputListFromPort("Sizes")
-        dtype = self.getInputFromPort("DataType")
+        dtype = self.get_input("DataType")
         ar = self.helper.read_raw(fn, sizes, dtype)
         out = NDArray()
         out.set_array(ar)
@@ -213,8 +213,8 @@ class WriteRAW(ArrayIOModule, Module):
         self.helper = NrrdHeler()
 
     def compute(self):
-        fn = self.getInputFromPort("Filename")
-        ar = self.getInputFromPort("Array").get_array()
+        fn = self.get_input("Filename")
+        ar = self.get_input("Array").get_array()
         self.helper.write_raw(fn,ar)
 
     @classmethod
@@ -232,9 +232,9 @@ class ReadNHDR(ArrayIOModule, Module):
     def compute(self):
         fn = ''
         if self.hasInputFromPort("File"):
-            fn = self.getInputFromPort("File").name
+            fn = self.get_input("File").name
         else:
-            fn = self.getInputFromPort("Filename")
+            fn = self.get_input("Filename")
         ar = self.helper.read_nhdr(fn)
         out = NDArray()
         out.set_array(ar)
@@ -254,8 +254,8 @@ class WriteNHDR(ArrayIOModule, Module):
         self.helper = NrrdHelper()
 
     def compute(self):
-        fn = self.getInputFromPort("Filename")
-        ar = self.getInputFromPort("Array").get_array()
+        fn = self.get_input("Filename")
+        ar = self.get_input("Array").get_array()
         self.helper.write_nhdr(fn,ar)
         self.setResult("Filename Out", fn)
         
@@ -273,9 +273,9 @@ class ReadStatisticalSummary(ArrayIOModule, Module):
     def compute(self):
         fn = ''
         if self.hasInputFromPort("File"):
-            fn = self.getInputFromPort("File").name
+            fn = self.get_input("File").name
         else:
-            fn = self.getInputFromPort("Filename")
+            fn = self.get_input("Filename")
 
         if self.forceGetInputFromPort("Allocate Aggregated Array"):
             alloc_array = True

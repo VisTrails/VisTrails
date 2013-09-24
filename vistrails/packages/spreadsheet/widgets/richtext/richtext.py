@@ -53,7 +53,7 @@ class RichTextCell(SpreadsheetCell):
         Dispatch the HTML contents to the spreadsheet
         """
         if self.hasInputFromPort("File"):
-            fileValue = self.getInputFromPort("File")
+            fileValue = self.get_input("File")
         else:
             fileValue = None
         self.cellWidget = self.displayAndWait(RichTextCellWidget, (fileValue,))

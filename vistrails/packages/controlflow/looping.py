@@ -38,11 +38,11 @@ class While(Module):
                         self.removeInputConnector(port_name, connector)
 
     def compute(self):
-        name_output = self.getInputFromPort('OutputPort')
+        name_output = self.get_input('OutputPort')
         name_condition = self.forceGetInputFromPort('ConditionPort')
         name_state_input = self.forceGetInputFromPort('StateInputPorts')
         name_state_output = self.forceGetInputFromPort('StateOutputPorts')
-        max_iterations = self.getInputFromPort('MaxIterations')
+        max_iterations = self.get_input('MaxIterations')
         delay = self.forceGetInputFromPort('Delay')
 
         if (name_condition is None and

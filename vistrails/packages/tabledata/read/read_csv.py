@@ -64,11 +64,11 @@ class CSVFile(Table):
         return column_count, column_names, delimiter
 
     def compute(self):
-        csv_file = self.getInputFromPort('file').name
-        self.header_present = self.getInputFromPort('header_present',
+        csv_file = self.get_input('file').name
+        self.header_present = self.get_input('header_present',
                                                     allowDefault=True)
         if self.hasInputFromPort('delimiter'):
-            self.delimiter = self.getInputFromPort('delimiter')
+            self.delimiter = self.get_input('delimiter')
         else:
             self.delimiter = None
 

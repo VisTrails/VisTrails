@@ -14,7 +14,7 @@ class ArrayToVTKVectors(ArrayUtilModule, Module):
         v0 = self.forceGetInputFromPort("Array0")
         v1 = self.forceGetInputFromPort("Array1")
         v2 = self.forceGetInputFromPort("Array2")
-        ds = self.getInputFromPort("VTK Data")
+        ds = self.get_input("VTK Data")
 
         v_name = self.forceGetInputFromPort("Vector Name")
         if v_name == None:
@@ -70,7 +70,7 @@ class ArrayToTimeVaryingVTKVectors(ArrayUtilModule, Module):
         v0 = self.forceGetInputFromPort("Array0")
         v1 = self.forceGetInputFromPort("Array1")
         v2 = self.forceGetInputFromPort("Array2")
-        ds = self.getInputFromPort("VTK Data")
+        ds = self.get_input("VTK Data")
 
         v_name = self.forceGetInputFromPort("Vector Name")
         if v_name == None:
@@ -131,8 +131,8 @@ class ArrayToTimeVaryingVTKScalars(ArrayUtilModule, Module):
         self.logging.update_progress(self, t)
         
     def compute(self):
-        ds = self.getInputFromPort("VTK Data")
-        ar = self.getInputFromPort("Scalars")
+        ds = self.get_input("VTK Data")
+        ar = self.get_input("Scalars")
         v_name = self.forceGetInputFromPort("Array Name")
         if v_name == None:
             v_name = 'scalars'
@@ -178,11 +178,11 @@ class ArrayToVTKScalars(ArrayUtilModule, Module):
     because of this."""
 
     def compute(self):
-        a = self.getInputFromPort("Array")
-        ds = self.getInputFromPort("VTK Data")
+        a = self.get_input("Array")
+        ds = self.get_input("VTK Data")
         scalar_name = ''
         if self.hasInputFromPort("Scalar Name"):
-            scalar_name = self.getInputFromPort("Scalar Name")
+            scalar_name = self.get_input("Scalar Name")
         else:
             scalar_name = 'scalars'
         
@@ -221,7 +221,7 @@ class VTKDataSetToPointArray(ArrayUtilModule, Module):
     optionally added if the IncludeScalars flag is set.
     """
     def compute(self):
-        data = self.getInputFromPort("vtkDataSet").vtkInstance
+        data = self.get_input("vtkDataSet").vtkInstance
         flag = self.forceGetInputFromPort("IncludeScalars")
 
         np = data.GetNumberOfPoints()

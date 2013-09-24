@@ -488,11 +488,11 @@ class Service:
                     # only makes sure the enum is one of the valid values
                     p = self.wstype.parts['value']
                     if self.hasInputFromPort(p.name):
-                        obj = self.getInputFromPort(p.name)
+                        obj = self.get_input(p.name)
                     else:
                         obj = p.enum[0] if len(p.enum) else ''
                     if self.hasInputFromPort('value'):
-                        obj = self.getInputFromPort('value')
+                        obj = self.get_input('value')
                     if obj not in p.enum:
                         raise ModuleError(self,
                                  "'%s' is not one of the valid enums: %s" %
@@ -501,7 +501,7 @@ class Service:
                     self.setResult('value', obj)
                     return
                 if self.hasInputFromPort(self.wstype.qname[0]):
-                    obj = self.getInputFromPort(self.wstype.qname[0])
+                    obj = self.get_input(self.wstype.qname[0])
                 else:
                     obj = {}
                     s = "{%s}%s"%(self.wstype.qname[1],self.wstype.qname[0])
@@ -521,7 +521,7 @@ class Service:
                             if hasattr(obj.value, part.name):
                                 setattr(obj, part.name, getattr(obj.value, part.name))
                     if self.hasInputFromPort(part.name):
-                        p = self.getInputFromPort(part.name)
+                        p = self.get_input(part.name)
                         if hasattr(obj, part.name):
                             setattr(obj, part.name, p)
                         else:
@@ -592,14 +592,14 @@ It is a WSDL type with signature:
                 # create dict of inputs
                 cacheable = False
                 if self.hasInputFromPort('cacheable'):
-                    cacheable = self.getInputFromPort('cacheable')
+                    cacheable = self.get_input('cacheable')
                 self.is_cacheable = lambda *args, **kwargs: cacheable            
                 params = {}
                 mname = self.wsmethod.qname[0]
                 for name in self.wsmethod.inputs:
                     name = str(name)
                     if self.hasInputFromPort(name):
-                        params[name] = self.getInputFromPort(name)
+                        params[name] = self.get_input(name)
                         if params[name].__class__.__name__ == 'UberClass':
                             params[name] = params[name].value
                         params[name] = self.service.makeDictType(params[name])

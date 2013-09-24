@@ -17,8 +17,8 @@ class quickplot(Module, NotCacheable):
         if not self.hasInputFromPort('plot'):
             raise ModuleError(self, "'plot' is mandatory.")
 
-        dataset = self.getInputFromPort('dataset')
-        plotType = self.getInputFromPort('plot')
+        dataset = self.get_input('dataset')
+        plotType = self.get_input('plot')
         axes = self.forceGetInputFromPort('axes')
         inCanvas = self.forceGetInputFromPort('canvas')
 

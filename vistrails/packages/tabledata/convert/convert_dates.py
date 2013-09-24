@@ -126,7 +126,7 @@ class TimestampsToDates(Module):
         return [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
 
     def compute(self):
-        timestamps = self.getInputFromPort('timestamps')
+        timestamps = self.get_input('timestamps')
 
         result = self.convert(timestamps)
         self.setResult('dates', result)
@@ -208,10 +208,10 @@ class StringsToDates(Module):
         return result
 
     def compute(self):
-        tz = self.getInputFromPort('timezone')
+        tz = self.get_input('timezone')
 
-        strings = self.getInputFromPort('strings')
-        fmt = self.getInputFromPort('format')
+        strings = self.get_input('strings')
+        fmt = self.get_input('format')
 
         try:
             result = self.convert(strings, fmt, tz)
@@ -241,7 +241,7 @@ class DatesToMatplotlib(Module):
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
 
-        datetimes = self.getInputFromPort('datetimes')
+        datetimes = self.get_input('datetimes')
         result = self.convert(datetimes)
         self.setResult('dates', result)
 
@@ -270,7 +270,7 @@ class TimestampsToMatplotlib(Module):
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
 
-        timestamps = self.getInputFromPort('timestamps')
+        timestamps = self.get_input('timestamps')
         result = self.convert(timestamps)
         self.setResult('dates', result)
 
@@ -303,10 +303,10 @@ class StringsToMatplotlib(Module):
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
 
-        tz = self.getInputFromPort('timezone')
+        tz = self.get_input('timezone')
 
-        strings = self.getInputFromPort('strings')
-        fmt = self.getInputFromPort('format')
+        strings = self.get_input('strings')
+        fmt = self.get_input('format')
 
         try:
             result = self.convert(strings, fmt, tz)

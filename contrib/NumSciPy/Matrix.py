@@ -62,8 +62,8 @@ class Matrix(MatrixModule, Module):
 class MatrixMultiply(MatrixOp, Module):
     """ Multiply two matrices together """
     def compute(self):
-        a = self.getInputFromPort("Matrix1")
-        b = self.getInputFromPort("Matrix2")
+        a = self.get_input("Matrix1")
+        b = self.get_input("Matrix2")
         out = Matrix()
         out.set_matrix(a.get_matrix() * b.get_matrix())
 
@@ -79,7 +79,7 @@ class MatrixMultiply(MatrixOp, Module):
 class MatrixConjugate(MatrixOp, Module):
     """ Get the complex conjugate of the input matrix. """
     def compute(self):
-        a = self.getInputFromPort("Matrix")
+        a = self.get_input("Matrix")
         b = a.get_conjugate().copy()
         out = Matrix()
         out.set_matrix(b)
@@ -94,7 +94,7 @@ class MatrixConjugate(MatrixOp, Module):
 class MatrixToArray(MatrixOp, Module):
     """ Convert a SciPy matrix to a Numpy Array """
     def compute(self):
-        m = self.getInputFromPort("Matrix")
+        m = self.get_input("Matrix")
         a = m.toarray()
         out = NDArray()
         out.set_array(a)
