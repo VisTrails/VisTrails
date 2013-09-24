@@ -488,7 +488,8 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
         for p in points:
             if p[0] is None:
                 x = rect.x() + rect.width()
-            elif p[0] != 0 and p[0] != 1 and p[0] > 0 and p[0] < 1:
+            # can't do +1 (2+ is fine)
+            elif p[0] != 0 and p[0] > 0 and p[0] < 1.0001:
                 x = rect.x() + rect.width() * p[0]
             elif p[0] < 0:
                 x = rect.x() + rect.width() + p[0]
@@ -496,7 +497,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
                 x = rect.x() + p[0]
             if p[1] is None:
                 y = rect.y() + rect.height()
-            elif p[1] != 0 and p[1] != 1 and p[1] > 0 and p[1] < 1:
+            elif p[1] != 0 and p[1] > 0 and p[1] < 1.0001:
                 y = rect.y() + rect.height() * p[1]
             elif p[1] < 0:
                 y = rect.y() + rect.height() + p[1]
@@ -506,6 +507,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
             print "adding point", x, y
             if x < rect.x():
                 x = rect.x()
+            # can't do +1 (2+ is fine)
             elif x > (rect.x() + rect.width()):
                 x = rect.x() + rect.width()
             if y < rect.y():
