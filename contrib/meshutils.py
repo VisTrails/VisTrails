@@ -31,7 +31,7 @@ class MeshArea(Module):
             v = float(l)
         except:
             raise ModuleError(self, "Expected a float, got '%s'" % l)
-        self.setResult('area', v)
+        self.set_output('area', v)
 
 class MeshChoose(Module):
 
@@ -65,7 +65,7 @@ class MeshChoose(Module):
         result = os.system(cmdline)
         if result != 0:
             raise ModuleError(self, "execution failed")
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
 
 def setpath(prefix):
     global meshareapath

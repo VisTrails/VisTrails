@@ -27,7 +27,7 @@ class SignalGenerator(DSPModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -76,7 +76,7 @@ class FFT(DSPModule, Module):
         
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("FFT Output", out)
+        self.set_output("FFT Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -110,7 +110,7 @@ class FFTN(DSPModule, Module):
         phasors = fftpack.fftn(sig_array.get_array(), shape=sh)
         out = NDArray()
         out.set_array(phasors)
-        self.setResult("FFT Output", out)
+        self.set_output("FFT Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -190,7 +190,7 @@ class ShortTimeFourierTransform(DSPModule, Module):
         # All signals have been processed and are in the volume.
         out = NDArray()
         out.set_array(out_vol)
-        self.setResult("FFT Output", out)
+        self.set_output("FFT Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -222,7 +222,7 @@ class SignalSmoothing(DSPModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -293,7 +293,7 @@ class SignalSmoothing(DSPModule, Module):
 
 #         out = NDArray()
 #         out.set_array(out_ar)
-#         self.setResult("Output Array", out)
+#         self.set_output("Output Array", out)
 
 #     @classmethod
 #     def register(cls, reg, basic):

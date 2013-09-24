@@ -115,7 +115,7 @@ class While(Module):
             raise ModuleError(module,
                               "Invalid output port: %s" % name_output)
         result = copy.copy(module.get_output(name_output))
-        self.setResult('Result', result)
+        self.set_output('Result', result)
 
 
 ###############################################################################

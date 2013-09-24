@@ -67,7 +67,7 @@ class STEMConfiguration(RSource):
         self.chdir(get_path())
         self.run_file(get_path('STEM_Configuration.R'), 
                       excluded_outputs=set(['config']))
-        self.setResult('config', self)
+        self.set_output('config', self)
 
 class RunModels(RSource):
     _input_ports = [('config', '(edu.cornell.birds.stem:STEMConfiguration)'),
@@ -80,7 +80,7 @@ class RunModels(RSource):
         self.run_file(get_path('STEM_ModelingEngine.R'),
                       excluded_inputs=set(['source', 'config']), 
                       excluded_outputs=set(['config']))
-        self.setResult('config', self.get_input('config'))
+        self.set_output('config', self.get_input('config'))
 
 class BuildVisualizations(RSource):
     _input_ports = [('config', '(edu.cornell.birds.stem:STEMConfiguration)')]
@@ -92,7 +92,7 @@ class BuildVisualizations(RSource):
                       excluded_inputs=set(['source', 'config']),
                       excluded_outputs=set(['results.dir']))
         dname = list(self.get_variable('results.dir'))[0]
-        self.setResult('results.dir', create_dir_module(dname))
+        self.set_output('results.dir', create_dir_module(dname))
         
 class STEMFigure(RFigure):
     """Write only the R figure code.  You do not need the png or pdf
@@ -295,7 +295,7 @@ class PlotERDMaps(RSource):
 
         self.run_code(code_str)
 
-        self.setResult('map_file', create_file_module(str(list(self.get_variable('mapFile'))[0])))
+        self.set_output('map_file', create_file_module(str(list(self.get_variable('mapFile'))[0])))
 
 
 class ERDDataCreation(RSource):
@@ -338,8 +338,8 @@ class ERDDataCreation(RSource):
                       excluded_inputs=set(['source', 'ebird.data.dir']))
         srd_fname = list(self.get_variable('srd.pred.design.filename'))[0]
         erd_fname = list(self.get_variable('erd.design.filename'))[0]
-        self.setResult('srd.pred.design.file', create_file_module(srd_fname))
-        self.setResult('erd.design.file', create_file_module(erd_fname))
+        self.set_output('srd.pred.design.file', create_file_module(srd_fname))
+        self.set_output('erd.design.file', create_file_module(erd_fname))
                     
 
 class ERDDataSubsetting(RSource):
@@ -382,10 +382,10 @@ class ERDDataSubsetting(RSource):
         self.run_code("stem.predictor.names <- names(eBird.data$train.data$X)")
         stem_predictor_names = self.get_variable('stem.predictor.names')
         
-        self.setResult('train.data', train)
-        self.setResult('test.data', test)
-        self.setResult('pred.data', srd)
-        self.setResult('stem.predictor.names', stem_predictor_names)
+        self.set_output('train.data', train)
+        self.set_output('test.data', test)
+        self.set_output('pred.data', srd)
+        self.set_output('stem.predictor.names', stem_predictor_names)
     
 class FitSTEM(RSource):
     _input_ports = [('stem.globals', '(edu.cornell.birds.stem:STEMGlobals)'),
@@ -447,7 +447,7 @@ class ERDPredictivePerformance(RSource):
         pp_directory = self.get_input('pp.directory')
         self.set_variable('pp.directory', pp_directory.name)
         self.run_file('')
-        self.setResult('pp.directory', pp_directory)
+        self.set_output('pp.directory', pp_directory)
     
 class PredictSTEM(RSource):
     _input_ports = [('stem.globals', '(edu.cornell.birds.stem:STEMGlobals)'),
@@ -495,17 +495,17 @@ class ERDPredictSTMatrix(RSource):
 
         if self.has_input('stem.directory'):
            if self.has_input('st.matrix.name'):
-               self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
+               self.set_output('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
                                                        self.get_input('st.matrix.name'))))
            else:
-               self.setResult('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
+               self.set_output('st.matrix.directory', create_dir_module(os.path.join(self.get_input('stem.directory').name,
                                                        str(list(stem_globals.global_vars['st.matrix.name'])[0]))))
         else:
            if self.has_input('st.matrix.name'):
-               self.setResult('st.matrix.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
+               self.set_output('st.matrix.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
                                                        self.get_input('st.matrix.name'))))
            else:
-               self.setResult('st.matrix.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
+               self.set_output('st.matrix.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
                                                        str(list(stem_globals.global_vars['st.matrix.name'])[0]))))
 
 
@@ -536,8 +536,8 @@ class STMatrixCVAvg(RSource):
 
         self.run_code(code_str)
 
-        self.setResult('st.matrix.directory', st_matrix_output_directory)
-        self.setResult('map.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
+        self.set_output('st.matrix.directory', st_matrix_output_directory)
+        self.set_output('map.directory', create_dir_module(os.path.join(str(list(stem_globals.global_vars['stem.directory'])[0]),
                                                                        str(list(stem_globals.global_vars['st.matrix.ave.maps'])[0]))))
 
 
@@ -601,7 +601,7 @@ class STMatrixMaps(RSource):
 
         self.run_code(code_str)
 
-        self.setResult('map.directory', map_directory)
+        self.set_output('map.directory', map_directory)
 
 
 

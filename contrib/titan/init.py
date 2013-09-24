@@ -866,7 +866,7 @@ def class_dict(base_module, node):
                 o = File()
                 o.name = fn
             self.vtkInstance.Write()
-            self.setResult('file', o)
+            self.set_output('file', o)
         return compute
 
     for var in dir(node.klass):

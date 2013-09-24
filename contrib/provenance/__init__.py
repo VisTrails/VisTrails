@@ -127,7 +127,7 @@ class AlignWarp(ProvenanceChallenge):
                                 str(model),
                                 '-q')
         self.run(cmd)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class Reslice(ProvenanceChallenge):
@@ -140,7 +140,7 @@ class Reslice(ProvenanceChallenge):
                                  warp.name,
                                  o.name)
         self.run(cmd)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class SoftMean(ProvenanceChallenge):
@@ -155,7 +155,7 @@ class SoftMean(ProvenanceChallenge):
                                 'null',
                                 *[f.name for f in imageList])
         self.run(cmd)
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 
 class Slicer(ProvenanceChallenge):
@@ -177,7 +177,7 @@ class Slicer(ProvenanceChallenge):
         o = self.interpreter.filePool.create_file(suffix='.pgm')
         cmd.append(o.name)
         self.run(self.fsl_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 
 class PGMToPPM(ProvenanceChallenge):
@@ -191,7 +191,7 @@ class PGMToPPM(ProvenanceChallenge):
         cmd.append(' >')
         cmd.append(o.name)
         self.run(list2cmdline(cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
         
 
 class PNMToJpeg(ProvenanceChallenge):
@@ -205,7 +205,7 @@ class PNMToJpeg(ProvenanceChallenge):
         cmd.append(' >')
         cmd.append(o.name)
         self.run(list2cmdline(cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 ################################################################################
 

@@ -105,18 +105,18 @@ class Metro(Module):
         results = regexp.match(l).groups()
         
         if need_error_meshes:
-            self.setResult('error_mesh_1', error_mesh_output[0])
-            self.setResult('error_mesh_2', error_mesh_output[1])
+            self.set_output('error_mesh_1', error_mesh_output[0])
+            self.set_output('error_mesh_2', error_mesh_output[1])
 
         if need_histograms:
-            self.setResult('error_hist_1', error_hist_output[0])
-            self.setResult('error_hist_2', error_hist_output[1])
+            self.set_output('error_hist_1', error_hist_output[0])
+            self.set_output('error_hist_2', error_hist_output[1])
 
         self.need_error_meshes = need_error_meshes
         self.need_histograms = need_histograms
 
-        self.setResult('hausdorff_error', float(results[0]))
-        self.setResult('normalized_hausdorff_error', float(results[1]))
+        self.set_output('hausdorff_error', float(results[0]))
+        self.set_output('normalized_hausdorff_error', float(results[1]))
 
 ################################################################################
 

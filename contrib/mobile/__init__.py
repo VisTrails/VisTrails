@@ -77,7 +77,7 @@ class LocationCoordinate2D(Constant):
     @staticmethod
     def translate_to_python(x):
         result = LocationCoordinate2D.from_xml_string(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     @staticmethod
@@ -95,8 +95,8 @@ class LocationCoordinate2D(Constant):
             self.checkInputPort("longitude")
             self.latitude = self.get_input("latitude")
             self.longitude = self.get_input("longitude")
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
         
     @classmethod
     def provide_input_port_documentation(cls, port_name):
@@ -192,7 +192,7 @@ class Location(Constant):
     @staticmethod
     def translate_to_python(x):
         result = Location.from_xml_string(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     @staticmethod
@@ -235,8 +235,8 @@ class Location(Constant):
             if self.has_input("course"):
                 self.course = self.get_input("course")
         
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
     
     @classmethod
     def provide_input_port_documentation(cls, port_name):
@@ -299,7 +299,7 @@ class B64EncodedContents(Constant):
     def translate_to_python(x):
         result = B64EncodedContents()
         result.contents = str(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
         
     @staticmethod
@@ -317,8 +317,8 @@ class B64EncodedContents(Constant):
                 c = open(file_.name)
                 self.contents = base64.b64encode(c.read()) 
             
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
         
 B64EncodedContents._input_ports = [('value', B64EncodedContents),
                                    ('contents', String, True), 
@@ -335,7 +335,7 @@ class Image(B64EncodedContents):
     def translate_to_python(x):
         result = Image()
         result.contents = str(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
     
 Image._input_ports = [('value', Image)]
@@ -351,7 +351,7 @@ class Audio(B64EncodedContents):
     def translate_to_python(x):
         result = Audio()
         result.contents = str(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
     
 Audio._input_ports = [('value', Audio)]

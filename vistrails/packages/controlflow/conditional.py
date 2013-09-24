@@ -97,9 +97,9 @@ class If(Module, NotCacheable):
 
                 # FIXME can we just make this a list?
                 if len(output_ports) == 1:
-                    self.setResult('Result', result[0])
+                    self.set_output('Result', result[0])
                 else:
-                    self.setResult('Result', result)
+                    self.set_output('Result', result)
 
 #################################################################################
 ## Default module
@@ -116,9 +116,9 @@ class Default(Module, NotCacheable):
 
     def compute(self):
         if self.has_input('Input'):
-            self.setResult('Result', self.get_input('Input'))
+            self.set_output('Result', self.get_input('Input'))
         else:
-            self.setResult('Result', self.get_input('Default'))
+            self.set_output('Result', self.get_input('Default'))
 
 
 ###############################################################################

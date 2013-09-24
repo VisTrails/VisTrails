@@ -20,7 +20,7 @@ class ExtractRGBAChannel(ArrayImaging, Module):
         ar = im[:,:,chan]
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -41,7 +41,7 @@ class GaussianGradientMagnitude(ArrayImaging, Module):
         der = scipy.ndimage.gaussian_gradient_magnitude(im.get_array(), sigma)
         out = NDArray()
         out.set_array(der)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -85,7 +85,7 @@ class JointHistogram(ArrayImaging, Module):
         out_ar = out_ar.transpose()
         out_ar = out_ar[::-1]
         out.set_array(out_ar)
-        self.setResult("Joint Histogram", out)
+        self.set_output("Joint Histogram", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -109,7 +109,7 @@ class GaussianSmooth(ArrayImaging, Module):
         der = scipy.ndimage.gaussian_filter(im.get_array(), sigma)
         out = NDArray()
         out.set_array(der)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -126,7 +126,7 @@ class MedianFilter(ArrayImaging, Module):
         der = scipy.ndimage.median_filter(im.get_array(), size=k_size)
         out = NDArray()
         out.set_array(der)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -146,7 +146,7 @@ class ImageDifference(ArrayImaging, Module):
 
         out = NDArray()
         out.set_array(da_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -164,7 +164,7 @@ class ImageNormalize(ArrayImaging, Module):
 
         out = NDArray()
         out.set_array(im_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -184,7 +184,7 @@ class SobelGradientMagnitude(ArrayImaging, Module):
 
         out = NDArray()
         out.set_array(numpy.sqrt(mag))
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):

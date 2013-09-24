@@ -234,13 +234,13 @@ class vtkBaseModule(Module):
                 vtkOutput = self.vtkInstance.GetOutputPort(i)
                 output = vtkBaseModule.wrapperModule('vtkAlgorithmOutput',
                                                      vtkOutput)
-                self.setResult(function, output)
+                self.set_output(function, output)
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
-                    self.setResult(function, output)
+                    self.set_output(function, output)
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
@@ -248,9 +248,9 @@ class vtkBaseModule(Module):
                             className = result[i].GetClassName()
                             result[i] = vtkBaseModule.wrapperModule(className,
                                                                     result[i])
-                    self.setResult(function, type(retValues)(result))
+                    self.set_output(function, type(retValues)(result))
                 else:
-                    self.setResult(function, retValues)
+                    self.set_output(function, retValues)
 
     @staticmethod
     def wrapperModule(classname, instance):

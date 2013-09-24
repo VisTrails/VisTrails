@@ -55,7 +55,7 @@ class RBFInterpolate(ArrayInterpModule, Module):
 
         out = NDArray()
         out.set_array(val_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -96,7 +96,7 @@ class BSplineInterpolate(ArrayInterpModule, Module):
         out = NDArray()
         out.set_array(out_ar)
 
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -140,7 +140,7 @@ class BSplineResample(ArrayInterpModule, Module):
             
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):

@@ -41,8 +41,8 @@ class ImageReader(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Image", outIm)
-        self.setResult("Reader", self)
+        self.set_output("Image", outIm)
+        self.set_output("Reader", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -75,7 +75,7 @@ class ImageToFile(Module):
         writeType = itk.Image[inPixelType._type, dim]
         writer = itk.ImageFileWriter[writeType].New(im.getImg(), FileName=f.name)
         writer.Update()
-        self.setResult("File", f)
+        self.set_output("File", f)
 
     def createOutputFile(self, s):
         return self.interpreter.filePool.create_file(suffix=s)
@@ -115,7 +115,7 @@ class GDCMReader(Module):
         outIm.setPixelType(itk.US)
         outIm.setDim(dim)
 
-        self.setResult("Image Series", outIm)
+        self.set_output("Image Series", outIm)
 
     @classmethod
     def register(cls, reg, basic):
@@ -145,7 +145,7 @@ class DICOMReader(Module):
         outIm.setPixelType(itk.US)
         outIm.setDim(dim)
 
-        self.setResult("Image Series", outIm)
+        self.set_output("Image Series", outIm)
 
     @classmethod
     def register(cls, reg, basic):
@@ -164,6 +164,6 @@ class ITKImageToVTKData(Module):
         im = self.get_input("Input Image")
         self.vtkExport_.SetInput(im)
         self.vtkExport_.Update()
-        self.setResult("VTK Output", self.vtkExport_.GetOutput())
+        self.set_output("VTK Output", self.vtkExport_.GetOutput())
 
         #TODO add register method

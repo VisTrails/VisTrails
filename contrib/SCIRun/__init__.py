@@ -328,15 +328,15 @@ class ReadHDF5File(DataIO) :
     if self.has_input('Current Index') :
       Current_Index = self.get_input('Current Index')
     results = p.execute(Full_filename, Current_Index)
-    self.setResult('Output 0 Nrrd', results[0])
-    self.setResult('Output 1 Nrrd', results[1])
-    self.setResult('Output 2 Nrrd', results[2])
-    self.setResult('Output 3 Nrrd', results[3])
-    self.setResult('Output 4 Nrrd', results[4])
-    self.setResult('Output 5 Nrrd', results[5])
-    self.setResult('Output 6 Nrrd', results[6])
-    self.setResult('Output 7 Nrrd', results[7])
-    self.setResult('Selected Index', results[8])
+    self.set_output('Output 0 Nrrd', results[0])
+    self.set_output('Output 1 Nrrd', results[1])
+    self.set_output('Output 2 Nrrd', results[2])
+    self.set_output('Output 3 Nrrd', results[3])
+    self.set_output('Output 4 Nrrd', results[4])
+    self.set_output('Output 5 Nrrd', results[5])
+    self.set_output('Output 6 Nrrd', results[6])
+    self.set_output('Output 7 Nrrd', results[7])
+    self.set_output('Selected Index', results[8])
 
 class ReadField(DataIO) :
   def compute(self) :
@@ -347,8 +347,8 @@ class ReadField(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Output Data', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('Output Data', results[0])
+    self.set_output('Filename', results[1])
 
 class WriteColorMap(DataIO) :
   def compute(self) :
@@ -378,8 +378,8 @@ class ReadColorMap2D(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Output Data', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('Output Data', results[0])
+    self.set_output('Filename', results[1])
 
 class ReadString(DataIO) :
   def compute(self) :
@@ -390,8 +390,8 @@ class ReadString(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Output Data', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('Output Data', results[0])
+    self.set_output('Filename', results[1])
 
 class ReadColorMap(DataIO) :
   def compute(self) :
@@ -402,8 +402,8 @@ class ReadColorMap(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Output Data', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('Output Data', results[0])
+    self.set_output('Filename', results[1])
 
 class ReadMatrix(DataIO) :
   def compute(self) :
@@ -414,8 +414,8 @@ class ReadMatrix(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Output Data', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('Output Data', results[0])
+    self.set_output('Filename', results[1])
 
 class WriteString(DataIO) :
   def compute(self) :
@@ -443,8 +443,8 @@ class ReadPath(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Output Data', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('Output Data', results[0])
+    self.set_output('Filename', results[1])
 
 class WriteField(DataIO) :
   def compute(self) :
@@ -480,8 +480,8 @@ class ReadBundle(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('bundle', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('bundle', results[0])
+    self.set_output('Filename', results[1])
 
 class StreamMatrixFromDisk(DataIO) :
   def compute(self) :
@@ -518,10 +518,10 @@ class StreamMatrixFromDisk(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Indices, Weights, Filename)
-    self.setResult('DataVector', results[0])
-    self.setResult('Index', results[1])
-    self.setResult('Scaled Index', results[2])
-    self.setResult('Filename', results[3])
+    self.set_output('DataVector', results[0])
+    self.set_output('Index', results[1])
+    self.set_output('Scaled Index', results[2])
+    self.set_output('Filename', results[3])
 
 class WriteMatrix(DataIO) :
   def compute(self) :
@@ -553,8 +553,8 @@ class ReadNrrd(DataIO) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Output Data', results[0])
-    self.setResult('Filename', results[1])
+    self.set_output('Output Data', results[0])
+    self.set_output('Filename', results[1])
 
 class JoinFields(NewField) :
   def compute(self) :
@@ -573,7 +573,7 @@ class JoinFields(NewField) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class RefineMeshByIsovalue(NewField) :
   def compute(self) :
@@ -589,8 +589,8 @@ class RefineMeshByIsovalue(NewField) :
     if self.has_input('Optional Isovalue') :
       Optional_Isovalue = self.get_input('Optional Isovalue')
     results = p.execute(Input, Optional_Isovalue)
-    self.setResult('Refined', results[0])
-    self.setResult('Mapping', results[1])
+    self.set_output('Refined', results[0])
+    self.set_output('Mapping', results[1])
 
 class FairMesh(NewField) :
   def compute(self) :
@@ -603,7 +603,7 @@ class FairMesh(NewField) :
     if self.has_input('Input Mesh') :
       Input_Mesh = self.get_input('Input Mesh')
     results = p.execute(Input_Mesh)
-    self.setResult('Faired Mesh', results)
+    self.set_output('Faired Mesh', results)
 
 class CreateStructHex(NewField) :
   def compute(self) :
@@ -622,7 +622,7 @@ class CreateStructHex(NewField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Sample Field', results)
+    self.set_output('Output Sample Field', results)
 
 class ClipLatVolByIndicesOrWidget(NewField) :
   def compute(self) :
@@ -645,9 +645,9 @@ class ClipLatVolByIndicesOrWidget(NewField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Selection Widget', results[0])
-    self.setResult('Output Field', results[1])
-    self.setResult('MaskVector', results[2])
+    self.set_output('Selection Widget', results[0])
+    self.set_output('Output Field', results[1])
+    self.set_output('MaskVector', results[2])
 
 class GetFieldBoundary(NewField) :
   def compute(self) :
@@ -656,8 +656,8 @@ class GetFieldBoundary(NewField) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('BoundaryField', results[0])
-    self.setResult('Mapping', results[1])
+    self.set_output('BoundaryField', results[0])
+    self.set_output('Mapping', results[1])
 
 class ConvertMatricesToMesh(NewField) :
   def compute(self) :
@@ -680,7 +680,7 @@ class ConvertMatricesToMesh(NewField) :
     if self.has_input('Mesh Normals') :
       Mesh_Normals = self.get_input('Mesh Normals')
     results = p.execute(Mesh_Elements, Mesh_Positions, Mesh_Normals)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class ClipFieldToFieldOrWidget(NewField) :
   def compute(self) :
@@ -728,8 +728,8 @@ class ClipFieldToFieldOrWidget(NewField) :
     if self.has_input('Clip Field') :
       Clip_Field = self.get_input('Clip Field')
     results = p.execute(Input_Field, Clip_Field)
-    self.setResult('Selection Widget', results[0])
-    self.setResult('Output Field', results[1])
+    self.set_output('Selection Widget', results[0])
+    self.set_output('Output Field', results[1])
 
 class RefineMeshByIsovalue2(NewField) :
   def compute(self) :
@@ -745,8 +745,8 @@ class RefineMeshByIsovalue2(NewField) :
     if self.has_input('Optional Isovalue') :
       Optional_Isovalue = self.get_input('Optional Isovalue')
     results = p.execute(Input, Optional_Isovalue)
-    self.setResult('Refined', results[0])
-    self.setResult('Mapping', results[1])
+    self.set_output('Refined', results[0])
+    self.set_output('Mapping', results[1])
 
 class CreateLatVol(NewField) :
   def compute(self) :
@@ -770,7 +770,7 @@ class CreateLatVol(NewField) :
     if self.has_input('LatVol Size') :
       LatVol_Size = self.get_input('LatVol Size')
     results = p.execute(Input_Field, LatVol_Size)
-    self.setResult('Output Sample Field', results)
+    self.set_output('Output Sample Field', results)
 
 class InterfaceWithCamal(NewField) :
   def compute(self) :
@@ -779,7 +779,7 @@ class InterfaceWithCamal(NewField) :
     if self.has_input('TriSurf') :
       TriSurf = self.get_input('TriSurf')
     results = p.execute(TriSurf)
-    self.setResult('TetVol', results)
+    self.set_output('TetVol', results)
 
 class ClipVolumeByIsovalue(NewField) :
   def compute(self) :
@@ -801,8 +801,8 @@ class ClipVolumeByIsovalue(NewField) :
     if self.has_input('Optional Isovalue') :
       Optional_Isovalue = self.get_input('Optional Isovalue')
     results = p.execute(Input, Optional_Isovalue)
-    self.setResult('Clipped', results[0])
-    self.setResult('Mapping', results[1])
+    self.set_output('Clipped', results[0])
+    self.set_output('Mapping', results[1])
 
 class RefineMesh(NewField) :
   def compute(self) :
@@ -820,8 +820,8 @@ class RefineMesh(NewField) :
     if self.has_input('Isovalue') :
       Isovalue = self.get_input('Isovalue')
     results = p.execute(Mesh, Isovalue)
-    self.setResult('RefinedMesh', results[0])
-    self.setResult('Mapping', results[1])
+    self.set_output('RefinedMesh', results[0])
+    self.set_output('Mapping', results[1])
 
 class MergeFields(NewField) :
   def compute(self) :
@@ -833,9 +833,9 @@ class MergeFields(NewField) :
     if self.has_input('Insert Field') :
       Insert_Field = self.get_input('Insert Field')
     results = p.execute(Container_Mesh, Insert_Field)
-    self.setResult('Combined Field', results[0])
-    self.setResult('Extended Insert Field', results[1])
-    self.setResult('Combined To Extended Mapping', results[2])
+    self.set_output('Combined Field', results[0])
+    self.set_output('Extended Insert Field', results[1])
+    self.set_output('Combined To Extended Mapping', results[2])
 
 class GetCentroidsFromMesh(NewField) :
   def compute(self) :
@@ -844,7 +844,7 @@ class GetCentroidsFromMesh(NewField) :
     if self.has_input('TetVolField') :
       TetVolField = self.get_input('TetVolField')
     results = p.execute(TetVolField)
-    self.setResult('PointCloudField', results)
+    self.set_output('PointCloudField', results)
 
 class ExtractIsosurfaceByFunction(NewField) :
   def compute(self) :
@@ -892,7 +892,7 @@ class ExtractIsosurfaceByFunction(NewField) :
     if self.has_input('Optional Slice values') :
       Optional_Slice_values = self.get_input('Optional Slice values')
     results = p.execute(Input_Field, Optional_Slice_values)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class MergeTriSurfs(NewField) :
   def compute(self) :
@@ -901,7 +901,7 @@ class MergeTriSurfs(NewField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class InterfaceWithTetGen(NewField) :
   def compute(self) :
@@ -921,7 +921,7 @@ class InterfaceWithTetGen(NewField) :
     if self.has_input('Regions') :
       Regions = self.get_input('Regions')
     results = p.execute(Main, Points, Region_Attribs, Regions)
-    self.setResult('TetVol', results)
+    self.set_output('TetVol', results)
 
 class CreateImage(NewField) :
   def compute(self) :
@@ -962,7 +962,7 @@ class CreateImage(NewField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Sample Field', results)
+    self.set_output('Output Sample Field', results)
 
 class InsertHexVolSheetAlongSurface(NewField) :
   def compute(self) :
@@ -978,8 +978,8 @@ class InsertHexVolSheetAlongSurface(NewField) :
     if self.has_input('TriField') :
       TriField = self.get_input('TriField')
     results = p.execute(HexField, TriField)
-    self.setResult('Side1Field', results[0])
-    self.setResult('Side2Field', results[1])
+    self.set_output('Side1Field', results[0])
+    self.set_output('Side2Field', results[1])
 
 class GenerateSinglePointProbeFromField(NewField) :
   def compute(self) :
@@ -1018,9 +1018,9 @@ class GenerateSinglePointProbeFromField(NewField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('GenerateSinglePointProbeFromField Widget', results[0])
-    self.setResult('GenerateSinglePointProbeFromField Point', results[1])
-    self.setResult('Element Index', results[2])
+    self.set_output('GenerateSinglePointProbeFromField Widget', results[0])
+    self.set_output('GenerateSinglePointProbeFromField Point', results[1])
+    self.set_output('Element Index', results[2])
 
 class InterfaceWithCubit(NewField) :
   def compute(self) :
@@ -1036,7 +1036,7 @@ class InterfaceWithCubit(NewField) :
     if self.has_input('PointCloudField') :
       PointCloudField = self.get_input('PointCloudField')
     results = p.execute(Field, PointCloudField)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class ClipFieldByFunction(NewField) :
   def compute(self) :
@@ -1052,9 +1052,9 @@ class ClipFieldByFunction(NewField) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Function, Input)
-    self.setResult('Clipped', results[0])
-    self.setResult('Mapping', results[1])
-    self.setResult('MaskVector', results[2])
+    self.set_output('Clipped', results[0])
+    self.set_output('Mapping', results[1])
+    self.set_output('MaskVector', results[2])
 
 class GetDomainBoundary(NewField) :
   def compute(self) :
@@ -1087,7 +1087,7 @@ class GetDomainBoundary(NewField) :
     if self.has_input('MaxValue') :
       MaxValue = self.get_input('MaxValue')
     results = p.execute(Field, MinValueValue, MaxValue)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class CollectFields(NewField) :
   def compute(self) :
@@ -1101,7 +1101,7 @@ class CollectFields(NewField) :
     if self.has_input('BufferSize') :
       BufferSize = self.get_input('BufferSize')
     results = p.execute(Field, BufferSize)
-    self.setResult('Fields', results)
+    self.set_output('Fields', results)
 
 class GeneratePointSamplesFromField(NewField) :
   def compute(self) :
@@ -1126,8 +1126,8 @@ class GeneratePointSamplesFromField(NewField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('GeneratePointSamplesFromField Widget', results[0])
-    self.setResult('GeneratePointSamplesFromField Point', results[1])
+    self.set_output('GeneratePointSamplesFromField Widget', results[0])
+    self.set_output('GeneratePointSamplesFromField Point', results[1])
 
 class GeneratePointSamplesFromFieldOrWidget(NewField) :
   def compute(self) :
@@ -1156,8 +1156,8 @@ class GeneratePointSamplesFromFieldOrWidget(NewField) :
     if self.has_input('Field to Sample') :
       Field_to_Sample = self.get_input('Field to Sample')
     results = p.execute(Field_to_Sample)
-    self.setResult('Samples', results[0])
-    self.setResult('Sampling Widget', results[1])
+    self.set_output('Samples', results[0])
+    self.set_output('Sampling Widget', results[1])
 
 class DecimateTriSurf(NewField) :
   def compute(self) :
@@ -1166,7 +1166,7 @@ class DecimateTriSurf(NewField) :
     if self.has_input('TriSurf') :
       TriSurf = self.get_input('TriSurf')
     results = p.execute(TriSurf)
-    self.setResult('Decimated', results)
+    self.set_output('Decimated', results)
 
 class GetSliceFromStructuredFieldByIndices(NewField) :
   def compute(self) :
@@ -1198,8 +1198,8 @@ class GetSliceFromStructuredFieldByIndices(NewField) :
     if self.has_input('Input Matrix') :
       Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
-    self.setResult('Output Field', results[0])
-    self.setResult('Output Matrix', results[1])
+    self.set_output('Output Field', results[0])
+    self.set_output('Output Matrix', results[1])
 
 class RemoveHexVolSheet(NewField) :
   def compute(self) :
@@ -1210,8 +1210,8 @@ class RemoveHexVolSheet(NewField) :
     if self.has_input('HexField') :
       HexField = self.get_input('HexField')
     results = p.execute(HexField)
-    self.setResult('NewHexField', results[0])
-    self.setResult('ExtractedHexes', results[1])
+    self.set_output('NewHexField', results[0])
+    self.set_output('ExtractedHexes', results[1])
 
 class SubsampleStructuredFieldByIndices(NewField) :
   def compute(self) :
@@ -1259,8 +1259,8 @@ class SubsampleStructuredFieldByIndices(NewField) :
     if self.has_input('Input Matrix') :
       Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
-    self.setResult('Output Field', results[0])
-    self.setResult('Output Matrix', results[1])
+    self.set_output('Output Field', results[0])
+    self.set_output('Output Matrix', results[1])
 
 class GetAllSegmentationBoundaries(NewField) :
   def compute(self) :
@@ -1269,7 +1269,7 @@ class GetAllSegmentationBoundaries(NewField) :
     if self.has_input('Segmentations') :
       Segmentations = self.get_input('Segmentations')
     results = p.execute(Segmentations)
-    self.setResult('Boundaries', results)
+    self.set_output('Boundaries', results)
 
 class ClipFieldWithSeed(NewField) :
   def compute(self) :
@@ -1288,9 +1288,9 @@ class ClipFieldWithSeed(NewField) :
     if self.has_input('Seeds') :
       Seeds = self.get_input('Seeds')
     results = p.execute(Function, Input, Seeds)
-    self.setResult('Clipped', results[0])
-    self.setResult('Mapping', results[1])
-    self.setResult('MaskVector', results[2])
+    self.set_output('Clipped', results[0])
+    self.set_output('Mapping', results[1])
+    self.set_output('MaskVector', results[2])
 
 class SplitNodesByDomain(NewField) :
   def compute(self) :
@@ -1299,7 +1299,7 @@ class SplitNodesByDomain(NewField) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('SplitField', results)
+    self.set_output('SplitField', results)
 
 class ApplyMappingMatrix(ChangeFieldData) :
   def compute(self) :
@@ -1314,7 +1314,7 @@ class ApplyMappingMatrix(ChangeFieldData) :
     if self.has_input('Mapping') :
       Mapping = self.get_input('Mapping')
     results = p.execute(Source, Destination, Mapping)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class MaskLatVolWithTriSurf(ChangeFieldData) :
   def compute(self) :
@@ -1326,7 +1326,7 @@ class MaskLatVolWithTriSurf(ChangeFieldData) :
     if self.has_input('TriSurfField') :
       TriSurfField = self.get_input('TriSurfField')
     results = p.execute(LatVolField, TriSurfField)
-    self.setResult('LatVol Mask', results)
+    self.set_output('LatVol Mask', results)
 
 class ConvertFieldBasis(ChangeFieldData) :
   def compute(self) :
@@ -1337,8 +1337,8 @@ class ConvertFieldBasis(ChangeFieldData) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Input)
-    self.setResult('Output', results[0])
-    self.setResult('Mapping', results[1])
+    self.set_output('Output', results[0])
+    self.set_output('Mapping', results[1])
 
 class ReportMeshQualityMeasures(ChangeFieldData) :
   def compute(self) :
@@ -1347,7 +1347,7 @@ class ReportMeshQualityMeasures(ChangeFieldData) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Input)
-    self.setResult('Checked', results)
+    self.set_output('Checked', results)
 
 class SelectAndSetFieldData(ChangeFieldData) :
   def compute(self) :
@@ -1379,7 +1379,7 @@ class SelectAndSetFieldData(ChangeFieldData) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Field, Array)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class CalculateFieldData3(ChangeFieldData) :
   def compute(self) :
@@ -1404,7 +1404,7 @@ class CalculateFieldData3(ChangeFieldData) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Field1, Field2, Field3, Function, Array)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class SetFieldData(ChangeFieldData) :
   def compute(self) :
@@ -1421,7 +1421,7 @@ class SetFieldData(ChangeFieldData) :
     if self.has_input('Nrrd Data') :
       Nrrd_Data = self.get_input('Nrrd Data')
     results = p.execute(Field, Matrix_Data, Nrrd_Data)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class SwapFieldDataWithMatrixEntries(ChangeFieldData) :
   def compute(self) :
@@ -1435,8 +1435,8 @@ class SwapFieldDataWithMatrixEntries(ChangeFieldData) :
     if self.has_input('Input Matrix') :
       Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
-    self.setResult('Output Field', results[0])
-    self.setResult('Output Matrix', results[1])
+    self.set_output('Output Field', results[0])
+    self.set_output('Output Matrix', results[1])
 
 class ConvertLatVolDataFromElemToNode(ChangeFieldData) :
   def compute(self) :
@@ -1445,7 +1445,7 @@ class ConvertLatVolDataFromElemToNode(ChangeFieldData) :
     if self.has_input('Elem Field') :
       Elem_Field = self.get_input('Elem Field')
     results = p.execute(Elem_Field)
-    self.setResult('Node Field', results)
+    self.set_output('Node Field', results)
 
 class CalculateNodeNormals(ChangeFieldData) :
   def compute(self) :
@@ -1457,7 +1457,7 @@ class CalculateNodeNormals(ChangeFieldData) :
     if self.has_input('Input Point') :
       Input_Point = self.get_input('Input Point')
     results = p.execute(Input_Field, Input_Point)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class CalculateVectorMagnitudes(ChangeFieldData) :
   def compute(self) :
@@ -1466,7 +1466,7 @@ class CalculateVectorMagnitudes(ChangeFieldData) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output CalculateVectorMagnitudes', results)
+    self.set_output('Output CalculateVectorMagnitudes', results)
 
 class ConvertIndicesToFieldData(ChangeFieldData) :
   def compute(self) :
@@ -1480,7 +1480,7 @@ class ConvertIndicesToFieldData(ChangeFieldData) :
     if self.has_input('Data') :
       Data = self.get_input('Data')
     results = p.execute(Field, Data)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class CalculateDistanceToFieldBoundary(ChangeFieldData) :
   def compute(self) :
@@ -1489,7 +1489,7 @@ class CalculateDistanceToFieldBoundary(ChangeFieldData) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('DistanceField', results)
+    self.set_output('DistanceField', results)
 
 class MapFieldDataFromSourceToDestination(ChangeFieldData) :
   def compute(self) :
@@ -1511,7 +1511,7 @@ class MapFieldDataFromSourceToDestination(ChangeFieldData) :
     if self.has_input('Destination') :
       Destination = self.get_input('Destination')
     results = p.execute(Source, Destination)
-    self.setResult('Remapped Destination', results)
+    self.set_output('Remapped Destination', results)
 
 class SelectAndSetFieldData3(ChangeFieldData) :
   def compute(self) :
@@ -1549,7 +1549,7 @@ class SelectAndSetFieldData3(ChangeFieldData) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Field1, Field2, Field3, Array)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class CreateFieldData(ChangeFieldData) :
   def compute(self) :
@@ -1570,7 +1570,7 @@ class CreateFieldData(ChangeFieldData) :
     if self.has_input('DataArray') :
       DataArray = self.get_input('DataArray')
     results = p.execute(Field, Function, DataArray)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class ConvertLatVolDataFromNodeToElem(ChangeFieldData) :
   def compute(self) :
@@ -1579,7 +1579,7 @@ class ConvertLatVolDataFromNodeToElem(ChangeFieldData) :
     if self.has_input('Node Field') :
       Node_Field = self.get_input('Node Field')
     results = p.execute(Node_Field)
-    self.setResult('Elem Field', results)
+    self.set_output('Elem Field', results)
 
 class CalculateFieldDataCompiled(ChangeFieldData) :
   def compute(self) :
@@ -1597,7 +1597,7 @@ class CalculateFieldDataCompiled(ChangeFieldData) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Function, Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class MapFieldDataFromElemToNode(ChangeFieldData) :
   def compute(self) :
@@ -1608,7 +1608,7 @@ class MapFieldDataFromElemToNode(ChangeFieldData) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class ApplyFilterToFieldData(ChangeFieldData) :
   def compute(self) :
@@ -1623,7 +1623,7 @@ class ApplyFilterToFieldData(ChangeFieldData) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class GetFieldData(ChangeFieldData) :
   def compute(self) :
@@ -1632,7 +1632,7 @@ class GetFieldData(ChangeFieldData) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Data', results)
+    self.set_output('Data', results)
 
 class CalculateFieldData2(ChangeFieldData) :
   def compute(self) :
@@ -1654,7 +1654,7 @@ class CalculateFieldData2(ChangeFieldData) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Field1, Field2, Function, Array)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class CalculateLatVolGradientsAtNodes(ChangeFieldData) :
   def compute(self) :
@@ -1663,7 +1663,7 @@ class CalculateLatVolGradientsAtNodes(ChangeFieldData) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Gradient', results)
+    self.set_output('Output Gradient', results)
 
 class CalculateGradients(ChangeFieldData) :
   def compute(self) :
@@ -1672,7 +1672,7 @@ class CalculateGradients(ChangeFieldData) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output CalculateGradients', results)
+    self.set_output('Output CalculateGradients', results)
 
 class CalculateSignedDistanceToField(ChangeFieldData) :
   def compute(self) :
@@ -1684,7 +1684,7 @@ class CalculateSignedDistanceToField(ChangeFieldData) :
     if self.has_input('ObjectField') :
       ObjectField = self.get_input('ObjectField')
     results = p.execute(Field, ObjectField)
-    self.setResult('SignedDistanceField', results)
+    self.set_output('SignedDistanceField', results)
 
 class CalculateInsideWhichField(ChangeFieldData) :
   def compute(self) :
@@ -1700,7 +1700,7 @@ class CalculateInsideWhichField(ChangeFieldData) :
     if self.has_input('Object') :
       Object = self.get_input('Object')
     results = p.execute(Field, Object)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class MapFieldDataFromNodeToElem(ChangeFieldData) :
   def compute(self) :
@@ -1711,7 +1711,7 @@ class MapFieldDataFromNodeToElem(ChangeFieldData) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class ConvertFieldDataType(ChangeFieldData) :
   def compute(self) :
@@ -1722,7 +1722,7 @@ class ConvertFieldDataType(ChangeFieldData) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class CalculateIsInsideField(ChangeFieldData) :
   def compute(self) :
@@ -1740,7 +1740,7 @@ class CalculateIsInsideField(ChangeFieldData) :
     if self.has_input('ObjectField') :
       ObjectField = self.get_input('ObjectField')
     results = p.execute(Field, ObjectField)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class CalculateFieldData(ChangeFieldData) :
   def compute(self) :
@@ -1759,7 +1759,7 @@ class CalculateFieldData(ChangeFieldData) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Field, Function, Array)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class CalculateDistanceToField(ChangeFieldData) :
   def compute(self) :
@@ -1771,7 +1771,7 @@ class CalculateDistanceToField(ChangeFieldData) :
     if self.has_input('ObjectField') :
       ObjectField = self.get_input('ObjectField')
     results = p.execute(Field, ObjectField)
-    self.setResult('DistanceField', results)
+    self.set_output('DistanceField', results)
 
 class TransformPlanarMesh(ChangeMesh) :
   def compute(self) :
@@ -1791,7 +1791,7 @@ class TransformPlanarMesh(ChangeMesh) :
     if self.has_input('Index Matrix') :
       Index_Matrix = self.get_input('Index Matrix')
     results = p.execute(Input_Field, Index_Matrix)
-    self.setResult('Transformed Field', results)
+    self.set_output('Transformed Field', results)
 
 class ConvertMeshToUnstructuredMesh(ChangeMesh) :
   def compute(self) :
@@ -1800,7 +1800,7 @@ class ConvertMeshToUnstructuredMesh(ChangeMesh) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class ConvertQuadSurfToTriSurf(ChangeMesh) :
   def compute(self) :
@@ -1809,7 +1809,7 @@ class ConvertQuadSurfToTriSurf(ChangeMesh) :
     if self.has_input('QuadSurf') :
       QuadSurf = self.get_input('QuadSurf')
     results = p.execute(QuadSurf)
-    self.setResult('TriSurf', results)
+    self.set_output('TriSurf', results)
 
 class TransformMeshWithFunction(ChangeMesh) :
   def compute(self) :
@@ -1820,7 +1820,7 @@ class TransformMeshWithFunction(ChangeMesh) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class ConvertHexVolToTetVol(ChangeMesh) :
   def compute(self) :
@@ -1829,7 +1829,7 @@ class ConvertHexVolToTetVol(ChangeMesh) :
     if self.has_input('HexVol') :
       HexVol = self.get_input('HexVol')
     results = p.execute(HexVol)
-    self.setResult('TetVol', results)
+    self.set_output('TetVol', results)
 
 class ConvertMeshCoordinateSystem(ChangeMesh) :
   def compute(self) :
@@ -1842,7 +1842,7 @@ class ConvertMeshCoordinateSystem(ChangeMesh) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class ConvertMeshToPointCloud(ChangeMesh) :
   def compute(self) :
@@ -1853,7 +1853,7 @@ class ConvertMeshToPointCloud(ChangeMesh) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class TransformMeshWithTransform(ChangeMesh) :
   def compute(self) :
@@ -1865,7 +1865,7 @@ class TransformMeshWithTransform(ChangeMesh) :
     if self.has_input('Transform Matrix') :
       Transform_Matrix = self.get_input('Transform Matrix')
     results = p.execute(Input_Field, Transform_Matrix)
-    self.setResult('Transformed Field', results)
+    self.set_output('Transformed Field', results)
 
 class ConvertRegularMeshToStructuredMesh(ChangeMesh) :
   def compute(self) :
@@ -1874,7 +1874,7 @@ class ConvertRegularMeshToStructuredMesh(ChangeMesh) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class CalculateMeshNodes(ChangeMesh) :
   def compute(self) :
@@ -1891,7 +1891,7 @@ class CalculateMeshNodes(ChangeMesh) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Field, Function, Array)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class SmoothMesh(ChangeMesh) :
   def compute(self) :
@@ -1903,7 +1903,7 @@ class SmoothMesh(ChangeMesh) :
     if self.has_input('IsoValue') :
       IsoValue = self.get_input('IsoValue')
     results = p.execute(Input, IsoValue)
-    self.setResult('Smoothed', results)
+    self.set_output('Smoothed', results)
 
 class EditMeshBoundingBox(ChangeMesh) :
   def compute(self) :
@@ -1958,9 +1958,9 @@ class EditMeshBoundingBox(ChangeMesh) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results[0])
-    self.setResult('Transformation Widget', results[1])
-    self.setResult('Transformation Matrix', results[2])
+    self.set_output('Output Field', results[0])
+    self.set_output('Transformation Widget', results[1])
+    self.set_output('Transformation Matrix', results[2])
 
 class SwapNodeLocationsWithMatrixEntries(ChangeMesh) :
   def compute(self) :
@@ -1972,8 +1972,8 @@ class SwapNodeLocationsWithMatrixEntries(ChangeMesh) :
     if self.has_input('Input Matrix') :
       Input_Matrix = self.get_input('Input Matrix')
     results = p.execute(Input_Field, Input_Matrix)
-    self.setResult('Output Field', results[0])
-    self.setResult('Output Matrix', results[1])
+    self.set_output('Output Field', results[0])
+    self.set_output('Output Matrix', results[1])
 
 class MapFieldDataToNodeCoordinate(ChangeMesh) :
   def compute(self) :
@@ -1984,7 +1984,7 @@ class MapFieldDataToNodeCoordinate(ChangeMesh) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Field', results)
+    self.set_output('Output Field', results)
 
 class ScaleFieldMeshAndData(ChangeMesh) :
   def compute(self) :
@@ -2005,7 +2005,7 @@ class ScaleFieldMeshAndData(ChangeMesh) :
     if self.has_input('DataScaleFactor') :
       DataScaleFactor = self.get_input('DataScaleFactor')
     results = p.execute(Field, GeomScaleFactor, DataScaleFactor)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class ReportColumnMatrixMisfit(Math) :
   def compute(self) :
@@ -2023,7 +2023,7 @@ class ReportColumnMatrixMisfit(Math) :
     if self.has_input('Vec2') :
       Vec2 = self.get_input('Vec2')
     results = p.execute(Vec1, Vec2)
-    self.setResult('Error Out', results)
+    self.set_output('Error Out', results)
 
 class EvaluateLinAlgGeneral(Math) :
   def compute(self) :
@@ -2046,11 +2046,11 @@ class EvaluateLinAlgGeneral(Math) :
     if self.has_input('i5') :
       i5 = self.get_input('i5')
     results = p.execute(i1, i2, i3, i4, i5)
-    self.setResult('o1', results[0])
-    self.setResult('o2', results[1])
-    self.setResult('o3', results[2])
-    self.setResult('o4', results[3])
-    self.setResult('o5', results[4])
+    self.set_output('o1', results[0])
+    self.set_output('o2', results[1])
+    self.set_output('o3', results[2])
+    self.set_output('o4', results[3])
+    self.set_output('o5', results[4])
 
 class AppendMatrix(Math) :
   def compute(self) :
@@ -2064,7 +2064,7 @@ class AppendMatrix(Math) :
     if self.has_input('AppendMatrix') :
       AppendMatrix = self.get_input('AppendMatrix')
     results = p.execute(BaseMatrix, AppendMatrix)
-    self.setResult('Matrix', results)
+    self.set_output('Matrix', results)
 
 class EvaluateLinAlgBinary(Math) :
   def compute(self) :
@@ -2080,7 +2080,7 @@ class EvaluateLinAlgBinary(Math) :
     if self.has_input('B') :
       B = self.get_input('B')
     results = p.execute(A, B)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class ConvertMaskVectorToMappingMatrix(Math) :
   def compute(self) :
@@ -2089,7 +2089,7 @@ class ConvertMaskVectorToMappingMatrix(Math) :
     if self.has_input('MaskVector') :
       MaskVector = self.get_input('MaskVector')
     results = p.execute(MaskVector)
-    self.setResult('MappingMatrix', results)
+    self.set_output('MappingMatrix', results)
 
 class SolveLinearSystem(Math) :
   def compute(self) :
@@ -2133,7 +2133,7 @@ class SolveLinearSystem(Math) :
     if self.has_input('RHS') :
       RHS = self.get_input('RHS')
     results = p.execute(Matrix, RHS)
-    self.setResult('Solution', results)
+    self.set_output('Solution', results)
 
 class ReportMatrixColumnMeasure(Math) :
   def compute(self) :
@@ -2144,7 +2144,7 @@ class ReportMatrixColumnMeasure(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Vector', results)
+    self.set_output('Vector', results)
 
 class SortMatrix(Math) :
   def compute(self) :
@@ -2155,7 +2155,7 @@ class SortMatrix(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Matrix', results)
+    self.set_output('Matrix', results)
 
 class CreateGeometricTransform(Math) :
   def compute(self) :
@@ -2208,8 +2208,8 @@ class CreateGeometricTransform(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Matrix', results[0])
-    self.setResult('Geometry', results[1])
+    self.set_output('Matrix', results[0])
+    self.set_output('Geometry', results[1])
 
 class ChooseMatrix(Math) :
   def compute(self) :
@@ -2224,7 +2224,7 @@ class ChooseMatrix(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Matrix', results)
+    self.set_output('Matrix', results)
 
 class ConvertMappingMatrixToMaskVector(Math) :
   def compute(self) :
@@ -2233,7 +2233,7 @@ class ConvertMappingMatrixToMaskVector(Math) :
     if self.has_input('MappingMatrix') :
       MappingMatrix = self.get_input('MappingMatrix')
     results = p.execute(MappingMatrix)
-    self.setResult('MaskVector', results)
+    self.set_output('MaskVector', results)
 
 class ResizeMatrix(Math) :
   def compute(self) :
@@ -2252,7 +2252,7 @@ class ResizeMatrix(Math) :
     if self.has_input('N') :
       N = self.get_input('N')
     results = p.execute(Matrix, M, N)
-    self.setResult('Matrix', results)
+    self.set_output('Matrix', results)
 
 class CollectMatrices(Math) :
   def compute(self) :
@@ -2270,7 +2270,7 @@ class CollectMatrices(Math) :
     if self.has_input('SubMatrix') :
       SubMatrix = self.get_input('SubMatrix')
     results = p.execute(Optional_BaseMatrix, SubMatrix)
-    self.setResult('CompositeMatrix', results)
+    self.set_output('CompositeMatrix', results)
 
 class GetColumnOrRowFromMatrix(Math) :
   def compute(self) :
@@ -2313,8 +2313,8 @@ class GetColumnOrRowFromMatrix(Math) :
     if self.has_input('Current Index') :
       Current_Index = self.get_input('Current Index')
     results = p.execute(Matrix, Weight_Vector, Current_Index)
-    self.setResult('Vector', results[0])
-    self.setResult('Selected Index', results[1])
+    self.set_output('Vector', results[0])
+    self.set_output('Selected Index', results[1])
 
 class BuildNoiseColumnMatrix(Math) :
   def compute(self) :
@@ -2325,7 +2325,7 @@ class BuildNoiseColumnMatrix(Math) :
     if self.has_input('Signal') :
       Signal = self.get_input('Signal')
     results = p.execute(Signal)
-    self.setResult('Noise', results)
+    self.set_output('Noise', results)
 
 class EvaluateLinAlgUnary(Math) :
   def compute(self) :
@@ -2338,7 +2338,7 @@ class EvaluateLinAlgUnary(Math) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Input)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class GetSubmatrix(Math) :
   def compute(self) :
@@ -2362,7 +2362,7 @@ class GetSubmatrix(Math) :
     if self.has_input('Optional Range Bounds') :
       Optional_Range_Bounds = self.get_input('Optional Range Bounds')
     results = p.execute(Input_Matrix, Optional_Range_Bounds)
-    self.setResult('Output Matrix', results)
+    self.set_output('Output Matrix', results)
 
 class ReorderMatrixByReverseCuthillMcKee(Math) :
   def compute(self) :
@@ -2371,9 +2371,9 @@ class ReorderMatrixByReverseCuthillMcKee(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Matrix', results[0])
-    self.setResult('Mapping', results[1])
-    self.setResult('InverseMapping', results[2])
+    self.set_output('Matrix', results[0])
+    self.set_output('Mapping', results[1])
+    self.set_output('InverseMapping', results[2])
 
 class CreateMatrix(Math) :
   def compute(self) :
@@ -2389,7 +2389,7 @@ class CreateMatrix(Math) :
     if self.has_input('p_rlabel') :
       p.set_p_rlabel(self.get_input('p_rlabel'))
     results = p.execute()
-    self.setResult('matrix', results)
+    self.set_output('matrix', results)
 
 class SolveMinNormLeastSqSystem(Math) :
   def compute(self) :
@@ -2407,8 +2407,8 @@ class SolveMinNormLeastSqSystem(Math) :
     if self.has_input('TargetVec') :
       TargetVec = self.get_input('TargetVec')
     results = p.execute(BasisVec1, BasisVec2, BasisVec3, TargetVec)
-    self.setResult('WeightVec(Col)', results[0])
-    self.setResult('ResultVec(Col)', results[1])
+    self.set_output('WeightVec(Col)', results[0])
+    self.set_output('ResultVec(Col)', results[1])
 
 class ConvertMatrixType(Math) :
   def compute(self) :
@@ -2425,7 +2425,7 @@ class ConvertMatrixType(Math) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Input)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class ReportMatrixRowMeasure(Math) :
   def compute(self) :
@@ -2436,7 +2436,7 @@ class ReportMatrixRowMeasure(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Vector', results)
+    self.set_output('Vector', results)
 
 class ReorderMatrixByCuthillMcKee(Math) :
   def compute(self) :
@@ -2445,9 +2445,9 @@ class ReorderMatrixByCuthillMcKee(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Matrix', results[0])
-    self.setResult('Mapping', results[1])
-    self.setResult('InverseMapping', results[2])
+    self.set_output('Matrix', results[0])
+    self.set_output('Mapping', results[1])
+    self.set_output('InverseMapping', results[2])
 
 class ReportMatrixInfo(Math) :
   def compute(self) :
@@ -2456,9 +2456,9 @@ class ReportMatrixInfo(Math) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Input)
-    self.setResult('NumRows', results[0])
-    self.setResult('NumCols', results[1])
-    self.setResult('NumElements', results[2])
+    self.set_output('NumRows', results[0])
+    self.set_output('NumCols', results[1])
+    self.set_output('NumElements', results[2])
 
 class RemoveZerosFromMatrix(Math) :
   def compute(self) :
@@ -2469,7 +2469,7 @@ class RemoveZerosFromMatrix(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Matrix', results)
+    self.set_output('Matrix', results)
 
 class RemoveZeroRowsAndColumns(Math) :
   def compute(self) :
@@ -2478,9 +2478,9 @@ class RemoveZeroRowsAndColumns(Math) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('ReducedMatrix', results[0])
-    self.setResult('LeftMapping', results[1])
-    self.setResult('RightMapping', results[2])
+    self.set_output('ReducedMatrix', results[0])
+    self.set_output('LeftMapping', results[1])
+    self.set_output('RightMapping', results[2])
 
 class CreateDataArray(DataArrayMath) :
   def compute(self) :
@@ -2499,7 +2499,7 @@ class CreateDataArray(DataArrayMath) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Size, Function, Array)
-    self.setResult('DataArray', results)
+    self.set_output('DataArray', results)
 
 class CreateDataArrayFromIndices(DataArrayMath) :
   def compute(self) :
@@ -2511,7 +2511,7 @@ class CreateDataArrayFromIndices(DataArrayMath) :
     if self.has_input('Template') :
       Template = self.get_input('Template')
     results = p.execute(Indices, Template)
-    self.setResult('DataArray', results)
+    self.set_output('DataArray', results)
 
 class ReportDataArrayInfo(DataArrayMath) :
   def compute(self) :
@@ -2520,7 +2520,7 @@ class ReportDataArrayInfo(DataArrayMath) :
     if self.has_input('DataArray') :
       DataArray = self.get_input('DataArray')
     results = p.execute(DataArray)
-    self.setResult('NumElements', results)
+    self.set_output('NumElements', results)
 
 class CreateVectorArray(DataArrayMath) :
   def compute(self) :
@@ -2535,7 +2535,7 @@ class CreateVectorArray(DataArrayMath) :
     if self.has_input('Z') :
       Z = self.get_input('Z')
     results = p.execute(X, Y, Z)
-    self.setResult('Vector', results)
+    self.set_output('Vector', results)
 
 class ReplicateDataArray(DataArrayMath) :
   def compute(self) :
@@ -2549,7 +2549,7 @@ class ReplicateDataArray(DataArrayMath) :
     if self.has_input('Size') :
       Size = self.get_input('Size')
     results = p.execute(DataArray, Size)
-    self.setResult('DataArray', results)
+    self.set_output('DataArray', results)
 
 class SplitVectorArrayInXYZ(DataArrayMath) :
   def compute(self) :
@@ -2558,9 +2558,9 @@ class SplitVectorArrayInXYZ(DataArrayMath) :
     if self.has_input('VectorArray') :
       VectorArray = self.get_input('VectorArray')
     results = p.execute(VectorArray)
-    self.setResult('X', results[0])
-    self.setResult('Y', results[1])
-    self.setResult('Z', results[2])
+    self.set_output('X', results[0])
+    self.set_output('Y', results[1])
+    self.set_output('Z', results[2])
 
 class DecomposeTensorArrayIntoEigenVectors(DataArrayMath) :
   def compute(self) :
@@ -2569,12 +2569,12 @@ class DecomposeTensorArrayIntoEigenVectors(DataArrayMath) :
     if self.has_input('TensorArray') :
       TensorArray = self.get_input('TensorArray')
     results = p.execute(TensorArray)
-    self.setResult('EigenVector1', results[0])
-    self.setResult('EigenVector2', results[1])
-    self.setResult('EigenVector3', results[2])
-    self.setResult('EigenValue1', results[3])
-    self.setResult('EigenValue2', results[4])
-    self.setResult('EigenValue3', results[5])
+    self.set_output('EigenVector1', results[0])
+    self.set_output('EigenVector2', results[1])
+    self.set_output('EigenVector3', results[2])
+    self.set_output('EigenValue1', results[3])
+    self.set_output('EigenValue2', results[4])
+    self.set_output('EigenValue3', results[5])
 
 class CalculateDataArray(DataArrayMath) :
   def compute(self) :
@@ -2593,7 +2593,7 @@ class CalculateDataArray(DataArrayMath) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(DataArray, Function, Array)
-    self.setResult('DataArray', results)
+    self.set_output('DataArray', results)
 
 class ReportDataArrayMeasure(DataArrayMath) :
   def compute(self) :
@@ -2604,7 +2604,7 @@ class ReportDataArrayMeasure(DataArrayMath) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Array)
-    self.setResult('Measure', results)
+    self.set_output('Measure', results)
 
 class AppendDataArrays(DataArrayMath) :
   def compute(self) :
@@ -2613,7 +2613,7 @@ class AppendDataArrays(DataArrayMath) :
     if self.has_input('Array') :
       Array = self.get_input('Array')
     results = p.execute(Array)
-    self.setResult('Array', results)
+    self.set_output('Array', results)
 
 class CreateTensorArray(DataArrayMath) :
   def compute(self) :
@@ -2634,7 +2634,7 @@ class CreateTensorArray(DataArrayMath) :
     if self.has_input('EigenValue3') :
       EigenValue3 = self.get_input('EigenValue3')
     results = p.execute(EigenVector1, EigenVector2, EigenValue1, EigenValue2, EigenValue3)
-    self.setResult('TensorArray', results)
+    self.set_output('TensorArray', results)
 
 class PrintMatrixIntoString(String) :
   def compute(self) :
@@ -2648,7 +2648,7 @@ class PrintMatrixIntoString(String) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Format, Input)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class GetFileName(String) :
   def compute(self) :
@@ -2660,7 +2660,7 @@ class GetFileName(String) :
     if self.has_input('p_pinned') :
       p.set_p_pinned(self.get_input('p_pinned'))
     results = p.execute()
-    self.setResult('Full Filename', results)
+    self.set_output('Full Filename', results)
 
 class SplitFileName(String) :
   def compute(self) :
@@ -2669,10 +2669,10 @@ class SplitFileName(String) :
     if self.has_input('Filename') :
       Filename = self.get_input('Filename')
     results = p.execute(Filename)
-    self.setResult('Pathname', results[0])
-    self.setResult('Filename Base', results[1])
-    self.setResult('Extension', results[2])
-    self.setResult('Filename', results[3])
+    self.set_output('Pathname', results[0])
+    self.set_output('Filename Base', results[1])
+    self.set_output('Extension', results[2])
+    self.set_output('Filename', results[3])
 
 class PrintStringIntoString(String) :
   def compute(self) :
@@ -2686,7 +2686,7 @@ class PrintStringIntoString(String) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Format, Input)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class CreateString(String) :
   def compute(self) :
@@ -2694,7 +2694,7 @@ class CreateString(String) :
     if self.has_input('p_inputstring') :
       p.set_p_inputstring(self.get_input('p_inputstring'))
     results = p.execute()
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class ReportStringInfo(String) :
   def compute(self) :
@@ -2713,13 +2713,13 @@ class JoinStrings(String) :
     if self.has_input('input') :
       input = self.get_input('input')
     results = p.execute(input)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class GetNetworkFileName(String) :
   def compute(self) :
     p = sr_py.GetNetworkFileNameAlg()
     results = p.execute()
-    self.setResult('String', results)
+    self.set_output('String', results)
 
 class SetFieldProperty(MiscField) :
   def compute(self) :
@@ -2738,7 +2738,7 @@ class SetFieldProperty(MiscField) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class ReportScalarFieldStats(MiscField) :
   def compute(self) :
@@ -2773,8 +2773,8 @@ class SelectFieldROIWithBoxWidget(MiscField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Selection Widget', results[0])
-    self.setResult('Output Field', results[1])
+    self.set_output('Selection Widget', results[0])
+    self.set_output('Output Field', results[1])
 
 class BuildMatrixOfSurfaceNormals(MiscField) :
   def compute(self) :
@@ -2783,7 +2783,7 @@ class BuildMatrixOfSurfaceNormals(MiscField) :
     if self.has_input('Surface Field') :
       Surface_Field = self.get_input('Surface Field')
     results = p.execute(Surface_Field)
-    self.setResult('Nodal Surface Normals', results)
+    self.set_output('Nodal Surface Normals', results)
 
 class ReportFieldInfo(MiscField) :
   def compute(self) :
@@ -2792,14 +2792,14 @@ class ReportFieldInfo(MiscField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('NumNodes', results[0])
-    self.setResult('NumElements', results[1])
-    self.setResult('NumData', results[2])
-    self.setResult('DataMin', results[3])
-    self.setResult('DataMax', results[4])
-    self.setResult('FieldSize', results[5])
-    self.setResult('FieldCenter', results[6])
-    self.setResult('Dimensions', results[7])
+    self.set_output('NumNodes', results[0])
+    self.set_output('NumElements', results[1])
+    self.set_output('NumData', results[2])
+    self.set_output('DataMin', results[3])
+    self.set_output('DataMax', results[4])
+    self.set_output('FieldSize', results[5])
+    self.set_output('FieldCenter', results[6])
+    self.set_output('Dimensions', results[7])
 
 class ReportFieldGeometryMeasures(MiscField) :
   def compute(self) :
@@ -2822,7 +2822,7 @@ class ReportFieldGeometryMeasures(MiscField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Measures Matrix', results)
+    self.set_output('Output Measures Matrix', results)
 
 class SetFieldOrMeshStringProperty(MiscField) :
   def compute(self) :
@@ -2837,7 +2837,7 @@ class SetFieldOrMeshStringProperty(MiscField) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Input)
-    self.setResult('Output', results)
+    self.set_output('Output', results)
 
 class ManageFieldSeries(MiscField) :
   def compute(self) :
@@ -2848,10 +2848,10 @@ class ManageFieldSeries(MiscField) :
     if self.has_input('Input') :
       Input = self.get_input('Input')
     results = p.execute(Input)
-    self.setResult('Output 0', results[0])
-    self.setResult('Output 1', results[1])
-    self.setResult('Output 2', results[2])
-    self.setResult('Output 3', results[3])
+    self.set_output('Output 0', results[0])
+    self.set_output('Output 1', results[1])
+    self.set_output('Output 2', results[2])
+    self.set_output('Output 3', results[3])
 
 class ReportSearchGridInfo(MiscField) :
   def compute(self) :
@@ -2860,7 +2860,7 @@ class ReportSearchGridInfo(MiscField) :
     if self.has_input('Input Field') :
       Input_Field = self.get_input('Input Field')
     results = p.execute(Input_Field)
-    self.setResult('Output Sample Field', results)
+    self.set_output('Output Sample Field', results)
 
 class ChooseField(MiscField) :
   def compute(self) :
@@ -2875,7 +2875,7 @@ class ChooseField(MiscField) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class BuildPointCloudToLatVolMappingMatrix(MiscField) :
   def compute(self) :
@@ -2889,7 +2889,7 @@ class BuildPointCloudToLatVolMappingMatrix(MiscField) :
     if self.has_input('LatVolField') :
       LatVolField = self.get_input('LatVolField')
     results = p.execute(PointCloudField, LatVolField)
-    self.setResult('MappingMatrix', results)
+    self.set_output('MappingMatrix', results)
 
 class BuildMappingMatrix(MiscField) :
   def compute(self) :
@@ -2911,7 +2911,7 @@ class BuildMappingMatrix(MiscField) :
     if self.has_input('Destination') :
       Destination = self.get_input('Destination')
     results = p.execute(Source, Destination)
-    self.setResult('Mapping', results)
+    self.set_output('Mapping', results)
 
 class CoregisterPointClouds(MiscField) :
   def compute(self) :
@@ -2940,7 +2940,7 @@ class CoregisterPointClouds(MiscField) :
     if self.has_input('DistanceField From Fixed') :
       DistanceField_From_Fixed = self.get_input('DistanceField From Fixed')
     results = p.execute(Fixed_PointCloudField, Mobile_PointCloudField, DistanceField_From_Fixed)
-    self.setResult('Transform', results)
+    self.set_output('Transform', results)
 
 class CollectPointClouds(MiscField) :
   def compute(self) :
@@ -2951,7 +2951,7 @@ class CollectPointClouds(MiscField) :
     if self.has_input('Point Cloud') :
       Point_Cloud = self.get_input('Point Cloud')
     results = p.execute(Point_Cloud)
-    self.setResult('Curve', results)
+    self.set_output('Curve', results)
 
 class GetColorMapsFromBundle(Bundle) :
   def compute(self) :
@@ -2974,13 +2974,13 @@ class GetColorMapsFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('colormap1', results[1])
-    self.setResult('colormap2', results[2])
-    self.setResult('colormap3', results[3])
-    self.setResult('colormap4', results[4])
-    self.setResult('colormap5', results[5])
-    self.setResult('colormap6', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('colormap1', results[1])
+    self.set_output('colormap2', results[2])
+    self.set_output('colormap3', results[3])
+    self.set_output('colormap4', results[4])
+    self.set_output('colormap5', results[5])
+    self.set_output('colormap6', results[6])
 
 class InsertFieldsIntoBundle(Bundle) :
   def compute(self) :
@@ -3033,7 +3033,7 @@ class InsertFieldsIntoBundle(Bundle) :
     if self.has_input('field6') :
       field6 = self.get_input('field6')
     results = p.execute(bundle, field1, field2, field3, field4, field5, field6)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class GetFieldsFromBundle(Bundle) :
   def compute(self) :
@@ -3056,13 +3056,13 @@ class GetFieldsFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('field1', results[1])
-    self.setResult('field2', results[2])
-    self.setResult('field3', results[3])
-    self.setResult('field4', results[4])
-    self.setResult('field5', results[5])
-    self.setResult('field6', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('field1', results[1])
+    self.set_output('field2', results[2])
+    self.set_output('field3', results[3])
+    self.set_output('field4', results[4])
+    self.set_output('field5', results[5])
+    self.set_output('field6', results[6])
 
 class InsertColorMap2sIntoBundle(Bundle) :
   def compute(self) :
@@ -3115,7 +3115,7 @@ class InsertColorMap2sIntoBundle(Bundle) :
     if self.has_input('colormap26') :
       colormap26 = self.get_input('colormap26')
     results = p.execute(bundle, colormap21, colormap22, colormap23, colormap24, colormap25, colormap26)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class GetBundlesFromBundle(Bundle) :
   def compute(self) :
@@ -3138,13 +3138,13 @@ class GetBundlesFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('bundle1', results[1])
-    self.setResult('bundle2', results[2])
-    self.setResult('bundle3', results[3])
-    self.setResult('bundle4', results[4])
-    self.setResult('bundle5', results[5])
-    self.setResult('bundle6', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('bundle1', results[1])
+    self.set_output('bundle2', results[2])
+    self.set_output('bundle3', results[3])
+    self.set_output('bundle4', results[4])
+    self.set_output('bundle5', results[5])
+    self.set_output('bundle6', results[6])
 
 class GetPathsFromBundle(Bundle) :
   def compute(self) :
@@ -3167,13 +3167,13 @@ class GetPathsFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('path1', results[1])
-    self.setResult('path2', results[2])
-    self.setResult('path3', results[3])
-    self.setResult('path4', results[4])
-    self.setResult('path5', results[5])
-    self.setResult('path6', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('path1', results[1])
+    self.set_output('path2', results[2])
+    self.set_output('path3', results[3])
+    self.set_output('path4', results[4])
+    self.set_output('path5', results[5])
+    self.set_output('path6', results[6])
 
 class InsertStringsIntoBundle(Bundle) :
   def compute(self) :
@@ -3224,7 +3224,7 @@ class InsertStringsIntoBundle(Bundle) :
     if self.has_input('string6') :
       string6 = self.get_input('string6')
     results = p.execute(bundle, string1, string2, string3, string4, string5, string6)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class GetNrrdsFromBundle(Bundle) :
   def compute(self) :
@@ -3259,13 +3259,13 @@ class GetNrrdsFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('nrrd1', results[1])
-    self.setResult('nrrd2', results[2])
-    self.setResult('nrrd3', results[3])
-    self.setResult('nrrd4', results[4])
-    self.setResult('nrrd5', results[5])
-    self.setResult('nrrd6', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('nrrd1', results[1])
+    self.set_output('nrrd2', results[2])
+    self.set_output('nrrd3', results[3])
+    self.set_output('nrrd4', results[4])
+    self.set_output('nrrd5', results[5])
+    self.set_output('nrrd6', results[6])
 
 class GetMatricesFromBundle(Bundle) :
   def compute(self) :
@@ -3300,13 +3300,13 @@ class GetMatricesFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('matrix1', results[1])
-    self.setResult('matrix2', results[2])
-    self.setResult('matrix3', results[3])
-    self.setResult('matrix4', results[4])
-    self.setResult('matrix5', results[5])
-    self.setResult('matrix6', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('matrix1', results[1])
+    self.set_output('matrix2', results[2])
+    self.set_output('matrix3', results[3])
+    self.set_output('matrix4', results[4])
+    self.set_output('matrix5', results[5])
+    self.set_output('matrix6', results[6])
 
 class JoinBundles(Bundle) :
   def compute(self) :
@@ -3315,7 +3315,7 @@ class JoinBundles(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class ReportBundleInfo(Bundle) :
   def compute(self) :
@@ -3378,7 +3378,7 @@ class InsertPathsIntoBundle(Bundle) :
     if self.has_input('path6') :
       path6 = self.get_input('path6')
     results = p.execute(bundle, path1, path2, path3, path4, path5, path6)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class GetColorMap2sFromBundle(Bundle) :
   def compute(self) :
@@ -3401,13 +3401,13 @@ class GetColorMap2sFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('colormap21', results[1])
-    self.setResult('colormap22', results[2])
-    self.setResult('colormap23', results[3])
-    self.setResult('colormap24', results[4])
-    self.setResult('colormap25', results[5])
-    self.setResult('colormap26', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('colormap21', results[1])
+    self.set_output('colormap22', results[2])
+    self.set_output('colormap23', results[3])
+    self.set_output('colormap24', results[4])
+    self.set_output('colormap25', results[5])
+    self.set_output('colormap26', results[6])
 
 class InsertMatricesIntoBundle(Bundle) :
   def compute(self) :
@@ -3460,7 +3460,7 @@ class InsertMatricesIntoBundle(Bundle) :
     if self.has_input('matrix6') :
       matrix6 = self.get_input('matrix6')
     results = p.execute(bundle, matrix1, matrix2, matrix3, matrix4, matrix5, matrix6)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class InsertNrrdsIntoBundle(Bundle) :
   def compute(self) :
@@ -3513,7 +3513,7 @@ class InsertNrrdsIntoBundle(Bundle) :
     if self.has_input('nrrd6') :
       nrrd6 = self.get_input('nrrd6')
     results = p.execute(bundle, nrrd1, nrrd2, nrrd3, nrrd4, nrrd5, nrrd6)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class InsertBundlesIntoBundle(Bundle) :
   def compute(self) :
@@ -3566,7 +3566,7 @@ class InsertBundlesIntoBundle(Bundle) :
     if self.has_input('bundle6') :
       bundle6 = self.get_input('bundle6')
     results = p.execute(bundle, bundle1, bundle2, bundle3, bundle4, bundle5, bundle6)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class GetStringsFromBundle(Bundle) :
   def compute(self) :
@@ -3589,13 +3589,13 @@ class GetStringsFromBundle(Bundle) :
     if self.has_input('bundle') :
       bundle = self.get_input('bundle')
     results = p.execute(bundle)
-    self.setResult('bundle', results[0])
-    self.setResult('string1', results[1])
-    self.setResult('string2', results[2])
-    self.setResult('string3', results[3])
-    self.setResult('string4', results[4])
-    self.setResult('string5', results[5])
-    self.setResult('string6', results[6])
+    self.set_output('bundle', results[0])
+    self.set_output('string1', results[1])
+    self.set_output('string2', results[2])
+    self.set_output('string3', results[3])
+    self.set_output('string4', results[4])
+    self.set_output('string5', results[5])
+    self.set_output('string6', results[6])
 
 class InsertColorMapsIntoBundle(Bundle) :
   def compute(self) :
@@ -3648,7 +3648,7 @@ class InsertColorMapsIntoBundle(Bundle) :
     if self.has_input('colormap6') :
       colormap6 = self.get_input('colormap6')
     results = p.execute(bundle, colormap1, colormap2, colormap3, colormap4, colormap5, colormap6)
-    self.setResult('bundle', results)
+    self.set_output('bundle', results)
 
 class CreateParameterBundle(Bundle) :
   def compute(self) :
@@ -3660,13 +3660,13 @@ class CreateParameterBundle(Bundle) :
     if self.has_input('p_update_all') :
       p.set_p_update_all(self.get_input('p_update_all'))
     results = p.execute()
-    self.setResult('ParameterList', results)
+    self.set_output('ParameterList', results)
 
 class InsertEnvironmentIntoBundle(Bundle) :
   def compute(self) :
     p = sr_py.InsertEnvironmentIntoBundleAlg()
     results = p.execute()
-    self.setResult('Environment', results)
+    self.set_output('Environment', results)
 
 class ShowColorMap(Visualization) :
   def compute(self) :
@@ -3697,7 +3697,7 @@ class ShowColorMap(Visualization) :
     if self.has_input('ColorMap') :
       ColorMap = self.get_input('ColorMap')
     results = p.execute(ColorMap)
-    self.setResult('Geometry', results)
+    self.set_output('Geometry', results)
 
 class CreateAndEditColorMap2D(Visualization) :
   def compute(self) :
@@ -3723,7 +3723,7 @@ class CreateAndEditColorMap2D(Visualization) :
     if self.has_input('Histogram') :
       Histogram = self.get_input('Histogram')
     results = p.execute(Input_Colormap, Histogram)
-    self.setResult('Output Colormap', results)
+    self.set_output('Output Colormap', results)
 
 class ShowField(Visualization) :
   def compute(self) :
@@ -3825,7 +3825,7 @@ class ShowField(Visualization) :
     if self.has_input('ColorMap') :
       ColorMap = self.get_input('ColorMap')
     results = p.execute(Mesh, ColorMap)
-    self.setResult('Scene Graph', results)
+    self.set_output('Scene Graph', results)
 
 class ExtractIsosurface(Visualization) :
   def compute(self) :
@@ -3888,9 +3888,9 @@ class ExtractIsosurface(Visualization) :
     if self.has_input('Optional Isovalues') :
       Optional_Isovalues = self.get_input('Optional Isovalues')
     results = p.execute(Field, Optional_Color_Map, Optional_Isovalues)
-    self.setResult('Surface', results[0])
-    self.setResult('Geometry', results[1])
-    self.setResult('Mapping', results[2])
+    self.set_output('Surface', results[0])
+    self.set_output('Geometry', results[1])
+    self.set_output('Mapping', results[2])
 
 class CreateViewerAxes(Visualization) :
   def compute(self) :
@@ -4195,7 +4195,7 @@ class CreateViewerAxes(Visualization) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Axes', results)
+    self.set_output('Axes', results)
 
 class RescaleColorMap(Visualization) :
   def compute(self) :
@@ -4217,7 +4217,7 @@ class RescaleColorMap(Visualization) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(ColorMap, Field)
-    self.setResult('ColorMap', results)
+    self.set_output('ColorMap', results)
 
 class ConvertNrrdsToTexture(Visualization) :
   def compute(self) :
@@ -4253,8 +4253,8 @@ class ConvertNrrdsToTexture(Visualization) :
     if self.has_input('Gradient Magnitude Nrrd') :
       Gradient_Magnitude_Nrrd = self.get_input('Gradient Magnitude Nrrd')
     results = p.execute(Value_Nrrd, Gradient_Magnitude_Nrrd)
-    self.setResult('Texture', results[0])
-    self.setResult('JointHistoGram', results[1])
+    self.set_output('Texture', results[0])
+    self.set_output('JointHistoGram', results[1])
 
 class ChooseColorMap(Visualization) :
   def compute(self) :
@@ -4269,7 +4269,7 @@ class ChooseColorMap(Visualization) :
     if self.has_input('ColorMap') :
       ColorMap = self.get_input('ColorMap')
     results = p.execute(ColorMap)
-    self.setResult('ColorMap', results)
+    self.set_output('ColorMap', results)
 
 class CreateLightForViewer(Visualization) :
   def compute(self) :
@@ -4293,7 +4293,7 @@ class CreateLightForViewer(Visualization) :
     if self.has_input('p_on') :
       p.set_p_on(self.get_input('p_on'))
     results = p.execute()
-    self.setResult('Geometry', results)
+    self.set_output('Geometry', results)
 
 class ShowTextureVolume(Visualization) :
   def compute(self) :
@@ -4358,8 +4358,8 @@ class ShowTextureVolume(Visualization) :
     if self.has_input('ColorMap2') :
       ColorMap2 = self.get_input('ColorMap2')
     results = p.execute(Texture, ColorMap, ColorMap2)
-    self.setResult('Geometry', results[0])
-    self.setResult('ColorMap', results[1])
+    self.set_output('Geometry', results[0])
+    self.set_output('ColorMap', results[1])
 
 class ShowFieldGlyphs(Visualization) :
   def compute(self) :
@@ -4505,7 +4505,7 @@ class ShowFieldGlyphs(Visualization) :
     if self.has_input('Tertiary ColorMap') :
       Tertiary_ColorMap = self.get_input('Tertiary ColorMap')
     results = p.execute(Primary_Data, Primary_ColorMap, Secondary_Data, Secondary_ColorMap, Tertiary_Data, Tertiary_ColorMap)
-    self.setResult('Scene Graph', results)
+    self.set_output('Scene Graph', results)
 
 class GenerateStreamLines(Visualization) :
   def compute(self) :
@@ -4535,7 +4535,7 @@ class GenerateStreamLines(Visualization) :
     if self.has_input('Seed Points') :
       Seed_Points = self.get_input('Seed Points')
     results = p.execute(Vector_Field, Seed_Points)
-    self.setResult('Streamlines', results)
+    self.set_output('Streamlines', results)
 
 class GenerateStreamLinesWithPlacementHeuristic(Visualization) :
   def compute(self) :
@@ -4582,8 +4582,8 @@ class GenerateStreamLinesWithPlacementHeuristic(Visualization) :
     if self.has_input('Seed points') :
       Seed_points = self.get_input('Seed points')
     results = p.execute(Source, Weighting, Flow, Compare, Seed_points)
-    self.setResult('Streamlines', results[0])
-    self.setResult('Render', results[1])
+    self.set_output('Streamlines', results[0])
+    self.set_output('Render', results[1])
 
 class ShowString(Visualization) :
   def compute(self) :
@@ -4606,7 +4606,7 @@ class ShowString(Visualization) :
     if self.has_input('Format String') :
       Format_String = self.get_input('Format String')
     results = p.execute(Format_String)
-    self.setResult('Title', results)
+    self.set_output('Title', results)
 
 class CreateAndEditColorMap(Visualization) :
   def compute(self) :
@@ -4623,8 +4623,8 @@ class CreateAndEditColorMap(Visualization) :
     if self.has_input('ColorMap') :
       ColorMap = self.get_input('ColorMap')
     results = p.execute(ColorMap)
-    self.setResult('ColorMap', results[0])
-    self.setResult('Geometry', results[1])
+    self.set_output('ColorMap', results[0])
+    self.set_output('Geometry', results[1])
 
 class ShowMeshBoundingBox(Visualization) :
   def compute(self) :
@@ -4639,7 +4639,7 @@ class ShowMeshBoundingBox(Visualization) :
     if self.has_input('Field') :
       Field = self.get_input('Field')
     results = p.execute(Field)
-    self.setResult('Scene Graph', results)
+    self.set_output('Scene Graph', results)
 
 class CreateStandardColorMaps(Visualization) :
   def compute(self) :
@@ -4663,7 +4663,7 @@ class CreateStandardColorMaps(Visualization) :
     if self.has_input('p_height') :
       p.set_p_height(self.get_input('p_height'))
     results = p.execute()
-    self.setResult('ColorMap', results)
+    self.set_output('ColorMap', results)
 
 class ShowTextureSlices(Visualization) :
   def compute(self) :
@@ -4710,8 +4710,8 @@ class ShowTextureSlices(Visualization) :
     if self.has_input('ColorMap2') :
       ColorMap2 = self.get_input('ColorMap2')
     results = p.execute(Texture, ColorMap, ColorMap2)
-    self.setResult('Geometry', results[0])
-    self.setResult('ColorMap', results[1])
+    self.set_output('Geometry', results[0])
+    self.set_output('ColorMap', results[1])
 
 class ShowMatrix(Visualization) :
   def compute(self) :
@@ -4747,7 +4747,7 @@ class ShowMatrix(Visualization) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(ColorMap, Matrix)
-    self.setResult('Geometry', results)
+    self.set_output('Geometry', results)
 
 class CreateViewerClockIcon(Visualization) :
   def compute(self) :
@@ -4783,7 +4783,7 @@ class CreateViewerClockIcon(Visualization) :
     if self.has_input('Time Nrrd') :
       Time_Nrrd = self.get_input('Time Nrrd')
     results = p.execute(Time_Matrix, Time_Nrrd)
-    self.setResult('Clock', results)
+    self.set_output('Clock', results)
 
 class ConvertFieldsToTexture(Visualization) :
   def compute(self) :
@@ -4813,8 +4813,8 @@ class ConvertFieldsToTexture(Visualization) :
     if self.has_input('Gradient Magnitude Field') :
       Gradient_Magnitude_Field = self.get_input('Gradient Magnitude Field')
     results = p.execute(Value_Field, Gradient_Magnitude_Field)
-    self.setResult('Texture', results[0])
-    self.setResult('JointHistoGram', results[1])
+    self.set_output('Texture', results[0])
+    self.set_output('JointHistoGram', results[1])
 
 class ColorMap2DSemantics(Visualization) :
   def compute(self) :
@@ -4823,7 +4823,7 @@ class ColorMap2DSemantics(Visualization) :
     if self.has_input('Input Colormap') :
       Input_Colormap = self.get_input('Input Colormap')
     results = p.execute(Input_Colormap)
-    self.setResult('Output Colormap', results)
+    self.set_output('Output Colormap', results)
 
 class ConvertMatrixToString(Converters) :
   def compute(self) :
@@ -4832,7 +4832,7 @@ class ConvertMatrixToString(Converters) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('String', results)
+    self.set_output('String', results)
 
 class ConvertMatrixToField(Converters) :
   def compute(self) :
@@ -4843,7 +4843,7 @@ class ConvertMatrixToField(Converters) :
     if self.has_input('Matrix') :
       Matrix = self.get_input('Matrix')
     results = p.execute(Matrix)
-    self.setResult('Field', results)
+    self.set_output('Field', results)
 
 class TimeControls(Time) :
   def compute(self) :
@@ -4853,7 +4853,7 @@ class TimeControls(Time) :
     if self.has_input('p_scale_factor') :
       p.set_p_scale_factor(self.get_input('p_scale_factor'))
     results = p.execute()
-    self.setResult('time', results)
+    self.set_output('time', results)
 
 
 def initialize(*args, **keywords):

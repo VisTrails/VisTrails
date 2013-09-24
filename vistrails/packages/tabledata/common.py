@@ -58,7 +58,7 @@ class ExtractColumn(Module):
                 index,
                 numeric=self.get_input('numeric', allowDefault=True))
 
-        self.setResult('value', result)
+        self.set_output('value', result)
 
 
 _modules = [(Table, {'abstract': True}), ExtractColumn]

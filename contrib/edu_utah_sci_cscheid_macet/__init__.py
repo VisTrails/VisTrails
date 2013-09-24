@@ -69,7 +69,7 @@ class Macet(Module):
         if result != 0:
             raise ModuleError(self, 'Execution failed')
 
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
 
 class MarchingCubes(Module):
 
@@ -90,7 +90,7 @@ class MarchingCubes(Module):
         if result != 0:
             raise ModuleError(self, 'Execution failed')
 
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
 
 ##############################################################################
 

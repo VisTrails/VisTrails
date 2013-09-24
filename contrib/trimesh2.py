@@ -55,7 +55,7 @@ class MeshFilter(Module):
         result = os.system(cmdline)
         if result != 0:
             raise ModuleError(self, 'Execution failed')
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
 
 ##############################################################################
 # PlanarSubdiv
@@ -95,7 +95,7 @@ class PlanarSubdiv(MeshFilter):
             if result != 0:
                 raise ModuleError(self, 'Execution failed')
             
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
     
 
 def initialize(executable_path=None):

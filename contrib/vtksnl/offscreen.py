@@ -47,7 +47,7 @@ class VTKRenderOffscreen(Module):
         writer.SetFileName(output.name)
         writer.Write()
         window.Finalize()
-        self.setResult("image", output)
+        self.set_output("image", output)
 
 def register_self():
     registry = get_module_registry()

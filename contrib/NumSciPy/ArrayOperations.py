@@ -24,7 +24,7 @@ class ArrayReshape(ArrayOperationModule, Module):
         except:
             raise ModuleError("Could not assign new shape.  Be sure the number of elements remains constant")
         
-        self.setResult("Array Output", a.copy())
+        self.set_output("Array Output", a.copy())
 
     @classmethod
     def register(cls, reg, basic):
@@ -49,7 +49,7 @@ class ArrayCumulativeSum(ArrayOperationModule, Module):
         b = a.cumulative_sum()
         out = NDArray()
         out.set_array(b)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -64,7 +64,7 @@ class ArrayScalarMultiply(ArrayOperationModule, Module):
         b = self.get_input("Scalar")
         out = NDArray()
         out.set_array(a.get_array() * b)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -102,7 +102,7 @@ class ArraySort(ArrayOperationModule, Module):
         b = a.sort_array(axis=self.axis, kind=self.kind, order=self.order)
         out = NDArray()
         out.set_array(b.copy())
-        self.setResult("Sorted Array", out)
+        self.set_output("Sorted Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -122,7 +122,7 @@ class ArrayCumulativeProduct(ArrayOperationModule, Module):
         b = a.cumulative_product()
         out = NDArray()
         out.set_array(b)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -141,7 +141,7 @@ class ArrayFill(ArrayOperationModule, Module):
             val = 0.
             
         a.fill_array(val)
-        self.setResult("Array Output", a)
+        self.set_output("Array Output", a)
 
     @classmethod
     def register(cls, reg, basic):
@@ -174,7 +174,7 @@ class ArrayResize(ArrayOperationModule, Module):
         except:
             raise ModuleError("Could not assign new shape.")
         
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -210,7 +210,7 @@ class ArrayExtractRegion(ArrayOperationModule, Module):
         ar = operator.__getitem__(a.get_array(), tuple(slices))
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -234,7 +234,7 @@ class ArrayRavel(ArrayOperationModule, Module):
         a = self.get_input("Array")
         b = NDArray()
         b.set_array(a.ravel().copy())
-        self.setResult("Array Output", b)
+        self.set_output("Array Output", b)
 
     @classmethod
     def register(cls, reg, basic):
@@ -257,7 +257,7 @@ class ArrayRound(ArrayOperationModule, Module):
 
         out = NDArray()
         out.set_array(a.round(precision=self.decimals))
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -279,7 +279,7 @@ class ArrayGetSigma(ArrayOperationModule, Module):
 
         out = NDArray()
         out.set_array(a.get_standard_deviation(self.axis))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -292,7 +292,7 @@ class ArraySum(ArrayOperationModule, Module):
     """ Get the sum of all elements in the input array """
     def compute(self):
         a = self.get_input("Array")
-        self.setResult("Array Sum", float(a.get_sum()))
+        self.set_output("Array Sum", float(a.get_sum()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -307,7 +307,7 @@ class ArrayElementMultiply(ArrayOperationModule, Module):
         a2 = self.get_input("Array2")
         out = NDArray()
         out.set_array(a1.get_array() * a2.get_array())
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -338,7 +338,7 @@ class ArraySetElement(ArrayOperationModule, Module):
         out_a.put(self.ind, self.v)
         out = NDArray()
         out.set_array(out_a)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -354,9 +354,9 @@ class ArrayVariance(ArrayOperationModule, Module):
     def compute(self):
         a = self.get_input("Array")
         if self.has_input("Axis"):
-            self.setResult("Variance", float(a.get_variance(axis=self.get_input("Axis"))))
+            self.set_output("Variance", float(a.get_variance(axis=self.get_input("Axis"))))
         else:
-            self.setResult("Variance", float(a.get_variance()))
+            self.set_output("Variance", float(a.get_variance()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -393,7 +393,7 @@ class ArrayTrace(ArrayOperationModule, Module):
         else:
             self.offset = 0
 
-        self.setResult("Trace", float(a.get_trace(self.offset, self.axis1, self.axis2)))
+        self.set_output("Trace", float(a.get_trace(self.offset, self.axis1, self.axis2)))
 
     @classmethod
     def register(cls, reg, basic):
@@ -414,7 +414,7 @@ class ArraySwapAxes(ArrayOperationModule, Module):
         a2 = self.get_input("Axis2")
         out = NDArray()
         out.set_array(a.swap_axes(a1, a2).copy())
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -430,7 +430,7 @@ class ArraySqueeze(ArrayOperationModule, Module):
         a = self.get_input("Array")
         out = NDArray()
         out.set_array(a.get_array().squeeze().copy())
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -449,7 +449,7 @@ class ArrayAdd(ArrayOperationModule, Module):
 
         out = NDArray()
         out.set_array(a1 + a2)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -466,7 +466,7 @@ class ArrayScalarAdd(ArrayOperationModule, Module):
 
         out = NDArray()
         out.set_array(a1 + s)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -481,7 +481,7 @@ class ArrayLog10(ArrayOperationModule, Module):
         a = self.get_input("Array").get_array()
         out = NDArray()
         out.set_array(numpy.log10(a))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -499,7 +499,7 @@ class ArrayAtan2(ArrayOperationModule,  Module):
         i = self.get_input("Imaginaries").get_array()
         out = NDArray()
         out.set_array(numpy.arctan2(r,i))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -514,7 +514,7 @@ class ArraySqrt(ArrayOperationModule, Module):
         a = self.get_input("Input Array").get_array()
         out = NDArray()
         out.set_array(numpy.sqrt(a))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -532,7 +532,7 @@ class ArrayThreshold(ArrayOperationModule, Module):
             r = 0.
         out = NDArray()
         out.set_array(numpy.where(in_ar > v, in_ar, r))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -561,7 +561,7 @@ class ArrayWindow(ArrayOperationModule, Module):
         o = numpy.where(in_ar >= lo, in_ar, r)
         o = numpy.where(o <= hi, o, r)
         out.set_array(o)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -587,7 +587,7 @@ class ArrayNormalize(ArrayOperationModule, Module):
             
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -618,7 +618,7 @@ class ArrayName(ArrayOperationModule, Module):
         if rname:
             in_ar.set_range_name(rname)
 
-        self.setResult("Output Array", in_ar)
+        self.set_output("Output Array", in_ar)
 
     @classmethod
     def register(cls, reg, basic):

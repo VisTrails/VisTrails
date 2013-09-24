@@ -55,8 +55,8 @@ class IsotropicScaleVolumes(StockwellModule, Module):
         max_out.set_array(max_vol)
         grav_out = NDArray()
         grav_out.set_array(grav_vol)
-        self.setResult("Max Output", max_out)
-        self.setResult("Grav Output", grav_out)
+        self.set_output("Max Output", max_out)
+        self.set_output("Grav Output", grav_out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -134,8 +134,8 @@ class ScaleVolumes(StockwellModule, Module):
         max_out.set_array(max_vol)
         grav_out = NDArray()
         grav_out.set_array(grav_vol)
-        self.setResult("Max Output", max_out)
-        self.setResult("Grav Output", grav_out)
+        self.set_output("Max Output", max_out)
+        self.set_output("Grav Output", grav_out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -192,7 +192,7 @@ class MaximalScaleVolume(StockwellModule, Module):
 
         out = NDArray()
         out.set_array(out_vol)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -223,7 +223,7 @@ class StockwellTransform(StockwellModule, Module):
         print "c time = ", (time.time() - t) * 1000.
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -270,7 +270,7 @@ class PyStockwellTransform(StockwellModule, Module):
         print "time = ", (time.time() - t) * 1000.
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -304,7 +304,7 @@ class MultiTaperStockwellTransform(StockwellModule, Module):
         out_ar = numpy.array(outl).squeeze()
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -364,7 +364,7 @@ class FastStockwell3D(StockwellModule, Module):
 #        out_ar = out_ar * out_ar.conjugate()
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -428,7 +428,7 @@ class ScaleSpaceHistogram(StockwellModule, Module):
 
         out = NDArray()
         out.set_array(histo)# / dist)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
                     
     @classmethod
     def register(cls, reg, basic):
@@ -520,7 +520,7 @@ class PyScaleSpaceHistogram(StockwellModule, Module):
 
         out = NDArray()
         out.set_array(histo)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -557,7 +557,7 @@ class PointBasedStockwell(StockwellModule, Module):
         out_ar = tx.real + ty.real + tz.real
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -655,7 +655,7 @@ class Stockwell2D(StockwellModule, Module):
         print l.shape
         out = NDArray()
         out.set_array(l)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -751,7 +751,7 @@ class FrequencyPhaseLocking(StockwellModule, Module):
             print "min,max,mean = ", out_ar[i].min(), out_ar[i].max(), out_ar[i].mean()
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):

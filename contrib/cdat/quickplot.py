@@ -46,5 +46,5 @@ class quickplot(Module, NotCacheable):
             if cdatWidget!=None:
                 outCanvas = cdatWidget.canvas
                 
-        self.setResult('dataset', dataset)
-        self.setResult('canvas', outCanvas)
+        self.set_output('dataset', dataset)
+        self.set_output('canvas', outCanvas)

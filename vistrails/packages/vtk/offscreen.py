@@ -73,7 +73,7 @@ class VTKRenderOffscreen(Module):
         window.Finalize()
         if widget!=None:
             widget.close()
-        self.setResult("image", output)
+        self.set_output("image", output)
 
 def register_self():
     registry = get_module_registry()

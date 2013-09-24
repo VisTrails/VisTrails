@@ -153,7 +153,7 @@ class MplFigure(Module):
 
         #FIXME write file out if File port is attached!
 
-        self.setResult("self", self)
+        self.set_output("self", self)
 
 class MplContourSet(Module):
     pass

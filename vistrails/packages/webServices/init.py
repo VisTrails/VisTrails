@@ -172,8 +172,8 @@ def webServiceTypesDict(WBobj):
             if self.has_input(nameport):
                 inputport = self.get_input(nameport)
                 self.holder = inputport
-                self.setResult(WBobj.name,self)
-                self.setResult('self',self)
+                self.set_output(WBobj.name,self)
+                self.set_output('self',self)
         else:
             #Check if it is a request type
             modbyname = reg.get_module_by_name(identifier = identifier, name = WBobj.name, namespace = WBobj.namespace)
@@ -248,8 +248,8 @@ def webServiceTypesDict(WBobj):
                         if str(WBobj.name.strip()) == str(attributes[0].strip()):
                             nameport = WBobj.vistrailsname
                             break
-                self.setResult(nameport,req)
-                self.setResult('self',req)
+                self.set_output(nameport,req)
+                self.set_output('self',req)
             else:
                 nameport = str(WBobj.name)
                 for ports in WBobj.ports:
@@ -268,13 +268,13 @@ def webServiceTypesDict(WBobj):
                         nameattrib = nameport[0][0].upper() + nameport[0][1:]
                         sentence = "inputport" + "." + nameattrib
                         outputport = eval(sentence)
-                        self.setResult(nameport[0],outputport)
+                        self.set_output(nameport[0],outputport)
                     if WBobj.hasAttributes:
                         for attributes in WBobj.attributes:
                             nameattrib = attributes[0][0].upper() + attributes[0][1:]
                             sentence = "inputport" + "." + nameattrib
                             outputport = eval(sentence)
-                            self.setResult(attributes[0],outputport)
+                            self.set_output(attributes[0],outputport)
                 elif self.has_input('self'):
                     #Now we use the 'self' input port name
                     #we keep the old for backwards compatibility
@@ -284,13 +284,13 @@ def webServiceTypesDict(WBobj):
                         nameattrib = nameport[0][0].upper() + nameport[0][1:]
                         sentence = "inputport" + "." + nameattrib
                         outputport = eval(sentence)
-                        self.setResult(nameport[0],outputport)
+                        self.set_output(nameport[0],outputport)
                     if WBobj.hasAttributes:
                         for attributes in WBobj.attributes:
                             nameattrib = attributes[0][0].upper() + attributes[0][1:]
                             sentence = "inputport" + "." + nameattrib
                             outputport = eval(sentence)
-                            self.setResult(attributes[0],outputport)
+                            self.set_output(attributes[0],outputport)
                 else:    
                     #Set the values in the input ports
                     #Input modules
@@ -325,8 +325,8 @@ def webServiceTypesDict(WBobj):
                             if str(WBobj.name.strip()) == str(attributes[0].strip()):
                                 nameport = WBobj.vistrailsname
                                 break
-                    self.setResult(nameport,self)
-                    self.setResult('self',self)
+                    self.set_output(nameport,self)
+                    self.set_output('self',self)
 
     return {'compute':compute}
 
@@ -473,7 +473,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 namemethod = outparams[0].name
                 sentence = "resp" + "." + namemethod
                 result = eval(sentence)
-            self.setResult(outparams[0].name,result)
+            self.set_output(outparams[0].name,result)
         except KeyError:
             #This part is for the complex types methods parameters
             inparam = str(inparams[0].name)
@@ -495,7 +495,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                                                   namespace=obj.namespace)
                 visobj = visclass()
                 wrapResponseobj(self,resp, visobj)
-                self.setResult(outparams[0].name,visobj)
+                self.set_output(outparams[0].name,visobj)
 
     return {'compute':compute}
 

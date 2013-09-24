@@ -50,7 +50,7 @@ class TestTupleExecution(Module):
 
     def compute(self):
         v1, v2 = self.get_input('input')
-        self.setResult('output', v1 + v2)
+        self.set_output('output', v1 + v2)
 
 
 class TestDynamicModuleError(Module):

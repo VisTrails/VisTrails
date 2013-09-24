@@ -74,7 +74,7 @@ if len(result)>0:
         self.pvInstance.Script = inputDefs + prefix + source + suffix
         self.pvInstance.UpdatePipeline()
 
-        self.setResult('Output', self)
+        self.set_output('Output', self)
 
 
 class PVClientFetch(PythonSource):

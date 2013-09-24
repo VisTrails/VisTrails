@@ -81,8 +81,8 @@ class CurvatureAnisotropicDiffusionFilter(Module):
         outIm.setPixelType(inPixelType)
         outIm.setDim(dim)
         
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -140,9 +140,9 @@ class RecursiveGaussianImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
         
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
-        self.setResult("Output Dimension", outdim)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
+        self.set_output("Output Dimension", outdim)
 
     @classmethod
     def register(cls, reg, basic):
@@ -204,7 +204,7 @@ class CurvatureFlowImageFilter(Module):
         outIm.setPixelType(inPixelType)
         outIm.setDim(dim)
         
-        self.setResult("Output Image", outIm)
+        self.set_output("Output Image", outIm)
 
     @classmethod
     def register(cls, reg, basic):
@@ -266,9 +266,9 @@ class DiscreteGaussianImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod
@@ -328,9 +328,9 @@ class BinomialBlurImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod
@@ -399,9 +399,9 @@ class GradientAnisotropicDiffusionImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod
@@ -469,9 +469,9 @@ class MinMaxCurvatureFlowImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod
@@ -535,9 +535,9 @@ class BilateralImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod

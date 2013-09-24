@@ -680,7 +680,7 @@ class vtkScaledTransferFunction(Module):
         else:
             (new_tf._min_range, new_tf._max_range) = self.get_input('Range')
             
-        self.setResult('TransferFunction', new_tf)
+        self.set_output('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
         
         of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
@@ -691,8 +691,8 @@ class vtkScaledTransferFunction(Module):
                                                'vtkColorTransferFunction').module()
         cf_module.vtkInstance  = cf
         
-        self.setResult('vtkPicewiseFunction', of_module)
-        self.setResult('vtkColorTransferFunction', cf_module)
+        self.set_output('vtkPicewiseFunction', of_module)
+        self.set_output('vtkColorTransferFunction', cf_module)
 
 string_conversion = staticmethod(lambda x: x.serialize())
 conversion = staticmethod(lambda x: TransferFunction.parse(x))

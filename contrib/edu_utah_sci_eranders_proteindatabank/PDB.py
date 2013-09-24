@@ -108,37 +108,37 @@ class PDBParser(ProteinDataBank):
             if hasattr(self, 'parse_' + toks[0]):
                 getattr(self, 'parse_' + toks[0])(toks[1:], p)
 
-        self.setResult("Protein", p)
+        self.set_output("Protein", p)
 
 class GetAtoms(ProteinDataBank):
     def compute(self):
         prot = self.get_input("Protein")
         aType = self.get_input("Atom Type")
-        self.setResult("NumAtoms", prot.getAtomOfType(aType))
+        self.set_output("NumAtoms", prot.getAtomOfType(aType))
 
 class GetHetAtoms(ProteinDataBank):
     def compute(self):
         prot = self.get_input("Protein")
         aType = self.get_input("Atom Type")
-        self.setResult("NumAtoms", prot.getHetAtomOfType(aType))
+        self.set_output("NumAtoms", prot.getHetAtomOfType(aType))
 
 class GetSequence(ProteinDataBank):
     def compute(self):
         prot = self.get_input("Protein")
         sID = self.get_input("SequenceID")
-        self.setResult("Sequence", prot.getSequence(sID))
+        self.set_output("Sequence", prot.getSequence(sID))
 
 class GetTitle(ProteinDataBank):
     def compute(self):
         prot = self.get_input("Protein")
-        self.setResult("Title", prot.title)
+        self.set_output("Title", prot.title)
 
 class GetAuthor(ProteinDataBank):
     def compute(self):
         prot = self.get_input("Protein")
-        self.setResult("Title", prot.author)
+        self.set_output("Title", prot.author)
 
 class GetPDBName(ProteinDataBank):
     def compute(self):
         prot = self.get_input("Protein")
-        self.setResult("name", prot.pdb_name)
+        self.set_output("name", prot.pdb_name)

@@ -31,7 +31,7 @@ class ComputeDistance(EnsembleModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -59,7 +59,7 @@ class OrderByIndexes(EnsembleModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -181,9 +181,9 @@ class OrderByCorrelation(EnsembleModule, Module):
 
         out_key = NDArray()
         out_key.set_array(key_slice_out)
-        self.setResult("Output Key Slice", out_key)
-        self.setResult("Output Volume", out_vol)
-        self.setResult("Output Correlation", out_cor)
+        self.set_output("Output Key Slice", out_key)
+        self.set_output("Output Volume", out_vol)
+        self.set_output("Output Correlation", out_cor)
 
     @classmethod
     def register(cls, reg, basic):
@@ -284,8 +284,8 @@ class OrderByProgressiveCorrelation(EnsembleModule, Module):
         out_cor = NDArray()
         out_cor.set_array(cor_ar)
 
-        self.setResult("Output Signals", out)
-        self.setResult("Output Correlations", out_cor)
+        self.set_output("Output Signals", out)
+        self.set_output("Output Correlations", out_cor)
 
     @classmethod
     def register(cls, reg, basic):

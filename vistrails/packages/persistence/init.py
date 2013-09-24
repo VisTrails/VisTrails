@@ -202,9 +202,9 @@ class PersistentPath(Module):
     def set_result(self, path):
         persistent_path = Path()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
     def updateUpstream(self, is_input=None, path_type=None):
         global db_access
@@ -438,9 +438,9 @@ class PersistentFile(PersistentPath):
     def set_result(self, path):
         persistent_path = File()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
 class PersistentDir(PersistentPath):
     _input_ports = [('value', '(basic:Directory)'),
@@ -456,9 +456,9 @@ class PersistentDir(PersistentPath):
     def set_result(self, path):
         persistent_path = Directory()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
 class PersistentInputDir(PersistentDir):
     _input_ports = [('value', '(basic:Directory)', True)]

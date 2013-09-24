@@ -27,7 +27,7 @@ class ArrayDumpToString(ArrayConvertModule, Module):
     can then be read in via pickle.loads or numpy.loads """
     def compute(self):
         a = self.get_input("Array")
-        self.setResult("Output String", a.dump_to_string())
+        self.set_output("Output String", a.dump_to_string())
 
     @classmethod
     def register(cls, reg, basic):
@@ -62,7 +62,7 @@ class ArrayToString(ArrayConvertModule, Module):
     input array. """
     def compute(self):
         a = self.get_input("Array")
-        self.setResult("Output String", a.tostring())
+        self.set_output("Output String", a.tostring())
 
     @classmethod
     def register(cls, reg, basic):
@@ -79,7 +79,7 @@ class ArrayToMatrix(ArrayConvertModule, Module):
             mat = sparse.csc_matrix(a.get_array())
             out_mat = Matrix()
             out_mat.set_matrix(mat)
-            self.setResult("Output Matrix", out_mat)
+            self.set_output("Output Matrix", out_mat)
             
         except:
             raise ModuleError("Could not convert input array to matrix")
@@ -139,7 +139,7 @@ class ArrayToVTKImageData(ArrayConvertModule, Module):
             z = 1.0
         vtk_set.vtkInstance.SetSpacing(x,y,z)
 
-        self.setResult("vtkImageData", vtk_set)
+        self.set_output("vtkImageData", vtk_set)
 
     @classmethod
     def register(cls, reg, basic):

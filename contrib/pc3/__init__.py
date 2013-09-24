@@ -31,7 +31,7 @@ class Collection(Module):
 
     def compute(self):
         self.lst = self.forceGetInputListFromPort('elements')
-        self.setResult('collection', self.list)
+        self.set_output('collection', self.list)
 
     _input_ports = [('elements', Module)]
     _output_ports = []
@@ -59,7 +59,7 @@ class CSVFileEntry(Module):
         self.file_entry.TargetTable = self.get_input('targetTable')
         self.file_entry.Checksum = self.get_input('checksum')
         self.file_entry.ColumnNames = self.get_input('columnNames').lst
-        self.setResult('self', self)
+        self.set_output('self', self)
 
     _input_ports = [('filePath', String), 
                     ('headerPath', String),
@@ -87,7 +87,7 @@ class DatabaseEntry(Module):
         self.db_entry.DBName = self.get_input('dbName')
         self.db_entry.ConnectionString = \
             self.get_input('connectionString')
-        self.setResult('self', self)
+        self.set_output('self', self)
 
     _input_ports = [('dbGuid', String),
                     ('dbName', String),
@@ -101,7 +101,7 @@ class IsCSVReadyFileExists(Module):
         self.checkInputPort('csvRootPath')
         path = self.get_input('csvRootPath')
         res = LoadAppLogic.IsCSVReadyFileExists(path)
-        self.setResult('fileExists', res)
+        self.set_output('fileExists', res)
 
     _input_ports = [('csvRootPath', String)]
     _output_ports = [('fileExists', Boolean)]
@@ -117,7 +117,7 @@ class ReadCSVReadyFile(Module):
         list_of_elts = [CSVFileEntry(f) for f in csv_files]
         for elt in list_of_elts:
             elt.upToDate = True
-        self.setResult('csvFiles', list_of_elts)
+        self.set_output('csvFiles', list_of_elts)
 
     _input_ports = [('csvRootPath', String)]
     # _output_ports = [('csvFiles', [Collection, CSVFileEntry])]
@@ -130,7 +130,7 @@ class IsMatchCSVFileTables(Module):
         csv_files = self.get_input('csvFiles')
         res = LoadAppLogic.IsMatchCSVFileTables([f.file_entry 
                                                  for f in csv_files])
-        self.setResult('tablesMatch', res)
+        self.set_output('tablesMatch', res)
 
     # _input_ports = [('csvFiles', [Collection, CSVFileEntry])]
     _input_ports = [('csvFiles', 
@@ -142,7 +142,7 @@ class IsExistsCSVFile(Module):
         self.checkInputPort('csvFile')
         csv_file = self.get_input('csvFile')
         res = LoadAppLogic.IsExistsCSVFile(csv_file.file_entry)
-        self.setResult('fileExists', res)
+        self.set_output('fileExists', res)
 
     _input_ports = [('csvFile', CSVFileEntry)]
     _output_ports = [('fileExists', Boolean)]
@@ -154,7 +154,7 @@ class ReadCSVFileColumnNames(Module):
         self.annotate({'used_files':
                           str([csv_file.file_entry.HeaderPath])})
         res = LoadAppLogic.ReadCSVFileColumnNames(csv_file.file_entry)
-        self.setResult('csvFile', CSVFileEntry(res))
+        self.set_output('csvFile', CSVFileEntry(res))
 
     _input_ports = [('csvFile', CSVFileEntry)]
     _output_ports = [('csvFile', CSVFileEntry)]
@@ -164,7 +164,7 @@ class IsMatchCSVFileColumnNames(Module):
         self.checkInputPort('csvFile')
         csv_file = self.get_input('csvFile')
         res = LoadAppLogic.IsMatchCSVFileColumnNames(csv_file.file_entry)
-        self.setResult('columnsMatch', res)
+        self.set_output('columnsMatch', res)
 
     _input_ports = [('csvFile', CSVFileEntry)]
     _output_ports = [('columnsMatch', Boolean)]
@@ -174,7 +174,7 @@ class CreateEmptyLoadDB(Module):
         self.checkInputPort('jobID')
         job_id = self.get_input('jobID')
         res = LoadAppLogic.CreateEmptyLoadDB(job_id)
-        self.setResult('dbEntry', DatabaseEntry(res))
+        self.set_output('dbEntry', DatabaseEntry(res))
 
     _input_ports = [('jobID', String)]
     _output_ports = [('dbEntry', DatabaseEntry)]
@@ -193,7 +193,7 @@ class LoadCSVFileIntoTable(Module):
                                  csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.LoadCSVFileIntoTable(db_entry.db_entry,
                                                 csv_file.file_entry)
-        self.setResult('success', res)
+        self.set_output('success', res)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
     _output_ports = [('success', Boolean)]
@@ -211,7 +211,7 @@ class UpdateComputedColumns(Module):
                                  csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.UpdateComputedColumns(db_entry.db_entry,
                                                  csv_file.file_entry)
-        self.setResult('success', res)
+        self.set_output('success', res)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
     _output_ports = [('success', Boolean)]
@@ -228,7 +228,7 @@ class IsMatchTableRowCount(Module):
                                  csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.IsMatchTableRowCount(db_entry.db_entry,
                                                 csv_file.file_entry)
-        self.setResult('countsMatch', res)
+        self.set_output('countsMatch', res)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
     _output_ports = [('countsMatch', Boolean)]
@@ -246,7 +246,7 @@ class IsMatchTableColumnRanges(Module):
                                      csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.IsMatchTableColumnRanges(db_entry.db_entry,
                                                     csv_file.file_entry)
-        self.setResult('rangesMatch', res)
+        self.set_output('rangesMatch', res)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
     _output_ports = [('rangesMatch', Boolean)]
@@ -266,7 +266,7 @@ class CompactDatabase(Module):
                                  db_entry.db_entry.DBName,
                                  "P2ImageMeta")])})
         LoadAppLogic.CompactDatabase(db_entry.db_entry)
-        self.setResult('dbEntry', db_entry)
+        self.set_output('dbEntry', db_entry)
         
 
     _input_ports = [('dbEntry', DatabaseEntry)]
@@ -288,15 +288,15 @@ class GetCSVFiles(Module):
 #                             'List')
 #         list_of_elts = descriptor.module()
 #         list_of_elts.value = [CSVFileEntry(f) for f in csv_files]
-#         self.setResult('csvFiles', list_of_elts)
+#         self.set_output('csvFiles', list_of_elts)
         list_of_elts = [CSVFileEntry(f) for f in csv_files]
         for elt in list_of_elts:
             elt.upToDate = True
         print 'list_of_elts:', list_of_elts
-        self.setResult('csvFiles', list_of_elts)
+        self.set_output('csvFiles', list_of_elts)
 #         wrapped_res = Collection([CSVFileEntry(f) for f in csv_files], 
 #                                  CSVFileEntry)
-#         self.setResult('csvFiles', wrapped_res)
+#         self.set_output('csvFiles', wrapped_res)
 
     _input_ports = [('csvRootPath', String)]
     _output_ports = [('csvFiles', 
@@ -315,7 +315,7 @@ class ReadCSVFile(Module):
             LoadAppLogic.ReadCSVFileColumnNames(csv_file.file_entry)
         if not LoadAppLogic.IsMatchCSVFileColumnNames(csv_file.file_entry):
             raise ModuleError(self, "IsMatchCSVFileColumnNames failed")
-        self.setResult('csvFile', csv_file)
+        self.set_output('csvFile', csv_file)
 
     _input_ports = [('csvFile', CSVFileEntry)]
     _output_ports = [('csvFile', CSVFileEntry)]
@@ -336,7 +336,7 @@ class LoadCSVFileIntoDB(Module):
         if not LoadAppLogic.LoadCSVFileIntoTable(db_entry.db_entry,
                                                  csv_file.file_entry):
             raise ModuleError(self, "LoadCSVFileIntoTable failed")
-        self.setResult('dbEntry', db_entry)
+        self.set_output('dbEntry', db_entry)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
     _output_ports = [('dbEntry', DatabaseEntry)]
@@ -360,7 +360,7 @@ class ComputeColumns(Module):
         if not LoadAppLogic.IsMatchTableColumnRanges(db_entry.db_entry,
                                                      csv_file.file_entry):
             raise ModuleError(self, "IsMatchTableColumnRanges failed")
-        self.setResult('dbEntry', db_entry)
+        self.set_output('dbEntry', db_entry)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
     _output_ports = [('dbEntry', DatabaseEntry)]
@@ -378,7 +378,7 @@ class DetectionsHistogram(Module):
                                  "P2Detection")])})
         histogram = LoadAppLogic.DetectionsHistogram(db_entry.db_entry, 
                                                      high_quality)
-        self.setResult('histogram', histogram)
+        self.set_output('histogram', histogram)
     
     _input_ports = [('dbEntry', DatabaseEntry), ('highQuality', Boolean, True)]
     _output_ports = [('histogram', 

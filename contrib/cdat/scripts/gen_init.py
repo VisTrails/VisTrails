@@ -118,7 +118,7 @@ def get_image_compute_method(action, ident=''):
     lines.append(ident + "    ofile.name = %s\n"%action._inputs[0]._name)
 
     lines.append(ident + "    canvas.%s(*args)\n"%action._name)
-    lines.append(ident + "    self.setResult('file',ofile)\n")
+    lines.append(ident + "    self.set_output('file',ofile)\n")
     lines.append("\n")
     return lines
 
@@ -143,7 +143,7 @@ def get_cdms2_compute_method(action, ident=''):
             lines.append(ident + "        raise ModuleError(self, \"'%s' is a mandatory port\")\n" % inp._name)
 
     lines.append(ident + "    res = cdms2.%s(*args)\n"%action._name)
-    lines.append(ident + "    self.setResult('%s',res)\n"%action._outputs[0]._name)
+    lines.append(ident + "    self.set_output('%s',res)\n"%action._outputs[0]._name)
     lines.append("\n")
     return lines
 
@@ -170,7 +170,7 @@ def get_CdmsFile_compute_method(action, ident=''):
             lines.append(ident + "        raise ModuleError(self, \"'%s' is a mandatory port\")\n" % inp._name)
 
     lines.append(ident + "    res = cdmsfile.%s(*args)\n"%action._name)
-    lines.append(ident + "    self.setResult('%s',res)\n"%action._outputs[0]._name)
+    lines.append(ident + "    self.set_output('%s',res)\n"%action._outputs[0]._name)
     lines.append("\n")
     return lines
 

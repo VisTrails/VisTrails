@@ -67,9 +67,9 @@ class GradientMagnitudeRecursiveGaussianImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
@@ -129,9 +129,9 @@ class DanielssonDistanceMapImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod
@@ -188,9 +188,9 @@ class SobelEdgeDetectionImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod

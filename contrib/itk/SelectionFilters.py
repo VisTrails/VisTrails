@@ -86,10 +86,10 @@ class RegionOfInterestImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(outDim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
-        self.setResult("Output Dimension", outDim)
-        self.setResult("Filter", self)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
+        self.set_output("Output Dimension", outDim)
+        self.set_output("Filter", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -149,10 +149,10 @@ class CastImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(outDim)
         
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
-        self.setResult("Output Dimension", outDim)
-        self.setResult("Filter", self)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
+        self.set_output("Output Dimension", outDim)
+        self.set_output("Filter", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -212,9 +212,9 @@ class ExtractImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(outDim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
-        self.setResult("Dimension", outDim)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
+        self.set_output("Dimension", outDim)
 
     @classmethod
     def register(cls, reg, basic):

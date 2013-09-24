@@ -165,8 +165,8 @@ class CDATAction:
             lines.append(ident + "    #force images to be created in the background\n")
             lines.append(ident + "    kwargs['bg'] = 1\n")
             lines.append(ident + "    res = canvas.%s(*args,**kwargs)\n"%self._name)
-            lines.append(ident + "    self.setResult('%s',res)\n"%(self._outputs[0]._name))
-            lines.append(ident + "    self.setResult('canvas',canvas)\n")
+            lines.append(ident + "    self.set_output('%s',res)\n"%(self._outputs[0]._name))
+            lines.append(ident + "    self.set_output('canvas',canvas)\n")
             lines.append("\n")
         if self._name in do_not_cache_me:
             lines.append(ident + "class %s(Module,NotCacheable):\n" % self._name)

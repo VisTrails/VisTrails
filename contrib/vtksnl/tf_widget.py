@@ -557,7 +557,7 @@ class vtkScaledTransferFunction(Module):
         else:
             (new_tf._min_range, new_tf._max_range) = self.get_input('Range')
             
-        self.setResult('TransferFunction', new_tf)
+        self.set_output('TransferFunction', new_tf)
 
 string_conversion = staticmethod(lambda x: pickle.dumps(x).encode('hex'))
 conversion = staticmethod(lambda x: pickle.loads(x.decode('hex')))

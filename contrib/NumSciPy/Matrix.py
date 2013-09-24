@@ -67,7 +67,7 @@ class MatrixMultiply(MatrixOp, Module):
         out = Matrix()
         out.set_matrix(a.get_matrix() * b.get_matrix())
 
-        self.setResult("Matrix Output", out)
+        self.set_output("Matrix Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -83,7 +83,7 @@ class MatrixConjugate(MatrixOp, Module):
         b = a.get_conjugate().copy()
         out = Matrix()
         out.set_matrix(b)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -98,7 +98,7 @@ class MatrixToArray(MatrixOp, Module):
         a = m.toarray()
         out = NDArray()
         out.set_array(a)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):

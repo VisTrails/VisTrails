@@ -128,7 +128,7 @@ def compute_jobpreparation(self):
 
     self.queue = cls(queue, **kwargs) 
 
-    self.setResult("job", self)
+    self.set_output("job", self)
 
 dct = {'_input_ports'   : [b for b in in_job_properties.itervalues()] \
            + [('machine', '(org.comp-phys.batchq:Machine)'),],
@@ -175,10 +175,10 @@ def joboperation_compute(self):
             raise ModuleSuspended(self, ret.message, queue) if ret.code > 0 \
                 else ModuleError(self,ret.message)
 
-        self.setResult("job", job)
-        self.setResult("result", ret)
-        self.setResult("string", str(ret))
-    self.setResult("operation", self)
+        self.set_output("job", job)
+        self.set_output("result", ret)
+        self.set_output("string", str(ret))
+    self.set_output("operation", self)
 
 _modules+=[(JobOperation,{'abstract':True})]
 
@@ -236,29 +236,29 @@ def jobinfo_compute(self):
         function =getattr(queue, name)
         ret =function().val()
         if function.exporter is None:
-            self.setResult(name, ret)
+            self.set_output(name, ret)
         else:
             ## If the field is exported to a vistrails 
             ## type the conversion is done here
             exporter = function.exporter
             _, exp = exporter_definitions[exporter.type]
             ret = function.exporter.as_str()
-            self.setResult(name, exp(self,ret))
+            self.set_output(name, exp(self,ret))
 
     for prop in self.queue_properties:
         name = prop[0]
         field = queue.fields[name]
         ret = field.get()
         if field.exporter is None:
-            self.setResult(name, ret)
+            self.set_output(name, ret)
         else:
             exporter = field.exporter
             _, exp = exporter_definitions[exporter.type]
 
             ret = exporter.as_str()
-            self.setResult(name, exp(self,ret))
+            self.set_output(name, exp(self,ret))
 
-    self.setResult("job", job)
+    self.set_output("job", job)
 
 
 queue_properties = [b for b in exp_job_properties.itervalues()]
@@ -298,7 +298,7 @@ def collective_compute(self):
     col2 = getattr(col, self.collection_name)()
     rets = getattr(col2, operation.function_name)().as_list()
     ## TODO: ad results
-    self.setResult('job', job)
+    self.set_output('job', job)
 
 collective = dict([(name,getattr(Collection, name)) for name in dir(Collection) if isinstance(getattr(Collection, name),Exportable)])
 members = [ ('_input_ports', [('operation', '(org.comp-phys.batchq:JobOperation)'),('job', '(org.comp-phys.batchq:Job)')] ),

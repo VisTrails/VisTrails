@@ -278,8 +278,8 @@ class boxfill(SpreadsheetCell,NotCacheable):
         inputPorts = (canvas, args, kwargs)
         self.displayAndWait(QCDATWidget, inputPorts)
         
-        # self.setResult('display', res) 
-        self.setResult('canvas',canvas)
+        # self.set_output('display', res) 
+        self.set_output('canvas',canvas)
 
 class createboxfill(Module):
     """
@@ -329,7 +329,7 @@ class createboxfill(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)
+        self.set_output('slab_0_out', slab)
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -441,8 +441,8 @@ class createboxfill(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         gm = canvas.createboxfill(*args,**kwargs)
-        self.setResult('boxfill', gm)
-        self.setResult('canvas', canvas)
+        self.set_output('boxfill', gm)
+        self.set_output('canvas', canvas)
 
 class createisofill(Module):
     """
@@ -492,7 +492,7 @@ class createisofill(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -605,8 +605,8 @@ class createisofill(Module):
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createisofill(*args,**kwargs)
-        self.setResult('isofill',res)
-        self.setResult('canvas',canvas)
+        self.set_output('isofill',res)
+        self.set_output('canvas',canvas)
 
 class createisoline(Module):
     """
@@ -657,7 +657,7 @@ class createisoline(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -770,8 +770,8 @@ class createisoline(Module):
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createisoline(*args,**kwargs)
-        self.setResult('isoline',res)
-        self.setResult('canvas',canvas)
+        self.set_output('isoline',res)
+        self.set_output('canvas',canvas)
 
 class createoutfill(Module):
     """
@@ -823,7 +823,7 @@ class createoutfill(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -936,8 +936,8 @@ class createoutfill(Module):
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createoutfill(*args,**kwargs)
-        self.setResult('outfill',res)
-        self.setResult('canvas',canvas)
+        self.set_output('outfill',res)
+        self.set_output('canvas',canvas)
 
 class createoutline(Module):
     """
@@ -988,7 +988,7 @@ class createoutline(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -1101,8 +1101,8 @@ class createoutline(Module):
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createoutline(*args,**kwargs)
-        self.setResult('outline',res)
-        self.setResult('canvas',canvas)
+        self.set_output('outline',res)
+        self.set_output('canvas',canvas)
 
 class createscatter(Module):
     """
@@ -1152,7 +1152,7 @@ class createscatter(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -1265,8 +1265,8 @@ class createscatter(Module):
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createscatter(*args,**kwargs)
-        self.setResult('scatter',res)
-        self.setResult('canvas',canvas)
+        self.set_output('scatter',res)
+        self.set_output('canvas',canvas)
 
 class createxvsy(Module):
     """
@@ -1316,7 +1316,7 @@ class createxvsy(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -1429,8 +1429,8 @@ class createxvsy(Module):
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createxvsy(*args,**kwargs)
-        self.setResult('xvsy',res)
-        self.setResult('canvas',canvas)
+        self.set_output('xvsy',res)
+        self.set_output('canvas',canvas)
 
 class createxyvsy(Module):
     """
@@ -1481,7 +1481,7 @@ class createxyvsy(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -1594,8 +1594,8 @@ class createxyvsy(Module):
         #force images to be created in the background
         #kwargs['bg'] = 1
         res = canvas.createxyvsy(*args,**kwargs)
-        self.setResult('xyvsy',res)
-        self.setResult('canvas',canvas)
+        self.set_output('xyvsy',res)
+        self.set_output('canvas',canvas)
 
 class createyxvsx(Module):
     """
@@ -1646,7 +1646,7 @@ class createyxvsx(Module):
         slab = None
         if self.has_input('slab_0'):
             slab = self.get_input('slab_0')
-        self.setResult('slab_0_out', slab)            
+        self.set_output('slab_0_out', slab)            
 
         # build up the keyword arguments from the optional inputs.
         kwargs = {}
@@ -1760,8 +1760,8 @@ class createyxvsx(Module):
         #kwargs['bg'] = 1
 
         res = canvas.createyxvsx(*args,**kwargs)
-        self.setResult('yxvsx',res)
-        self.setResult('canvas',canvas)
+        self.set_output('yxvsx',res)
+        self.set_output('canvas',canvas)
 
 class getboxfill(Module):
     """
@@ -1912,8 +1912,8 @@ class getboxfill(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getboxfill(*args)
-        self.setResult('boxfill',res)
-        self.setResult('canvas',canvas)
+        self.set_output('boxfill',res)
+        self.set_output('canvas',canvas)
 
 class getisofill(Module):
     """
@@ -2064,8 +2064,8 @@ class getisofill(Module):
 
         res = canvas.getisofill(*args)
         
-        self.setResult('isofill',res)
-        self.setResult('canvas',canvas)
+        self.set_output('isofill',res)
+        self.set_output('canvas',canvas)
 
 class getisoline(Module):
     """
@@ -2215,8 +2215,8 @@ class getisoline(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getisoline(*args)
-        self.setResult('isoline',res)
-        self.setResult('canvas',canvas)
+        self.set_output('isoline',res)
+        self.set_output('canvas',canvas)
 
 class getoutfill(Module):
     """
@@ -2367,8 +2367,8 @@ class getoutfill(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getoutfill(*args,**kwargs)
-        self.setResult('outfill',res)
-        self.setResult('canvas',canvas)
+        self.set_output('outfill',res)
+        self.set_output('canvas',canvas)
 
 class getoutline(Module):
     """
@@ -2519,8 +2519,8 @@ class getoutline(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getoutline(*args)
-        self.setResult('outline',res)
-        self.setResult('canvas',canvas)
+        self.set_output('outline',res)
+        self.set_output('canvas',canvas)
 
 class getscatter(Module):
     """
@@ -2671,8 +2671,8 @@ class getscatter(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getscatter(*args)
-        self.setResult('scatter',res)
-        self.setResult('canvas',canvas)
+        self.set_output('scatter',res)
+        self.set_output('canvas',canvas)
 
 class getxvsy(Module):
     """
@@ -2823,8 +2823,8 @@ class getxvsy(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getxvsy(*args)
-        self.setResult('xvsy',res)
-        self.setResult('canvas',canvas)
+        self.set_output('xvsy',res)
+        self.set_output('canvas',canvas)
 
 class getxyvsy(Module):
     """
@@ -2974,8 +2974,8 @@ class getxyvsy(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getxyvsy(*args)
-        self.setResult('xyvsy',res)
-        self.setResult('canvas',canvas)
+        self.set_output('xyvsy',res)
+        self.set_output('canvas',canvas)
 
 class getyxvsx(Module):
     """
@@ -3125,8 +3125,8 @@ class getyxvsx(Module):
             kwargs['yrev'] = self.get_input('yrev')
 
         res = canvas.getyxvsx(*args,**kwargs)
-        self.setResult('yxvsx',res)
-        self.setResult('canvas',canvas)
+        self.set_output('yxvsx',res)
+        self.set_output('canvas',canvas)
 
 class isofill(Module,NotCacheable):
     """
@@ -3295,8 +3295,8 @@ class isofill(Module,NotCacheable):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.isofill(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class isoline(Module,NotCacheable):
     """
@@ -3465,8 +3465,8 @@ class isoline(Module,NotCacheable):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.isoline(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class outfill(Module):
     """
@@ -3635,8 +3635,8 @@ class outfill(Module):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.outfill(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class outline(Module):
     """
@@ -3805,8 +3805,8 @@ class outline(Module):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.outline(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class plot(SpreadsheetCell,NotCacheable):
     """
@@ -4077,7 +4077,7 @@ class plot(SpreadsheetCell,NotCacheable):
         inputPorts = (canvas, args, kwargs)
         self.displayAndWait(QCDATWidget, inputPorts)
         
-        self.setResult('canvas',canvas)
+        self.set_output('canvas',canvas)
 
 class scatter(Module):
     """
@@ -4231,8 +4231,8 @@ class scatter(Module):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.scatter(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class xvsy(Module):
     """
@@ -4386,8 +4386,8 @@ class xvsy(Module):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.xvsy(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class xyvsy(Module):
     """
@@ -4535,8 +4535,8 @@ class xyvsy(Module):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.xyvsy(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class yxvsx(Module):
     """
@@ -4684,8 +4684,8 @@ class yxvsx(Module):
         #force images to be created in the background
         kwargs['bg'] = 1
         res = canvas.yxvsx(*args,**kwargs)
-        self.setResult('display',res)
-        self.setResult('canvas',canvas)
+        self.set_output('display',res)
+        self.set_output('canvas',canvas)
 
 class png(Module,NotCacheable):
     """
@@ -4736,7 +4736,7 @@ class png(Module,NotCacheable):
         ofile = core.modules.basic_modules.File()
         ofile.name = file
         canvas.png(*args)
-        self.setResult('file',ofile)
+        self.set_output('file',ofile)
 
 class open(Module):
     """
@@ -4776,7 +4776,7 @@ Description of Function:
             dods = self.get_input('dods')
             args.append(dods)
         res = cdms2.open(*args)
-        self.setResult('dataset',res)
+        self.set_output('dataset',res)
 
 class __call__(Module):
     """
@@ -4840,7 +4840,7 @@ Description of Function:
         # Apply axes ops to the variable
         var = self.applyAxesOperations(var, axesOperations)
 
-        self.setResult('variable', var)
+        self.set_output('variable', var)
 
     def applyAxesOperations(self, var, axesOperations):
         """ Apply kwargs / axis operations to update the dataset """

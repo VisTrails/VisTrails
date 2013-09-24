@@ -255,7 +255,7 @@ class Module(Serializable):
         self.outputPorts = {}
         self.upToDate = False
         self.ran = False
-        self.setResult("self", self) # every object can return itself
+        self.set_output("self", self) # every object can return itself
         self.logging = _dummy_logging
 
         # isMethod stores whether a certain input port is a method.
@@ -427,7 +427,7 @@ class Module(Serializable):
         """
         pass
 
-    def setResult(self, port, value):
+    def set_output(self, port, value):
         """This method is used to set a value on an output port.
 
         :param port: the name of the output port to be set
@@ -612,7 +612,7 @@ class Module(Serializable):
         """
         # Don't reset existing values, it screws up the caching.
         if not self.outputPorts.has_key(outputPort):
-            self.setResult(outputPort, None)
+            self.set_output(outputPort, None)
             
     def removeInputConnector(self, inputPort, connector):
         """ removeInputConnector(inputPort: str,

@@ -129,7 +129,7 @@ class ArrayImage(ArrayPlot, Module):
             s += 'title(\'' + p_title + '\')\n'
 
         exec s
-        self.setResult('source', s)
+        self.set_output('source', s)
 
     @classmethod
     def register(cls, reg, basic):
@@ -233,7 +233,7 @@ class Histogram(ArrayPlot, Module):
             s += 'title(\'' + p_title + '\')\n'
 
         exec s
-        self.setResult("source", s)        
+        self.set_output("source", s)        
 
     @classmethod
     def register(cls, reg, basic):
@@ -370,7 +370,7 @@ class BarChart(ArrayPlot, Module):
 
         s += 'xticks(ind + width/2., t)\n'
         exec s
-        self.setResult("source", s)
+        self.set_output("source", s)
 
     @classmethod
     def register(cls, reg, basic):
@@ -486,7 +486,7 @@ class ScatterPlot(ArrayPlot, Module):
 
         print s
         exec s
-        self.setResult("source", s)
+        self.set_output("source", s)
 
     @classmethod
     def register(cls, reg, basic):
@@ -612,7 +612,7 @@ class LinePlot(ArrayPlot, Module):
             s += 'title(\'' + p_title + '\')\n'
 
         exec s
-        self.setResult("source", s)
+        self.set_output("source", s)
 
     @classmethod
     def register(cls, reg, basic):

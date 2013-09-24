@@ -42,4 +42,4 @@ class MatrixInfo(SciPy):
 
     def compute(self):
         m = self.get_input("InputMatrix")
-        self.setResult("output", self.getString(m))
+        self.set_output("output", self.getString(m))

@@ -59,7 +59,7 @@ class Index2D(Module, ITK):
         self.ind_.SetElement(0,self.x_)
         self.ind_.SetElement(1,self.y_)
 
-        self.setResult("Index", self)
+        self.set_output("Index", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -82,7 +82,7 @@ class Index3D(Module, ITK):
         self.ind_.SetElement(1,self.y_)
         self.ind_.SetElement(2,self.z_)
 
-        self.setResult("Index", self)
+        self.set_output("Index", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -110,7 +110,7 @@ class Size(Module, ITK):
         if dim > 2:
             self.size_.SetElement(2,self.z)
 
-        self.setResult("Size",self)
+        self.set_output("Size",self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -134,7 +134,7 @@ class Region(Module, ITK):
         else:
             self.region_.SetIndex(self.get_input("Input 2D Index").ind_)
 
-        self.setResult("Region", self)
+        self.set_output("Region", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -154,7 +154,7 @@ class Kernel(Module, ITK):
         radius = self.get_input("Radius")
         self.kernel = itk.strel(dim,radius)
 
-        self.setResult("Kernel", self.kernel)
+        self.set_output("Kernel", self.kernel)
 
     @classmethod
     def register(cls, reg, basic):

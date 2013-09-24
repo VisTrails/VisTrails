@@ -35,17 +35,17 @@ class MatrixOperation(SciPy):
 class GetReals(MatrixOperation):
     def compute(self):
         m = self.get_input("InputMatrix")
-        self.setResult("OutputMatrix", m.Reals())
+        self.set_output("OutputMatrix", m.Reals())
 
 class GetImaginaries(MatrixOperation):
     def compute(self):
         m = self.get_input("InputMatrix")
-        self.setResult("OutputMatrix", m.Imaginaries())
+        self.set_output("OutputMatrix", m.Imaginaries())
 
 class Conjugate(MatrixOperation):
     def compute(self):
         m = self.get_input("InputMatrix")
-        self.setResult("OutputMatrix", m.Conjugate())
+        self.set_output("OutputMatrix", m.Conjugate())
 
 class GetRow(MatrixOperation):
     def compute(self):
@@ -54,7 +54,7 @@ class GetRow(MatrixOperation):
         row = m.GetRow(c)
         mat = SparseMatrix()
         mat.matrix = row
-        self.setResult("OutputMatrix", mat)
+        self.set_output("OutputMatrix", mat)
 
 class GetCol(MatrixOperation):
     def compute(self):
@@ -63,7 +63,7 @@ class GetCol(MatrixOperation):
         col = m.GetCol(c)
         mat = SparseMatrix()
         mat.matrix = col
-        self.setResult("OutputMatrix", mat)
+        self.set_output("OutputMatrix", mat)
 
 class MatrixMultiply(MatrixOperation):
     def compute(self):
@@ -79,7 +79,7 @@ class ScalarMultiply(MatrixOperation):
         m = self.get_input("InputMatrix")
         s = self.get_input("Scalar")
         m.matrix = m.matrix * s
-        self.setResult("OutputMatrix", m)
+        self.set_output("OutputMatrix", m)
 
 class ElementMultiply(MatrixOperation):
     def compute(self):
@@ -90,19 +90,19 @@ class ElementMultiply(MatrixOperation):
             raise ModuleError(self, 'Mismatching input dimensions!')
         c = SparseMatrix()
         c.matrix = sparse.csc_matrix(array(a.matrix.toarray())*array(b.matrix.toarray()))
-        self.setResult("OutputMatrix", c)
+        self.set_output("OutputMatrix", c)
 
 class Transpose(MatrixOperation):
     def compute(self):
         m = self.get_input("InputMatrix")
         m.matrix = m.matrix.transpose()
-        self.setResult("OutputMatrix", m)
+        self.set_output("OutputMatrix", m)
  
 class PrintMatrix(Matrix):
     def compute(self):
         m = self.get_input("InputMatrix")
         s = m.matrix.__str__()
-        self.setResult("Output", s)
+        self.set_output("Output", s)
 
 class GetColumnRange(Matrix):
     def compute(self):
@@ -122,7 +122,7 @@ class GetColumnRange(Matrix):
                 i = i + 1
             j = j + 1
         
-        self.setResult("Output", out)
+        self.set_output("Output", out)
         
 class ATan2(MatrixOperation):
     def compute(self):
@@ -136,4 +136,4 @@ class ATan2(MatrixOperation):
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.arctan2(im.toarray(),r.toarray()))
-        self.setResult("Output", out)
+        self.set_output("Output", out)

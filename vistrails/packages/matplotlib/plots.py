@@ -1427,7 +1427,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         output = (contour_set, contour_set.collections)
         contourSet = output[0]
         lineCollections = output[1]
-        self.setResult('contourSet', contourSet)
+        self.set_output('contourSet', contourSet)
         if self.has_input('lineCollectionProperties'):
             properties = self.get_input('lineCollectionProperties')
             if lineCollections is not None:
@@ -1612,7 +1612,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         output = (contour_set, contour_set.collections)
         contourSet = output[0]
         polyCollections = output[1]
-        self.setResult('contourSet', contourSet)
+        self.set_output('contourSet', contourSet)
         if self.has_input('polyCollectionProperties'):
             properties = self.get_input('polyCollectionProperties')
             if polyCollections is not None:

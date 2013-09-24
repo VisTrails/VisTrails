@@ -45,7 +45,7 @@ class PVModule(Module):
         if hasattr(self.pvInstance, 'UpdatePipeline'):
             self.pvInstance.UpdatePipeline()
 
-        self.setResult('Output', self)
+        self.set_output('Output', self)
 
 class _funcs_internals:
     "Internal class."

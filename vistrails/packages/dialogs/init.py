@@ -86,7 +86,7 @@ class TextDialog(Dialog):
                                                   default)
         if not ok:
             raise ModuleError(self, "Canceled")
-        self.setResult('result', str(result))
+        self.set_output('result', str(result))
 
 
 class PasswordDialog(TextDialog):

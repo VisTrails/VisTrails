@@ -166,7 +166,7 @@ def matrix_compute(self):
     if self.has_input('rvector'):
         rvector = self.get_input('rvector')
         nrows = self.get_input('nrows')
-        self.setResult('value', robjects.r.matrix(rvector, nrow=nrows))
+        self.set_output('value', robjects.r.matrix(rvector, nrow=nrows))
     else:
         RArray.compute(self)
 
@@ -226,7 +226,7 @@ class RVectorFromList(Module):
     def compute(self):
         ilist = self.get_input('list')
         rvector = create_vector(ilist)
-        self.setResult('rvector', rvector)
+        self.set_output('rvector', rvector)
 
 class ListFromRVector(Module):
     _input_ports = [('rvector', '(Types|RVector)')]
@@ -235,7 +235,7 @@ class ListFromRVector(Module):
     def compute(self):
         rvector = self.get_input('rvector')
         olist = list(rvector)
-        self.setResult('list', olist)
+        self.set_output('list', olist)
 
 class RMatrixFromNestedList(Module):
     _input_ports = [('list', '(basic:List)')]
@@ -244,7 +244,7 @@ class RMatrixFromNestedList(Module):
     def compute(self):
         ilist = self.get_input('list')
         rmatrix = create_matrix(ilist)
-        self.setResult('rmatrix', rmatrix)
+        self.set_output('rmatrix', rmatrix)
 
 class NestedListFromRMatrix(Module):
     _input_ports = [('rmatrix', '(Types|RMatrix)')]
@@ -258,7 +258,7 @@ class NestedListFromRMatrix(Module):
         olist = [] 
         for row in xrange(nrows):
             olist.append(mlist[row*ncols:(row+1)*ncols])
-        self.setResult('list', olist)
+        self.set_output('list', olist)
 
 class RDataFrameFromDict(Module):
     _input_ports = [('dict', '(basic:Dictionary)')]
@@ -267,7 +267,7 @@ class RDataFrameFromDict(Module):
     def compute(self):
         idict = self.get_input('dict')
         rdataframe = create_data_frame(idict)
-        self.setResult('rdataframe', rdataframe)
+        self.set_output('rdataframe', rdataframe)
 
 class DictFromRDataFrame(Module):
     _input_ports = [('rdataframe','(Types|RDataFrame)')]
@@ -280,7 +280,7 @@ class DictFromRDataFrame(Module):
         for i in xrange(len(rdataframe)):
             # FIXME !!! just assume that each row can be converted to a list!!!
             odict[colnames[i]] = list(rdataframe[i])
-        self.setResult('dict', odict)
+        self.set_output('dict', odict)
 
 class RListFromDict(Module):
     # _input_ports = [('dict', '(basic:Dictionary)')]
@@ -290,7 +290,7 @@ class RListFromDict(Module):
     def compute(self):
         idict = self.get_input('dict')
         rlist = create_list(idict)
-        self.setResult('rlist', rlist)
+        self.set_output('rlist', rlist)
 
 class DictFromRList(Module):
     _input_ports = [('rlist', '(Types|RList)')]
@@ -305,7 +305,7 @@ class DictFromRList(Module):
             # FIXME !!! just assume that each row can be converted to a list!!!
             # FIXME this may need to be a list of lists
             odict[colnames[i]] = list(rlist[i])
-        self.setResult('dict', odict)
+        self.set_output('dict', odict)
 
 class RRead(Module):
     _input_ports = [('file', '(basic:File)'),
@@ -324,7 +324,7 @@ class RRead(Module):
             if port[0] != 'file' and self.has_input(port):
                 options_dict[port] = self.get_input(port)
         rdataframe = robjects.r[read_cmd](fname, **options_dict)
-        self.setResult('rdataframe', rdataframe)
+        self.set_output('rdataframe', rdataframe)
 
 class RReadTable(RRead):
     def compute(self):
@@ -373,7 +373,7 @@ class RSource(Module):
         if use_output:
             for k in self.outputPorts:
                 if k not in excluded_outputs and k in robjects.globalEnv:
-                    self.setResult(k, robjects.globalEnv[k])
+                    self.set_output(k, robjects.globalEnv[k])
 
     def run_file(self, fname, excluded_inputs=set(['source']), 
                  excluded_outputs=set()):
@@ -412,7 +412,7 @@ class RFigure(RSource):
         image_file = File()
         image_file.name = fname
         image_file.upToDate = True
-        self.setResult('imageFile', image_file)
+        self.set_output('imageFile', image_file)
 
     def run_figure_file(self, fname, graphics_dev, width, height, 
                         excluded_inputs=set(['source'])):

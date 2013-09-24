@@ -228,7 +228,7 @@ class Predictor(Constant):
             inFile = utils.getRasterName(self.get_input("file").name)
         else:
             raise ModuleError(self, "No input file specified")
-        self.setResult('value', (inFile, categorical, resampleMethod, aggregationMethod))
+        self.set_output('value', (inFile, categorical, resampleMethod, aggregationMethod))
    
 class PredictorList(Constant):
     '''
@@ -265,8 +265,8 @@ class PredictorList(Constant):
         else:
             f_list = v
         p_list += f_list
-        #self.setResult("value", p_list)
-        self.setResult("value", v)     
+        #self.set_output("value", p_list)
+        self.set_output("value", v)     
 
 class PredictorListFile(Module):
     '''
@@ -353,7 +353,7 @@ class PredictorListFile(Module):
         del csv_writer
         
         output_file = utils.create_file_module(output_fname)
-        self.setResult('RastersWithPARCInfoCSV', output_file)
+        self.set_output('RastersWithPARCInfoCSV', output_file)
         
 class TemplateLayer(Path):
     '''
@@ -374,7 +374,7 @@ class TemplateLayer(Path):
                      ('value_as_string', '(edu.utah.sci.vistrails.basic:String)', True)]
 #    def compute(self):
 #        output_file = create_file_module(self.force_get_input('FilePath', []))
-#        self.setResult('value', output_file)
+#        self.set_output('value', output_file)
 
 #class SingleInputPredictor(Predictor):
 #    pass
@@ -493,7 +493,7 @@ class ApplyModel(Module):
         if os.path.exists(input_fname):
             utils.tif_to_color_jpeg(input_fname, output_fname, color_breaks_csv)
             output_file1 = utils.create_file_module(output_fname)
-            self.setResult('ProbabilityMap', output_file1)
+            self.set_output('ProbabilityMap', output_file1)
         else:
             msg = "Expected output from ApplyModel was not found."
             msg += "\nThis likely indicates problems with the inputs to the R module."
@@ -503,7 +503,7 @@ class ApplyModel(Module):
         if  os.path.exists(os.path.join(output_dname, "bin_map.tif")):
             outFileName = os.path.join(output_dname, "bin_map.tif")
             output_file2 = utils.create_file_module(outFileName)
-            self.setResult('BinaryMap', output_file2)
+            self.set_output('BinaryMap', output_file2)
         
 class Model(Module):
     '''
@@ -578,7 +578,7 @@ class Model(Module):
         if os.path.exists(input_fname):
 #            utils.tif_to_color_jpeg(input_fname, output_fname, color_breaks_csv)
 #            output_file4 = utils.create_file_module(output_fname)
-            self.setResult('ProbabilityMap', input_fname)
+            self.set_output('ProbabilityMap', input_fname)
         elif (argsDict.has_key('mpt') and argsDict['mpt'] == True) or \
             not argsDict.has_key('mpt'):
             msg = "Expected output from " + ModelAbbrev + " was not found."
@@ -591,25 +591,25 @@ class Model(Module):
             not argsDict.has_key('mbt'):
             outFileName = os.path.join(output_dname, ModelAbbrev + "_bin_map.tif")
             output_file1 = utils.create_file_module(outFileName)
-            self.setResult('BinaryMap', output_file1)
+            self.set_output('BinaryMap', output_file1)
         
         outFileName = os.path.join(output_dname, ModelAbbrev + "_output.txt")
         output_file2 = utils.create_file_module(outFileName)
-        self.setResult('Text_Output', output_file2)
+        self.set_output('Text_Output', output_file2)
         
         outFileName = os.path.join(output_dname, ModelAbbrev + "_auc_plot.jpg")
 #        print "out auc: ", outFileName
         output_file3 = utils.create_file_module(outFileName)
-        self.setResult('AUC_plot', output_file3)
+        self.set_output('AUC_plot', output_file3)
         
         outFileName = os.path.join(output_dname, ModelAbbrev + "_response_curves.pdf")
         output_file5 = utils.create_file_module(outFileName)
-        self.setResult('ResponseCurves', output_file5)
+        self.set_output('ResponseCurves', output_file5)
         
         outFileName = os.path.join(output_dname, "modelWorkspace")
 #        print "out auc: ", outFileName
         output_file6 = utils.create_file_module(outFileName)
-        self.setResult('modelWorkspace', output_file6)
+        self.set_output('modelWorkspace', output_file6)
         
         writetolog("Finished " + ModelAbbrev   +  " builder\n", True, True) 
         
@@ -806,7 +806,7 @@ class MDSBuilder(Module):
 
         output_file = utils.create_file_module(ourMDSBuilder.outputMDS)
         
-        self.setResult('mdsFile', output_file)
+        self.set_output('mdsFile', output_file)
 
 class FieldDataAggregateAndWeight(Module):
     '''
@@ -840,7 +840,7 @@ class FieldDataAggregateAndWeight(Module):
         
         output_file = utils.create_file_module(output_fname)
         writetolog("Finished running FieldDataQuery", True)
-        self.setResult('fieldData', output_file)
+        self.set_output('fieldData', output_file)
 
 class PARC(Module):
     '''
@@ -969,7 +969,7 @@ class PARC(Module):
         
         
         writetolog("Finished running PARC", True)
-        self.setResult('RastersWithPARCInfoCSV', output_file)
+        self.set_output('RastersWithPARCInfoCSV', output_file)
         
 
 class RasterFormatConverter(Module):
@@ -1052,7 +1052,7 @@ class RasterFormatConverter(Module):
         
         
         outputDir = utils.create_dir_module(ourRFC.outputDir)
-        self.setResult('outputDir', outputDir)
+        self.set_output('outputDir', outputDir)
         writetolog("\nFinished running TiffConverter", True)
         
 class TestTrainingSplit(Module):
@@ -1142,7 +1142,7 @@ class TestTrainingSplit(Module):
             msg = "Problem encountered generating Test Training split.  Expected output file not found."
             writetolog(msg, False)
             raise ModuleError(self, msg)
-        self.setResult("outputMDS", output_file)
+        self.set_output("outputMDS", output_file)
         
 class CovariateCorrelationAndSelection(Module):
     '''
@@ -1202,7 +1202,7 @@ class CovariateCorrelationAndSelection(Module):
 
         output_file = utils.create_file_module(outputMDS)
         writetolog("Finished Select Predictors Layers widget", True)
-        self.setResult("outputMDS", output_file)
+        self.set_output("outputMDS", output_file)
 
     def callDisplayMDS(self, inputMDS, outputMDS, displayJPEG):
         dialog = SelectListDialog(inputMDS, outputMDS, displayJPEG, configuration.r_path)
@@ -1393,7 +1393,7 @@ class ProjectionLayers(Module):
         outCSV.writerow(outHeader3)
         
         output_file = utils.create_file_module(outputMDS)
-        self.setResult("MDS", output_file)
+        self.set_output("MDS", output_file)
         writetolog("Finished Select Projection Layers widget", True)
 
 #class ClimateModel(String):
@@ -1487,17 +1487,17 @@ class MAXENT(Module):
          #set outputs
         lambdasfile = os.path.join(ourMaxent.outputDir, ourMaxent.args["species_name"] + ".lambdas")
         output_file = utils.create_file_module(lambdasfile)
-        self.setResult("lambdas", output_file)
+        self.set_output("lambdas", output_file)
         
         
         rocfile = os.path.join(ourMaxent.outputDir, 'plots', ourMaxent.args["species_name"] + "_roc.png")
         output_file = utils.create_file_module(rocfile)
-        self.setResult("roc", output_file)
+        self.set_output("roc", output_file)
 
         htmlfile = os.path.join(ourMaxent.outputDir, ourMaxent.args["species_name"] + ".html")
         print htmlfile
         output_file = utils.create_file_module(htmlfile)
-        self.setResult("report", output_file)
+        self.set_output("report", output_file)
 
         writetolog("Finished Maxent widget", True)
         
@@ -1582,7 +1582,7 @@ def load_max_ent_params():
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]
 #        self.qgis_obj = qgis.core.QgsRasterLayer(fname, name)
-#        self.setResult('self', self)
+#        self.set_output('self', self)
 #
 #class VectorLayer(Module):
 #    _input_ports = [('file', '(edu.utah.sci.vistrails.basic:File)'), 
@@ -1600,7 +1600,7 @@ def load_max_ent_params():
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]
 #        self.qgis_obj = qgis.core.QgsVectorLayer(fname, name, "ogr")
-#        self.setResult('self', self)
+#        self.set_output('self', self)
 
 
 

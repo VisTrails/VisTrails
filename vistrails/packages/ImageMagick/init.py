@@ -128,7 +128,7 @@ a descriptive name of the operation it implements."""
         o = self.create_output_file()
         i = self.input_file_description()
         self.run(i, o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class CombineRGBA(ImageMagick):
@@ -150,7 +150,7 @@ class CombineRGBA(ImageMagick):
                      '-channel', 'RGB',
                      '-combine', o.name)
 
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class Scale(Convert):
@@ -178,7 +178,7 @@ indicated by the appropriate ports (geometry or width and height)"""
                  "-scale",
                  self.geometry_description(),
                  o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class GaussianBlur(Convert):
@@ -194,7 +194,7 @@ class GaussianBlur(Convert):
                  "-blur",
                  "%sx%s" % (radius, sigma),
                  o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 no_param_options = [("Negate", "-negate",
@@ -221,7 +221,7 @@ def no_param_options_method_dict(optionName):
         o = self.create_output_file()
         i = self.input_file_description()
         self.run(i, optionName, o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
     return {'compute': compute}
 
@@ -243,7 +243,7 @@ def float_param_options_method_dict(optionName, portName):
         optionValue = self.get_input(portName)
         i = self.input_file_description()
         self.run(i, optionName, str(optionValue), o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
     return {'compute': compute}
 

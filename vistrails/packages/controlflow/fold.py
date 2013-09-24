@@ -75,7 +75,7 @@ class Fold(Module):
                     self,
                     self.suspended,
                     children=self._module_suspended)
-        self.setResult('Result', self.partialResult)
+        self.set_output('Result', self.partialResult)
 
     def setInitialValue(self): # pragma: no cover
         """This method defines the initial value of the Fold structure. It must
@@ -259,7 +259,7 @@ class FoldWithModule(Fold, NotCacheable):
                     self,
                     self.suspended,
                     children=self._module_suspended)
-        self.setResult('Result', self.partialResult)
+        self.set_output('Result', self.partialResult)
 
 ###############################################################################
 
@@ -268,7 +268,7 @@ class NewConstant(Constant):
     A new Constant module to be used inside the FoldWithModule module.
     """
     def setValue(self, v):
-        self.setResult("value", v)
+        self.set_output("value", v)
         self.upToDate = True
 
 def create_constant(value):

@@ -26,6 +26,6 @@ class Machine(Module):
 
         QUEUE_REGISTER[str(self.signature)] = self.queue
 
-        self.setResult("machine", self)
+        self.set_output("machine", self)
 
 module_definitions = [(Machine,{'abstract':True})]

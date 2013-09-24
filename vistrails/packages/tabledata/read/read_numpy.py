@@ -56,7 +56,7 @@ class NumPyArray(Module):
             array = numpy.fromfile(filename, dtype)
         if self.has_input('shape'):
             array.shape = tuple(self.get_input('shape'))
-        self.setResult('value', array)
+        self.set_output('value', array)
 
 
 _modules = {'numpy': [NumPyArray]}

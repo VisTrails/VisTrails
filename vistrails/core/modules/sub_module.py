@@ -82,13 +82,13 @@ class InputPort(Module):
     def compute(self):
         exPipe = self.force_get_input('ExternalPipe')
         if exPipe is not None:
-            self.setResult('InternalPipe', exPipe)
+            self.set_output('InternalPipe', exPipe)
         else:
             if self.has_input('Default'):
-                self.setResult('InternalPipe',
+                self.set_output('InternalPipe',
                                self.get_input('Default'))
             else:
-                self.setResult('InternalPipe', InvalidOutput)
+                self.set_output('InternalPipe', InvalidOutput)
 
 ###############################################################################
     
@@ -101,7 +101,7 @@ class OutputPort(Module):
     
     def compute(self):
         inPipe = self.get_input('InternalPipe')
-        self.setResult('ExternalPipe', inPipe)
+        self.set_output('ExternalPipe', inPipe)
     
 ###############################################################################
 
@@ -214,7 +214,7 @@ class Group(Module):
             if oport_name is not 'self':
                 # oport_module = self.output_remap[oport_name]
                 oport_obj = tmp_id_to_module_map[oport_module.id]
-                self.setResult(oport_name, oport_obj.get_output('ExternalPipe'))
+                self.set_output(oport_name, oport_obj.get_output('ExternalPipe'))
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1],
                                            **{'reset_computed': False})
 

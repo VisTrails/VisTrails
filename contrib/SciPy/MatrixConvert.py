@@ -36,10 +36,10 @@ class MatrixConvert(SciPy):
         to = to.upper()
         if to == 'Dense':
             self.matrix = DenseMatrix(m.matrix.todense())
-            self.setResult("SparseOutput", self.matrix)
+            self.set_output("SparseOutput", self.matrix)
         else:
             self.matrix = SparseMatrix(m.matrix.tocsc())
-            self.setResult("SparseOutput", self.matrix)
+            self.set_output("SparseOutput", self.matrix)
 
 class vtkDataSetToMatrix(SciPy):
     ''' In some cases, particularly in terms of user-defined VTK Filters, the
@@ -73,7 +73,7 @@ class vtkDataSetToMatrix(SciPy):
         else:
             pass
 
-        self.setResult("Output Matrix", self.matrix_)
+        self.set_output("Output Matrix", self.matrix_)
 
 class PhaseHistogramToVTKPoints(SciPy):
 
@@ -145,6 +145,6 @@ class PhaseHistogramToVTKPoints(SciPy):
         histo_mat = SparseMatrix()
         histo_mat.matrix = sparse.csc_matrix(histo)
 
-        self.setResult("Num Slices", timeslices)
-        self.setResult("Phase Histogram", histo_mat)
-        self.setResult("Phase Geometry", vtk_set)
+        self.set_output("Num Slices", timeslices)
+        self.set_output("Phase Histogram", histo_mat)
+        self.set_output("Phase Geometry", vtk_set)

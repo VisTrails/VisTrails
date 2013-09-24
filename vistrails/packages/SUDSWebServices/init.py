@@ -497,8 +497,8 @@ class Service:
                         raise ModuleError(self,
                                  "'%s' is not one of the valid enums: %s" %
                                  (obj, str(p.enum)) )
-                    self.setResult(self.wstype.qname[0], obj)
-                    self.setResult('value', obj)
+                    self.set_output(self.wstype.qname[0], obj)
+                    self.set_output('value', obj)
                     return
                 if self.has_input(self.wstype.qname[0]):
                     obj = self.get_input(self.wstype.qname[0])
@@ -530,8 +530,8 @@ class Service:
                     if hasattr(obj, part.name):
                         # 
                         res = getattr(obj, part.name)
-                        self.setResult(part.name, res)
-                self.setResult(self.wstype.qname[0], obj)
+                        self.set_output(part.name, res)
+                self.set_output(self.wstype.qname[0], obj)
 
             # create docstring
             parts = ", ".join([i.type[0]+' '+i.name for i in t.parts.itervalues()])
@@ -618,27 +618,27 @@ It is a WSDL type with signature:
                 for name, qtype in self.wsmethod.outputs.iteritems():
                     if isinstance(result, list):
                         # if result is a list just set the output
-                        self.setResult(name, result)
+                        self.set_output(name, result)
                     elif qtype[0] == 'Array':
                         # if result is a type but type is a list try to extract the correct element
                         if len(result.__keylist__):
-                            self.setResult(name, getattr(result, result.__keylist__[0]))
+                            self.set_output(name, getattr(result, result.__keylist__[0]))
                         else:
-                            self.setResult(name, result)
+                            self.set_output(name, result)
                     elif result.__class__.__name__ == 'Text':
                         # only text returned so we assume each output wants all of it
-                        self.setResult(name, str(result.trim()))
+                        self.set_output(name, str(result.trim()))
                     elif result.__class__.__name__ == qtype[0]:
                         # the return value is this type
-                        self.setResult(name, result)
+                        self.set_output(name, result)
                     elif hasattr(result, name):
-                        self.setResult(name, getattr(result, name))
+                        self.set_output(name, getattr(result, name))
                     else:
                         # nothing matches - assume it is an attribute of the correct class
                         class UberClass:
                             def __init__(self, value):
                                 self.value = value
-                        self.setResult(name, UberClass(result))
+                        self.set_output(name, UberClass(result))
 
             # create docstring
             inputs = ", ".join([t[0]+' '+i for i,t in m.inputs.iteritems()])

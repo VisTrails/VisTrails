@@ -79,8 +79,8 @@ class CSVFile(Table):
 
         self.column_cache = {}
 
-        self.setResult('column_count', self.columns)
-        self.setResult('column_names', self.names)
+        self.set_output('column_count', self.columns)
+        self.set_output('column_names', self.names)
 
     def get_column(self, index, numeric=False):
         if index in self.column_cache:

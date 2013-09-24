@@ -74,7 +74,7 @@ class Variable(Module):
         if axesOperations is not None:
             var = self.applyAxesOperations(var, axesOperations)
 
-        self.setResult('variable', var)
+        self.set_output('variable', var)
 
     def applyAxesOperations(self, var, axesOperations):
         """ Apply axes operations to update the slab """
@@ -156,7 +156,7 @@ class GraphicsMethod(Module, NotCacheable):
         # nicer in the pipeline.
         slab1 = self.get_input('slab1')
         if self.has_input('slab2'):
-            self.setResult('slab2', self.get_input('slab2'))
+            self.set_output('slab2', self.get_input('slab2'))
                            
         # Initialize the canvas and get the graphics method
         canvas = vcs.init()
@@ -174,8 +174,8 @@ class GraphicsMethod(Module, NotCacheable):
         # TODO: more gm attributes ...
 
         # Add canvas / slab to output Ports
-        self.setResult('slab1', slab1)
-        self.setResult('canvas', canvas)
+        self.set_output('slab1', slab1)
+        self.set_output('canvas', canvas)
 
 class CDATCell(SpreadsheetCell, NotCacheable):
     def __init__(self):
@@ -191,9 +191,9 @@ class CDATCell(SpreadsheetCell, NotCacheable):
             canvas = self.get_input('canvas')
         else:
             self.cellWidget = self.displayAndWait(QCDATWidget, (None,))
-            self.setResult('canvas', self.cellWidget.canvas)
+            self.set_output('canvas', self.cellWidget.canvas)
             return
-        self.setResult('canvas', canvas)
+        self.set_output('canvas', canvas)
         if not self.has_input('gmName'):
             return
         if not self.has_input('plotType'):

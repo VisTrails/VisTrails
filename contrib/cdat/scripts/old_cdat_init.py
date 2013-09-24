@@ -77,7 +77,7 @@ class cdms_get_data(Module) :
     dummy = []
     arr = dataset.slice(id, kwargs)
     darr = cdms_dataarray(arr)
-    self.setResult("cdms_dataarray", darr)
+    self.set_output("cdms_dataarray", darr)
 
 class cdms_open(Module) :
   def compute(self) :
@@ -105,7 +105,7 @@ class cdms_open(Module) :
     # output the cdmsfile object.
     cdmsfile = cdms.open(uri,mode,template,dods)
     output = cdms_dataset(cdmsfile)
-    self.setResult("cdms_dataset", output)
+    self.set_output("cdms_dataset", output)
 
 # just wrap whatever so it can be sent downstream
 class generic_port(Module) :
@@ -121,7 +121,7 @@ class vcs_canvas(Module) :
     if self.canvas == None :
       print "calling vcs.init()"
       self.canvas = vcs.init()
-    self.setResult("vcs_canvas", self)
+    self.set_output("vcs_canvas", self)
 
 
 class vcs_canvas_getboxfill(Module) :
@@ -141,7 +141,7 @@ class vcs_canvas_getboxfill(Module) :
       bfm = vcs_c.canvas.getboxfill(bname)
 
     out = generic_port(bfm)
-    self.setResult("boxfill graphics method", out)
+    self.set_output("boxfill graphics method", out)
 
 class vcs_canvas_gettemplate(Module) :
   def compute(self) :
@@ -160,7 +160,7 @@ class vcs_canvas_gettemplate(Module) :
       t = vcs_c.canvas.gettemplate(tname)
 
     out = generic_port(t)
-    self.setResult("template", out)
+    self.set_output("template", out)
   
 class vcs_canvas_plot(Module) :
   def compute(self) :
@@ -261,7 +261,7 @@ class vcs_canvas_plot(Module) :
       canvas.plot(data1, data2, gm, t, **kwargs)
     o = self.interpreter.filePool.create_file(suffix='.cdat.gif')
     canvas.gif(o.name)
-    self.setResult("image", o)
+    self.set_output("image", o)
     
 
 def initialize(*args, **keywords):

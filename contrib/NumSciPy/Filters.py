@@ -15,7 +15,7 @@ class HanningWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.hanning(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -28,7 +28,7 @@ class TriangularWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.triang(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -41,7 +41,7 @@ class BlackmanWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.blackman(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -54,7 +54,7 @@ class BlackmanHarrisWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.blackmanharris(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -67,7 +67,7 @@ class ParzenWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.parzen(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -80,7 +80,7 @@ class HammingWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.hamming(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -94,7 +94,7 @@ class KaiserWindow(WindowModule, Module):
         beta = self.get_input("Beta")
         out = NDArray()
         out.set_array(scipy.signal.kaiser(size, beta))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -108,7 +108,7 @@ class BartlettHannWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.barthann(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -122,7 +122,7 @@ class GaussianWindow(WindowModule, Module):
         sigma = self.get_input("Sigma")
         out = NDArray()
         out.set_array(scipy.signal.gaussian(size, sigma))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -136,7 +136,7 @@ class BoxcarWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.boxcar(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -149,7 +149,7 @@ class BohmanWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.bohman(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -162,7 +162,7 @@ class BartlettWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.bartlett(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -175,7 +175,7 @@ class NuttallBlackmanHarrisWindow(WindowModule, Module):
         size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.nuttall(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):

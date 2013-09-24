@@ -69,9 +69,9 @@ class RescaleIntensityImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
@@ -149,9 +149,9 @@ class SigmoidImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
         
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
@@ -205,7 +205,7 @@ class ThresholdImageFilter(Module):
         outIm.setPixelType(inPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
+        self.set_output("Output Image", outIm)
 
     @classmethod
     def register(cls, reg, basic):
@@ -263,9 +263,9 @@ class ShiftScaleImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod
@@ -322,9 +322,9 @@ class NormalizeImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod

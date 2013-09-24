@@ -52,7 +52,7 @@ class Image(Module, ITK):
         self.dim = self.get_input("Dimension")
         self._type = self.get_input("Pixel Type")
 
-        self.setResult("Output Image", self)
+        self.set_output("Output Image", self)
 
     @classmethod
     def register(cls, reg, basic):

@@ -40,13 +40,13 @@ class MatlabReader(ArrayUtilityModule, Module):
             out = Matrix()
             out.set_matrix(sparse.csc_matrix(results[0]))
             
-            self.setResult("Matrix Output", out)
+            self.set_output("Matrix Output", out)
         except:
             pass
         
         out_ar = NDArray()
         out_ar.set_array(numpy.array(results[0]))
-        self.setResult("Array Output", out_ar)
+        self.set_output("Array Output", out_ar)
 
     # The compute method for vistrails compatibility
     def compute(self):

@@ -196,7 +196,7 @@ class SQLSource(Module):
         else:
             self.is_cacheable = self.cachedOff
             
-        self.setResult('resultSet', cur.fetchall())
+        self.set_output('resultSet', cur.fetchall())
 
     def cachedOn(self):
         return True

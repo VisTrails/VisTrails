@@ -61,7 +61,7 @@ class ElementwiseProduct(Module):
         else:
             result = zip(list1, list2)
 
-        self.setResult('Result', result)
+        self.set_output('Result', result)
 
 
 class Dot(Module):
@@ -75,7 +75,7 @@ class Dot(Module):
 
         result = sum(a*b for a, b in itertools.izip(list1, list2))
 
-        self.setResult("Result", result)
+        self.set_output("Result", result)
 
 
 class Cross(Module):
@@ -94,7 +94,7 @@ class Cross(Module):
                   z1*x2 - z2*x1,
                   x1*y2 - x2*y1]
 
-        self.setResult("Result", result)
+        self.set_output("Result", result)
 
 
 class CartesianProduct(Module):
@@ -132,7 +132,7 @@ class CartesianProduct(Module):
                         tuple_ = (i, j)
                         result.append(tuple_)
 
-        self.setResult("Result", result)
+        self.set_output("Result", result)
 
 
 ###############################################################################

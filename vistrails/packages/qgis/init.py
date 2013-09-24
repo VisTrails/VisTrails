@@ -59,7 +59,7 @@ class RasterLayer(Module):
         else:
             name = os.path.splitext(os.path.basename(fname))[0]
         self.qgis_obj = qgis.core.QgsRasterLayer(fname, name)
-        self.setResult('self', self)
+        self.set_output('self', self)
 
 class VectorLayer(Module):
     _input_ports = [('file', '(basic:File)'), 
@@ -77,7 +77,7 @@ class VectorLayer(Module):
         else:
             name = os.path.splitext(os.path.basename(fname))[0]
         self.qgis_obj = qgis.core.QgsVectorLayer(fname, name, "ogr")
-        self.setResult('self', self)
+        self.set_output('self', self)
 
 class QGISCell(SpreadsheetCell):
     """

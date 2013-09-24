@@ -138,7 +138,7 @@ class AlignWarp(ProvenanceChallenge):
                                   model,
                                   '-q')
         self.run(cmd)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class Reslice(ProvenanceChallenge):
@@ -153,7 +153,7 @@ class Reslice(ProvenanceChallenge):
         self.run(cmd)
         ofs = FileSet()
         ofs.baseName = o.name
-        self.setResult("output", ofs)
+        self.set_output("output", ofs)
 
 
 class SoftMean(ProvenanceChallenge):
@@ -170,7 +170,7 @@ class SoftMean(ProvenanceChallenge):
         self.run(cmd)
         ofs = FileSet()
         ofs.baseName = o.name
-        self.setResult('output', ofs)
+        self.set_output('output', ofs)
 
 class Slicer(ProvenanceChallenge):
     """Slicer executes the FSL slicer tool on the input."""
@@ -191,7 +191,7 @@ class Slicer(ProvenanceChallenge):
         o = self.interpreter.filePool.create_file(suffix='.pgm')
         cmd.append(o.name)
         self.run(self.fsl_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 
 class PGMToPPM(ProvenanceChallenge):
@@ -205,7 +205,7 @@ class PGMToPPM(ProvenanceChallenge):
         cmd.append(' >')
         cmd.append(o.name)
         self.run(self.netpbm_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
         
 
 class PNMToJpeg(ProvenanceChallenge):
@@ -219,7 +219,7 @@ class PNMToJpeg(ProvenanceChallenge):
         cmd.append(' >')
         cmd.append(o.name)
         self.run(self.netpbm_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 class FileSet(ProvenanceChallenge):
     """FileSet stores a set of files related by a common filename base."""
@@ -257,7 +257,7 @@ class FileSet(ProvenanceChallenge):
 		self.baseName = n1base
 	else:
 	    self.baseName = n
-        self.setResult("local_basename", self.baseName)
+        self.set_output("local_basename", self.baseName)
 
 class FileSetSink(ProvenanceChallenge):
     """FileSetSink is a module that takes a file set and writes them

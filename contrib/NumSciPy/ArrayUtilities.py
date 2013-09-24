@@ -46,7 +46,7 @@ class ArrayToVTKVectors(ArrayUtilModule, Module):
         ds.vtkInstance.GetPointData().AddArray(vtk_ar)
         ds.vtkInstance.GetPointData().SetVectors(vtk_ar)
 #        ds.vtkInstance.GetPointData().SetActiveVectors(v_name)
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -109,7 +109,7 @@ class ArrayToTimeVaryingVTKVectors(ArrayUtilModule, Module):
             ds.vtkInstance.GetTimeStep(i).GetPointData().AddArray(vtk_ar)
             ds.vtkInstance.GetTimeStep(i).GetPointData().SetVectors(vtk_ar)
 #        ds.vtkInstance.GetPointData().SetActiveVectors(v_name)
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -156,7 +156,7 @@ class ArrayToTimeVaryingVTKScalars(ArrayUtilModule, Module):
             ds.vtkInstance.GetTimeStep(i).GetPointData().AddArray(vtk_ar)
             ds.vtkInstance.GetTimeStep(i).GetPointData().SetScalars(vtk_ar)
 
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -201,7 +201,7 @@ class ArrayToVTKScalars(ArrayUtilModule, Module):
         ds.vtkInstance.GetPointData().AddArray(vtk_ar)
 #        ds.vtkinstance.GetPointData().SetActiveScalars(scalar_name)
         ds.vtkInstance.GetPointData().SetScalars(vtk_ar)
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -237,7 +237,7 @@ class VTKDataSetToPointArray(ArrayUtilModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):

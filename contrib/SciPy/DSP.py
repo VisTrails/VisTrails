@@ -43,7 +43,7 @@ class FFT(DSP):
         outmat = sparse.csc_matrix(phasors)
         out = SparseMatrix()
         out.matrix = outmat
-        self.setResult("FFT Output", out)
+        self.set_output("FFT Output", out)
 
 class FFT2(DSP):
     def compute(self):
@@ -53,7 +53,7 @@ class FFT2(DSP):
         outmat = sparse.csc_matrix(phasors)
         out = SparseMatrix()
         out.matrix = outmat
-        self.setResult("FFT Output", out)
+        self.set_output("FFT Output", out)
 
 class WindowedFourierTransform(DSP):
     def compute(self):
@@ -92,7 +92,7 @@ class WindowedFourierTransform(DSP):
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(out_array)
-        self.setResult("FFT Output", out)
+        self.set_output("FFT Output", out)
 
 class ShortTimeFourierTransform(DSP):
     def get_signal(self, sigs, window, offset, size):
@@ -146,5 +146,5 @@ class ShortTimeFourierTransform(DSP):
         sigout = SparseMatrix()
         sigout.matrix = sparse.csc_matrix(signal_array)
         out.matrix = sparse.csc_matrix(ar)
-        self.setResult("Signal Output", sigout)
-        self.setResult("FFT Output", out)
+        self.set_output("Signal Output", sigout)
+        self.set_output("FFT Output", out)

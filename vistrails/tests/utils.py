@@ -171,14 +171,14 @@ def intercept_result(module, output_name):
     It is used as a context manager, for instance:
     class MyModule(Module):
         def compute(self):
-            self.setResult('res', 42)
+            self.set_output('res', 42)
         ...
     with intercept_result(MyModule, 'res') as results:
         self.assertFalse(execute(...))
     self.assertEqual(results, [42])
     """
-    actual_setResult = module.setResult
-    old_setResult = module.__dict__.get('setResult', None)
+    actual_setResult = module.set_output
+    old_setResult = module.__dict__.get('set_output', None)
     results = []
     modules_index = {}  # Maps a Module to an index in the list, so a module
             # can change its result
@@ -190,14 +190,14 @@ def intercept_result(module, output_name):
                 modules_index[self] = len(results)
                 results.append(value)
         actual_setResult(self, name, value)
-    module.setResult = new_setResult
+    module.set_output = new_setResult
     try:
         yield results
     finally:
         if old_setResult is not None:
-            module.setResult = old_setResult
+            module.set_output = old_setResult
         else:
-            del module.setResult
+            del module.set_output
 
 
 def intercept_results(*args):

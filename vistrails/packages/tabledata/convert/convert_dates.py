@@ -129,7 +129,7 @@ class TimestampsToDates(Module):
         timestamps = self.get_input('timestamps')
 
         result = self.convert(timestamps)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class StringsToDates(Module):
@@ -217,7 +217,7 @@ class StringsToDates(Module):
             result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class DatesToMatplotlib(Module):
@@ -243,7 +243,7 @@ class DatesToMatplotlib(Module):
 
         datetimes = self.get_input('datetimes')
         result = self.convert(datetimes)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class TimestampsToMatplotlib(Module):
@@ -272,7 +272,7 @@ class TimestampsToMatplotlib(Module):
 
         timestamps = self.get_input('timestamps')
         result = self.convert(timestamps)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class StringsToMatplotlib(Module):
@@ -312,7 +312,7 @@ class StringsToMatplotlib(Module):
             result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 _modules = {'dates': [

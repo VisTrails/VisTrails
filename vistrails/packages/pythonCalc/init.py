@@ -90,13 +90,13 @@ class PythonCalc(Module):
         v1 = self.get_input("value1")
         v2 = self.get_input("value2")
 
-        # You should call setResult to store the appropriate results
+        # You should call set_output to store the appropriate results
         # on the ports.  In this case, we are only storing a
         # floating-point result, so we can use the number types
         # directly. For more complicated data, you should
         # return an instance of a VisTrails Module. This will be made
         # clear in further examples that use these more complicated data.
-        self.setResult("value", self.op(v1, v2))
+        self.set_output("value", self.op(v1, v2))
 
     def op(self, v1, v2):
         op = self.get_input("op")

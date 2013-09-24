@@ -85,10 +85,10 @@ class ReadVistrail(Module):
     def compute(self):
         fname = self.get_input('file').name
         vistrail = self.read_vistrail(fname)
-        self.setResult('vistrail', vistrail)
+        self.set_output('vistrail', vistrail)
         fname = self.get_input('file').name
         log = self.read_log(fname)
-        self.setResult('log', log)
+        self.set_output('log', log)
 
 class CountActions(Module):
     _input_ports = [('vistrail', '(Vistrail)')]
@@ -121,7 +121,7 @@ class CountActions(Module):
     def compute(self):
         vistrail = self.get_input('vistrail')
         Tally = self.count_actions(vistrail)
-        self.setResult('counts', Tally)
+        self.set_output('counts', Tally)
 
 class CountExecutedWorkflows(Module):
     _input_ports = [('log', '(Log)')]
@@ -139,7 +139,7 @@ class CountExecutedWorkflows(Module):
     def compute(self):
         log = self.get_input('log')
         users = self.count_executed_workflows(log)
-        self.setResult('completed', users)
+        self.set_output('completed', users)
 
 class TotalDays(Module):
     _input_ports = [('vistrail','(Vistrail)')]
@@ -171,7 +171,7 @@ class TotalDays(Module):
     def compute(self):
         vistrail = self.get_input('vistrail')
         totals = self.calc_time(vistrail)
-        self.setResult('completed', totals)
+        self.set_output('completed', totals)
 
 #class TimevsTags(Module):
     #Compare a few workflows to see how long the project took vs. how many tags were made

@@ -74,7 +74,7 @@ class Afront(Module, AfrontRun):
         args.append(o.name)
         args.append("-tri")
         self.run(args)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class MeshQualityHistogram(Module, AfrontRun):
@@ -88,7 +88,7 @@ class MeshQualityHistogram(Module, AfrontRun):
         args.append(o.name)
         args.append('-histogram')
         self.run(args)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 class AfrontIso(Afront):
 
@@ -110,7 +110,7 @@ class AfrontIso(Afront):
         args.append("-tri")
         args.append(str(self.get_input("iso")))
         self.run(args)
-        self.setResult("output", o)
+        self.set_output("output", o)
         
 
 ################################################################################

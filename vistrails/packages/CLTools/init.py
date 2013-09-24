@@ -156,7 +156,7 @@ def add_tool(path):
                     args.append(options['flag'])
                 args.append(fname)
                 if "file" == klass:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == klass:
                     setOutput.append((name, file))
                 else:
@@ -178,7 +178,7 @@ def add_tool(path):
                 if 'flag' in options:
                     args.append(options['flag'])
                 args.append(value)
-                self.setResult(name, outfile)
+                self.set_output(name, outfile)
         if "stdin" in self.conf:
             name, type, options = self.conf["stdin"]
             type = type.lower()
@@ -214,7 +214,7 @@ def add_tool(path):
                 file = self.interpreter.filePool.create_file(
                         suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
                 else: # pragma: no cover
@@ -231,7 +231,7 @@ def add_tool(path):
                 file = self.interpreter.filePool.create_file(
                         suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
                 else: # pragma: no cover
@@ -315,14 +315,14 @@ def add_tool(path):
             if process.returncode != return_code:
                 raise ModuleError("Command returned %d (!= %d)" % (
                                   process.returncode, return_code))
-        self.setResult('return_code', process.returncode)
+        self.set_output('return_code', process.returncode)
 
         for f in open_files:
             f.close()
 
         for name, file in setOutput:
             f = open(file.name, 'rb')
-            self.setResult(name, f.read())
+            self.set_output(name, f.read())
             f.close()
 
         if not file_std:
@@ -335,9 +335,9 @@ def add_tool(path):
                     f = open(file.name, 'wb')
                     f.write(stdout)
                     f.close()
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
-                    self.setResult(name, stdout)
+                    self.set_output(name, stdout)
                 else: # pragma: no cover
                     raise ValueError
             if stderr and "stderr" in self.conf:
@@ -349,9 +349,9 @@ def add_tool(path):
                     f = open(file.name, 'wb')
                     f.write(stderr)
                     f.close()
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
-                    self.setResult(name, stderr)
+                    self.set_output(name, stderr)
                 else: # pragma: no cover
                     raise ValueError
 

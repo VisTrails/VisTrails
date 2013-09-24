@@ -105,7 +105,7 @@ class Teem(Module):
         if callable(format):
             format = format(self)
         output_file = self.interpreter.filePool.create_file(suffix='.'+format)
-        self.setResult(port_name, output_file)
+        self.set_output(port_name, output_file)
         return [opt_name, output_file.name]
 
     def compute(self):
@@ -134,7 +134,7 @@ class Emap(Teem):
         
         self.run_teem(*cmdline)
         
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
     _input_ports = [('right_hand', []),
                     ('input_file', [(basic.File, 'the lights input file')]),
@@ -168,7 +168,7 @@ class Soid(Teem):
         cmdline += ['-o', output_file.name]
 
         self.run_limn_test(*cmdline)
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
     _input_ports = [('resolution', [(basic.Float, 'The ellipsoid resolution')]),
                     ('radius', [(basic.Float, 'The radius')]),
@@ -216,7 +216,7 @@ class OffToEps(Teem):
         cmdline += ['-o', output_file.name]
 
         self.run_limn_test(*cmdline)
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
 
     _input_ports = [
@@ -249,7 +249,7 @@ class EpsToPpm(Teem):
         output_file = self.interpreter.filePool.create_file(suffix='.ppm')
         cmdline += [output_file.name]
         self.run_path(*cmdline)
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
     _input_ports = [
         ("input_file", [(basic.File, 'the input EPS')]),
@@ -287,8 +287,8 @@ class UnuSave(Unu):
 	cmdline = ['unu save']
 	cmdline += self.do_input()
 	(ocmd, output_file) = self.do_output()
-	self.setResult("output_file", output_file)
-	self.setResult("output_name", output_file.name)
+	self.set_output("output_file", output_file)
+	self.set_output("output_name", output_file.name)
 	cmdline += ocmd
 	cmdline += self.opt_command_line_val(port_name='output_format', option_name='-f')
 	self.run_teem(*cmdline)
@@ -307,7 +307,7 @@ class UnuSwap(Unu):
         cmdline = ['unu swap']
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         v1, v2 = self.get_input('axes')
         cmdline += ['-a', str(v1), str(v2)]
         cmdline += ocmd
@@ -324,7 +324,7 @@ class UnuProject(Unu):
         cmdline = ['unu project']
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         cmdline += ocmd
         cmdline += self.opt_command_line_val(port_name='axis',
                                              option_name='-a')
@@ -359,7 +359,7 @@ class UnuMinmax(Teem):
             mx = float(f.readline().split()[-1])
         except:
             raise ModuleError(self, 'Could not read result')
-        self.setResult('range', (mn, mx))
+        self.set_output('range', (mn, mx))
 
     _input_ports = [('input_file', [(basic.File, 'the input file')]),
                     ('blind8', [])]
@@ -373,7 +373,7 @@ class UnuReshape(Unu):
         cmdline += self.opt_command_line_val(port_name='axes',
                                              option_name='-s')
         (ocmd, output_file) = self.do_output()
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         cmdline += ocmd
         self.run_teem(*cmdline)
 
@@ -390,7 +390,7 @@ class UnuResample(Unu):
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         cmdline += self.opt_command_line_val(port_name='sampling_spec',
                                              option_name='-s')
         cmdline += self.opt_command_line_val(port_name='centering',
@@ -420,7 +420,7 @@ class UnuJoin(Unu):
                                              option_name='-a')
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -444,7 +444,7 @@ class UnuQuantize(Unu):
                                              option_name='-max')
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -481,7 +481,7 @@ class Unu1op(Unu):
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -521,7 +521,7 @@ class Unu2op(Unu):
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -572,7 +572,7 @@ class Unu3op(Unu):
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -690,7 +690,7 @@ class UnuSlice(Unu):
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -731,7 +731,7 @@ class TeemScaledTransferFunction(Teem):
                       '| unu axinfo -a 1 -l "gage(scalar:v)" -mm %f %f -o %s' % (rng[0],
                                                                                  rng[1],
                                                                                  output.name))
-        self.setResult('nrrd', output)
+        self.set_output('nrrd', output)
 
 ##############################################################################
 
@@ -799,7 +799,7 @@ class Miter(Teem):
         cmdline += self.opt_command_line_val('-nt', 'thread_count')
         cmdline += self.opt_command_line_val('-n1', 'opacity_termination')
         cmdline += self.opt_command_line_file('-txf', 'transfer_function')
-        self.setResult('output_file', f) 
+        self.set_output('output_file', f) 
         self.run_teem(*cmdline)
         
 ###############################################################################
@@ -824,7 +824,7 @@ class OverRGB(Teem):
         cmdline += self.opt_command_line_file('-i', 'input_file')
         f = self.interpreter.filePool.create_file(suffix='.png')
         cmdline += ['-o', f.name]
-        self.setResult('output_image', f)
+        self.set_output('output_image', f)
         cmdline += self.opt_command_line_val('-c', 'contrast')
         cmdline += self.opt_command_line_val('-cfp', 'component_fixed_point')
         cmdline += self.opt_command_line_val('-g', 'gamma')

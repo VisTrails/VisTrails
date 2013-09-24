@@ -162,7 +162,7 @@ class VtlFileCreator(NotCacheable, Module):
             file_.write(xmlstring)
             file_.close()
         
-        self.setResult("xmlstring", xmlstring)
+        self.set_output("xmlstring", xmlstring)
         
     _input_ports = [('execute', Boolean, True), 
                     ('showspreadsheetOnly', Boolean, True),

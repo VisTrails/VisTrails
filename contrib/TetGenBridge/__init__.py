@@ -61,7 +61,7 @@ class tetrahedralize(Module):
         TetGen.tetrahedralize(switches, tgio_in, out.data)
         print "Done making tets"
 
-        self.setResult("tgio out", out)
+        self.set_output("tgio out", out)
 
       
 

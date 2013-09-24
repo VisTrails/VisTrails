@@ -119,11 +119,11 @@ class Constant(Module):
         b = self.validate(v)
         if not b:
             raise ModuleError(self, "Internal Error: Constant failed validation")
-        self.setResult("value", v)
-        self.setResult("value_as_string", self.translate_to_string(v))
+        self.set_output("value", v)
+        self.set_output("value_as_string", self.translate_to_string(v))
 
     def setValue(self, v):
-        self.setResult("value", self.translate_to_python(v))
+        self.set_output("value", self.translate_to_python(v))
         self.upToDate = True
         
     def serialize(self):
@@ -307,7 +307,7 @@ class Path(Constant):
     def translate_to_python(x):
         result = Path()
         result.name = x
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     @staticmethod
@@ -331,15 +331,15 @@ class Path(Constant):
         
     def set_results(self, n):
         self.name = n
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-#         self.setResult("exists", os.path.exists(n))
-#         self.setResult("isfile", os.path.isfile(n))
-#         self.setResult("isdir", os.path.isdir(n))
+#         self.set_output("exists", os.path.exists(n))
+#         self.set_output("isfile", os.path.isfile(n))
+#         self.set_output("isdir", os.path.isdir(n))
         
 Path.default_value = Path()
 
@@ -386,7 +386,7 @@ class File(Path):
     def translate_to_python(x):
         result = File()
         result.name = x
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     def compute(self):
@@ -397,8 +397,8 @@ class File(Path):
         if not os.path.isfile(n):
             raise ModuleError(self, 'File "%s" does not exist' % n)
         self.set_results(n)
-        self.setResult("local_filename", n)
-        self.setResult("self", self)
+        self.set_output("local_filename", n)
+        self.set_output("self", self)
 
 File.default_value = File()
     
@@ -420,7 +420,7 @@ class Directory(Path):
     def translate_to_python(x):
         result = Directory()
         result.name = x
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     def compute(self):
@@ -449,7 +449,7 @@ class Directory(Path):
                 dir_item.name = full_path
                 dir_item.upToDate = True
                 output_list.append(dir_item)
-        self.setResult('itemList', output_list)
+        self.set_output('itemList', output_list)
             
 Directory.default_value = Directory()
 
@@ -471,8 +471,8 @@ class OutputPath(Path):
         
     def set_results(self, n):
         self.name = n
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
 
     def compute(self):
         n = self.get_name()
@@ -593,7 +593,7 @@ class WriteFile(Converter):
         result = self.interpreter.filePool.create_file(suffix=suffix)
         with open(result.name, 'wb') as fp:
             fp.write(contents)
-        self.setResult('out_value', result)
+        self.set_output('out_value', result)
 
 ##############################################################################
 
@@ -749,7 +749,7 @@ class Tuple(Module):
         values = tuple([self.get_input(p)
                         for p in self.input_ports_order])
         self.values = values
-        self.setResult("value", values)
+        self.set_output("value", values)
 
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
@@ -772,7 +772,7 @@ class Untuple(Module):
         else:
             values = self.get_input("value")
         for p, value in izip(self.output_ports_order, values):
-            self.setResult(p, value)
+            self.set_output(p, value)
 
 ##############################################################################
 
@@ -798,7 +798,7 @@ class ConcatenateString(Module):
             if self.has_input(port):
                 inp = self.get_input(port)
                 result += inp
-        self.setResult("value", result)
+        self.set_output("value", result)
 
 ##############################################################################
 
@@ -810,7 +810,7 @@ class Not(Module):
 
     def compute(self):
         value = self.get_input('input')
-        self.setResult('value', not value)
+        self.set_output('value', not value)
 
 ##############################################################################
 # List
@@ -885,7 +885,7 @@ class List(Constant):
 
         if not got_value:
             self.get_input('value')
-        self.setResult('value', head + middle + items + tail)
+        self.set_output('value', head + middle + items + tail)
 
 ##############################################################################
 # Dictionary
@@ -905,7 +905,7 @@ def dict_compute(self):
     if self.has_input('addPairs'):
         d.update(self.get_input('addPairs'))
         
-    self.setResult("value", d)
+    self.set_output("value", d)
         
 Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
                           {}, staticmethod(lambda x: isinstance(x, dict)),
@@ -921,7 +921,7 @@ class Null(Module):
     _settings = ModuleSettings(hide_descriptor=True)
 
     def compute(self):
-        self.setResult("value", None)
+        self.set_output("value", None)
 
 ##############################################################################
 
@@ -934,7 +934,7 @@ class Unpickle(Module):
 
     def compute(self):
         value = self.get_input('input')
-        self.setResult('result', pickle.loads(value))
+        self.set_output('result', pickle.loads(value))
 
 ##############################################################################
 
@@ -975,7 +975,7 @@ class CodeRunnerMixin(object):
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) != None:
-                    self.setResult(k, locals_[k])
+                    self.set_output(k, locals_[k])
 
 ##############################################################################
 
@@ -1081,7 +1081,7 @@ class SmartSource(NotCacheable, Module):
                             vt_instance = vt_class()
                             vt_instance.set_source(v)
                             v = vt_instance
-                    self.setResult(k, v)
+                    self.set_output(k, v)
 
     def compute(self):
         s = urllib.unquote(str(self.force_get_input('source', '')))
@@ -1126,7 +1126,7 @@ class Unzip(Module):
                              output.name)
         if s != 0:
             raise ModuleError(self, "unzip command failed with status %d" % s)
-        self.setResult("file", output)
+        self.set_output("file", output)
 
 
 class UnzipDirectory(Module):
@@ -1144,7 +1144,7 @@ class UnzipDirectory(Module):
                                   output.name)
         if s != 0:
             raise ModuleError(self, "unzip command failed with status %d" % s)
-        self.setResult("directory", output)
+        self.set_output("directory", output)
 
 ##############################################################################
 
@@ -1163,7 +1163,7 @@ class Round(Converter):
             integ = int(fl)         # just strip the decimals
         else:
             integ = int(fl + 0.5)   # nearest
-        self.setResult('out_value', integ)
+        self.set_output('out_value', integ)
 
 
 class TupleToList(Converter):
@@ -1177,7 +1177,7 @@ class TupleToList(Converter):
         tu = self.get_input('in_value')
         if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
             raise ModuleError(self, "Input is not a tuple")
-        self.setResult('out_value', list(tu.values))
+        self.set_output('out_value', list(tu.values))
 
 ##############################################################################
     

@@ -72,7 +72,7 @@ class vtkBaseInspector(Module):
                 if issubclass(retValues.__class__, vtk.vtkObject):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
-                    self.setResult(function, output)
+                    self.set_output(function, output)
                 elif type(retValues) in [tuple, list]:
                     result = list(retValues)
                     for i in xrange(len(result)):
@@ -80,9 +80,9 @@ class vtkBaseInspector(Module):
                             className = result[i].GetClassName()
                             result[i] = vtkBaseModule.wrapperModule(className,
                                                                     result[i])
-                    self.setResult(function, type(retValues)(result))
+                    self.set_output(function, type(retValues)(result))
                 else:
-                    self.setResult(function, retValues)
+                    self.set_output(function, retValues)
 
 class vtkDataSetInspector(vtkBaseInspector):
 

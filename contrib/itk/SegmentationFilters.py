@@ -79,9 +79,9 @@ class IsolatedWatershedImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
-        self.setResult("Filter", self)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
+        self.set_output("Filter", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -153,8 +153,8 @@ class ConnectedThresholdImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
@@ -228,8 +228,8 @@ class ConfidenceConnectedImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
@@ -298,8 +298,8 @@ class IsolatedConnectedImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
