@@ -280,7 +280,7 @@ Integer._settings = ModuleSettings(constantWidgets=[
 String  = new_constant('String'  , staticmethod(str), "", 
                        staticmethod(lambda x: isinstance(x, str)),
                        query_compute=string_compare)
-String._settings = ModuleSettings(configureWidgetType=
+String._settings = ModuleSettings(configureWidget=
             "vistrails.gui.modules.string_configure:TextConfigurationWidget",
                                   constantWidgets=[
                         ConstantWidgetConfig('%s:MultiLineStringWidget' % \
@@ -736,7 +736,7 @@ class Tuple(Module):
     integrated with the rest of VisTrails, so don't use it unless
     you know what you're doing."""
 
-    _settings = ModuleSettings(configureWidgetType=
+    _settings = ModuleSettings(configureWidget=
         "vistrails.gui.modules.tuple_configuration:TupleConfigurationWidget")
     _output_ports = [OPort("self", "Tuple")]
 
@@ -757,7 +757,7 @@ class Untuple(Module):
 
     """
 
-    _settings = ModuleSettings(configureWidgetType=
+    _settings = ModuleSettings(configureWidget=
         "vistrails.gui.modules.tuple_configuration:UntupleConfigurationWidget")
     _input_ports = [IPort("tuple", "Tuple")]
 
@@ -828,7 +828,7 @@ else:
     ListType.register(numpy.ndarray)
 
 class List(Constant):
-    _settings = ModuleSettings(configureWidgetType=
+    _settings = ModuleSettings(configureWidget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
                     IPort("head", "Module"),
@@ -993,7 +993,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     cache_this().
     """
     _settings = ModuleSettings(
-        configureWidgetType=("vistrails.gui.modules.python_source_configure:"
+        configureWidget=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
     _input_ports = [IPort('source', 'String', optional=True)]
     _output_pors = [OPort('self', 'Module')]
@@ -1006,7 +1006,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
 class SmartSource(NotCacheable, Module):
     _settings = ModuleSettings(
-        configureWidgetType=("vistrails.gui.modules.python_source_configure:"
+        configureWidget=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
     _input_ports = [IPort('source', 'String', optional=True)]
 

@@ -1232,6 +1232,7 @@ class ModuleRegistry(DBRegistry):
             return r
         name = fetch('name', None)
         configureWidgetType = fetch('configureWidgetType', None)
+        configureWidget = fetch('configureWidget', None)
         constantWidget = fetch('constantWidget', None)
         constantWidgets = fetch('constantWidgets', None)
         signatureCallable = fetch('signatureCallable', None)
@@ -1300,7 +1301,9 @@ class ModuleRegistry(DBRegistry):
             self.root_descriptor = descriptor
 
         descriptor.set_module_abstract(is_abstract)
-        descriptor.set_configuration_widget(configureWidgetType)
+        if configureWidget is None and configureWidgetType is not None:
+            configureWidget = configureWidgetType
+        descriptor.set_configuration_widget(configureWidget)
         descriptor.is_hidden = hide_descriptor
         descriptor.namespace_hidden = hide_namespace
 
