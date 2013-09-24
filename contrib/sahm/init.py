@@ -255,7 +255,7 @@ class PredictorList(Constant):
 
     def compute(self):
         p_list = self.forceGetInputListFromPort("addPredictor")
-        v = self.forceGetInputFromPort("value", [])
+        v = self.force_get_input("value", [])
         
         b = self.validate(v)
         if not b:
@@ -373,7 +373,7 @@ class TemplateLayer(Path):
     _output_ports = [('value', '(gov.usgs.sahm:TemplateLayer:DataInput)'),
                      ('value_as_string', '(edu.utah.sci.vistrails.basic:String)', True)]
 #    def compute(self):
-#        output_file = create_file_module(self.forceGetInputFromPort('FilePath', []))
+#        output_file = create_file_module(self.force_get_input('FilePath', []))
 #        self.setResult('value', output_file)
 
 #class SingleInputPredictor(Predictor):
@@ -465,22 +465,22 @@ class ApplyModel(Module):
     
     def compute(self):
         
-        workspace = self.forceGetInputFromPort('modelWorkspace').name
+        workspace = self.force_get_input('modelWorkspace').name
         output_dname = utils.mknextdir(prefix='AppliedModel_')
         if self.hasInputFromPort('projectionTarget'):
-            mdsFile = self.forceGetInputFromPort('projectionTarget').name
+            mdsFile = self.force_get_input('projectionTarget').name
             args = "ws=" + '"' + workspace + '"' + " c=" + '"' + mdsFile + '"' + " o=" + '"' + output_dname + '"'
         else:
             args = "ws=" + '"' + workspace + '"' + " o=" + '"' + output_dname + '"'
         
         if self.hasInputFromPort('makeBinMap'):
-            makeBinMap = self.forceGetInputFromPort('makeBinMap')
+            makeBinMap = self.force_get_input('makeBinMap')
             args += ' mbt=' + str(makeBinMap).upper()
         else:
             args += ' mbt=TRUE'
             
         if self.hasInputFromPort('makeProbabilityMap'):
-            makeProbabilityMap = self.forceGetInputFromPort('makeProbabilityMap')
+            makeProbabilityMap = self.force_get_input('makeProbabilityMap')
             args += ' mpt=' + str(makeProbabilityMap).upper()
         else:
              args += ' mpt=TRUE'
@@ -535,7 +535,7 @@ class Model(Module):
         
         output_dname = utils.mknextdir(prefix=ModelAbbrev + 'output_')
         argsDict = utils.map_ports(self, self.port_map)
-        mdsFile = self.forceGetInputFromPort('mdsFile').name
+        mdsFile = self.force_get_input('mdsFile').name
         
         args = ''
         for k, v in argsDict.iteritems():
@@ -546,24 +546,24 @@ class Model(Module):
         args += " o=" + '"' + output_dname + '"'
         args += " rc=" + utils.MDSresponseCol(mdsFile)
 #        if self.hasInputFromPort('makeBinMap'):
-#            makeBinMap = self.forceGetInputFromPort('makeBinMap')
+#            makeBinMap = self.force_get_input('makeBinMap')
 #            args += ' mbt=' + str(makeBinMap).upper()
 #        else:
 #            makeBinMap = True
 #            args += ' mbt=TRUE'
 #            
 #        if self.hasInputFromPort('makeProbabilityMap'):
-#            makeProbabilityMap = self.forceGetInputFromPort('makeProbabilityMap')
+#            makeProbabilityMap = self.force_get_input('makeProbabilityMap')
 #            args += ' mpt=' + str(makeProbabilityMap).upper()
 #        else:
 #            makeProbabilityMap = True
 #            args += ' mpt=TRUE'  
 #        
 #        if self.hasInputFromPort('seed'):
-#            args += ' seed=' + str(self.forceGetInputFromPort('seed'))
+#            args += ' seed=' + str(self.force_get_input('seed'))
 #        
 #        if self.hasInputFromPort('someParam'):
-#            x = self.forceGetInputFromPort('someParam')
+#            x = self.force_get_input('someParam')
 #            if x > 1:
 #                msg = "Expected output from " + ModelAbbrev + " was not found."
 #                msg += "\nThis likely indicates problems with the inputs to the R module."
@@ -926,7 +926,7 @@ class PARC(Module):
         #append additional inputs to the existing CSV if one was supplied
         #otherwise start a new CSV
         if self.hasInputFromPort("RastersWithPARCInfoCSV"):
-            inputCSV = self.forceGetInputFromPort("RastersWithPARCInfoCSV").name
+            inputCSV = self.force_get_input("RastersWithPARCInfoCSV").name
             shutil.copy(inputCSV, workingCSV)
             f = open(workingCSV, "ab")
             csvWriter = csv.writer(f)
@@ -948,8 +948,8 @@ class PARC(Module):
         f.close()
         del csvWriter
         ourPARC.inputs_CSV = workingCSV
-        ourPARC.template = self.forceGetInputFromPort('templateLayer').name
-        writetolog('    template layer = ' + self.forceGetInputFromPort('templateLayer').name)
+        ourPARC.template = self.force_get_input('templateLayer').name
+        writetolog('    template layer = ' + self.force_get_input('templateLayer').name)
         writetolog("    output_dname=" + output_dname, False, False)
         writetolog("    workingCSV=" + workingCSV, False, False)
         try:
@@ -1023,12 +1023,12 @@ class RasterFormatConverter(Module):
         writetolog("\nRunning TiffConverter", True)
         ourRFC = RFC.FormatConverter()
         if self.hasInputFromPort('inputMDS'):
-            ourRFC.MDSFile = self.forceGetInputFromPort('inputMDS').name
+            ourRFC.MDSFile = self.force_get_input('inputMDS').name
         elif self.hasInputFromPort('inputDir'):
-            ourRFC.inputDir = self.forceGetInputFromPort('inputDir').name
+            ourRFC.inputDir = self.force_get_input('inputDir').name
             
         if self.hasInputFromPort('format'):
-            format = self.forceGetInputFromPort('format')
+            format = self.force_get_input('format')
             if format == '':
                 format = 'asc'
             ourRFC.format = format
@@ -1108,7 +1108,7 @@ class TestTrainingSplit(Module):
         if self.hasInputFromPort('trainingProportion'):
             print 'real input'
         writetolog("\nGenerating Test Training split ", True)
-        inputMDS = utils.dir_path_value(self.forceGetInputFromPort('inputMDS', []))
+        inputMDS = utils.dir_path_value(self.force_get_input('inputMDS', []))
         outputMDS = utils.mknextfile(prefix='TestTrainingSplit_', suffix='.csv')
 
         global models_path
@@ -1183,8 +1183,8 @@ class CovariateCorrelationAndSelection(Module):
 
     def compute(self):
         writetolog("\nOpening Select Predictors Layers widget", True)
-        inputMDS = utils.dir_path_value(self.forceGetInputFromPort('inputMDS'))
-        selectionName = self.forceGetInputFromPort('selectionName', 'initial')
+        inputMDS = utils.dir_path_value(self.force_get_input('inputMDS'))
+        selectionName = self.force_get_input('selectionName', 'initial')
 #        outputMDS = utils.mknextfile(prefix='SelectPredictorsLayers_' + selectionName + "_", suffix='.csv')
 #        displayJPEG = utils.mknextfile(prefix='PredictorCorrelation_' + selectionName + "_", suffix='.jpg')
         global session_dir
@@ -1303,10 +1303,10 @@ class ProjectionLayers(Module):
         
         writetolog("\nRunning make Projection Layers", True)
         
-        inputCSV = self.forceGetInputFromPort('RastersWithPARCInfoCSV').name
+        inputCSV = self.force_get_input('RastersWithPARCInfoCSV').name
     
         if self.hasInputFromPort('templateLayer'):
-            template = self.forceGetInputFromPort('templateLayer').name
+            template = self.force_get_input('templateLayer').name
         else:
             template = '' #we'll get a template below
             
@@ -1315,7 +1315,7 @@ class ProjectionLayers(Module):
         
         for input in ['model', 'scenario', 'year']:
             if self.hasInputFromPort(input):
-                climargs[input] = self.forceGetInputFromPort(input)
+                climargs[input] = self.force_get_input(input)
         if climargs <> {} and climargs.keys() <> ['model', 'scenario', 'year']:
             #they did not add in one of each, Not going to fly
             raise ModuleError(self, "All of model, scenario, and year must be supplied if any are used.")
@@ -1326,7 +1326,7 @@ class ProjectionLayers(Module):
                                         climargs['model'], climargs['scenario'], climargs['year'])])
         
         if self.hasInputFromPort('directoryCrosswalkCSV'):
-            crosswalkCSV = csv.reader(open(self.forceGetInputFromPort('directoryCrosswalkCSV'), 'r'))
+            crosswalkCSV = csv.reader(open(self.force_get_input('directoryCrosswalkCSV'), 'r'))
             header = crosswalkCSV
             for row in crosswalkCSV:
                 fromto.append(row[0], row[1])
@@ -1438,7 +1438,7 @@ class MAXENT(Module):
         ourMaxent = MaxentRunner.MAXENTRunner()
         ourMaxent.outputDir = utils.mknextdir(prefix='maxentFiles_')
         
-        ourMaxent.inputMDS = self.forceGetInputFromPort('inputMDS').name
+        ourMaxent.inputMDS = self.force_get_input('inputMDS').name
         
         ourMaxent.maxentpath = maxent_path
         
@@ -1556,7 +1556,7 @@ def load_max_ent_params():
 #        self.cellWidget = None
 #
 #    def compute(self):
-#        renderView = self.forceGetInputFromPort('SetRenderView')
+#        renderView = self.force_get_input('SetRenderView')
 #        if renderView==None:
 #            raise ModuleError(self, 'A vtkRenderView input is required.')
 #        self.cellWidget = self.displayAndWait(QVTKViewWidget, (renderView,))

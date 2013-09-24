@@ -543,7 +543,7 @@ class Module(Serializable):
 
         self.logging.annotate(self, d)
 
-    def forceGetInputFromPort(self, inputPort, defaultValue=None):
+    def force_get_input(self, inputPort, defaultValue=None):
         """Like :py:func:`get_input` except that if no value exists, it
         returns a user-specified defaultValue or None.
 

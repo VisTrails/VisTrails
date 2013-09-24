@@ -137,8 +137,8 @@ class vtkInteractionHandler(NotCacheable, Module):
         """ compute() -> None
         Actually compute nothing
         """        
-        self.observer = self.forceGetInputFromPort('Observer')
-        self.handler = self.forceGetInputFromPort('Handler', '')
+        self.observer = self.force_get_input('Observer')
+        self.handler = self.force_get_input('Handler', '')
         self.shareddata = self.forceGetInputListFromPort('SharedData')
         if len(self.shareddata)==1:
             self.shareddata = self.shareddata[0]

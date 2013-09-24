@@ -35,7 +35,7 @@ class SAHMSpatialOutputViewerCell(SpreadsheetCell):
 
     def compute(self):
         inputs = {}
-        inputs["model_workspace"] = self.forceGetInputFromPort('model_workspace').name
+        inputs["model_workspace"] = self.force_get_input('model_workspace').name
         inputs["model_dir"] = os.path.split(inputs["model_workspace"])[0]
 
         inputs["prob_map"] = os.path.join(inputs["model_dir"],

@@ -19,8 +19,8 @@ class quickplot(Module, NotCacheable):
 
         dataset = self.get_input('dataset')
         plotType = self.get_input('plot')
-        axes = self.forceGetInputFromPort('axes')
-        inCanvas = self.forceGetInputFromPort('canvas')
+        axes = self.force_get_input('axes')
+        inCanvas = self.force_get_input('canvas')
 
         if axes!=None:
             try:

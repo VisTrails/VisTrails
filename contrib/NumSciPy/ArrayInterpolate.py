@@ -74,15 +74,15 @@ class BSplineInterpolate(ArrayInterpModule, Module):
 
     def compute(self):
         in_ar = self.get_input("Input").get_array()
-        num_samp = self.forceGetInputFromPort("Interpolant Support")
+        num_samp = self.force_get_input("Interpolant Support")
         if not num_samp:
             num_samp = in_ar.shape[0]
 
-        smoothing = self.forceGetInputFromPort("Smoothing")
+        smoothing = self.force_get_input("Smoothing")
         if not smoothing:
             smoothing = 0.0
 
-        degree = self.forceGetInputFromPort("Degree")
+        degree = self.force_get_input("Degree")
         if not degree:
             degree = 3
 
@@ -113,10 +113,10 @@ class BSplineResample(ArrayInterpModule, Module):
     """
     def compute(self):
         in_ar = self.get_input("Input").get_array()
-        order = self.forceGetInputFromPort("Order")
+        order = self.force_get_input("Order")
         if order == None:
             order = 3
-        planes = self.forceGetInputFromPort("Planes")
+        planes = self.force_get_input("Planes")
         ndim = in_ar.ndim
         gridshape = self.get_input("New Shape").values
 

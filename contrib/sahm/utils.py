@@ -117,7 +117,7 @@ def map_ports(module, port_map):
             elif len(value)  == 0:
                 raise ModuleError(module, 'Multiple items found from Port ' + 
                     port + '.  Only single entry handled.  Please remove extraneous items.')
-            value = module.forceGetInputFromPort(port)
+            value = module.force_get_input(port)
             if access is not None:
                 value = access(value)
             if isinstance(value, File) or \

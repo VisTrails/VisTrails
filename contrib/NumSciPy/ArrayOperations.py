@@ -527,7 +527,7 @@ class ArrayThreshold(ArrayOperationModule, Module):
     def compute(self):
         in_ar = self.get_input("Input Array").get_array()
         v = self.get_input("Value")
-        r = self.forceGetInputFromPort("Replacement")
+        r = self.force_get_input("Replacement")
         if r == None:
             r = 0.
         out = NDArray()
@@ -547,9 +547,9 @@ class ArrayWindow(ArrayOperationModule, Module):
     the values within the window. """
     def compute(self):
         in_ar = self.get_input("Input Array").get_array()
-        lo = self.forceGetInputFromPort("Lower Bound")
-        hi = self.forceGetInputFromPort("Upper Bound")
-        r = self.forceGetInputFromPort("Replacement")
+        lo = self.force_get_input("Lower Bound")
+        hi = self.force_get_input("Upper Bound")
+        r = self.force_get_input("Replacement")
         if r == None:
             r = 0.
         if lo == None:
@@ -577,7 +577,7 @@ class ArrayNormalize(ArrayOperationModule, Module):
     def compute(self):
         in_ar = self.get_input("Input Array").get_array()
         ar = numpy.zeros(in_ar.shape)
-        if self.forceGetInputFromPort("Planes"):
+        if self.force_get_input("Planes"):
             for i in range(in_ar.shape[0]):
                 p = in_ar[i] - in_ar[i].min()
                 ar[i] = p / p.max()
@@ -600,8 +600,8 @@ class ArrayName(ArrayOperationModule, Module):
     """ Assign a name or label to the entries of an array """
     def compute(self):
         in_ar = self.get_input("Input Array")
-        gen_name = self.forceGetInputFromPort("Name")
-        one_index = self.forceGetInputFromPort("One Indexed")
+        gen_name = self.force_get_input("Name")
+        one_index = self.force_get_input("One Indexed")
         if gen_name:
             in_ar.set_name(gen_name, index=one_index)
 
@@ -610,11 +610,11 @@ class ArrayName(ArrayOperationModule, Module):
             for (i,n) in name_list:
                 in_ar.set_row_name(n, i)
 
-        dname = self.forceGetInputFromPort("Domain Name")
+        dname = self.force_get_input("Domain Name")
         if dname:
             in_ar.set_domain_name(dname)
 
-        rname = self.forceGetInputFromPort("Range Name")
+        rname = self.force_get_input("Range Name")
         if rname:
             in_ar.set_range_name(rname)
 

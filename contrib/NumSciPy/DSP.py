@@ -254,7 +254,7 @@ class SignalSmoothing(DSPModule, Module):
 #     def compute(self):
 #         phasors = self.get_input("Phasor Array").get_array()
 #         time_window = self.get_input("Time Window")
-#         time_step = self.forceGetInputFromPort("Time Step")
+#         time_step = self.force_get_input("Time Step")
 #         if time_step == None:
 #             time_step = 1
             

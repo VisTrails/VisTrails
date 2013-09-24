@@ -80,7 +80,7 @@ class InputPort(Module):
     _output_ports = [OPort("InternalPipe", "Variant")]
                     
     def compute(self):
-        exPipe = self.forceGetInputFromPort('ExternalPipe')
+        exPipe = self.force_get_input('ExternalPipe')
         if exPipe is not None:
             self.setResult('InternalPipe', exPipe)
         else:

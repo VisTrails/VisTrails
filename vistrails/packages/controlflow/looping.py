@@ -39,11 +39,11 @@ class While(Module):
 
     def compute(self):
         name_output = self.get_input('OutputPort')
-        name_condition = self.forceGetInputFromPort('ConditionPort')
-        name_state_input = self.forceGetInputFromPort('StateInputPorts')
-        name_state_output = self.forceGetInputFromPort('StateOutputPorts')
+        name_condition = self.force_get_input('ConditionPort')
+        name_state_input = self.force_get_input('StateInputPorts')
+        name_state_output = self.force_get_input('StateOutputPorts')
         max_iterations = self.get_input('MaxIterations')
-        delay = self.forceGetInputFromPort('Delay')
+        delay = self.force_get_input('Delay')
 
         if (name_condition is None and
                 not self.hasInputFromPort('MaxIterations')):

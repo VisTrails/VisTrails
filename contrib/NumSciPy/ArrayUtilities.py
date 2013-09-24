@@ -11,12 +11,12 @@ class ArrayUtilModule(object):
 
 class ArrayToVTKVectors(ArrayUtilModule, Module):
     def compute(self):
-        v0 = self.forceGetInputFromPort("Array0")
-        v1 = self.forceGetInputFromPort("Array1")
-        v2 = self.forceGetInputFromPort("Array2")
+        v0 = self.force_get_input("Array0")
+        v1 = self.force_get_input("Array1")
+        v2 = self.force_get_input("Array2")
         ds = self.get_input("VTK Data")
 
-        v_name = self.forceGetInputFromPort("Vector Name")
+        v_name = self.force_get_input("Vector Name")
         if v_name == None:
             v_name = 'vectors'
 
@@ -67,12 +67,12 @@ class ArrayToTimeVaryingVTKVectors(ArrayUtilModule, Module):
         self.logging.update_progress(self, t)
 
     def compute(self):
-        v0 = self.forceGetInputFromPort("Array0")
-        v1 = self.forceGetInputFromPort("Array1")
-        v2 = self.forceGetInputFromPort("Array2")
+        v0 = self.force_get_input("Array0")
+        v1 = self.force_get_input("Array1")
+        v2 = self.force_get_input("Array2")
         ds = self.get_input("VTK Data")
 
-        v_name = self.forceGetInputFromPort("Vector Name")
+        v_name = self.force_get_input("Vector Name")
         if v_name == None:
             v_name = 'vectors'
 
@@ -133,7 +133,7 @@ class ArrayToTimeVaryingVTKScalars(ArrayUtilModule, Module):
     def compute(self):
         ds = self.get_input("VTK Data")
         ar = self.get_input("Scalars")
-        v_name = self.forceGetInputFromPort("Array Name")
+        v_name = self.force_get_input("Array Name")
         if v_name == None:
             v_name = 'scalars'
         num_times = ds.vtkInstance.GetNumberOfTimeSteps()
@@ -222,7 +222,7 @@ class VTKDataSetToPointArray(ArrayUtilModule, Module):
     """
     def compute(self):
         data = self.get_input("vtkDataSet").vtkInstance
-        flag = self.forceGetInputFromPort("IncludeScalars")
+        flag = self.force_get_input("IncludeScalars")
 
         np = data.GetNumberOfPoints()
         ndim = 3

@@ -589,7 +589,7 @@ class WriteFile(Converter):
 
     def compute(self):
         contents = self.get_input('in_value')
-        suffix = self.forceGetInputFromPort('suffix', '')
+        suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
         with open(result.name, 'wb') as fp:
             fp.write(contents)
@@ -1084,7 +1084,7 @@ class SmartSource(NotCacheable, Module):
                     self.setResult(k, v)
 
     def compute(self):
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.force_get_input('source', '')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################

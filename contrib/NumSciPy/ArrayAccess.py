@@ -77,7 +77,7 @@ class GetMean(Module, ArrayAccess):
     """ Get the mean value of an array """
     def compute(self):
         a = self.get_input("Array")
-        axis = self.forceGetInputFromPort("Axis")
+        axis = self.force_get_input("Axis")
         out = NDArray()
         out.set_array(numpy.array(a.get_mean(axis)))
         self.setResult("Mean", out)
@@ -262,7 +262,7 @@ class GetRowRange(Module, ArrayAccess):
         s = self.get_input("Start")
         e = self.get_input("End")
         out = NDArray()
-        if self.forceGetInputFromPort("One Indexed"):
+        if self.force_get_input("One Indexed"):
             s = s-1
             e = e-1
 
@@ -289,7 +289,7 @@ class GetRowRange(Module, ArrayAccess):
 class GetRows(Module, ArrayAccess):
     """ Get a set of rows from the input array defined by a list of indexes """
     def compute(self):
-        l = self.forceGetInputFromPort("Index List")
+        l = self.force_get_input("Index List")
         if l == None:
             l = self.forceGetInputListFromPort("Indexes")
 

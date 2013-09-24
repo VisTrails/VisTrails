@@ -113,7 +113,7 @@ class OrderByCorrelation(EnsembleModule, Module):
                 sl = sl / sl.max()
                 vol_ar[i] = sl
 
-        pos = self.forceGetInputFromPort("Key Position")
+        pos = self.force_get_input("Key Position")
             
         key_slice = vol_ar[ind]
         (r,c) = key_slice.shape
@@ -233,7 +233,7 @@ class OrderByProgressiveCorrelation(EnsembleModule, Module):
     def compute(self):
         vol = self.get_input("Signals").get_array()
         ind = self.get_input("Key Slice")
-        normalize = self.forceGetInputFromPort("Normalize")
+        normalize = self.force_get_input("Normalize")
 
         if normalize:
             for i in range(vol.shape[0]):

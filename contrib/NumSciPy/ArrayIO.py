@@ -165,8 +165,8 @@ class WritePNG(ArrayIOModule, Module):
     def compute(self):
         fn = self.get_input("Filename")
         ar = self.get_input("Image")
-        minv = self.forceGetInputFromPort("Min")
-        maxv = self.forceGetInputFromPort("Max")
+        minv = self.force_get_input("Min")
+        maxv = self.force_get_input("Max")
         if minv == None:
             minv = 0
         if maxv == None:
@@ -277,7 +277,7 @@ class ReadStatisticalSummary(ArrayIOModule, Module):
         else:
             fn = self.get_input("Filename")
 
-        if self.forceGetInputFromPort("Allocate Aggregated Array"):
+        if self.force_get_input("Allocate Aggregated Array"):
             alloc_array = True
         else:
             alloc_array = False

@@ -56,7 +56,7 @@ nPartitions = proc.GetNumberOfLocalPartitions()
 partitionId = proc.GetPartitionId()
 result = ''
 """
-        source = self.forceGetInputFromPort('Script', '')
+        source = self.force_get_input('Script', '')
         suffix = """
 if len(result)>0:
     import vtk
@@ -95,7 +95,7 @@ for i in xrange(nPartitions):
     result = narray.tostring()
     results.append(result)
 """
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.force_get_input('source', '')))
         self.run_code(prefix + s, use_input=True, use_output=True)
         
         

@@ -73,7 +73,7 @@ class ScaleVolumes(StockwellModule, Module):
         vol = self.get_input("Input").get_array()
         lof = self.get_input("Low Freq")
         hif = self.get_input("Hi Freq")
-        sigma = self.forceGetInputFromPort("Sigma")
+        sigma = self.force_get_input("Sigma")
         max_vol = numpy.zeros(vol.shape)
         grav_vol = numpy.zeros(vol.shape)
 
@@ -153,7 +153,7 @@ class MaximalScaleVolume(StockwellModule, Module):
         vol = self.get_input("Input").get_array()
         lof = self.get_input("Low Freq")
         hif = self.get_input("Hi Freq")
-        sigma = self.forceGetInputFromPort("Sigma")
+        sigma = self.force_get_input("Sigma")
         out_vol = numpy.zeros(vol.shape)
 
         (slices,rows,cols) = vol.shape
@@ -414,7 +414,7 @@ class ScaleSpaceHistogram(StockwellModule, Module):
                         bin = int((scalar - min_s) / d * 511.)
 #                        dist[bin] += 1
 #                        print bin, scalar, ar
-                        sigma = self.forceGetInputFromPort("Sigma")
+                        sigma = self.force_get_input("Sigma")
                         if sigma:
                             ar = scipy.signal.gaussian(ar.size, sigma) * ar
                         histo[bin,:] += ar
@@ -506,7 +506,7 @@ class PyScaleSpaceHistogram(StockwellModule, Module):
                         bin = int((scalar - min_s) / d * float(num_scalar_bins-1.))
 #                        dist[bin] += 1
 #                        print bin, scalar, ar
-                        sigma = self.forceGetInputFromPort("Sigma")
+                        sigma = self.force_get_input("Sigma")
                         if sigma:
                             ar = scipy.signal.gaussian(ar.size, sigma) * ar
                         histo[bin,:] += ar

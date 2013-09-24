@@ -139,7 +139,7 @@ class CombineRGBA(ImageMagick):
         r = self.get_input("r")
         g = self.get_input("g")
         b = self.get_input("b")
-        a = self.forceGetInputFromPort("a")
+        a = self.force_get_input("a")
 
         if a is not None:
             self.run(r.name, g.name, b.name, a.name,

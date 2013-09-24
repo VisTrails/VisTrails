@@ -243,7 +243,7 @@ def add_tool(path):
                 kwargs['stderr'] = subprocess.PIPE
 
         if "return_code" in self.conf:
-            return_code = self.forceGetInputFromPort(name)
+            return_code = self.force_get_input(name)
         else:
             return_code = None
 

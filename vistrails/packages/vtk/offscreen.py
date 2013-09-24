@@ -45,8 +45,8 @@ class VTKRenderOffscreen(Module):
     def compute(self):
         r = self.get_input("renderer").vtkInstance
         window = vtk.vtkRenderWindow()
-        w = self.forceGetInputFromPort("width", 512)
-        h = self.forceGetInputFromPort("height", 512)
+        w = self.force_get_input("width", 512)
+        h = self.force_get_input("height", 512)
         window.OffScreenRenderingOn()
         window.SetSize(w, h)
         # r.ResetCamera()

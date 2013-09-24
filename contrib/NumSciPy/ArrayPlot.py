@@ -69,10 +69,10 @@ class ArrayImage(ArrayPlot, Module):
         if da_ar.ndim != 2:
             raise ModuleError("Input Data Array must have dimension = 2")
 
-        aspect_ratio = self.forceGetInputFromPort("Aspect Ratio")
-        colormap = self.forceGetInputFromPort("Colormap")
-        colorbar = self.forceGetInputFromPort("Colorbar")
-        extents = self.forceGetInputFromPort("Extents")
+        aspect_ratio = self.force_get_input("Aspect Ratio")
+        colormap = self.force_get_input("Colormap")
+        colorbar = self.force_get_input("Colorbar")
+        extents = self.force_get_input("Extents")
 
         # Quickly check the assigned colormap to make sure it's valid
         if colormap == None:
@@ -80,15 +80,15 @@ class ArrayImage(ArrayPlot, Module):
         if not hasattr(pylab, colormap):
             colormap = "jet"
             
-        bg_color = self.forceGetInputFromPort("Background")
-        array_x_t = self.forceGetInputFromPort("Use X Title")
-        array_y_t = self.forceGetInputFromPort("Use Y Title")
+        bg_color = self.force_get_input("Background")
+        array_x_t = self.force_get_input("Use X Title")
+        array_y_t = self.force_get_input("Use Y Title")
 
-        p_title = self.forceGetInputFromPort("Title")
-        x_label = self.forceGetInputFromPort("X Title")
-        y_label = self.forceGetInputFromPort("Y Title")
+        p_title = self.force_get_input("Title")
+        x_label = self.force_get_input("X Title")
+        y_label = self.force_get_input("Y Title")
         
-        s = urllib.unquote(str(self.forceGetInputFromPort("source", '')))
+        s = urllib.unquote(str(self.force_get_input("source", '')))
 
         s = 'from pylab import *\n' +\
             'from numpy import *\n' +\
@@ -164,22 +164,22 @@ class Histogram(ArrayPlot, Module):
         data = self.getInputListFromPort("Data Array")
         self.label_dict = None
         self.color_dict = None
-        use_legend = self.forceGetInputFromPort("Legend")
-        randomcolors = self.forceGetInputFromPort("Random Colors")
+        use_legend = self.force_get_input("Legend")
+        randomcolors = self.force_get_input("Random Colors")
         colors = self.forceGetInputListFromPort("Colors")
-        bg_color = self.forceGetInputFromPort("Background")
-        array_x_t = self.forceGetInputFromPort("Use X Title")
-        array_y_t = self.forceGetInputFromPort("Use Y Title")
-        p_title = self.forceGetInputFromPort("Title")
-        x_label = self.forceGetInputFromPort("X Title")
-        nbins = self.forceGetInputFromPort("Bins")
+        bg_color = self.force_get_input("Background")
+        array_x_t = self.force_get_input("Use X Title")
+        array_y_t = self.force_get_input("Use Y Title")
+        p_title = self.force_get_input("Title")
+        x_label = self.force_get_input("X Title")
+        nbins = self.force_get_input("Bins")
         if nbins == None:
             nbins = 10
-        normed = self.forceGetInputFromPort("Normalize")
+        normed = self.force_get_input("Normalize")
         if normed == None:
             normed = False
 
-        s = urllib.unquote(str(self.forceGetInputFromPort("source", '')))
+        s = urllib.unquote(str(self.force_get_input("source", '')))
         self.source = ''
 
         s = 'from pylab import *\n' +\
@@ -282,21 +282,21 @@ class BarChart(ArrayPlot, Module):
 
         self.label_dict = None
         self.color_dict = None
-        use_legend = self.forceGetInputFromPort("Legend")
-        randomcolors = self.forceGetInputFromPort("Random Colors")
+        use_legend = self.force_get_input("Legend")
+        randomcolors = self.force_get_input("Random Colors")
         colors = self.forceGetInputListFromPort("Colors")
-        bg_color = self.forceGetInputFromPort("Background")
-        array_x_t = self.forceGetInputFromPort("Use X Title")
-        array_y_t = self.forceGetInputFromPort("Use Y Title")
+        bg_color = self.force_get_input("Background")
+        array_x_t = self.force_get_input("Use X Title")
+        array_y_t = self.force_get_input("Use Y Title")
         ticks = self.forceGetInputListFromPort("Bar Labels")
         self.tick_dict = {}
         for (k,v) in ticks:
             self.tick_dict[k] = v
-        p_title = self.forceGetInputFromPort("Title")
-        x_label = self.forceGetInputFromPort("X Title")
-        y_label = self.forceGetInputFromPort("Y Title")
+        p_title = self.force_get_input("Title")
+        x_label = self.force_get_input("X Title")
+        y_label = self.force_get_input("Y Title")
 
-        width = self.forceGetInputFromPort("Bar Width")
+        width = self.force_get_input("Bar Width")
         if width == None:
             width = 0.5
 
@@ -304,7 +304,7 @@ class BarChart(ArrayPlot, Module):
             if len(data) != len(errs):
                 raise ModuleError("Number of data does not match number of error bar data")
 
-        s = urllib.unquote(str(self.forceGetInputFromPort("source", '')))
+        s = urllib.unquote(str(self.force_get_input("source", '')))
         self.source = ''
 
         s = 'from pylab import *\n' +\
@@ -406,22 +406,22 @@ class ScatterPlot(ArrayPlot, Module):
         xdata = self.getInputListFromPort("X Array")
         ydata = self.getInputListFromPort("Y Array")
         self.label_dict = None
-        use_legend = self.forceGetInputFromPort("Legend")
-        randomcolors = self.forceGetInputFromPort("Random Colors")
+        use_legend = self.force_get_input("Legend")
+        randomcolors = self.force_get_input("Random Colors")
         colors = self.forceGetInputListFromPort("Colors")
         self.color_dict = None
-        bg_color = self.forceGetInputFromPort("Background")
+        bg_color = self.force_get_input("Background")
         markers = self.forceGetInputListFromPort("Markers")
         self.marker_dict = None
-        ps = self.forceGetInputFromPort("Point Size")
-        array_x_t = self.forceGetInputFromPort("Use X Title")
-        array_y_t = self.forceGetInputFromPort("Use Y Title")
+        ps = self.force_get_input("Point Size")
+        array_x_t = self.force_get_input("Use X Title")
+        array_y_t = self.force_get_input("Use Y Title")
 
-        p_title = self.forceGetInputFromPort("Title")
-        x_label = self.forceGetInputFromPort("X Title")
-        y_label = self.forceGetInputFromPort("Y Title")
+        p_title = self.force_get_input("Title")
+        x_label = self.force_get_input("X Title")
+        y_label = self.force_get_input("Y Title")
 
-        s = urllib.unquote(str(self.forceGetInputFromPort("source", '')))
+        s = urllib.unquote(str(self.force_get_input("source", '')))
         self.source = ''
 
         if len(xdata) != len(ydata):
@@ -518,23 +518,23 @@ class LinePlot(ArrayPlot, Module):
     '''    
     def compute(self):
         data = self.get_input("Input Array")
-        indexes = self.forceGetInputFromPort("Indexes")
+        indexes = self.force_get_input("Indexes")
         self.label_dict = None
-        use_legend = self.forceGetInputFromPort("Legend")
-        randomcolors = self.forceGetInputFromPort("Random Colors")
+        use_legend = self.force_get_input("Legend")
+        randomcolors = self.force_get_input("Random Colors")
         colors = self.forceGetInputListFromPort("Colors")
         self.color_dict = None
         markers = self.forceGetInputListFromPort("Markers")
         self.marker_dict = None
-        x_label = self.forceGetInputFromPort("X Title")
-        y_label = self.forceGetInputFromPort("Y Title")
-        p_title = self.forceGetInputFromPort("Title")
-        bg_color = self.forceGetInputFromPort("Background")
+        x_label = self.force_get_input("X Title")
+        y_label = self.force_get_input("Y Title")
+        p_title = self.force_get_input("Title")
+        bg_color = self.force_get_input("Background")
 
-        array_x_t = self.forceGetInputFromPort("Use X Title")
-        array_y_t = self.forceGetInputFromPort("Use Y Title")
+        array_x_t = self.force_get_input("Use X Title")
+        array_y_t = self.force_get_input("Use Y Title")
 
-        s = urllib.unquote(str(self.forceGetInputFromPort("source", '')))
+        s = urllib.unquote(str(self.force_get_input("source", '')))
         self.source = ''
         da_ar = data.get_array()
 
@@ -556,8 +556,8 @@ class LinePlot(ArrayPlot, Module):
         if da_ar.ndim == 1:
             da_ar.shape = (1, da_ar.shape[0])
 
-        xar = self.forceGetInputFromPort("X Values")
-        sf = self.forceGetInputFromPort("Scaling Factor")
+        xar = self.force_get_input("X Values")
+        sf = self.force_get_input("Scaling Factor")
         if sf == None:
             sf = 1.
 

@@ -111,9 +111,9 @@ class SheetReference(Module):
         if self.sheetReference==None:
             self.sheetReference = StandardSheetReference()
         ref = self.sheetReference
-        ref.minimumRowCount = self.forceGetInputFromPort("MinRowCount", 1)
-        ref.minimumColumnCount = self.forceGetInputFromPort("MinColumnCount", 1)
-        ref.sheetName = self.forceGetInputFromPort("SheetName")
+        ref.minimumRowCount = self.force_get_input("MinRowCount", 1)
+        ref.minimumColumnCount = self.force_get_input("MinColumnCount", 1)
+        ref.sheetName = self.force_get_input("SheetName")
 
     def getSheetReference(self):
         """ getSheetReference() -> subclass of StandardSheetReference
@@ -153,12 +153,12 @@ class CellLocation(Module):
             except:
                 raise ModuleError(self, 'ColumnRowAddress format error')
             
-        ref = self.forceGetInputFromPort("SheetReference")
+        ref = self.force_get_input("SheetReference")
         if ref:
             self.sheetReference = ref.getSheetReference()
 
-        self.rowSpan = self.forceGetInputFromPort("RowSpan", -1)
-        self.colSpan = self.forceGetInputFromPort("ColumnSpan", -1)
+        self.rowSpan = self.force_get_input("RowSpan", -1)
+        self.colSpan = self.force_get_input("ColumnSpan", -1)
         if self.hasInputFromPort("Row") and self.hasInputFromPort("Column"):
             self.row = self.get_input("Row")-1
             self.col = self.get_input("Column")-1
@@ -206,7 +206,7 @@ class SpreadsheetCell(NotCacheable, Module):
         if self.location:
             location = self.location
         else:
-            location = self.forceGetInputFromPort("Location")
+            location = self.force_get_input("Location")
         if location:
             e.row = location.row
             e.col = location.col
@@ -263,5 +263,5 @@ class SingleCellSheetReference(SheetReference):
         """
         if self.sheetReference==None:
             self.sheetReference = StandardSingleCellSheetReference()
-        self.sheetReference.sheetName = self.forceGetInputFromPort("SheetName")
+        self.sheetReference.sheetName = self.force_get_input("SheetName")
 

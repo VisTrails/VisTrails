@@ -220,11 +220,11 @@ psrc_module = self.moduleInfo['pipeline'].modules[self.moduleInfo['moduleId']]
 input_ports = [p.name for p in psrc_module.input_port_specs if p.name not in ['UseCartesianProduct', 'UserDefinedInputList']]
 InputPort = input_ports
 OutputPort = '%s'
-custom_input_list = self.forceGetInputFromPort('UserDefinedInputList', [])
+custom_input_list = self.force_get_input('UserDefinedInputList', [])
 if custom_input_list:
     InputList = custom_input_list
 else:
-    cartesian_product = self.forceGetInputFromPort('UseCartesianProduct', False)
+    cartesian_product = self.force_get_input('UseCartesianProduct', False)
     if cartesian_product:
         input_lists = [self.get_input(input_ports[x]) for x in xrange(len(input_ports))]
         InputList = [[]]

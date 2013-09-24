@@ -42,8 +42,8 @@ class Variable(Module):
         # Get input from ports
         cdmsfile = self.get_input('cdmsfile')
         id = self.get_input('id')
-        axes = self.forceGetInputFromPort('axes') # None if no input
-        axesOperations = self.forceGetInputFromPort('axesOperations') # None if no input
+        axes = self.force_get_input('axes') # None if no input
+        axesOperations = self.force_get_input('axesOperations') # None if no input
 
         # Get the variable
         varType = self.getVarType(id, cdmsfile)
