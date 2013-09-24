@@ -125,7 +125,7 @@ class Emap(Teem):
                                              option_name='-up')
         cmdline += self.opt_command_line_noopt(port_name='right_hand',
                                                option_name='-rh')
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         cmdline += self.opt_command_line_file(port_name='input_file',
                                               option_name='-i')
 
@@ -208,7 +208,7 @@ class OffToEps(Teem):
                                              option_name='-ws')
         
 
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         input_file = self.get_input('input_file')
         cmdline += ['-i', input_file.name]
 
@@ -241,8 +241,8 @@ class EpsToPpm(Teem):
 
     def compute(self):
         cmdline = ['eps2ppm']
-        self.checkInputPort('input_file')
-        self.checkInputPort('resolution')
+        self.check_input('input_file')
+        self.check_input('resolution')
         cmdline += [self.get_input('input_file').name]
         cmdline += [self.get_input('resolution')]
         cmdline += ['>']
@@ -271,7 +271,7 @@ class Unu(Teem):
         return (['-o', output_file.name], output_file)
 
     def do_input(self):
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         return ['-i', self.get_input('input_file').name]
 
     _input_ports = [
@@ -341,7 +341,7 @@ class UnuProject(Unu):
 class UnuMinmax(Teem):
 
     def do_input(self):
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         return [self.get_input('input_file').name]
 
     def compute(self):
@@ -409,7 +409,7 @@ class UnuResample(Unu):
 class UnuJoin(Unu):
 
     def do_input(self):
-        self.checkInputPort('input_list')
+        self.check_input('input_list')
         return ['-i'] + [x.name
                          for x in self.get_input('input_list')]
 
@@ -432,7 +432,7 @@ class UnuQuantize(Unu):
 
     def do_input(self):
         current = Unu.do_input(self)
-        self.checkInputPort('bits')
+        self.check_input('bits')
         return current + ['-b', self.get_input('bits')]
 
     def compute(self):
@@ -472,7 +472,7 @@ class Unu1op(Unu):
                        'cbrt', 'ceil', 'floor', 'erf', 'rup',
                        'abs', 'sgn', 'exists', 'rand', 'nrand',
                        'if', '0', '1']
-        self.checkInputPort('op')
+        self.check_input('op')
         if not self.get_input('op') in allowed_ops:
             raise ModuleError(self, ("Operation %s is not allowed." % 
                                      self.get_input('op')))
@@ -512,7 +512,7 @@ class Unu2op(Unu):
                        '^', 'pow', 'spow', '%', 'fmod', 'atan2',
                        'min', 'max', 'lt', 'lte', 'gt', 'gte'
                        'eq', 'neq', 'comp', 'if', 'exists']
-        self.checkInputPort('op')
+        self.check_input('op')
         if not self.get_input('op') in allowed_ops:
             raise ModuleError(self, ("Operation %s is not allowed." % 
                                      self.get_input('op')))
@@ -563,7 +563,7 @@ class Unu3op(Unu):
                        'clamp', 'ifelse',
                        'lerp', 'exists',
                        'in_op', 'in_cl']
-        self.checkInputPort('op')
+        self.check_input('op')
         if not self.get_input('op') in allowed_ops:
             raise ModuleError(self, ("Operation %s is not allowed." % 
                                      self.get_input('op')))
@@ -677,9 +677,9 @@ class UnuSlice(Unu):
 
     def do_input(self):
         r = []
-        self.checkInputPort('in_file')
-        self.checkInputPort('axis')
-        self.checkInputPort('position')
+        self.check_input('in_file')
+        self.check_input('axis')
+        self.check_input('position')
         r += ['-i', self.get_input('in_file').name]
         r += ['-a', str(self.get_input('axis'))]
         r += ['-p', str(self.get_input('position'))]
@@ -771,8 +771,8 @@ class Miter(Teem):
     
     def compute(self):
         cmdline = ['miter']
-        self.checkInputPort('input_file')
-        self.checkInputPort('transfer_function')
+        self.check_input('input_file')
+        self.check_input('transfer_function')
         cmdline += self.opt_command_line_file('-i', 'input_file')
         f = self.interpreter.filePool.create_file(suffix='.nrrd')
         cmdline += ['-o', f.name]
@@ -820,7 +820,7 @@ class OverRGB(Teem):
 
     def compute(self):
         cmdline = ['overrgb']
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         cmdline += self.opt_command_line_file('-i', 'input_file')
         f = self.interpreter.filePool.create_file(suffix='.png')
         cmdline += ['-o', f.name]

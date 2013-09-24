@@ -412,8 +412,8 @@ class Module(Serializable):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
-    def checkInputPort(self, name):
-        """checkInputPort(name) -> None.  
+    def check_input(self, name):
+        """check_input(name) -> None.  
         Makes sure input port 'name' is filled.
 
         """

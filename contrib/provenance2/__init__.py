@@ -225,7 +225,7 @@ class FileSet(ProvenanceChallenge):
     """FileSet stores a set of files related by a common filename base."""
 
     def compute(self):
-        self.checkInputPort("baseName")
+        self.check_input("baseName")
         n = self.get_input("baseName")
 	if self.has_input("file_hdr") and \
 		self.has_input("file_img"):
@@ -264,8 +264,8 @@ class FileSetSink(ProvenanceChallenge):
     in a user-specified location in the file system."""
 
     def compute(self):
-        self.checkInputPort("fileSet")
-        self.checkInputPort("outputBaseName")
+        self.check_input("fileSet")
+        self.check_input("outputBaseName")
         v1 = self.get_input("fileSet")
         v2 = self.get_input("outputBaseName")
         filenames = glob.glob('%s.*' % v1.baseName)

@@ -82,7 +82,7 @@ class MeshQualityHistogram(Module, AfrontRun):
     def compute(self):
         o = self.interpreter.filePool.create_file(suffix='.csv')
         args = []
-        self.checkInputPort("file")
+        self.check_input("file")
         args.append(self.get_input("file").name)
         args.append('-histname')
         args.append(o.name)
@@ -104,7 +104,7 @@ class AfrontIso(Afront):
         if self.has_input("eta"):
             args.append("-eta")
             args.append(str(self.get_input("eta")))
-        self.checkInputPort("iso")
+        self.check_input("iso")
         args.append("-outname")
         args.append(o.name)
         args.append("-tri")

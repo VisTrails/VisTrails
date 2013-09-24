@@ -150,7 +150,7 @@ def get_cdms2_compute_method(action, ident=''):
 def get_CdmsFile_compute_method(action, ident=''):
     lines = []
     lines.append(ident + "def compute(self):\n")
-    lines.append(ident + "    self.checkInputPort('cdmsfile')\n")
+    lines.append(ident + "    self.check_input('cdmsfile')\n")
     lines.append(ident + "    cdmsfile = self.get_input('cdmsfile')\n")
     lines.append(ident + "    args = []\n")
     for inp in action._inputs:

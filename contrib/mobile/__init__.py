@@ -91,8 +91,8 @@ class LocationCoordinate2D(Constant):
             self.longitude = data.longitude
         
         if self.latitude is None or self.longitude is None:
-            self.checkInputPort("latitude")
-            self.checkInputPort("longitude")
+            self.check_input("latitude")
+            self.check_input("longitude")
             self.latitude = self.get_input("latitude")
             self.longitude = self.get_input("longitude")
         self.set_output("value", self)
@@ -211,8 +211,8 @@ class Location(Constant):
             self.course = data.course
         
         if self.coordinate is None or self.altitude is None:
-            self.checkInputPort("coordinate")
-            self.checkInputPort("altitude")
+            self.check_input("coordinate")
+            self.check_input("altitude")
             self.coordinate = self.get_input("coordinate")
             self.altitude = self.get_input("altitude")
             

@@ -53,8 +53,8 @@ def get_path():
 class Macet(Module):
 
     def compute(self):
-        self.checkInputPort('input_file')
-        self.checkInputPort('iso_value')
+        self.check_input('input_file')
+        self.check_input('iso_value')
         
         input_file = self.get_input('input_file')
         output_file = self.interpreter.filePool.create_file(suffix='.off')
@@ -74,8 +74,8 @@ class Macet(Module):
 class MarchingCubes(Module):
 
     def compute(self):
-        self.checkInputPort('input_file')
-        self.checkInputPort('iso_value')
+        self.check_input('input_file')
+        self.check_input('iso_value')
         
         input_file = self.get_input('input_file')
         output_file = self.interpreter.filePool.create_file(suffix='.off')

@@ -47,12 +47,12 @@ class CSVFileEntry(Module):
             self.file_entry = LoadAppLogic.CSVFileEntry()
 
     def compute(self):
-        self.checkInputPort('filePath')
-        self.checkInputPort('headerPath')
-        self.checkInputPort('rowCount')
-        self.checkInputPort('targetTable')
-        self.checkInputPort('checksum')
-        self.checkInputPort('columnNames')
+        self.check_input('filePath')
+        self.check_input('headerPath')
+        self.check_input('rowCount')
+        self.check_input('targetTable')
+        self.check_input('checksum')
+        self.check_input('columnNames')
         self.file_entry.FilePath = self.get_input('filePath')
         self.file_entry.HeaderPath = self.get_input('headerPath')
         self.file_entry.RowCount = self.get_input('rowCount')
@@ -80,9 +80,9 @@ class DatabaseEntry(Module):
             self.db_entry = LoadAppLogic.DatabaseEntry()
     
     def compute(self):
-        self.checkInputPort('dbGuid')
-        self.checkInputPort('dbName')
-        self.checkInputPort('connectionString')
+        self.check_input('dbGuid')
+        self.check_input('dbName')
+        self.check_input('connectionString')
         self.db_entry.DBGuid = self.get_input('dbGuid')
         self.db_entry.DBName = self.get_input('dbName')
         self.db_entry.ConnectionString = \
@@ -98,7 +98,7 @@ DatabaseEntry._output_ports.append(('self', DatabaseEntry))
 
 class IsCSVReadyFileExists(Module):
     def compute(self):
-        self.checkInputPort('csvRootPath')
+        self.check_input('csvRootPath')
         path = self.get_input('csvRootPath')
         res = LoadAppLogic.IsCSVReadyFileExists(path)
         self.set_output('fileExists', res)
@@ -108,7 +108,7 @@ class IsCSVReadyFileExists(Module):
     
 class ReadCSVReadyFile(Module):
     def compute(self):
-        self.checkInputPort('csvRootPath')
+        self.check_input('csvRootPath')
         path = self.get_input('csvRootPath')
         self.annotate({'used_files':
                            str([os.path.join(path, "csv_ready.csv")])})
@@ -126,7 +126,7 @@ class ReadCSVReadyFile(Module):
 
 class IsMatchCSVFileTables(Module):
     def compute(self):
-        self.checkInputPort('csvFiles')
+        self.check_input('csvFiles')
         csv_files = self.get_input('csvFiles')
         res = LoadAppLogic.IsMatchCSVFileTables([f.file_entry 
                                                  for f in csv_files])
@@ -139,7 +139,7 @@ class IsMatchCSVFileTables(Module):
 
 class IsExistsCSVFile(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
+        self.check_input('csvFile')
         csv_file = self.get_input('csvFile')
         res = LoadAppLogic.IsExistsCSVFile(csv_file.file_entry)
         self.set_output('fileExists', res)
@@ -149,7 +149,7 @@ class IsExistsCSVFile(Module):
     
 class ReadCSVFileColumnNames(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
+        self.check_input('csvFile')
         csv_file = self.get_input('csvFile')
         self.annotate({'used_files':
                           str([csv_file.file_entry.HeaderPath])})
@@ -161,7 +161,7 @@ class ReadCSVFileColumnNames(Module):
     
 class IsMatchCSVFileColumnNames(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
+        self.check_input('csvFile')
         csv_file = self.get_input('csvFile')
         res = LoadAppLogic.IsMatchCSVFileColumnNames(csv_file.file_entry)
         self.set_output('columnsMatch', res)
@@ -171,7 +171,7 @@ class IsMatchCSVFileColumnNames(Module):
 
 class CreateEmptyLoadDB(Module):
     def compute(self):
-        self.checkInputPort('jobID')
+        self.check_input('jobID')
         job_id = self.get_input('jobID')
         res = LoadAppLogic.CreateEmptyLoadDB(job_id)
         self.set_output('dbEntry', DatabaseEntry(res))
@@ -181,8 +181,8 @@ class CreateEmptyLoadDB(Module):
 
 class LoadCSVFileIntoTable(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
-        self.checkInputPort('dbEntry')
+        self.check_input('csvFile')
+        self.check_input('dbEntry')
         csv_file = self.get_input('csvFile')
         db_entry = self.get_input('dbEntry')
         self.annotate({'used_files':
@@ -200,8 +200,8 @@ class LoadCSVFileIntoTable(Module):
 
 class UpdateComputedColumns(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
-        self.checkInputPort('dbEntry')
+        self.check_input('csvFile')
+        self.check_input('dbEntry')
         csv_file = self.get_input('csvFile')
         db_entry = self.get_input('dbEntry')
         if csv_file.file_entry.TargetTable.upper() == 'P2DETECTION':
@@ -218,8 +218,8 @@ class UpdateComputedColumns(Module):
 
 class IsMatchTableRowCount(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
-        self.checkInputPort('dbEntry')
+        self.check_input('csvFile')
+        self.check_input('dbEntry')
         csv_file = self.get_input('csvFile')
         db_entry = self.get_input('dbEntry')
         self.annotate({'used_tables':
@@ -235,8 +235,8 @@ class IsMatchTableRowCount(Module):
 
 class IsMatchTableColumnRanges(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
-        self.checkInputPort('dbEntry')
+        self.check_input('csvFile')
+        self.check_input('dbEntry')
         csv_file = self.get_input('csvFile')
         db_entry = self.get_input('dbEntry')
         if csv_file.file_entry.TargetTable.upper() == 'P2DETECTION':
@@ -253,7 +253,7 @@ class IsMatchTableColumnRanges(Module):
 
 class CompactDatabase(Module):
     def compute(self):
-        self.checkInputPort('dbEntry')
+        self.check_input('dbEntry')
         db_entry = self.get_input('dbEntry')
         self.annotate({'used_tables':
                            str([(db_entry.db_entry.ConnectionString, 
@@ -274,7 +274,7 @@ class CompactDatabase(Module):
 
 class GetCSVFiles(Module):
     def compute(self):
-        self.checkInputPort('csvRootPath')
+        self.check_input('csvRootPath')
         path = self.get_input('csvRootPath')
         if not LoadAppLogic.IsCSVReadyFileExists(path):
             raise ModuleError(self, "IsCSVReadyFileExists failed")
@@ -305,7 +305,7 @@ class GetCSVFiles(Module):
 
 class ReadCSVFile(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
+        self.check_input('csvFile')
         csv_file = self.get_input('csvFile')
         if not LoadAppLogic.IsExistsCSVFile(csv_file.file_entry):
             raise ModuleError(self, "IsExistsCSVFile failed")
@@ -322,8 +322,8 @@ class ReadCSVFile(Module):
     
 class LoadCSVFileIntoDB(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
-        self.checkInputPort('dbEntry')
+        self.check_input('csvFile')
+        self.check_input('dbEntry')
         csv_file = self.get_input('csvFile')
         print 'csv_file:', csv_file
         db_entry = self.get_input('dbEntry')
@@ -343,8 +343,8 @@ class LoadCSVFileIntoDB(Module):
 
 class ComputeColumns(Module):
     def compute(self):
-        self.checkInputPort('csvFile')
-        self.checkInputPort('dbEntry')
+        self.check_input('csvFile')
+        self.check_input('dbEntry')
         csv_file = self.get_input('csvFile')
         db_entry = self.get_input('dbEntry')
         self.annotate({'used_tables':
@@ -367,7 +367,7 @@ class ComputeColumns(Module):
 
 class DetectionsHistogram(Module):
     def compute(self):
-        self.checkInputPort('dbEntry')
+        self.check_input('dbEntry')
         db_entry = self.get_input('dbEntry')
         high_quality = False
         if self.has_input('highQuality'):

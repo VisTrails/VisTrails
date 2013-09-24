@@ -75,7 +75,7 @@ class HTTPFile(Module):
     """ Downloads file from URL """
 
     def compute(self):
-        self.checkInputPort('url')
+        self.check_input('url')
         url = self.get_input("url")
         (result, downloaded_file, local_filename) = self.download(url)
         self.set_output("local_filename", local_filename)
@@ -236,7 +236,7 @@ class HTTPDirectory(Module):
     """
 
     def compute(self):
-        self.checkInputPort('url')
+        self.check_input('url')
         url = self.get_input('url')
         local_path = self.download(url)
         self.set_output('local_path', local_path)
@@ -378,7 +378,7 @@ class RepoSync(Module):
     def compute(self):
         # if server, grab local file using checksum id
         if self.is_server:
-            self.checkInputPort('checksum')
+            self.check_input('checksum')
             self.checksum = self.get_input("checksum")
             # get file path
             path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
@@ -393,7 +393,7 @@ class RepoSync(Module):
                 out_file.name = dataset_path
                 self.set_output("file", out_file)
         else: # is client
-            self.checkInputPort('file')
+            self.check_input('file')
             self.in_file = self.get_input("file")
             if os.path.isfile(self.in_file.name):
                 # do size check

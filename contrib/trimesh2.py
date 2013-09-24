@@ -38,7 +38,7 @@ class MeshFilter(Module):
             return input_file_name[i:]
 
     def compute(self):
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         input_file = self.get_input('input_file')
         if self.has_input('output_format'):
             output_suffix = self.get_input('output_format')
@@ -62,8 +62,8 @@ class MeshFilter(Module):
 class PlanarSubdiv(MeshFilter):
 
     def compute(self):
-        self.checkInputPort('input_file')
-        self.checkInputPort('iterations')
+        self.check_input('input_file')
+        self.check_input('iterations')
         iters = self.get_input('iterations')
         if iters < 1:
             raise ModuleError(self, 'iterations must be >=1')

@@ -150,7 +150,7 @@ class DBConnection(Module):
                     raise ModuleError(self, str(e))
              
     def compute(self):
-        self.checkInputPort('db_name')
+        self.check_input('db_name')
         self.host = self.force_get_input('host', 'localhost')
         self.port = self.force_get_input('port', 3306)
         self.user = self.force_get_input('user', None)
@@ -180,7 +180,7 @@ class SQLSource(Module):
         cached = False
         if self.has_input('cacheResults'):
             cached = self.get_input('cacheResults')
-        self.checkInputPort('connection')
+        self.check_input('connection')
         connection = self.get_input('connection')
         inputs = [self.get_input(k) for k in self.inputPorts
                   if k != 'source' and k != 'connection' and k!= 'cacheResults']

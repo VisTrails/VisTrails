@@ -325,7 +325,7 @@ class Path(Constant):
         if self.has_input("value"):
             n = self.get_input("value").name
         if n is None:
-            self.checkInputPort("name")
+            self.check_input("name")
             n = self.get_input("name")
         return n
         
@@ -465,7 +465,7 @@ class OutputPath(Path):
         if self.has_input("value"):
             n = self.get_input("value").name
         if n is None:
-            self.checkInputPort("name")
+            self.check_input("name")
             n = self.get_input("name")
         return n
         
@@ -1113,8 +1113,8 @@ class Unzip(Module):
     _output_ports = [OPort('file', 'File')]
 
     def compute(self):
-        self.checkInputPort("archive_file")
-        self.checkInputPort("filename_in_archive")
+        self.check_input("archive_file")
+        self.check_input("filename_in_archive")
         filename_in_archive = self.get_input("filename_in_archive")
         archive_file = self.get_input("archive_file")
         if not os.path.isfile(archive_file.name):
@@ -1135,7 +1135,7 @@ class UnzipDirectory(Module):
     _output_ports = [OPort('directory', 'Directory')]
 
     def compute(self):
-        self.checkInputPort("archive_file")
+        self.check_input("archive_file")
         archive_file = self.get_input("archive_file")
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")

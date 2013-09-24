@@ -13,7 +13,7 @@ name = 'Mesh utility'
 class MeshArea(Module):
 
     def compute(self):
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         f1 = self.get_input('input_file')
         text_output = self.interpreter.filePool.create_file()
 
@@ -43,8 +43,8 @@ class MeshChoose(Module):
             return input_file_name[i:]
 
     def compute(self):
-        self.checkInputPort('input_file_1')
-        self.checkInputPort('input_file_2')
+        self.check_input('input_file_1')
+        self.check_input('input_file_2')
 
         input_file_1 = self.get_input('input_file_1')
         input_file_2 = self.get_input('input_file_2')

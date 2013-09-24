@@ -55,8 +55,8 @@ class Metro(Module):
         return self.need_error_meshes and self.need_histograms
 
     def compute(self):
-        self.checkInputPort('mesh1')
-        self.checkInputPort('mesh2')
+        self.check_input('mesh1')
+        self.check_input('mesh2')
         f1 = self.get_input('mesh1')
         f2 = self.get_input('mesh2')
 
