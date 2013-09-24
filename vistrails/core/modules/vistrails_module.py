@@ -86,15 +86,20 @@ class ModuleHadError(Exception):
     It is caught by the interpreter that doesn't log it.
     """
 
-class ModuleError(Exception):
+    pass
 
+class ModuleError(Exception):
     """Exception representing a VisTrails module runtime error. This
-exception is recognized by the interpreter and allows meaningful error
-reporting to the user and to the logging mechanism."""
-    
+    exception is recognized by the interpreter and allows meaningful error
+    reporting to the user and to the logging mechanism.
+
+    """
+
     def __init__(self, module, errormsg, abort=False):
         """ModuleError should be passed the module instance that signaled the
-error and the error message as a string."""
+        error and the error message as a string.
+
+        """
         Exception.__init__(self, errormsg)
         self.abort = abort # force abort even if stopOnError is False
         self.module = module
@@ -126,7 +131,9 @@ class ModuleSuspended(ModuleError):
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
     This exception is recognized by the interpreter and allows meaningful
-    error reporting to the user and to the logging mechanism."""
+    error reporting to the user and to the logging mechanism.
+
+    """
     def __init__(self, module_errors):
         """ModuleErrors should be passed a list of ModuleError objects"""
         Exception.__init__(self, str(tuple(me.msg for me in module_errors)))
@@ -159,8 +166,9 @@ class Serializable(object):
     """
     Serializable is a mixin class used to define methods to serialize and
     deserialize modules. 
-    """
     
+    """
+
     def serialize(self):
         """
         Method used to serialize a module.
@@ -177,72 +185,71 @@ class Serializable(object):
 # Module
 
 class Module(Serializable):
-
     """Module is the base module from which all module functionality
-is derived from in VisTrails. It defines a set of basic interfaces to
-deal with data input/output (through ports, as will be explained
-later), as well as a basic mechanism for dataflow based updates.
+    is derived from in VisTrails. It defines a set of basic interfaces to
+    deal with data input/output (through ports, as will be explained
+    later), as well as a basic mechanism for dataflow based updates.
 
-*Execution Model*
+    *Execution Model*
 
-  VisTrails assumes fundamentally that a pipeline is a dataflow. This
-  means that pipeline cycles are disallowed, and that modules are
-  supposed to be free of side-effects. This is obviously not possible
-  in general, particularly for modules whose sole purpose is to
-  interact with operating system resources. In these cases, designing
-  a module is harder -- the side effects should ideally not be exposed
-  to the module interface.  VisTrails provides some support for making
-  this easier, as will be discussed later.
-
-  VisTrails caches intermediate results to increase efficiency in
-  exploration. It does so by reusing pieces of pipelines in later
-  executions.
-
-*Terminology*
-
-  Module Interface: The module interface is the set of input and
-  output ports a module exposes.
-
-*Designing New Modules*
-
-  Designing new modules is essentially a matter of subclassing this
-  module class and overriding the compute() method. There is a
-  fully-documented example of this on the default package
-  'pythonCalc', available on the 'packages/pythonCalc' directory.
-
-*Caching*
-
-  Caching affects the design of a new module. Most importantly,
-  users have to account for compute() being called more than
-  once. Even though compute() is only called once per individual
-  execution, new connections might mean that previously uncomputed
-  output must be made available.
-
-  Also, operating system side-effects must be carefully accounted
-  for. Some operations are fundamentally side-effectful (creating OS
-  output like uploading a file on the WWW or writing a file to a
-  local hard drive). These modules should probably not be cached at
-  all. VisTrails provides an easy way for modules to report that
-  they should not be cached: simply subclass from the NotCacheable
-  mixin provided in this python module. (NB: In order for the mixin
-  to work appropriately, NotCacheable must appear *BEFORE* any other
-  subclass in the class hierarchy declarations). These modules (and
-  anything that depends on their results) will then never be reused.
-
-*Intermediate Files*
-
-  Many modules communicate through intermediate files. VisTrails
-  provides automatic filename and handle management to alleviate the
-  burden of determining tricky things (e.g. longevity) of these
-  files. Modules can request temporary file names through the file pool,
-  currently accessible through ``self.interpreter.filePool``.
-
-  The FilePool class is available in core/modules/module_utils.py -
-  consult its documentation for usage. Notably, using the file pool
-  will make temporary files work correctly with caching, and will
-  make sure the temporaries are correctly removed.
-
-"""
+    VisTrails assumes fundamentally that a pipeline is a dataflow. This
+    means that pipeline cycles are disallowed, and that modules are
+    supposed to be free of side-effects. This is obviously not possible
+    in general, particularly for modules whose sole purpose is to
+    interact with operating system resources. In these cases, designing
+    a module is harder -- the side effects should ideally not be exposed
+    to the module interface.  VisTrails provides some support for making
+    this easier, as will be discussed later.
+    
+    VisTrails caches intermediate results to increase efficiency in
+    exploration. It does so by reusing pieces of pipelines in later
+    executions.
+    
+    *Terminology*
+    
+    Module Interface: The module interface is the set of input and
+    output ports a module exposes.
+    
+    *Designing New Modules*
+    
+    Designing new modules is essentially a matter of subclassing this
+    module class and overriding the compute() method. There is a
+    fully-documented example of this on the default package
+    'pythonCalc', available on the 'packages/pythonCalc' directory.
+    
+    *Caching*
+    
+    Caching affects the design of a new module. Most importantly,
+    users have to account for compute() being called more than
+    once. Even though compute() is only called once per individual
+    execution, new connections might mean that previously uncomputed
+    output must be made available.
+    
+    Also, operating system side-effects must be carefully accounted
+    for. Some operations are fundamentally side-effectful (creating OS
+    output like uploading a file on the WWW or writing a file to a
+    local hard drive). These modules should probably not be cached at
+    all. VisTrails provides an easy way for modules to report that
+    they should not be cached: simply subclass from the NotCacheable
+    mixin provided in this python module. (NB: In order for the mixin
+    to work appropriately, NotCacheable must appear *BEFORE* any other
+    subclass in the class hierarchy declarations). These modules (and
+    anything that depends on their results) will then never be reused.
+    
+    *Intermediate Files*
+    
+    Many modules communicate through intermediate files. VisTrails
+    provides automatic filename and handle management to alleviate the
+    burden of determining tricky things (e.g. longevity) of these
+    files. Modules can request temporary file names through the file pool,
+    currently accessible through ``self.interpreter.filePool``.
+    
+    The FilePool class is available in core/modules/module_utils.py -
+    consult its documentation for usage. Notably, using the file pool
+    will make temporary files work correctly with caching, and will
+    make sure the temporaries are correctly removed.
+    
+    """
 
     _settings = ModuleSettings(is_root=True, abstract=True)
     _output_ports = [OPort("self", "Module", optional=True)]
@@ -298,8 +305,10 @@ later), as well as a basic mechanism for dataflow based updates.
         self.annotate_output = False
 
     def clear(self):
-        """clear(self) -> None. Removes all references, prepares for
-deletion."""
+        """clear(self) -> None. 
+        Removes all references, prepares for deletion.
+
+        """
         for connector_list in self.inputPorts.itervalues():
             for connector in connector_list:
                 connector.clear()
@@ -310,11 +319,14 @@ deletion."""
         self._latest_method_order = 0
 
     def is_cacheable(self):
-        """is_cacheable() -> bool. A Module should return whether it
-can be reused across executions. It is safe for a Module to return
-different values in different occasions. In other words, it is
-possible for modules to be cacheable depending on their execution
-context."""
+        """is_cacheable() -> bool. 
+        A Module should return whether it can be
+        reused across executions. It is safe for a Module to return
+        different values in different occasions. In other words, it is
+        possible for modules to be cacheable depending on their
+        execution context.
+
+        """
         return True
 
     def updateUpstreamPort(self, port):
@@ -405,8 +417,10 @@ context."""
         self.logging.signalSuccess(self)
 
     def checkInputPort(self, name):
-        """checkInputPort(name) -> None.
-Makes sure input port 'name' is filled."""
+        """checkInputPort(name) -> None.  
+        Makes sure input port 'name' is filled.
+
+        """
         if not self.hasInputFromPort(name):
             raise ModuleError(self, "'%s' is a mandatory port" % name)
 
@@ -534,7 +548,6 @@ Makes sure input port 'name' is filled."""
         self.logging.annotate(self, d)
 
     def forceGetInputFromPort(self, inputPort, defaultValue=None):
-
         """Like :py:func:`getInputFromPort` except that if no value exists, it
         returns a user-specified defaultValue or None.
 
@@ -561,7 +574,6 @@ Makes sure input port 'name' is filled."""
             self._latest_method_order += 1
 
     def getInputListFromPort(self, inputPort):
-
         """Returns the value(s) coming in on the input port named
         **inputPort**.  When a port can accept more than one input,
         this method obtains all the values being passed in.
