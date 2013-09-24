@@ -14,3 +14,4 @@ Developer's Guide
    controlflowdev
    parallelization
    cltools
+   api_documentation

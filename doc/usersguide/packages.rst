@@ -164,169 +164,63 @@ parameters: the module that generated the exception (typically
 
 The final step is to specify the list of modules your package defines.  This is done via the ``_modules`` list which is simply a list of all the modules the package wishes to define.  Leaving a class out of that list will mean it will *not appear* as an available module for use in VisTrails.  That is it --- you have successfully created a new package and module. From now on, we will look at more complicated examples, and more advanced features of the package mechanism.
 
-Creating Reloadable Packages
-============================
+.. topic:: Note
 
-When creating or making changes to packages, it is often desirable to reload the package without having to restart |vistrails|.  To create a package that is reloadable, users should create a new directory for the package in ``userpackages`` directory.  This new directory should have the same name as the package and should contain an ``__init__.py`` file and an ``init.py`` file.  The identifier, name, version, configuration, and package_dependencies fields/methods should be in ``__init__.py``.  An example of ``__init__.py`` from Vistrails' pylab package follows.
+   Older versions of VisTrails used explicit calls to the ModuleRegistry in an ``initialize()`` method.  These calls like ``ModuleRegistry.add_module()``, ``ModuleRegistry.add_input_port()``, and ``ModuleRegistry.add_output_port()`` are still supported though their use is discouraged as the new syntax places all attributes and configuration options in the module definition, making code more readable and localized.  The arguments available in the registry functions are mirrored in the new configuration objects used for ``_settings``, ``_input_ports``, and ``_output_ports``.
+
+
+Package Specification
+=====================
+
+Structure
+^^^^^^^^^
+
+A package should contain the following files inside a directory named for the package:
+
+* ``__init__.py`` -- identifiers and configuration
+* ``init.py`` -- modules, other imports
+
+Optionally, it might also contain:
+
+* ``identifiers.py`` -- the identifers might be specified here and imported in ``__init__.py``
+* ``widgets.py`` -- any GUI widgets the package's modules use
+* any other files and/or python submodules that the package depends on in
+
+The reason for the separation between ``__init__.py`` and ``init.py`` is that |vistrails| inspects packages for identification, configurations, and information to populate the list of available packages, and for large packages with dependent libraries, including everything (including the subpackage imports) in ``__init__.py`` would take significant time.  Thus, we encourage package developers to define modules and include sub-imports only from ``init.py`` to speed up loading times.  The optional ``identifiers.py`` allows developers to import configuration information, like the identifier and version, into both ``__init__.py`` and ``init.py``.  Then, ``__init__.py`` may consist of the line ``from identifiers import *``.  ``widgets.py`` is a suggested separation between GUI configuration widgets and the module definitions because |vistrails| can run in batch mode or as a python package without Qt/PyQt, and if the widgets are imported into or defined from ``init.py``, |vistrails| will unnecessarily try to import the Qt/PyQt libraries.  Instead, modules can define their configuration widgets as *path strings* (see :ref:`sec-configuration-widgets` ), and the widgets will only be imported when the GUI is running.
+
+Most third-party packages should be installed into a user's :math:`\sim`\ ``/.vistrails/userpackages`` directory.  The package's ``codepath`` is the name of the directory in that userpackages directory.  A few third-party packages install into the ``packages`` directory of the |vistrails| codebase due to specific dependencies or to install for all users of the application.  If you are interested in such installation features, please contact us.
+
+The identifier, name, version, configuration, and package_dependencies fields/methods should be specified or imported into ``__init__.py``.  An example of ``__init__.py`` from |vistrails|' matplotlib package follows.
 
 .. code-block:: python
    :linenos:
 
-   identifier = 'edu.utah.sci.vistrails.matplotlib'
+   identifier = 'org.vistrails.vistrails.matplotlib'
    name = 'matplotlib'
-   version = '0.9.0'
+   version = '1.0.1'
+   old_identifiers = ['edu.utah.sci.vistrails.matplotlib']
 
    def package_dependencies():
-       import core.packagemanager
-       manager = core.packagemanager.get_package_manager()
-       if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-           return ['edu.utah.sci.vistrails.spreadsheet']
+       import vistrails.core.packagemanager
+       manager = vistrails.core.packagemanager.get_package_manager()
+       if manager.has_package('org.vistrals.vistrails.spreadsheet'):
+           return ['org.vistrails.vistrails.spreadsheet']
        else:
            return []
 
    def package_requirements():
-       import core.requirements
-       if not core.requirements.python_module_exists('matplotlib'):
-           raise core.requirements.MissingRequirement('matplotlib')
-       if not core.requirements.python_module_exists('pylab'):
-           raise core.requirements.MissingRequirement('pylab')
+       import vistrails.core.requirements
+       if not vistrails.core.requirements.python_module_exists('matplotlib'):
+           raise vistrails.core.requirements.MissingRequirement('matplotlib')
+       if not vistrails.core.requirements.python_module_exists('pylab'):
+           raise vistrails.core.requirements.MissingRequirement('pylab')
 
-Imports (excluding core.configuration), other class definitions, and the initialize method should be in the ``init.py`` file.  Finally, to reload a package, select the ``reload`` button from the ``Preferences`` dialog's ``Module Packages`` tab.
-
-..
-   .. topic:: Note
-
-      To make the previous example :ref:`sec-packages-simple-example`    reloadable, rather than having just one file ``pythoncalc.py``, one    would have a ``pythoncalc`` directory with the "version", "name", and    "identifier" lines in ``__init__.py`` and all other lines in    ``init.py``.
-
-.. _sec-wrapping_cmdline_tools:
-
-Wrapping Command-line tools
-===========================
-
-.. index::
-   pair: packages; wrapping command-line tools
-
-Many existing programs are readily available through a command-line
-interface. Also, many existing workflows are first implemented
-through scripts, which work primarily with command-line
-tools. This section describes how to wrap command-line applications so
-they can be used with VisTrails. We will use as a running example the
-``afront`` package, which wraps ``afront``, a command-line program
-for generating 3D triangle meshes.  [#]_ We will wrap the basic
-functionality in three different modules: ``Afront``, ``AfrontIso``, and ``MeshQualityHistogram``.
-
-Each of these modules will be implemented by a Python
-class, and they will all invoke the ``afront`` binary.
-``Afront`` is the base execution module, and
-``AfrontIso`` requires extra parameters on top of the original
-ones. Because of this, we will implement ``AfrontIso`` as a
-subclass of ``Afront``. ``MeshQualityHistogram``,
-however, requires entirely different parameters, and so will not be
-a subclass of ``Afront``. A first attempt at writing this package might look something like this:
-
-**__init__.py**
-
-.. code-block:: python
-   :linenos:
-
-   name = "Afront"
-   version = "0.1.0"
-   identifier = "edu.utah.sci.vistrails.afront"
-
-**init.py**
-
-.. code-block:: python
-   :linenos:
-
-   from core.modules.vistrails_module import Module
-   ... # other import statements
-
-   class Afront(Module):
-       def compute(self):
-           ... # invokes afront
-
-   class AfrontIso(Afront):
-       def compute(self):
-           ... # invokes afront with additional parameters
-
-   class MeshQualityHistogram(Module):
-       def compute(self):
-           ... # invokes afront with completely different parameters
-
-   _modules = [Afront, AfrontIso, MeshQualityHistogram, ...]
-
-Class Mixins
-^^^^^^^^^^^^
-
-While this approach is a good start, it does require significant duplication of effort. Each module must contain code to invoke the ``afront`` binary and pass it some parameters. Since this functionality is required by all three modules, we would like to put this code in a separate class called, say, ``AfrontRun``, and let each of our modules inherit from it. ``AfrontRun`` itself is not a module, and thus does not extend the ``Module`` class. So our three modules will inherit from *both* ``AfrontRun`` *and* ``Module``. Helper classes such as this are often referred to as *mixin classes*. [#]_
-
-.. %It should be clear that all three modules share some functionality (invoking ``afront``), but not all. We would like to avoid duplicate code, but there is not a single class where we can implement the base code. The solution is to create a *mixin class*, where we implement the necessary functionality, and then inherit from both classes. In the following snippets, we will highlight the changes in the code.
-
-.. raw:: latex
-
-   \definecolor{CodeEmph}{rgb}{0.8,0.1,0.1}
-   \newcommand{\important}[1]{\textsl{{\color{CodeEmph}#1}}}
-   \important{hi} hello
-
-.. code-block:: python
-   :linenos:
-
-   from core.modules.vistrails_module import Module, ModuleError
-   from core.system import list2cmdline
-   import os
-   
-   class AfrontRun(object):
-       _debug = False
-       def run(self, args):
-           cmd = ['afront', '-nogui'] + args
-           cmdline = list2cmdline(cmd)
-           if self._debug:
-               print cmdline
-           result = os.system(cmdline)
-           if result != 0:
-               raise ModuleError(self, "Execution failed")
-
-   class Afront(Module, AfrontRun):
-       ...
-
-   class MeshQualityHistogram(Module, AfrontRun):
-       ...
-
-.. .. parsed-literal::
-
-   from core.modules.vistrails_module import Module, ModuleError
-   :red:`from core.system import list2cmdline`
-   :red:`import os`
-   
-   :red:`class AfrontRun(object):`
-       :red:`_debug = False`
-       :red:`def run(self, args):`
-           :red:`cmd = ['afront', '-nogui'] + args`
-           :red:`cmdline = list2cmdline(cmd)`
-           :red:`if self._debug:`
-               :red:`print cmdline`
-           :red:`result = os.system(cmdline)`
-           :red:`if result != 0:`
-               :red:`raise ModuleError(self, "Execution failed")`
-
-   class Afront(Module, :red:`AfrontRun`):
-       ...
-
-   class MeshQualityHistogram(Module, :red:`AfrontRun`):
-       ...
-
-Now every module in the ``afront`` package has access to
-``run()``.  The other new feature in this snippet is
-``list2cmdline``, which turns a list of strings into a command
-line. It does this in a careful way (protecting arguments with spaces,
-for example). Notice that we use a call to a shell
-(``os.system()``) to invoke ``afront``. This is
-frequently the easiest way to get third-party functionality into |vistrails|.
+The ``old_identifiers`` field is used to identify packages whose identifiers have changed.  This allows |vistrails| to migrate old vistrails to the new packages.  Other imports (excluding vistrails.core.configuration), other class definitions, and the initialize method should be in the ``init.py`` file.
 
 .. _sec-pkg_config:
 
-Package Configuration
-^^^^^^^^^^^^^^^^^^^^^
+Configuration
+^^^^^^^^^^^^^
 
 .. index::
    pair: packages; configuration
@@ -430,87 +324,9 @@ To edit the value for a particular field, double-click on it, and change the
 value. The values set in this dialog are persistent across VisTrails
 sessions, being saved on a per-user basis.
 
-Temporary File Management
-^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index::
-   pair: packages; temporary files
-   pair: packages; ``filePool``
-
-Command-line programs typically generate files as outputs. On
-complicated pipelines, many files get created and passed to other
-modules. To facilitate the use of files as communication
-objects, VisTrails provides basic infrastructure for temporary file
-management. This way, package developers do not have to worry about
-file ownership and lifetimes.
-
-To use this infrastructure, it must be possible to tell the program
-being called which filename to use as output. VisTrails can accommodate
-some filename requirements (in particular, specific
-filename extensions might be important in Windows environments, and
-these can be set), but it must be possible to direct the output to a
-certain filename.
-
-We will use ``Afront's compute()`` method to
-illustrate the feature.
-
-.. code-block:: python
-   :linenos:
-
-   ...
-   class Afront(Module, AfrontRun):
-           
-       def compute(self):
-           o = self.interpreter.filePool.create_file(suffix='.m')
-           args = []
-           if not self.hasInputFromPort("file"):
-               raise ModuleError(self, "Needs input file")
-           args.append(self.getInputFromPort("file").name)
-           if self.hasInputFromPort("rho"):
-               args.append("-rho")
-               args.append(str(self.getInputFromPort("rho")))
-           if self.hasInputFromPort("eta"):
-               args.append("-reduction")
-               args.append(str(self.getInputFromPort("eta")))
-           args.append("-outname")
-           args.append(o.name)
-           args.append("-tri")
-           self.run(args)
-           self.setResult("output", o)
-   ...
-
-Line 5 shows how to create a temporary file
-during the execution of a pipeline. There are a few new things
-happening, so let us look at them one at a time. Every module holds a
-reference to the current *interpreter*, the object responsible
-for orchestrating the execution of a pipeline. This object has a
-``filePool``, which is what we will use to create a pipeline,
-through the ``create_file`` method. This method takes
-optionally a named parameter ``suffix``, which forces the
-temporary file that will be created to have the right extension.
-
-The file pool returns an instance of ``basic_modules.File``,
-a module that is provided by the basic VisTrails packages. There are
-two important things you should know about ``File``. First, it
-has a ``name`` attribute that stores the name of the file it
-represents. In this case, it is the name of the
-recently-created temporary file. This allows you to safely use this
-file when calling a shell, as seen on Line 17.
-The other important feature is that it can be passed directly to an
-output port, so that this file can be used by subsequent modules. This
-is shown on Line 20.
-
-The above code also introduces the boolean function ``hasInputFromPort`` (see Lines 7, 10, and 13). This is a simple error-checking function that verifies that the port has incoming data before the program attempts to read from it. It is considered good practice to call this function before invoking ``getInputFromPort`` for any input port.
-
-**Accommodating badly-designed programs** Even though it is
-considered bad design for a command-line program not to allow the specification of an output
-filename, there do exist programs that lack this functionality. In this case, a possible
-workaround is to execute the command-line tool, and move the generated
-file to the name given by VisTrails.
-
-Interfacing with the |vistrails| Menu
-=====================================
-
+Menu Items
+^^^^^^^^^^
 As we saw in Section :ref:`sec-pkg_config`, using the ``ConfigurationObject`` class is one way to "hook" your custom package into the |vistrails| GUI.  However, this is not the only way to integrate your package with the user interface. |vistrails| also supports a mechanism whereby your package can add new options underneath the ``Packages`` menu (Figure :ref:`Packages can integrate their own commands... <fig-packages-package_menu>`).
 
 .. _fig-packages-package_menu:
@@ -560,8 +376,8 @@ The ``Packages`` menu is organized hierarchically, as illustrated in Figure :ref
 
 .. _sec-interpackage_dependencies:
 
-Interpackage Dependencies
-=========================
+Dependencies
+^^^^^^^^^^^^
 
 .. index::
    pair: packages; dependencies
@@ -600,13 +416,13 @@ The simple approach taken by the above code works well for the majority of cases
 
 The above code segment also demonstrates the |vistrails| API function ``has_package`` which simply verifies that a given package exists in the system.
 
-Package Requirements
-====================
+Requirements
+^^^^^^^^^^^^
 
 In Section :ref:`sec-interpackage_dependencies`\ , we saw how packages can depend on other packages. However, some packages may also depend on the presence of external libraries (in the form of Python modules) or executable files in order to run correctly.
 
-Required Python Modules
-^^^^^^^^^^^^^^^^^^^^^^^
+Python Modules
+--------------
 
 To check for the presence of a required Python module, you should add a function named ``package_requirements`` to your package. This function need not return any value; however it may raise exceptions or output error messages as necessary.
 Here is an example of the syntax of the ``package_requirements`` function, taken from the |vistrails| VTK package:
@@ -627,8 +443,8 @@ Here is an example of the syntax of the ``package_requirements`` function, taken
 A key element of ``package_requirements`` is the use of the function ``python_module_exists``  (see Lines 3 and 5), which checks whether a given module has been installed in your local Python system.
 
 
-Automatically Installing Python Modules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Automatically Installation
+--------------------------
 
 A more advanced method is to attempt to install a python module
 automatically using a system package manager. This method currently
@@ -654,8 +470,8 @@ package names changed:
 Note that, if you use this method, you should not specify it in the
 ``package_requirements``, because that would block the install attempt.
 
-Required Executables
-^^^^^^^^^^^^^^^^^^^^
+Executables
+-----------
 
 As explained in Section :ref:`sec-wrapping_cmdline_tools`, a common motivation for writing new |vistrails| modules is to wrap existing command-line tools. To this end, the |vistrails| API provides a function called ``executable_file_exists`` which checks for the presence of specific executables on the path.
 
@@ -675,24 +491,36 @@ Note that this function is not strictly required in order to wrap third party ex
 
 For additional information or examples of any of the functions described above, please refer to the |vistrails| source code or contact the |vistrails| development team.
 
-Interaction with Caching
-========================
+Module Specification
+====================
+
+.. index:: 
+   pair: modules; customization
+
+In this section, we will explore different options for specifying modules and associated attributes, including those which affect their appearance and organization in the GUI.  Details about all of the options available for modules can be found in the :ref:`chap-api-documentation`. VisTrails provides the :py:class:`.ModuleSettings` class to offer a number of configuration options for modules.  A module should define the ``_settings`` attribute in the class to use these settings.
+
+Caching
+^^^^^^^
 
 .. index::
    pair: modules; caching
 
-VisTrails provides a caching mechanism, in which portions of pipelines that are common across different executions are automatically shared. However, some modules should not be shared. Caching control is therefore up to the package developer. By default, caching is enabled. So a developer that doesn't want caching to apply must make small changes to the module.  For example, look at the StandardOutput module:
+VisTrails provides a caching mechanism, in which portions of pipelines that are common across different executions are automatically shared. However, some modules should not be shared. Caching control is therefore up to the package developer. By default, caching is enabled. So a developer that doesn't want caching to apply must make small changes to the module.  For example, look at the ``StandardOutput`` module:
 
 .. code-block:: python
 
-   from core.modules.vistrails_module import Module, newModule, \
-       NotCacheable, ModuleError
-   (...)
+   from vistrails.core.modules.vistrails_module import Module, newModule, NotCacheable, ModuleError
+   from vistrails.core.modules.config import IPort
+
+   ...
+
    class StandardOutput(NotCacheable, Module):
        """StandardOutput is a VisTrails Module that simply prints the
        value connected on its port to standard output. It is intended
        mostly as a debugging device."""
     
+       _input_ports = [IPort(name="value", signature="basic:Module")]
+
        def compute(self):
            v = self.getInputFromPort("value")
            print v
@@ -711,30 +539,11 @@ VisTrails also allows a more sophisticated decision on whether or not to use cac
 
 Notice that the module explicitly uses inputs to decide whether it should be cached. This allows reasonably fine-grained control over the process.
 
-Customizing Modules and Ports
-=============================
-
-.. index:: 
-   pair: modules; customization
-   pair: ports; customization
-
-In this section, we will explore different options for customizing attributes of modules and ports, including those which affect their appearance and organization in the GUI.  Details about all of the options available for modules and ports can be found in the :ref:`chap-api-documentation`. 
-
-.. topic:: Note
-
-   Older versions of VisTrails used explicit calls to the ModuleRegistry in an ``initialize()`` method.  These calls like ``ModuleRegistry.add_module()``, ``ModuleRegistry.add_input_port()``, and ``ModuleRegistry.add_output_port()`` are still supported though their use is discouraged as the new syntax places all attributes and configuration options in the module definition, making code more readable and localized.  The arguments available in the registry functions are mirrored in the new configuration objects used for ``_settings``, ``_input_ports``, and ``_output_ports``.
+Namespaces
+^^^^^^^^^^
 
 .. index::
-   pair: packages; modules
    pair: modules; namespaces
-
-Configuring Modules
-^^^^^^^^^^^^^^^^^^^
-
-VisTrails provides the :py:class:`.ModuleSettings` class to offer a number of configuration options for modules.  A module should define the ``_settings`` attribute in the class to use these settings.
-
-Namespaces
-----------
 
 :py:attr:`ModuleSettings.namespace` can be used to define a hierarchy for modules in a package that is used to organize the module palette. Hierarchies can be nested through the use of the '|' character.  For example,
 
@@ -755,7 +564,7 @@ Namespaces
    pair: modules; abstract
 
 Visibility
-----------
+^^^^^^^^^^
 
 :py:attr:`ModuleSettings.abstract` and :py:attr:`ModuleSettings.hide_descriptor` can be used to prevent modules from appearing in the module palette.  ``abstract`` is for use with modules that should never be instantiated in the workflow and will not add the item to the module palette.  On the other hand, ``hide-descriptor`` will add the item to the palette, but hides it.  This will prevent users from adding the module to a pipeline, but allow code to add it programmatically.  To use either of these options, ``abstract`` or ``hide_descriptor``, set it to ``True``:
 
@@ -775,7 +584,7 @@ Visibility
    pair: modules; color
 
 Shape and Color
----------------
+^^^^^^^^^^^^^^^
 
 VisTrails allows users to assign custom colors and shapes to modules by using the :py:attr:`ModuleSettings.moduleColor` and :py:attr:`ModuleSettings.moduleFringe` options. For example,
 
@@ -835,12 +644,15 @@ Alternatively, you may use different fringes for the left and right borders:
    :align: center
    :width: 2in
 
+.. _sec-configuration-widgets:
+
+Configuration Widgets
+^^^^^^^^^^^^^^^^^^^^^
+
 .. index::
    pair: modules; widgets
    pair: modules; configuration
 
-Configuration Widgets
-^^^^^^^^^^^^^^^^^^^^^
 
 There are two types of widgets that are associated with modules.  The first, the *module configuration widget*, is available to all modules regardless of inheritance.  This type of widget allows users to configure modules in ways other than with the ports list in the Module Information panel.  For example, the ``PythonSource`` module uses a special widget that allows users to add ports as well as write code in a editor with line numbers and highlighting features.  Developers wishing to create similar widgets should subclass from ``vistrails.gui.modules.module_configure.StandardModuleConfigurationWidget`` and implement the ``saveTriggered`` and ``resetTriggered`` methods.  Note that both the *module* and *controller* are passed into the constructor and are available as ``self.module`` and ``self.controller``.
 
@@ -909,8 +721,8 @@ For constant widgets, |vistrails| allows users to associate different widgets wi
 
 Note that if a query or parameter exploration widget is not specified, |vistrails| will generically adapt the default widget for those uses so you do not need to create a widget for each use.  
 
-Configuring Ports
-^^^^^^^^^^^^^^^^^
+Port Specification
+==================
 
 .. index::
    pair: packages; ports
@@ -918,7 +730,7 @@ Configuring Ports
    pair: ports; labels
 
 Defaults and Labels
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 In versions 2.0 and greater, package developers can add labels and default values for parameters. To add this functionality, you need to use the default(s) and label(s) keyword arguments. For example,
 
@@ -938,7 +750,7 @@ Note that simple ports use the singular :py:attr:`InputPort.default` and :py:att
    pair: ports; optional
 
 Optional Ports
---------------
+^^^^^^^^^^^^^^
 
 An optional port is one that will not be visible by default in the module shape.  For modules with many ports, developers might less-used ports optional to reduce clutter.  To make a port optional, set the ``optional`` flag to true:
 
@@ -950,20 +762,20 @@ An optional port is one that will not be visible by default in the module shape.
                               optional=True)]
 
 .. index::
-   pair: ports; multiple inputs
+   pair: ports; cardinality
 
 Cardinality
------------
+^^^^^^^^^^^
 
-By default, ports will accept any number of connections or parameters.  However, the :py:attr:`Module.getInputFromPort` method will only access *one* of the inputs, and which one is not well-defined.  To access *all* of the inputs, developers should use the :py:attr:`Module.getInputListFromPort` method.  The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
+By default, ports will accept any number of connections or parameters.  However, the :py:meth:`.Module.getInputFromPort` method will only access *one* of the inputs, and which one is not well-defined.  To access *all* of the inputs, developers should use the :py:meth:`.Module.getInputListFromPort` method.  The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
 
 In addition, VisTrails 2.1 introduced new port configuration arguments :py:attr:`InputPort.min_conns` and :py:attr:`InputPort.max_conns` that allow developers to enforce specific cardinalities on their ports.  For example, a port that required at least two inputs could set ``min_conns=2``, and a port that does not accept more than a single input could set ``max_conns=1``.  Currently, the values for ``min_conns`` and ``max_conns`` default to 0 and -1, respectively, which means that no connections are required and any number of connections are allowed.  These will eventually be enforced by the GUI to help users building workflows.
 
 .. index::
-   pair: ports; port types
+   pair: ports; shape
 
 Shape
------
+^^^^^
 
 As with modules, port shape can also be customized.  There are three basic types besides the default square, "triangle", "circle", and "diamond".  Such types are specified as string values to the ``shape`` setting.  In addition, the triangle may be rotated by appending the degree of rotation (90, 180, or 270 only!) in the string.  Finally, custom shapes are supported in a similar fashion to the module fringe.  The shape should be defined in the [0,1] x [0,1] domain with 0 representing the top/left) and 1 being the bottom/right.
 
@@ -991,8 +803,11 @@ This produces a module with ports that look like the following figure:
    :align: center
    :width: 2in
 
+.. index::
+   pair: ports; signatures
+
 Signatures
-----------
+^^^^^^^^^^
 
 We recommend using strings to define ports, but we still allow the actual classes to be used instead for backward compatibility.  For example,
 
@@ -1033,7 +848,7 @@ For example,
    pair: ports; variant
 
 Variable Output
----------------
+^^^^^^^^^^^^^^^
 
 There may be cases where a port may output values of different types. There are a few ways to tackle this--each has its own benefits and pitfalls. Because |vistrails| modules obey inheritance principles, a port of a given type may produce/accept subclasses of itself.  For example, an output port of type ``Constant`` may output ``String``, ``Float``, or ``Integer`` values since all are subclasses of ``Constant``.  For input ports, ``Module`` (the base class for all modules) is the most general input type and will accept any input. For example, the ``StandardOutput`` module's input port ``value`` is of type ``Module`` and it prints the string representation of the input value to stdout.  However, for output ports, note that having an output of type ``Module`` is less useful because there may be cases where a user wishes to use a general output as an input to a port that accepts a specific type.  For example, consider a ``GetItem`` module that takes a ``List`` module and a ``Integer`` parameter and outputs the element at the specified index.  Its output port must be the most general type (e.g. ``Module``), but that means that a user who knows the list only contains floats cannot pass the output to a calculator that only takes floats as inputs.  To address this issue, |vistrails| provides the ``Variant`` type which allows connections to any input port.  |vistrails| attempts to do run-time type-checking to ensure that the type passed in to the module is as advertised but allows general computations to remain general.  For example, the ``GetItem`` module might be constructed as:
 
@@ -1049,7 +864,7 @@ There may be cases where a port may output values of different types. There are 
    pair: ports; connectivity
 
 Connectivity
-------------
+^^^^^^^^^^^^
 
 In some cases, it may be desirable to know which outputs are used before running a computation.  The ``outputPorts`` dictionary of the module stores connection information. Thus, you should be able to check
 
@@ -1202,6 +1017,210 @@ The expand_ports and build_modules methods are functions to help the constructio
            _modules = build_modules(module_descs[:1])
  
    _modules = []
+
+.. _sec-wrapping_cmdline_tools:
+
+Wrapping Command-line tools
+===========================
+
+.. index::
+   pair: packages; wrapping command-line tools
+
+Many existing programs are readily available through a command-line
+interface. Also, many existing workflows are first implemented
+through scripts, which work primarily with command-line
+tools. This section describes how to wrap command-line applications so
+they can be used with VisTrails. We will use as a running example the
+``afront`` package, which wraps ``afront``, a command-line program
+for generating 3D triangle meshes.  [#]_ We will wrap the basic
+functionality in three different modules: ``Afront``, ``AfrontIso``, and ``MeshQualityHistogram``.
+
+Each of these modules will be implemented by a Python
+class, and they will all invoke the ``afront`` binary.
+``Afront`` is the base execution module, and
+``AfrontIso`` requires extra parameters on top of the original
+ones. Because of this, we will implement ``AfrontIso`` as a
+subclass of ``Afront``. ``MeshQualityHistogram``,
+however, requires entirely different parameters, and so will not be
+a subclass of ``Afront``. A first attempt at writing this package might look something like this:
+
+**__init__.py**
+
+.. code-block:: python
+   :linenos:
+
+   name = "Afront"
+   version = "0.1.0"
+   identifier = "edu.utah.sci.vistrails.afront"
+
+**init.py**
+
+.. code-block:: python
+   :linenos:
+
+   from core.modules.vistrails_module import Module
+   ... # other import statements
+
+   class Afront(Module):
+       def compute(self):
+           ... # invokes afront
+
+   class AfrontIso(Afront):
+       def compute(self):
+           ... # invokes afront with additional parameters
+
+   class MeshQualityHistogram(Module):
+       def compute(self):
+           ... # invokes afront with completely different parameters
+
+   _modules = [Afront, AfrontIso, MeshQualityHistogram, ...]
+
+Class Mixins
+^^^^^^^^^^^^
+
+While this approach is a good start, it does require significant duplication of effort. Each module must contain code to invoke the ``afront`` binary and pass it some parameters. Since this functionality is required by all three modules, we would like to put this code in a separate class called, say, ``AfrontRun``, and let each of our modules inherit from it. ``AfrontRun`` itself is not a module, and thus does not extend the ``Module`` class. So our three modules will inherit from *both* ``AfrontRun`` *and* ``Module``. Helper classes such as this are often referred to as *mixin classes*. [#]_
+
+.. %It should be clear that all three modules share some functionality (invoking ``afront``), but not all. We would like to avoid duplicate code, but there is not a single class where we can implement the base code. The solution is to create a *mixin class*, where we implement the necessary functionality, and then inherit from both classes. In the following snippets, we will highlight the changes in the code.
+
+.. raw:: latex
+
+   \definecolor{CodeEmph}{rgb}{0.8,0.1,0.1}
+   \newcommand{\important}[1]{\textsl{{\color{CodeEmph}#1}}}
+   \important{hi} hello
+
+.. code-block:: python
+   :linenos:
+
+   from core.modules.vistrails_module import Module, ModuleError
+   from core.system import list2cmdline
+   import os
+   
+   class AfrontRun(object):
+       _debug = False
+       def run(self, args):
+           cmd = ['afront', '-nogui'] + args
+           cmdline = list2cmdline(cmd)
+           if self._debug:
+               print cmdline
+           result = os.system(cmdline)
+           if result != 0:
+               raise ModuleError(self, "Execution failed")
+
+   class Afront(Module, AfrontRun):
+       ...
+
+   class MeshQualityHistogram(Module, AfrontRun):
+       ...
+
+.. .. parsed-literal::
+
+   from core.modules.vistrails_module import Module, ModuleError
+   :red:`from core.system import list2cmdline`
+   :red:`import os`
+   
+   :red:`class AfrontRun(object):`
+       :red:`_debug = False`
+       :red:`def run(self, args):`
+           :red:`cmd = ['afront', '-nogui'] + args`
+           :red:`cmdline = list2cmdline(cmd)`
+           :red:`if self._debug:`
+               :red:`print cmdline`
+           :red:`result = os.system(cmdline)`
+           :red:`if result != 0:`
+               :red:`raise ModuleError(self, "Execution failed")`
+
+   class Afront(Module, :red:`AfrontRun`):
+       ...
+
+   class MeshQualityHistogram(Module, :red:`AfrontRun`):
+       ...
+
+Now every module in the ``afront`` package has access to
+``run()``.  The other new feature in this snippet is
+``list2cmdline``, which turns a list of strings into a command
+line. It does this in a careful way (protecting arguments with spaces,
+for example). Notice that we use a call to a shell
+(``os.system()``) to invoke ``afront``. This is
+frequently the easiest way to get third-party functionality into |vistrails|.
+
+Temporary File Management
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index::
+   pair: packages; temporary files
+   pair: packages; ``filePool``
+
+Command-line programs typically generate files as outputs. On
+complicated pipelines, many files get created and passed to other
+modules. To facilitate the use of files as communication
+objects, VisTrails provides basic infrastructure for temporary file
+management. This way, package developers do not have to worry about
+file ownership and lifetimes.
+
+To use this infrastructure, it must be possible to tell the program
+being called which filename to use as output. VisTrails can accommodate
+some filename requirements (in particular, specific
+filename extensions might be important in Windows environments, and
+these can be set), but it must be possible to direct the output to a
+certain filename.
+
+We will use ``Afront's compute()`` method to
+illustrate the feature.
+
+.. code-block:: python
+   :linenos:
+
+   ...
+   class Afront(Module, AfrontRun):
+           
+       def compute(self):
+           o = self.interpreter.filePool.create_file(suffix='.m')
+           args = []
+           if not self.hasInputFromPort("file"):
+               raise ModuleError(self, "Needs input file")
+           args.append(self.getInputFromPort("file").name)
+           if self.hasInputFromPort("rho"):
+               args.append("-rho")
+               args.append(str(self.getInputFromPort("rho")))
+           if self.hasInputFromPort("eta"):
+               args.append("-reduction")
+               args.append(str(self.getInputFromPort("eta")))
+           args.append("-outname")
+           args.append(o.name)
+           args.append("-tri")
+           self.run(args)
+           self.setResult("output", o)
+   ...
+
+Line 5 shows how to create a temporary file
+during the execution of a pipeline. There are a few new things
+happening, so let us look at them one at a time. Every module holds a
+reference to the current *interpreter*, the object responsible
+for orchestrating the execution of a pipeline. This object has a
+``filePool``, which is what we will use to create a pipeline,
+through the ``create_file`` method. This method takes
+optionally a named parameter ``suffix``, which forces the
+temporary file that will be created to have the right extension.
+
+The file pool returns an instance of ``basic_modules.File``,
+a module that is provided by the basic VisTrails packages. There are
+two important things you should know about ``File``. First, it
+has a ``name`` attribute that stores the name of the file it
+represents. In this case, it is the name of the
+recently-created temporary file. This allows you to safely use this
+file when calling a shell, as seen on Line 17.
+The other important feature is that it can be passed directly to an
+output port, so that this file can be used by subsequent modules. This
+is shown on Line 20.
+
+The above code also introduces the boolean function ``hasInputFromPort`` (see Lines 7, 10, and 13). This is a simple error-checking function that verifies that the port has incoming data before the program attempts to read from it. It is considered good practice to call this function before invoking ``getInputFromPort`` for any input port.
+
+**Accommodating badly-designed programs** Even though it is
+considered bad design for a command-line program not to allow the specification of an output
+filename, there do exist programs that lack this functionality. In this case, a possible
+workaround is to execute the command-line tool, and move the generated
+file to the name given by VisTrails.
+
 
 For System Administrators
 =========================
