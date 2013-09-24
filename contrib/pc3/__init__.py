@@ -30,7 +30,7 @@ class Collection(Module):
         self.klass = klass
 
     def compute(self):
-        self.lst = self.forceGetInputListFromPort('elements')
+        self.lst = self.force_get_input_list('elements')
         self.set_output('collection', self.list)
 
     _input_ports = [('elements', Module)]

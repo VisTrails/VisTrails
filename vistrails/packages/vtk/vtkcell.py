@@ -77,8 +77,8 @@ class VTKCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        renderers = self.forceGetInputListFromPort('AddRenderer')
-        renderViews = self.forceGetInputListFromPort('SetRenderView')
+        renderers = self.force_get_input_list('AddRenderer')
+        renderViews = self.force_get_input_list('SetRenderView')
         if len(renderViews)>1:
             raise ModuleError(self, 'There can only be one vtkRenderView '
                               'per cell')
@@ -86,7 +86,7 @@ class VTKCell(SpreadsheetCell):
             raise ModuleError(self, 'Cannot set both vtkRenderView '
                               'and vtkRenderer to a cell')
         renderView = self.force_get_input('SetRenderView')
-        iHandlers = self.forceGetInputListFromPort('InteractionHandler')
+        iHandlers = self.force_get_input_list('InteractionHandler')
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
         self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))

@@ -31,11 +31,11 @@ class PVModule(Module):
 
         # We need to set input before other properties
         if self.inputPorts.has_key('Input'):
-            inp = extract_pv_instances(self.forceGetInputListFromPort('Input'))[0]
+            inp = extract_pv_instances(self.force_get_input_list('Input'))[0]
             setattr(self.pvInstance, "Input", inp)
 
         for (function, connector_list) in self.inputPorts.iteritems():
-            paramList = extract_pv_instances(self.forceGetInputListFromPort(function))
+            paramList = extract_pv_instances(self.force_get_input_list(function))
             if function != 'Input':
                 if len(paramList) > 1:
                     setattr(self.pvInstance, function, paramList)

@@ -291,7 +291,7 @@ class GetRows(Module, ArrayAccess):
     def compute(self):
         l = self.force_get_input("Index List")
         if l == None:
-            l = self.forceGetInputListFromPort("Indexes")
+            l = self.force_get_input_list("Indexes")
 
         if l == None or len(l) == 0:
             raise ModuleError("No indexes provided")

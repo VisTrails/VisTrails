@@ -52,7 +52,7 @@ class ViewerCell(Render):
         """ compute() -> None
         Dispatch the SCIRun scene graph to the Viewer
         """
-        sg = self.forceGetInputListFromPort('Scene Graph')
+        sg = self.force_get_input_list('Scene Graph')
         self.display(QViewerWidget, (sg))
         
 

@@ -136,7 +136,7 @@ class vtkBaseModule(Module):
 
         # Make sure all input ports are called correctly
         for (function, connector_list) in self.inputPorts.iteritems():
-            paramList = self.forceGetInputListFromPort(function)
+            paramList = self.force_get_input_list(function)
             if function[:18]=='SetInputConnection':
                 paramList = zip([int(function[18:])]*len(paramList),
                                  paramList)

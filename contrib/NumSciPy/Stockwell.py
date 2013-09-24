@@ -711,7 +711,7 @@ class FrequencyPhaseLocking(StockwellModule, Module):
         print "trial_ar.shape = ", trial_ar.shape
         self.lof = self.get_input("Low Freq")
         self.hif = self.get_input("High Freq")
-        sensor_list = self.forceGetInputListFromPort("Sensors")
+        sensor_list = self.force_get_input_list("Sensors")
         
         if len(trial_ar.shape) != 3:
             raise ModuleError("Cannot process input with rank not 3")

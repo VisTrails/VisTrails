@@ -605,7 +605,7 @@ class ArrayName(ArrayOperationModule, Module):
         if gen_name:
             in_ar.set_name(gen_name, index=one_index)
 
-        name_list = self.forceGetInputListFromPort("Row Name")
+        name_list = self.force_get_input_list("Row Name")
         if name_list != None:
             for (i,n) in name_list:
                 in_ar.set_row_name(n, i)

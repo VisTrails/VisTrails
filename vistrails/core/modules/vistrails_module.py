@@ -591,7 +591,7 @@ class Module(Serializable):
             return fromInputPortModule
         return [connector() for connector in self.inputPorts[inputPort]]
 
-    def forceGetInputListFromPort(self, inputPort):
+    def force_get_input_list(self, inputPort):
         """Like :py:func:`get_input_list` except that if no values
         exist, it returns an empty list
 

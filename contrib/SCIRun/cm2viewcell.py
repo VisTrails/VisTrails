@@ -51,7 +51,7 @@ class CM2ViewCell(Render):
         """ compute() -> None
         Dispatch the SCIRun scene graph to the Viewer
         """
-        sg = self.forceGetInputListFromPort('ColorMap2')
+        sg = self.force_get_input_list('ColorMap2')
         self.display(QCM2ViewWidget, (sg))
         
 

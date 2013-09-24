@@ -166,7 +166,7 @@ class Histogram(ArrayPlot, Module):
         self.color_dict = None
         use_legend = self.force_get_input("Legend")
         randomcolors = self.force_get_input("Random Colors")
-        colors = self.forceGetInputListFromPort("Colors")
+        colors = self.force_get_input_list("Colors")
         bg_color = self.force_get_input("Background")
         array_x_t = self.force_get_input("Use X Title")
         array_y_t = self.force_get_input("Use Y Title")
@@ -276,7 +276,7 @@ class BarChart(ArrayPlot, Module):
         
     def compute(self):
         data = self.get_input_list("Data")
-        errs = self.forceGetInputListFromPort("Error Bars")
+        errs = self.force_get_input_list("Error Bars")
         if len(errs) == 0:
             errs = None
 
@@ -284,11 +284,11 @@ class BarChart(ArrayPlot, Module):
         self.color_dict = None
         use_legend = self.force_get_input("Legend")
         randomcolors = self.force_get_input("Random Colors")
-        colors = self.forceGetInputListFromPort("Colors")
+        colors = self.force_get_input_list("Colors")
         bg_color = self.force_get_input("Background")
         array_x_t = self.force_get_input("Use X Title")
         array_y_t = self.force_get_input("Use Y Title")
-        ticks = self.forceGetInputListFromPort("Bar Labels")
+        ticks = self.force_get_input_list("Bar Labels")
         self.tick_dict = {}
         for (k,v) in ticks:
             self.tick_dict[k] = v
@@ -408,10 +408,10 @@ class ScatterPlot(ArrayPlot, Module):
         self.label_dict = None
         use_legend = self.force_get_input("Legend")
         randomcolors = self.force_get_input("Random Colors")
-        colors = self.forceGetInputListFromPort("Colors")
+        colors = self.force_get_input_list("Colors")
         self.color_dict = None
         bg_color = self.force_get_input("Background")
-        markers = self.forceGetInputListFromPort("Markers")
+        markers = self.force_get_input_list("Markers")
         self.marker_dict = None
         ps = self.force_get_input("Point Size")
         array_x_t = self.force_get_input("Use X Title")
@@ -522,9 +522,9 @@ class LinePlot(ArrayPlot, Module):
         self.label_dict = None
         use_legend = self.force_get_input("Legend")
         randomcolors = self.force_get_input("Random Colors")
-        colors = self.forceGetInputListFromPort("Colors")
+        colors = self.force_get_input_list("Colors")
         self.color_dict = None
-        markers = self.forceGetInputListFromPort("Markers")
+        markers = self.force_get_input_list("Markers")
         self.marker_dict = None
         x_label = self.force_get_input("X Title")
         y_label = self.force_get_input("Y Title")

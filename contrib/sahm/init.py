@@ -254,7 +254,7 @@ class PredictorList(Constant):
         return type(x) == list
 
     def compute(self):
-        p_list = self.forceGetInputListFromPort("addPredictor")
+        p_list = self.force_get_input_list("addPredictor")
         v = self.force_get_input("value", [])
         
         b = self.validate(v)
@@ -338,7 +338,7 @@ class PredictorListFile(Module):
             csv_writer.writerow(["file", "Resampling", "Aggregation"])
         
         if self.has_input("addPredictor"):
-            p_list = self.forceGetInputListFromPort("addPredictor")
+            p_list = self.force_get_input_list("addPredictor")
             for p in p_list:
                 if p.has_input('resampleMethod'):
                     resMethod = p.get_input('resampleMethod')
@@ -777,7 +777,7 @@ class MDSBuilder(Module):
         
         #allow multiple CSV of inputs to be provided.  
         #if more than one then combine into a single CSV before sending to MDSBuilder
-        inputs_csvs = self.forceGetInputListFromPort('RastersWithPARCInfoCSV')
+        inputs_csvs = self.force_get_input_list('RastersWithPARCInfoCSV')
         if len(inputs_csvs) == 0:
             raise ModuleError(self, "Must supply at least one 'RastersWithPARCInfoCSV'/nThis is the output from the PARC module")
         if len(inputs_csvs) > 1:
@@ -936,13 +936,13 @@ class PARC(Module):
             csvWriter.writerow(["FilePath", "Categorical", "Resampling", "Aggregation"])
         
         if self.has_input("PredictorList"):
-            predictor_lists = self.forceGetInputListFromPort('PredictorList')
+            predictor_lists = self.force_get_input_list('PredictorList')
             for predictor_list in predictor_lists:
                 for predictor in predictor_list:
                     csvWriter.writerow(list(predictor))
         
         if self.has_input("predictor"):
-            predictor_list = self.forceGetInputListFromPort('predictor')
+            predictor_list = self.force_get_input_list('predictor')
             for predictor in predictor_list:
                 csvWriter.writerow(list(predictor))
         f.close()
@@ -1470,7 +1470,7 @@ class MAXENT(Module):
                     except KeyError:
                         pass
         if self.has_input('projectionlayers'):
-            value = self.forceGetInputListFromPort('projectionlayers')
+            value = self.force_get_input_list('projectionlayers')
             projlayers = ','.join([path.name for path in value])
             argWriter.writerow(['projectionlayers', projlayers])
             

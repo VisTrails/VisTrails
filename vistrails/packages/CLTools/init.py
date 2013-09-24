@@ -122,7 +122,7 @@ def add_tool(path):
                         args.append('%s%s' % (options.get('prefix', ''), name))
             elif "input" == type:
                 # handle multiple inputs
-                values = self.forceGetInputListFromPort(name)
+                values = self.force_get_input_list(name)
                 if values and 'list' == klass:
                     values = values[0]
                     klass = options['type'].lower() \
@@ -275,7 +275,7 @@ def add_tool(path):
                 raise ModuleError('Error parsing module env: %s' % e)
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
-            for e in self.forceGetInputListFromPort('env'):
+            for e in self.force_get_input_list('env'):
                 try:
                     for var in e.split(';'):
                         if not var:

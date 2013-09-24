@@ -91,8 +91,8 @@ class QGISCell(SpreadsheetCell):
         SpreadsheetCell.__init__(self)
     
     def compute(self):
-        rasterLayers = self.forceGetInputListFromPort('rasterLayers')
-        vectorLayers = self.forceGetInputListFromPort('vectorLayers')
+        rasterLayers = self.force_get_input_list('rasterLayers')
+        vectorLayers = self.force_get_input_list('vectorLayers')
         self.displayAndWait(QGISCellWidget, (rasterLayers, vectorLayers))
 
 class QGISCellWidget(QCellWidget):
