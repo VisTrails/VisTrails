@@ -37,7 +37,7 @@ This chapter is written for developers who wish to extend |vistrails| with custo
 
 However, if you do not yet know Python but are familiar with another object-oriented language such as Java or C#, you should be able to get the gist of these examples from looking at the code and by reading our line-by-line commentaries.
 
-.. _sec-packages-simple_example:
+.. _sec-packages-example-module:
 
 An Example Module
 =================
@@ -66,6 +66,8 @@ Here is the definition of a very simple module:
            self.setResult("result", arg1 / arg2)
 
 New VisTrails modules must subclass from :py:class:`.Module`, the base class that defines basic functionality. The only required override is the ``compute`` method, which performs the actual module computation. Input and output is specified through ports, which must be explicitly registered with |vistrails| using the ``_input_ports`` and ``_output_ports`` lists.
+
+.. _sec-packages-simple-example:
 
 An Example Package
 ==================
@@ -131,13 +133,13 @@ use their institution's DNS, use your own. The rationale for this is
 that the third party itself might decide to create their own |vistrails|
 package, and you do not want to introduce conflicts.
 
-The ``init.py`` file contains the actual definitions of the modules. Every |vistrails| module corresponds to a Python class that ultimately derives from the ``Module`` class, which is defined in ``vistrails.core.modules.vistrails_module``. Each module must define input ports and output ports as well as implement a ``compute`` method that takes no extra parameters.
+The ``init.py`` file contains the actual definitions of the modules. Every |vistrails| module corresponds to a Python class that ultimately derives from the :py:class:`.Module` class, which is defined in ``vistrails.core.modules.vistrails_module``. Each module must define input ports and output ports as well as implement a ``compute`` method that takes no extra parameters.
 
 .. index:: ports
    pair: modules; ``_input_ports``
    pair: modules; ``_output_ports``
 
-We need to tell |vistrails| about the input and output ports we want to expose in a module.  Input ports are set in the ``_input_ports`` list and output ports in the ``_output_ports`` list. Each object in these lists is defined from a type from ``vistrials.core.modules.config``.  The most basic port types are ``InputPort`` (or ``IPort``) and ``OutputPort`` (or ``OPort``).  Each requires two arguments, the *name* of the port and the *signature* of the port.  A name may be any string, but must be unique across all inputs or outputs.  The same name may be used both for an input and an output. The signature defines the type of the port; |vistrails| allows any module to also be a type. A signature is a string composed of the module's package identifier followed by a colon and the module's name.  Many basic module types including ``String``, ``Float``, and ``Integer`` are defined by |vistrails| in the Basic Modules package.  Thus, the ``Float`` module's signature is ``org.vistrails.vistrails.basic:Float``.  Any core package that is distributed with |vistrails| has an identifier that begins ``org.vistrails.vistrails`` and thus you may omit that prefix for brevity; ``basic:Float`` defines the same signature.  There are a number of other options for ports, but we will cover these later.
+We need to tell |vistrails| about the input and output ports we want to expose in a module.  Input ports are set in the ``_input_ports`` list and output ports in the ``_output_ports`` list. Each object in these lists is defined from a type from ``vistrials.core.modules.config``.  The most basic port types are :py:class:`.InputPort` (or ``IPort``) and :py:class:`.OutputPort` (or ``OPort``).  Each requires two arguments, the *name* of the port and the *signature* of the port.  A name may be any string, but must be unique across all inputs or outputs.  The same name may be used both for an input and an output. The signature defines the type of the port; |vistrails| allows any module to also be a type. A signature is a string composed of the module's package identifier followed by a colon and the module's name.  Many basic module types including ``String``, ``Float``, and ``Integer`` are defined by |vistrails| in the Basic Modules package.  Thus, the ``Float`` module's signature is ``org.vistrails.vistrails.basic:Float``.  Any core package that is distributed with |vistrails| has an identifier that begins ``org.vistrails.vistrails`` and thus you may omit that prefix for brevity; ``basic:Float`` defines the same signature.  There are a number of other options for ports, but we will cover these later.
 
 .. index::
    pair: modules; ``compute``
@@ -165,7 +167,7 @@ The final step is to specify the list of modules your package defines.  This is 
 Creating Reloadable Packages
 ============================
 
-When creating or making changes to packages, it is often desirable to reload the package without having to restart |vistrails|.  To create a package that is reloadable, users should create a new directory for the package in ``userpackages`` directory.  This new directory should have the same name as the package and should contain an ``__init__.py`` file and an ``init.py`` file.  The identified, name, version, configuration, and package_dependencies fields/methods should be in ``__init__.py``.  An example of ``__init__.py`` from Vistrails' pylab package follows.
+When creating or making changes to packages, it is often desirable to reload the package without having to restart |vistrails|.  To create a package that is reloadable, users should create a new directory for the package in ``userpackages`` directory.  This new directory should have the same name as the package and should contain an ``__init__.py`` file and an ``init.py`` file.  The identifier, name, version, configuration, and package_dependencies fields/methods should be in ``__init__.py``.  An example of ``__init__.py`` from Vistrails' pylab package follows.
 
 .. code-block:: python
    :linenos:
@@ -194,7 +196,7 @@ Imports (excluding core.configuration), other class definitions, and the initial
 ..
    .. topic:: Note
 
-      To make the previous example :ref:`sec-packages-simple_example`    reloadable, rather than having just one file ``pythoncalc.py``, one    would have a ``pythoncalc`` directory with the "version", "name", and    "identifier" lines in ``__init__.py`` and all other lines in    ``init.py``.
+      To make the previous example :ref:`sec-packages-simple-example`    reloadable, rather than having just one file ``pythoncalc.py``, one    would have a ``pythoncalc`` directory with the "version", "name", and    "identifier" lines in ``__init__.py`` and all other lines in    ``init.py``.
 
 .. _sec-wrapping_cmdline_tools:
 
@@ -222,15 +224,22 @@ subclass of ``Afront``. ``MeshQualityHistogram``,
 however, requires entirely different parameters, and so will not be
 a subclass of ``Afront``. A first attempt at writing this package might look something like this:
 
+**__init__.py**
+
+.. code-block:: python
+   :linenos:
+
+   name = "Afront"
+   version = "0.1.0"
+   identifier = "edu.utah.sci.vistrails.afront"
+
+**init.py**
+
 .. code-block:: python
    :linenos:
 
    from core.modules.vistrails_module import Module
    ... # other import statements
-
-   name = "Afront"
-   version = "0.1.0"
-   identifier = "edu.utah.sci.vistrails.afront"
 
    class Afront(Module):
        def compute(self):
@@ -244,8 +253,7 @@ a subclass of ``Afront``. A first attempt at writing this package might look som
        def compute(self):
            ... # invokes afront with completely different parameters
 
-   def initialize():
-       ...
+   _modules = [Afront, AfrontIso, MeshQualityHistogram, ...]
 
 Class Mixins
 ^^^^^^^^^^^^
@@ -707,91 +715,84 @@ Customizing Modules and Ports
 =============================
 
 .. index:: 
-   pair: Module registry; ``-output_ports``
-   pair: Module registry; ``_input_ports``
-   pair: Module registry; ``_modules``
+   pair: modules; customization
+   pair: ports; customization
 
-Here we will explore the options for registry initialization of modules and ports which was introduced in Section :ref:`sec-packages-simple_example`.  There is a new syntax for specifying modules in packages:
-
-.. code-block:: python
-   :linenos:
-
-   _modules = [MyModule1, (MyModule2, {'option_name' : 'value'})]
-
-Observe that ``_modules`` is assigned a list of modules to be registered, and module options can be provided as keyword arguments by specifying a tuple (class, kwargs).  Similarly, ports are defined by providing a list of tuples of the form (portName, portSignature, optional=False, sort_key=-1).  For example:
-
-.. code-block:: python
-   :linenos:
-
-   class MyModule(Module):
-       def compute(self):
-          pass
-
-       _input_ports = [('firstInput', String), ('secondInput', Integer, True)]
-       _output_ports = [('firstOutput', String), ('secondOutput', String)]
-
-.. index::
-   pair: port; shortcut
-
-Notice that "String" and "Integer" were used for the portSignature instead of ``edu.utah.sci.vistrails.basic:String`` and ``edu.utah.sci.vistrails.basic:Integer``.  That is because the current package, ``edu.utah.sci.vistrails.basic`` is used by default.
+In this section, we will explore different options for customizing attributes of modules and ports, including those which affect their appearance and organization in the GUI.  Details about all of the options available for modules and ports can be found in the :ref:`chap-api-documentation`. 
 
 .. topic:: Note
 
-   The old syntax (reg.add_module(...), reg.add_input_port(...), and reg.add_output_port(...)) is still supported.
+   Older versions of VisTrails used explicit calls to the ModuleRegistry in an ``initialize()`` method.  These calls like ``ModuleRegistry.add_module()``, ``ModuleRegistry.add_input_port()``, and ``ModuleRegistry.add_output_port()`` are still supported though their use is discouraged as the new syntax places all attributes and configuration options in the module definition, making code more readable and localized.  The arguments available in the registry functions are mirrored in the new configuration objects used for ``_settings``, ``_input_ports``, and ``_output_ports``.
+
+.. index::
+   pair: packages; modules
+   pair: modules; namespaces
 
 Configuring Modules
 ^^^^^^^^^^^^^^^^^^^
 
+VisTrails provides the :py:class:`.ModuleSettings` class to offer a number of configuration options for modules.  A module should define the ``_settings`` attribute in the class to use these settings.
+
+Namespaces
+----------
+
+:py:attr:`ModuleSettings.namespace` can be used to define a hierarchy for modules in a package that is used to organize the module palette. Hierarchies can be nested through the use of the '|' character.  For example,
+
+.. code-block:: python
+   :linenos:
+
+   class MyModule1(Module):
+       _settings = ModuleSettings(namespace="MyNamespace")
+       ...
+
+   class MyModule2(Module):
+       _settings = ModuleSettings(namespace="ParentNamespace|\
+                                  ChildNamespace")
+       ...   
+
 .. index::
-   pair: packages; modules
    pair: modules; visibility
-   pair: modules; namespaces
+   pair: modules; abstract
 
-**Hierarchy and Visibility** There are a few options that assist in the organization and display of modules: ``namespace``,  ``abstract``, and ``hide_descriptor``.  The ``namespace`` option can be used to define a hierarchy in the module palette, which hierarchies can be nested through the use of the '|' character.  For example:
+Visibility
+----------
 
-.. code-block:: python
-   :linenos:
-
-   _modules = [MyModule1, (MyModule2, {'namespace': 'MyNamespace'})]
-    or
-   _modules = [MyModule1, (MyModule2, {'namespace': 'ParentNamespace|\
-               ChildNamespace'})]
-
-The other options, ``abstract`` and ``hide_descriptor`` can be used to prevent modules from appearing in the module palette.  ``Abstract`` is for use with modules that should never be instantiated in the workflow and will not add the item to the module palette.  On the other hand, ``hide-descriptor`` will add the item to the palette, but hides it.  This will prevent users from adding the module to a pipeline, but allow code to add it programmatically.  To use either of these options, ``abstract`` or ``hide_descriptor``, set it to ``True``:
+:py:attr:`ModuleSettings.abstract` and :py:attr:`ModuleSettings.hide_descriptor` can be used to prevent modules from appearing in the module palette.  ``abstract`` is for use with modules that should never be instantiated in the workflow and will not add the item to the module palette.  On the other hand, ``hide-descriptor`` will add the item to the palette, but hides it.  This will prevent users from adding the module to a pipeline, but allow code to add it programmatically.  To use either of these options, ``abstract`` or ``hide_descriptor``, set it to ``True``:
 
 .. code-block:: python
    :linenos:
 
-   _modules = [AnotherModule, (InvisibleModule, {'abstract': True})]
-    or
-   _modules = [AnotherModule, (InvisibleModule, {'hide-descriptor': True})]
+   class AbstractModule(Module):
+       _settings = ModuleSettings(abstract=True)
+       ...
+
+   class InvisibleModule(Module):
+       _settings = ModuleSettings(hide_descriptor=True)
+       ...
 
 .. index::
    pair: modules; shape
    pair: modules; color
 
-**Defining Module Shapes and Colors**  VisTrails allows users to define custom colors and shapes to modules. This must be done at module registration time, by using the ``moduleColor`` and ``moduleFringe`` options. For example:
+Shape and Color
+---------------
+
+VisTrails allows users to assign custom colors and shapes to modules by using the :py:attr:`ModuleSettings.moduleColor` and :py:attr:`ModuleSettings.moduleFringe` options. For example,
 
 .. code-block:: python
 
-   _modules = [(Afront, {'moduleColor' : (1.0, 0.0, 0.0), 
-                         'moduleFringe' : [(0.0, 0.0),
-                                           (0.2, 0.0),
-                                           (0.2, 0.4),
-                                           (0.0, 0.4),
-                                           (0.0, 1.0)]})]
+   class FancyModule(Module):
+       _settings = ModuleSettings(moduleColor=(1.0, 0.0, 0.0),
+                                  moduleFringe=[(0.0, 0.0),
+                                                (0.2, 0.0),
+                                                (0.2, 0.4),
+                                                (0.0, 0.4),
+                                                (0.0, 1.0)])
   
-.. reg.addModule(Afront,
-                 moduleColor=(1.0,0.0,0.0),
-                 moduleFringe=[(0.0, 0.0),
-                               (0.2, 0.0),
-                               (0.2, 0.4),
-                               (0.0, 0.4),
-                               (0.0, 1.0)])
 
-gives:
+produces
 
-.. figure:: figures/packages/CustomColorShape1.png
+.. figure:: figures/packages/fancy_module1.png
    :align: center
    :width: 2in
 
@@ -799,59 +800,114 @@ and
 
 .. code-block:: python
 
-   _modules = [(Afront, {'moduleColor': (0.4,0.6,0.8),
-                         'moduleFringe' : [(0.0, 0.0),
-                                           (0.2, 0.0),
-                                           (0.0, 0.2),
-                                           (0.2, 0.4),
-                                           (0.0, 0.6),
-                                           (0.2, 0.8),
-                                           (0.0, 1.0)]})]
+   class FancyModule2(Module):
+       _settings = ModuleSettings(moduleColor=(0.4,0.6,0.8),
+                                  moduleFringe=[(0.0, 0.0),
+                                                (0.2, 0.0),
+                                                (0.0, 0.2),
+                                                (0.2, 0.4),
+                                                (0.0, 0.6),
+                                                (0.2, 0.8),
+                                                (0.0, 1.0)])
 
-..   reg = core.modules.module_registry
-..   reg.addModule(Afront,
-                 moduleColor=(0.4,0.6,0.8),
-                 moduleFringe=[(0.0, 0.0),
-                               (0.2, 0.0),
-                               (0.0, 0.2),
-                               (0.2, 0.4),
-                               (0.0, 0.6),
-                               (0.2, 0.8),
-                               (0.0, 1.0)])
+produces
 
-gives:
-
-.. figure:: figures/packages/CustomColorShape2.png
+.. figure:: figures/packages/fancy_module2.png
    :align: center
    :width: 2in
 
 The moduleColor parameter must be a tuple of three floats between 0 and 1 that specify RGB colors for the module background, while moduleFringe is a list of pairs of floats that specify points as they go around a side of the module (the same one is used to go from the top-right corner to bottom-right corner, and from the bottom-left corner to the top-left one. If this is not enough, let the developers know!)
 
-Alternatively, you can use different fringes for the left and right borders:
+Alternatively, you may use different fringes for the left and right borders:
 
 .. code-block:: python
 
-   _modules = [(Afront, {'moduleColor': (1.0,0.8,0.6),
-                         'moduleLeftFringe' : [(0.0, 0.0),
-                                               (-0.2, 0.0),
-                                               (0.0, 1.0)],
-                         'moduleRightFringe' : [(0.0, 0.0),
-                                                (0.2, 1.0),
-                                                (0.0, 1.0)]})]
+   class FancyModule3(Module):
+       _settings = ModuleSettings(moduleColor=(1.0,0.8,0.6),
+                                  moduleLeftFringe=[(0.0, 0.0),
+                                                    (-0.2, 0.0),
+                                                    (0.0, 1.0)],
+                                  moduleRightFringe=[(0.0, 0.0),
+                                                     (0.2, 1.0),
+                                                     (0.0, 1.0)])
 
-
-..   reg.addModule(Afront,
-                 moduleColor=(1.0,0.8,0.6),
-                 moduleLeftFringe=[(0.0, 0.0),
-                                   (-0.2, 0.0),
-                                   (0.0, 1.0)],
-                 moduleRightFringe=[(0.0, 0.0),
-                                    (0.2, 1.0),
-                                    (0.0, 1.0)])
-
-.. figure:: figures/packages/CustomColorShape3.png
+.. figure:: figures/packages/fancy_module3.png
    :align: center
    :width: 2in
+
+.. index::
+   pair: modules; widgets
+   pair: modules; configuration
+
+Configuration Widgets
+^^^^^^^^^^^^^^^^^^^^^
+
+There are two types of widgets that are associated with modules.  The first, the *module configuration widget*, is available to all modules regardless of inheritance.  This type of widget allows users to configure modules in ways other than with the ports list in the Module Information panel.  For example, the ``PythonSource`` module uses a special widget that allows users to add ports as well as write code in a editor with line numbers and highlighting features.  Developers wishing to create similar widgets should subclass from ``vistrails.gui.modules.module_configure.StandardModuleConfigurationWidget`` and implement the ``saveTriggered`` and ``resetTriggered`` methods.  Note that both the *module* and *controller* are passed into the constructor and are available as ``self.module`` and ``self.controller``.
+
+The second type of widget is the *constant configuration widget* which can only be defined for constant modules, that is those which subclass from ``vistrails.core.modules.basic_modules.Constant``.  When such a module is used as the type of an input port, the user is allowed to edit the value in the ports list of the Module Information panel.  The constant configuration widget is used to display and allow the user to edit the value of a parameter.  The default widget is a simple line edit widget, but certain basic types in VisTrails like ``Color`` and ``File`` have specialized widgets that make specification easier. 
+
+Creation
+--------
+
+Developers may build new constant configuration widgets using the ``vistrails.gui.modules.constant_configuration.ConstantWidgetBase`` or ``vistrails.gui.modules.constant_configuration.ConstantEnumWidgetBase`` base classes.  **Note** that these base classes should be the *second* base class listed; the first should be a *QWidget* subclass.  ``ConstantWidgetBase`` is intended for use with "normal"  while ``ConstantEnumWidgetBase`` is intended for use with ports where the possible values are enumerated.  For ``ConstantWidgetBase`` subclasses, developers should implement the ``setContents`` and ``contents`` methods and optionally the ``setDefault`` method.  For ``ConstantEnumWidgetBase`` subclasses, developers should implement the ``setValues`` method and optionally the ``setFree`` and ``setNonEmpty`` methods.
+
+As an example, consider the following widget:
+
+.. code-block:: python
+    :linenos:
+
+    from PyQt4 import QtCore, QtGui
+    from vistrails.gui.modules.constant_configuration import ConstantEnumWidgetBase
+
+    class NumericSliderWidget(QtGui.QSlider, ConstantEnumWidgetBase):
+        def __init__(self, param, parent=None):
+            QtGui.QSlider.__init__(self, parent)
+            self.setOrientation(QtCore.Qt.Horizontal)
+            self.setTracking(False)
+            self.setTickPosition(QtGui.QSlider.TicksBelow)
+            ConstantEnumWidgetBase.__init__(self, param)
+            self.connect(self, QtCore.SIGNAL("valueChanged(int)"),
+                         self.update_parent)
+
+        def setValues(self, values):
+            self.setMinimum(int(values[0]))
+            self.setMaximum(int(values[1]))
+
+        def contents(self):
+            return unicode(self.value())
+
+        def setContents(self, contents, silent=True):
+            if contents:
+                self.setValue(int(contents))
+                if not silent:
+                    self.update_parent()
+
+Registration
+------------
+
+To make |vistrails| aware of these new widgets, developers should specifying them in the :py:class:`ModuleSettings` options.  For example,
+
+.. code-block:: python
+    :linenos:
+    
+    class TestWidgets(Constant):
+        _settings = ModuleSettings(configureWidget="widgets:MyWidget",
+	                           constantWidget="widgets:ConstWgt")
+
+Note that the ``PathString`` is best specified relative to the base path of the package.  **Important:** If ``MyWidget`` is defined in the ``widgets`` module of the ``test_widgets`` package in ``userpackages``, its full path might be ``userpackages.test_widgets.widgets:MyWidget``, but we only include the inner path (``widgets:MyWidget``).  (The full path is used for internal packages, but this should be avoided for third-party packages.)
+
+For constant widgets, |vistrails| allows users to associate different widgets with different *uses*.  A widget used for query may differ from the default display & edit widget, and developers may specify different widgets for these uses.  Current uses include "query" and "paramexp" (parameter exploration). In addition, individual ports may specify different constant widgets using the :py:attr:`InputPort.entry_type` setting.  These specifications are tied to the widget's *type*.  To specify these associations, developers should use the :py:class:`ConstantWidgetConfig` settings. Also, :py:class:`QueryWidgetConfig` and :py:class:`ParamExpWidgetConfig` provide shortcuts for configurations for query and parameter exploration uses, respectively. Multiple widgets can be specified via the :py:attr:`ModuleSettings.constantWidgets` setting.  For example,
+
+.. code-block:: python
+    :linenos:
+
+    class TestWidgets(Constant):
+        _settings = ModuleSettings(constantWidgets=[
+            ConstantWidgetConfig(widget="widgets:MyEnumWidget",
+                                 widget_type="enum"),
+            QueryWidgetConfig(widget="widgets:MyQueryWidget")])
+
+Note that if a query or parameter exploration widget is not specified, |vistrails| will generically adapt the default widget for those uses so you do not need to create a widget for each use.  
 
 Configuring Ports
 ^^^^^^^^^^^^^^^^^
@@ -861,99 +917,152 @@ Configuring Ports
    pair: ports; default values
    pair: ports; labels
 
-**Default Values and Labels** In versions 1.4 and greater, package developers can add labels and default values for parameters. To add this functionality, you need to use the defaults and labels keyword arguments and pass the values as strings. For example,
+Defaults and Labels
+-------------------
+
+In versions 2.0 and greater, package developers can add labels and default values for parameters. To add this functionality, you need to use the default(s) and label(s) keyword arguments. For example,
 
 .. code-block:: python
    :linenos:
 
    class TestDefaults(Module):
-      _input_ports = [('f1', '(edu.utah.sci.vistrails.basic:Float,\
-                               edu.utah.sci.vistrails.basic:String)',
-                       {"defaults": str([1.23, "abc"]), 
-                        "labels": str(["temp", "name"])})]
-   _modules = [TestDefaults]
+      _input_ports = [IPort('word', 'basic:String',
+                            default="Hello",
+                            label="greeting"),
+                      CIPort('center', 'basic:Float, basic:Float',
+                             defaults=[10.0, 10.0], labels=["x", "y"])]
 
-or in the older syntax,
-
-.. code-block:: python
-   :linenos:
-
-   def initialize():
-     reg = core.modules.module_registry.get_module_registry()
-     reg.add_module(TestDefaults)
-     reg.add_input_port(TestDefaults, "f1", [Float, String], 
-                        defaults=str([1.23, "abc"]), 
-                        labels=str(["temp", "name"]))
+Note that simple ports use the singular :py:attr:`InputPort.default` and :py:attr:`InputPort.label` kwargs while compound input ports use *plural* forms, :py:attr:`CompoundInputPort.defaults` and :py:attr:`CompoundInputPort.labels`.
 
 .. index::
    pair: ports; optional
 
-**Making a Port Optional**  To add a port that is optional, set the optional flag to true:
+Optional Ports
+--------------
+
+An optional port is one that will not be visible by default in the module shape.  For modules with many ports, developers might less-used ports optional to reduce clutter.  To make a port optional, set the ``optional`` flag to true:
 
 .. code-block:: python
    :linenos:
-
-   _input_ports = [('MyPort', '(edu.utah.sci.vistrails.basic:String)',
-                       {"optional": True})]
-
-   reg.add_input_port(MyModule, "MyPort", 
-                      "(edu.utah.sci.vistrails.basic:String)", 
-                      optional=True)
-
+   
+   class ModuleWithManyPorts(Module):
+        _input_ports = [IPort('Port14', 'basic:String',
+                              optional=True)]
 
 .. index::
    pair: ports; multiple inputs
 
-**Multiple Inputs** For compatibility reasons, we do need to allow multiple connections to an input port. However, most package developers should never have to use this, and so we do our best to hide it. the default behavior for getting inputs from a port, then, is to always return a single input.
+Cardinality
+-----------
 
-If on your module you need multiple inputs connected to a single port, use the 'forceGetInputListFromPort' method. It will return a list of all the data items coming through the port. The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
+By default, ports will accept any number of connections or parameters.  However, the :py:attr:`Module.getInputFromPort` method will only access *one* of the inputs, and which one is not well-defined.  To access *all* of the inputs, developers should use the :py:attr:`Module.getInputListFromPort` method.  The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
+
+In addition, VisTrails 2.1 introduced new port configuration arguments :py:attr:`InputPort.min_conns` and :py:attr:`InputPort.max_conns` that allow developers to enforce specific cardinalities on their ports.  For example, a port that required at least two inputs could set ``min_conns=2``, and a port that does not accept more than a single input could set ``max_conns=1``.  Currently, the values for ``min_conns`` and ``max_conns`` default to 0 and -1, respectively, which means that no connections are required and any number of connections are allowed.  These will eventually be enforced by the GUI to help users building workflows.
 
 .. index::
    pair: ports; port types
 
-**Port Types** To define ports to be of types that are not imported into the package, pass and identifier string as the portSignature:
+Shape
+-----
+
+As with modules, port shape can also be customized.  There are three basic types besides the default square, "triangle", "circle", and "diamond".  Such types are specified as string values to the ``shape`` setting.  In addition, the triangle may be rotated by appending the degree of rotation (90, 180, or 270 only!) in the string.  Finally, custom shapes are supported in a similar fashion to the module fringe.  The shape should be defined in the [0,1] x [0,1] domain with 0 representing the top/left) and 1 being the bottom/right.
+
+.. code-block:: python
+    :linenos:
+
+    class FancyPorts(Module):
+        _input_ports = [IPort("normal", "basic:Float"),
+                        IPort("triangle", "basic:Float",
+                              shape="triangle"),
+                        IPort("triangle90", "basic:Float",
+                              shape="triangle90"),
+                        IPort("circle", "basic:Float",
+                              shape="circle"),
+                        IPort("diamond", "basic:Float",
+                              shape="diamond"),
+                        IPort("pentagon", "basic:Float",
+                              shape=[(0.0, 0.0), (0.0, 0.66), 
+			             (0.5, 1.0), (1.0, 0.66), 
+				     (1.0, 0.0)])]
+
+This produces a module with ports that look like the following figure:
+
+.. figure:: figures/packages/fancy_ports.png
+   :align: center
+   :width: 2in
+
+Signatures
+----------
+
+We recommend using strings to define ports, but we still allow the actual classes to be used instead for backward compatibility.  For example,
 
 .. code-block:: python
    :linenos:
 
-   <module_string> := <package_identifier>:[<namespace>|]<module_name>,
-   <port_signature> := (<module_string>*)
+   from vistrails.core.modules.basic_modules import String
+
+   class MyModule(Module):
+       _input_ports = [IPort("a", String)]
+
+
+This is **not recommended** for non-basic types due to the required import of the dependent package modules.  If a package develoepr wants to use a module from another package, they must determine where in that package the module is defined, import that specific module, and then hope that future versions of that package do not change the location of that module.  String-based signatures do not face the same issues as code reorganization is independent of the package definition.  The grammar for a simple port signature is 
+
+.. code-block:: python
+   :linenos:
+
+   <module_string> := <package_identifier>:[<namespace>|]<module_name>
+   <port_signature> := "<module_string>"
+
+and for a compound port:
+
+.. code-block:: python
+   :linenos:
+
+   <compound_string> := ,<module_string>
+   <port_signature> := "<module_string><compound_string>*"
+
 
 For example,
 
 .. code-block:: python
 
-   registry.add_input_port(MyModule, 'myInputPort', \
-                           '(edu.utah.sci.vistrails.basic:String)')
+   class MyModule(Module):
+       _input_ports = ("myInputPort", "org.suborg.pkg_name:Namespace|ModuleB")
 
-or
+.. index::
+   pair: ports; variant
+
+Variable Output
+---------------
+
+There may be cases where a port may output values of different types. There are a few ways to tackle this--each has its own benefits and pitfalls. Because |vistrails| modules obey inheritance principles, a port of a given type may produce/accept subclasses of itself.  For example, an output port of type ``Constant`` may output ``String``, ``Float``, or ``Integer`` values since all are subclasses of ``Constant``.  For input ports, ``Module`` (the base class for all modules) is the most general input type and will accept any input. For example, the ``StandardOutput`` module's input port ``value`` is of type ``Module`` and it prints the string representation of the input value to stdout.  However, for output ports, note that having an output of type ``Module`` is less useful because there may be cases where a user wishes to use a general output as an input to a port that accepts a specific type.  For example, consider a ``GetItem`` module that takes a ``List`` module and a ``Integer`` parameter and outputs the element at the specified index.  Its output port must be the most general type (e.g. ``Module``), but that means that a user who knows the list only contains floats cannot pass the output to a calculator that only takes floats as inputs.  To address this issue, |vistrails| provides the ``Variant`` type which allows connections to any input port.  |vistrails| attempts to do run-time type-checking to ensure that the type passed in to the module is as advertised but allows general computations to remain general.  For example, the ``GetItem`` module might be constructed as:
 
 .. code-block:: python
+    :linenos:
 
-   _input_ports = [('myInputPort', '(edu.utah.sci.vistrails.basic:String)')]
-
-.. index::
-   pair: ports; input dependency
-
-**Varying Output According to the Input** There are a few ways to tackle this - each has it's own benefits and pitfalls. Firstly, module connections do respect class hierarchies as we're familiar with in object oriented languages. For instance, A module can output a Constant of which String, Float, Integer, etc are specifications. In this way, you can have a subclass of something like MyData be passed out of the module and the connections will be established regardless of the sub-type. This is a bit dangerous though. Modules downstream of such a class may not really know how to operate on certain types derived from the super-class. Extreme care must be taken both when creating the modules as well as connecting them to prevent things like this from happening.
-
-A second method that is employed in several different packages is the idea of a container class. For instance, the NumSciPy package uses a relatively generic container "Numpy Array" to encapsulate the data. Of course, these encapsulating objects can store dictionaries that other modules can easily access and understand how to operate on. Although this method is slightly more work, the benefits of a stricter typing of ports is beneficial - particularly upon interfacing with other packages that may depend on strongly typed constants (for example).
+    class GetItem(Module):
+        _input_ports = [IPort("list", "basic:List"),
+	                IPort("index", "basic:Integer")]
+        _output_ports = [OPort("value", "basic:Variant")]
 
 .. index::
-   pair: ports; module connectivity
+   pair: ports; connectivity
 
-**Determining Whether or Not a Module is Attached to an Output Port** The outputPorts dictionary of the base Module stores connection information. Thus, you should be able to check
+Connectivity
+------------
+
+In some cases, it may be desirable to know which outputs are used before running a computation.  The ``outputPorts`` dictionary of the module stores connection information. Thus, you should be able to check
 
 ``("myPortName" in self.outputPorts)``
 
-on the parent module to check if there are any downstream connections from the port "myPortName". This might be used, for example, to only set results for output ports that will be used. **Note**, however, that the caching algorithm assumes that all outputs are set so adding a new connection to a previously unconnected output port will not work as desired if that module is cached. For this reason, I would currently recommend making such a module not cacheable. Another possibility is overriding the update() method to check the outputPorts and set the upToDate flag if they are not equal. In a single, limited test, this seemed to work, but be warned that it is not fully tested. Here is an example:
+on the parent module to check if there are any downstream connections from the port "myPortName". **Note**, however, that the caching algorithm assumes that all outputs are computed so adding a new connection to a previously unconnected output port will not work as desired if that module is cached. For this reason, we would currently recommend making such a module not cacheable. Another possibility is overriding the ``update()`` method to check the output ports and set the ``upToDate`` flag if they are not equal. Here is an example:
 
 .. code-block:: python
    :linenos:
 
    class TestModule(Module):
-       _output_ports = [('a1', '(edu.utah.sci.vistrails.basic:String)'),
-                        ('a2', '(edu.utah.sci.vistrails.basic:String)')]
+       _output_ports = [('a1', 'basic:String'),
+                        ('a2', 'basic:String')]
        def __init__(self):
            Module.__init__(self)
            self._cached_output_ports = set()
@@ -1100,7 +1209,7 @@ Most users will want to put their custom packages in their
 
  :math:`\sim`\ ``/.vistrails/userpackages``
 
-directory, as described in Section :ref:`sec-packages-simple_example`. This makes the package available to the current user only. However, if you are a power user or a system administrator, you may wish to make certain packages available to all users of a |vistrails| installation. To do this, copy the appropriate package files and/or directories to the
+directory, as described in Section :ref:`sec-packages-simple-example`. This makes the package available to the current user only. However, if you are a power user or a system administrator, you may wish to make certain packages available to all users of a |vistrails| installation. To do this, copy the appropriate package files and/or directories to the
 
  ``vistrails/packages``
 
