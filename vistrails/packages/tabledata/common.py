@@ -56,7 +56,7 @@ class ExtractColumn(Module):
 
         result = table.get_column(
                 index,
-                numeric=self.get_input('numeric', allowDefault=True))
+                numeric=self.get_input('numeric', allow_default=True))
 
         self.set_output('value', result)
 

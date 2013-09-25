@@ -325,17 +325,18 @@ class Module(Serializable):
         """
         return True
 
-    def update_upstream_port(self, port):
-        # update single port
-        if port in self.inputPorts:
-            for connector in self.inputPorts[port]:
+    def update_upstream_port(self, port_name):
+        """Updates upstream of a single port instead of all ports."""
+
+        if port_name in self.inputPorts:
+            for connector in self.inputPorts[port_name]:
                 connector.obj.update()
                 if hasattr(connector.obj, 'suspended') and \
                    connector.obj.suspended:
                     self.suspended = connector.obj.suspended
-            for connector in copy.copy(self.inputPorts[port]):
+            for connector in copy.copy(self.inputPorts[port_name]):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.remove_input_connector(port, connector)
+                    self.remove_input_connector(port_name, connector)
 
     def update_upstream(self):
         """ update_upstream() -> None        
@@ -412,13 +413,13 @@ class Module(Serializable):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
-    def check_input(self, name):
-        """check_input(name) -> None.  
-        Makes sure input port 'name' is filled.
+    def check_input(self, port_name):
+        """check_input(port_name) -> None.  
+        Raises an exception if the input port named <port_name> is not set.
 
         """
-        if not self.has_input(name):
-            raise ModuleError(self, "'%s' is a mandatory port" % name)
+        if not self.has_input(port_name):
+            raise ModuleError(self, "'%s' is a mandatory port" % port_name)
 
     def compute(self):
         """This method should be overridden in order to perform the module's
@@ -427,14 +428,14 @@ class Module(Serializable):
         """
         pass
 
-    def set_output(self, port, value):
+    def set_output(self, port_name, value):
         """This method is used to set a value on an output port.
 
-        :param port: the name of the output port to be set
+        :param port_name: the name of the output port to be set
         :param value: the value to be assigned to the port
 
         """
-        self.outputPorts[port] = value
+        self.outputPorts[port_name] = value
         
     def annotate_output_values(self):
         output_values = []
@@ -442,18 +443,17 @@ class Module(Serializable):
             output_values.append((port, self.outputPorts[port]))
         self.logging.annotate(self, {'output': output_values})
 
-    def get_output(self, port):
-        # if self.outputPorts.has_key(port) or not self.outputPorts[port]: 
-        if port not in self.outputPorts:
-            raise ModuleError(self, "output port '%s' not found" % port)
-        return self.outputPorts[port]
+    def get_output(self, port_name):
+        if port_name not in self.outputPorts:
+            raise ModuleError(self, "output port '%s' not found" % port_name)
+        return self.outputPorts[port_name]
 
-    def get_input_connector(self, inputPort):
-        if not self.inputPorts.has_key(inputPort):
-            raise ModuleError(self, "Missing value from port %s" % inputPort)
-        return self.inputPorts[inputPort][0]
+    def get_input_connector(self, port_name):
+        if port_name not in self.inputPorts:
+            raise ModuleError(self, "Missing value from port %s" % port_name)
+        return self.inputPorts[port_name][0]
 
-    def get_default_value(self, inputPort):
+    def get_default_value(self, port_name):
         reg = self.registry
 
         d = None
@@ -466,7 +466,7 @@ class Module(Serializable):
 
         ps = None
         try:
-            ps = reg.get_port_spec_from_descriptor(d, inputPort, 'input')
+            ps = reg.get_port_spec_from_descriptor(d, port_name, 'input')
         except:
             pass
         if not ps:
@@ -492,40 +492,40 @@ class Module(Serializable):
 
         return None
 
-    def get_input(self, inputPort, allowDefault=True):
-        """Returns the value coming in on the input port named **inputPort**.
+    def get_input(self, port_name, allow_default=True):
+        """Returns the value coming in on the input port named **port_name**.
 
-        :param inputPort: the name of the input port being queried
-        :type inputPort: String
-        :param allowDefault: whether to return the default value if it exists
-        :type allowDefault: Boolean
+        :param port_name: the name of the input port being queried
+        :type port_name: String
+        :param allow_default: whether to return the default value if it exists
+        :type allow_default: Boolean
         :returns: the value being passed in on the input port
-        :raises: ``ModuleError`` if there is no value on the port (and no default value if allowDefault is True)
+        :raises: ``ModuleError`` if there is no value on the port (and no default value if allow_default is True)
 
         """
-        if inputPort not in self.inputPorts:
-            if allowDefault and self.registry:
-                defaultValue = self.get_default_value(inputPort)
+        if port_name not in self.inputPorts:
+            if allow_default and self.registry:
+                defaultValue = self.get_default_value(port_name)
                 if defaultValue is not None:
                     return defaultValue
-            raise ModuleError(self, "Missing value from port %s" % inputPort)
+            raise ModuleError(self, "Missing value from port %s" % port_name)
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
-        for conn in self.inputPorts[inputPort]:
+        for conn in self.inputPorts[port_name]:
             if isinstance(conn.obj, InputPort):
                 return conn()
-        return self.inputPorts[inputPort][0]()
+        return self.inputPorts[port_name][0]()
 
-    def has_input(self, inputPort):
+    def has_input(self, port_name):
         """Checks if there is a value coming in on the input port named
-        **inputPort**.
+        **port_name**.
         
-        :param inputPort: the name of the input port being queried
-        :type inputPort: String 
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
         :rtype: Boolean
         
         """
-        return self.inputPorts.has_key(inputPort)
+        return port_name in self.inputPorts
 
     def __str__(self):
         return "<<%s>>" % str(self.__class__)
@@ -543,89 +543,89 @@ class Module(Serializable):
 
         self.logging.annotate(self, d)
 
-    def force_get_input(self, inputPort, defaultValue=None):
+    def force_get_input(self, port_name, default_value=None):
         """Like :py:func:`get_input` except that if no value exists, it
-        returns a user-specified defaultValue or None.
+        returns a user-specified default_value or None.
 
-        :param inputPort: the name of the input port being queried
-        :type inputPort: String 
-        :param defaultValue: the default value to be used if there is \
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :param default_value: the default value to be used if there is \
         no value on the input port
         :returns: the value being passed in on the input port or the default
 
         """
 
-        if self.has_input(inputPort):
-            return self.get_input(inputPort)
+        if self.has_input(port_name):
+            return self.get_input(port_name)
         else:
-            return defaultValue
+            return default_value
 
-    def set_input_port(self, inputPort, conn, is_method=False):
-        if self.inputPorts.has_key(inputPort):
-            self.inputPorts[inputPort].append(conn)
+    def set_input_port(self, port_name, conn, is_method=False):
+        if port_name in self.inputPorts:
+            self.inputPorts[port_name].append(conn)
         else:
-            self.inputPorts[inputPort] = [conn]
+            self.inputPorts[port_name] = [conn]
         if is_method:
-            self.is_method[conn] = (self._latest_method_order, inputPort)
+            self.is_method[conn] = (self._latest_method_order, port_name)
             self._latest_method_order += 1
 
-    def get_input_list(self, inputPort):
+    def get_input_list(self, port_name):
         """Returns the value(s) coming in on the input port named
-        **inputPort**.  When a port can accept more than one input,
+        **port_name**.  When a port can accept more than one input,
         this method obtains all the values being passed in.
 
-        :param inputPort: the name of the input port being queried
-        :type inputPort: String 
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
         :returns: a list of all the values being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port
         """
 
-        if not self.inputPorts.has_key(inputPort):
-            raise ModuleError(self, "Missing value from port %s" % inputPort)
+        if port_name not in self.inputPorts:
+            raise ModuleError(self, "Missing value from port %s" % port_name)
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
         fromInputPortModule = [connector()
-                               for connector in self.inputPorts[inputPort]
+                               for connector in self.inputPorts[port_name]
                                if isinstance(connector.obj, InputPort)]
         if len(fromInputPortModule)>0:
             return fromInputPortModule
-        return [connector() for connector in self.inputPorts[inputPort]]
+        return [connector() for connector in self.inputPorts[port_name]]
 
-    def force_get_input_list(self, inputPort):
+    def force_get_input_list(self, port_name):
         """Like :py:func:`get_input_list` except that if no values
         exist, it returns an empty list
 
-        :param inputPort: the name of the input port being queried
-        :type inputPort: String
+        :param port_name: the name of the input port being queried
+        :type port_name: String
         :returns: a list of all the values being passed in on the input port
 
         """
-        if not self.inputPorts.has_key(inputPort):
+        if port_name not in self.inputPorts:
             return []
-        return self.get_input_list(inputPort)
+        return self.get_input_list(port_name)
 
-    def enable_output_port(self, outputPort):
+    def enable_output_port(self, port_name):
 
-        """ enable_output_port(outputPort: str) -> None
+        """ enable_output_port(port_name: str) -> None
         Set an output port to be active to store result of computation
         
         """
         # Don't reset existing values, it screws up the caching.
-        if not self.outputPorts.has_key(outputPort):
-            self.set_output(outputPort, None)
+        if port_name not in self.outputPorts:
+            self.set_output(port_name, None)
             
-    def remove_input_connector(self, inputPort, connector):
-        """ remove_input_connector(inputPort: str,
+    def remove_input_connector(self, port_name, connector):
+        """ remove_input_connector(port_name: str,
                                  connector: ModuleConnector) -> None
         Remove a connector from the connection list of an input port
         
         """
-        if self.inputPorts.has_key(inputPort):
-            conList = self.inputPorts[inputPort]
+        if port_name in self.inputPorts:
+            conList = self.inputPorts[port_name]
             if connector in conList:
                 conList.remove(connector)
             if conList==[]:
-                del self.inputPorts[inputPort]
+                del self.inputPorts[port_name]
 
     def create_instance_of_type(self, ident, name, ns=''):
         """ Create a vistrails module from the module registry.  This creates an instance of the module
@@ -785,23 +785,22 @@ class ModuleConnector(object):
                                     "type %s" % (i, self.port, desc.name))
         return result
 
-def new_module(baseModule, name, dict={}, docstring=None):
-    """new_module(baseModule or [baseModule list],
+def new_module(base_module, name, dict={}, docstring=None):
+    """new_module(base_module or [base_module list],
                   name,
                   dict={},
                   docstring=None
 
     Creates a new VisTrails module dynamically. Exactly one of the
-    elements of the baseModule list (or baseModule itself, in the case
+    elements of the base_module list (or base_module itself, in the case
     it's a single class) should be a subclass of Module.
     """
-    if isinstance(baseModule, type):
-        assert issubclass(baseModule, Module)
-        superclasses = (baseModule, )
-    elif isinstance(baseModule, list):
-        assert len([x for x in baseModule
-                    if issubclass(x, Module)]) == 1
-        superclasses = tuple(baseModule)
+    if isinstance(base_module, type):
+        assert issubclass(base_module, Module)
+        superclasses = (base_module, )
+    elif isinstance(base_module, list):
+        assert sum(1 for x in base_module if issubclass(x, Module)) == 1
+        superclasses = tuple(base_module)
     d = copy.copy(dict)
     if docstring:
         d['__doc__'] = docstring

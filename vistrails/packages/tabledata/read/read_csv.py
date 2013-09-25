@@ -66,7 +66,7 @@ class CSVFile(Table):
     def compute(self):
         csv_file = self.get_input('file').name
         self.header_present = self.get_input('header_present',
-                                                    allowDefault=True)
+                                             allow_default=True)
         if self.has_input('delimiter'):
             self.delimiter = self.get_input('delimiter')
         else:
