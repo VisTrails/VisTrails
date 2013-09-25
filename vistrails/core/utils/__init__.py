@@ -50,6 +50,7 @@ import errno
 import itertools
 import os
 import sys
+import warnings
 import weakref
 
 
@@ -77,6 +78,24 @@ def unimplemented():
 def abstract():
     """Raises AbstractException.""" 
     raise AbstractException()
+
+def deprecated(*args):
+    def _deprecated(func):
+        def new_func(*args, **kwargs):
+            warnings.warn("Call to deprecated function %s replaced by %s." % \
+                          (func.__name__, new_name),
+                          category=DeprecationWarning,
+                          stacklevel=2)
+            return func(*args, **kwargs)
+        new_func.__name__ = func.__name__
+        new_func.__doc__ = func.__doc__
+        new_func.__dict__.update(func.__dict__)
+        return new_func
+    if len(args) == 1 and callable(args[0]):
+        return _deprecated(args[0])
+    else:
+        new_name = args[0]
+        return _deprecated
 
 ################################################################################
 
