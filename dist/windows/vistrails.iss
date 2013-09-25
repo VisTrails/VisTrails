@@ -90,6 +90,7 @@ Source: ..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components
 Source: ..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
 Source: ..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\usersguide\*; DestDir: {app}\examples\usersguide; Components: examples
 ;Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
@@ -163,6 +164,7 @@ Name: {app}\vistrails
 ;;Name: {app}\Configuration
 ;;Name: {app}\itkExtras
 Name: {app}\examples; Components: examples; Tasks: 
+Name: {app}\examples\usersguide
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
 Name: {app}\extensions; Components: extensions; Tasks:
