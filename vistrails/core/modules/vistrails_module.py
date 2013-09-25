@@ -335,7 +335,7 @@ class Module(Serializable):
                     self.suspended = connector.obj.suspended
             for connector in copy.copy(self.inputPorts[port]):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(port, connector)
+                    self.remove_input_connector(port, connector)
 
     def update_upstream(self):
         """ update_upstream() -> None        
@@ -353,7 +353,7 @@ class Module(Serializable):
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+                    self.remove_input_connector(iport, connector)
                     
     def update(self):
         """ update() -> None        
@@ -448,12 +448,12 @@ class Module(Serializable):
             raise ModuleError(self, "output port '%s' not found" % port)
         return self.outputPorts[port]
 
-    def getInputConnector(self, inputPort):
+    def get_input_connector(self, inputPort):
         if not self.inputPorts.has_key(inputPort):
             raise ModuleError(self, "Missing value from port %s" % inputPort)
         return self.inputPorts[inputPort][0]
 
-    def getDefaultValue(self, inputPort):
+    def get_default_value(self, inputPort):
         reg = self.registry
 
         d = None
@@ -505,7 +505,7 @@ class Module(Serializable):
         """
         if inputPort not in self.inputPorts:
             if allowDefault and self.registry:
-                defaultValue = self.getDefaultValue(inputPort)
+                defaultValue = self.get_default_value(inputPort)
                 if defaultValue is not None:
                     return defaultValue
             raise ModuleError(self, "Missing value from port %s" % inputPort)
@@ -604,9 +604,9 @@ class Module(Serializable):
             return []
         return self.get_input_list(inputPort)
 
-    def enableOutputPort(self, outputPort):
+    def enable_output_port(self, outputPort):
 
-        """ enableOutputPort(outputPort: str) -> None
+        """ enable_output_port(outputPort: str) -> None
         Set an output port to be active to store result of computation
         
         """
@@ -614,8 +614,8 @@ class Module(Serializable):
         if not self.outputPorts.has_key(outputPort):
             self.set_output(outputPort, None)
             
-    def removeInputConnector(self, inputPort, connector):
-        """ removeInputConnector(inputPort: str,
+    def remove_input_connector(self, inputPort, connector):
+        """ remove_input_connector(inputPort: str,
                                  connector: ModuleConnector) -> None
         Remove a connector from the connection list of an input port
         

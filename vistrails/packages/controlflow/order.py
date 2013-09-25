@@ -59,7 +59,7 @@ class ExecuteInOrder(Module):
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+                    self.remove_input_connector(iport, connector)
 
 
 ###############################################################################

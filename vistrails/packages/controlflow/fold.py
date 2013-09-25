@@ -120,7 +120,7 @@ class FoldWithModule(Fold, NotCacheable):
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput: # pragma: no cover
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
     def updateFunctionPort(self):
         """

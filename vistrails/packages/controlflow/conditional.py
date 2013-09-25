@@ -62,7 +62,7 @@ class If(Module, NotCacheable):
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
     def compute(self):
         """ The compute method for the If module."""
