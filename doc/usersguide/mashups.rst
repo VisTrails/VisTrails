@@ -80,7 +80,7 @@ A Simple Example
    * Select the ``Background`` alias and make sure the display widget is a ``combobox``.
    * Select ``Preview``.  See figure :ref:`The resulting mashup <fig-mashupcomp>`.
    * Select ``Tag``, ``No``, and then enter "one" as the new tag name.
-   * Save the file.
+   * Save the file. `(Open result) <http://www.vistrails.org/usersguide/v2.1/examples/mashups1.vtl>`_
 
 .. _fig-opacityalias:
 
