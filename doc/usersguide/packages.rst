@@ -59,11 +59,11 @@ Here is the definition of a very simple module:
                               label='quotient')]
 
        def compute(self):
-           arg1 = self.getInputFromPort("arg1")
-           arg2 = self.getInputFromPort("arg2")
+           arg1 = self.get_input("arg1")
+           arg2 = self.get_input("arg2")
            if arg2 == 0.0:
                raise ModuleError(self, "Division by zero")
-           self.setResult("result", arg1 / arg2)
+           self.set_output("result", arg1 / arg2)
 
 New VisTrails modules must subclass from :py:class:`.Module`, the base class that defines basic functionality. The only required override is the ``compute`` method, which performs the actual module computation. Input and output is specified through ports, which must be explicitly registered with |vistrails| using the ``_input_ports`` and ``_output_ports`` lists.
 
@@ -522,7 +522,7 @@ VisTrails provides a caching mechanism, in which portions of pipelines that are 
        _input_ports = [IPort(name="value", signature="basic:Module")]
 
        def compute(self):
-           v = self.getInputFromPort("value")
+           v = self.get_input("value")
            print v
 
 By subclassing from ``NotCacheable`` and ``Module`` (or one of its subclasses), we are telling VisTrails not to cache this module, or anything downstream from it.
@@ -534,7 +534,7 @@ VisTrails also allows a more sophisticated decision on whether or not to use cac
    class Unu1op(Unu):
    (...)
        def is_cacheable(self):
-           return not self.getInputFromPort('op') in ['rand', 'nrand']
+           return not self.get_input('op') in ['rand', 'nrand']
    (...)
 
 Notice that the module explicitly uses inputs to decide whether it should be cached. This allows reasonably fine-grained control over the process.
@@ -767,7 +767,7 @@ An optional port is one that will not be visible by default in the module shape.
 Cardinality
 ^^^^^^^^^^^
 
-By default, ports will accept any number of connections or parameters.  However, the :py:meth:`.Module.getInputFromPort` method will only access *one* of the inputs, and which one is not well-defined.  To access *all* of the inputs, developers should use the :py:meth:`.Module.getInputListFromPort` method.  The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
+By default, ports will accept any number of connections or parameters.  However, the :py:meth:`.Module.get_input` method will only access *one* of the inputs, and which one is not well-defined.  To access *all* of the inputs, developers should use the :py:meth:`.Module.get_input_list` method.  The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
 
 In addition, VisTrails 2.1 introduced new port configuration arguments :py:attr:`InputPort.min_conns` and :py:attr:`InputPort.max_conns` that allow developers to enforce specific cardinalities on their ports.  For example, a port that required at least two inputs could set ``min_conns=2``, and a port that does not accept more than a single input could set ``max_conns=1``.  Currently, the values for ``min_conns`` and ``max_conns`` default to 0 and -1, respectively, which means that no connections are required and any number of connections are allowed.  These will eventually be enforced by the GUI to help users building workflows.
 
@@ -889,9 +889,9 @@ on the parent module to check if there are any downstream connections from the p
     
        def compute(self):
            if "a1" in self.outputPorts:
-               self.setResult("a1", "test")
+               self.set_output("a1", "test")
            if "a2" in self.outputPorts:
-               self.setResult("a2", "test2")
+               self.set_output("a2", "test2")
            self._cached_output_ports = set(self.outputPorts)
 
 Generating Modules Dynamically
@@ -993,13 +993,13 @@ The expand_ports and build_modules methods are functions to help the constructio
    def initialize():
        global _modules
        def a_compute(self):
-           a = self.getInputFromPort("a")
+           a = self.get_input("a")
            i = 0
-           if self.hasInputFromPort("i"):
-               i = self.getInputFromPort("i")
+           if self.has_input("i"):
+               i = self.get_input("i")
            if a == "abc":
                i += 100
-           self.setResult("b", i)
+           self.set_output("b", i)
  
        module_descs = [("ModuleA", {"_inputs": [("a", "basic:String")],
                                     "_outputs": [("b", "basic:Integer")],
@@ -1176,20 +1176,20 @@ illustrate the feature.
        def compute(self):
            o = self.interpreter.filePool.create_file(suffix='.m')
            args = []
-           if not self.hasInputFromPort("file"):
+           if not self.has_input("file"):
                raise ModuleError(self, "Needs input file")
-           args.append(self.getInputFromPort("file").name)
-           if self.hasInputFromPort("rho"):
+           args.append(self.get_input("file").name)
+           if self.has_input("rho"):
                args.append("-rho")
-               args.append(str(self.getInputFromPort("rho")))
-           if self.hasInputFromPort("eta"):
+               args.append(str(self.get_input("rho")))
+           if self.has_input("eta"):
                args.append("-reduction")
-               args.append(str(self.getInputFromPort("eta")))
+               args.append(str(self.get_input("eta")))
            args.append("-outname")
            args.append(o.name)
            args.append("-tri")
            self.run(args)
-           self.setResult("output", o)
+           self.set_output("output", o)
    ...
 
 Line 5 shows how to create a temporary file
@@ -1213,7 +1213,7 @@ The other important feature is that it can be passed directly to an
 output port, so that this file can be used by subsequent modules. This
 is shown on Line 20.
 
-The above code also introduces the boolean function ``hasInputFromPort`` (see Lines 7, 10, and 13). This is a simple error-checking function that verifies that the port has incoming data before the program attempts to read from it. It is considered good practice to call this function before invoking ``getInputFromPort`` for any input port.
+The above code also introduces the boolean function ``has_input`` (see Lines 7, 10, and 13). This is a simple error-checking function that verifies that the port has incoming data before the program attempts to read from it. It is considered good practice to call this function before invoking ``get_input`` for any input port.
 
 **Accommodating badly-designed programs** Even though it is
 considered bad design for a command-line program not to allow the specification of an output

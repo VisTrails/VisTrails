@@ -60,22 +60,22 @@
         # will be executed directly. VisTrails does not use the return
         # value of this method.
         def compute(self):
-            # getInputFromPort is a method defined in Module that returns
+            # get_input is a method defined in Module that returns
             # the value stored at an input port. If there's no value
             # stored on the port, the method will return None.
-            v1 = self.getInputFromPort("value1")
-            v2 = self.getInputFromPort("value2")
+            v1 = self.get_input("value1")
+            v2 = self.get_input("value2")
 
-            # You should call setResult to store the appropriate results
+            # You should call set_output to store the appropriate results
             # on the ports.  In this case, we are only storing a
             # floating-point result, so we can use the number types
             # directly. For more complicated data, you should
             # return an instance of a VisTrails Module. This will be made
             # clear in further examples that use these more complicated data.
-            self.setResult("value", self.op(v1, v2))
+            self.set_output("value", self.op(v1, v2))
 
         def op(self, v1, v2):
-            op = self.getInputFromPort("op")
+            op = self.get_input("op")
             if op == '+':
                 return v1 + v2
             elif op == '-':

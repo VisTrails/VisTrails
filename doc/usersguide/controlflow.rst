@@ -102,8 +102,8 @@ structure.
    subplot(212)
 
    dashes = [1, 3]
-   list1 = self.getInputFromPort("InputList")
-   list2 = self.getInputFromPort("X_values")
+   list1 = self.get_input("InputList")
+   list2 = self.get_input("X_values")
    list3 = []
 
    for i in xrange(len(list1)):
@@ -125,7 +125,7 @@ structure.
    for i in xrange(4, 256, 4):
        result.append(i)
 
-   self.setResult("List", result)
+   self.set_output("List", result)
 
 .. topic:: Next Step!
 
@@ -199,12 +199,12 @@ the condition evaluated to ``True``.
 
 .. code-block:: python
 
-   area = self.getInputFromPort("Area")
+   area = self.get_input("Area")
 
    if area>200000.00:
-       self.setResult("Condition", True)
+       self.set_output("Condition", True)
    else:
-       self.setResult("Condition", False)
+       self.set_output("Condition", False)
 
 .. topic:: Next Step!
 
@@ -301,13 +301,13 @@ the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and 
 .. code-block:: python
    :linenos:
 
-   PDB_format = self.getInputFromPort('PDB_format')
+   PDB_format = self.get_input('PDB_format')
 
    output = self.interpreter.filePool.create_file()
    file_ = open(str(output.name), 'w')
    file_.write(PDB_format)
 
-   self.setResult('File', file_)
+   self.set_output('File', file_)
 
    file_.close()
 
@@ -356,7 +356,7 @@ that will be executed if the input is a structure identifier.
    else:
        is_ID = False
 
-   self.setResult("Is_ID", is_ID)
+   self.set_output("Is_ID", is_ID)
 
 .. topic:: Next Step!
 
@@ -367,7 +367,7 @@ that will be executed if the input is a structure identifier.
 .. code-block:: python
    :linenos:
 
-   input = self.getInputFromPort("Input")
+   input = self.get_input("Input")
 
    output = self.interpreter.filePool.create_file()
    f = open(str(output.name), 'w')
@@ -383,7 +383,7 @@ that will be executed if the input is a structure identifier.
    text = '</BODY></HTML>'
    f.write(text)
 
-   self.setResult('html', f)
+   self.set_output('html', f)
 
    f.close()
 
