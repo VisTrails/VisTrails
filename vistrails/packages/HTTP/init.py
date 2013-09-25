@@ -477,7 +477,7 @@ class TestHTTPFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         global identifier
-        if identifier not in globals():
+        if 'identifier' not in globals():
             identifier = 'org.vistrails.vistrails.http'
 
     def testParseURL(self):
