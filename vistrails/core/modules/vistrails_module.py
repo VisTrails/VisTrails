@@ -413,14 +413,6 @@ class Module(Serializable):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
-    def check_input(self, port_name):
-        """check_input(port_name) -> None.  
-        Raises an exception if the input port named <port_name> is not set.
-
-        """
-        if not self.has_input(port_name):
-            raise ModuleError(self, "'%s' is a mandatory port" % port_name)
-
     def compute(self):
         """This method should be overridden in order to perform the module's
         computation.
@@ -428,15 +420,114 @@ class Module(Serializable):
         """
         pass
 
+    def get_input(self, port_name, allow_default=True):
+        """Returns the value coming in on the input port named **port_name**.
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String
+        :param allow_default: whether to return the default value if it exists
+        :type allow_default: Boolean
+        :returns: the value being passed in on the input port
+        :raises: ``ModuleError`` if there is no value on the port (and no default value if allow_default is True)
+
+        """
+        if port_name not in self.inputPorts:
+            if allow_default and self.registry:
+                defaultValue = self.get_default_value(port_name)
+                if defaultValue is not None:
+                    return defaultValue
+            raise ModuleError(self, "Missing value from port %s" % port_name)
+        # Cannot resolve circular reference here, need to be fixed later
+        from vistrails.core.modules.sub_module import InputPort
+        for conn in self.inputPorts[port_name]:
+            if isinstance(conn.obj, InputPort):
+                return conn()
+        return self.inputPorts[port_name][0]()
+
+    def get_input_list(self, port_name):
+        """Returns the value(s) coming in on the input port named
+        **port_name**.  When a port can accept more than one input,
+        this method obtains all the values being passed in.
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :returns: a list of all the values being passed in on the input port
+        :raises: ``ModuleError`` if there is no value on the port
+        """
+
+        if port_name not in self.inputPorts:
+            raise ModuleError(self, "Missing value from port %s" % port_name)
+        # Cannot resolve circular reference here, need to be fixed later
+        from vistrails.core.modules.sub_module import InputPort
+        fromInputPortModule = [connector()
+                               for connector in self.inputPorts[port_name]
+                               if isinstance(connector.obj, InputPort)]
+        if len(fromInputPortModule)>0:
+            return fromInputPortModule
+        return [connector() for connector in self.inputPorts[port_name]]
+
     def set_output(self, port_name, value):
         """This method is used to set a value on an output port.
 
         :param port_name: the name of the output port to be set
+        :type port_name: String
         :param value: the value to be assigned to the port
 
         """
         self.outputPorts[port_name] = value
+
+    def check_input(self, port_name):
+        """check_input(port_name) -> None.  
+        Raises an exception if the input port named *port_name* is not set.
+
+        :param port_name: the name of the input port being checked
+        :type port_name: String
+        :raises: ``ModuleError`` if there is no value on the port
+        """
+        if not self.has_input(port_name):
+            raise ModuleError(self, "'%s' is a mandatory port" % port_name)
         
+    def has_input(self, port_name):
+        """Returns a boolean indicating whether there is a value coming in on
+        the input port named **port_name**.
+        
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :rtype: Boolean
+
+        """
+        return port_name in self.inputPorts
+
+    def force_get_input(self, port_name, default_value=None):
+        """Like :py:meth:`.get_input` except that if no value exists, it
+        returns a user-specified default_value or None.
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :param default_value: the default value to be used if there is \
+        no value on the input port
+        :returns: the value being passed in on the input port or the default
+
+        """
+
+        if self.has_input(port_name):
+            return self.get_input(port_name)
+        else:
+            return default_value
+
+    def force_get_input_list(self, port_name):
+        """Like :py:meth:`.get_input_list` except that if no values
+        exist, it returns an empty list
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String
+        :returns: a list of all the values being passed in on the input port
+
+        """
+        if port_name not in self.inputPorts:
+            return []
+        return self.get_input_list(port_name)
+
     def annotate_output_values(self):
         output_values = []
         for port in self.outputPorts:
@@ -492,41 +583,6 @@ class Module(Serializable):
 
         return None
 
-    def get_input(self, port_name, allow_default=True):
-        """Returns the value coming in on the input port named **port_name**.
-
-        :param port_name: the name of the input port being queried
-        :type port_name: String
-        :param allow_default: whether to return the default value if it exists
-        :type allow_default: Boolean
-        :returns: the value being passed in on the input port
-        :raises: ``ModuleError`` if there is no value on the port (and no default value if allow_default is True)
-
-        """
-        if port_name not in self.inputPorts:
-            if allow_default and self.registry:
-                defaultValue = self.get_default_value(port_name)
-                if defaultValue is not None:
-                    return defaultValue
-            raise ModuleError(self, "Missing value from port %s" % port_name)
-        # Cannot resolve circular reference here, need to be fixed later
-        from vistrails.core.modules.sub_module import InputPort
-        for conn in self.inputPorts[port_name]:
-            if isinstance(conn.obj, InputPort):
-                return conn()
-        return self.inputPorts[port_name][0]()
-
-    def has_input(self, port_name):
-        """Checks if there is a value coming in on the input port named
-        **port_name**.
-        
-        :param port_name: the name of the input port being queried
-        :type port_name: String 
-        :rtype: Boolean
-        
-        """
-        return port_name in self.inputPorts
-
     def __str__(self):
         return "<<%s>>" % str(self.__class__)
 
@@ -543,23 +599,6 @@ class Module(Serializable):
 
         self.logging.annotate(self, d)
 
-    def force_get_input(self, port_name, default_value=None):
-        """Like :py:func:`get_input` except that if no value exists, it
-        returns a user-specified default_value or None.
-
-        :param port_name: the name of the input port being queried
-        :type port_name: String 
-        :param default_value: the default value to be used if there is \
-        no value on the input port
-        :returns: the value being passed in on the input port or the default
-
-        """
-
-        if self.has_input(port_name):
-            return self.get_input(port_name)
-        else:
-            return default_value
-
     def set_input_port(self, port_name, conn, is_method=False):
         if port_name in self.inputPorts:
             self.inputPorts[port_name].append(conn)
@@ -568,41 +607,6 @@ class Module(Serializable):
         if is_method:
             self.is_method[conn] = (self._latest_method_order, port_name)
             self._latest_method_order += 1
-
-    def get_input_list(self, port_name):
-        """Returns the value(s) coming in on the input port named
-        **port_name**.  When a port can accept more than one input,
-        this method obtains all the values being passed in.
-
-        :param port_name: the name of the input port being queried
-        :type port_name: String 
-        :returns: a list of all the values being passed in on the input port
-        :raises: ``ModuleError`` if there is no value on the port
-        """
-
-        if port_name not in self.inputPorts:
-            raise ModuleError(self, "Missing value from port %s" % port_name)
-        # Cannot resolve circular reference here, need to be fixed later
-        from vistrails.core.modules.sub_module import InputPort
-        fromInputPortModule = [connector()
-                               for connector in self.inputPorts[port_name]
-                               if isinstance(connector.obj, InputPort)]
-        if len(fromInputPortModule)>0:
-            return fromInputPortModule
-        return [connector() for connector in self.inputPorts[port_name]]
-
-    def force_get_input_list(self, port_name):
-        """Like :py:func:`get_input_list` except that if no values
-        exist, it returns an empty list
-
-        :param port_name: the name of the input port being queried
-        :type port_name: String
-        :returns: a list of all the values being passed in on the input port
-
-        """
-        if port_name not in self.inputPorts:
-            return []
-        return self.get_input_list(port_name)
 
     def enable_output_port(self, port_name):
 

@@ -10,8 +10,9 @@ Module
 ^^^^^^
 
 .. autoclass:: vistrails.core.modules.vistrails_module.Module
-    :members: __init__, setResult, getInputFromPort, hasInputFromPort,
-              getInputListFromPort, forceGetInputListFromPort, forceGetInputFromPort, annotate
+    :members: set_output, get_input, has_input, check_input,
+       get_input_list, force_get_input_list, force_get_input, annotate
+    :member-order: bysource
 
 ModuleSettings
 ^^^^^^^^^^^^^^
