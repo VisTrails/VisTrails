@@ -34,7 +34,7 @@ ArtistInspector._get_valid_values_regex = re.compile(
 from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
-sys.path.append('/vistrails/src/git')
+# sys.path.append('/vistrails/src/git')
 from vistrails.core.modules.utils import expand_port_spec_string
 
 ##############################################################################
