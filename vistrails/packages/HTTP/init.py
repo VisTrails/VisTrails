@@ -472,13 +472,15 @@ def initialize(*args, **keywords):
 
 
 class TestHTTPFile(unittest.TestCase):
-    
-    
     @classmethod
     def setUpClass(cls):
-        global identifier
-        if 'identifier' not in globals():
-            identifier = 'org.vistrails.vistrails.http'
+        from vistrails.core.packagemanager import get_package_manager
+        from vistrails.core.modules.module_registry import MissingPackage
+        pm = get_package_manager()
+        try:
+            pm.get_package('org.vistrails.vistrails.http')
+        except MissingPackage:
+            pm.late_enable_package('HTTP')
 
     def testParseURL(self):
         foo = HTTPFile()
