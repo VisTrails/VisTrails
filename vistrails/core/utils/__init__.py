@@ -682,6 +682,12 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(os.getcwd(), currentpath)
 
     def test_deprecated(self):
+        import re
+        def canon_path(path):
+            path = os.path.realpath(path)
+            p, f = os.path.dirname(path), os.path.basename(path)
+            f = re.split(r'[$.]', f)[0]
+            return os.path.join(p, f)
         def check_warning(msg, f):
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter('always')
@@ -690,8 +696,8 @@ class TestCommon(unittest.TestCase):
             w, = w
             self.assertEqual(w.message.message, msg)
             self.assertEqual(w.category, DeprecationWarning)
-            self.assertEqual(os.path.realpath(w.filename),
-                             os.path.realpath(__file__))
+            self.assertTrue(canon_path(w.filename),
+                            canon_path(__file__))
 
         @deprecated('repl1')
         def func1(a, b):
