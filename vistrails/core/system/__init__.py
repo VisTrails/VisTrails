@@ -37,70 +37,36 @@ from __future__ import with_statement
 import datetime
 import getpass
 import os
-import os.path
-import subprocess
-import sys
 import platform
 import socket
+import subprocess
+import sys
 import urllib2
+
 from vistrails.core import debug
 from vistrails.core.utils import unimplemented, VistrailsInternalError, Chdir
 import vistrails.core.requirements
 
-import unittest
 
-##############################################################################
+###############################################################################
+
+from common import *
 
 systemType = platform.system()
 
 if systemType in ['Windows', 'Microsoft']:
-    from vistrails.core.system.windows import guess_total_memory, temporary_directory, \
-        list2cmdline, \
-        home_directory, remote_copy_program, remote_shell_program, \
-        graph_viz_dot_command_line, remove_graph_viz_temporaries, \
-        link_or_copy,executable_is_in_path, executable_is_in_pythonpath, \
-        execute_cmdline, get_executable_path, execute_piped_cmdlines, TestWindows
+    from vistrails.core.system.windows import *
 
 elif systemType in ['Linux']:
-    from vistrails.core.system.linux import guess_total_memory, temporary_directory, \
-        list2cmdline, \
-        home_directory, remote_copy_program, remote_shell_program, \
-        graph_viz_dot_command_line, remove_graph_viz_temporaries, \
-        link_or_copy, XDestroyWindow, executable_is_in_path, \
-        executable_is_in_pythonpath, execute_cmdline, get_executable_path, \
-        execute_piped_cmdlines, TestLinux
+    from vistrails.core.system.linux import *
 
 elif systemType in ['Darwin']:
-    from vistrails.core.system.osx import guess_total_memory, temporary_directory, \
-        list2cmdline, \
-        home_directory, remote_copy_program, remote_shell_program, \
-        graph_viz_dot_command_line, remove_graph_viz_temporaries, \
-        link_or_copy, executable_is_in_path, executable_is_in_pythonpath, \
-        execute_cmdline, get_executable_path, execute_piped_cmdlines, TestMacOSX
+    from vistrails.core.system.osx import *
 else:
     debug.critical("VisTrails could not detect your operating system.")
     sys.exit(1)
 
-def touch(file_name):
-    """touch(file_name) -> None Equivalent to 'touch' in a shell. If
-    file exists, updates modified time to current time. If not,
-    creates a new 0-length file.
-    
-    """
-    if os.path.isfile(file_name):
-        os.utime(file_name, None)
-    else:
-        open(file_name, 'w')
-
-def mkdir(dir_name):
-    """mkdir(dir_name) -> None Equivalent to 'mkdir' in a shell except
-    that if the directory exists, it will not be overwritten.
-
-    """
-    if not os.path.isdir(dir_name):
-        os.mkdir(dir_name)
-
-##############################################################################
+###############################################################################
 
 # Makes sure root directory is sensible.
 if __name__ == '__main__':
@@ -128,7 +94,7 @@ def get_vistrails_basic_pkg_id():
     return "%s.basic" % get_vistrails_default_pkg_prefix()
 
 def set_vistrails_data_directory(d):
-    """ set_vistrails_data_directory(d:str) -> None 
+    """ set_vistrails_data_directory(d:str) -> None
     Sets vistrails data directory taking into account environment variables
 
     """
@@ -143,7 +109,7 @@ def set_vistrails_data_directory(d):
 def set_vistrails_file_directory(d):
     """ set_vistrails_file_directory(d: str) -> None
     Sets vistrails file directory taking into accoun environment variables
-    
+
     """
     global __fileDir
     new_d = os.path.expanduser(d)
@@ -154,7 +120,7 @@ def set_vistrails_file_directory(d):
     __fileDir = os.path.realpath(d)
 
 def set_vistrails_root_directory(d):
-    """ set_vistrails_root_directory(d:str) -> None 
+    """ set_vistrails_root_directory(d:str) -> None
     Sets vistrails root directory taking into account environment variables
 
     """
@@ -177,7 +143,7 @@ def set_vistrails_default_file_type(t):
         __defaultFileType = t
     else:
         __defaultFileType = '.vt'
-        
+
 def vistrails_root_directory():
     """ vistrails_root_directory() -> str
     Returns vistrails root directory
@@ -186,14 +152,14 @@ def vistrails_root_directory():
     return __rootDir
 
 def vistrails_file_directory():
-    """ vistrails_file_directory() -> str 
+    """ vistrails_file_directory() -> str
     Returns vistrails examples directory
 
     """
     return __fileDir
 
 def vistrails_data_directory():
-    """ vistrails_data_directory() -> str 
+    """ vistrails_data_directory() -> str
     Returns vistrails data directory
 
     """
@@ -207,7 +173,7 @@ def vistrails_default_file_type():
     return __defaultFileType
 
 def packages_directory():
-    """ packages_directory() -> str 
+    """ packages_directory() -> str
     Returns vistrails packages directory
 
     """
@@ -217,7 +183,7 @@ def blank_vistrail_file():
     unimplemented()
 
 def resource_directory():
-    """ resource_directory() -> str 
+    """ resource_directory() -> str
     Returns vistrails gui resource directory
 
     """
@@ -225,14 +191,14 @@ def resource_directory():
                         'gui', 'resources')
 
 def default_options_file():
-    """ default_options_file() -> str 
+    """ default_options_file() -> str
     Returns vistrails default options file
 
     """
     return os.path.join(home_directory(), ".vistrailsrc")
 
 def default_dot_vistrails():
-    """ default_dot_vistrails() -> str 
+    """ default_dot_vistrails() -> str
     Returns the default VisTrails per-user directory.
 
     """
@@ -252,11 +218,6 @@ def default_connections_file():
 
     """
     return os.path.join(current_dot_vistrails(), 'connections.xml')
-
-def python_version():
-    """python_version() -> (major, minor, micro, release, serial)
-    Returns python version info."""
-    return sys.version_info
 
 def vistrails_version():
     """vistrails_version() -> string - Returns the current VisTrails version."""
@@ -304,7 +265,7 @@ def new_vistrails_release_exists():
     return (False, None)
 
 def vistrails_revision():
-    """vistrails_revision() -> str 
+    """vistrails_revision() -> str
     When run on a working copy, shows the current svn revision else
     shows the latest release revision
 
@@ -314,55 +275,13 @@ def vistrails_revision():
         release = "99faabb791a0"
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
-            result = execute_cmdline(['git', 'describe', '--always', '--abbrev=12'],
-                                     lines)
+            result = execute_cmdline(
+                ['git', 'describe', '--always', '--abbrev=12'],
+                lines)
             if len(lines) == 1:
                 if result == 0:
                     release = lines[0].strip(" \n")
     return release
-
-def current_user():
-    return getpass.getuser()
-
-def current_ip():
-    """ current_ip() -> str
-    Gets current IP address trying to avoid the IPv6 interface """
-    try:
-        info = socket.getaddrinfo(socket.gethostname(), None)
-        # Try to find an IPv4
-        for i in info:
-            if i[0] == socket.AF_INET:
-                return i[4][0]
-        # Return any address
-        for i in info:
-            if i[0] in (socket.AF_INET, socket.AF_INET6):
-                return i[4][0]
-    except:
-        return ''
-
-def current_time():
-    """current_time() -> datetime.datetime
-    Returns the current time
-
-    """
-    # FIXME should use DB if available...
-    return datetime.datetime.now()
-
-def current_machine():
-    return socket.getfqdn()
-
-def current_architecture():
-    bit_string = platform.architecture()[0]
-    if bit_string.endswith('bit'):
-        return int(bit_string[:-3])
-    else:
-        return 32 # default value
-
-def current_processor():
-    proc = platform.processor()
-    if not proc:
-        proc = 'n/a'
-    return proc
 
 def short_about_string():
     return """VisTrails version %s.%s -- contact@vistrails.org""" % \
@@ -372,7 +291,7 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s.%s -- contact@vistrails.org
 
-Copyright (C) 2011-2013 NYU-Poly. Copyright (C) 2006-2011 University of Utah. 
+Copyright (C) 2011-2013 NYU-Poly. Copyright (C) 2006-2011 University of Utah.
 All rights reserved.
 http://www.vistrails.org
 
@@ -393,24 +312,15 @@ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE \
 ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, \
 INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, \
 BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, \
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING \
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY \
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING \
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, \
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.""" % (vistrails_version(), 
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.""" % (vistrails_version(),
                                                          vistrails_revision())
 
-def get_elementtree_library():
-    try:
-        import cElementTree as ElementTree
-    except ImportError:
-        # try python 2.5-style
-        import xml.etree.cElementTree as ElementTree
-    return ElementTree
-    
-def execute_cmdline2(cmd_list):
-    return execute_piped_cmdlines([cmd_list])
+###############################################################################
 
-################################################################################
-
+import unittest
 
 if __name__ == '__main__':
     unittest.main()
@@ -435,5 +345,3 @@ class TestSystem(unittest.TestCase):
                 raise
             except:
                 pass
-            
-            
