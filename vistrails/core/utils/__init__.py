@@ -47,6 +47,7 @@ from vistrails.core.utils.color import ColorByName
 from vistrails.core.utils.lockmethod import lock_method
 import copy
 import errno
+import functools
 import itertools
 import os
 import sys
@@ -80,16 +81,21 @@ def abstract():
     raise AbstractException()
 
 def deprecated(*args):
+    new_name = None
     def _deprecated(func):
+        @functools.wraps(func)
         def new_func(*args, **kwargs):
-            warnings.warn("Call to deprecated function %s replaced by %s." % \
-                          (func.__name__, new_name),
-                          category=DeprecationWarning,
-                          stacklevel=2)
+            if new_name is not None:
+                warnings.warn("Call to deprecated function %s "
+                              "replaced by %s" % (
+                                  func.__name__, new_name),
+                              category=DeprecationWarning,
+                              stacklevel=2)
+            else:
+                warnings.warn("Call to deprecated function %s" % func.__name__,
+                              category=DeprecationWarning,
+                              stacklevel=2)
             return func(*args, **kwargs)
-        new_func.__name__ = func.__name__
-        new_func.__doc__ = func.__doc__
-        new_func.__dict__.update(func.__dict__)
         return new_func
     if len(args) == 1 and callable(args[0]):
         return _deprecated(args[0])
@@ -674,6 +680,55 @@ class TestCommon(unittest.TestCase):
         
         self.assertRaises(Exception, raise_exception)
         self.assertEquals(os.getcwd(), currentpath)
-        
+
+    def test_deprecated(self):
+        def check_warning(msg, f):
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter('always')
+                f(1, 2)
+            self.assertEqual(len(w), 1)
+            w, = w
+            self.assertEqual(w.message.message, msg)
+            self.assertEqual(w.category, DeprecationWarning)
+            self.assertEqual(os.path.realpath(w.filename),
+                             os.path.realpath(__file__))
+
+        @deprecated('repl1')
+        def func1(a, b):
+            self.assertEqual((a, b), (1, 2))
+        @deprecated
+        def func2(a, b):
+            self.assertEqual((a, b), (1, 2))
+        check_warning('Call to deprecated function func1 replaced by repl1',
+                      func1)
+        check_warning('Call to deprecated function func2', func2)
+
+        foo = None
+        class Foo(object):
+            @deprecated('repl1')
+            def meth1(s, a, b):
+                self.assertEqual((s, a, b), (foo, 1, 2))
+            @deprecated
+            def meth2(s, a, b):
+                self.assertEqual((s, a, b), (foo, 1, 2))
+            @staticmethod
+            @deprecated('repl3')
+            def meth3(a, b):
+                self.assertEqual((a, b), (1, 2))
+            @staticmethod
+            @deprecated
+            def meth4(a, b):
+                self.assertEqual((a, b), (1, 2))
+        foo = Foo()
+        check_warning('Call to deprecated function meth1 replaced by repl1',
+                      foo.meth1)
+        check_warning('Call to deprecated function meth2',
+                      foo.meth2)
+        check_warning('Call to deprecated function meth3 replaced by repl3',
+                      foo.meth3)
+        check_warning('Call to deprecated function meth4',
+                      foo.meth4)
+
+
 if __name__ == '__main__':
     unittest.main()
