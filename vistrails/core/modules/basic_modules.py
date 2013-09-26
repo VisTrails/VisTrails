@@ -261,28 +261,28 @@ def string_compare(value_a, value_b, query_method):
 
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
                        False, staticmethod(lambda x: isinstance(x, bool)))
-Boolean._settings = ModuleSettings(constantWidget=('%s:BooleanWidget' % \
-                                                   constant_config_path))
+Boolean._settings = ModuleSettings(constant_widget=('%s:BooleanWidget' % \
+                                                    constant_config_path))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
                        staticmethod(lambda x: isinstance(x, (int, long, float))),
                        query_compute=numeric_compare)
-Float._settings = ModuleSettings(constantWidgets=[
+Float._settings = ModuleSettings(constant_widgets=[
     QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
     ParamExpWidgetConfig('%s:FloatExploreWidget' % paramexp_config_path)])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
                        staticmethod(lambda x: isinstance(x, (int, long))),
                        base_class=Float,
                        query_compute=numeric_compare)
-Integer._settings = ModuleSettings(constantWidgets=[
+Integer._settings = ModuleSettings(constant_widgets=[
     QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
     ParamExpWidgetConfig('%s:IntegerExploreWidget' % paramexp_config_path)])
 
 String  = new_constant('String'  , staticmethod(str), "", 
                        staticmethod(lambda x: isinstance(x, str)),
                        query_compute=string_compare)
-String._settings = ModuleSettings(configureWidget=
+String._settings = ModuleSettings(configure_widget=
             "vistrails.gui.modules.string_configure:TextConfigurationWidget",
-                                  constantWidgets=[
+                                  constant_widgets=[
                         ConstantWidgetConfig('%s:MultiLineStringWidget' % \
                                              constant_config_path, 
                                              widget_type='multiline'),
@@ -293,8 +293,8 @@ String._output_ports.append(OPort("value_as_string", "String", optional=True))
 ##############################################################################
 
 class Path(Constant):
-    _settings = ModuleSettings(constantWidget=("%s:PathChooserWidget" % \
-                                               constant_config_path))
+    _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
+                                                constant_config_path))
     _input_ports = [IPort("value", "Path"),
                     IPort("name", "String", optional=True)]
     _output_ports = [OPort("value", "Path")]
@@ -370,9 +370,9 @@ class File(Path):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
 
-    _settings = ModuleSettings(constantSignatureCallable=path_parameter_hasher,
-                               constantWidget=("%s:FileChooserWidget" % \
-                                               constant_config_path))
+    _settings = ModuleSettings(constant_signature=path_parameter_hasher,
+                               constant_widget=("%s:FileChooserWidget" % \
+                                                constant_config_path))
     _input_ports = [IPort("value", "File"),
                     IPort("create_file", "Boolean", optional=True)]
     _output_ports = [OPort("value", "File"),
@@ -404,9 +404,9 @@ File.default_value = File()
     
 class Directory(Path):
 
-    _settings = ModuleSettings(constantSignatureCallable=path_parameter_hasher,
-                               constantWidget=("%s:DirectoryChooserWidget" % \
-                                               constant_config_path))
+    _settings = ModuleSettings(constant_signature=path_parameter_hasher,
+                               constant_widget=("%s:DirectoryChooserWidget" % \
+                                                constant_config_path))
     _input_ports = [IPort("value", "Directory"),
                     IPort("create_directory", "Boolean", optional=True)]
     _output_ports = [OPort("value", "Directory"),
@@ -456,8 +456,8 @@ Directory.default_value = Directory()
 ##############################################################################
 
 class OutputPath(Path):
-    _settings = ModuleSettings(constantWidget=("%s:OutputPathChooserWidget" % \
-                                               constant_config_path))
+    _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
+                                                constant_config_path))
     _output_ports = [OPort("value", "OutputPath")]
 
     def get_name(self):
@@ -602,7 +602,7 @@ class Color(Constant):
     # contains a tuple because a tuple would be interpreted as a
     # type(tuple) which messes with the interpreter
 
-    _settings = ModuleSettings(constantWidgets=[
+    _settings = ModuleSettings(constant_widgets=[
         '%s:ColorWidget' % constant_config_path, 
         ConstantWidgetConfig('%s:ColorEnumWidget' % \
                              constant_config_path, 
@@ -736,7 +736,7 @@ class Tuple(Module):
     integrated with the rest of VisTrails, so don't use it unless
     you know what you're doing."""
 
-    _settings = ModuleSettings(configureWidget=
+    _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.tuple_configuration:TupleConfigurationWidget")
     _output_ports = [OPort("self", "Tuple")]
 
@@ -757,7 +757,7 @@ class Untuple(Module):
 
     """
 
-    _settings = ModuleSettings(configureWidget=
+    _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.tuple_configuration:UntupleConfigurationWidget")
     _input_ports = [IPort("tuple", "Tuple")]
 
@@ -828,7 +828,7 @@ else:
     ListType.register(numpy.ndarray)
 
 class List(Constant):
-    _settings = ModuleSettings(configureWidget=
+    _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
                     IPort("head", "Module"),
@@ -993,7 +993,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     cache_this().
     """
     _settings = ModuleSettings(
-        configureWidget=("vistrails.gui.modules.python_source_configure:"
+        configure_widget=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
     _input_ports = [IPort('source', 'String', optional=True, default="")]
     _output_pors = [OPort('self', 'Module')]
@@ -1006,7 +1006,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
 class SmartSource(NotCacheable, Module):
     _settings = ModuleSettings(
-        configureWidget=("vistrails.gui.modules.python_source_configure:"
+        configure_widget=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
     _input_ports = [IPort('source', 'String', optional=True, default="")]
 

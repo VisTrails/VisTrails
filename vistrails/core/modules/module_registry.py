@@ -1116,155 +1116,57 @@ class ModuleRegistry(DBRegistry):
             raise TypeError("Expected module or (module, kwargs)")
 
     def add_module(self, module, **kwargs):
-        """add_module(module: class, **kwargs) -> Tree
+        """add_module(module: class, **kwargs) -> ModuleDescriptor
 
-        kwargs:
-          name=None,
-          configureWidgetType=None,
-          constantWidget(s)=None,
-          signatureCallable=None,
-          moduleColor=None,
-          moduleFringe=None,
-          moduleLeftFringe=None,
-          moduleRightFringe=None,
-          abstract=None,
-          package=None,
-          namespace=None,
-          version=None,
-          package_version=None,
-          hide_namespace=False,
-          hide_descriptor=False,
-          is_root=False,
-          ghost_package=None,
-          ghost_package_version=None,
-          ghost_namespace=None,
-
-        Registers a new module with VisTrails. Receives the class
-        itself and an optional name that will be the name of the
-        module (if not given, uses module.__name__).  This module will
-        be available for use in pipelines.
-
-        If moduleColor is not None, then registry stores it so that
-        the gui can use it correctly. moduleColor must be a tuple of
-        three floats between 0 and 1.
-
-        if moduleFringe is not None, then registry stores it so that
-        the gui can use it correctly. moduleFringe must be a list of
-        pairs of floating points.  The first point must be (0.0, 0.0),
-        and the last must be (0.0, 1.0). This will be used to generate
-        custom lateral fringes for module boxes. It must be the case
-        that all x values must be positive, and all y values must be
-        between 0.0 and 1.0. Alternatively, the user can set
-        moduleLeftFringe and moduleRightFringe to set two different
-        fringes.
-
-        if package is not None, then we override the current package
-        to be the given one. This is only intended to be used with
-        local per-module module registries (in other words: if you
-        don't know what a local per-module registry is, you can ignore
-        this, and never use the 'package' option).        
-
-        If namespace is not None, then we associate a namespace with
-        the module. A namespace is essentially appended to the package
-        identifier so that multiple modules inside the same package
-        can share the same name.
-
-        If signatureCallable is not None, then the cache uses this
-        callable as the function to generate the signature for the
-        module in the cache. The function should take three
-        parameters: the pipeline (of type core.vistrail.Pipeline), the
-        module (of type core.vistrail.Module), and a dict that stores
-        parameter hashers. This dict is supposed to be passed to
-        core/cache/hasher.py:Hasher, in case that needs to be called.
-
-        If constantSignatureCallable is not None, then the cache uses
-        this callable as the funciton to generate the signature for
-        the given constant.  If this is not None, then the added
-        module must be a subclass of Constant.
-
-        If constantWidget(s) is not None, the registry will use the
-        specified widget(s) or import path string(s) of the form
-        "<module>:<class>" to import the widget.  A tuple allows a
-        user to specify the widget_type (e.g. "default", "enum", etc.)
-        as the second item and the widget_use (e.g. "default",
-        "query", "paramexp").  If the plural form is used, we expect a
-        list, the singular form is used for a single item.
-
-        If hide_namespace is True, the ModulePalette will not display
-        the namespace for that module.  If hide_descriptor is True,
-        the ModulePalette will not display that module in its list
-        (similar to abstract).
-
-        If is_root is True, the added module will become the root
-        module.  Note that this is only possible for the first module
-        added.
-        
-        If ghost_package is not None, then the 'ghost_identifier'
-        'ghost_identifier' is set on the descriptor, which will cause
-        the module to be displayed under that package in the module
-        palette, rather than the package specified by the
-        'identifier' attribute of the descriptor.
-        
-        If ghost_package_version is not None, then the attribute
-        'ghost_package_version' is set on the descriptor.  Currently
-        this value is unused, but eventually if multiple packages
-        with the same identifier but different package versions
-        are loaded simultaneously, this will allow overriding of
-        the package_version to associate with in the module palette.
-
-        If ghost_namespace is not None, the descriptor will be
-        displayed under the specified namespace instead of the
-        'namespace' attribute of the descriptor.
-
-        Notice: in the future, more named parameters might be added to
-        this method, and the order is not specified. Always call
-        add_module with named parameters.
+        See :py:class:`vistrails.core.modules.config.ModuleSettings`.
+        All of its attributes may also be used as kwargs to
+        add_module.
 
         """
-        # Setup named arguments. We don't use named parameters so
-        # that positional parameter calls fail earlier
-        def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
-        name = fetch('name', None)
-        configureWidgetType = fetch('configureWidgetType', None)
-        configureWidget = fetch('configureWidget', None)
-        constantWidget = fetch('constantWidget', None)
-        constantWidgets = fetch('constantWidgets', None)
-        signatureCallable = fetch('signatureCallable', None)
-        constantSignatureCallable = fetch('constantSignatureCallable', None)
-        moduleColor = fetch('moduleColor', None)
-        moduleFringe = fetch('moduleFringe', None)
-        moduleLeftFringe = fetch('moduleLeftFringe', None) 
-        moduleRightFringe = fetch('moduleRightFringe', None)
-        is_abstract = fetch('abstract', False)
-        identifier = fetch('package', None)
-        # self._current_package.identifier)
-        namespace = fetch('namespace', None)
-        version = fetch('version', None)
-        package_version = fetch('package_version', None)
-        # self._current_package.version)
-        hide_namespace = fetch('hide_namespace', False)
-        hide_descriptor = fetch('hide_descriptor', False)
-        is_root = fetch('is_root', False)
-        ghost_identifier = fetch('ghost_package', None)
-        ghost_package_version = fetch('ghost_package_version', None)
-        ghost_namespace = fetch('ghost_namespace', None)
+        remap = {'configureWidgetType': 'configure_widget',
+                 'constantWidget': 'constant_widget',
+                 'constantWidgets': 'constant_widgets',
+                 'signatureCallable': 'signature',
+                 'constantSignatureCallable': 'constant_signature',
+                 'moduleColor': 'color',
+                 'moduleFringe': 'fringe',
+                 'moduleLeftFringe': 'left_fringe',
+                 'moduleRightFringe': 'right_fringe',
+                 'is_abstract': 'abstract'}
 
-        if len(kwargs) > 0:
-            raise VistrailsInternalError(
-                'Wrong parameters passed to addModule: %s' % kwargs)
-        
-        if name is None:
-            name = module.__name__
-        if identifier is None:
-            identifier = self._current_package.identifier
-        if package_version is None:
-            package_version = self._current_package.version
+        remapped_kwargs = {}
+        for k, v in kwargs.iteritems():
+            if k in remap:
+                remapped_kwargs[remap[k]] = v
+            else:
+                remapped_kwargs[k] = v
+                
+        settings = ModuleSettings(**remapped_kwargs)
+        return self.add_module_from_settings(module, settings)
+
+    def add_module_from_settings(self, module, settings):
+        """add_module(module: class, settings) -> ModuleDescriptor
+
+        See :py:class:`vistrails.core.modules.config.ModuleSettings`.
+        All of its attributes may also be used as kwargs to
+        add_module.
+
+        """
+
+        def get_setting(attr, default_val):
+            val = getattr(settings, attr)
+            if val is None:
+                return default_val
+            return val
+
+        name = get_setting('name', module.__name__)
+        identifier = get_setting('package', 
+                                 self._current_package.identifier)
+        package_version = get_setting('package_version',
+                                      self._current_package.version)
+        namespace = settings.namespace
+        version = settings.version
+
         package = self.package_versions[(identifier, package_version)]
         desc_key = (name, namespace, version)
         if desc_key in package.descriptor_versions:
@@ -1272,16 +1174,16 @@ class ModuleRegistry(DBRegistry):
 
         # We allow multiple inheritance as long as only one of the superclasses
         # is a subclass of Module.
-        if is_root:
+        if settings.is_root:
             base_descriptor = None
         else:
             candidates = self.get_subclass_candidates(module)
             if len(candidates) != 1:
                 raise InvalidModuleClass(module)
-            baseClass = candidates[0]
-            if not self._module_key_map.has_key(baseClass) :
-                raise MissingBaseClass(baseClass)
-            base_descriptor = self.get_descriptor(baseClass)
+            base_class = candidates[0]
+            if base_class not in self._module_key_map:
+                raise MissingBaseClass(base_class)
+            base_descriptor = self.get_descriptor(base_class)
 
         if module in self._module_key_map:
             # This is really obsolete as having two descriptors
@@ -1297,49 +1199,37 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.update_registry(base_descriptor, module, identifier, 
                                           name, namespace, package_version,
                                           version)
-        if is_root:
+        if settings.is_root:
             self.root_descriptor = descriptor
 
-        descriptor.set_module_abstract(is_abstract)
-        if configureWidget is None and configureWidgetType is not None:
-            configureWidget = configureWidgetType
-        descriptor.set_configuration_widget(configureWidget)
-        descriptor.is_hidden = hide_descriptor
-        descriptor.namespace_hidden = hide_namespace
+        descriptor.set_module_abstract(settings.abstract)
+        descriptor.set_configuration_widget(settings.configure_widget)
+        # descriptor.set_configuration_widget(configureWidget)
+        descriptor.is_hidden = settings.hide_descriptor
+        descriptor.namespace_hidden = settings.hide_namespace
 
-        if signatureCallable:
-            descriptor.set_hasher_callable(signatureCallable)
+        if settings.signature:
+            descriptor.set_hasher_callable(settings.signature)
 
-        if constantSignatureCallable:
-            try:
-                basic_pkg = get_vistrails_basic_pkg_id()
-                c = self.get_descriptor_by_name(basic_pkg, 'Constant').module
-            except ModuleRegistryException:
-                msg = "Constant not found - can't set constantSignatureCallable"
-                raise VistrailsInternalError(msg)
-            if not issubclass(module, c):
-                raise TypeError("To set constantSignatureCallable, module " +
+        if settings.constant_signature:
+            if not self.is_constant(module):
+                raise TypeError("To set constant_signature, module "
                                 "must be a subclass of Constant")
+                
             # FIXME, currently only allow one per hash, no versioning
             hash_key = (identifier, name, namespace)
-            self._constant_hasher_map[hash_key] = constantSignatureCallable
+            self._constant_hasher_map[hash_key] = settings.constant_signature
         
-        if constantWidget:
-            if constantWidgets is not None:
-                constantWidgets = constantWidget + constantWidgets
-            else:
-                constantWidgets = [constantWidget]
-        if constantWidgets:
-            try:
-                basic_pkg = get_vistrails_basic_pkg_id()
-                c = self.get_descriptor_by_name(basic_pkg, 'Constant').module
-            except ModuleRegistryException:
-                msg = "Constant not found - can't set constantSignatureCallable"
-                raise VistrailsInternalError(msg)
-            if not issubclass(module, c):
-                raise TypeError("To set constantWidgets, module " +
+        constant_widgets = []
+        if settings.constant_widget:
+            constant_widgets += [settings.constant_widget]
+        if settings.constant_widgets is not None:
+            constant_widgets += settings.constant_widgets
+        if len(constant_widgets) > 0:
+            if not self.is_constant(module):
+                raise TypeError("To set constant widgets, module " +
                                 "must be a subclass of Constant")
-            for widget_t in constantWidgets:
+            for widget_t in constant_widgets:
                 if isinstance(widget_t, tuple):
                     widget_t = ConstantWidgetConfig(*widget_t)
                 else:
@@ -1350,23 +1240,25 @@ class ModuleRegistry(DBRegistry):
                                                     widget_t.widget_type, 
                                                     widget_t.widget_use)
 
-        descriptor.set_module_color(moduleColor)
+        descriptor.set_module_color(settings.color)
 
-        if moduleFringe:
-            _check_fringe(moduleFringe)
-            leftFringe = list(reversed([(-x, 1.0-y) for (x, y) in moduleFringe]))
-            descriptor.set_module_fringe(leftFringe, moduleFringe)
-        elif moduleLeftFringe and moduleRightFringe:
-            _check_fringe(moduleLeftFringe)
-            _check_fringe(moduleRightFringe)
-            descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
+        if settings.fringe:
+            _check_fringe(settings.fringe)
+            left_fringe = list(reversed([(-x, 1.0-y) for (x, y) in \
+                                    settings.fringe]))
+            descriptor.set_module_fringe(left_fringe, settings.fringe)
+        elif settings.left_fringe and settings.right_fringe:
+            _check_fringe(settings.left_fringe)
+            _check_fringe(settings.right_fringe)
+            descriptor.set_module_fringe(settings.left_fringe, 
+                                         settings.right_fringe)
         
-        if ghost_identifier:
-            descriptor.ghost_identifier = ghost_identifier
-        if ghost_package_version:
-            descriptor.ghost_package_version = ghost_package_version
-        if ghost_namespace:
-            descriptor.ghost_namespace = ghost_namespace
+        if settings.ghost_package:
+            descriptor.ghost_identifier = settings.ghost_package
+        if settings.ghost_package_version:
+            descriptor.ghost_package_version = settings.ghost_package_version
+        if settings.ghost_namespace:
+            descriptor.ghost_namespace = settings.ghost_namespace
                  
         self.signals.emit_new_module(descriptor)
         if self.is_abstraction(descriptor):
@@ -1868,6 +1760,12 @@ class ModuleRegistry(DBRegistry):
         return port_spec.type == 'input' and \
             all(self.is_descriptor_subclass(d, constant_desc) 
                 for d in port_spec.descriptors())
+
+    def is_constant(self, module):
+        basic_pkg = get_vistrails_basic_pkg_id()
+        constant_cls = \
+                    self.get_descriptor_by_name(basic_pkg, 'Constant').module
+        return issubclass(module, constant_cls)
 
     def method_ports(self, module_descriptor):
         """method_ports(module_descriptor: ModuleDescriptor) 

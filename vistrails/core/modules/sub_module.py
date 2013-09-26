@@ -71,7 +71,7 @@ def input_port_signature(pipeline, obj, chm):
     return random_signature(pipeline, obj, chm)
 
 class InputPort(Module):
-    _settings = ModuleSettings(signatureCallable=input_port_signature)
+    _settings = ModuleSettings(signature=input_port_signature)
     _input_ports = [IPort("name", "String", optional=True),
                     IPort("optional", "Boolean", optional=True),
                     IPort("spec", "String"),
@@ -156,7 +156,7 @@ def group_signature(pipeline, module, chm):
     return Hasher.compound_signature(sig_list)
 
 class Group(Module):
-    _settings = ModuleSettings(signatureCallable=group_signature,
+    _settings = ModuleSettings(signature=group_signature,
                                hide_descriptor=True)
     _output_ports = [OPort("self", "Group", optional=True)]
 

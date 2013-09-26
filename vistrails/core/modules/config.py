@@ -163,13 +163,13 @@ _documentation = \
       An optional string that will identify the module (defaults to
       the module class's ``__name__``).
 
-   ModuleSettings.configureWidget: QWidget | PathString
+   ModuleSettings.configure_widget: QWidget | PathString
 
       An optional module configuration widget that is provided so that
       users can configure the module (e.g. PythonSource uses a widget
       to display a code editor more suited for writing code).
 
-   ModuleSettings.constantWidget: ConstantWidgetConfig | QWidget | PathString
+   ModuleSettings.constant_widget: ConstantWidgetConfig | QWidget | PathString
 
       If not None, the registry will use the specified widget(s) or
       import path string(s) of the form "<module>:<class>" to import
@@ -179,11 +179,11 @@ _documentation = \
       form is used, we expect a list, the singular form is used for a
       single item.
 
-   ModuleSettings.constantWidgets: List(constantWidget)
+   ModuleSettings.constant_widgets: List(constant_widget)
 
-      See :py:attr:`ModuleSettings.constantWidget`
+      See :py:attr:`ModuleSettings.constant_widget`
 
-   ModuleSettings.signatureCallable: Function
+   ModuleSettings.signature: Callable
 
       If not None, then the cache uses this callable as the function
       to generate the signature for the module in the cache. The
@@ -194,7 +194,7 @@ _documentation = \
       vistrails/core/cache/hasher.py:Hasher, in case that needs to be
       called.
 
-   ModuleSettings.constantSignatureCallable: Function
+   ModuleSettings.constant_signature: Callable
 
       If not None, the cache uses this callable as the function used
       to generate the signature for parameters of the associated
@@ -202,30 +202,30 @@ _documentation = \
       type vistrials.core.vistrail.module_param.ModuleParam) and
       returns a SHA hash.
 
-   ModuleSettings.moduleColor: (Float, Float, Float)
+   ModuleSettings.color: (Float, Float, Float)
 
       In the GUI, the module will be colored according to the
       specified RGB tuple where each value is a float in [0,1.0].
 
-   ModuleSettings.moduleFringe: List((Float, Float))
+   ModuleSettings.fringe: List((Float, Float))
 
       If not None, generates custom lateral fringes for the module
-      boxes.  A moduleFringe must be a list of pairs of floats.  The
+      boxes.  module_fringe must be a list of pairs of floats.  The
       first point must be (0.0, 0.0), and the last must be (0.0,
       1.0). This will be used to generate custom lateral fringes for
       module boxes. All x values must be positive, and all y values
       must be between 0.0 and 1.0. Alternatively, the user can set
-      :py:attr:`ModuleSettings.moduleLeftFringe` and
-      :py:attr:`ModuleSettings.moduleRightFringe` to set two different
+      :py:attr:`ModuleSettings.left_fringe` and
+      :py:attr:`ModuleSettings.right_fringe` to set two different
       fringes.
 
-   ModuleSettings.moduleLeftFringe: List((Float, Float))
+   ModuleSettings.left_fringe: List((Float, Float))
 
-      See :py:attr:`ModuleSettings.moduleFringe`.
+      See :py:attr:`ModuleSettings.fringe`.
 
-   ModuleSettings.moduleRightFringe: List((Float, Float))
+   ModuleSettings.right_fringe: List((Float, Float))
 
-      See :py:attr:`ModuleSettings.moduleFringe`.
+      See :py:attr:`ModuleSettings.fringe`.
 
    ModuleSettings.abstract: Boolean
 
@@ -455,15 +455,15 @@ ParamExpWidgetConfig = subnamedtuple('ParamExpWidgetConfig',
 
 ModuleSettings = namedtuple('ModuleSettings',
                           [(('name', None),),
-                           (('configureWidget', None),),
-                           (('constantWidget', None),),
-                           (('constantWidgets', None),),
-                           (('signatureCallable', None),),
-                           (('constantSignatureCallable', None),),
-                           (('moduleColor', None),),
-                           (('moduleFringe', None),),
-                           (('moduleLeftFringe', None),),
-                           (('moduleRightFringe', None),),
+                           (('configure_widget', None),),
+                           (('constant_widget', None),),
+                           (('constant_widgets', None),),
+                           (('signature', None),),
+                           (('constant_signature', None),),
+                           (('color', None),),
+                           (('fringe', None),),
+                           (('left_fringe', None),),
+                           (('right_fringe', None),),
                            (('abstract', False),),
                            (('package', None),),
                            (('namespace', None),),
