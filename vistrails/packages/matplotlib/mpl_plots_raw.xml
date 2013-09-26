@@ -536,10 +536,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x02F5A3F0&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>['&lt;function window_hanning at 0x02F5A2B0&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -676,35 +676,33 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 
 This keyword is not active if X and Y are specified in the call to contour.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'upper', 'lower', 'image']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="xunits" name="xunits" port_type="basic:String">
-      <docstring>Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['', 'registered units']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="extend" name="extend" port_type="basic:String">
-      <docstring>Unless this is 'neither', contour levels are automatically added to one or both ends of the range so that all data are included. These added ranges are then mapped to the special colormap values which default to the ends of the colormap range, but can be set via :meth:`matplotlib.colors.Colormap.set_under` and :meth:`matplotlib.colors.Colormap.set_over` methods.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['neither', 'both', 'min', 'max']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="vmin" name="vmin">
-      <docstring>If not None, either or both of these values will be supplied to the :class:`matplotlib.colors.Normalize` instance, overriding the default color scaling based on levels.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
-      <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[[0]]</values>
+      <values>[['upper', 'lower', 'image']]</values>
     </inputPortSpec>
     <inputPortSpec arg="linestyles" name="linestyles" port_type="basic:String">
       <docstring>If linestyles is None, the default is 'solid' unless the lines are monochrome.  In that case, negative contours will take their linestyle from the matplotlibrc contour.negative_linestyle setting.
 
 linestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
       <defaults>['solid']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="xunits" name="xunits" port_type="basic:String">
+      <docstring>Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['registered units']]</values>
+    </inputPortSpec>
+    <inputPortSpec arg="extend" name="extend" port_type="basic:String">
+      <docstring>Unless this is 'neither', contour levels are automatically added to one or both ends of the range so that all data are included. These added ranges are then mapped to the special colormap values which default to the ends of the colormap range, but can be set via :meth:`matplotlib.colors.Colormap.set_under` and :meth:`matplotlib.colors.Colormap.set_over` methods.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['neither', 'both', 'min', 'max']]</values>
+    </inputPortSpec>
+    <inputPortSpec arg="vmin" name="vmin" port_type="basic:Float">
+      <docstring>If not None, either or both of these values will be supplied to the :class:`matplotlib.colors.Normalize` instance, overriding the default color scaling based on levels.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
+      <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['0']]</values>
     </inputPortSpec>
     <inputPortSpec arg="hatches" name="hatches" port_type="basic:List">
       <docstring>A list of cross hatch patterns to use on the filled areas. If None, no hatching will be added to the contour. Hatching is supported in the PostScript, PDF, SVG and Agg backends only.</docstring>
@@ -720,12 +718,12 @@ If a number, all levels will be plotted with this linewidth.
 
 If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'number', 'tuple of numbers']]</values>
+      <values>[['number', 'tuple of numbers']]</values>
     </inputPortSpec>
     <inputPortSpec arg="locator" name="locator" port_type="basic:String">
       <docstring>If locator is None, the default :class:`~matplotlib.ticker.MaxNLocator` is used. The locator is used to determine the contour levels if they are not given explicitly via the V argument.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'ticker.Locator subclass']]</values>
+      <values>[['ticker.Locator subclass']]</values>
     </inputPortSpec>
     <inputPortSpec arg="colors" name="colors" port_type="basic:Color">
       <docstring>If None, the colormap specified by cmap will be used.
@@ -735,29 +733,27 @@ If a string, like 'r' or 'red', all levels will be plotted in this color.
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
       <translations>translate_color</translations>
       <entry_types>['enum']</entry_types>
-      <values>[['', '(mpl_colors)']]</values>
+      <values>[['(mpl_colors)']]</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:String">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="yunits" name="yunits" port_type="basic:String">
       <docstring>Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'registered units']]</values>
+      <values>[['registered units']]</values>
     </inputPortSpec>
     <inputPortSpec arg="extent" name="extent" port_type="basic:String">
       <docstring>If origin is not None, then extent is interpreted as in :func:`matplotlib.pyplot.imshow`: it gives the outer pixel boundaries. In this case, the position of Z[0,0] is the center of the pixel, not a corner. If origin is None, then (x0, y0) is the position of Z[0,0], and (x1, y1) is the position of Z[-1,-1].
 
 This keyword is not active if X and Y are specified in the call to contour.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', '(x0,x1,y0,y1)']]</values>
+      <values>[['(x0,x1,y0,y1)']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="vmax" name="vmax">
+    <inputPortSpec arg="vmax" name="vmax" port_type="basic:Float">
       <docstring>If not None, either or both of these values will be supplied to the :class:`matplotlib.colors.Normalize` instance, overriding the default color scaling based on levels.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>
@@ -770,7 +766,7 @@ This keyword is not active if X and Y are specified in the call to contour.</doc
     <inputPortSpec arg="norm" name="norm" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.contourf" name="MplContourf" superclass="MplPlot">
@@ -840,25 +836,23 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 
 This keyword is not active if X and Y are specified in the call to contour.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'upper', 'lower', 'image']]</values>
+      <values>[['upper', 'lower', 'image']]</values>
     </inputPortSpec>
     <inputPortSpec arg="linestyles" name="linestyles" port_type="basic:String">
       <docstring>If linestyles is None, the default is 'solid' unless the lines are monochrome.  In that case, negative contours will take their linestyle from the matplotlibrc contour.negative_linestyle setting.
 
 linestyles can also be an iterable of the above strings specifying a set of linestyles to be used. If this iterable is shorter than the number of contour levels it will be repeated as necessary.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
       <defaults>['solid']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="vmin" name="vmin">
+    <inputPortSpec arg="vmin" name="vmin" port_type="basic:Float">
       <docstring>If not None, either or both of these values will be supplied to the :class:`matplotlib.colors.Normalize` instance, overriding the default color scaling based on levels.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[[0]]</values>
+      <values>[['0']]</values>
     </inputPortSpec>
     <inputPortSpec arg="hatches" name="hatches" port_type="basic:List">
       <docstring>A list of cross hatch patterns to use on the filled areas. If None, no hatching will be added to the contour. Hatching is supported in the PostScript, PDF, SVG and Agg backends only.</docstring>
@@ -874,7 +868,7 @@ If a number, all levels will be plotted with this linewidth.
 
 If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'number', 'tuple of numbers']]</values>
+      <values>[['number', 'tuple of numbers']]</values>
     </inputPortSpec>
     <inputPortSpec arg="colors" name="colors" port_type="basic:Color">
       <docstring>If None, the colormap specified by cmap will be used.
@@ -884,17 +878,15 @@ If a string, like 'r' or 'red', all levels will be plotted in this color.
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
       <translations>translate_color</translations>
       <entry_types>['enum']</entry_types>
-      <values>[['', '(mpl_colors)']]</values>
+      <values>[['(mpl_colors)']]</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:String">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="vmax" name="vmax">
+    <inputPortSpec arg="vmax" name="vmax" port_type="basic:Float">
       <docstring>If not None, either or both of these values will be supplied to the :class:`matplotlib.colors.Normalize` instance, overriding the default color scaling based on levels.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>
@@ -903,7 +895,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="norm" name="norm" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.csd" name="MplCsd" superclass="MplPlot">
@@ -936,10 +928,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x02F5A3F0&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>['&lt;function window_hanning at 0x02F5A2B0&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -1007,12 +999,12 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="barsabove" arg_pos="8" name="barsabove">
       <docstring>if True, will plot the errorbars above the plot symbols. Default is below.</docstring>
-      <defaults>['below']</defaults>
+      <defaults>['False']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="xerr" arg_pos="3" name="xerr">
-      <docstring>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.
+      <docstring>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn at +/-value relative to the data.
 
-If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
+If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2 relative to the data.</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['N, Nx1, or 2xN array-like']]</values>
     </inputPortSpec>
@@ -1024,7 +1016,7 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
       <docstring>A matplotlib color arg which gives the color the errorbar lines; if None, use the marker color.</docstring>
       <translations>translate_color</translations>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'mpl color']]</values>
+      <values>[['mpl color']]</values>
     </inputPortSpec>
     <inputPortSpec arg="errorevery" arg_pos="13" name="errorevery" port_type="basic:Integer">
       <docstring>subsamples the errorbars. Eg if everyerror=5, errorbars for every 5-th datapoint will be plotted. The data plot itself still shows all data points.</docstring>
@@ -1044,9 +1036,9 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
     <inputPortSpec arg="hold" arg_pos="15" name="hold" />
     <inputPortSpec arg="yerr" arg_pos="2" name="yerr">
-      <docstring>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.
+      <docstring>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn at +/-value relative to the data.
 
-If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
+If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2 relative to the data.</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['N, Nx1, or 2xN array-like']]</values>
     </inputPortSpec>
@@ -1114,7 +1106,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 
 Call signature:
 
-fill_between(y, x1, x2=0, where=None, **kwargs)
+fill_betweenx(y, x1, x2=0, where=None, **kwargs)
 
 Create a :class:`~matplotlib.collections.PolyCollection` filling the regions between x1 and x2 where where==True
 
@@ -1170,16 +1162,17 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 If None, draws the outlines in the default color.
 
 If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the specified color.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['', 'none', 'mpl color']]</values>
-      <defaults>['none']</defaults>
-      <alternateSpec arg="" name="edgecolorsScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="edgecolorsScalar" port_type="basic:String">
+        <entry_types>['enum']</entry_types>
+        <values>[['none', 'mpl color']]</values>
+        <defaults>['none']</defaults>
+      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="C" arg_pos="2" name="C" />
     <inputPortSpec arg="gridsize" arg_pos="3" name="gridsize" port_type="basic:Integer">
       <docstring>The number of hexagons in the x-direction, default is 100. The corresponding number of hexagons in the y-direction is chosen such that the hexagons are approximately regular. Alternatively, gridsize can be a tuple with two elements specifying the number of hexagons in the x-direction and the y-direction.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[[100]]</values>
+      <values>[['100']]</values>
       <defaults>['100']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="vmin" arg_pos="10" name="vmin" port_type="basic:Float">
@@ -1189,12 +1182,11 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
       <defaults>['linear']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="reduce_C_function" arg_pos="15" name="reduce_C_function">
-      <defaults>['&lt;function mean at 0x0277B3B0&gt;']</defaults>
+      <defaults>['&lt;function mean at 0x10833b320&gt;']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="linewidths" arg_pos="13" name="linewidths">
+    <inputPortSpec arg="linewidths" arg_pos="13" name="linewidthsSequence" port_type="basic:List">
       <docstring>If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
+      <alternateSpec arg="" name="linewidthsScalar" port_type="basic:Float" />
     </inputPortSpec>
     <inputPortSpec arg="xscale" arg_pos="5" name="xscale" port_type="basic:String">
       <docstring>Use a linear or log10 scale on the horizontal axis.</docstring>
@@ -1205,17 +1197,15 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
     <inputPortSpec arg="cmap" arg_pos="8" name="cmap" port_type="basic:String">
       <docstring>a :class:`matplotlib.colors.Colormap` instance. If None, defaults to rc image.cmap.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="norm" arg_pos="9" name="norm" port_type="basic:String">
       <docstring>:class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="extent" arg_pos="7" name="extent">
+    <inputPortSpec arg="extent" arg_pos="7" name="extent" port_type="basic:Float">
       <docstring>The limits of the bins. The default assigns the limits based on gridsize, x, y, xscale and yscale.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" arg_pos="12" name="alpha" port_type="basic:Float">
       <docstring>the alpha value for the patches</docstring>
@@ -1223,10 +1213,8 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
     <inputPortSpec arg="y" arg_pos="1" name="y" required="True" />
     <inputPortSpec arg="x" arg_pos="0" name="x" required="True" />
     <inputPortSpec arg="hold" arg_pos="18" name="hold" />
-    <inputPortSpec arg="mincnt" arg_pos="16" name="mincnt">
+    <inputPortSpec arg="mincnt" arg_pos="16" name="mincnt" port_type="basic:Integer">
       <docstring>If not None, only display cells with more than mincnt number of points in the cell</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="marginals" arg_pos="17" name="marginals" port_type="basic:Boolean">
       <docstring>if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis</docstring>
@@ -1241,7 +1229,7 @@ If an integer, divide the counts in the specified number of bins, and color the 
 
 If a sequence of values, the values of the lower bound of the bins to be used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'log']]</values>
+      <values>[['log']]</values>
     </inputPortSpec>
     <inputPortSpec arg="scale" name="scale" port_type="basic:String">
       <docstring>Use a linear or log10 scale on the vertical axis.</docstring>
@@ -1350,8 +1338,9 @@ If bins is a sequence or range is specified, autoscaling is based on the specifi
     <inputPortSpec arg="hold" arg_pos="15" name="hold" />
     <inputPortSpec arg="bins" arg_pos="1" name="binsSequence" port_type="basic:List">
       <docstring>Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version &gt;= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.</docstring>
-      <defaults>['10']</defaults>
-      <alternateSpec arg="" name="binsScalar" port_type="basic:Integer" />
+      <alternateSpec arg="" name="binsScalar" port_type="basic:Integer">
+        <defaults>[10]</defaults>
+      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="log" arg_pos="11" name="log" port_type="basic:Boolean">
       <docstring>If True, the histogram axis will be set to a log scale. If log is True and x is a 1D array, empty bins will be filtered out and only the non-empty (n, bins, patches) will be returned.</docstring>
@@ -1438,12 +1427,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="colors" arg_pos="3" name="colorsSequence" port_type="basic:List">
       <docstring>a line collections color argument, either a single color or a len(y) list of colors</docstring>
-      <defaults>['k']</defaults>
-      <alternateSpec arg="" name="colorsScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="colorsScalar" port_type="basic:String">
+        <defaults>['k']</defaults>
+      </alternateSpec>
     </inputPortSpec>
-    <inputPortSpec arg="xmax" arg_pos="2" name="xmax" port_type="basic:Float" required="True">
-      <docstring>can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="xmax" arg_pos="2" name="xmax" required="True" />
     <inputPortSpec arg="y" arg_pos="0" name="y" port_type="basic:List" required="True">
       <docstring>a 1-D numpy array or iterable.</docstring>
     </inputPortSpec>
@@ -1478,7 +1466,7 @@ If interpolation is None, default to rc image.interpolation. See also the filter
 
 If interpolation is 'none', then no interpolation is performed on the Agg, ps and pdf backends. Other backends will fall back to 'nearest'.
 
-Additional kwargs are :class:`~matplotlib.artist.Artist` properties:
+Additional kwargs are :class:`~matplotlib.artist.Artist` properties.
 
 %(Artist)s
 
@@ -1497,7 +1485,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 
 cmap is ignored when X has RGB(A) information</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="filterrad" arg_pos="12" name="filterrad" port_type="basic:Float">
       <defaults>['4.0']</defaults>
@@ -1512,7 +1500,7 @@ If 'equal', and extent is None, changes the axes aspect ratio to match that of t
 
 If None, default to rc image.aspect value.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'auto', 'equal']]</values>
+      <values>[['auto', 'equal']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" arg_pos="5" name="alpha" />
     <inputPortSpec arg="vmax" arg_pos="7" name="vmax" />
@@ -1557,17 +1545,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="basey" name="basey" port_type="basic:Float">
       <docstring>Base of the x/y logarithm</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="subsx" name="subsxSequence" port_type="basic:List">
+    <inputPortSpec arg="subsx" name="subsx" port_type="basic:List">
       <docstring>The location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
-      <alternateSpec arg="" name="subsxScalar" port_type="basic:String" />
     </inputPortSpec>
-    <inputPortSpec arg="subsy" name="subsySequence" port_type="basic:List">
+    <inputPortSpec arg="subsy" name="subsy" port_type="basic:List">
       <docstring>The location of the minor x/y ticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`matplotlib.axes.Axes.set_xscale` / :meth:`matplotlib.axes.Axes.set_yscale` for details</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
-      <alternateSpec arg="" name="subsyScalar" port_type="basic:String" />
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.pcolor" name="MplPcolor" superclass="MplPlot">
@@ -1636,27 +1618,24 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 If 'none', edges will not be visible.
 
 An mpl color or sequence of colors will set the edge color</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['', 'none', 'color']]</values>
-      <alternateSpec arg="" name="edgecolorsScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="edgecolorsScalar" port_type="basic:String">
+        <entry_types>['enum']</entry_types>
+        <values>[['none', 'color']]</values>
+      </alternateSpec>
     </inputPortSpec>
-    <inputPortSpec arg="vmin" name="vmin">
+    <inputPortSpec arg="vmin" name="vmin" port_type="basic:Float">
       <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either is None, it is autoscaled to the respective min or max of the color array C.  If not None, vmin or vmax passed in here override any pre-existing values supplied in the norm instance.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Colormap` instance. If None, use rc settings.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>the alpha blending value</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="vmax" name="vmax">
+    <inputPortSpec arg="vmax" name="vmax" port_type="basic:Float">
       <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either is None, it is autoscaled to the respective min or max of the color array C.  If not None, vmin or vmax passed in here override any pre-existing values supplied in the norm instance.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="shading" name="shading" port_type="basic:String">
       <docstring>If 'faceted', a black grid is drawn around each rectangle; if 'flat', edges are not drawn. Default is 'flat', contrary to MATLAB.</docstring>
@@ -1667,7 +1646,7 @@ An mpl color or sequence of colors will set the edge color</docstring>
     <inputPortSpec arg="norm" name="norm" port_type="basic:String">
       <docstring>An :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1. If None, defaults to :func:`normalize`.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.pcolormesh" name="MplPcolormesh" superclass="MplPlot">
@@ -1702,27 +1681,24 @@ If 'None', edges will not be visible.
 If 'face', edges will have the same color as the faces.
 
 An mpl color or sequence of colors will set the edge color</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['', 'None', 'face', 'color']]</values>
-      <alternateSpec arg="" name="edgecolorsScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="edgecolorsScalar" port_type="basic:String">
+        <entry_types>['enum']</entry_types>
+        <values>[['None', 'face', 'color']]</values>
+      </alternateSpec>
     </inputPortSpec>
-    <inputPortSpec arg="vmin" name="vmin">
+    <inputPortSpec arg="vmin" name="vmin" port_type="basic:Float">
       <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either is None, it is autoscaled to the respective min or max of the color array C.  If not None, vmin or vmax passed in here override any pre-existing values supplied in the norm instance.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Colormap` instance. If None, use rc settings.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>the alpha blending value</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="vmax" name="vmax">
+    <inputPortSpec arg="vmax" name="vmax" port_type="basic:Float">
       <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either is None, it is autoscaled to the respective min or max of the color array C.  If not None, vmin or vmax passed in here override any pre-existing values supplied in the norm instance.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="shading" name="shading" port_type="basic:String">
       <docstring>'flat' indicates a solid color for each quad.  When 'gouraud', each quad will be Gouraud shaded.  When gouraud shading, edgecolors is ignored.</docstring>
@@ -1732,7 +1708,7 @@ An mpl color or sequence of colors will set the edge color</docstring>
     <inputPortSpec arg="norm" name="norm" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0,1. If None, defaults to :func:`normalize`.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.pie" name="MplPie" superclass="MplPlot">
@@ -1756,7 +1732,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="autopct" arg_pos="4" name="autopct" port_type="basic:String">
       <docstring>If not None, is a string or function used to label the wedges with their numeric value.  The label will be placed inside the wedge.  If it is a format string, the label will be fmt%pct. If it is a function, it will be called.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'format function']]</values>
+      <values>[['format function']]</values>
     </inputPortSpec>
     <inputPortSpec arg="pctdistance" arg_pos="5" name="pctdistance" port_type="basic:Float">
       <docstring>The ratio between the center of each pie slice and the start of the text generated by autopct.  Ignored if autopct is None; default is 0.6.</docstring>
@@ -1764,28 +1740,21 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="labels" arg_pos="2" name="labelsSequence" port_type="basic:List">
       <docstring>A sequence of strings providing the labels for each wedge</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
       <alternateSpec arg="" name="labelsScalar" port_type="basic:String" />
     </inputPortSpec>
-    <inputPortSpec arg="explode" arg_pos="1" name="explodeSequence" port_type="basic:List">
+    <inputPortSpec arg="explode" arg_pos="1" name="explode" port_type="basic:List">
       <docstring>If not None, is a len(x) array which specifies the fraction of the radius with which to offset each wedge.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
-      <alternateSpec arg="" name="explodeScalar" port_type="basic:String" />
     </inputPortSpec>
-    <inputPortSpec arg="colors" arg_pos="3" name="colors" port_type="basic:Color">
+    <inputPortSpec arg="colors" arg_pos="3" name="colorsSequence" port_type="basic:List">
       <docstring>A sequence of matplotlib color args through which the pie chart will cycle.</docstring>
       <translations>translate_color</translations>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
-      <defaults>["('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')"]</defaults>
+      <alternateSpec arg="" name="colorsScalar" port_type="basic:Color" />
     </inputPortSpec>
     <inputPortSpec arg="radius" arg_pos="9" name="radius" />
     <inputPortSpec arg="startangle" arg_pos="8" name="startangle" port_type="basic:String">
       <docstring>If not None, rotates the start of the pie chart by angle degrees counterclockwise from the x-axis.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Offset angle']]</values>
+      <values>[['Offset angle']]</values>
     </inputPortSpec>
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
     <inputPortSpec arg="shadow" arg_pos="6" name="shadow" port_type="basic:Boolean">
@@ -1823,7 +1792,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="tz" arg_pos="3" name="tz" port_type="basic:String">
       <docstring>The time zone to use in labeling dates. If None, defaults to rc value.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', ':class:`tzinfo` instance']]</values>
+      <values>[[':class:`tzinfo` instance']]</values>
     </inputPortSpec>
     <inputPortSpec arg="fmt" arg_pos="2" name="fmt" port_type="basic:String">
       <docstring>The plot format string.</docstring>
@@ -1871,10 +1840,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="7" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="9" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x02F5A3F0&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>['&lt;function window_hanning at 0x02F5A2B0&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -1924,10 +1893,9 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="C" name="C">
       <docstring>An optional array used to map colors to the arrows</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="scale" name="scale">
+    <inputPortSpec arg="scale" name="scaleSequence" port_type="basic:List">
       <docstring>Data units per arrow length unit, e.g. m/s per plot width; a smaller scale parameter makes the arrow longer.  If None, a simple autoscaling algorithm is used, based on the average vector length and the number of vectors.  The arrow length unit is given by the scale_units parameter</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
+      <alternateSpec arg="" name="scaleScalar" port_type="basic:Float" />
     </inputPortSpec>
     <inputPortSpec arg="width" name="width" port_type="basic:List">
       <docstring>Shaft width in arrow units; default depends on choice of units, above, and number of vectors; a typical starting value is about 0.005 times the width of the plot.</docstring>
@@ -1949,13 +1917,18 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['tail', 'middle', 'tip']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="units" name="unitsSequence" port_type="basic:List">
-      <docstring>For example, if scale_units is 'inches', scale is 2.0, and (u,v) = (1,0), then the vector will be 0.5 inches long. If scale_units is 'width', then the vector will be half the width of the axes.
+    <inputPortSpec arg="units" name="units" port_type="basic:String">
+      <docstring>Arrow units; the arrow dimensions except for length are in multiples of this unit.
 
-If scale_units is 'x' then the vector will be 0.5 x-axis units.  To plot vectors in the x-y plane, with u and v having the same units as x and y, use "angles='xy', scale_units='xy', scale=1".</docstring>
+'width' or 'height': the width or height of the axes
+
+'dots' or 'inches': pixels or inches, based on the figure dpi
+
+'x', 'y', or 'xy': X, Y, or sqrt(X^2+Y^2) data units
+
+The arrows scale differently depending on the units.  For 'x' or 'y', the arrows get larger as one zooms in; for other units, the arrow size is independent of the zoom state.  For 'width or 'height', the arrow size increases with the width and height of the axes, respectively, when the the window is resized; for 'dots' or 'inches', resizing does not change the arrows.</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['width', 'height', 'dots', 'inches', 'x', 'y', 'xy']]</values>
-      <alternateSpec arg="" name="unitsScalar" port_type="basic:String" />
     </inputPortSpec>
     <inputPortSpec arg="headwidth" name="headwidth" port_type="basic:Float">
       <docstring>Head width as multiple of shaft width, default is 3</docstring>
@@ -1987,9 +1960,10 @@ If scale_units is 'x' then the vector will be 0.5 x-axis units.  To plot vectors
     </inputPortSpec>
     <inputPortSpec arg="color" name="colorSequence" port_type="basic:List">
       <docstring>This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['color']]</values>
-      <alternateSpec arg="" name="colorScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="colorScalar" port_type="basic:String">
+        <entry_types>['enum']</entry_types>
+        <values>[['color']]</values>
+      </alternateSpec>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.quiverkey" name="MplQuiverkey" superclass="MplPlot">
@@ -2018,9 +1992,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="coordinates" name="coordinatesSequence" port_type="basic:List">
       <docstring>Coordinate system and units for X, Y: 'axes' and 'figure' are normalized coordinate systems with 0,0 in the lower left and 1,1 in the upper right; 'data' are the axes data coordinates (used for the locations of the vectors in the quiver plot itself); 'inches' is position in the figure in inches, with 0,0 at the lower left corner.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['axes', 'figure', 'data', 'inches']]</values>
-      <alternateSpec arg="" name="coordinatesScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="coordinatesScalar" port_type="basic:String">
+        <entry_types>['enum']</entry_types>
+        <values>[['axes', 'figure', 'data', 'inches']]</values>
+      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="label" arg_pos="4" name="label" port_type="basic:String" required="True">
       <docstring>A string with the length and units of the key</docstring>
@@ -2092,8 +2067,9 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="c" arg_pos="3" name="cSequence" port_type="basic:List">
       <docstring>a color. c can be a single color format string, or a sequence of color specifications of length N, or a sequence of N numbers to be mapped to colors using the cmap and norm specified via kwargs (see below). Note that c should not be a single numeric RGB or RGBA sequence because that is indistinguishable from an array of values to be colormapped.  c can be a 2-D array in which the rows are RGB or RGBA, however.</docstring>
-      <defaults>['b']</defaults>
-      <alternateSpec arg="" name="cScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="cScalar" port_type="basic:String">
+        <defaults>['b']</defaults>
+      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="vmin" arg_pos="7" name="vmin">
       <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.</docstring>
@@ -2101,10 +2077,9 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="faceted" arg_pos="11" name="faceted" port_type="basic:Boolean">
       <defaults>['True']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="linewidths" arg_pos="10" name="linewidths">
+    <inputPortSpec arg="linewidths" arg_pos="10" name="linewidthsSequence" port_type="basic:List">
       <docstring>If None, defaults to (lines.linewidth,).  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
+      <alternateSpec arg="" name="linewidthsScalar" port_type="basic:Float" />
     </inputPortSpec>
     <inputPortSpec arg="marker" arg_pos="4" name="marker" port_type="basic:String">
       <docstring>can be one of:
@@ -2119,7 +2094,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="cmap" arg_pos="5" name="cmap">
       <docstring>A :class:`matplotlib.colors.Colormap` instance or registered name. If None, defaults to rc image.cmap. cmap is only used if c is an array of floats.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="verts" arg_pos="12" name="verts" />
     <inputPortSpec arg="alpha" arg_pos="9" name="alpha" port_type="basic:Float">
@@ -2134,7 +2109,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="norm" arg_pos="6" name="norm">
       <docstring>A :class:`matplotlib.colors.Normalize` instance is used to scale luminance data to 0, 1. If None, use the default :func:`normalize`. norm is only used if c is an array of floats.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.semilogx" name="MplSemilogx" superclass="MplPlot">
@@ -2163,11 +2138,8 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['mask', 'clip']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="subsx" name="subsxSequence" port_type="basic:List">
+    <inputPortSpec arg="subsx" name="subsx" port_type="basic:List">
       <docstring>The location of the minor xticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_xscale` for details.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
-      <alternateSpec arg="" name="subsxScalar" port_type="basic:String" />
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.semilogy" name="MplSemilogy" superclass="MplPlot">
@@ -2196,11 +2168,8 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['mask', 'clip']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="subsy" name="subsySequence" port_type="basic:List">
+    <inputPortSpec arg="subsy" name="subsy" port_type="basic:List">
       <docstring>The location of the minor yticks; None defaults to autosubs, which depend on the number of decades in the plot; see :meth:`~matplotlib.axes.Axes.set_yscale` for details.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
-      <alternateSpec arg="" name="subsyScalar" port_type="basic:String" />
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.specgram" name="MplSpecgram" superclass="MplPlot">
@@ -2240,10 +2209,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="scale_by_freq" arg_pos="11" name="scale_by_freq" />
     <inputPortSpec arg="xextent" arg_pos="8" name="xextent" />
     <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x02F5A3F0&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>['&lt;function window_hanning at 0x02F5A2B0&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -2428,7 +2397,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 
 This keyword is not active if X and Y are specified in the call to contour.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'upper', 'lower', 'image']]</values>
+      <values>[['upper', 'lower', 'image']]</values>
     </inputPortSpec>
     <inputPortSpec arg="linestyles" name="linestyles" port_type="basic:String">
       <docstring>If linestyles is None, the 'solid' is used.
@@ -2437,7 +2406,7 @@ linestyles can also be an iterable of the above strings specifying a set of line
 
 If contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
     </inputPortSpec>
     <inputPortSpec arg="levels" name="levelsSequence" port_type="basic:List">
       <docstring>A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]</docstring>
@@ -2450,7 +2419,7 @@ If a number, all levels will be plotted with this linewidth.
 
 If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'number', 'tuple of numbers']]</values>
+      <values>[['number', 'tuple of numbers']]</values>
     </inputPortSpec>
     <inputPortSpec arg="colors" name="colors" port_type="basic:Color">
       <docstring>If None, the colormap specified by cmap will be used.
@@ -2460,12 +2429,12 @@ If a string, like 'r' or 'red', all levels will be plotted in this color.
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
       <translations>translate_color</translations>
       <entry_types>['enum']</entry_types>
-      <values>[['', '(mpl_colors)']]</values>
+      <values>[['(mpl_colors)']]</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:String">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="antialiased" name="antialiased" port_type="basic:Boolean">
       <docstring>enable antialiasing</docstring>
@@ -2473,7 +2442,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[[0]]</values>
+      <values>[['0']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>
@@ -2481,7 +2450,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="norm" name="norm" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.tricontourf" name="MplTricontourf" superclass="MplPlot">
@@ -2551,7 +2520,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 
 This keyword is not active if X and Y are specified in the call to contour.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'upper', 'lower', 'image']]</values>
+      <values>[['upper', 'lower', 'image']]</values>
     </inputPortSpec>
     <inputPortSpec arg="linestyles" name="linestyles" port_type="basic:String">
       <docstring>If linestyles is None, the 'solid' is used.
@@ -2560,7 +2529,7 @@ linestyles can also be an iterable of the above strings specifying a set of line
 
 If contour is using a monochrome colormap and the contour level is less than 0, then the linestyle specified in contour.negative_linestyle in matplotlibrc will be used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'solid', 'dashed', 'dashdot', 'dotted']]</values>
+      <values>[['solid', 'dashed', 'dashdot', 'dotted']]</values>
     </inputPortSpec>
     <inputPortSpec arg="levels" name="levelsSequence" port_type="basic:List">
       <docstring>A list of floating point numbers indicating the level curves to draw; eg to draw just the zero contour pass levels=[0]</docstring>
@@ -2573,7 +2542,7 @@ If a number, all levels will be plotted with this linewidth.
 
 If a tuple, different levels will be plotted with different linewidths in the order specified</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'number', 'tuple of numbers']]</values>
+      <values>[['number', 'tuple of numbers']]</values>
     </inputPortSpec>
     <inputPortSpec arg="colors" name="colors" port_type="basic:Color">
       <docstring>If None, the colormap specified by cmap will be used.
@@ -2583,12 +2552,12 @@ If a string, like 'r' or 'red', all levels will be plotted in this color.
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
       <translations>translate_color</translations>
       <entry_types>['enum']</entry_types>
-      <values>[['', '(mpl_colors)']]</values>
+      <values>[['(mpl_colors)']]</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:String">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Colormap']]</values>
+      <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="antialiased" name="antialiased" port_type="basic:Boolean">
       <docstring>enable antialiasing</docstring>
@@ -2596,7 +2565,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[[0]]</values>
+      <values>[['0']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>
@@ -2604,7 +2573,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="norm" name="norm" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['', 'Normalize']]</values>
+      <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.tripcolor" name="MplTripcolor" superclass="MplPlot">
@@ -2727,7 +2696,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>['True']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="detrend" arg_pos="3" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x02F5A3F0&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="maxlags" arg_pos="5" name="maxlags" port_type="basic:Integer">
       <defaults>['10']</defaults>
@@ -2774,9 +2743,10 @@ Example:
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="barbcolor" name="barbcolorSequence" port_type="basic:List">
       <docstring>Specifies the color all parts of the barb except any flags.  This parameter is analagous to the edgecolor parameter for polygons, which can be used instead. However this parameter will override facecolor.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['color']]</values>
-      <alternateSpec arg="" name="barbcolorScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="barbcolorScalar" port_type="basic:String">
+        <entry_types>['enum']</entry_types>
+        <values>[['color']]</values>
+      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="C" name="C">
       <docstring>An optional array used to map colors to the barbs</docstring>
@@ -2836,9 +2806,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="flagcolor" name="flagcolorSequence" port_type="basic:List">
       <docstring>Specifies the color of any flags on the barb.  This parameter is analagous to the facecolor parameter for polygons, which can be used instead. However this parameter will override facecolor.  If this is not set (and C has not either) then flagcolor will be set to match barbcolor so that the barb has a uniform color. If C has been set, flagcolor has no effect.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['color']]</values>
-      <alternateSpec arg="" name="flagcolorScalar" port_type="basic:String" />
+      <alternateSpec arg="" name="flagcolorScalar" port_type="basic:String">
+        <entry_types>['enum']</entry_types>
+        <values>[['color']]</values>
+      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="fill_empty" name="fill_empty" port_type="basic:Boolean">
       <docstring>A flag on whether the empty barbs (circles) that are drawn should be filled with the flag color.  If they are not filled, they will be drawn such that no color is applied to the center.  Default is False</docstring>
@@ -2972,9 +2943,7 @@ The loc itslef can be a 2-tuple giving x,y of the lower-left corner of the legen
 
 Keyword arguments:
 
-fontsize: [ size in points | 'xx-small' | 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'xx-large' ]
 
-Set the font size.  May be either a size string, relative to the default font size, or an absolute font size in points. This argument is only used if prop is not specified.
 
 Padding and spacing between various elements use following keywords parameters. These values are measure in font-size units. E.g., a fontsize of 10 points and a handlelength=5 implies a handlelength of 50 points.  Values from rcParams will be used if None.
 
@@ -2986,10 +2955,8 @@ Example:</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="fancybox" name="fancybox">
+    <inputPortSpec arg="fancybox" name="fancybox" port_type="basic:Boolean">
       <docstring>if True, draw a frame with a round fancybox.  If None, use rc settings</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="bbox_to_anchor" name="bbox_to_anchor">
       <docstring>the bbox that the legend will be anchored.</docstring>
@@ -3000,10 +2967,8 @@ Example:</docstring>
     <inputPortSpec arg="handlelength" name="handlelength">
       <docstring>the length of the legend handles</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="markerscale" name="markerscale">
+    <inputPortSpec arg="markerscale" name="markerscale" port_type="basic:Float">
       <docstring>The relative size of legend markers vs. original. If None, use rc settings.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
     <inputPortSpec arg="numpoints" name="numpoints" port_type="basic:Integer">
       <docstring>The number of points in the legend for line</docstring>
@@ -3014,11 +2979,17 @@ Example:</docstring>
     <inputPortSpec arg="scatterpoints" name="scatterpoints" port_type="basic:Integer">
       <docstring>The number of points in the legend for scatter plot</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="frameon" name="frameon" port_type="basic:Boolean">
-      <docstring>if True, draw a frame around the legend. The default is set by the rcParam 'legend.frameon'</docstring>
+    <inputPortSpec arg="prop" name="prop" port_type="basic:String">
+      <docstring>A :class:`matplotlib.font_manager.FontProperties` instance. If prop is a dictionary, a new instance will be created with prop. If None, use rc settings.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['FontProperties', 'None']]</values>
     </inputPortSpec>
     <inputPortSpec arg="columnspacing" name="columnspacing">
       <docstring>the spacing between columns</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="ncol" name="ncol" port_type="basic:Integer">
+      <docstring>number of columns. default is 1</docstring>
+      <defaults>['1']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="handletextpad" name="handletextpad">
       <docstring>the pad between the legend handle and text</docstring>
@@ -3030,19 +3001,16 @@ Example:</docstring>
     <inputPortSpec arg="mode" name="mode">
       <docstring>if mode is "expand", the legend will be horizontally expanded to fill the axes area (or bbox_to_anchor)</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="ncol" name="ncol" port_type="basic:Integer">
-      <docstring>number of columns. default is 1</docstring>
-      <defaults>['1']</defaults>
+    <inputPortSpec arg="fontsize" name="fontsize" port_type="basic:String">
+      <docstring>Set the font size.  May be either a size string, relative to the default font size, or an absolute font size in points. This argument is only used if prop is not specified.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['size in points', 'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="shadow" name="shadow">
+    <inputPortSpec arg="shadow" name="shadow" port_type="basic:Boolean">
       <docstring>If True, draw a shadow behind legend. If None, use rc settings.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['']]</values>
     </inputPortSpec>
-    <inputPortSpec arg="prop" name="prop" port_type="basic:String">
-      <docstring>A :class:`matplotlib.font_manager.FontProperties` instance. If prop is a dictionary, a new instance will be created with prop. If None, use rc settings.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['', 'FontProperties', None]]</values>
+    <inputPortSpec arg="frameon" name="frameon" port_type="basic:Boolean">
+      <docstring>if True, draw a frame around the legend. The default is set by the rcParam 'legend.frameon'</docstring>
     </inputPortSpec>
     <inputPortSpec arg="borderpad" name="borderpad">
       <docstring>the fractional whitespace inside the legend border</docstring>
