@@ -704,11 +704,17 @@ def parse_plots(plot_types, table_overrides):
             process_docstring(docstring, port_specs, ('pyplot', plot),
                               table_overrides)
 
-        for port_spec in port_specs.itervalues():
-            if port_spec.defaults is not None:
-                port_spec.defaults = [str(v) for v in port_spec.defaults]
-            if port_spec.values is not None:
-                port_spec.values = [[str(v) for v in port_spec.values[0]]]
+        # for port_spec in port_specs.itervalues():
+        #     if port_spec.defaults is not None:
+        #         port_spec.defaults = [str(v) for v in port_spec.defaults]
+        #     if port_spec.values is not None:
+        #         port_spec.values = [[str(v) for v in port_spec.values[0]]]
+        #     for alt_ps in port_spec.alternate_specs:
+        #         if alt_ps.defaults is not None:
+        #             alt_ps.defaults = [str(v) for v in alt_ps.defaults]
+        #         if alt_ps.values is not None:
+        #             alt_ps.values = [[str(v) for v in alt_ps.values[0]]]
+                
         module_specs.append(ModuleSpec(module_name, super_name,
                                        "matplotlib.pyplot.%s" % plot, 
                                        cleaned_docstring, port_specs.values(),

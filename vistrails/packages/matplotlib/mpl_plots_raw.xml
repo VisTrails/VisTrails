@@ -37,14 +37,14 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="normed" arg_pos="1" name="normed" port_type="basic:Boolean">
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="usevlines" arg_pos="3" name="usevlines" port_type="basic:Boolean">
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="detrend" arg_pos="2" name="detrend" />
     <inputPortSpec arg="maxlags" arg_pos="4" name="maxlags" port_type="basic:Integer">
-      <defaults>['10']</defaults>
+      <defaults>[10]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
     <inputPortSpec arg="hold" arg_pos="1" name="hold" />
@@ -100,14 +100,14 @@ Valid kwargs are :class:`~matplotlib.lines.Line2D` properties, with the exceptio
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="y" arg_pos="0" name="y" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="xmin" arg_pos="1" name="xmin" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="hold" arg_pos="3" name="hold" />
     <inputPortSpec arg="xmax" arg_pos="2" name="xmax" port_type="basic:Integer">
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.axhspan" name="MplAxhspan" superclass="MplPlot">
@@ -137,13 +137,13 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="xmin" arg_pos="2" name="xmin" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="hold" arg_pos="4" name="hold" />
     <inputPortSpec arg="ymin" arg_pos="0" name="ymin" required="True" />
     <inputPortSpec arg="ymax" arg_pos="1" name="ymax" required="True" />
     <inputPortSpec arg="xmax" arg_pos="3" name="xmax" port_type="basic:Integer">
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.axvline" name="MplAxvline" superclass="MplPlot">
@@ -175,14 +175,14 @@ Valid kwargs are :class:`~matplotlib.lines.Line2D` properties, with the exceptio
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="hold" arg_pos="3" name="hold" />
     <inputPortSpec arg="ymin" arg_pos="1" name="ymin" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="ymax" arg_pos="2" name="ymax" port_type="basic:Integer">
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.axvspan" name="MplAxvspan" superclass="MplPlot">
@@ -212,10 +212,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="xmin" arg_pos="0" name="xmin" required="True" />
     <inputPortSpec arg="hold" arg_pos="4" name="hold" />
     <inputPortSpec arg="ymin" arg_pos="2" name="ymin" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="ymax" arg_pos="3" name="ymax" port_type="basic:Integer">
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="xmax" arg_pos="1" name="xmax" required="True" />
   </moduleSpec>
@@ -262,7 +262,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="capsize" name="capsize" port_type="basic:Integer">
       <docstring>(default 3) determines the length in points of the error bar caps</docstring>
-      <defaults>['3']</defaults>
+      <defaults>[3]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="orientation" name="orientation" port_type="basic:String">
       <docstring>'vertical' | 'horizontal'</docstring>
@@ -271,7 +271,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="bottom" arg_pos="3" name="bottom" port_type="basic:Integer">
       <docstring>the y coordinates of the bottom edges of the bars</docstring>
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="color" name="color" port_type="basic:Color">
       <docstring>the colors of the bars</docstring>
@@ -295,14 +295,14 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="width" arg_pos="2" name="width" port_type="basic:Float">
       <docstring>the widths of the bars</docstring>
-      <defaults>['0.8']</defaults>
+      <defaults>[0.8]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="error_kw" name="error_kw">
       <docstring>dictionary of kwargs to be passed to errorbar method. ecolor and capsize may be specified here rather than as independent kwargs.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="log" name="log" port_type="basic:Boolean">
       <docstring>[False|True] False (default) leaves the orientation axis as-is; True sets it to log scale</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="hold" arg_pos="4" name="hold" />
     <inputPortSpec arg="yerr" name="yerr">
@@ -353,11 +353,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="capsize" name="capsize" port_type="basic:Integer">
       <docstring>(default 3) determines the length in points of the error bar caps</docstring>
-      <defaults>['3']</defaults>
+      <defaults>[3]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="log" name="log" port_type="basic:Boolean">
       <docstring>[False|True] False (default) leaves the horizontal axis as-is; True sets it to log scale</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="bottom" arg_pos="0" name="bottom" required="True">
       <docstring>the vertical positions of the bottom edges of the bars</docstring>
@@ -381,7 +381,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="height" arg_pos="2" name="height" port_type="basic:Float">
       <docstring>the heights (thicknesses) of the bars</docstring>
-      <defaults>['0.8']</defaults>
+      <defaults>[0.8]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="width" arg_pos="1" name="width" required="True">
       <docstring>the lengths of the bars</docstring>
@@ -392,7 +392,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="left" arg_pos="3" name="left" port_type="basic:Integer">
       <docstring>the x coordinates of the left edges of the bars</docstring>
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.broken_barh" name="MplBrokenBarh" superclass="MplPlot">
@@ -462,7 +462,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="hold" arg_pos="11" name="hold" />
     <inputPortSpec arg="vert" arg_pos="3" name="vert" port_type="basic:Boolean">
       <docstring>If True (default), makes the boxes vertical. If False, makes horizontal boxes.</docstring>
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="positions" arg_pos="5" name="positions">
       <docstring>Sets the horizontal positions of the boxes. The ticks and limits are automatically set to match the positions.</docstring>
@@ -479,22 +479,22 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="widths" arg_pos="6" name="widths" port_type="basic:Float">
       <docstring>Either a scalar or a vector and sets the width of each box. The default is 0.5, or 0.15*(distance between extreme positions) if that is smaller.</docstring>
-      <defaults>['0.5']</defaults>
+      <defaults>[0.5]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="patch_artist" arg_pos="7" name="patch_artist" port_type="basic:Boolean">
       <docstring>If False produces boxes with the Line2D artist If True produces boxes with the Patch artist</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True">
       <docstring>Array or a sequence of vectors.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="notch" arg_pos="1" name="notch" port_type="basic:Boolean">
       <docstring>If False (default), produces a rectangular box plot. If True, will produce a notched box plot</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="whis" arg_pos="4" name="whis" port_type="basic:Float">
       <docstring>Defines the length of the whiskers as a function of the inner quartile range.  They extend to the most extreme data point within ( whis*(75%-25%) ) data range.</docstring>
-      <defaults>['1.5']</defaults>
+      <defaults>[1.5]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="conf_intervals" arg_pos="10" name="conf_intervals" port_type="basic:List">
       <docstring>Array or sequence whose first dimension (or length) is compatible with x and whose second dimension is 2. When the current element of conf_intervals is not None, the notch locations computed by matplotlib are overridden (assuming notch is True). When an element of conf_intervals is None, boxplot compute notches the method specified by the other kwargs (e.g. bootstrap).</docstring>
@@ -531,21 +531,21 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="Fs" arg_pos="3" name="Fs" port_type="basic:Integer">
-      <defaults>['2']</defaults>
+      <defaults>[2]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>[&lt;function detrend_none at 0x106c49398&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>[&lt;function window_hanning at 0x106c3a488&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="NFFT" arg_pos="2" name="NFFT" port_type="basic:Integer">
-      <defaults>['256']</defaults>
+      <defaults>[256]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="y" arg_pos="1" name="y" port_type="basic:List" required="True" />
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
@@ -554,7 +554,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>['default']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="noverlap" arg_pos="7" name="noverlap" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.clabel" name="MplClabel" superclass="MplPlot">
@@ -605,12 +605,12 @@ if a tuple of matplotlib color args (string, float, rgb, etc), different labels 
     </inputPortSpec>
     <inputPortSpec arg="rightside_up" name="rightside_up" port_type="basic:Boolean">
       <docstring>if True (default), label rotations will always be plus or minus 90 degrees from level.</docstring>
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="CS" arg_pos="0" name="CS" required="True" />
     <inputPortSpec arg="inline" name="inline" port_type="basic:Boolean">
       <docstring>controls whether the underlying contour is removed or not. Default is True.</docstring>
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.contour" name="MplContour" superclass="MplPlot">
@@ -702,7 +702,7 @@ linestyles can also be an iterable of the above strings specifying a set of line
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['0']]</values>
+      <values>[[0]]</values>
     </inputPortSpec>
     <inputPortSpec arg="hatches" name="hatches" port_type="basic:List">
       <docstring>A list of cross hatch patterns to use on the filled areas. If None, no hatching will be added to the contour. Hatching is supported in the PostScript, PDF, SVG and Agg backends only.</docstring>
@@ -761,7 +761,7 @@ This keyword is not active if X and Y are specified in the call to contour.</doc
     <inputPortSpec arg="Z" arg_pos="0" name="Z" required="True" />
     <inputPortSpec arg="antialiased" name="antialiased" port_type="basic:Boolean">
       <docstring>enable antialiasing, overriding the defaults.  For filled contours, the default is True.  For line contours, it is taken from rcParams['lines.antialiased'].</docstring>
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="norm" name="norm" port_type="basic:String">
       <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
@@ -852,7 +852,7 @@ linestyles can also be an iterable of the above strings specifying a set of line
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['0']]</values>
+      <values>[[0]]</values>
     </inputPortSpec>
     <inputPortSpec arg="hatches" name="hatches" port_type="basic:List">
       <docstring>A list of cross hatch patterns to use on the filled areas. If None, no hatching will be added to the contour. Hatching is supported in the PostScript, PDF, SVG and Agg backends only.</docstring>
@@ -923,21 +923,21 @@ seealso:  :meth:`psd`     For a description of the optional parameters.
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="Fs" arg_pos="3" name="Fs" port_type="basic:Integer">
-      <defaults>['2']</defaults>
+      <defaults>[2]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>[&lt;function detrend_none at 0x106c49398&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>[&lt;function window_hanning at 0x106c3a488&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="NFFT" arg_pos="2" name="NFFT" port_type="basic:Integer">
-      <defaults>['256']</defaults>
+      <defaults>[256]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="y" arg_pos="1" name="y" port_type="basic:List" required="True" />
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
@@ -946,7 +946,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>['default']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="noverlap" arg_pos="7" name="noverlap" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.errorbar" name="MplErrorbar" superclass="MplPlot">
@@ -983,23 +983,23 @@ Example:
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="lolims" arg_pos="9" name="lolims" port_type="basic:Boolean">
       <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="capsize" arg_pos="7" name="capsize" port_type="basic:Float">
       <docstring>The length of the error bar caps in points</docstring>
-      <defaults>['3']</defaults>
+      <defaults>[3]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="uplims" arg_pos="10" name="uplims" port_type="basic:Boolean">
       <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="xlolims" arg_pos="11" name="xlolims" port_type="basic:Boolean">
       <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="barsabove" arg_pos="8" name="barsabove">
       <docstring>if True, will plot the errorbars above the plot symbols. Default is below.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="xerr" arg_pos="3" name="xerr">
       <docstring>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn at +/-value relative to the data.
@@ -1020,14 +1020,14 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2 relative to t
     </inputPortSpec>
     <inputPortSpec arg="errorevery" arg_pos="13" name="errorevery" port_type="basic:Integer">
       <docstring>subsamples the errorbars. Eg if everyerror=5, errorbars for every 5-th datapoint will be plotted. The data plot itself still shows all data points.</docstring>
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="capthick" arg_pos="14" name="capthick" port_type="basic:Float">
       <docstring>An alias kwarg to markeredgewidth (a.k.a. - mew). This setting is a more sensible name for the property that controls the thickness of the error bar cap in points. For backwards compatibility, if mew or markeredgewidth are given, then they will over-ride capthick.  This may change in future releases.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="xuplims" arg_pos="12" name="xuplims" port_type="basic:Boolean">
       <docstring>These arguments can be used to indicate that a value gives only upper/lower limits. In that case a caret symbol is used to indicate this. lims-arguments may be of the same type as xerr and yerr.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="elinewidth" arg_pos="6" name="elinewidth" port_type="basic:Float">
       <docstring>The linewidth of the errorbar lines. If None, use the linewidth.</docstring>
@@ -1091,10 +1091,10 @@ kwargs control the :class:`~matplotlib.patches.Polygon` properties:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="y2" arg_pos="2" name="y2" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="interpolate" arg_pos="4" name="interpolate" port_type="basic:Boolean">
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="y1" arg_pos="1" name="y1" required="True" />
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
@@ -1119,7 +1119,7 @@ kwargs control the :class:`~matplotlib.patches.Polygon` properties:
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="y" arg_pos="0" name="y" port_type="basic:List" required="True" />
     <inputPortSpec arg="x2" arg_pos="2" name="x2" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="hold" arg_pos="4" name="hold" />
     <inputPortSpec arg="x1" arg_pos="1" name="x1" required="True" />
@@ -1172,8 +1172,8 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
     <inputPortSpec arg="gridsize" arg_pos="3" name="gridsize" port_type="basic:Integer">
       <docstring>The number of hexagons in the x-direction, default is 100. The corresponding number of hexagons in the y-direction is chosen such that the hexagons are approximately regular. Alternatively, gridsize can be a tuple with two elements specifying the number of hexagons in the x-direction and the y-direction.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['100']]</values>
-      <defaults>['100']</defaults>
+      <values>[[100]]</values>
+      <defaults>[100]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="vmin" arg_pos="10" name="vmin" port_type="basic:Float">
       <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.</docstring>
@@ -1182,7 +1182,7 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
       <defaults>['linear']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="reduce_C_function" arg_pos="15" name="reduce_C_function">
-      <defaults>['&lt;function mean at 0x10833b320&gt;']</defaults>
+      <defaults>[&lt;function mean at 0x1065e2410&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="linewidths" arg_pos="13" name="linewidthsSequence" port_type="basic:List">
       <docstring>If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
@@ -1218,7 +1218,7 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
     </inputPortSpec>
     <inputPortSpec arg="marginals" arg_pos="17" name="marginals" port_type="basic:Boolean">
       <docstring>if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="bins" arg_pos="4" name="bins">
       <docstring>If None, no binning is applied; the color of each hexagon directly corresponds to its count value.
@@ -1270,13 +1270,13 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
 pdf, bins, patches = ax.hist(...) print np.sum(pdf * np.diff(bins))
 
 Until numpy release 1.5, the underlying numpy histogram function was incorrect with normed*=*True if bin sizes were unequal.  MPL inherited that error.  It is now corrected within MPL when using earlier numpy versions</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="stacked" arg_pos="14" name="stacked" port_type="basic:Boolean">
       <docstring>If True, multiple data are stacked on top of each other If False multiple data are aranged side by side if histtype is 'bar' or on top of each other if histtype is 'step'
 
 .</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="orientation" arg_pos="9" name="orientation" port_type="basic:String">
       <docstring>If 'horizontal', :func:`~matplotlib.pyplot.barh` will be used for bar-type histograms and the bottom kwarg will be the left edges.</docstring>
@@ -1318,7 +1318,7 @@ Until numpy release 1.5, the underlying numpy histogram function was incorrect w
     </inputPortSpec>
     <inputPortSpec arg="cumulative" arg_pos="5" name="cumulative" port_type="basic:Boolean">
       <docstring>If True, then a histogram is computed where each bin gives the counts in that bin plus all bins for smaller values. The last bin gives the total number of datapoints.  If normed is also True then the histogram is normalized such that the last bin equals 1. If cumulative evaluates to less than 0 (e.g. -1), the direction of accumulation is reversed.  In this case, if normed is also True, then the histogram is normalized such that the first bin equals 1.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="label" arg_pos="13" name="labelSequence" port_type="basic:List">
       <docstring>String, or sequence of strings to match multiple datasets.  Bar charts yield multiple patches per dataset, but only the first gets the label, so that the legend command will work as expected:
@@ -1344,7 +1344,7 @@ If bins is a sequence or range is specified, autoscaling is based on the specifi
     </inputPortSpec>
     <inputPortSpec arg="log" arg_pos="11" name="log" port_type="basic:Boolean">
       <docstring>If True, the histogram axis will be set to a log scale. If log is True and x is a 1D array, empty bins will be filtered out and only the non-empty (n, bins, patches) will be returned.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.hist2d" name="MplHist2d" superclass="MplPlot">
@@ -1380,7 +1380,7 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="normed" arg_pos="4" name="normed" port_type="basic:Boolean">
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="cmin" arg_pos="6" name="cmin" />
     <inputPortSpec arg="range" arg_pos="3" name="range" />
@@ -1390,7 +1390,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="hold" arg_pos="8" name="hold" />
     <inputPortSpec arg="cmax" arg_pos="7" name="cmax" />
     <inputPortSpec arg="bins" arg_pos="2" name="bins" port_type="basic:Integer">
-      <defaults>['10']</defaults>
+      <defaults>[10]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.hlines" name="MplHlines" superclass="MplPlot">
@@ -1488,10 +1488,10 @@ cmap is ignored when X has RGB(A) information</docstring>
       <values>[['Colormap']]</values>
     </inputPortSpec>
     <inputPortSpec arg="filterrad" arg_pos="12" name="filterrad" port_type="basic:Float">
-      <defaults>['4.0']</defaults>
+      <defaults>[4.0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="filternorm" arg_pos="11" name="filternorm" port_type="basic:Integer">
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="aspect" arg_pos="3" name="aspect">
       <docstring>If 'auto', changes the image aspect ratio to match that of the axes
@@ -1736,7 +1736,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="pctdistance" arg_pos="5" name="pctdistance" port_type="basic:Float">
       <docstring>The ratio between the center of each pie slice and the start of the text generated by autopct.  Ignored if autopct is None; default is 0.6.</docstring>
-      <defaults>['0.6']</defaults>
+      <defaults>[0.6]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="labels" arg_pos="2" name="labelsSequence" port_type="basic:List">
       <docstring>A sequence of strings providing the labels for each wedge</docstring>
@@ -1759,12 +1759,12 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
     <inputPortSpec arg="shadow" arg_pos="6" name="shadow" port_type="basic:Boolean">
       <docstring>Draw a shadow beneath the pie.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="hold" arg_pos="10" name="hold" />
     <inputPortSpec arg="labeldistance" arg_pos="7" name="labeldistance" port_type="basic:Float">
       <docstring>The radial distance at which the pie labels are drawn</docstring>
-      <defaults>['1.1']</defaults>
+      <defaults>[1.1]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.plot_date" name="MplPlotDate" superclass="MplPlot">
@@ -1800,11 +1800,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="ydate" arg_pos="5" name="ydate" port_type="basic:Boolean">
       <docstring>If True, the y-axis will be labeled with dates.</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="xdate" arg_pos="4" name="xdate" port_type="basic:Boolean">
       <docstring>If True, the x-axis will be labeled with dates.</docstring>
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="y" arg_pos="1" name="y" port_type="basic:List" required="True" />
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
@@ -1835,21 +1835,21 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="Fs" arg_pos="2" name="Fs" port_type="basic:Integer">
-      <defaults>['2']</defaults>
+      <defaults>[2]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="pad_to" arg_pos="7" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="9" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>[&lt;function detrend_none at 0x106c49398&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>[&lt;function window_hanning at 0x106c3a488&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="NFFT" arg_pos="1" name="NFFT" port_type="basic:Integer">
-      <defaults>['256']</defaults>
+      <defaults>[256]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
     <inputPortSpec arg="hold" arg_pos="10" name="hold" />
@@ -1857,7 +1857,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>['default']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="noverlap" arg_pos="6" name="noverlap" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.quiver" name="MplQuiver" superclass="MplPlot">
@@ -1888,7 +1888,7 @@ agg_filter: unknown alpha: float or None animated: [True | False] antialiased or
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="headaxislength" name="headaxislength" port_type="basic:Float">
       <docstring>Head length at shaft intersection, default is 4.5</docstring>
-      <defaults>['4.5']</defaults>
+      <defaults>[4.5]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="C" name="C">
       <docstring>An optional array used to map colors to the arrows</docstring>
@@ -1902,15 +1902,15 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="headlength" name="headlength" port_type="basic:Float">
       <docstring>Head length as multiple of shaft width, default is 5</docstring>
-      <defaults>['5']</defaults>
+      <defaults>[5]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="minlength" name="minlength" port_type="basic:Float">
       <docstring>Minimum length as a multiple of shaft width; if an arrow length is less than this, plot a dot (hexagon) of this diameter instead. Default is 1.</docstring>
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="minshaft" name="minshaft" port_type="basic:Float">
       <docstring>Length below which arrow scales, in units of head length. Do not set this to less than 1, or small arrows will look terrible! Default is 1</docstring>
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="pivot" name="pivot" port_type="basic:String">
       <docstring>The part of the arrow that is at the grid point; the arrow rotates about this point, hence the name pivot.</docstring>
@@ -1932,7 +1932,7 @@ The arrows scale differently depending on the units.  For 'x' or 'y', the arrows
     </inputPortSpec>
     <inputPortSpec arg="headwidth" name="headwidth" port_type="basic:Float">
       <docstring>Head width as multiple of shaft width, default is 3</docstring>
-      <defaults>['3']</defaults>
+      <defaults>[3]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="U" name="U" port_type="basic:List">
       <docstring>Give the x and y components of the arrow vectors</docstring>
@@ -2026,7 +2026,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="labelsep" name="labelsep" port_type="basic:Float">
       <docstring>Distance in inches between the arrow and the label.  Default is 0.1</docstring>
-      <defaults>['0.1']</defaults>
+      <defaults>[0.1]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.scatter" name="MplScatter" superclass="MplPlot">
@@ -2075,7 +2075,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <docstring>vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="faceted" arg_pos="11" name="faceted" port_type="basic:Boolean">
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="linewidths" arg_pos="10" name="linewidthsSequence" port_type="basic:List">
       <docstring>If None, defaults to (lines.linewidth,).  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
@@ -2089,7 +2089,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="s" arg_pos="2" name="s" port_type="basic:Float">
       <docstring>size in points^2.  It is a scalar or an array of the same length as x and y.</docstring>
-      <defaults>['20']</defaults>
+      <defaults>[20]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="cmap" arg_pos="5" name="cmap">
       <docstring>A :class:`matplotlib.colors.Colormap` instance or registered name. If None, defaults to rc image.cmap. cmap is only used if c is an array of floats.</docstring>
@@ -2203,22 +2203,22 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="Fs" arg_pos="2" name="Fs" port_type="basic:Integer">
-      <defaults>['2']</defaults>
+      <defaults>[2]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="pad_to" arg_pos="9" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="11" name="scale_by_freq" />
     <inputPortSpec arg="xextent" arg_pos="8" name="xextent" />
     <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>[&lt;function detrend_none at 0x106c49398&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>[&lt;function window_hanning at 0x106c3a488&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="NFFT" arg_pos="1" name="NFFT" port_type="basic:Integer">
-      <defaults>['256']</defaults>
+      <defaults>[256]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="cmap" arg_pos="7" name="cmap" />
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
@@ -2227,7 +2227,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>['default']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="noverlap" arg_pos="6" name="noverlap" port_type="basic:Integer">
-      <defaults>['128']</defaults>
+      <defaults>[128]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.stackplot" name="MplStackplot" superclass="MplPlot">
@@ -2312,15 +2312,15 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>['-|&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="density" arg_pos="4" name="density" port_type="basic:Integer">
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="color" arg_pos="6" name="color" />
     <inputPortSpec arg="minlength" arg_pos="11" name="minlength" port_type="basic:Float">
-      <defaults>['0.1']</defaults>
+      <defaults>[0.1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="transform" arg_pos="12" name="transform" />
     <inputPortSpec arg="arrowsize" arg_pos="9" name="arrowsize" port_type="basic:Integer">
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="cmap" arg_pos="7" name="cmap" />
     <inputPortSpec arg="u" arg_pos="2" name="u" required="True" />
@@ -2442,7 +2442,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['0']]</values>
+      <values>[[0]]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>
@@ -2565,7 +2565,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['0']]</values>
+      <values>[[0]]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>
@@ -2690,16 +2690,16 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="normed" arg_pos="2" name="normed" port_type="basic:Boolean">
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="usevlines" arg_pos="4" name="usevlines" port_type="basic:Boolean">
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="detrend" arg_pos="3" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>[&lt;function detrend_none at 0x106c49398&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="maxlags" arg_pos="5" name="maxlags" port_type="basic:Integer">
-      <defaults>['10']</defaults>
+      <defaults>[10]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="y" arg_pos="1" name="y" port_type="basic:List" required="True" />
     <inputPortSpec arg="x" arg_pos="0" name="x" port_type="basic:List" required="True" />
@@ -2764,7 +2764,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="rounding" name="rounding" port_type="basic:Boolean">
       <docstring>A flag to indicate whether the vector magnitude should be rounded when allocating barb components.  If True, the magnitude is rounded to the nearest multiple of the half-barb increment.  If False, the magnitude is simply truncated to the next lowest multiple.  Default is True</docstring>
-      <defaults>['True']</defaults>
+      <defaults>[True]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="pivot" name="pivot" port_type="basic:String">
       <docstring>The part of the arrow that is at the grid point; the arrow rotates about this point, hence the name pivot.  Default is 'tip'</docstring>
@@ -2774,11 +2774,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="flip_barb" name="flip_barb" port_type="basic:Boolean">
       <docstring>Either a single boolean flag or an array of booleans.  Single boolean indicates whether the lines and flags should point opposite to normal for all barbs.  An array (which should be the same size as the other data arrays) indicates whether to flip for each individual barb.  Normal behavior is for the barbs and lines to point right (comes from wind barbs having these features point towards low pressure in the Northern Hemisphere.)  Default is False</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="length" name="length" port_type="basic:Integer">
       <docstring>Length of the barb in points; the other parts of the barb are scaled against this. Default is 9</docstring>
-      <defaults>['9']</defaults>
+      <defaults>[9]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="barb_increments" name="barb_increments" port_type="basic:String">
       <docstring>A dictionary of increments specifying values to associate with different parts of the barb. Only those values one wishes to override need to be included.
@@ -2813,7 +2813,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="fill_empty" name="fill_empty" port_type="basic:Boolean">
       <docstring>A flag on whether the empty barbs (circles) that are drawn should be filled with the flag color.  If they are not filled, they will be drawn such that no color is applied to the center.  Default is False</docstring>
-      <defaults>['False']</defaults>
+      <defaults>[False]</defaults>
     </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.pyplot.spy" name="MplSpy" superclass="MplPlot">
@@ -2869,7 +2869,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="hold" arg_pos="5" name="hold" />
     <inputPortSpec arg="markersize" arg_pos="3" name="markersize" />
     <inputPortSpec arg="precision" arg_pos="1" name="precision" port_type="basic:Integer">
-      <defaults>['0']</defaults>
+      <defaults>[0]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="aspect" arg_pos="4" name="aspect" port_type="basic:String">
       <defaults>['equal']</defaults>
@@ -2982,14 +2982,14 @@ Example:</docstring>
     <inputPortSpec arg="prop" name="prop" port_type="basic:String">
       <docstring>A :class:`matplotlib.font_manager.FontProperties` instance. If prop is a dictionary, a new instance will be created with prop. If None, use rc settings.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[['FontProperties', 'None']]</values>
+      <values>[['FontProperties', None]]</values>
     </inputPortSpec>
     <inputPortSpec arg="columnspacing" name="columnspacing">
       <docstring>the spacing between columns</docstring>
     </inputPortSpec>
     <inputPortSpec arg="ncol" name="ncol" port_type="basic:Integer">
       <docstring>number of columns. default is 1</docstring>
-      <defaults>['1']</defaults>
+      <defaults>[1]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="handletextpad" name="handletextpad">
       <docstring>the pad between the legend handle and text</docstring>

@@ -554,9 +554,6 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.fill_between" port="y2" type="input">
     <value>basic:Float</value>
   </changePortSpec>
-  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.fill_between" port="y2" type="input">
-    <value>['0.0']</value>
-  </changePortSpec>
   <addPortSpec altName="y2Sequence" code_ref="matplotlib.pyplot.fill_between" port="y2" type="alternate">
     <value>
       <alternateSpec arg="y2" name="y2Sequence" port_type="basic:List">
@@ -845,7 +842,7 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
     <value>basic:Integer</value>
   </changePortSpec>
   <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
-    <value>['10']</value>
+    <value>[10]</value>
   </changePortSpec>
   <deletePortSpec altName="binsScalar" code_ref="matplotlib.pyplot.hist" port="bins" type="alternate" />
   <addPortSpec altName="binsSequence" code_ref="matplotlib.pyplot.hist" port="bins" type="alternate">
