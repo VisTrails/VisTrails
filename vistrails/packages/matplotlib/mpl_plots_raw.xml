@@ -536,10 +536,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x107484230&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x10747a320&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -928,10 +928,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x107484230&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x10747a320&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -1182,7 +1182,7 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
       <defaults>['linear']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="reduce_C_function" arg_pos="15" name="reduce_C_function">
-      <defaults>['&lt;function mean at 0x10833b320&gt;']</defaults>
+      <defaults>['&lt;function mean at 0x106b5c2a8&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="linewidths" arg_pos="13" name="linewidthsSequence" port_type="basic:List">
       <docstring>If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
@@ -1339,7 +1339,7 @@ If bins is a sequence or range is specified, autoscaling is based on the specifi
     <inputPortSpec arg="bins" arg_pos="1" name="binsSequence" port_type="basic:List">
       <docstring>Either an integer number of bins or a sequence giving the bins.  If bins is an integer, bins + 1 bin edges will be returned, consistent with :func:`numpy.histogram` for numpy version &gt;= 1.3, and with the new = True argument in earlier versions. Unequally spaced bins are supported if bins is a sequence.</docstring>
       <alternateSpec arg="" name="binsScalar" port_type="basic:Integer">
-        <defaults>[10]</defaults>
+        <defaults>['10']</defaults>
       </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="log" arg_pos="11" name="log" port_type="basic:Boolean">
@@ -1840,10 +1840,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="7" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="9" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x107484230&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x10747a320&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -2209,10 +2209,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="scale_by_freq" arg_pos="11" name="scale_by_freq" />
     <inputPortSpec arg="xextent" arg_pos="8" name="xextent" />
     <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x107484230&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>['&lt;function window_hanning at 0x108c57398&gt;']</defaults>
+      <defaults>['&lt;function window_hanning at 0x10747a320&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
       <defaults>['0']</defaults>
@@ -2696,7 +2696,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>['True']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="detrend" arg_pos="3" name="detrend">
-      <defaults>['&lt;function detrend_none at 0x108c612a8&gt;']</defaults>
+      <defaults>['&lt;function detrend_none at 0x107484230&gt;']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="maxlags" arg_pos="5" name="maxlags" port_type="basic:Integer">
       <defaults>['10']</defaults>

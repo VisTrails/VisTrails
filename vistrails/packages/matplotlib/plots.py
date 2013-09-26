@@ -1421,7 +1421,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.getInputFromPort('norm')
             kwargs['norm'] = val
 
-        if self.has_input("N") and self.has_input("V"):
+        if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
             del args[-1]
         contour_set = matplotlib.pyplot.contour(*args, **kwargs)
         output = (contour_set, contour_set.collections)
@@ -1606,7 +1606,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.getInputFromPort('norm')
             kwargs['norm'] = val
 
-        if self.has_input("N") and self.has_input("V"):
+        if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
             del args[-1]
         contour_set = matplotlib.pyplot.contourf(*args, **kwargs)
         output = (contour_set, contour_set.collections)
@@ -5353,12 +5353,12 @@ Additional kwargs are Text properties:
             val = self.getInputFromPort('textcoords')
             kwargs['textcoords'] = val
 
-        if self.has_input("fancyArrowProperties"):
+        if self.hasInputFromPort("fancyArrowProperties"):
             kwargs['arrowprops'] = \
-                self.get_input("fancyArrowProperties").props
-        elif self.has_input("arrowProperties"):
+                self.getInputFromPort("fancyArrowProperties").props
+        elif self.hasInputFromPort("arrowProperties"):
             kwargs['arrowprops'] = \
-                self.get_input("arrowProperties").props
+                self.getInputFromPort("arrowProperties").props
         annotation = matplotlib.pyplot.annotate(*args, **kwargs)
         if self.hasInputFromPort('annotationProperties'):
             properties = self.getInputFromPort('annotationProperties')
