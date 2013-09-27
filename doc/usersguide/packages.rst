@@ -20,7 +20,7 @@ Introduction
 plugin infrastructure to integrate user-defined functions and
 libraries. Specifically, users can incorporate their own visualization
 and simulation code into pipelines by defining custom modules (or wrappers). These
-modules are bundled in what we call *packages*. A \vistrails
+modules are bundled in what we call *packages*. A |vistrails|
 package is simply a collection of Python classes stored in one or more
 files, respecting some conventions that will be described shortly.
 Each of these classes will represent a new module. In this chapter, we
@@ -65,7 +65,7 @@ Here is the definition of a very simple module:
                raise ModuleError(self, "Division by zero")
            self.set_output("result", arg1 / arg2)
 
-New VisTrails modules must subclass from :py:class:`.Module`, the base class that defines basic functionality. The only required override is the ``compute`` method, which performs the actual module computation. Input and output is specified through ports, which must be explicitly registered with |vistrails| using the ``_input_ports`` and ``_output_ports`` lists.
+New VisTrails modules must subclass from :py:class:`~vistrails.core.modules.vistrails_module.Module`, the base class that defines basic functionality. The only required override is the :py:meth:`~vistrails.core.modules.vistrails_module.Module.compute` method, which performs the actual module computation. Input and output is specified through ports, which must be explicitly registered with |vistrails| using the :py:attr:`~.vistrails_module.Module._input_ports` and :py:attr:`~.vistrails_module.Module._output_ports` lists.  Simple ports are specified using :py:class:`~.config.InputPort` (:py:class:`~.config.IPort`) and :py:class:`~.config.OutputPort` (:py:class:`~.config.OPort`) objects.
 
 .. _sec-packages-simple-example:
 
@@ -133,13 +133,13 @@ use their institution's DNS, use your own. The rationale for this is
 that the third party itself might decide to create their own |vistrails|
 package, and you do not want to introduce conflicts.
 
-The ``init.py`` file contains the actual definitions of the modules. Every |vistrails| module corresponds to a Python class that ultimately derives from the :py:class:`.Module` class, which is defined in ``vistrails.core.modules.vistrails_module``. Each module must define input ports and output ports as well as implement a ``compute`` method that takes no extra parameters.
+The ``init.py`` file contains the actual definitions of the modules. Every |vistrails| module corresponds to a Python class that ultimately derives from the :py:class:`.Module` class, which is defined in :py:mod:`vistrails.core.modules.vistrails_module`. Each module must define input ports and output ports as well as implement a :py:meth:`~.vistrails_module.Module.compute` method that takes no extra parameters.
 
 .. index:: ports
    pair: modules; ``_input_ports``
    pair: modules; ``_output_ports``
 
-We need to tell |vistrails| about the input and output ports we want to expose in a module.  Input ports are set in the ``_input_ports`` list and output ports in the ``_output_ports`` list. Each object in these lists is defined from a type from ``vistrials.core.modules.config``.  The most basic port types are :py:class:`.InputPort` (or ``IPort``) and :py:class:`.OutputPort` (or ``OPort``).  Each requires two arguments, the *name* of the port and the *signature* of the port.  A name may be any string, but must be unique across all inputs or outputs.  The same name may be used both for an input and an output. The signature defines the type of the port; |vistrails| allows any module to also be a type. A signature is a string composed of the module's package identifier followed by a colon and the module's name.  Many basic module types including ``String``, ``Float``, and ``Integer`` are defined by |vistrails| in the Basic Modules package.  Thus, the ``Float`` module's signature is ``org.vistrails.vistrails.basic:Float``.  Any core package that is distributed with |vistrails| has an identifier that begins ``org.vistrails.vistrails`` and thus you may omit that prefix for brevity; ``basic:Float`` defines the same signature.  There are a number of other options for ports, but we will cover these later.
+We need to tell |vistrails| about the input and output ports we want to expose in a module.  Input ports are set in the :py:attr:`~.vistrails_module.Module._input_ports` list and output ports in the :py:attr:`~.vistrails_module.Module._output_ports` list. Each object in these lists is defined from a type from :py:mod:`vistrails.core.modules.config`.  The most basic port types are :py:class:`~.modules.config.InputPort` (aka :py:class:`~.modules.config.IPort`) and :py:class:`~.modules.config.OutputPort` (aka :py:class:`~.modules.config.OPort`).  Each requires two arguments, the *name* of the port and the *signature* of the port.  A name may be any string, but must be unique across all inputs or outputs.  The same name may be used both for an input and an output. The signature defines the type of the port; |vistrails| allows any module to also be a type. A signature is a string composed of the module's package identifier followed by a colon and the module's name.  Many basic module types including ``String``, ``Float``, and ``Integer`` are defined by |vistrails| in the Basic Modules package.  Thus, the ``Float`` module's signature is ``org.vistrails.vistrails.basic:Float``.  Any core package that is distributed with |vistrails| has an identifier that begins ``org.vistrails.vistrails`` and thus you may omit that prefix for brevity; ``basic:Float`` defines the same signature.  There are a number of other options for ports, but we will cover these later.
 
 .. index::
    pair: modules; ``compute``
@@ -157,8 +157,8 @@ API. The other important feature of the ``op`` method is
 *error checking*. ``PythonCalc`` requires a string that
 represents the operation to be performed with the two numbers. If the
 string is invalid, it signals an error by simply raising a Python
-exception, ``ModuleError``, that is provided in
-``vistrails.core.modules.vistrails_module``. This exception expects two
+exception, :py:class:`~.modules.vistrails_module.ModuleError`, that is provided in
+:py:mod:`vistrails.core.modules.vistrails_module`. This exception expects two
 parameters: the module that generated the exception (typically
 ``self``) and a string describing the error. In the Pipeline view, this error message is displayed in the tooltip that appears when the user moves the cursor over the ``PythonCalc`` module icon.
 
@@ -225,21 +225,31 @@ Configuration
 .. index::
    pair: packages; configuration
 
-There are two obvious shortcomings in the way ``run()`` is
-implemented. First, the code assumes ``afront`` is available
-in the system path, which might not be true in practice. Second, the
-debugging variable is inaccessible from the GUI, where it could be
-very useful. |vistrails| provides a way to configure a package
-through the |vistrails| ``Preferences`` dialog. It is very simple to provide your own configuration;
-just add a ``configuration`` attribute to your package, as follows:
+In addition to "pure-python" packages, |vistrails| packages can also be
+designed to wrap existing libraries and command-line tools (see
+:ref:`sec-wrapping_cmdline_tools` for more information).  For
+command-line tools, there are often some configuration options that
+may change from machine to machine.  In addition, there may also be
+flags (e.g. for debugging) that a user may wish to toggle on or off
+depending on the situation.  |vistrails| provides the
+``configuration`` package attribute for such situations; the
+``ConfigurationObject`` stored here is accessible both during module
+computations and from the GUI in the ``Preferences`` dialog.
+
+In the following example, we have some code from a package designed to
+control runs of ``afront``, a command-line program for generating 3D
+triangle meshes. [#]_ It uses a general ``run()`` method to run each
+command, and we use the configuration object to determine where the
+executable lives and whether we should print debugging information.
 
 .. code-block:: python
    :linenos:
 
-   from core.configuration import ConfigurationObject
-   from core.modules.vistrails_module import Module, ModuleError
-   from core.system import list2cmdline
    import os
+
+   from vistrails.core.configuration import ConfigurationObject
+   from vistrails.core.modules.vistrails_module import Module, ModuleError
+   from vistrails.core.system import list2cmdline
 
    configuration = ConfigurationObject(path=(None, str),
                                        debug=False)
@@ -248,40 +258,12 @@ just add a ``configuration`` attribute to your package, as follows:
 
        def run(self, args):
            if configuration.check('path'): # there's a set directory
-               afront_cmd = configuration.path + '/afront'
+               afront_cmd = os.path.join(configuration.path, 'afront')
            else: # Assume afront is on path
                afront_cmd = 'afront'
            cmd = [afront_cmd, '-nogui'] + args
            cmdline = list2cmdline(cmd)
            if configuration.debug:
-               print cmdline
-           ...
-   ...
-
-.. .. parsed-literal::
-
-   :red:`from core.configuration import ConfigurationObject`
-   from core.modules.vistrails_module import Module, ModuleError
-   from core.system import list2cmdline
-   import os
-
-   .. _ref-packages=configconstructor1:
-   :red:`configuration = ConfigurationObject(path=(None, str),`
-   .. _ref-packages-configconstructor2:
-                                       :red:`debug=False)`
-
-   class AfrontRun(object):
-
-       def run(self, args):
-   .. _ref-packages-configurationcheck:
-           :red:`if configuration.check('path'): # there's a set directory`
-               :red:`afront_cmd = configuration.path + '/afront'`
-           :red:`else: # Assume afront is on path`
-               :red:`afront_cmd = 'afront'`
-           cmd = [:red:`afront_cmd`, '-nogui'] + args
-           cmdline = list2cmdline(cmd)
-   .. _ref-packages-configurationdebug:
-           :red:`if configuration.debug:` 
                print cmdline
            ...
    ...
@@ -327,6 +309,7 @@ sessions, being saved on a per-user basis.
 
 Menu Items
 ^^^^^^^^^^
+
 As we saw in Section :ref:`sec-pkg_config`, using the ``ConfigurationObject`` class is one way to "hook" your custom package into the |vistrails| GUI.  However, this is not the only way to integrate your package with the user interface. |vistrails| also supports a mechanism whereby your package can add new options underneath the ``Packages`` menu (Figure :ref:`Packages can integrate their own commands... <fig-packages-package_menu>`).
 
 .. _fig-packages-package_menu:
@@ -566,7 +549,7 @@ Namespaces
 Visibility
 ^^^^^^^^^^
 
-:py:attr:`ModuleSettings.abstract` and :py:attr:`ModuleSettings.hide_descriptor` can be used to prevent modules from appearing in the module palette.  ``abstract`` is for use with modules that should never be instantiated in the workflow and will not add the item to the module palette.  On the other hand, ``hide-descriptor`` will add the item to the palette, but hides it.  This will prevent users from adding the module to a pipeline, but allow code to add it programmatically.  To use either of these options, ``abstract`` or ``hide_descriptor``, set it to ``True``:
+:py:attr:`.ModuleSettings.abstract` and :py:attr:`.ModuleSettings.hide_descriptor` can be used to prevent modules from appearing in the module palette.  :py:attr:`~.ModuleSettings.abstract` is for use with modules that should never be instantiated in the workflow and will not add the item to the module palette.  On the other hand, :py:attr:`~.ModuleSettings.hide_descriptor` will add the item to the palette, but hides it.  This will prevent users from adding the module to a pipeline, but allow code to add it programmatically.  To use either of these options, :py:attr:`~.ModuleSettings.abstract` or :py:attr:`~.ModuleSettings.hide_descriptor`, set it to ``True``:
 
 .. code-block:: python
    :linenos:
@@ -586,17 +569,17 @@ Visibility
 Shape and Color
 ^^^^^^^^^^^^^^^
 
-VisTrails allows users to assign custom colors and shapes to modules by using the :py:attr:`ModuleSettings.moduleColor` and :py:attr:`ModuleSettings.moduleFringe` options. For example,
+VisTrails allows users to assign custom colors and shapes to modules by using the :py:attr:`.ModuleSettings.color` and :py:attr:`.ModuleSettings.fringe` options. For example,
 
 .. code-block:: python
 
    class FancyModule(Module):
-       _settings = ModuleSettings(moduleColor=(1.0, 0.0, 0.0),
-                                  moduleFringe=[(0.0, 0.0),
-                                                (0.2, 0.0),
-                                                (0.2, 0.4),
-                                                (0.0, 0.4),
-                                                (0.0, 1.0)])
+       _settings = ModuleSettings(color=(1.0, 0.0, 0.0),
+                                  fringe=[(0.0, 0.0),
+                                          (0.2, 0.0),
+                                          (0.2, 0.4),
+                                          (0.0, 0.4),
+                                          (0.0, 1.0)])
   
 
 produces
@@ -610,14 +593,14 @@ and
 .. code-block:: python
 
    class FancyModule2(Module):
-       _settings = ModuleSettings(moduleColor=(0.4,0.6,0.8),
-                                  moduleFringe=[(0.0, 0.0),
-                                                (0.2, 0.0),
-                                                (0.0, 0.2),
-                                                (0.2, 0.4),
-                                                (0.0, 0.6),
-                                                (0.2, 0.8),
-                                                (0.0, 1.0)])
+       _settings = ModuleSettings(color=(0.4,0.6,0.8),
+                                  fringe=[(0.0, 0.0),
+                                          (0.2, 0.0),
+                                          (0.0, 0.2),
+                                          (0.2, 0.4),
+                                          (0.0, 0.6),
+                                          (0.2, 0.8),
+                                          (0.0, 1.0)])
 
 produces
 
@@ -625,20 +608,20 @@ produces
    :align: center
    :width: 2in
 
-The moduleColor parameter must be a tuple of three floats between 0 and 1 that specify RGB colors for the module background, while moduleFringe is a list of pairs of floats that specify points as they go around a side of the module (the same one is used to go from the top-right corner to bottom-right corner, and from the bottom-left corner to the top-left one. If this is not enough, let the developers know!)
+The :py:attr:`.ModuleSettings.color` parameter must be a tuple of three floats between 0 and 1 that specify RGB colors for the module background, while :py:attr:`.ModuleSettings.fringe` is a list of pairs of floats that specify points as they go around a side of the module (the same one is used to go from the top-right corner to bottom-right corner, and from the bottom-left corner to the top-left one. If this is not enough, let the developers know!)
 
 Alternatively, you may use different fringes for the left and right borders:
 
 .. code-block:: python
 
    class FancyModule3(Module):
-       _settings = ModuleSettings(moduleColor=(1.0,0.8,0.6),
-                                  moduleLeftFringe=[(0.0, 0.0),
-                                                    (-0.2, 0.0),
-                                                    (0.0, 1.0)],
-                                  moduleRightFringe=[(0.0, 0.0),
-                                                     (0.2, 1.0),
-                                                     (0.0, 1.0)])
+       _settings = ModuleSettings(color=(1.0,0.8,0.6),
+                                  left_fringe=[(0.0, 0.0),
+                                               (-0.2, 0.0),
+                                               (0.0, 1.0)],
+                                  right_fringe=[(0.0, 0.0),
+                                                (0.2, 1.0),
+                                                (0.0, 1.0)])
 
 .. figure:: figures/packages/fancy_module3.png
    :align: center
@@ -697,7 +680,7 @@ As an example, consider the following widget:
 Registration
 ------------
 
-To make |vistrails| aware of these new widgets, developers should specifying them in the :py:class:`ModuleSettings` options.  For example,
+To make |vistrails| aware of these new widgets, developers should specifying them in the :py:class:`.ModuleSettings` options.  For example,
 
 .. code-block:: python
     :linenos:
@@ -708,7 +691,7 @@ To make |vistrails| aware of these new widgets, developers should specifying the
 
 Note that the ``PathString`` is best specified relative to the base path of the package.  **Important:** If ``MyWidget`` is defined in the ``widgets`` module of the ``test_widgets`` package in ``userpackages``, its full path might be ``userpackages.test_widgets.widgets:MyWidget``, but we only include the inner path (``widgets:MyWidget``).  (The full path is used for internal packages, but this should be avoided for third-party packages.)
 
-For constant widgets, |vistrails| allows users to associate different widgets with different *uses*.  A widget used for query may differ from the default display & edit widget, and developers may specify different widgets for these uses.  Current uses include "query" and "paramexp" (parameter exploration). In addition, individual ports may specify different constant widgets using the :py:attr:`InputPort.entry_type` setting.  These specifications are tied to the widget's *type*.  To specify these associations, developers should use the :py:class:`ConstantWidgetConfig` settings. Also, :py:class:`QueryWidgetConfig` and :py:class:`ParamExpWidgetConfig` provide shortcuts for configurations for query and parameter exploration uses, respectively. Multiple widgets can be specified via the :py:attr:`ModuleSettings.constantWidgets` setting.  For example,
+For constant widgets, |vistrails| allows users to associate different widgets with different *uses*.  A widget used for query may differ from the default display & edit widget, and developers may specify different widgets for these uses.  Current uses include "query" and "paramexp" (parameter exploration). In addition, individual ports may specify different constant widgets using the :py:attr:`.InputPort.entry_type` setting.  These specifications are tied to the widget's *type*.  To specify these associations, developers should use the :py:class:`.ConstantWidgetConfig` settings. Also, :py:class:`.QueryWidgetConfig` and :py:class:`.ParamExpWidgetConfig` provide shortcuts for configurations for query and parameter exploration uses, respectively. Multiple widgets can be specified via the :py:attr:`ModuleSettings.constantWidgets` setting.  For example,
 
 .. code-block:: python
     :linenos:
@@ -744,7 +727,7 @@ In versions 2.0 and greater, package developers can add labels and default value
                       CIPort('center', 'basic:Float, basic:Float',
                              defaults=[10.0, 10.0], labels=["x", "y"])]
 
-Note that simple ports use the singular :py:attr:`InputPort.default` and :py:attr:`InputPort.label` kwargs while compound input ports use *plural* forms, :py:attr:`CompoundInputPort.defaults` and :py:attr:`CompoundInputPort.labels`.
+Note that simple ports use the singular :py:attr:`.InputPort.default` and :py:attr:`.InputPort.label` kwargs while compound input ports use *plural* forms, :py:attr:`.CompoundInputPort.defaults` and :py:attr:`.CompoundInputPort.labels`.
 
 .. index::
    pair: ports; optional
@@ -752,7 +735,7 @@ Note that simple ports use the singular :py:attr:`InputPort.default` and :py:att
 Optional Ports
 ^^^^^^^^^^^^^^
 
-An optional port is one that will not be visible by default in the module shape.  For modules with many ports, developers might less-used ports optional to reduce clutter.  To make a port optional, set the ``optional`` flag to true:
+An optional port is one that will not be visible by default in the module shape.  For modules with many ports, developers might less-used ports optional to reduce clutter.  To make a port optional, set the :py:attr:`~.config.InputPort.optional` flag to true:
 
 .. code-block:: python
    :linenos:
@@ -769,7 +752,7 @@ Cardinality
 
 By default, ports will accept any number of connections or parameters.  However, the :py:meth:`.Module.get_input` method will only access *one* of the inputs, and which one is not well-defined.  To access *all* of the inputs, developers should use the :py:meth:`.Module.get_input_list` method.  The spreadsheet package uses this feature, so look there for usage examples (vistrails/packages/spreadsheet/basic_widgets.py)
 
-In addition, VisTrails 2.1 introduced new port configuration arguments :py:attr:`InputPort.min_conns` and :py:attr:`InputPort.max_conns` that allow developers to enforce specific cardinalities on their ports.  For example, a port that required at least two inputs could set ``min_conns=2``, and a port that does not accept more than a single input could set ``max_conns=1``.  Currently, the values for ``min_conns`` and ``max_conns`` default to 0 and -1, respectively, which means that no connections are required and any number of connections are allowed.  These will eventually be enforced by the GUI to help users building workflows.
+In addition, VisTrails 2.1 introduced new port configuration arguments :py:attr:`~.config.InputPort.min_conns` and :py:attr:`~.config.InputPort.max_conns` that allow developers to enforce specific cardinalities on their ports.  For example, a port that required at least two inputs could set ``min_conns=2``, and a port that does not accept more than a single input could set ``max_conns=1``.  Currently, the values for :py:attr:`~.config.InputPort.min_conns` and :py:attr:`~.config.InputPort.max_conns` default to 0 and -1, respectively, which means that no connections are required and any number of connections are allowed.  These will eventually be enforced by the GUI to help users building workflows.
 
 .. index::
    pair: ports; shape
@@ -777,7 +760,7 @@ In addition, VisTrails 2.1 introduced new port configuration arguments :py:attr:
 Shape
 ^^^^^
 
-As with modules, port shape can also be customized.  There are three basic types besides the default square, "triangle", "circle", and "diamond".  Such types are specified as string values to the ``shape`` setting.  In addition, the triangle may be rotated by appending the degree of rotation (90, 180, or 270 only!) in the string.  Finally, custom shapes are supported in a similar fashion to the module fringe.  The shape should be defined in the [0,1] x [0,1] domain with 0 representing the top/left) and 1 being the bottom/right.
+As with modules, port shape can also be customized.  There are three basic types besides the default square, "triangle", "circle", and "diamond".  Such types are specified as string values to the :py:attr:`~.config.InputPort.shape` setting.  In addition, the triangle may be rotated by appending the degree of rotation (90, 180, or 270 only!) in the string.  Finally, custom shapes are supported in a similar fashion to the module fringe.  The shape should be defined in the [0,1] x [0,1] domain with 0 representing the top/left) and 1 being the bottom/right.
 
 .. code-block:: python
     :linenos:
@@ -1032,7 +1015,7 @@ through scripts, which work primarily with command-line
 tools. This section describes how to wrap command-line applications so
 they can be used with VisTrails. We will use as a running example the
 ``afront`` package, which wraps ``afront``, a command-line program
-for generating 3D triangle meshes.  [#]_ We will wrap the basic
+for generating 3D triangle meshes.  We will wrap the basic
 functionality in three different modules: ``Afront``, ``AfrontIso``, and ``MeshQualityHistogram``.
 
 Each of these modules will be implemented by a Python
