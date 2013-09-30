@@ -40,12 +40,12 @@ import tempfile
 from vistrails.core.utils import VistrailsInternalError
 
 from vistrails.core.system.unix import executable_is_in_path,\
-     list2cmdline, execute_cmdline, \
+     list2cmdline, execute_cmdline, execute_cmdline2, \
      get_executable_path, execute_piped_cmdlines
 
 
 __all__ = ['executable_is_in_path', 'list2cmdline', 'execute_cmdline',
-           'get_executable_path', 'execute_piped_cmdlines',
+           'execute_cmdline2', 'get_executable_path', 'execute_piped_cmdlines',
 
            'guess_total_memory',
            'home_directory', 'remote_copy_program', 'remote_shell_program',
