@@ -389,8 +389,8 @@ The simple approach taken by the above code works well for the majority of cases
    :linenos:
 
    def package_dependencies():
-       import core.packagemanager
-       manager = core.packagemanager.get_package_manager()
+       import vistrails.core.packagemanager
+       manager = vistrails.core.packagemanager.get_package_manager()
        if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
            return ['edu.utah.sci.vistrails.spreadsheet']
        else:
@@ -414,10 +414,10 @@ Here is an example of the syntax of the ``package_requirements`` function, taken
    :linenos:
 
    def package_requirements():
-       import core.requirements
-       if not core.requirements.python_module_exists('vtk'):
-           raise core.requirements.MissingRequirement('vtk')
-       if not core.requirements.python_module_exists('PyQt4'):
+       import vistrails.core.requirements
+       if not vistrails.core.requirements.python_module_exists('vtk'):
+           raise vistrails.core.requirements.MissingRequirement('vtk')
+       if not vistrails.core.requirements.python_module_exists('PyQt4'):
            print 'PyQt4 is not available. There will be no interaction',
            print 'between VTK and the spreadsheet.'
        import vtk
@@ -441,8 +441,8 @@ package names changed:
 .. code-block:: python
    :linenos:
 
-    from core.bundles import py_import
-    from core import debug
+    from vistrails.core.bundles import py_import
+    from vistrails.core import debug
     try:
         pkg_dict = {'linux-ubuntu': 'your-apt-package',
                     'linux-fedora': 'your-deb-package'}
@@ -463,12 +463,12 @@ Here is an example of its usage, taken from the ``initialize`` function of the `
 .. code-block:: python
    :linenos:
 
-   import core.requirements
+   import vistrails.core.requirements
 
    ...
 
-       if (not core.requirements.executable_file_exists('convert')):
-           raise core.requirements.MissingRequirement("ImageMagick suite")
+       if (not vistrails.core.requirements.executable_file_exists('convert')):
+           raise vistrails.core.requirements.MissingRequirement("ImageMagick suite")
 
 Note that this function is not strictly required in order to wrap third party executables into a module. Using a ``Configuration`` object (see Section :ref:`sec-pkg_config`) that lets the user specify the path to an executable may be a cleaner solution.
 
@@ -890,9 +890,9 @@ When wrapping existing libraries or trying to generate modules in a more procedu
 .. code-block:: python
    :linenos:
 
-   from core.configuration import ConfigurationObject
+   from vistrails.core.configuration import ConfigurationObject
  
-   identifier = "edu.utah.sci.dakoop.auto_example"
+   identifier = "org.vistrails.examples.auto_example"
    version = "0.0.1"
    name = "AutoExample"
  
@@ -905,9 +905,9 @@ The expand_ports and build_modules methods are functions to help the constructio
 .. code-block:: python
    :linenos:
 
-   from core.modules.vistrails_module import new_module, Module
+   from vistrails.core.modules.vistrails_module import new_module, Module
  
-   identifier = "edu.utah.sci.dakoop.auto_example"
+   identifier = "org.vistrails.examples.auto_example"
  
    def expand_ports(port_list):
        new_port_list = []
@@ -1041,7 +1041,7 @@ a subclass of ``Afront``. A first attempt at writing this package might look som
 .. code-block:: python
    :linenos:
 
-   from core.modules.vistrails_module import Module
+   from vistrails.core.modules.vistrails_module import Module
    ... # other import statements
 
    class Afront(Module):
@@ -1074,8 +1074,8 @@ While this approach is a good start, it does require significant duplication of 
 .. code-block:: python
    :linenos:
 
-   from core.modules.vistrails_module import Module, ModuleError
-   from core.system import list2cmdline
+   from vistrails.core.modules.vistrails_module import Module, ModuleError
+   from vistrails.core.system import list2cmdline
    import os
    
    class AfrontRun(object):
@@ -1097,8 +1097,8 @@ While this approach is a good start, it does require significant duplication of 
 
 .. .. parsed-literal::
 
-   from core.modules.vistrails_module import Module, ModuleError
-   :red:`from core.system import list2cmdline`
+   from vistrails.core.modules.vistrails_module import Module, ModuleError
+   :red:`from vistrails.core.system import list2cmdline`
    :red:`import os`
    
    :red:`class AfrontRun(object):`
