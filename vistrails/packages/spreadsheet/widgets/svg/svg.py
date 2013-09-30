@@ -174,12 +174,11 @@ class SVGSaveAction(QtGui.QAction):
         fn = QtGui.QFileDialog.getSaveFileName(None, "Save svg as...",
                                                "screenshot.png",
                                                "SVG (*.svg);;PDF files (*.pdf)")
-        if not fn:
-            return
-        if fn.lower().endswith("svg"):
-            cellWidget.dumpToFile(str(fn))
-        elif fn.lower().endswith("pdf"):
-            cellWidget.saveToPDF(str(fn))
+        if fn:
+            if fn.lower().endswith("svg"):
+                cellWidget.dumpToFile(fn)
+            elif fn.lower().endswith("pdf"):
+                cellWidget.saveToPDF(fn)
         
 class SVGToolBar(QCellToolBar):
     """
