@@ -318,24 +318,22 @@ that will be executed if the input is a structure identifier.
 .. code-block:: python
    :linenos:
 
-   if"\n" in structure:
-       lineLen = structure.index("\n")
+   if "\n" in Structure:
+       lineLen = Structure.index("\n")
    else:
        lineLen = -1
-   if lineLen<1:
-       lineLen = len(structure)
+   if lineLen < 1:
+       lineLen = len(Structure)
 
-   if ":" in structure:
-       index = structure.index(":")
+   if ":" in Structure:
+       index = Structure.index(":")
    else:
        index = -1
 
-   if (structure[0]!="ID ") and (index>0) and (index<lineLen):
-       is_ID = True
+   if Structure[0] != "ID " and index > 0 and index < lineLen:
+       Is_ID = True
    else:
-       is_ID = False
-
-   self.setResult("Is_ID", is_ID)
+       Is_ID = False
 
 .. topic:: Next Step!
 
@@ -346,8 +344,6 @@ that will be executed if the input is a structure identifier.
 .. code-block:: python
    :linenos:
 
-   input = self.getInputFromPort("Input")
-
    output = self.interpreter.filePool.create_file()
    f = open(str(output.name), 'w')
    text = '<HTML><TITLE>Protein Visualization</TITLE><BODY BGCOLOR="#FFFFFF">'
@@ -355,7 +351,7 @@ that will be executed if the input is a structure identifier.
    text = '<H2>Protein Visualization Workflow</H2>'
    f.write(text)
    text = '<H3>The following input is not an ID from a protein:</H3>'
-   text += '<H4>' + str(input) + '</H4>'
+   text += '<H4>' + Input + '</H4>'
    text += '<H3>The visualization cannot be done.</H3>'
    f.write(text)
 
