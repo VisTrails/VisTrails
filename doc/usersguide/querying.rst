@@ -69,7 +69,7 @@ After constructing a pipeline and selecting the appropriate search option, click
 
 .. topic:: Try it now!
 
-   Let's practice making a simple query. Open the "offscreen.vt" example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`Example pipeline in Search mode <fig-querying-query>` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`History... <fig-querying-history>`).  Notice that the query results are also displayed in the ``Workspace`` tab.  Double-click on the html version in the workspace to open the results in the pipeline view.  
+   Let's practice making a simple query. Open the :vtl:`offscreen.vt` example vistrail. Click on the ``Search`` button to enter ``Search`` mode.  Create a query like the one shown in Figure :ref:`Example pipeline in Search mode <fig-querying-query>` by dragging the modules ``SheetReference``, ``CellLocation``, and ``RichTextCell`` onto the Search canvas. (These modules can be found under the "|vistrails| Spreadsheet" header in the Modules panel.) Connect the input and output ports of the modules as shown, then click the ``Execute`` button to perform the query. |vistrails| will automatically switch to the ``History`` view, with all matching versions highlighted (Figure :ref:`History... <fig-querying-history>`).  Notice that the query results are also displayed in the ``Workspace`` tab.  Double-click on the html version in the workspace to open the results in the pipeline view.  
 
 
 .. _fig-querying-workspace:
@@ -107,7 +107,7 @@ One major difference between the ``Pipeline`` view and the ``Search`` view is th
 
 .. topic:: Try it now!
 
-   Open the "terminator.vt" example file, and enter ``Search`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Search canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` module. Select ``Back to Search`` to return to the ``Search`` view, select the ``vtkActor`` module, then select ``RotateZ`` method from the ``Module Information`` tab. In the ``RotateZ`` text field, select ``'>'`` and then enter '90'. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`Query result showing all workflows... <fig-querying-vtkActor_example>`.
+   Open the :vtl:`terminator.vt` example file, and enter ``Search`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Search canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` module. Select ``Back to Search`` to return to the ``Search`` view, select the ``vtkActor`` module, then select ``RotateZ`` method from the ``Module Information`` tab. In the ``RotateZ`` text field, select ``'>'`` and then enter '90'. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`Query result showing all workflows... <fig-querying-vtkActor_example>`.
 
 .. _fig-querying-vtkActor_example:
 
@@ -192,7 +192,7 @@ be ``'after: April 1 before: June 1'``.
 
 .. topic:: Try it now!
 
-   Open the "terminator.vt" example file, and enter ``Search`` mode.  Let's look for all workflows that were created after November 24, 2010. In the search box in the ``Search`` panel, type ``'after: 24 nov 2010'`` and press 'Enter'. The expected result is shown in Figure :ref:`Results of a query to find any changes make after November 24, 2010 <fig-querying-july1>`.
+   Open the :vtl:`terminator.vt` example file, and enter ``Search`` mode.  Let's look for all workflows that were created after November 24, 2010. In the search box in the ``Search`` panel, type ``'after: 24 nov 2010'`` and press 'Enter'. The expected result is shown in Figure :ref:`Results of a query to find any changes make after November 24, 2010 <fig-querying-july1>`.
 
 .. _fig-querying-july1:
 

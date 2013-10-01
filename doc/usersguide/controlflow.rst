@@ -19,7 +19,7 @@ provides this functionality for workflows in |vistrails|. Note that this
 module provides simple looping as it can be used to iterate through a list
 of inputs.
 
-In order to use the ``Map`` module, a ``ListOfElements``
+In order to use the ``Map`` module, a ``List``
 type representing a list of data structures is also provided. Two additional
 modules help users combine elements of lists: ``Dot`` combines the
 elements of two lists like the dot product (the first element of the first list
@@ -45,7 +45,7 @@ The output port "Result" produces a list of results, one for each element in the
 
 To better show how to use the ``Map`` module, let's use a workflow as
 an example. Inside the "examples" directory of the |vistrails|
-distribution, open the "triangle_area.vt" vistrail. Now, select the
+distribution, open the :vtl:`triangle_area.vt` vistrail. Now, select the
 "Surface Area" version. This version basically calculates the area
 of a given isosurface. We are going to modify this version, in order to
 calculate the areas of the isosurface given by contour values in a list.
@@ -56,7 +56,7 @@ Then, we will create a 2D plot to show all the areas.
   Begin by deleting the ``StandardOutput`` module, and the connection between the ``vtkDataSetReader`` and the ``vtkContourFilter`` modules. Then, drag the following modules to the canvas:
 
    * ``Map``
-   * ``ListOfElements``
+   * ``List``
    * ``Cross``
    * ``MplPlot`` (under "matplotlib")
    * ``MplFigure`` (under "matplotlib")
@@ -95,7 +95,7 @@ structure.
 
 .. topic:: Next Step!
 
-  Now, select the ``MplPlot`` module and open its configuration dialog. Inside it, add two input ports of type ``ListOfElements``: "InputList" and "X_Values". Also, copy the code listed below, in order to create the necessary information for the 2D plot, into the source text area and save your changes using the ``OK`` button.
+  Now, select the ``MplPlot`` module and open its configuration dialog. Inside it, add two input ports of type ``List``: "InputList" and "X_Values". Also, copy the code listed below, in order to create the necessary information for the 2D plot, into the source text area and save your changes using the ``OK`` button.
 
 .. code-block:: python
 
@@ -116,7 +116,7 @@ structure.
 
 .. topic:: Next Step!
 
-  Next, edit the ``PythonSource`` module by adding an output port "List" of type ``ListOfElements``, copying the following code to the source text area, and saving these changes.  The code will create a range of contour values that we will use as our input list.
+  Next, edit the ``PythonSource`` module by adding an output port "List" of type ``List``, copying the following code to the source text area, and saving these changes.  The code will create a range of contour values that we will use as our input list.
 
 .. code-block:: python
 
@@ -144,7 +144,7 @@ structure.
   You will set some parameters now:
 
   * ``HTTPFile``: set the parameter "url" to http://www.sci.utah.edu/~cscheid/stuff/head.120.vtk
-  * ``ListOfElements``: set the parameter "value" to *[0]*
+  * ``List``: set the parameter "value" to *[0]*
   * ``Map``: set the parameter "InputPort" to *["SetValue"]* and the parameter "OutputPort" to *GetSurfaceArea*
 
 
@@ -169,7 +169,7 @@ a 2D plot (Figure :ref:`fig-controlflow-map_spreadsheet`).
    The result in the |vistrails| Spreadsheet
 
 This example can be found in the version "Surface Area with Map", inside
-the "triangle_area.vt" vistrail.
+the :vtl:`triangle_area.vt` vistrail.
 
 
 Filtering results
@@ -235,7 +235,7 @@ When you execute this workflow, it will generate another plot that is similar to
 
    The result in the |vistrails| spreadsheet
 
-This example is already inside the "triangle_area.vt" vistrail, in the
+This example is already inside the :vtl:`triangle_area.vt` vistrail, in the
 "Surface Area with Map and Filter" version.
 
 Later in this chapter, you will see how to combine ``Map`` and ``Filter``
@@ -443,5 +443,5 @@ Figure :ref:`fig-controlflow-if_spreadsheet_false` will be generated in the Spre
    The message in the Spreadsheet, generated when the input is not a structure ID
 
 This example can be found inside the "examples" directory, in the
-"protein_visualization.vt" vistrail. It was partially based on the workflow
+:vtl:`protein_visualization.vt` vistrail. It was partially based on the workflow
 "Structure_or_ID", which can be found at http://www.myexperiment.org/workflows/225.
