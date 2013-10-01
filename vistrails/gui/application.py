@@ -733,7 +733,7 @@ def linux_update_default_application():
 
     for d in dirs:
         if not os.path.isdir(d):
-            os.mkdir.mkdir(d)
+            os.mkdir(d)
     desktop = """[Desktop Entry]
 Name=VisTrails
 Exec=python """ + root + """/run.py %f
