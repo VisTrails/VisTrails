@@ -721,7 +721,7 @@ def linux_update_default_application():
                '--size', '48',
                os.path.join(system.vistrails_root_directory(),
                             'gui/resources/images/vistrails_icon_small.png'),
-               'application/x-vistrails']
+               'application-x-vistrails']
     output = []
     result = system.execute_cmdline(command, output)
     #print "install icon", command, result, output
