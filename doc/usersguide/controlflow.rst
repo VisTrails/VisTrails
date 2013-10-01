@@ -153,7 +153,7 @@ a 2D plot (Figure :ref:`fig-controlflow-map_spreadsheet`).
    The result in the |vistrails| Spreadsheet
 
 This example can be found in the version "Surface Area with Map", inside
-the "triangle_area.vt" vistrail.
+the :vtl:`triangle_area.vt` vistrail.
 
 
 Filtering results
@@ -214,7 +214,7 @@ When you execute this workflow, it will generate another plot that is similar to
 
    The result in the |vistrails| spreadsheet
 
-This example is already inside the "triangle_area.vt" vistrail, in the
+This example is already inside the :vtl:`triangle_area.vt` vistrail, in the
 "Surface Area with Map and Filter" version.
 
 Later in this chapter, you will see how to combine ``Map`` and ``Filter``
@@ -404,7 +404,7 @@ Figure :ref:`fig-controlflow-if_spreadsheet_false` will be generated in the Spre
    The message in the Spreadsheet, generated when the input is not a structure ID
 
 This example can be found inside the "examples" directory, in the
-"protein_visualization.vt" vistrail. It was partially based on the workflow
+:vtl:`protein_visualization.vt` vistrail. It was partially based on the workflow
 "Structure_or_ID", which can be found at http://www.myexperiment.org/workflows/225.
 
 
