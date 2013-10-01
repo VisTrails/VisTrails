@@ -165,12 +165,9 @@ The ``Filter`` module was developed to address this issue. It receives an
 input list and, based on a specified boolean condition, returns only elements of
 the list that satisfy the condition. Its ports are the same as those in the
 ``Map`` module. The difference between these modules is related to the
-structure: in ``Filter``, the output port "FunctionPort" cannot
-receive any function, but only a condition; in other words, the selected port in
-"OutputPort" must return a boolean value or ``Filter`` will not
-work. Thus, ``Filter`` will not return a list with boolean values as
-``Map`` would do, but rather the elements of the input list for which
-the condition evaluated to ``True``.
+function module: in ``Filter``, the output of that module is not the value to
+keep, but a boolean indicating whether to keep (``True``) or discard
+(``False``) the value from the original list.
 
 .. topic:: Try it Now!
 
@@ -183,12 +180,10 @@ the condition evaluated to ``True``.
 
 .. code-block:: python
 
-   area = self.getInputFromPort("Area")
-
-   if area>200000.00:
-       self.setResult("Condition", True)
+   if Area > 200000.00:
+       Condition = True
    else:
-       self.setResult("Condition", False)
+       Condition = False
 
 .. topic:: Next Step!
 
