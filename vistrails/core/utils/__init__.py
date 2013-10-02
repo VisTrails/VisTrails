@@ -75,6 +75,12 @@ def abstract():
     """Raises AbstractException.""" 
     raise AbstractException()
 
+class VistrailsWarning(Warning):
+    pass
+
+class VistrailsDeprecation(VistrailsWarning):
+    pass
+
 ################################################################################
 
 class NoMakeConnection(Exception):
