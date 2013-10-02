@@ -1627,6 +1627,25 @@ class QVistrailsWindow(QVistrailViewWindow):
         If parameterExploration is not None, it will be opened.
         
         """
+        
+        # move additional information from locator to variables
+        if not version:
+            if 'version' in locator.kwargs:
+                version = locator.kwargs['version']
+                del locator.kwargs['version']
+        if not parameterExploration:
+            if 'parameterExploration' in locator.kwargs:
+                parameterExploration = locator.kwargs['parameterExploration']
+                del locator.kwargs['parameterExploration']
+        if not mashuptrail:
+            if 'mashuptrail' in locator.kwargs:
+                mashuptrail = locator.kwargs['mashuptrail']
+                del locator.kwargs['mashuptrail']
+        if not mashupVersion:
+            if 'mashupVersion' in locator.kwargs:
+                mashupVersion = locator.kwargs['mashupVersion']
+                del locator.kwargs['mashupVersion']
+            
         if not locator.is_valid():
             ok = locator.update_from_gui(self)
         else:
