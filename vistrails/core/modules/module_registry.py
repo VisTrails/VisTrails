@@ -1098,7 +1098,7 @@ class ModuleRegistry(DBRegistry):
             if '_settings' in module.__dict__:
                 settings = module.__dict__['_settings']
                 if isinstance(settings, ModuleSettings):
-                    return self.add_module(module, **settings._asdict())
+                    return self.add_module_from_settings(module, settings)
                 elif isinstance(settings, dict):
                     return self.add_module(module, **settings)
                 else:
@@ -1615,6 +1615,11 @@ class ModuleRegistry(DBRegistry):
                             if isinstance(module, tuple):
                                 m_dict.update(module[1])
                                 module_list.append((module[0], m_dict))
+                            elif '_settings' in module.__dict__:
+                                kwargs = module._settings._asdict()
+                                kwargs.update(m_dict)
+                                module._settings = ModuleSettings(**kwargs)
+                                module_list.append(module)
                             else:
                                 module_list.append((module, m_dict))
                 else:
