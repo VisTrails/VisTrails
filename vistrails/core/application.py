@@ -36,6 +36,7 @@ import copy
 import os.path
 import sys
 import weakref
+import warnings
 
 from vistrails.core import command_line
 from vistrails.core import debug
@@ -50,7 +51,7 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject
+from vistrails.core.utils import InstanceObject, VistrailsWarning
 from vistrails.core.utils.uxml import enter_named_element
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -287,6 +288,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         Create the application with a dict of settings
         
         """
+        warnings.simplefilter('once', VistrailsWarning, append=True)
         # gui.theme.initializeCurrentTheme()
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         

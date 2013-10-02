@@ -80,6 +80,12 @@ def abstract():
     """Raises AbstractException.""" 
     raise AbstractException()
 
+class VistrailsWarning(Warning):
+    pass
+
+class VistrailsDeprecation(VistrailsWarning):
+    pass
+
 def deprecated(*args):
     new_name = None
     def _deprecated(func):
@@ -89,11 +95,11 @@ def deprecated(*args):
                 warnings.warn("Call to deprecated function %s "
                               "replaced by %s" % (
                                   func.__name__, new_name),
-                              category=DeprecationWarning,
+                              category=VistrailsDeprecation,
                               stacklevel=2)
             else:
                 warnings.warn("Call to deprecated function %s" % func.__name__,
-                              category=DeprecationWarning,
+                              category=VistrailsDeprecation,
                               stacklevel=2)
             return func(*args, **kwargs)
         return new_func
@@ -695,7 +701,7 @@ class TestCommon(unittest.TestCase):
             self.assertEqual(len(w), 1)
             w, = w
             self.assertEqual(w.message.message, msg)
-            self.assertEqual(w.category, DeprecationWarning)
+            self.assertEqual(w.category, VistrailsDeprecation)
             self.assertTrue(canon_path(w.filename),
                             canon_path(__file__))
 

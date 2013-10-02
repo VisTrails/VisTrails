@@ -51,7 +51,7 @@ from vistrails.core.modules.module_registry import ModuleRegistry, \
                                          MissingPackage, MissingPackageVersion
 from vistrails.core.modules.package import Package
 from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
-    versions_increasing
+    versions_increasing, VistrailsDeprecation
 import vistrails.packages
 ##############################################################################
 
@@ -387,7 +387,7 @@ class PackageManager(object):
         warnings.warn(
                 "You should use get_package instead of "
                 "get_package_by_identifier",
-                DeprecationWarning,
+                VistrailsDeprecation,
                 stacklevel=2)
         return self.get_package(identifier)
 
