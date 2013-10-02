@@ -136,7 +136,7 @@ class CachedPath(Module):
                     # FIXME : add date support to file_archive
                     #KEY_TIME: {'type': 'str', 'date': 'utcnow'},
                     KEY_TIME: datetime.strftime(datetime.utcnow(),
-                                                '2013-10-01 21:42:49'),
+                                                '%Y-%m-%d %H:%M:%S'),
                     KEY_SIGNATURE: self.signature}
             if os.path.isdir(newpath):
                 h = file_store.add_directory(newpath, metadata)
