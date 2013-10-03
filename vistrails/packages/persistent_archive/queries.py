@@ -40,23 +40,18 @@ class Metadata(Module):
         self.metadata = (self.getInputFromPort('key'),
                          self.getInputFromPort('value'))
 
+Metadata._output_ports = [
+        ('self', Metadata)]
+
 
 # Mixin classes used for both QueryCondition and Metadata
 
 class StringValue(object):
-    _input_ports = [
-            ('key', String),
-            ('value', String)]
-
     def make_condition_dict(self):
         return {'type': 'str', 'equal': self.getInputFromPort('value')}
 
 
 class IntValue(object):
-    _input_ports = [
-            ('key', String),
-            ('value', Integer)]
-
     def make_condition_dict(self):
         return {'type': 'int', 'equal': self.getInputFromPort('value')}
 
@@ -64,10 +59,14 @@ class IntValue(object):
 # QueryConditon implementations
 
 class QueryStringEqual(StringValue, QueryCondition):
-    pass
+    _input_ports = [
+            ('key', String),
+            ('value', String)]
 
 class QueryIntEqual(QueryCondition, IntValue):
-    pass
+    _input_ports = [
+            ('key', String),
+            ('value', Integer)]
 
 
 class QueryIntRange(QueryCondition):
@@ -91,8 +90,12 @@ class QueryIntRange(QueryCondition):
 # Metadata implementations
 
 class MetadataString(StringValue, Metadata):
-    pass
+    _input_ports = [
+            ('key', String),
+            ('value', String)]
 
 
 class MetadataInt(IntValue, Metadata):
-    pass
+    _input_ports = [
+            ('key', String),
+            ('value', Integer)]
