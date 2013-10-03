@@ -31,6 +31,12 @@ KEY_TIME = 'vistrails_timestamp'
 # Signature of the module that added the file (cached and output, not input)
 KEY_SIGNATURE = 'vistrails_signature'
 
+# Identifier for the workflow
+KEY_WORKFLOW = 'vistrails_workflow'
+
+# Module ID in the workflow
+KEY_MODULE_ID = 'vistrails_module_id'
+
 
 class PersistentHash(Constant):
     """Reference to a specific file.
