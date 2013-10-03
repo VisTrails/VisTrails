@@ -63,7 +63,7 @@ class QueryStringEqual(StringValue, QueryCondition):
             ('key', String),
             ('value', String)]
 
-class QueryIntEqual(QueryCondition, IntValue):
+class QueryIntEqual(IntValue, QueryCondition):
     _input_ports = [
             ('key', String),
             ('value', Integer)]
