@@ -9,6 +9,8 @@ from .cache import CachedPath, CachedFile, CachedDir
 from .queries import QueryCondition, QueryStringEqual, \
     QueryIntEqual, QueryIntRange, \
     Metadata, MetadataString, MetadataInt
+from .persistedinput import PersistedInputPath, \
+    PersistedInputFile, PersistedInputDir
 
 file_archive = py_import('file_archive', {
         'pip': 'file_archive'})
@@ -24,14 +26,28 @@ def initialize():
     set_default_store(FileStore(file_store_path))
 
 
-_modules = [PersistentHash,
-            (CachedPath, {'abstract': True}),
-            CachedFile,
-            CachedDir,
-            (QueryCondition, {'abstract': True}),
-            QueryStringEqual,
-            QueryIntEqual,
-            QueryIntRange,
-            (Metadata, {'abstract': True}),
-            MetadataString,
-            MetadataInt]
+_modules = [
+        # Reference to a specific file
+        PersistentHash,
+
+        # Caching modules
+        (CachedPath, {'abstract': True}),
+        CachedFile,
+        CachedDir,
+
+        # Query modules
+        (QueryCondition, {'abstract': True}),
+        QueryStringEqual,
+        QueryIntEqual,
+        QueryIntRange,
+
+        # Metadata modules
+        (Metadata, {'abstract': True}),
+        MetadataString,
+        MetadataInt,
+
+        # Input modules
+        (PersistedInputPath, {'abstract': True}),
+        PersistedInputFile,
+        PersistedInputDir,
+    ]
