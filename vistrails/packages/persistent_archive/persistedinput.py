@@ -2,13 +2,13 @@ from datetime import datetime
 from file_archive import hash_file, hash_directory
 import os
 
+import vistrails.core.debug as debug
 from vistrails.core.modules.basic_modules import Directory, File, Path
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
-from .common import KEY_TYPE, TYPE_INPUT, KEY_TIME, KEY_SIGNATURE, \
+from .common import KEY_TYPE, TYPE_INPUT, KEY_TIME, \
     get_default_store, PersistentHash
 from .queries import Metadata
-import vistrails.core.debug as debug
 
 
 def hash_path(path):
@@ -74,8 +74,6 @@ class PersistedInputPath(Module):
                 if use_local:
                     data = dict(metadata)
                     data[KEY_TYPE] = TYPE_INPUT
-                    if hasattr(self, 'signature'):
-                        data[KEY_SIGNATURE] = self.signature
                     data[KEY_TIME] = datetime.strftime(datetime.utcnow(),
                                                        '%Y-%m-%d %H:%M:%S')
                     h = file_store.add(path, data)
