@@ -11,6 +11,7 @@ from .queries import QueryCondition, QueryStringEqual, \
     Metadata, MetadataString, MetadataInt
 from .persistedinput import PersistedInputPath, \
     PersistedInputFile, PersistedInputDir
+from .queriedinput import QueriedInputPath, QueriedInputFile, QueriedInputDir
 
 file_archive = py_import('file_archive', {
         'pip': 'file_archive'})
@@ -35,7 +36,7 @@ _modules = [
         CachedFile,
         CachedDir,
 
-        # Query modules
+        # Condition modules
         (QueryCondition, {'abstract': True}),
         QueryStringEqual,
         QueryIntEqual,
@@ -50,4 +51,9 @@ _modules = [
         (PersistedInputPath, {'abstract': True}),
         PersistedInputFile,
         PersistedInputDir,
+
+        # Query modules
+        (QueriedInputPath, {'abstract': True}),
+        QueriedInputFile,
+        QueriedInputDir,
     ]
