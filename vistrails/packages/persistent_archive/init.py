@@ -7,7 +7,8 @@ from vistrails.core.system import current_dot_vistrails
 from .common import set_default_store, PersistentHash
 from .cache import CachedPath, CachedFile, CachedDir
 from .queries import QueryCondition, QueryStringEqual, \
-    QueryIntEqual, QueryIntRange
+    QueryIntEqual, QueryIntRange, \
+    Metadata, MetadataString, MetadataInt
 
 file_archive = py_import('file_archive', {
         'pip': 'file_archive'})
@@ -30,4 +31,7 @@ _modules = [PersistentHash,
             (QueryCondition, {'abstract': True}),
             QueryStringEqual,
             QueryIntEqual,
-            QueryIntRange]
+            QueryIntRange,
+            (Metadata, {'abstract': True}),
+            MetadataString,
+            MetadataInt]
