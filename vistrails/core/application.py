@@ -349,7 +349,10 @@ The builder window can be accessed by a spreadsheet menu option.")
                 
         # Command line options override temp_configuration
         self.readOptions()
-        
+
+        vistrails.core.requirements.require_executable('zip')
+        vistrails.core.requirements.require_executable('unzip')
+
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:
