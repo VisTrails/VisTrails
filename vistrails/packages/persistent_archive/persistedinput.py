@@ -57,9 +57,11 @@ class PersistedInputPath(Module):
                 if best is None or (KEY_TIME in entry.metadata and
                         entry[KEY_TIME] > best[KEY_TIME]):
                     best = entry
+            self.check_path_type(best.filename)
 
             if localpath and os.path.exists(localpath.name):
                 path = localpath.name
+                self.check_path_type(path)
                 if best is not None:
                     # Compare
                     if hash_path(path) != best['hash']:
@@ -88,6 +90,9 @@ class PersistedInputPath(Module):
                               "Missing input: set either 'metadata' "
                               "(optionally with path) or hash")
 
+    def check_path_type(self, path):
+        pass
+
     def _set_result(self, entry):
         if os.path.isdir(entry.filename):
             r = Directory()
@@ -106,6 +111,10 @@ class PersistedInputFile(PersistedInputPath):
     _output_ports = [
             ('path', File)]
 
+    def check_path_type(self, path):
+        if not os.path.isfile(path):
+            raise ModuleError(self, "Path is not a file")
+
 
 class PersistedInputDir(PersistedInputPath):
     _input_ports = [
@@ -114,3 +123,7 @@ class PersistedInputDir(PersistedInputPath):
             ('hash', PersistentHash, True)]
     _output_ports = [
             ('path', File)]
+
+    def check_path_type(self, path):
+        if not os.path.isdir(path):
+            raise ModuleError(self, "Path is not a directory")

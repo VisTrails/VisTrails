@@ -43,7 +43,12 @@ class QueriedInputPath(Module):
                               "Query returned %d results and 'unique' is "
                               "True" % nb)
 
+        self.check_path_type(entry.filename)
+
         self._set_result(entry)
+
+    def check_path_type(self, path):
+        pass
 
     def _set_result(self, entry):
         if os.path.isdir(entry.filename):
@@ -59,7 +64,15 @@ class QueriedInputFile(QueriedInputPath):
     _output_ports = [
             ('path', File)]
 
+    def check_path_type(self, path):
+        if not os.path.isfile(path):
+            raise ModuleError(self, "Path is not a file")
+
 
 class QueriedInputDir(QueriedInputPath):
     _output_ports = [
             ('path', Directory)]
+
+    def check_path_type(self, path):
+        if not os.path.isdir(path):
+            raise ModuleError(self, "Path is not a directory")
