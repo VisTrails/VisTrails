@@ -141,23 +141,30 @@ class ExcelTestCase(unittest.TestCase):
     def test_xls_sheet_mismatch(self):
         """Uses ExcelSpreadsheet with mismatching sheets.
         """
-        self.assertTrue(execute([
+        err = execute([
                 ('read|ExcelSpreadsheet', identifier, [
                     ('file', [('File', self._test_dir + '/xl.xlsx')]),
                     ('sheet_index', [('Integer', '0')]),
                     ('sheet_name', [('String', 'Feuil2')]),
                 ]),
-            ]))
+            ])
+        self.assertEqual(list(err.keys()), [0])
+        self.assertEqual(
+                err[0].msg,
+                "Both sheet_name and sheet_index were specified, and they "
+                "don't agree")
 
     def test_xls_sheetname_missing(self):
         """Uses ExcelSpreadsheet with a missing sheet.
         """
-        self.assertTrue(execute([
+        err = execute([
                 ('read|ExcelSpreadsheet', identifier, [
-                    ('file', [('File', self._test_dir + '/test.csv')]),
+                    ('file', [('File', self._test_dir + '/xl.xlsx')]),
                     ('sheet_name', [('String', 'Sheet12')]),
                 ]),
-            ]))
+            ])
+        self.assertEqual(list(err.keys()), [0])
+        self.assertEqual(err[0].msg, "Sheet name not found")
 
     def test_xls_header_nonnumeric(self):
         """Uses ExcelSpreadsheet to load data.
