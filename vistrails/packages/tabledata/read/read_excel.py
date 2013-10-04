@@ -25,7 +25,7 @@ class ExcelSpreadsheet(Table):
             ('sheet_index', '(org.vistrails.vistrails.basic:Integer)',
              {'optional': True}),
             ('header_present', '(org.vistrails.vistrails.basic:Boolean)',
-             {'optional': True, 'defaults': "['True']"})]
+             {'optional': True, 'defaults': "['False']"})]
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:String)'),
@@ -56,8 +56,7 @@ class ExcelSpreadsheet(Table):
         elif self.hasInputFromPort('sheet_index'):
             index = sheet_index
         else:
-            raise ModuleError(self,
-                              "You must set one of sheet_name or sheet_index")
+            index = 0
         self.sheet = workbook.sheet_by_index(index)
 
         self.header_present = self.getInputFromPort('header_present')
