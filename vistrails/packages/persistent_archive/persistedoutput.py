@@ -61,8 +61,8 @@ class PersistedPath(Module):
                         locator.name,
                         self.moduleInfo['version'])
             metadata[KEY_MODULE_ID] = self.moduleInfo['moduleId']
-            h = file_store.add(newpath, metadata)
-            self._set_result(file_store.get_filename(h))
+            entry = file_store.add(newpath, metadata)
+            self._set_result(entry.filename)
 
     def check_path_type(self, path):
         pass

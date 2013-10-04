@@ -53,8 +53,8 @@ class CachedPath(Module):
                     KEY_TIME: datetime.strftime(datetime.utcnow(),
                                                 '%Y-%m-%d %H:%M:%S'),
                     KEY_SIGNATURE: self.signature}
-            h = file_store.add(newpath, metadata)
-            self._set_result(file_store.get_filename(h))
+            entry = file_store.add(newpath, metadata)
+            self._set_result(entry.filename)
 
     def check_path_type(self, path):
         pass

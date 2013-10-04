@@ -79,8 +79,7 @@ class PersistedInputPath(Module):
                     data[KEY_TYPE] = TYPE_INPUT
                     data[KEY_TIME] = datetime.strftime(datetime.utcnow(),
                                                        '%Y-%m-%d %H:%M:%S')
-                    h = file_store.add(path, data)
-                    best = file_store.get(h)
+                    best = file_store.add(path, data)
             elif localpath:
                 debug.warning("Local file does not exist: %s" % localpath)
             if best is None:
