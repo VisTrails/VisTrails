@@ -1,9 +1,10 @@
 import os
 
-from vistrails.core.modules.basic_modules import Path, Boolean, Directory, File
+from vistrails.core.modules.basic_modules import Boolean, Directory, File, \
+    Path
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
-from .common import KEY_TIME, get_default_store
+from .common import KEY_TIME, get_default_store, wrap_path
 from .queries import QueryCondition
 
 
@@ -51,12 +52,7 @@ class QueriedInputPath(Module):
         pass
 
     def _set_result(self, entry):
-        if os.path.isdir(entry.filename):
-            r = Directory()
-        else:
-            r = File()
-        r.name = entry.filename
-        self.setResult('path', r)
+        self.setResult('path', wrap_path(entry.filename))
         # TODO : output metadata
 
 

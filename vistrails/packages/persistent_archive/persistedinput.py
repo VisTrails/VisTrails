@@ -7,7 +7,7 @@ from vistrails.core.modules.basic_modules import Directory, File, Path
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_INPUT, KEY_TIME, \
-    get_default_store, PersistentHash
+    get_default_store, wrap_path, PersistentHash
 from .queries import Metadata
 
 
@@ -95,12 +95,7 @@ class PersistedInputPath(Module):
         pass
 
     def _set_result(self, entry):
-        if os.path.isdir(entry.filename):
-            r = Directory()
-        else:
-            r = File()
-        r.name = entry.filename
-        self.setResult('path', r)
+        self.setResult('path', wrap_path(entry.filename))
         # TODO : output metadata
 
 

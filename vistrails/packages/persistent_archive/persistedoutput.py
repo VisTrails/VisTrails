@@ -6,7 +6,7 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_INPUT, \
     KEY_SIGNATURE, KEY_TIME, KEY_WORKFLOW, KEY_MODULE_ID, \
-    get_default_store
+    get_default_store, wrap_path
 from .queries import Metadata
 
 
@@ -68,12 +68,7 @@ class PersistedPath(Module):
         pass
 
     def _set_result(self, path):
-        if os.path.isdir(path):
-            r = Directory()
-        else:
-            r = File()
-        r.name = path
-        self.setResult('path', r)
+        self.setResult('path', wrap_path(path))
 
 
 class PersistedFile(PersistedPath):
