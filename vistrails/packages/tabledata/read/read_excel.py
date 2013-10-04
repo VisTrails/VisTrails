@@ -104,6 +104,8 @@ from ..common import ExtractColumn
 class ExcelTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        if get_xlrd() is None:
+            raise unittest.SkipTest("xlrd not available")
         import os
         cls._test_dir = os.path.join(
                 os.path.dirname(__file__),
