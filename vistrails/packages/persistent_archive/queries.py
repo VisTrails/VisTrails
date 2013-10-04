@@ -22,12 +22,12 @@ QueryCondition._output_ports = [
         ('self', QueryCondition)]
 
 
-class Metadata(Module):
+class Metadata(QueryCondition):
     """Base class for metadata pairs.
 
-    This is abstract and implemented by modules Metadata*
+    This is abstract and implemented by modules Equal*
 
-    This both provides a metadata pairs, as the 'metadata' attribute, for
+    This both provides a metadata pair, as the 'metadata' attribute, for
     inserting, and a condition, through the 'condition' attribute.
     """
     _input_ports = [
@@ -35,8 +35,7 @@ class Metadata(Module):
             ('value', Module)]
 
     def compute(self):
-        self.condition = (self.getInputFromPort('key'),
-                          self.make_condition_dict())
+        super(Metadata, self).compute()
         self.metadata = (self.getInputFromPort('key'),
                          self.getInputFromPort('value'))
 
@@ -44,32 +43,25 @@ Metadata._output_ports = [
         ('self', Metadata)]
 
 
-# Mixin classes used for both QueryCondition and Metadata
-
-class StringValue(object):
-    def make_condition_dict(self):
-        return {'type': 'str', 'equal': self.getInputFromPort('value')}
-
-
-class IntValue(object):
-    def make_condition_dict(self):
-        return {'type': 'int', 'equal': self.getInputFromPort('value')}
-
-
-# QueryConditon implementations
-
-class QueryStringEqual(StringValue, QueryCondition):
+class EqualString(Metadata):
     _input_ports = [
             ('key', String),
             ('value', String)]
 
-class QueryIntEqual(IntValue, QueryCondition):
+    def make_condition_dict(self):
+        return {'type': 'str', 'equal': self.getInputFromPort('value')}
+
+
+class EqualInt(Metadata):
     _input_ports = [
             ('key', String),
             ('value', Integer)]
 
+    def make_condition_dict(self):
+        return {'type': 'int', 'equal': self.getInputFromPort('value')}
 
-class QueryIntRange(QueryCondition):
+
+class IntInRange(QueryCondition):
     _input_ports = [
             ('key', String),
             ('lower_bound', Integer, True),
@@ -85,17 +77,3 @@ class QueryIntRange(QueryCondition):
             raise ModuleError(self, "No bound set")
         dct['type'] = 'int'
         return dct
-
-
-# Metadata implementations
-
-class MetadataString(StringValue, Metadata):
-    _input_ports = [
-            ('key', String),
-            ('value', String)]
-
-
-class MetadataInt(IntValue, Metadata):
-    _input_ports = [
-            ('key', String),
-            ('value', Integer)]

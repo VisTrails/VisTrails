@@ -6,9 +6,8 @@ from vistrails.core.system import current_dot_vistrails
 
 from .common import set_default_store, PersistentHash
 from .cache import CachedPath, CachedFile, CachedDir
-from .queries import QueryCondition, QueryStringEqual, \
-    QueryIntEqual, QueryIntRange, \
-    Metadata, MetadataString, MetadataInt
+from .queries import QueryCondition, EqualString, EqualInt, IntInRange, \
+    Metadata
 from .persistedinput import PersistedInputPath, \
     PersistedInputFile, PersistedInputDir
 from .queriedinput import QueriedInputPath, QueriedInputFile, QueriedInputDir
@@ -37,16 +36,12 @@ _modules = [
         CachedFile,
         CachedDir,
 
-        # Condition modules
+        # Condition & metadata modules
         (QueryCondition, {'abstract': True}),
-        QueryStringEqual,
-        QueryIntEqual,
-        QueryIntRange,
-
-        # Metadata modules
         (Metadata, {'abstract': True}),
-        MetadataString,
-        MetadataInt,
+        EqualString,
+        EqualInt,
+        IntInRange,
 
         # Input modules
         (PersistedInputPath, {'abstract': True}),
