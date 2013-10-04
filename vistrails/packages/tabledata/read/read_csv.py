@@ -83,8 +83,8 @@ class CSVFile(Table):
         self.setResult('column_names', self.names)
 
     def get_column(self, index, numeric=False):
-        if index in self.column_cache:
-            return self.column_cache[index]
+        if (index, numeric) in self.column_cache:
+            return self.column_cache[(index, numeric)]
 
         if numeric:
             result = numpy.loadtxt(
@@ -102,7 +102,7 @@ class CSVFile(Table):
                         delimiter=self.delimiter)
                 result = [row[index] for row in reader]
 
-        self.column_cache[index] = result
+        self.column_cache[(index, numeric)] = result
         return result
 
     @property
