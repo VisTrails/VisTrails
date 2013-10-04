@@ -23,7 +23,7 @@ class CSVFile(Table):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('self', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
+            ('self', '(org.vistrails.vistrails.tabledata:read|CSVFile)')]
 
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
@@ -83,8 +83,8 @@ class CSVFile(Table):
         self.setResult('column_names', self.names)
 
     def get_column(self, index, numeric=False):
-        if index in self.column_cache:
-            return self.column_cache[index]
+        if (index, numeric) in self.column_cache:
+            return self.column_cache[(index, numeric)]
 
         if numeric:
             result = numpy.loadtxt(
@@ -102,7 +102,7 @@ class CSVFile(Table):
                         delimiter=self.delimiter)
                 result = [row[index] for row in reader]
 
-        self.column_cache[index] = result
+        self.column_cache[(index, numeric)] = result
         return result
 
     @property
@@ -116,7 +116,7 @@ class CSVFile(Table):
         return self._rows
 
 
-_modules = {'csv': [CSVFile]}
+_modules = [CSVFile]
 
 
 ###############################################################################
@@ -143,7 +143,7 @@ class CSVTestCase(unittest.TestCase):
         with intercept_result(ExtractColumn, 'value') as results:
             with intercept_result(CSVFile, 'column_count') as columns:
                 self.assertFalse(execute([
-                        ('read|csv|CSVFile', identifier, [
+                        ('read|CSVFile', identifier, [
                             ('file', [('File', self._test_dir + '/test.csv')]),
                         ]),
                         ('ExtractColumn', identifier, [
@@ -173,7 +173,7 @@ class CSVTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with mismatching columns.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -189,7 +189,7 @@ class CSVTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with a nonexisting column.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -205,7 +205,7 @@ class CSVTestCase(unittest.TestCase):
         """
         with intercept_result(ExtractColumn, 'value') as results:
             self.assertFalse(execute([
-                    ('read|csv|CSVFile', identifier, [
+                    ('read|CSVFile', identifier, [
                         ('file', [('File', self._test_dir + '/test.csv')]),
                         ('header_present', [('Boolean', 'False')]),
                     ]),
