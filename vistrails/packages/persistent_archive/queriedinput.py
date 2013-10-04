@@ -1,7 +1,7 @@
 import os
 
 from vistrails.core.modules.basic_modules import Boolean, Directory, File, \
-    Path
+    Integer, List, Path
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TIME, get_default_store, wrap_path
@@ -19,7 +19,9 @@ class QueriedInputPath(Module):
             ('query', QueryCondition),
             ('unique', Boolean, {'optional': True, 'defaults': '["False"]'})]
     _output_ports = [
-            ('path', Path)]
+            ('most_recent', Path),
+            ('results', List),
+            ('count', Integer)]
 
     def compute(self):
         # Do the query
@@ -30,8 +32,10 @@ class QueriedInputPath(Module):
 
         nb = 0
         best = None
-        for entry in file_store.query(conditions):
+        entries = list(file_store.query(conditions))
+        for entry in entries:
             nb += 1
+            self.check_path_type(entry.filename)
             if best is None or (KEY_TIME in entry.metadata and
                     entry[KEY_TIME] > best[KEY_TIME]):
                 best = entry
@@ -44,21 +48,24 @@ class QueriedInputPath(Module):
                               "Query returned %d results and 'unique' is "
                               "True" % nb)
 
-        self.check_path_type(entry.filename)
-
-        self._set_result(entry)
+        self._set_result(entries, entry)
 
     def check_path_type(self, path):
         pass
 
-    def _set_result(self, entry):
-        self.setResult('path', wrap_path(entry.filename))
+    def _set_result(self, results, latest):
+        self.setResult('most_recent', wrap_path(latest.filename))
+        self.setResult('results', [wrap_path(e.filename)
+                                   for e in results])
+        self.setResult('count', len(results))
         # TODO : output metadata
 
 
 class QueriedInputFile(QueriedInputPath):
     _output_ports = [
-            ('path', File)]
+            ('most_recent', File),
+            ('results', List),
+            ('count', Integer)]
 
     def check_path_type(self, path):
         if not os.path.isfile(path):
@@ -67,7 +74,9 @@ class QueriedInputFile(QueriedInputPath):
 
 class QueriedInputDir(QueriedInputPath):
     _output_ports = [
-            ('path', Directory)]
+            ('most_recent', Directory),
+            ('results', List),
+            ('count', Integer)]
 
     def check_path_type(self, path):
         if not os.path.isdir(path):
