@@ -27,34 +27,37 @@ def initialize():
     set_default_store(FileStore(file_store_path))
 
 
-_modules = [
-        # Reference to a specific file
-        PersistentHash,
+_modules = {
+        '': [
+            # Reference to a specific file
+            PersistentHash,
 
-        # Caching modules
-        (CachedPath, {'abstract': True}),
-        CachedFile,
-        CachedDir,
+            # Caching modules
+            (CachedPath, {'abstract': True}),
+            CachedFile,
+            CachedDir,
 
-        # Condition & metadata modules
-        (QueryCondition, {'abstract': True}),
-        (Metadata, {'abstract': True}),
-        EqualString,
-        EqualInt,
-        IntInRange,
+            # Input modules
+            (PersistedInputPath, {'abstract': True}),
+            PersistedInputFile,
+            PersistedInputDir,
 
-        # Input modules
-        (PersistedInputPath, {'abstract': True}),
-        PersistedInputFile,
-        PersistedInputDir,
+            # Query modules
+            (QueriedInputPath, {'abstract': True}),
+            QueriedInputFile,
+            QueriedInputDir,
 
-        # Query modules
-        (QueriedInputPath, {'abstract': True}),
-        QueriedInputFile,
-        QueriedInputDir,
-
-        # Output modules
-        (PersistedPath, {'abstract': True}),
-        PersistedFile,
-        PersistedDir,
-    ]
+            # Output modules
+            (PersistedPath, {'abstract': True}),
+            PersistedFile,
+            PersistedDir,
+        ],
+        'metadata': [
+            # Condition & metadata modules
+            (QueryCondition, {'abstract': True}),
+            (Metadata, {'abstract': True}),
+            EqualString,
+            EqualInt,
+            IntInRange,
+        ],
+    }
