@@ -57,7 +57,8 @@ class PersistedInputPath(Module):
                 if best is None or (KEY_TIME in entry.metadata and
                         entry[KEY_TIME] > best[KEY_TIME]):
                     best = entry
-            self.check_path_type(best.filename)
+            if best is not None:
+                self.check_path_type(best.filename)
 
             if localpath and os.path.exists(localpath.name):
                 path = localpath.name
