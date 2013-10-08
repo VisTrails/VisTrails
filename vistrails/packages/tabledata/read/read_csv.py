@@ -104,6 +104,8 @@ class CSVFile(Table):
                         fp,
                         delimiter=self.delimiter)
                 result = [row[index] for row in reader]
+            if numeric:
+                result = [float(e) for e in result]
 
         self.column_cache[(index, numeric)] = result
         return result

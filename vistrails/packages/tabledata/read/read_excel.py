@@ -87,6 +87,8 @@ class ExcelSpreadsheet(Table):
             result = result[1:]
         if numeric and numpy is not None:
             result = numpy.array(result, dtype=numpy.float32)
+        elif numeric:
+            result = [float(e) for e in result]
 
         self.column_cache[(index, numeric)] = result
         return result
