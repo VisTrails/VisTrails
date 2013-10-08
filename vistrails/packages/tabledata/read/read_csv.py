@@ -1,6 +1,9 @@
 import csv
 from itertools import izip
-import numpy
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 from vistrails.core.modules.vistrails_module import ModuleError
 from ..common import Table
@@ -86,7 +89,7 @@ class CSVFile(Table):
         if (index, numeric) in self.column_cache:
             return self.column_cache[(index, numeric)]
 
-        if numeric:
+        if numeric and numpy is not None:
             result = numpy.loadtxt(
                     self.filename,
                     dtype=numpy.float32,

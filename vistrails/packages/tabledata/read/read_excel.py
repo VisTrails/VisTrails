@@ -1,4 +1,7 @@
-import numpy
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -82,7 +85,7 @@ class ExcelSpreadsheet(Table):
         result = [c.value for c in self.sheet.col(index)]
         if self.header_present:
             result = result[1:]
-        if numeric:
+        if numeric and numpy is not None:
             result = numpy.array(result, dtype=numpy.float32)
 
         self.column_cache[(index, numeric)] = result
