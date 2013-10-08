@@ -687,11 +687,15 @@ def linux_update_default_application():
                os.path.join(system.vistrails_examples_directory(),
                             'terminator.vt')]
     #print command
-    output = []
-    result = system.execute_cmdline(command, output)
-    if result != 0:
-        # something is wrong, abort
-        print "Error installing mimetypes:", output[0]
+    try:
+        output = []
+        result = system.execute_cmdline(command, output)
+        if result != 0:
+            # something is wrong, abort
+            print "Error installing mimetypes: %s" % output[0]
+            return
+    except OSError, e:
+        print "Error installing mimetypes: %s" % e.message
         return
     #print 'application/x-vistrails', output[0].strip()
     if 'application/x-vistrails' == output[0].strip():
@@ -707,12 +711,22 @@ def linux_update_default_application():
                os.path.join(system.vistrails_root_directory(),
                             'gui/resources/vistrails-mime.xml')]
     output = []
-    result = system.execute_cmdline(command, output)
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        return
     #print "install xml", command, result, output
 
     command = ['update-mime-database', home + '/.local/share/mime']
     output = []
-    result = system.execute_cmdline(command, output)
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        return
     #print command, result, output
 
     # install icon
@@ -723,7 +737,12 @@ def linux_update_default_application():
                             'gui/resources/images/vistrails_icon_small.png'),
                'application-x-vistrails']
     output = []
-    result = system.execute_cmdline(command, output)
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        return
     #print "install icon", command, result, output
 
 
