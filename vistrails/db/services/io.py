@@ -57,7 +57,7 @@ import copy
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
-    DBMashuptrail
+    DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
 import vistrails.db.services.log
 import vistrails.db.services.opm
@@ -1780,6 +1780,33 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
 
         except Exception, e:
             debug.critical('Could not save mashuptrail to db: %s' % str(e))
+
+def open_startup_from_xml(filename):
+    tree = ElementTree.parse(filename)
+    version = get_version_for_xml(tree.getroot())
+    if version == '0.1':
+        version = '1.0.3'
+    daoList = getVersionDAO(version)
+    startup = daoList.open_from_xml(filename, DBStartup.vtType, tree)
+    # FIXME add translation, etc.
+    # startup = translate_startup(startup, version)
+    # vistrails.db.services.startup.update_id_scope(startup)
+    return startup
+
+def save_startup_to_xml(startup, filename, version=None):
+    tags = {}
+    if version is None:
+        version = currentVersion
+    if not startup.db_version:
+        startup.db_version = currentVersion
+    # FIXME add translation, etc.
+    # startup = translate_startup(startup, startup.db_version, version)
+
+    daoList = getVersionDAO(version)
+    daoList.save_to_xml(startup, filename, tags, version)
+    # startup = translate_startup(startup, version)
+    return startup
+    
 
 ##############################################################################
 # I/O Utilities

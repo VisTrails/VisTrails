@@ -218,8 +218,8 @@ The builder window can be accessed by a spreadsheet menu option.")
         get = command_line.CommandLineParser().get_option
         if get('nosplash')!=None:
             self.temp_configuration.showSplash = bool(get('nosplash'))
-        if get('debugsignals')!=None:
-            self.temp_configuration.debugSignals = bool(get('debugsignals'))
+        # if get('debugsignals')!=None:
+        #     self.temp_configuration.debugSignals = bool(get('debugsignals'))
         if get('dotVistrails')!=None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
         if get('multiheads')!=None:
