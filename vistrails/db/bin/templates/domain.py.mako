@@ -457,6 +457,7 @@ class ${obj.getClassName()}(object):
                 break
         % endif
         % endif
+        % if field.getPythonType() == 'hash' or field.getReferencedObject().getKey() is not None:
         % for index in field.getAllIndices():
         % if shouldIgnoreIndexDelete(index):
         try:
@@ -469,6 +470,7 @@ class ${obj.getClassName()}(object):
             index[${getIndexKey(field.getName(), index)}]
         % endif
         % endfor
+        % endif
     def ${field.getLookup()}(self, key):
         % if field.getPythonType() == 'hash':
         if key in self.${field.getPrivateName()}:
