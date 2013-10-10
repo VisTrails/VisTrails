@@ -42,12 +42,21 @@ runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
-#import doctest
-import atexit
-import os
+
+# First, import unittest, replacing it with unittest2 if necessary
 import sys
-import traceback
+try:
+    import unittest2
+except ImportError:
+    pass
+else:
+    sys.modules['unittest'] = unittest2
 import unittest
+
+import atexit
+#import doctest
+import os
+import traceback
 import os.path
 import optparse
 from optparse import OptionParser
