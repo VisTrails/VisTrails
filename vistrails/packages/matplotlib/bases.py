@@ -100,7 +100,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
         source = self.getInputFromPort('source')
         s = ('from pylab import *\n'
              'from numpy import *\n' +
-             'figure(%d)' % self.figInstance.number +
+             'figure(%d)\n' % self.figInstance.number +
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
