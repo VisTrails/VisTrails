@@ -2166,15 +2166,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         update_menu(self.qmenus['openRecent'])
         for w in self.windows.values():
             update_menu(w.qmenus['openRecent'])
-            
-    def _activateWindow(self, b):
-        return self.activateWindow()
 
     def update_window_menu(self):
         def compute_action_items():
             actions = []
-            action = QtGui.QAction("Main Window", self, 
-                                   triggered=self._activateWindow)
+            action = QtGui.QAction(
+                    "Main Window", self,
+                    triggered=lambda b=None: self.activateWindow())
             action.setCheckable(True)
             
             base_view_windows = {}
