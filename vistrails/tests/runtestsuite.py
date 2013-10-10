@@ -217,6 +217,7 @@ app.builderWindow.close_all_vistrails(True)
 
 print "Test Suite for VisTrails"
 print "Running on %s" % ', '.join(platform.uname())
+print "Python is %s" % sys.version
 try:
     from PyQt4 import QtCore
     print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
