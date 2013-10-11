@@ -50,6 +50,11 @@ def package_dependencies():
 
 def package_requirements():
     from vistrails.core.requirements import require_python_module
+    require_python_module('numpy', {
+            'pip': 'numpy',
+            'linux-debian': 'python-numpy',
+            'linux-ubuntu': 'python-numpy',
+            'linux-fedora': 'numpy'})
     mpl_dict = {'pip': 'matplotlib',
                 'linux-debian': 'python-matplotlib',
                 'linux-ubuntu': 'python-matplotlib',
