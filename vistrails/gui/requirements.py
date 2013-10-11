@@ -42,10 +42,11 @@ def check_pyqt4():
         require_python_module('PyQt4.QtGui')
         require_python_module('PyQt4.QtOpenGL')
     except MissingRequirement:
-        r = vistrails.core.bundles.installbundle.install(
-            {'linux-ubuntu': ['python-qt4',
-                              'python-qt4-gl',
-                              'python-qt4-sql']})
+        r = vistrails.core.bundles.installbundle.install({
+            'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-fedora': ['PyQt4'],
+            'pip': ['PyQt<5.0']})
         if not r:
             raise
 

@@ -71,7 +71,9 @@ def package_dependencies():
     return ['org.vistrails.vistrails.http']
     
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('ZSI'):
-        raise vistrails.core.requirements.MissingRequirement('ZSI')
-    import ZSI
+    from vistrails.core.requirements import require_python_module
+    require_python_module('ZSI', {
+            'pip': 'zsi',
+            'linux-debian': 'python-zsi',
+            'linux-ubuntu': 'python-zsi',
+            'linux-fedora': 'python-ZSI'})

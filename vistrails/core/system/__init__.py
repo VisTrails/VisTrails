@@ -45,7 +45,6 @@ import urllib2
 
 from vistrails.core import debug
 from vistrails.core.utils import unimplemented, VistrailsInternalError, Chdir
-import vistrails.core.requirements
 
 
 ###############################################################################
@@ -286,6 +285,7 @@ def vistrails_revision():
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
         release = "99faabb791a0"
+        import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(
