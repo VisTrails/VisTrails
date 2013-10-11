@@ -36,7 +36,6 @@
 # VTK Package for VisTrails
 ################################################################################
 
-from vistrails.core.bundles import py_import
 from vistrails.core.debug import debug
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
      Color, identifier as basic_pkg
@@ -54,9 +53,7 @@ import os.path
 import re
 import warnings
 
-vtk = py_import('vtk', {'linux-debian': 'python-vtk',
-                        'linux-ubuntu': 'python-vtk',
-                        'linux-fedora': 'vtk-python'})
+import vtk
 
 from base_module import vtkBaseModule
 from class_tree import ClassTree

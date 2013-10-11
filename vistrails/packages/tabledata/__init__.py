@@ -20,8 +20,10 @@ def package_dependencies():
 
 
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('numpy'):
-        raise vistrails.core.requirements.MissingRequirement('numpy')
-    if not vistrails.core.requirements.python_module_exists('csv'):
-        raise vistrails.core.requirements.MissingRequirement('csv')
+    from vistrails.core.requirements import require_python_module
+    require_python_module('numpy', {
+            'pip': 'numpy',
+            'linux-debian': 'python-numpy',
+            'linux-ubuntu': 'python-numpy',
+            'linux-fedora': 'numpy'})
+    require_python_module('csv')
