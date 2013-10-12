@@ -81,7 +81,7 @@ def initialize(*args, **kwargs):
                 if package != identifier:
                     if not manager.has_package(package):
                         add_abstraction = False
-                        cannot_load[abs_name] = abs_vistrail
+                        cannot_load[abs_name] = (abs_vistrail, "Missing package dependency: %s" % package)
                         break
                 else:
                     for descriptor_info in inter_depends:
@@ -138,8 +138,13 @@ def package_dependencies():
 
     reg = vistrails.core.modules.module_registry.get_module_registry()
     conf = get_vistrails_configuration()
+
+    abstraction_dir = None
     if conf.check("abstractionsDirectory"):
         abstraction_dir = conf.abstractionsDirectory
+    else:
+        debug.log("Subworkflows directory unset, cannot add any abstractions")
+        return []
     p = re.compile(r".*\.xml")
     all_packages = set()
     for abstraction in os.listdir(abstraction_dir):

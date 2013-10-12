@@ -1,7 +1,7 @@
 <startup version="0.1">
   <configuration>
     <key name="nologger">
-      <bool value="True"/>
+      <bool value="False"/>
     </key>
   </configuration>
   <packages>
@@ -22,7 +22,7 @@
 <startup version="0.1">
   <configuration>
     <key name="nologger">
-      <bool value="True"/>
+      <bool value="False"/>
     </key>
     <key name="shell">
       <configuration>

@@ -114,7 +114,7 @@ class QPackageConfigurationDialog(QtGui.QDialog):
         self.done(0)
 
     def configuration_changed(self, item, new_value):
-        self._package.set_persistent_configuration()
+        self._package.persist_configuration()
 
 ##############################################################################
 
@@ -461,6 +461,7 @@ class QPackagesWidget(QtGui.QWidget):
             self._description_label.setText(msg)
             self._reverse_dependencies_label.setText(msg)
             debug.critical('Cannot load package', str(e))
+            raise
         else:
             self._name_label.setText(p.name)
             try:
@@ -658,19 +659,21 @@ class TestPreferencesDialog(unittest.TestCase):
         av = packages._available_packages_list
         for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
             av.setCurrentItem(item)
+            QtGui.QApplication.processEvents()
             packages.enable_current_package()
-            QtCore.QCoreApplication.processEvents()
+            QtGui.QApplication.processEvents()
 
         inst = packages._enabled_packages_list
         for item in inst.findItems(pkg, QtCore.Qt.MatchExactly):
             inst.setCurrentItem(item)
+            QtGui.QApplication.processEvents()
             packages.disable_current_package()
-            QtCore.QCoreApplication.processEvents()
+            QtGui.QApplication.processEvents()
 
         # force delayed calls
         packages.populate_lists()
         packages.select_package_after_update_slot(pkg)
-        QtCore.QCoreApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
         # This does not work because the selection is delayed
         av = packages._available_packages_list
@@ -678,19 +681,8 @@ class TestPreferencesDialog(unittest.TestCase):
         self.assertEqual(len(items), 1, "No available items selected!")
         self.assertEqual(items[0].text(), unicode(pkg),
                          "Wrong available item selected: %s" % items[0].text())
-        # check if configuration has been written correctly
-        startup = _app.vistrailsStartup
-        doc = startup.startup_dom().documentElement
-        disabledpackages = enter_named_element(doc, 'disabledpackages')
-        dpackage = None
-        for package_node in named_elements(disabledpackages, 'package'):
-            if str(package_node.attributes['name'].value) == pkg:
-                dpackage = package_node
-        self.assertIsNotNone(dpackage, "Removed package '%s' is not in unloaded packages list!" % pkg)
 
-        epackages = enter_named_element(doc, 'packages')
-        apackage = None
-        for package_node in named_elements(epackages, 'package'):
-            if str(package_node.attributes['name'].value) == pkg:
-                apackage = package_node
-        self.assertIsNone(apackage, "Removed package '%s' is still in loaded packages list!" % pkg)
+        # check if configuration has been written correctly
+        startup = _app.startup
+        self.assertTrue(pkg in startup.disabled_packages)
+        self.assertTrue(pkg not in startup.enabled_packages)

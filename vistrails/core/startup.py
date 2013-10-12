@@ -39,50 +39,56 @@ from vistrails.core import system
 from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.utils.uxml import named_elements, elements_filter, \
      eval_xml_value, enter_named_element
-from vistrails.db.domain import DBStartup, DBStartupPackage
-import copy
+from vistrails.db.domain import DBStartup, DBStartupPackage, \
+    DBEnabledPackages, DBDisabledPackages
+import vistrails.db.services.io
 import vistrails.core.packagemanager
+from vistrails.core.system import get_elementtree_library
 import vistrails.core.utils
+from vistrails.core.utils import version_string_to_list
+
+import copy
 import os.path
+import re
 import shutil
 import sys
 import tempfile
 import vistrails.core.configuration
-import xml.dom.minidom
+
+ElementTree = get_elementtree_library()
 
 ################################################################################
 
 class StartupPackage(DBStartupPackage):
+    def __init__(self, *args, **kwargs):
+        if 'prefix' in kwargs:
+            self.prefix = kwargs['prefix']
+            del kwargs['prefix']
+        else:
+            self.prefix = None
+        DBStartupPackage.__init__(self, *args, **kwargs)
+
     @staticmethod
     def convert(_pkg):
         _pkg.__class__ = StartupPackage
         if _pkg.configuration is not None:
             ConfigurationObject.convert(_pkg.configuration)
+        _pkg.prefix = None
+
+    def __copy__(self):
+        """ __copy__() -> StartupPackage - Returns a clone of itself """ 
+        return StartupPackage.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBStartupPackage.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = StartupPackage
+        cp.prefix = self.prefix
+        return cp
 
     configuration = DBStartupPackage.db_configuration
     name = DBStartupPackage.db_name
 
-class PersistedStartup(DBStartup):
-    @staticmethod
-    def convert(_startup):
-        _startup.__class__ = PersistedStartup
-        ConfigurationObject.convert(_startup.configuration)
-        # FIXME need to translate package settings
-        for _pkg in _startup.enabled_packages:
-            StartupPackage.convert(_pkg)
-        for _pkg in _startup.disabled_packages:
-            StartupPackage.convert(_pkg)
-        
-    configuration = DBStartup.db_configuration
-    def _get_enabled_packages(self):
-        return self.db_enabled_packages.db_packages
-    enabled_packages = property(_get_enabled_packages)
-    def _get_disabled_packages(self):
-        return self.db_disabled_packages.db_packages
-    disabled_packages = property(_get_disabled_packages)
-    version = DBStartup.db_version
-
-class VistrailsStartup(object):
+class VistrailsStartup(DBStartup):
     """
     VistrailsStartup is the class that initializes VisTrails based on
     a configuration. Both application mode (interactive and
@@ -96,65 +102,70 @@ class VistrailsStartup(object):
     DIRECTORIES = [('userPackageDirectory', 'userpackages', True),
                    ('abstractionsDirectory', 'subworkflows', False),
                    ('thumbs.cacheDirectory', 'thumbs', False)]
+    DOT_VISTRAILS_PREFIX = "$DOT_VISTRAILS"
+    DOT_VISTRAILS_PREFIX_RE = re.compile("%s([%s/\\\\]|$)" % 
+                                         (re.escape(DOT_VISTRAILS_PREFIX),
+                                          os.path.sep))
 
-    def __init__(self, config=None, tempconfig=None, dot_vistrails=None):
-        """VistrailsStartup(config, tempconfig: ConfigurationObject,
-                            dot_vistrails: str) -> None
+    def __init__(self, options_config, command_line_config, 
+                 use_dot_vistrails=True):
+        """VistrailsStartup(dot_vistrails: str) -> None
 
-        Setup the configuration. config is the persistent
-        configuration and tempconfig is the current
-        configuration. dot_vistrals indicates the file we will use to
-        load and save configuration options; if it is None, options
-        will not be loaded or saved for the session.
+        Setup VisTrails configuration and options. dot_vistrals
+        indicates the file we will use to load and save configuration
+        options; if it is None, options will not be loaded or saved
+        for the session.
 
         """
-        assert (config is None or
-                isinstance(config, vistrails.core.configuration.ConfigurationObject))
-        assert (tempconfig is None or
-                isinstance(tempconfig, vistrails.core.configuration.ConfigurationObject))
-        if config:
-            self.configuration = config
-        else:
-            self.configuration = vistrails.core.configuration.default()
-        if tempconfig:
-            self.temp_configuration = tempconfig
-        else:
-            self.temp_configuration = copy.copy(self.configuration)
-        
-        # self.startupHooks = []
 
-        self._dot_vistrails = dot_vistrails
-        self._persisted_startup = None
-        if self._dot_vistrails is not None:
+        DBStartup.__init__(self)
+        self.db_enabled_packages = DBEnabledPackages()
+        self.db_disabled_packages = DBDisabledPackages()
+
+        self._dot_vistrails = None
+
+        # self._enabled_packages = {}
+        # self._disabled_packages = {}
+
+        self.configuration = vistrails.core.configuration.default()
+
+        if use_dot_vistrails:
+            if command_line_config is not None and \
+               command_line_config.check('dotVistrails'):
+                self._dot_vistrails = command_line_config.get('dotVistrails')
+            elif options_config is not None and \
+                 options_config.check('dotVistrails'):
+                self._dot_vistrails = options_config.get('dotVistrails')
+            else:
+                self._dot_vistrails = self.configuration.get('dotVistrails')
             self.setup_base_dot_vistrails()
-            self.load_configuration()
-            self.configuration.dotVistrails = self._dot_vistrails
-            self.temp_configuration.dotVistrails = self._dot_vistrails
-            self.setup_dot_vistrails()
-            self.load_packages()
 
-        #     # This needs to be here because we want to log all initialization
-        #     # steps
-        #     self.setupLogFile()
-        #     self._python_environment = self.runDotVistrails()
-        #     self.load_configuration()
+        self.load_and_update_configurations(options_config, 
+                                            command_line_config)
+        self.update_packages()
+        self.setup_dot_vistrails()
 
-        #     #the problem is that maybe the logFile now points to a different place
-        #     self.setupLogFile()
+    @staticmethod
+    def convert(_startup):
+        _startup.__class__ = VistrailsStartup
+        ConfigurationObject.convert(_startup.configuration)
+        for _pkg in _startup.db_enabled_packages.db_packages:
+            StartupPackage.convert(_pkg)
+        for _pkg in _startup.db_disabled_packages.db_packages:
+            StartupPackage.convert(_pkg)
 
-        #     self.setupDefaultFolders()
-        #     self._do_load_packages = True
+    ########################################################################
+    # Properties
 
-        # else:
-        #     self._do_load_packages = False
-        # #package_manager needs the persistent configuration
-        # self._package_manager = vistrails.core.packagemanager.PackageManager(
-        #     self.configuration)
-            
-        # self._package_dictionary = {}
-        # # stores all packages that must be enabled on startup
-        # self._needed_packages = []
-        
+    configuration = DBStartup.db_configuration
+    def _get_enabled_packages(self):
+        return self.db_enabled_packages.db_packages_name_index
+    enabled_packages = property(_get_enabled_packages)
+    def _get_disabled_packages(self):
+        return self.db_disabled_packages.db_packages_name_index
+    disabled_packages = property(_get_disabled_packages)
+    version = DBStartup.db_version
+
     def get_startup_xml_fname(self):
         return os.path.join(self._dot_vistrails, 'startup.xml')
 
@@ -162,10 +173,21 @@ class VistrailsStartup(object):
         self.create_dot_vistrails_if_necessary()
         self.create_startupxml_if_needed()
 
-    def load_configuration(self):
-        startup = self.get_persisted_startup()
-        self.configuration.update(startup.configuration)
-        self.temp_configuration.update(startup.configuration)
+    def load_and_update_configurations(self, options_config, 
+                                       command_line_config):
+        # load options from startup.xml
+        self.load_persisted_startup()
+
+        # check the dot_vistrails paths
+        if self._dot_vistrails is not None:
+            self.update_dir_paths()
+
+        # set up temporary configuration with options and command-line
+        self.temp_configuration = copy.copy(self.configuration)        
+        if options_config is not None:
+            self.temp_configuration.update(options_config)
+        if command_line_config is not None:
+            self.temp_configuration.update(command_line_config)
 
     def update_deep_configs(self, keys_str, value):
         self.configuration.set_deep_value(keys_str, value)
@@ -184,15 +206,59 @@ class VistrailsStartup(object):
             debug.critical(msg)
             sys.exit(1)
 
+    def remove_prefix(self, dir_name, prefix):
+        suffix = dir_name[len(prefix):]
+        if suffix.startswith('/') or suffix.startswith(os.path.sep) or \
+           suffix.startswith('\\'):
+            return suffix[1:]
+        return suffix
+            
+    def expand_vt_path(self, dir_name):
+        m = self.DOT_VISTRAILS_PREFIX_RE.match(dir_name)
+        if m:
+            if self._dot_vistrails is None:
+                return None
+            else:
+                # could be "$DOT_VISTRAILS" or "$DOT_VISTRAILS/userpackages"
+                prefix_len = len(self.DOT_VISTRAILS_PREFIX) + len(m.groups()[0])
+                if prefix_len < len(dir_name):
+                    return os.path.join(self._dot_vistrails, 
+                                        dir_name[prefix_len:])
+                else:
+                    return self._dot_vistrails
+        return dir_name
+
+    # this should be more generally available (e.g. core.utils)
     def resolve_dir_name(self, config_key, default_dir):
         dir_name = None
         is_default = False
         if self.temp_configuration.has_deep_value(config_key):
             dir_name = self.temp_configuration.get_deep_value(config_key)
         if dir_name is None:
-            dir_name = os.path.join(self._dot_vistrails, default_dir)
+            dir_name = os.path.join("$DOT_VISTRAILS", default_dir)
             is_default = True
-        return dir_name, is_default
+        abs_dir_name = self.expand_vt_path(dir_name)
+        return dir_name, abs_dir_name, is_default
+
+    def update_dir_paths(self):
+        persistent_dot_vistrails = self.configuration.dotVistrails
+        for (config_key, _, _) in self.DIRECTORIES:
+            if self.configuration.has_deep_value(config_key):
+                dir_name = self.configuration.get_deep_value(config_key)
+                self.remove_prefix
+                if (dir_name is not None and 
+                    dir_name.startswith(persistent_dot_vistrails)):
+                    suffix = self.remove_prefix(dir_name, 
+                                                persistent_dot_vistrails)
+                    print "suffix:", suffix
+                    if suffix:
+                        new_dir = os.path.join(self.DOT_VISTRAILS_PREFIX, 
+                                               suffix)
+                    else:
+                        new_dir = self.DOT_VISTRAILS_PREFIX
+                    print "SETTING new configuration", config_key, new_dir
+                    self.configuration.set_deep_value(config_key, new_dir)
+        self.save_persisted_startup()
 
     def create_directory(self, dir_name):
         if not os.path.isdir(dir_name):
@@ -210,12 +276,17 @@ class VistrailsStartup(object):
         return False
 
     def setup_directory(self, config_key, default_dir, setup_init_file=False):
-        dir_name, is_default = self.resolve_dir_name(config_key, default_dir)
-        self.create_directory(dir_name)
+        # FIXME need to deal with case where config value is
+        # $DOT_VISTRAILS and that doesn't exist
+        dir_name, abs_dir_name, is_default = \
+                                self.resolve_dir_name(config_key, default_dir)
+        if abs_dir_name is not None:
+            self.create_directory(abs_dir_name)
         if is_default:
             self.update_deep_configs(config_key, dir_name)
-        if setup_init_file:
-            self.setup_init_file(dir_name)
+        self.temp_configuration.set_deep_value(config_key, abs_dir_name)
+        if abs_dir_name is not None and setup_init_file:
+            self.setup_init_file(abs_dir_name)
 
     def setup_log_file(self):
         import vistrails.core.system
@@ -230,118 +301,29 @@ class VistrailsStartup(object):
             is_default = True
         else:
             dir_name = os.path.dirname(self.temp_configuration.logFile)
-        self.create_directory(dir_name)
-        log_fname = os.path.join(dir_name, 'vistrails_%s.log' % version)
+        abs_dir_name = self.expand_vt_path(dir_name)
+        if abs_dir_name is not None:
+            self.create_directory(abs_dir_name)
+            log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
+        else:
+            log_fname = None
         if is_default:
-            self.configuration.logFile = log_fname
-            self.temp_configuration.logFile = log_fname
-        debug.DebugPrint.getInstance().set_logfile(log_fname)
+            self.update_deep_configs("logFile", 
+                                     os.path.join(dir_name,
+                                                  'vistrails_%s.log' % version))
+        self.temp_configuration.logFile = log_fname
+        if log_fname is not None:
+            debug.DebugPrint.getInstance().set_logfile(log_fname)
             
-    def load_packages(self):
-        startup = self.get_persisted_startup()
-        for pkg in startup.enabled_packages:
-            print "Loading package:", pkg.name
-
-            
-
-        # def get_version():
-        #     import vistrails.core.system
-        #     version = vistrails.core.system.vistrails_version()
-        #     return version.replace(".","_")
-        # #To make sure we always save a log file name according to the
-        # #current version, we will only consider the directory stored in
-        # # logFile and append a name with the correct version encoded. 
-        # if not self.temp_configuration.check('logFile'):
-        #     s = os.path.join(self.temp_configuration.dotVistrails,
-        #                      'vistrails_%s.log'%(get_version()))
-        #     self.temp_configuration.logFile = s
-        # else:
-        #     dirname = os.path.dirname(self.temp_configuration.logFile)
-        #     self.temp_configuration.logFile = os.path.join(dirname,
-        #                                 'vistrails_%s.log'%(get_version()))
-        # if not self.configuration.check('logFile'):
-        #     # if this was not set before, it should point to the
-        #     # value in temp_configuration
-        #     s = os.path.join(self.temp_configuration.dotVistrails,
-        #                      'vistrails_%s.log'%(get_version()))
-        #     self.configuration.logFile = s
-        # else:
-        #     dirname = os.path.dirname(self.configuration.logFile)
-        #     self.configuration.logFile = os.path.join(dirname,
-        #                                 'vistrails_%s.log'%(get_version()))
-        # if not os.path.lexists(self.temp_configuration.dotVistrails):
-        #     self.create_default_directory()
-        # debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
-        
     def setup_dot_vistrails(self):
         self.setup_log_file()
         for args in self.DIRECTORIES:
             self.setup_directory(*args)
 
-    def init(self):
-        """ init() -> None        
-        Initialize VisTrails with optionsDict. optionsDict can be
-        another VisTrails Configuration object, e.g. ConfigurationObject
-        
-        """
-        if self._do_load_packages:
-            self.load_packages()
-        if self._do_load_packages:
-            # don't call this anymore since we do an add_package for it now
-            # self.setupBaseModules()
-            self.installPackages()
-        self.runStartupHooks()
-
-    def set_needed_packages(self, package_list):
-        self._needed_packages = package_list
-
-    ##########################################################################
-    # startup.xml related
-
-    def startup_dom(self):
-        filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
-        return xml.dom.minidom.parse(filename)
-
-    def write_startup_dom(self, dom):
-        filename = os.path.join(self.temp_configuration.dotVistrails,'startup.xml')
-        f = open(filename, 'w')
-        f.write(dom.toxml())
-                
-    # def load_configuration(self):
-    #     """load_configuration() -> None
-    #     Loads the appropriate configuration from .vistrails/startup.xml.
-    #     This will overwrite both configuration and temp_configuration
-        
-    #     """
-    #     dom = self.startup_dom()
-    #     conf = enter_named_element(dom.documentElement, 'configuration')
-    #     self.configuration.set_from_dom_node(conf)
-    #     self.temp_configuration.set_from_dom_node(conf)
-        
-    # def load_packages(self):
-    #     """load_packages() -> None
-
-    #     Loads the appropriate packages from .vistrails/startup.xml.
-    #     """
-        
-    #     for package_name in self._needed_packages:
-    #         self._package_manager.add_package(package_name)
-
-    #     def parse_package(node):
-    #         is_value = (lambda node: node.nodeName in
-    #                     set(['bool', 'str', 'int', 'float']))
-    #         package_name = str(node.attributes['name'].value)
-    #         # FIXME use more robust checks here!
-    #         if package_name != 'basic_modules' and \
-    #                 package_name != 'abstraction':
-    #             self._package_manager.add_package(package_name)
-    #     dom = self.startup_dom()
-    #     doc = dom.documentElement
-    #     packages_node = enter_named_element(doc, 'packages')
-    #     for package_node in named_elements(packages_node, 'package'):
-    #         parse_package(package_node)
-
-    ##########################################################################
+    def setup_non_dot_vistrails(self):
+        self.temp_configuration.set_deep_value('logFile', None)
+        for (config_key, _, _) in self.DIRECTORIES:
+            self.temp_configuration.set_deep_value(config_key, None)
 
     def get_python_environment(self):
         """get_python_environment(): returns the python environment generated
@@ -369,30 +351,106 @@ by startup.py. This should only be called after init()."""
                     % self._dot_vistrails)
             raise
 
-    def get_persisted_startup(self):
-        if self._persisted_startup is None:
+    def update_packages(self):
+        # make sure basic_modules and abstraction are enabled
+        self.set_package_to_enabled('basic_modules')
+        self.set_package_to_enabled('abstraction')
+        self.enabled_packages['basic_modules'].prefix = \
+                                            "vistrails.core.modules."
+        self.enabled_packages['abstraction'].prefix = \
+                                            "vistrails.core.modules."
+
+    def load_persisted_startup(self):
+        if self._dot_vistrails is not None:
             fname = self.get_startup_xml_fname()
-            self._persisted_startup = vistrails.core.db.io.load_startup(fname)
-        return self._persisted_startup
+            other = vistrails.core.db.io.load_startup(fname)
+            self.configuration.update(other.configuration)
+            self.db_enabled_packages = copy.copy(other.db_enabled_packages)
+            self.db_disabled_packages = copy.copy(other.db_disabled_packages)
+
+    def save_persisted_startup(self):
+        if self._dot_vistrails is not None:
+            fname = self.get_startup_xml_fname()
+            vistrails.core.db.io.save_startup(self, fname)
+
+    def get_pkg_startup_info(self, codepath):
+        if codepath in self.enabled_packages:
+            return self.enabled_packages[codepath]
+        elif codepath in self.disabled_packages:
+            return self.disabled_packages[codepath]
+        return None
+
+    def get_pkg_configuration(self, codepath):
+        startup_info = self.get_pkg_startup_info(codepath)
+        if startup_info is not None:
+            return startup_info.configuration
+        return None
+
+    def persist_pkg_configuration(self, codepath, config):
+        startup_info = self.get_pkg_startup_info(codepath)
+        if startup_info is not None:
+            startup_info.configuration = config
+        else:
+            startup_info = StartupPackage(name=codepath,
+                                          configuration=config)
+            self.db_disabled_packages.db_add_package(startup_info)
+        self.save_persisted_startup()
+
+    def set_package_enabled(self, codepath, enabled=True):
+        package = None
+        was_enabled = False
+        was_disabled = False
+        if codepath in self.enabled_packages:
+            package = self.enabled_packages[codepath]
+            was_enabled = True
+        if codepath in self.disabled_packages:
+            if package is None:
+                package = self.disabled_packages[codepath]
+            was_disabled = True
+        if package is None:
+            package = StartupPackage(name=codepath)
+
+        def update_package_list(update_obj):
+            # this is a kludge since the db code doesn't support non-keyed
+            # deletion and name isn't a key right now
+            # FIXME may cause issues with relational storage
+            old_packages = update_obj.db_packages
+            update_obj.db_packages = []
+            update_obj.db_packages_name_index = {}
+            for p in old_packages:
+                if p.name != codepath:
+                    update_obj.db_add_package(p)
+            
+        if was_enabled:
+            update_package_list(self.db_enabled_packages)
+        if was_disabled:
+            update_package_list(self.db_disabled_packages)
+
+        if enabled:
+            self.db_enabled_packages.db_add_package(package)
+        else:
+            self.db_disabled_packages.db_add_package(package)
+
+    def set_package_to_enabled(self, codepath):
+        self.set_package_enabled(codepath, True)
+
+    def set_package_to_disabled(self, codepath):
+        self.set_package_enabled(codepath, False)
 
     def create_startupxml_if_needed(self):
         needs_create = True
         fname = self.get_startup_xml_fname()
         if os.path.isfile(fname):
             try:
-                startup = self.get_persisted_startup()
-                print "GOT STARTUP!!"
-                version_string_to_list = \
-                                vistrails.core.utils.version_string_to_list
-                version_list = version_string_to_list(startup.version)
-                print "version_list:", version_list
+                tree = ElementTree.parse(fname)
+                startup_version = \
+                    vistrails.db.services.io.get_version_for_xml(tree.getroot())
+                version_list = version_string_to_list(startup_version)
                 if version_list >= [0,1]:
                     needs_create = False
             except:
-                print "GOT EXCEPTION!!"
-                import traceback
-                traceback.print_exc()
-                # pass
+                debug.warning("Unable to read startup.xml file, "
+                              "creating a new one")
 
         if needs_create:
             root_dir = system.vistrails_root_directory()
@@ -715,120 +773,6 @@ by startup.py. This should only be called after init()."""
             dbg.set_message_level(levels[verbose])
             debug.log("Set verboseness level to %s" % verbose)
         
-        #these checks may need to update the persistent configuration, so
-        # we have to change both objects
-        #userpackages directory
-        if not self.temp_configuration.check('userPackageDirectory'):
-            s = os.path.join(self.temp_configuration.dotVistrails,
-                             'userpackages')
-            self.temp_configuration.userPackageDirectory = s
-        if not self.configuration.check('userPackageDirectory'):
-            s = os.path.join(self.configuration.dotVistrails,
-                             'userpackages')
-            self.configuration.userPackageDirectory = s
-        #abstractions directory    
-        if not self.temp_configuration.check('abstractionsDirectory') or \
-                self.temp_configuration.abstractionsDirectory == \
-                os.path.join(self.temp_configuration.userPackageDirectory, 
-                             'abstractions'):
-            s = os.path.join(self.temp_configuration.dotVistrails,
-                             'subworkflows')
-            self.temp_configuration.abstractionsDirectory = s
-        if not self.configuration.check('abstractionsDirectory') or \
-                self.configuration.abstractionsDirectory == \
-                os.path.join(self.configuration.userPackageDirectory, 
-                             'abstractions'):
-            s = os.path.join(self.configuration.dotVistrails,
-                             'subworkflows')
-            self.configuration.abstractionsDirectory = s
-        #thumbnails directory    
-        if self.temp_configuration.has('thumbs'):
-            if not self.temp_configuration.thumbs.check('cacheDirectory'):
-                s = os.path.join(self.temp_configuration.dotVistrails,'thumbs')
-                self.temp_configuration.thumbs.cacheDirectory = s
-        if self.configuration.has('thumbs'):
-            if not self.configuration.thumbs.check('cacheDirectory'):
-                s = os.path.join(self.configuration.dotVistrails, 'thumbs')
-                self.configuration.thumbs.cacheDirectory = s
-        
-    def setupLogFile(self):
-        def get_version():
-            import vistrails.core.system
-            version = vistrails.core.system.vistrails_version()
-            return version.replace(".","_")
-        #To make sure we always save a log file name according to the
-        #current version, we will only consider the directory stored in
-        # logFile and append a name with the correct version encoded. 
-        if not self.temp_configuration.check('logFile'):
-            s = os.path.join(self.temp_configuration.dotVistrails,
-                             'vistrails_%s.log'%(get_version()))
-            self.temp_configuration.logFile = s
-        else:
-            dirname = os.path.dirname(self.temp_configuration.logFile)
-            self.temp_configuration.logFile = os.path.join(dirname,
-                                        'vistrails_%s.log'%(get_version()))
-        if not self.configuration.check('logFile'):
-            # if this was not set before, it should point to the
-            # value in temp_configuration
-            s = os.path.join(self.temp_configuration.dotVistrails,
-                             'vistrails_%s.log'%(get_version()))
-            self.configuration.logFile = s
-        else:
-            dirname = os.path.dirname(self.configuration.logFile)
-            self.configuration.logFile = os.path.join(dirname,
-                                        'vistrails_%s.log'%(get_version()))
-        if not os.path.lexists(self.temp_configuration.dotVistrails):
-            self.create_default_directory()
-        debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
-        
-    def setupBaseModules(self):
-        """ setupBaseModules() -> None        
-        Import basic modules for self-registration. The import here is
-        on purpose, not a typo against the coding rule
-        
-        """
-        import vistrails.core.modules.vistrails_module
-        import vistrails.core.modules.basic_modules
-        import vistrails.core.modules.sub_module
-
-    def installPackages(self):
-        """ installPackages() -> None
-        Scheme through packages directory and initialize them all
-        """
-        # Imports standard packages directory
-        self._package_manager.initialize_packages(self._package_dictionary)
-
-        # Enable abstractions
-        import vistrails.core.modules.abstraction
-        abstraction_pkg = "abstraction"
-        abstraction_dict = {abstraction_pkg: 'vistrails.core.modules.'}
-        self._package_manager.initialize_abstraction_pkg(abstraction_dict)
-
-    def runStartupHooks(self):
-        """ runStartupHooks() -> None
-        After initialization, need to run all start up hooks registered
-        
-        """
-        for hook in self.startupHooks:
-            try:
-                hook()
-            except Exception, e:
-                debug.critical("Exception raised during hook: %s - %s" %
-                             (e.__class__, e))
-
-    def destroy(self):
-        """ destroy() -> None
-        Finalize all packages to, such as, get rid of temp files
-        
-        """
-        self._package_manager.finalize_packages()
-
-    def set_registry(self, registry_filename=None):
-        if registry_filename is not None:
-            self._do_load_packages = False
-        self._package_manager.init_registry(registry_filename)
-            
-
 import unittest
 import shutil
 import stat
@@ -855,8 +799,9 @@ class TestStartup(unittest.TestCase):
 
     def test_simple_create(self):
         dir_name = tempfile.mkdtemp()
+        options_config = ConfigurationObject(dotVistrails=dir_name)
         try:
-            startup = VistrailsStartup(None, None, dir_name)
+            startup = VistrailsStartup(options_config, None)
             self.check_structure(dir_name)
         finally:
             shutil.rmtree(dir_name)
@@ -864,8 +809,9 @@ class TestStartup(unittest.TestCase):
     def test_create_dir_create(self):
         outer_dir_name = tempfile.mkdtemp()
         dir_name = os.path.join(outer_dir_name, '.vistrails')
+        cl_config = ConfigurationObject(dotVistrails=dir_name)
         try:
-            startup = VistrailsStartup(None, None, dir_name)
+            startup = VistrailsStartup(None, cl_config)
             self.check_structure(dir_name)
         finally:
             shutil.rmtree(outer_dir_name)
@@ -876,11 +822,12 @@ class TestStartup(unittest.TestCase):
         abstractions_dir = tempfile.mkdtemp()
         thumbs_dir = tempfile.mkdtemp()
         config = vistrails.core.configuration.default()
+        config.dotVistrails = dir_name
         config.userPackageDirectory = user_pkg_dir
         config.abstractionsDirectory = abstractions_dir
         config.thumbs.cacheDirectory = thumbs_dir
         try:
-            startup = VistrailsStartup(config, None, dir_name)
+            startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
                                                         'startup.xml')))
             for t in VistrailsStartup.DIRECTORIES:
@@ -902,11 +849,12 @@ class TestStartup(unittest.TestCase):
         outer_thumbs_dir = tempfile.mkdtemp()
         thumbs_dir = os.path.join(outer_thumbs_dir, 'thumbs')
         config = vistrails.core.configuration.default()
+        config.dotVistrails = dir_name
         config.userPackageDirectory = user_pkg_dir
         config.abstractionsDirectory = abstractions_dir
         config.thumbs.cacheDirectory = thumbs_dir
         try:
-            startup = VistrailsStartup(config, None, dir_name)
+            startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
                                                         'startup.xml')))
             for t in VistrailsStartup.DIRECTORIES:
@@ -924,10 +872,10 @@ class TestStartup(unittest.TestCase):
     
     def test_default_startup_xml(self):
         dir_name = tempfile.mkdtemp()
+        config = ConfigurationObject(dotVistrails=dir_name)
         try:
-            startup = VistrailsStartup(None, None, dir_name)
-            p = startup.get_persisted_startup()
-            self.assertTrue(p.configuration.nologger)
+            startup = VistrailsStartup(config, None)
+            self.assertFalse(startup.configuration.nologger)
             self.assertTrue(startup.configuration.autosave)
             self.assertTrue(startup.temp_configuration.autosave)
         finally:
@@ -935,18 +883,20 @@ class TestStartup(unittest.TestCase):
 
     def test_cannot_create(self):
         (fd, fname) = tempfile.mkstemp()
+        config = ConfigurationObject(dotVistrails=fname)
         try:
             with self.assertRaises(ValueError):
-                startup = VistrailsStartup(None, None, fname)
+                startup = VistrailsStartup(config, None)
         finally:
             os.unlink(fname)
         
     def test_permissions(self):
         dir_name = tempfile.mkdtemp()
+        config = ConfigurationObject(dotVistrails=dir_name)
         try:
             os.chmod(dir_name, stat.S_IRUSR)
             with self.assertRaises(IOError):
-                startup = VistrailsStartup(None, None, dir_name)
+                startup = VistrailsStartup(config, None)
         finally:
             os.chmod(dir_name, stat.S_IRWXU)
             shutil.rmtree(dir_name)
@@ -954,8 +904,8 @@ class TestStartup(unittest.TestCase):
     def test_load_packages(self):
         from vistrails.core.system import default_dot_vistrails
         dir_name = default_dot_vistrails()
-        print "== TESTING LOAD PACKAGES =="
-        startup = VistrailsStartup(None, None, dir_name)
+        config = ConfigurationObject(dotVistrails=dir_name)
+        startup = VistrailsStartup(config, None)
         
         
 if __name__ == '__main__':

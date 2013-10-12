@@ -42,6 +42,7 @@ import xml.dom
 
 from vistrails.core import debug
 from vistrails.core import get_vistrails_application
+from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
 from vistrails.core.utils.uxml import (named_elements, enter_named_element)
@@ -137,6 +138,8 @@ class Package(DBPackage):
             self.prefix = None
             self.py_dependencies = set()
             self.old_identifiers = []
+            self._default_configuration = None
+            self._persistent_configuration = None
         else:
             self._module = other._module
             self._init_module = other._init_module
@@ -147,6 +150,11 @@ class Package(DBPackage):
             self.prefix = other.prefix
             self.py_dependencies = copy.copy(other.py_dependencies)
             self.old_identifiers = [i for i in self.old_identifiers]
+            self._default_configuration = \
+                                        copy.copy(other._default_configuration)
+            self._persistent_configuration = \
+                                    copy.copy(other._persistent_configuration)
+
         # FIXME decide whether we want None or ''
         if self.version is None:
             self.version = ''
@@ -398,18 +406,8 @@ class Package(DBPackage):
         if r:
             raise self.InitializationFailed(self, errors)
 
-        # Sometimes we don't want to change startup.xml, for example
-        # when peeking at a package that's on the available package list
-        # on edit -> preferences. That's what the load_configuration field
-        # is for
-        if self.load_configuration:
-            if hasattr(self._module, 'configuration'):
-                # hold a copy of the initial configuration so it can be reset
-                self._initial_configuration = \
-                    copy.copy(self._module.configuration)
-            self.load_persistent_configuration()
-
         self.set_properties()
+        self.do_load_configuration()
 
     def initialize(self):
         if not self._loaded:
@@ -590,8 +588,8 @@ class Package(DBPackage):
         else:
             callable_()
         # Save configuration
-        if self.configuration:
-            self.set_persistent_configuration()
+        if self.load_configuration and self.configuration is not None:
+            self.persist_configuration()
         self.unload()
         self._module = None
         self._init_module = None
@@ -619,110 +617,52 @@ class Package(DBPackage):
     ##########################################################################
     # Configuration
 
-    def _get_package_node(self, dom, create):
-        doc = dom.documentElement
-        packages = enter_named_element(doc, 'packages')
-        for package_node in named_elements(packages, 'package'):
-            if package_node.attributes['name'].value == self.codepath:
-                return package_node, 'enabled'
-        oldpackages = enter_named_element(doc, 'disabledpackages')
-        for package_node in named_elements(oldpackages, 'package'):
-            if package_node.attributes['name'].value == self.codepath:
-                return package_node, 'disabled'
+    def _get_persistent_configuration(self):
+        return self._persistent_configuration
+    def _set_persistent_configuration(self, config):
+        self._persistent_configuration = config
+    persistent_configuration = property(_get_persistent_configuration,
+                                        _set_persistent_configuration)
 
-        if create is None:
-            return None, None
-        else:
-            package_node = dom.createElement('package')
-            package_node.setAttribute('name', self.codepath)
-            if create == 'enabled':
-                packages.appendChild(package_node)
-            elif create == 'disabled':
-                oldpackages.appendChild(package_node)
-            else:
-                raise ValueError
-            get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
-            return package_node, create
+    def do_load_configuration(self):
+        # Sometimes we don't want to change startup.xml, for example
+        # when peeking at a package that's on the available package list
+        # on edit -> preferences. That's what the load_configuration field
+        # is for
+        if self.load_configuration:
+            if self.configuration is not None:
+                # hold a copy of the initial configuration so it can be reset
+                self._default_configuration = copy.copy(self.configuration)
 
-    def _move_package_node(self, dom, where, node):
-        doc = dom.documentElement
-        packages = enter_named_element(doc, 'packages')
-        oldpackages = enter_named_element(doc, 'disabledpackages')
-        if where == 'enabled':
-            oldpackages.removeChild(node)
-            packages.appendChild(node)
-        elif where == 'disabled':
-            packages.removeChild(node)
-            oldpackages.appendChild(node)
-        else:
-            raise ValueError
-        get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
+                # now we update the actual configuration in place so it is
+                # available to the package itself
+                if self.persistent_configuration is not None:
+                    self.configuration.update(self.persistent_configuration)
+                else:
+                    # we don't have a persisted configuration so we
+                    # should create one
+                    self.persistent_configuration = \
+                                                copy.copy(self.configuration)
+                    self.persist_configuration(True)
 
-    def remove_own_dom_element(self):
-        """Moves the node to the <disabledpackages> section.
-        """
-        dom = get_vistrails_application().vistrailsStartup.startup_dom()
-
-        node, section = self._get_package_node(dom, create='disabled')
-        if section == 'enabled':
-            self._move_package_node(dom, 'disabled', node)
+        
+    def persist_configuration(self, no_update=False):
+        if self.load_configuration:
+            if not no_update:
+                self.persistent_configuration.update(self.configuration)
+            # make sure startup is updated to reflect changes
+            get_vistrails_application().startup.persist_pkg_configuration(
+                self.codepath, self.persistent_configuration)
 
     def reset_configuration(self):
         """Reset package configuration to original package settings.
+
         """
+        self.configuration = copy.copy(self._default_configuration)
+        if self.load_configuration:
+            self.persisted_configuration = copy.copy(self.configuration)
+            self.persist_configuration(True)
 
-        (dom, element) = self.find_own_dom_element()
-        doc = dom.documentElement
-        configuration = enter_named_element(element, 'configuration')
-        if configuration:
-            element.removeChild(configuration)
-        self.configuration = copy.copy(self._initial_configuration)
-
-        startup = get_vistrails_application().vistrailsStartup
-        startup.write_startup_dom(dom)
-
-    def find_own_dom_element(self):
-        """find_own_dom_element() -> (DOM, Node)
-
-        Opens the startup DOM, looks for the element that belongs to the package,
-        and returns DOM and node. Creates a new one in the <disabledpackages>
-        section if none is found.
-        """
-        dom = get_vistrails_application().vistrailsStartup.startup_dom()
-
-        node, section = self._get_package_node(dom, create='disabled')
-        return (dom, node)
-
-    def load_persistent_configuration(self):
-        (dom, element) = self.find_own_dom_element()
-
-        configuration = enter_named_element(element, 'configuration')
-        if configuration:
-            self.configuration.set_from_dom_node(configuration)
-        dom.unlink()
-
-    def set_persistent_configuration(self):
-        (dom, element) = self.find_own_dom_element()
-        child = enter_named_element(element, 'configuration')
-        if child:
-            element.removeChild(child)
-        self.configuration.write_to_dom(dom, element)
-        get_vistrails_application().vistrailsStartup.write_startup_dom(dom)
-        dom.unlink()
-
-    def create_startup_package_node(self):
-        """Writes the node to the <packages> section.
-
-        If it was in the <disabledpackages> section, move it, else, create it.
-        """
-        dom = get_vistrails_application().vistrailsStartup.startup_dom()
-
-        node, section = self._get_package_node(dom, create='enabled')
-        if section == 'disabled':
-            self._move_package_node(dom, 'enabled', node)
-
-        configuration = enter_named_element(node, 'configuration')
-        if configuration:
-            self.configuration.set_from_dom_node(configuration)
-
-        dom.unlink()
+    def set_enabled(self, enabled=True):
+        get_vistrails_application().startup.set_package_enabled(self.codepath, 
+                                                                enabled)

@@ -37,6 +37,7 @@
 import os
 import os.path
 import shutil
+import tempfile
 import time
 import uuid
 import mimetypes
@@ -68,6 +69,7 @@ class ThumbnailCache(object):
         return ThumbnailCache._instance
 
     def __init__(self):
+        self._temp_directory = None
         self.elements = {}
         self.vtelements = {}
         self.conf = None
@@ -75,6 +77,11 @@ class ThumbnailCache(object):
         if conf.has('thumbs'):
             self.conf = conf.thumbs
         self.init_cache()
+
+    def destroy(self):
+        if self._temp_directory is not None:
+            print "removing thumbnail directory"
+            shutil.rmtree(self._temp_directory)
         
     def get_directory(self):
         if self.conf.check('cacheDirectory'):
@@ -83,9 +90,11 @@ class ThumbnailCache(object):
                 raise VistrailsInternalError("Cannot find %s" % thumbnail_dir)
             return thumbnail_dir
         
-        raise VistrailsInternalError("'thumbs.cacheDirectory' not"
-                                     " specified in configuration")
-        return None
+        # raise VistrailsInternalError("'thumbs.cacheDirectory' not"
+        #                              " specified in configuration")
+        if self._temp_directory is None:
+            self._temp_directory = tempfile.mkdtemp(prefix='vt_thumbs_')
+        return self._temp_directory
     
     def init_cache(self):
         for root,dirs, files in os.walk(self.get_directory()):
@@ -212,6 +221,8 @@ class ThumbnailCache(object):
         Deletes all files inside dirname
     
         """
+        if dir_name is None:
+            return
         try:
             for root, dirs, files in os.walk(dirname):
                 for fname in files:

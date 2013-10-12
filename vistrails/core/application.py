@@ -43,12 +43,15 @@ from vistrails.core import keychain
 from vistrails.core import system
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
+from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
-import vistrails.core.startup
+from vistrails.core.modules.module_registry import ModuleRegistry
+from vistrails.core.packagemanager import PackageManager
+from vistrails.core.startup import VistrailsStartup, StartupPackage
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
 from vistrails.core.utils.uxml import enter_named_element
@@ -82,7 +85,7 @@ def is_running_gui():
 def init(options_dict={}, args=None):
     app = VistrailsCoreApplication()
     set_vistrails_application(app)
-    app.init(optionsDict=options_dict, args=args)
+    app.init(options_dict=options_dict, args=args)
     return app
 
 class VistrailsApplicationInterface(object):
@@ -90,8 +93,8 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setupOptions(self, args=None):
-        """ setupOptions() -> None
+    def setup_options(self, args=None):
+        """ setup_options() -> None
         Check and store all command-line arguments
         
         """
@@ -210,56 +213,57 @@ The builder window can be accessed by a spreadsheet menu option.")
         if get('dotVistrails')!=None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
             
-    def readOptions(self):
-        """ readOptions() -> None
+    def read_options(self):
+        """ read_options() -> None
         Read arguments from the command line
         
         """
+        command_line_config = ConfigurationObject()
         get = command_line.CommandLineParser().get_option
         if get('nosplash')!=None:
-            self.temp_configuration.showSplash = bool(get('nosplash'))
+            command_line_config.showSplash = bool(get('nosplash'))
         # if get('debugsignals')!=None:
-        #     self.temp_configuration.debugSignals = bool(get('debugsignals'))
+        #     command_line_config.debugSignals = bool(get('debugsignals'))
         if get('dotVistrails')!=None:
-            self.temp_configuration.dotVistrails = get('dotVistrails')
+            command_line_config.dotVistrails = get('dotVistrails')
         if get('multiheads')!=None:
-            self.temp_configuration.multiHeads = bool(get('multiheads'))
+            command_line_config.multiHeads = bool(get('multiheads'))
         if get('maximized')!=None:
-            self.temp_configuration.maximizeWindows = bool(get('maximized'))
+            command_line_config.maximizeWindows = bool(get('maximized'))
         if get('movies')!=None:
-            self.temp_configuration.showMovies = bool(get('movies'))
+            command_line_config.showMovies = bool(get('movies'))
         if get('cache')!=None:
-            self.temp_configuration.useCache = bool(get('cache'))
+            command_line_config.useCache = bool(get('cache'))
         if get('verbose')!=None:
-            self.temp_configuration.verbosenessLevel = get('verbose')
+            command_line_config.verbosenessLevel = get('verbose')
         if get('fixedcells') != None:
-            self.temp_configuration.fixedSpreadsheetCells = str(get('fixedcells'))
+            command_line_config.fixedSpreadsheetCells = str(get('fixedcells'))
         if get('noninteractive')!=None:
-            self.temp_configuration.interactiveMode = \
+            command_line_config.interactiveMode = \
                                                   not bool(get('noninteractive'))
             if get('workflowinfo') != None:
-                self.temp_configuration.workflowInfo = str(get('workflowinfo'))
+                command_line_config.workflowInfo = str(get('workflowinfo'))
             if get('dumpcells') != None:
-                self.temp_configuration.spreadsheetDumpCells = get('dumpcells')
+                command_line_config.spreadsheetDumpCells = get('dumpcells')
             if get('pdf') != None:
-                self.temp_configuration.spreadsheetDumpPDF = get('pdf')
+                command_line_config.spreadsheetDumpPDF = get('pdf')
             if get('workflowgraph') != None:
-                self.temp_configuration.workflowGraph = str(get('workflowgraph'))
+                command_line_config.workflowGraph = str(get('workflowgraph'))
             if get('evolutiongraph') != None:
-                self.temp_configuration.evolutionGraph = str(get('evolutiongraph'))
+                command_line_config.evolutionGraph = str(get('evolutiongraph'))
         if get('executeworkflows') != None:
-            self.temp_configuration.executeWorkflows = \
+            command_line_config.executeWorkflows = \
                                             bool(get('executeworkflows'))
         if get('showspreadsheetonly') != None:
-            self.temp_configuration.showSpreadsheetOnly = \
+            command_line_config.showSpreadsheetOnly = \
                                             bool(get('showspreadsheetonly'))
             # asking to show only the spreadsheet will force the workflows to
             # be executed
             if get('reviewmode') != None:
-                self.temp_configuration.reviewMode = bool(get('reviewmode'))
+                command_line_config.reviewMode = bool(get('reviewmode'))
 
-            if self.temp_configuration.showSpreadsheetOnly and not self.temp_configuration.reviewMode:
-                self.temp_configuration.executeWorkflows = True
+            if command_line_config.showSpreadsheetOnly and not command_line_config.reviewMode:
+                command_line_config.executeWorkflows = True
             
         self.temp_db_options = InstanceObject(host=get('host'),
                                                  port=get('port'),
@@ -268,43 +272,65 @@ The builder window can be accessed by a spreadsheet menu option.")
                                                  parameters=get('parameters')
                                                  )
         if get('nologger')!=None:
-            self.temp_configuration.nologger = bool(get('nologger'))
+            command_line_config.nologger = bool(get('nologger'))
         if get('quickstart') != None:
-            self.temp_configuration.staticRegistry = str(get('quickstart'))
+            command_line_config.staticRegistry = str(get('quickstart'))
         if get('parameterExploration')!= None:
-            self.temp_configuration.parameterExploration = \
+            command_line_config.parameterExploration = \
                 str(get('parameterExploration'))
         if get('detachHistoryView')!= None:
-            self.temp_configuration.detachHistoryView = bool(get('detachHistoryView'))
+            command_line_config.detachHistoryView = bool(get('detachHistoryView'))
         if get('noSingleInstance')!=None:
-            self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
+            command_line_config.singleInstance = not bool(get('noSingleInstance'))
         if get('installBundles')!=None:
-            self.temp_configuration.installBundles = bool(get('installBundles'))
+            command_line_config.installBundles = bool(get('installBundles'))
         self.input = command_line.CommandLineParser().positional_arguments()
-    def init(self, optionsDict=None, args=None):
+
+        return command_line_config
+
+    # startup is going to manage configurations
+    def _get_configuration(self):
+        return self.startup.configuration
+    configuration = property(_get_configuration)
+
+    def _get_temp_configuration(self):
+        return self.startup.temp_configuration
+    temp_configuration = property(_get_temp_configuration)
+
+    def create_registry(self, registry_filename=None):
+        if registry_filename is not None:
+            registry = vistrails.core.db.io.open_registry(registry_filename)
+            registry.set_global()
+        else:
+            registry = ModuleRegistry()
+            registry.set_global()
+        return registry
+
+    def init(self, options_dict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
         """
-        # gui.theme.initializeCurrentTheme()
-        # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
-        
-        # This is the persistent configuration
-        # Setup configuration to default
-        self.configuration = vistrails.core.configuration.default()
-        
+
+        self.setup_options(args)
+
+        # options_dict overrides startup configuration
+        if options_dict is not None:
+            options_config = ConfigurationObject(**options_dict)
+        else:
+            options_config = None
+
+        # command line options override both
+        command_line_config = self.read_options()
+
+        # startup takes care of all configurations
+        self.startup = VistrailsStartup(options_config, command_line_config)
+
         self.keyChain = keychain.KeyChain()
-        self.setupOptions(args)
-        
-        # self.temp_configuration is the configuration that will be updated 
-        # with the command line and custom options dictionary. 
-        # We have to do this because we don't want to make these settings 
-        # persistent. This is the actual VisTrails current configuration
-        self.temp_configuration = copy.copy(self.configuration)
-        
-        vistrails.core.interpreter.default.connect_to_configuration(self.temp_configuration)
-        
+        vistrails.core.interpreter.default.connect_to_configuration(
+            self.temp_configuration)
+
         # now we want to open vistrails and point to a specific version
         # we will store the version in temp options as it doesn't
         # need to be persistent. We will do the same to database
@@ -316,50 +342,22 @@ The builder window can be accessed by a spreadsheet menu option.")
                                            vt_id=None,
                                            parameters=None
                                            ) 
-        
-        # Read only new .vistrails folder option if passed in the command line
-        # or in the optionsDict because this may affect the configuration file 
-        # VistrailsStartup will load. This updates self.temp_configuration
-        self.read_dotvistrails_option()
-        
-        if optionsDict and optionsDict.get('dotVistrails'):
-            self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
 
-        # the problem here is that if the user pointed to a new .vistrails
-        # folder, the persistent configuration will always point to the 
-        # default ~/.vistrails. So we will copy whatever it's on 
-        # temp_configuration to the persistent one. In case the configuration
-        # that is on disk is different, it will overwrite this one
-        self.configuration.dotVistrails = self.temp_configuration.dotVistrails
-        
-        # During this initialization, VistrailsStartup will load the
-        # configuration from disk and update both configurations
-        self.vistrailsStartup = \
-            vistrails.core.startup.VistrailsStartup(self.configuration,
-                                          self.temp_configuration)
-
-        # Starting in version 1.2.1 logging is enabled by default.
-        # Users have to explicitly disable it through the command-line
-        self.configuration.nologger = False
-        self.temp_configuration.nologger = False
-        
-        if optionsDict:
-            for (k, v) in optionsDict.iteritems():
-                setattr(self.temp_configuration, k, v)
-                
-        # Command line options override temp_configuration
-        self.readOptions()
-        
         if self.temp_configuration.check('staticRegistry'):
-            reg = self.temp_configuration.staticRegistry
+            self.registry = \
+                self.create_registry(self.temp_configuration.staticRegistry)
         else:
-            reg = None
-        self.vistrailsStartup.set_registry(reg)
-        
+            self.registry = self.create_registry(None)
+
+        self.package_manager = PackageManager(self.registry,
+                                              self.startup)
+
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
-includes local definitions from startup.py. Should only be called
-after self.init()"""
+        includes local definitions from startup.py. Should only be called
+        after self.init()
+
+        """
         return self._python_environment
 
     def destroy(self):
@@ -367,9 +365,10 @@ after self.init()"""
         Finalize all packages to, such as, get rid of temp files
         
         """
-        if hasattr(self, 'vistrailsStartup'):
-            self.vistrailsStartup.destroy()
+        if hasattr(self, 'package_manager'):
+            self.package_manager.finalize_packages()
         Collection.clearInstance()
+        ThumbnailCache.getInstance().destroy()
 
     def __del__(self):
         """ __del__() -> None
@@ -489,13 +488,7 @@ after self.init()"""
         window sizes.
 
         """
-        dom = self.vistrailsStartup.startup_dom()
-        doc = dom.documentElement
-        configuration_element = enter_named_element(doc, 'configuration')
-        doc.removeChild(configuration_element)
-        self.configuration.write_to_dom(dom, doc)
-        self.vistrailsStartup.write_startup_dom(dom)
-        dom.unlink()
+        self.startup.save_persisted_startup()
 
     def create_notification(self, notification_id, *args, **kwargs):
         notifications = self.notifications
@@ -727,9 +720,10 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._controllers = {}
         self._cur_controller = None
 
-    def init(self, optionsDict=None, args=None):
-        VistrailsApplicationInterface.init(self, optionsDict=optionsDict, args=args)
-        self.vistrailsStartup.init()
+    def init(self, options_dict=None, args=None):
+        VistrailsApplicationInterface.init(self, options_dict=options_dict, 
+                                           args=args)
+        self.package_manager.initialize_packages()
 
     def is_running_gui(self):
         return False
@@ -767,4 +761,3 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             self._cur_controller.change_selected_version(version)
             return True
         return False
-        

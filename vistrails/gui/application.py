@@ -182,7 +182,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.createWindows()
             self.processEvents()
             
-        self.vistrailsStartup.init()
+        # self.vistrailsStartup.init()
+        self.package_manager.initialize_packages()
+
         # ugly workaround for configuration initialization order issue
         # If we go through the configuration too late,
         # The window does not get maximized. If we do it too early,
@@ -192,7 +194,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 self.builderWindow.showMaximized()
             if self.temp_configuration.check('dbDefault'):
                 self.builderWindow.setDBDefault(True)
-        self._python_environment = self.vistrailsStartup.get_python_environment()
+        # self._python_environment = self.vistrailsStartup.get_python_environment()
+
         self._initialized = True
         
         if interactive:

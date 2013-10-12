@@ -66,9 +66,12 @@ class ConfigValue(object):
             obj = ConfigFloat()
         elif isinstance(value, ConfigurationObject):
             obj = value
+        elif value is None:
+            obj = None
         else:
             raise Exception('Cannot create ConfigValue from value "%s"' % value)
-        obj.set_value(value)
+        if obj is not None:
+            obj.set_value(value)
         return obj
 
     def get_value(self):
@@ -172,6 +175,7 @@ class ConfigKey(DBConfigKey):
             ConfigInt.convert(_key.db_value)
         elif isinstance(_key.db_value, DBConfigFloat):
             ConfigFloat.convert(_key.db_value)
+        _key.set_type(type(_key.value))
     
     def _get_value(self):
         if self.db_value is not None:
@@ -189,7 +193,7 @@ class ConfigKey(DBConfigKey):
         self._type = t
 
     def check_type(self, val):
-        return isinstance(val, self._type)
+        return val is None or isinstance(val, self._type)
 
 class ConfigurationObject(DBConfiguration):
     """A ConfigurationObject is an InstanceObject that respects the
@@ -255,7 +259,10 @@ class ConfigurationObject(DBConfiguration):
         try:
             return object.__getattribute__(self, name)
         except AttributeError:
-            return self.get(name)
+            try:
+                return self.get(name)
+            except:
+                raise AttributeError(name)
 
     def __setattr__(self, name, value):
         if name == '__subscribers__' or name == '_unset_keys' or name == '_in_init' or name == 'is_dirty' or \
@@ -267,9 +274,10 @@ class ConfigurationObject(DBConfiguration):
                 config_key.value = value
             else:
                 if name not in self._unset_keys:
-                    raise AttributeError('Key "%s" was not defined when '
-                                         'ConfigurationObject was created' % 
-                                         name)
+                    return
+                    # raise AttributeError('Key "%s" was not defined when '
+                    #                      'ConfigurationObject was created' % 
+                    #                      name)
                 if not self.matches_type(value, self._unset_keys[name][1]):
                     raise TypeError('Value "%s" does match type "%s" for "%"' %
                                     (value, self._unset_keys[name][1], name))
@@ -415,7 +423,8 @@ def default():
     """
 
     base_dir = {
-        'abstractionsDirectory': (None, str),
+        'abstractionsDirectory': os.path.join("$DOT_VISTRAILS",
+                                              "subworkflows"),
         'alwaysShowDebugPopup': False,
         'autoConnect': True,
         'autosave': True,
@@ -430,11 +439,12 @@ def default():
         'errorOnVariantTypeerror': True,
         'executeWorkflows': False,
         'fileDirectory': (None, str),
+        'fixedSpreadsheetCells': False,
 #        'evolutionGraph': (None, str),
         'installBundles': True,
         'installBundlesWithPip': False,
         'interactiveMode': True,
-        'logFile': (None, str),
+        'logFile': os.path.join("$DOT_VISTRAILS", "vistrails.log"),
         'logger': default_logger(),
         'maxMemory': (None, int),
         'maximizeWindows': False,
@@ -442,7 +452,7 @@ def default():
         'migrateTags': False,
         'minMemory': (None, int),
         'multiHeads': False,
-        'nologger': True,
+        'nologger': False,
         'packageDirectory': (None, str),
         'pythonPrompt': False,
         'recentVistrailList': (None, str),
@@ -467,7 +477,7 @@ def default():
         'upgradeDelay': True,
         'upgradeModuleFailPrompt': True,
         'useCache': True,
-        'userPackageDirectory': (None, str),
+        'userPackageDirectory': os.path.join("$DOT_VISTRAILS", "userpackages"),
         'verbosenessLevel': (None, int),
 #        'workflowGraph': (None, str),
 #        'workflowInfo': (None, str),
@@ -522,7 +532,7 @@ def default_thumbs():
     """
     thumbs_dir = {
                   'autoSave': True,
-                  'cacheDirectory': (None, str),
+                  'cacheDirectory': os.path.join("$DOT_VISTRAILS", "thumbs"),
                   'cacheSize': 20,
                   'mouseHover': False,
                   'tagsOnly': False,
@@ -637,8 +647,9 @@ class TestConfiguration(unittest.TestCase):
         with self.assertRaises(TypeError):
             conf.showSpreadsheetOnly = 1
 
-        with self.assertRaises(AttributeError):
-            conf.reallyDoesNotExist = True
+        # allowing this now
+        # with self.assertRaises(AttributeError):
+        #     conf.reallyDoesNotExist = True
 
     def check_equality(self, c1, c2):
         for name in c1.keys():
