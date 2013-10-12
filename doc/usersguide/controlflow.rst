@@ -9,6 +9,8 @@ control structures, including loops and conditionals, are necessary to
 accomplish certain tasks. |vistrails| provides the ``Control Flow``
 package to support these and other structures.  To create your own ``Control Flow`` modules, please refer to the Developer's Guide (:ref:`chap-controlflowdev`).  Or, if you would like to use the Control Flow Assistant, to simplify the process described in this chapter, please refer to :ref:`chap-controlflow-assistant`.
 
+This package also provides some related modules that operate on lists.
+
 The Map operator
 ================
 
@@ -18,20 +20,6 @@ function) and returns a sequence of results. The ``Map`` module
 provides this functionality for workflows in |vistrails|. Note that this
 module provides simple looping as it can be used to iterate through a list
 of inputs.
-
-In order to use the ``Map`` module, a ``List``
-type representing a list of data structures is also provided. Two additional
-modules help users combine elements of lists: ``Dot`` combines the
-elements of two lists like the dot product (the first element of the first list
-is combined with the first of the second one, the second element of the first
-list is combined with the second of the second one, and so on), and
-``Cross`` combines the elements as the cross product (all the possible
-combinations between the elements of the lists); both modules return a list of
-tuples. In addition to two lists of elements as input ports, they take an
-optional boolean input named "CombineTuple". This input is useful
-when one or both input lists have tuples as elements; if this port is selected,
-and its value is ``False``, the elements of the list will not be
-combined in just one tuple, |eg| (1, 2) + 3 :math:`\rightarrow` ((1, 2), 3);  otherwise, the elements will be combined, |eg| (1, 2) + 3 :math:`\rightarrow` (1, 2, 3).
 
 The Map module has four input ports:
 
@@ -43,22 +31,22 @@ The Map module has four input ports:
 
 The output port "Result" produces a list of results, one for each element in the input list.
 
-To better show how to use the ``Map`` module, let's use a workflow as
-an example. Inside the "examples" directory of the |vistrails|
-distribution, open the :vtl:`triangle_area.vt` vistrail. Now, select the
-"Surface Area" version. This version basically calculates the area
-of a given isosurface. We are going to modify this version, in order to
-calculate the areas of the isosurface given by contour values in a list.
-Then, we will create a 2D plot to show all the areas.
-
 .. topic:: Try it Now!
 
-  Begin by deleting the ``StandardOutput`` module, and the connection between the ``vtkDataSetReader`` and the ``vtkContourFilter`` modules. Then, drag the following modules to the canvas:
+  To better show how to use the ``Map`` module, let's use a workflow as
+  an example. Inside the "examples" directory of the |vistrails|
+  distribution, open the "triangle_area.vt" vistrail. Now, select the
+  "Surface Area" version. This version basically calculates the area
+  of a given isosurface. We are going to modify this version, in order to
+  calculate the areas of the isosurface given by contour values in a list.
+  Then, we will create a 2D plot to show all the areas.
+
+  Begin by deleting the ``StandardOutput`` modules, and the connection between the ``vtkDataSetReader`` and the ``vtkContourFilter`` modules. Then, drag the following modules to the canvas:
 
    * ``Map``
-   * ``List``
-   * ``Cross``
-   * ``MplPlot`` (under "matplotlib")
+   * ``CartesianProduct``
+   * ``List`` (under "Basic Modules")
+   * ``MplSource`` (under "matplotlib")
    * ``MplFigure`` (under "matplotlib")
    * ``MplFigureCell`` (under "matplotlib")
    * ``InputPort`` (under "Basic Modules") - you will need two of them
@@ -69,9 +57,9 @@ Notice that when you drag ``Map`` to the pipeline canvas it will be drawn in a d
 
 .. topic:: Next Step!
 
-  Select the ``vtkContourFilter`` module and delete its method "SetValue" in the ``Set Methods`` container. Then, open its configuration dialog (you can use the "Ctrl-E" or "Command-E" keyboard shortcut) and enable this method (the input port "SetValue") by clicking on it, and pressing ``OK``.
+  Select the ``vtkContourFilter`` module and delete its method "SetValue" in the ``Set Methods`` container. Then, make this port visible by clicking on the first column left of its name in the "inputs" tab to toggle the eye icon..
 
-  Then, connect the modules as shown in Figure :ref:`fig-controlflow-calculate_area`.
+  Connect the modules as shown in Figure :ref:`fig-controlflow-calculate_area`.
 
 .. _fig-controlflow-calculate_area:
 
@@ -87,7 +75,7 @@ structure.
 
 .. topic:: Next Step!
 
-  In this example, we will use a ``SubWorkflow`` structure. Select all the modules shown in Figure :ref:`fig-controlflow-calculate_area`, go to the ``Edit`` menu, and then click on ``Make SubWorkflow``. You can name it ``CalculateArea``. Select this SubWorkflow and open its configuration. When the configuration dialog opens, enable the output port "self" and press ``OK``. You will need this port to connect to the ``Map`` module.
+  In this example, we will use a ``SubWorkflow`` structure. Select all the modules shown in Figure :ref:`fig-controlflow-calculate_area`, go to the ``Workflow`` menu, and then click on ``Create SubWorkflow``. You can name it ``CalculateArea``. Enable the ``self`` output port in the 'outputs' panel: you will need it to connect to the "Map" module
 
 .. topic:: Note
 
@@ -95,28 +83,26 @@ structure.
 
 .. topic:: Next Step!
 
-  Now, select the ``MplPlot`` module and open its configuration dialog. Inside it, add two input ports of type ``List``: "InputList" and "X_Values". Also, copy the code listed below, in order to create the necessary information for the 2D plot, into the source text area and save your changes using the ``OK`` button.
+  Now, select the ``MplSource`` module and open its configuration dialog. Inside it, add two input ports of type ``List``: "InputList" and "X_Values". Also, copy the code listed below, in order to create the necessary information for the 2D plot, into the source text area and save your changes.
 
 .. code-block:: python
 
    subplot(212)
 
    dashes = [1, 3]
-   list1 = self.getInputFromPort("InputList")
-   list2 = self.getInputFromPort("X_values")
-   list3 = []
+   xaxis = []
 
-   for i in xrange(len(list1)):
-       list3.append(list2[i][1])
+   for i in xrange(len(InputList)):
+       xaxis.append(X_values[i][1])
 
-   l, = plot(list3, list1, marker="o", markerfacecolor="red",
-        markersize=7, label="IsoSurface Areas", linewidth=1.5)
+   l, = plot(xaxis, InputList, marker="o", markerfacecolor="red",
+             markersize=7, label="IsoSurface Areas", linewidth=1.5)
 
    l.set_dashes(dashes)
 
 .. topic:: Next Step!
 
-  Next, edit the ``PythonSource`` module by adding an output port "List" of type ``List``, copying the following code to the source text area, and saving these changes.  The code will create a range of contour values that we will use as our input list.
+  Next, edit the ``PythonSource`` module by adding an output port "result" of type ``List``, copying the following code to the source text area, and saving these changes.  The code will create a range of contour values that we will use as our input list.
 
 .. code-block:: python
 
@@ -124,8 +110,6 @@ structure.
 
    for i in xrange(4, 256, 4):
        result.append(i)
-
-   self.setResult("List", result)
 
 .. topic:: Next Step!
 
@@ -181,12 +165,9 @@ The ``Filter`` module was developed to address this issue. It receives an
 input list and, based on a specified boolean condition, returns only elements of
 the list that satisfy the condition. Its ports are the same as those in the
 ``Map`` module. The difference between these modules is related to the
-structure: in ``Filter``, the output port "FunctionPort" cannot
-receive any function, but only a condition; in other words, the selected port in
-"OutputPort" must return a boolean value or ``Filter`` will not
-work. Thus, ``Filter`` will not return a list with boolean values as
-``Map`` would do, but rather the elements of the input list for which
-the condition evaluated to ``True``.
+function module: in ``Filter``, the output of that module is not the value to
+keep, but a boolean indicating whether to keep (``True``) or discard
+(``False``) the value from the original list.
 
 .. topic:: Try it Now!
 
@@ -199,12 +180,10 @@ the condition evaluated to ``True``.
 
 .. code-block:: python
 
-   area = self.getInputFromPort("Area")
-
-   if area>200000.00:
-       self.setResult("Condition", True)
+   if Area > 200000.00:
+       Condition = True
    else:
-       self.setResult("Condition", False)
+       Condition = False
 
 .. topic:: Next Step!
 
@@ -339,24 +318,22 @@ that will be executed if the input is a structure identifier.
 .. code-block:: python
    :linenos:
 
-   if"\n" in structure:
-       lineLen = structure.index("\n")
+   if "\n" in Structure:
+       lineLen = Structure.index("\n")
    else:
        lineLen = -1
-   if lineLen<1:
-       lineLen = len(structure)
+   if lineLen < 1:
+       lineLen = len(Structure)
 
-   if ":" in structure:
-       index = structure.index(":")
+   if ":" in Structure:
+       index = Structure.index(":")
    else:
        index = -1
 
-   if (structure[0]!="ID ") and (index>0) and (index<lineLen):
-       is_ID = True
+   if Structure[0] != "ID " and index > 0 and index < lineLen:
+       Is_ID = True
    else:
-       is_ID = False
-
-   self.setResult("Is_ID", is_ID)
+       Is_ID = False
 
 .. topic:: Next Step!
 
@@ -367,8 +344,6 @@ that will be executed if the input is a structure identifier.
 .. code-block:: python
    :linenos:
 
-   input = self.getInputFromPort("Input")
-
    output = self.interpreter.filePool.create_file()
    f = open(str(output.name), 'w')
    text = '<HTML><TITLE>Protein Visualization</TITLE><BODY BGCOLOR="#FFFFFF">'
@@ -376,7 +351,7 @@ that will be executed if the input is a structure identifier.
    text = '<H2>Protein Visualization Workflow</H2>'
    f.write(text)
    text = '<H3>The following input is not an ID from a protein:</H3>'
-   text += '<H4>' + str(input) + '</H4>'
+   text += '<H4>' + Input + '</H4>'
    text += '<H3>The visualization cannot be done.</H3>'
    f.write(text)
 

@@ -343,6 +343,9 @@ The builder window can be accessed by a spreadsheet menu option.")
                                            parameters=None
                                            ) 
 
+        vistrails.core.requirements.require_executable('zip')
+        vistrails.core.requirements.require_executable('unzip')
+
         if self.temp_configuration.check('staticRegistry'):
             self.registry = \
                 self.create_registry(self.temp_configuration.staticRegistry)

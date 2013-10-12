@@ -163,7 +163,7 @@ def pip_install(package_name):
     hide_splash_if_necessary()
 
     if executable_is_in_path('pip'):
-        cmd = 'pip install'
+        cmd = '%s install' % shell_escape(get_executable_path('pip'))
     else:
         cmd = shell_escape(sys.executable) + ' -m pip install'
     return run_install_command_as_root(has_qt(), cmd, package_name)
