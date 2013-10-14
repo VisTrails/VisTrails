@@ -266,32 +266,17 @@ the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and 
 
   * ``If``
   * ``fetchData`` (under "Methods" for the current web service)
+  * ``WriteFile`` (under "Basic Modules")
   * ``vtkPDBReader`` (under "VTK")
   * ``vtkDataSetMapper`` (under "VTK")
   * ``vtkActor`` (under "VTK")
   * ``vtkRenderer`` (under "VTK")
   * ``VTKCell`` (under "VTK")
-  * ``PythonSource`` (under "Basic Modules") - you will need three of them
+  * ``PythonSource`` (under "Basic Modules") - you will need two of them
   * ``String`` (under "Basic Modules")
   * ``RichTextCell`` (under "|vistrails| Spreadsheet")
 
-  Select one of the ``PythonSource`` modules, and open its configuration dialog. Inside it, add one input port of type ``String``, named "PDB_format", and one output port of type ``File``, named "File". Then, write the following code:
-
-.. code-block:: python
-   :linenos:
-
-   PDB_format = self.getInputFromPort('PDB_format')
-
-   output = self.interpreter.filePool.create_file()
-   file_ = open(str(output.name), 'w')
-   file_.write(PDB_format)
-   file_.close()
-
-   self.setResult('File', output)
-
-.. topic:: Next Step!
-
-  You can name this module as ``CreateFile``.  Now, set some paremeters of ``fetchData``:
+  Set some paremeters of ``fetchData``:
 
   * "format": *pdb*
   * "style": *raw*
@@ -312,7 +297,7 @@ that will be executed if the input is a structure identifier.
 
 .. topic:: Next Step!
 
-  Next, select another ``PythonSource`` module and open its configuration dialog too. One input port named "Structure", of type ``String``, and one output port named "Is_ID", of type ``Boolean``, must be added, as well as the code below:
+  Next, select one of the ``PythonSource`` modules and open its configuration dialog. One input port named "Structure", of type ``String``, and one output port named "Is_ID", of type ``Boolean``, must be added, as well as the code below:
 
 .. code-block:: python
    :linenos:
@@ -333,6 +318,8 @@ that will be executed if the input is a structure identifier.
        Is_ID = True
    else:
        Is_ID = False
+
+.. FIXME: there is no way a 1-character string could be equal to "ID "
 
 .. topic:: Next Step!
 
