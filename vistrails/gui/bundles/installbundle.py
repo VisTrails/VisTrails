@@ -50,9 +50,6 @@ import sys
 def has_qt():
     try:
         import PyQt4.QtGui
-        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
-        # PyQt4.QtOpenGL by default
-        import PyQt4.QtOpenGL
         return True
     except ImportError:
         return False
@@ -64,13 +61,11 @@ except ImportError:
     pip_installed = False
 
 def hide_splash_if_necessary():
-    qt = has_qt()
-    # HACK, otherwise splashscreen stays in front of windows
-    if qt:
-        try:
-            get_vistrails_application().splashScreen.hide()
-        except:
-            pass
+    """Disables the splashscreen, otherwise it sits in front of windows.
+    """
+    app = get_vistrails_application()
+    if hasattr(app, 'splashScreen'):
+        app.splashScreen.hide()
 
 
 def shell_escape(arg):

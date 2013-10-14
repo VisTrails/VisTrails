@@ -36,6 +36,8 @@
 """module that allows online inspection of environment to test presence of
 runtime components such as binaries, libraries, other python modules, etc."""
 import sys
+
+import vistrails.core.bundles.installbundle
 import vistrails.core.system
 
 ##############################################################################
@@ -66,8 +68,12 @@ Returns if certain file is in current path and is executable."""
 
 # FIXME: Add documentation.
 
-def require_python_module(module_name):
-    if not python_module_exists(module_name):
+def require_python_module(module_name, dep_dict=None):
+    exists = python_module_exists(module_name)
+    if not exists and dep_dict:
+        vistrails.core.bundles.installbundle.install(dep_dict)
+        exists = python_module_exists(module_name)
+    if not exists:
         raise MissingRequirement(module_name)
 
 def require_executable(filename):
@@ -75,16 +81,12 @@ def require_executable(filename):
         raise MissingRequirement(filename)
 
 def check_all_vistrails_requirements():
-    pass
-
     # check scipy
-#     try:
-#         require_python_module('scipy')
-#     except MissingRequirement:
-#         r = core.bundles.installbundle.install({'linux-ubuntu': 'python-scipy'})
-#         if not r:
-#             raise
-        
+    require_python_module('scipy', {
+            'linux-debian': 'python-scipy',
+            'linux-ubuntu': 'python-scipy',
+            'linux-fedora': 'scipy',
+            'pip': 'scipy'})
 
 ##############################################################################
 
