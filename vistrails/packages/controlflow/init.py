@@ -76,6 +76,9 @@ def initialize(*args,**keywords):
     registerControl(ExecuteInOrder)
     registerControl(While)
 
+    reg.add_output_port(Or, 'Result', (Boolean, ""))
+    reg.add_output_port(And, 'Result', (Boolean, ""))
+
     reg.add_input_port(Fold, 'InputList', (List, ""))
     reg.add_output_port(Fold, 'Result', (Variant, ""))
 
