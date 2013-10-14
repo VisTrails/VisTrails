@@ -82,12 +82,11 @@ def require_executable(filename):
 
 def check_all_vistrails_requirements():
     # check scipy
-    try:
-        require_python_module('scipy')
-    except MissingRequirement:
-        r = vistrails.core.bundles.installbundle.install({'linux-ubuntu': 'python-scipy'})
-        if not r:
-            raise
+    require_python_module('scipy', {
+            'linux-debian': 'python-scipy',
+            'linux-ubuntu': 'python-scipy',
+            'linux-fedora': 'scipy',
+            'pip': 'scipy'})
 
 ##############################################################################
 
