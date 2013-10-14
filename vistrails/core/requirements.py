@@ -70,7 +70,7 @@ Returns if certain file is in current path and is executable."""
 
 def require_python_module(module_name, dep_dict=None):
     exists = python_module_exists(module_name)
-    if dep_dict:
+    if not exists and dep_dict:
         vistrails.core.bundles.installbundle.install(dep_dict)
         exists = python_module_exists(module_name)
     if not exists:
