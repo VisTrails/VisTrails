@@ -406,3 +406,48 @@ Figure :ref:`fig-controlflow-if_spreadsheet_false` will be generated in the Spre
 This example can be found inside the "examples" directory, in the
 "protein_visualization.vt" vistrail. It was partially based on the workflow
 "Structure_or_ID", which can be found at http://www.myexperiment.org/workflows/225.
+
+
+Boolean operations
+==================
+
+The ``And`` and ``Or`` modules are simple boolean operations. They take a list
+of booleans and output a single boolean. They are useful when building
+workflows with structures that need booleans, such as the ``Filter``, ``While``
+and ``If`` modules.
+
+.. _fig-controlflow-andor:
+
+.. figure:: figures/controlflow/andor.png
+   :align: center
+   :width: 3.2in
+
+   Example usage of And and Or modules; outputs (True, False, True, False)
+
+
+Vector operations
+=================
+
+This packages also provides some general modules for lists, or vectors of
+numbers.
+
+The ``Sum`` module computes the sum of the elements in a list of numbers.
+Example: ``Sum([1, 2, 3]) = 6``
+
+The ``Cross`` module takes two 3-element lists and computes the cross product
+of these vectors. It returns a 3-element list as well.
+Example: ``Cross([1, 2, -1], [0, 2, 5]) = [12, -5, 2]``
+
+The ``Dot`` module performs the dot product of two lists, i.e. returns the sum
+of the pairwise products of the two lists' elements. It is the same thing as
+connecting an ElementwiseProduct to a Sum module.
+Example: ``Dot([2, 0, -1], [4, 2, 3]) = 5``
+
+If ``NumericalProduct`` is true (the default), the ``ElementwiseProduct``
+module outputs a list where each element is the product of the elements of both
+input lists.
+Example: ``ElementwiseProduct([1, 2, 3], [2, 0, -1]) = [2, 0, -3]``
+
+Else, the elements are concatenated instead of multiplied.
+Example: ``ElementwiseProduct([1, 2, 3], [2, 0, -1]) =
+[(1, 2), (2, 0), (3, -1)]``
