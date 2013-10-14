@@ -98,7 +98,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(ElementwiseProduct, 'List1', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'List2', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'NumericalProduct', (Boolean, ""),
-                       optional=True, defaults='[True]')
+                       optional=True, defaults="['True']")
     reg.add_output_port(ElementwiseProduct, 'Result', (List, ""))
 
     reg.add_module(Dot)
