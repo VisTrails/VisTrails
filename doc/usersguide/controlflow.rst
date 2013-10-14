@@ -266,33 +266,17 @@ the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and 
 
   * ``If``
   * ``fetchData`` (under "Methods" for the current web service)
+  * ``WriteFile`` (under "Basic Modules")
   * ``vtkPDBReader`` (under "VTK")
   * ``vtkDataSetMapper`` (under "VTK")
   * ``vtkActor`` (under "VTK")
   * ``vtkRenderer`` (under "VTK")
   * ``VTKCell`` (under "VTK")
-  * ``PythonSource`` (under "Basic Modules") - you will need three of them
+  * ``PythonSource`` (under "Basic Modules") - you will need two of them
   * ``String`` (under "Basic Modules")
   * ``RichTextCell`` (under "|vistrails| Spreadsheet")
 
-  Select one of the ``PythonSource`` modules, and open its configuration dialog. Inside it, add one input port of type ``String``, named "PDB_format", and one output port of type ``File``, named "File". Then, write the following code:
-
-.. code-block:: python
-   :linenos:
-
-   PDB_format = self.getInputFromPort('PDB_format')
-
-   output = self.interpreter.filePool.create_file()
-   file_ = open(str(output.name), 'w')
-   file_.write(PDB_format)
-
-   self.setResult('File', file_)
-
-   file_.close()
-
-.. topic:: Next Step!
-
-  You can name this module as ``CreateFile``.  Now, set some paremeters of ``fetchData``:
+  Set some paremeters of ``fetchData``:
 
   * "format": *pdb*
   * "style": *raw*
@@ -313,7 +297,7 @@ that will be executed if the input is a structure identifier.
 
 .. topic:: Next Step!
 
-  Next, select another ``PythonSource`` module and open its configuration dialog too. One input port named "Structure", of type ``String``, and one output port named "Is_ID", of type ``Boolean``, must be added, as well as the code below:
+  Next, select one of the ``PythonSource`` modules and open its configuration dialog. One input port named "Structure", of type ``String``, and one output port named "Is_ID", of type ``Boolean``, must be added, as well as the code below:
 
 .. code-block:: python
    :linenos:
@@ -334,6 +318,8 @@ that will be executed if the input is a structure identifier.
        Is_ID = True
    else:
        Is_ID = False
+
+.. FIXME: there is no way a 1-character string could be equal to "ID "
 
 .. topic:: Next Step!
 
@@ -420,3 +406,135 @@ Figure :ref:`fig-controlflow-if_spreadsheet_false` will be generated in the Spre
 This example can be found inside the "examples" directory, in the
 :vtl:`protein_visualization.vt` vistrail. It was partially based on the workflow
 "Structure_or_ID", which can be found at http://www.myexperiment.org/workflows/225.
+
+
+While loop
+==========
+
+The while loop is a common construct of programming languages, allowing the
+repetition of an operation until some condition becomes true.
+
+It runs a single module (possibly a Group or Subworkflow) whose ``self`` output
+port is connected to the ``FunctionPort`` input of the ``While`` module (just
+like the ``Map`` module). It gets the value of the ports whose name are set on
+the ConditionPort, OutputPort and StateOutputPorts. As long as the port
+designated by ConditionPort does not return true, the module is run again, with
+on its StateInputPorts the values that were output on the StateOutputPorts in
+the previous run.
+
+.. topic:: Try it Now!
+
+  In this example, we are going to compute the GCD of two integers using
+  Euclid's algorithm. Keep in mind that |vistrails| is meant for data-oriented
+  workflows and that we are twisting it's execution model a little, but this
+  will demonstrate the functionality should you actually need it.
+
+  The modules we are going to need are:
+
+   * ``And``
+   * ``InputPort`` (under "Basic Modules")
+   * ``List`` (under "Basic Modules")
+   * ``PythonSource`` (under "Basic Modules")
+   * 3 ``OutputPort`` (under "Basic Modules")
+   * 2 ``Tuple`` and one ``Untuple`` (under "Basic Modules")
+   * 2 ``PythonCalc`` (under "PythonCalc")
+   * 2 ``If``
+
+  The structure is a little complicated and comports 4 parts (see Figure
+  :ref:`fig-controlflow-gcd`):
+
+   * \(I) compares a and b, and outputs the biggest one as 'result'
+   * \(II) makes the (a, b-a) Tuple (if a < b)
+   * \(III) is like (II) but makes (a-b, b) (if a >= b)
+   * \(IV) sets the 'continue' port, if both a and b are not null.
+
+  The ``Integer`` modules marked 'a' and 'b' are only here to make the workflow
+  clearer, they simply repeat the values from ``Untuple``.
+
+.. _fig-controlflow-gcd:
+
+.. figure:: figures/controlflow/gcd.png
+   :align: center
+   :width: 6in
+
+   The grouped pipeline for Euclid's algorithm
+
+.. topic:: Next Step!
+
+  The ``PythonCalc`` are substractions (operation '-').
+
+  The ``PythonSource`` has two Integer inputs ``a`` and ``b``, and a Boolean ``o``
+  output; the code should be ``o = a < b``
+
+  The ``Tuple`` and ``Untuple`` modules have two ``Integer`` ports each.
+
+  You will need to use the ``List`` module's configuration widget to add one
+  additional port, so you can connect ``a`` and ``b`` to the ``head`` and
+  ``item0`` ports.
+
+  The ``If`` modules each have ``['value']`` for both FalseOutputPorts and
+  TrueOutputPorts.
+
+.. topic:: Next Step!
+
+  Set names on the ``InputPort`` and ``OutputPort`` modules. For example, you
+  can use ``nbs`` for the ``InputPort`` and (from left to right) ``state``,
+  ``result`` and ``continue`` for the ``OutputPort``.
+
+  Once this is done, you can simply select everything and ``Workflow/Group``.
+  Then, add a ``While`` module, fill in the port names, and set the ``nbs``
+  port of the Group to 15 and 6 (or any couple of integers). Also add a
+  ``StandardOutput`` module to display the result.
+
+.. _fig-controlflow-gcd-grouped:
+
+.. figure:: figures/controlflow/gcd-grouped.png
+   :align: center
+   :width: 4.0in
+
+   The final pipeline
+
+
+Boolean operations
+==================
+
+The ``And`` and ``Or`` modules are simple boolean operations. They take a list
+of booleans and output a single boolean. They are useful when building
+workflows with structures that need booleans, such as the ``Filter``, ``While``
+and ``If`` modules.
+
+.. _fig-controlflow-andor:
+
+.. figure:: figures/controlflow/andor.png
+   :align: center
+   :width: 3.2in
+
+   Example usage of And and Or modules; outputs (True, False, True, False)
+
+
+Vector operations
+=================
+
+This packages also provides some general modules for lists, or vectors of
+numbers.
+
+The ``Sum`` module computes the sum of the elements in a list of numbers.
+Example: ``Sum([1, 2, 3]) = 6``
+
+The ``Cross`` module takes two 3-element lists and computes the cross product
+of these vectors. It returns a 3-element list as well.
+Example: ``Cross([1, 2, -1], [0, 2, 5]) = [12, -5, 2]``
+
+The ``Dot`` module performs the dot product of two lists, i.e. returns the sum
+of the pairwise products of the two lists' elements. It is the same thing as
+connecting an ElementwiseProduct to a Sum module.
+Example: ``Dot([2, 0, -1], [4, 2, 3]) = 5``
+
+If ``NumericalProduct`` is true (the default), the ``ElementwiseProduct``
+module outputs a list where each element is the product of the elements of both
+input lists.
+Example: ``ElementwiseProduct([1, 2, 3], [2, 0, -1]) = [2, 0, -3]``
+
+Else, the elements are concatenated instead of multiplied.
+Example: ``ElementwiseProduct([1, 2, 3], [2, 0, -1]) =
+[(1, 2), (2, 0), (3, -1)]``

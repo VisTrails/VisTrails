@@ -98,7 +98,7 @@ class And(Fold):
     def operation(self):
         """Defining the operation..."""
 
-        self.partialResult = self.partialResult and self.element
+        self.partialResult = self.partialResult and bool(self.element)
 
 
 class Or(Fold):
