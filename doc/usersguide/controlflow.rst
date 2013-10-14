@@ -285,10 +285,9 @@ the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and 
    output = self.interpreter.filePool.create_file()
    file_ = open(str(output.name), 'w')
    file_.write(PDB_format)
-
-   self.setResult('File', file_)
-
    file_.close()
+
+   self.setResult('File', output)
 
 .. topic:: Next Step!
 
