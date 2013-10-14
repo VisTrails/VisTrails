@@ -48,7 +48,7 @@ class While(Module):
         if (name_condition is None and
                 not self.hasInputFromPort('MaxIterations')):
             raise ModuleError(self,
-                              "Please set MaxIterations use a ConditionPort")
+                              "Please set MaxIterations or use ConditionPort")
 
         if name_state_input or name_state_output:
             if not name_state_input or not name_state_output:
