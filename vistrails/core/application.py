@@ -139,6 +139,10 @@ class VistrailsApplicationInterface(object):
         add("-l", "--nologger", action="store_true",
             default = None,
             help="disable the logging")
+        add('--no-logfile', action='store_true',
+            dest='nologfile',
+            default=None,
+            help="Disable the log file (output still happens in terminal)")
         add("-d", "--debugsignals", action="store_true",
             default = None,
             help="debug Qt Signals")

@@ -205,6 +205,7 @@ def default():
         'minMemory': (None, int),
         'multiHeads': False,
         'nologger': True,
+        'nologfile': False,
         'packageDirectory': (None, str),
         'pythonPrompt': False,
         'recentVistrailList': (None, str),
