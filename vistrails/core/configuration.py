@@ -219,6 +219,7 @@ def default():
         'showSplash': True,
         'showSpreadsheetOnly': False,
         'singleInstance': True,
+        'spawned': False,
         'spreadsheetDumpCells': (None, str),
         'spreadsheetDumpPDF': False,
         'staticRegistry': (None, str),

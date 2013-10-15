@@ -32,9 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import atexit
 import copy
-import os.path
+import os
+import shutil
 import sys
+import tempfile
 import weakref
 
 from vistrails.core import command_line
@@ -186,6 +189,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             dest='installBundles',
             help=("Do not try to install missing Python packages "
                   "automatically"))
+        add('--spawned-mode', '--spawned', action='store_true',
+            dest='spawned',
+            help=("Do not use the .vistrails directory, and load packages "
+                  "automatically when needed"))
 
         if args != None:
             command_line.CommandLineParser.parse_options(args=args)
@@ -199,17 +206,46 @@ The builder window can be accessed by a spreadsheet menu option.")
         """
         print system.about_string()
         sys.exit(0)
-        
-    def read_dotvistrails_option(self):
+
+    def read_dotvistrails_option(self, optionsDict=None):
         """ read_dotvistrails_option() -> None
-        Check if the user sets a new dotvistrails folder and updates 
-        self.temp_configuration with the new value. 
-        
+        Check if the user sets a new dotvistrails folder and updates
+        self.temp_configuration with the new value.
+
+        Also handles the 'spawned-mode' option, by using a temporary directory
+        as .vistrails directory, and a specific default configuration.
         """
-        get = command_line.CommandLineParser().get_option
-        if get('dotVistrails')!=None:
+        if optionsDict is None:
+            optionsDict = {}
+        def get(opt):
+            return (optionsDict.get(opt) or
+                    command_line.CommandLineParser().get_option(opt))
+
+        if get('spawned'):
+            # Here we are in 'spawned' mode, i.e. we are running
+            # non-interactively as a slave
+            # We are going to create a .vistrails directory as a temporary
+            # directory and copy a specific configuration file
+            # We don't want to load packages that the user might enabled in
+            # this machine's configuration file as it would slow down the
+            # startup time, but we'll load any needed package without
+            # confirmation
+            tmpdir = tempfile.mkdtemp(prefix='vt_spawned_')
+            @atexit.register
+            def clean_dotvistrails():
+                shutil.rmtree(tmpdir, ignore_errors=True)
+            self.temp_configuration.dotVistrails = tmpdir
+            if get('dotVistrails') is not None:
+                debug.warning("--startup option ignored since --spawned-mode "
+                              "is used")
+            shutil.copyfile(os.path.join(system.vistrails_root_directory(),
+                                         'core', 'resources',
+                                         'spawned_startup_xml'),
+                            os.path.join(tmpdir, 'startup.xml'))
+            self.temp_configuration.enablePackagesSilently = True
+        elif get('dotVistrails') is not None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
-            
+
     def readOptions(self):
         """ readOptions() -> None
         Read arguments from the command line
@@ -281,6 +317,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         if get('installBundles')!=None:
             self.temp_configuration.installBundles = bool(get('installBundles'))
         self.input = command_line.CommandLineParser().positional_arguments()
+
     def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
@@ -320,10 +357,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # Read only new .vistrails folder option if passed in the command line
         # or in the optionsDict because this may affect the configuration file 
         # VistrailsStartup will load. This updates self.temp_configuration
-        self.read_dotvistrails_option()
-        
-        if optionsDict and optionsDict.get('dotVistrails'):
-            self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
+        self.read_dotvistrails_option(optionsDict)
 
         # the problem here is that if the user pointed to a new .vistrails
         # folder, the persistent configuration will always point to the 
