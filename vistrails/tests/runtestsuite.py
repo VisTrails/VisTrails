@@ -72,7 +72,6 @@ sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
 
 # Use a different temporary directory
 test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
-test_dotvistrails = tempfile.mkdtemp(prefix='vt_testsuite_dotvistrails_')
 tempfile.tempdir = test_temp_dir
 @atexit.register
 def clean_tempdir():
@@ -87,7 +86,6 @@ def clean_tempdir():
         sys.stdout.write("Warning: %d dirs and %d files were left behind in "
                          "tempdir, cleaning up\n" % (nb_dirs, nb_files))
     shutil.rmtree(test_temp_dir, ignore_errors=True)
-    shutil.rmtree(test_dotvistrails, ignore_errors=True)
 
 def setNewPyQtAPI():
     try:
@@ -179,12 +177,6 @@ test_modules = None
 if len(args) > 0:
     test_modules = args
 
-if dotVistrails is None:
-    shutil.copyfile(
-            os.path.join(vistrails_root_directory(),
-                         'tests', 'resources', 'test_startup.xml'),
-            os.path.join(test_dotvistrails, 'startup.xml'))
-
 def module_filter(name):
     if test_modules is None:
         return True
@@ -211,7 +203,7 @@ optionsDict = {
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
 else:
-    optionsDict['dotVistrails'] = test_dotvistrails
+    optionsDict['spawned'] = True
 v = vistrails.gui.application.start_application(optionsDict)
 if v != 0:
     app = vistrails.gui.application.get_vistrails_application()

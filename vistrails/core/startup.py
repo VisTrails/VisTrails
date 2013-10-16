@@ -544,7 +544,10 @@ by startup.py. This should only be called after init()."""
                                         'vistrails_%s.log'%(get_version()))
         if not os.path.lexists(self.temp_configuration.dotVistrails):
             self.create_default_directory()
-        debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
+        if self.configuration.check('nologfile'):
+            debug.DebugPrint.getInstance().set_logfile(None)
+        else:
+            debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
         
     def setupBaseModules(self):
         """ setupBaseModules() -> None        
