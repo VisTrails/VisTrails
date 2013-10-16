@@ -181,7 +181,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.setIcon()
             self.createWindows()
             self.processEvents()
-            
+
         self.vistrailsStartup.init()
         # ugly workaround for configuration initialization order issue
         # If we go through the configuration too late,
@@ -194,7 +194,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 self.builderWindow.setDBDefault(True)
         self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
-        
+
+        # default handler installation
+        if system.systemType == 'Linux':
+            if not self.configuration.check('handlerDontAsk'):
+                if not linux_default_application_set():
+                    linux_update_default_application()
+
         if interactive:
             self.interactiveMode()
         else:
@@ -678,31 +684,35 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Invalid input: %s" % msg)
         return False
 
-def linux_update_default_application():
-    """ update_default_application() -> None
-        For Linux - checks if we should install vistrails as the default
-        application for.vt and .vtl files
+def linux_default_application_set():
+    """linux_default_application_set() -> True|False|None
+    For Linux - checks if a handler is set for .vt and .vtl files.
     """
     command = ['xdg-mime', 'query', 'filetype',
                os.path.join(system.vistrails_examples_directory(),
                             'terminator.vt')]
-    #print command
     try:
         output = []
         result = system.execute_cmdline(command, output)
         if result != 0:
             # something is wrong, abort
-            print "Error installing mimetypes: %s" % output[0]
-            return
+            debug.warning("Error checking mimetypes: %s" % output[0])
+            return None
     except OSError, e:
-        print "Error installing mimetypes: %s" % e.message
-        return
-    #print 'application/x-vistrails', output[0].strip()
+        debug.warning("Error checking mimetypes: %s" % e.message)
+        return None
     if 'application/x-vistrails' == output[0].strip():
-        # already installed
-        return
-    #print "installing mime types"
+        return True
+    return False
 
+def linux_update_default_application():
+    """ update_default_application() -> None
+    For Linux - checks if we should install vistrails as the default
+    application for .vt and .vtl files.
+    If replace is False, don't replace an existing handler.
+
+    Returns True if installation succeeded.
+    """
     root = system.vistrails_root_directory()
     home = os.path.expanduser('~')
 
@@ -716,8 +726,8 @@ def linux_update_default_application():
     except OSError, e:
         result = None
     if result != 0:
-        return
-    #print "install xml", command, result, output
+        debug.warning("Error running xdg-mime")
+        return False
 
     command = ['update-mime-database', home + '/.local/share/mime']
     output = []
@@ -726,8 +736,8 @@ def linux_update_default_application():
     except OSError, e:
         result = None
     if result != 0:
-        return
-    #print command, result, output
+        debug.warning("Error running update-mime-database")
+        return False
 
     # install icon
     command = ['xdg-icon-resource', 'install',
@@ -742,9 +752,8 @@ def linux_update_default_application():
     except OSError, e:
         result = None
     if result != 0:
-        return
-    #print "install icon", command, result, output
-
+        debug.warning("Error running xdg-icon-resource")
+        return True # the handler is set anyway
 
     # install desktop file
     dirs = [home + '/.local', home + '/.local/share',
@@ -755,28 +764,30 @@ def linux_update_default_application():
             os.mkdir(d)
     desktop = """[Desktop Entry]
 Name=VisTrails
-Exec=python """ + root + """/run.py %f
-Icon=""" + root + """/gui/resources/images/vistrails_icon_small.png
+Exec=python {root}/run.py %f
+Icon={root}/gui/resources/images/vistrails_icon_small.png
 Type=Application
 MimeType=application/x-vistrails
-"""
-    #print "desktop:\n", desktop
+""".format(root=root)
     f = open(os.path.join(dirs[2], 'vistrails.desktop'), 'w')
     f.write(desktop)
     f.close()
 
     command = ['update-desktop-database', dirs[2]]
     output = []
-    result = system.execute_cmdline(command, output)
-    #print command, result, output
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        debug.warning("Error running update-desktop-database")
+    return True
 
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
 def start_application(optionsDict=None):
     """Initializes the application singleton."""
-    if system.systemType in ['Linux']:
-        linux_update_default_application()
     VistrailsApplication = get_vistrails_application()
     if VistrailsApplication:
         debug.critical("Application already started.")
