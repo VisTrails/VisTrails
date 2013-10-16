@@ -199,7 +199,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if system.systemType == 'Linux':
             if not self.configuration.check('handlerDontAsk'):
                 if not linux_default_application_set():
-                    linux_update_default_application()
+                    self.ask_update_default_application()
 
         if interactive:
             self.interactiveMode()
@@ -207,6 +207,33 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             r = self.noninteractiveMode()
             return APP_SUCCESS if r is True else APP_FAIL
         return APP_SUCCESS
+
+    @staticmethod
+    def ask_update_default_application():
+        res = QtGui.QMessageBox.question(
+                None,
+                u"Install .vt .vtl handler",
+                u"Install VisTrails as default handler to open .vt "
+                u"and .vtl files?",
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                QtGui.QMessageBox.Yes)
+        if res != QtGui.QMessageBox.Yes:
+            return False
+        if system.systemType == 'Linux':
+            if not linux_update_default_application():
+                QtGui.QMessageBox.warning(
+                        None,
+                        u"Install .vt .vtl handler",
+                        u"Couldn't set VisTrails as default handler "
+                        u"to open .vt and .vtl files")
+                return False
+        else:
+            QtGui.QMessageBox.warning(
+                    None,
+                    u"Install .vt .vtl handler",
+                    u"Can't install a default handler on this platform")
+            return False
+        return True
 
     def is_running_gui(self):
         return True
