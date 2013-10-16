@@ -314,7 +314,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         self.adjustSize()
                         self.move(r.center()-self.rect().center()-frameDiff)
                         break
-            if not self.visApp.temp_configuration.interactiveMode:
+            if self.visApp.temp_configuration.batch:
                 self.shownConfig = True
                 if show:
                     self.show()
@@ -324,13 +324,13 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 self.showMaximized()
                 ### When the builder is hidden, the spreadsheet window does
                 ### not have focus. We have to force it
-                if self.visApp.temp_configuration.showSpreadsheetOnly:
+                if not self.visApp.temp_configuration.showWindow:
                     self.raise_()
             else:
                 self.show()
                 ### When the builder is hidden, the spreadsheet window does
                 ### not have focus. We have to force it to have the focus
-                if self.visApp.temp_configuration.showSpreadsheetOnly:
+                if not self.visApp.temp_configuration.showWindow:
                     self.raise_()                
         else:
             self.show()

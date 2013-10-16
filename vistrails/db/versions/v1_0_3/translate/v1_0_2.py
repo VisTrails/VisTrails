@@ -303,7 +303,7 @@ def translateRegistry(_registry):
     return registry
 
 def translateStartup(_startup):
-    t = ('alwaysShowDebugPopup': 'showAllPopups',
+    t = {'alwaysShowDebugPopup': 'showDebugPopups',
          'autosave': 'autoSave',
          'errorOnConnectionTypeerror': 'showConnectionErrors',
          'errorOnVariantTypeerror': 'showVariantErrors',
@@ -312,7 +312,7 @@ def translateStartup(_startup):
          'logger': None, # DELETE
          'maxMemory': None,
          'minMemory': None, 
-         'nologger': 'executionLog' # FIXME need to invert!
+         'nologger': 'executionLog', # FIXME need to invert!
          'pythonPrompt': None,
          'reviewMode': None, # unknown what this was/is
          'shell.font_face': 'shell.fontFace',
@@ -326,10 +326,13 @@ def translateStartup(_startup):
          'useCache': 'cache',
          'verbosenessLevel': 'debugLevel',
          'webRepositoryLogin': 'webRespositoryUser',
-         'evolutionGraph': 'outputVersionTree',
-         'workflowGraph': 'outputWorkflow'
-         'workflowInfo': 'outputWorkflowInfo'
-    )
+         'evolutionGraph': 'withVersionTree',
+         'workflowGraph': 'withWorkflow',
+         # 'workflowInfo': 'outputWorkflowInfo',
+         'workflowInfo': 'outputDirectory',
+         'executeWorkflows': 'execute',
+         'abstractionsDirectory': 'subworkflowsDirectory',
+         }
     
     pass
 
@@ -366,8 +369,8 @@ class TestTranslate(unittest.TestCase):
 
 if __name__ == '__main__':
     from vistrails.gui.application import start_application
-    v = start_application({'interactiveMode': False,
-                           'nologger': True,
+    v = start_application({'batch': True,
+                           'executionLog': False,
                            'singleInstance': False,
                            'fixedSpreadsheetCells': True})
     unittest.main()

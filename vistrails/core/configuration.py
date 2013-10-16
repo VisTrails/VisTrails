@@ -58,7 +58,7 @@ from vistrails.db.domain import DBConfiguration, DBConfigKey, DBConfigStr, \
 _docs = {}
 _usage_args = set()
 _documentation = """
-abstractionsDirectory: Path
+subworkflowsDirectory: Path
 
     The location where a user's local subworkflows are stored.
 
@@ -85,7 +85,7 @@ defaultFileType: String
 
 detachHistoryView: Boolean
 
-    Whether or not to show the version tree in a separate window.
+    Show the version tree in a separate window
 
 dotVistrails: Path
 
@@ -94,21 +94,22 @@ dotVistrails: Path
 
 enablePackagesSilently: Boolean
 
-    Whether to skip the prompt to ask to user to enable packages.
+    Do not prompt the user to enable packages, just do so
+    automatically
 
-errorOnConnectionTypeerror: Boolean
+showConnectionErrors: Boolean
 
-    Whether to notify if the value along a connection doesn't match
+    Alert the user if the value along a connection doesn't match
     connection types.
 
-errorOnVariantTypeerror: Boolean
+showVariantErrors: Boolean
 
-    Whether to notify if the value along a connection coming from a
+    Alert the user if the value along a connection coming from a
     Variant output matches the input port.
 
-executeWorkflows: Boolean
+execute: Boolean
 
-    Whether to execute any workflows specified on the command-line.
+    Execute any specified workflows
 
 fileDirectory: Path
 
@@ -117,7 +118,7 @@ fileDirectory: Path
 
 fixedSpreadsheetCells: Boolean
 
-    Whether to draw spreadsheet cells at a fixed size (for testing).
+    Draw spreadsheet cells at a fixed size (for testing).
 
 installBundles: Boolean
 
@@ -128,11 +129,11 @@ installBundlesWithPip: Boolean
     Whether to try to use pip to install Python dependencies or use
     distribution support.
 
-interactiveMode: Boolean
+batch: Boolean
 
-    Whether to run vistrails in interactive mode or batch mode
+    Run vistrails in batch mode instead of interactive mode
 
-logFile: Path
+logDirectory: Path
 
     The path that indicates where log files should be stored.
 
@@ -166,9 +167,9 @@ multiHeads: Boolean
 
     Whether or not to use multiple screens for VisTrails windows.
 
-nologger: Boolean
+executionLog: Boolean
 
-    Whether to run VisTrails without logging errors.
+    Track execution provenance when running workflows
 
 packageDirectory: Path
 
@@ -207,15 +208,15 @@ shell: ConfigurationObject
 
     Settings for the appearance of the VisTrails console
 
-shell.font_face: String
+shell.fontFace: String
 
     The font to be used for the VisTrails console
 
-shell.font_size: Integer
+shell.fontSize: Integer
 
     The font size used for the VisTrails console
 
-showAllPopups: Boolean
+showDebugPopups: Boolean
 
     Always show the debug popups or only if there is a modal widget.
 
@@ -307,22 +308,21 @@ upgradeModuleFailPrompt: Boolean
     Whether to alert the user when an upgrade may fail when upgrading
     a subworkflow.
 
-useCache: Boolean
+cache: Boolean
 
-    Whether to cache previous results so they may be used in future
-    computations
+    Cache previous results so they may be used in future computations
 
 userPackageDirectory: Boolean
 
     The location for user-installed packages (defaults to ~/.vistrails/userpacakges)
 
-verbosenessLevel: Integer
+debugLevel: Integer
 
     How much information VisTrails should alert the user about (0:
     Critical errors only, 1: Critical errors and warnings, 2: Critical
     errors, warnings, and log messages).
 
-webRepositoryLogin: String
+webRepositoryUser: String
 
     The default username for logging into a VisTrails web repository
     like crowdLabs
@@ -339,6 +339,14 @@ isInServerMode: Boolean
 useMacBrushedMetalStyle: Boolean
 
     Whether should use a brushed metal interface (MacOS X only)
+
+withVersionTree: Boolean
+
+    Output the version tree as an image
+
+withWorkflow: Boolean
+
+    Output the workflow graph as an image
 
 """
 
@@ -369,13 +377,17 @@ base_config = [
 
     ('execute', False, bool, ConfigType.COMMAND_LINE_FLAG, 
      ConfigType.COMMAND_LINE, '-e'),
-    ('batch', True, bool, ConfigType.COMMAND_LINE_FLAG, 
+    ('batch', False, bool, ConfigType.COMMAND_LINE_FLAG, 
      ConfigCategory.COMMAND_LINE, '-b'),
+    ('outputDirectory', None, 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.COMMAND_LINE, '-o'),
     ('package', [], str, None, 
      ConfigCategory.COMMAND_LINE, '-p', '*'),
-    ('outputVersionTree', None, str, None, ConfigType.COMMAND_LINE),
-    ('outputWorkflow', None, str, None, ConfigType.COMMAND_LINE),
-    ('outputWorkflowInfo', None, str, None, ConfigType.COMMAND_LINE),
+    ('withVersionTree', False, bool, 
+     ConfigType.COMMAND_LINE_FLAG, ConfigCategory.COMMAND_LINE),
+    ('withWorkflow', False, bool, 
+     ConfigType.COMMAND_LINE_FLAG, ConfigCategory.COMMAND_LINE),
+    
     # what other flags?
     # parameter exploration?
     # convert to script?
@@ -383,7 +395,7 @@ base_config = [
     # how to best specify vistrail + workflow version?
     # could do /path/to/example.vt -v aTag -v 35 -v 36
 
-    ('abstractionsDirectory', os.path.join("$DOT_VISTRAILS", "subworkflows"),
+    ('subworkflowsDirectory', os.path.join("$DOT_VISTRAILS", "subworkflows"),
      ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
     ('autoConnect', True, bool, ConfigType.ON_OFF),
     ('autoSave', True, bool, ConfigType.ON_OFF),
@@ -400,15 +412,13 @@ base_config = [
      ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
     ('installBundles', True, bool, ConfigType.ON_OFF),
     ('installBundlesWithPip', False, bool, ConfigType.ON_OFF),    
-    ('logDirectory', "$DOT_VISTRAILS", 
+    ('logDirectory', "$DOT_VISTRAILS/logs", 
      ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
     ('maximizeWindows', False, bool, ConfigType.ON_OFF),
     ('maxRecentVistrails', 5, int),
     ('migrateTags', False, bool, ConfigType.ON_OFF),
     ('multiHeads', False, bool, ConfigType.ON_OFF),
     ('executionLog', False, bool, ConfigType.ON_OFF),
-    ('outputDirectory', None, 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
     ('packageDirectory', None, 
      ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
     ('recentVistrailList', None, str, ConfigType.STORAGE),
@@ -477,7 +487,10 @@ def build_config_obj(d):
             assert(len(conf) >= 3)
             v = conf[1]
             if v is None:
-                new_d[k] = (v, conf[2])
+                val_type = conf[2]
+                if conf[2] == ConfigPath or conf[2] == ConfigURL:
+                    val_type = basestring
+                new_d[k] = (v, val_type)
             else:
                 new_d[k] = v
     return ConfigurationObject(**new_d)
@@ -569,13 +582,19 @@ def build_command_line_parser(d, parser=None, prefix=""):
             continue
         elif config_type == ConfigType.ON_OFF:
             k_dashes = camel_to_dashes(k)
-            group = parser.add_mutually_exclusive_group()
+            if len(conf) < 5 or conf[4] is None or \
+                 conf[4] == ConfigCategory.NORMAL:
+                group = parser._my_arg_groups[ConfigCategory.NORMAL]
+                group = group.add_mutually_exclusive_group()
+            else:
+                group = parser.add_mutually_exclusive_group()
             group.add_argument('--%s%s' % (prefix_dashes, k_dashes), 
                                action="store_true",
                                dest=k, help=help_str)
             group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes), 
                                action="store_false",
-                               dest=k, help=help_str)
+                               dest=k, help=("Inverse of --%s%s" % 
+                                             (prefix_dashes, k_dashes)))
         elif config_type == ConfigType.SHOW_HIDE:
             # assume starts with show
             k_dashes = camel_to_dashes(k[4:])
@@ -590,7 +609,8 @@ def build_command_line_parser(d, parser=None, prefix=""):
                                dest=k, help=help_str)
             group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes), 
                                action="store_false",
-                               dest=k, help=help_str)
+                               dest=k, help=("Inverse of --show-%s%s" % 
+                                             (prefix_dashes, k_dashes)))
         else:
             k_dashes = camel_to_dashes(k)
             long_arg = '--%s%s' % (prefix_dashes, k_dashes)
@@ -761,7 +781,8 @@ class ConfigKey(DBConfigKey):
         return None
     def _set_value(self, val):
         if not self.check_type(val):
-            raise TypeError("Value does not match type %s" % self._type)
+            raise TypeError('Value "%s" does not match type %s' %
+                            (val, self._type))
         self.db_value = ConfigValue.create(val)
     value = property(_get_value, _set_value)
 
@@ -799,6 +820,7 @@ class ConfigurationObject(DBConfiguration):
             
         # InstanceObject.__init__(self, *args, **kwargs)
         self.__subscribers__ = {}
+        self.vistrails = []
 
     def __copy__(self):
         """ __copy__() -> ConfigurationObject - Returns a clone of itself """ 
@@ -810,6 +832,7 @@ class ConfigurationObject(DBConfiguration):
         cp.__class__ = ConfigurationObject
         cp._unset_keys = copy.copy(self._unset_keys)
         cp.__subscribers__ = copy.copy(self.__subscribers__)
+        cp.vistrails = copy.copy(self.vistrails)
         return cp
 
     @staticmethod
@@ -820,6 +843,7 @@ class ConfigurationObject(DBConfiguration):
             ConfigKey.convert(_key)
         _config_obj.__subscribers__ = {}
         _config_obj._unset_keys = {}
+        _config_obj.vistrails = []
    
     def get_value(self):
         return self
@@ -843,8 +867,7 @@ class ConfigurationObject(DBConfiguration):
                 raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name == '__subscribers__' or name == '_unset_keys' or name == '_in_init' or name == 'is_dirty' or \
-           self._in_init:
+        if name == '__subscribers__' or name == '_unset_keys' or name == '_in_init' or name == 'is_dirty' or name == 'vistrails' or self._in_init:
             object.__setattr__(self, name, value)
         else:
             if name in self.db_config_keys_name_index:
@@ -852,12 +875,12 @@ class ConfigurationObject(DBConfiguration):
                 config_key.value = value
             else:
                 if name not in self._unset_keys:
-                    return
+                    self._unset_keys[name] = (None, type(value))
                     # raise AttributeError('Key "%s" was not defined when '
                     #                      'ConfigurationObject was created' % 
                     #                      name)
                 if not self.matches_type(value, self._unset_keys[name][1]):
-                    raise TypeError('Value "%s" does match type "%s" for "%"' %
+                    raise TypeError('Value "%s" does match type "%s" for "%s"' %
                                     (value, self._unset_keys[name][1], name))
                 del self._unset_keys[name]
                 config_key = ConfigKey(name=name, value=value)

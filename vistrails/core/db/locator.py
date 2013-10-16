@@ -679,8 +679,8 @@ class FileLocator(CoreLocator):
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration
         config = get_vistrails_configuration()
-        config.executeWorkflows = execute
-        config.showSpreadsheetOnly = showSpreadsheetOnly
+        config.execute = execute
+        config.showWindow = not showSpreadsheetOnly
         if not forceDB:
             if vtcontent is not None:
                 if url is not None:

@@ -201,8 +201,8 @@ sys.argv = sys.argv[:1]
 
 # We need the windows so we can test events, etc.
 optionsDict = {
-        'interactiveMode': True,
-        'nologger': True,
+        'batch': False,
+        'executionLog': False,
         'singleInstance': False,
         'fixedSpreadsheetCells': True,
         'installBundles': installbundles,

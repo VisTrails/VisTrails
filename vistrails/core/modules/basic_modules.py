@@ -1617,20 +1617,20 @@ class TestTypechecking(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         conf = get_vistrails_configuration()
-        cls.error_all = conf.errorOnConnectionTypeerror
-        cls.error_variant = conf.errorOnVariantTypeerror
+        cls.error_all = conf.showConnectionErrors
+        cls.error_variant = conf.showVariantErrors
 
     @classmethod
     def tearDownClass(cls):
         conf = get_vistrails_configuration()
-        conf.errorOnConnectionTypeerror = cls.error_all
-        conf.errorOnVariantTypeerror = cls.error_variant
+        conf.showConnectionErrors = cls.error_all
+        conf.showVariantErrors = cls.error_variant
 
     @staticmethod
     def set_settings(error_all, error_variant):
         conf = get_vistrails_configuration()
-        conf.errorOnConnectionTypeerror = error_all
-        conf.errorOnVariantTypeerror = error_variant
+        conf.showConnectionErrors = error_all
+        conf.showVariantErrors = error_variant
 
     def run_test_pipeline(self, result, expected_results, *args, **kwargs):
         from vistrails.tests.utils import execute, intercept_result
@@ -1675,7 +1675,7 @@ class TestTypechecking(unittest.TestCase):
     def test_fake(self):
         import urllib2
         # A module is lying, declaring a String but returning an int
-        # This should fail with errorOnConnectionTypeerror=True (not the
+        # This should fail with showConnectionErrors=True (not the
         # default)
         self.run_test_pipeline(
             (PythonSource, 'r'),

@@ -99,8 +99,10 @@ class VistrailsStartup(DBStartup):
     
     """
 
-    DIRECTORIES = [('userPackageDirectory', 'userpackages', True),
-                   ('abstractionsDirectory', 'subworkflows', False),
+    # !!! IMPORTANT: keep logDirectory first!
+    DIRECTORIES = [('logDirectory', 'logs', False),
+                   ('userPackageDirectory', 'userpackages', True),
+                   ('subworkflowsDirectory', 'subworkflows', False),
                    ('thumbs.cacheDirectory', 'thumbs', False)]
     DOT_VISTRAILS_PREFIX = "$DOT_VISTRAILS"
     DOT_VISTRAILS_PREFIX_RE = re.compile("%s([%s/\\\\]|$)" % 
@@ -287,38 +289,63 @@ class VistrailsStartup(DBStartup):
         self.temp_configuration.set_deep_value(config_key, abs_dir_name)
         if abs_dir_name is not None and setup_init_file:
             self.setup_init_file(abs_dir_name)
+        return abs_dir_name
 
-    def setup_log_file(self):
+    def setup_log_file(self, abs_dir_name):
         import vistrails.core.system
         version = vistrails.core.system.vistrails_version()
         version = version.replace(".", "_")
         
-        # FIXME this is really log dir, not log file
-        # we should really create a logs subdir in .vistrails
-        is_default = False
-        if not self.temp_configuration.check('logFile'):
-            dir_name = self._dot_vistrails
-            is_default = True
-        else:
-            dir_name = os.path.dirname(self.temp_configuration.logFile)
-        abs_dir_name = self.expand_vt_path(dir_name)
-        if abs_dir_name is not None:
-            self.create_directory(abs_dir_name)
-            log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
-        else:
-            log_fname = None
-        if is_default:
-            self.update_deep_configs("logFile", 
-                                     os.path.join(dir_name,
-                                                  'vistrails_%s.log' % version))
-        self.temp_configuration.logFile = log_fname
+        # # FIXME this is really log dir, not log file
+        # # we should really create a logs subdir in .vistrails
+        # is_default = False
+        # if not self.temp_configuration.check('logFile'):
+        #     dir_name = self._dot_vistrails
+        #     is_default = True
+        # else:
+        #     dir_name = os.path.dirname(self.temp_configuration.logFile)
+        # abs_dir_name = self.expand_vt_path(dir_name)
+        # if abs_dir_name is not None:
+        #     self.create_directory(abs_dir_name)
+        #     log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
+        # else:
+        #     log_fname = None
+        # if is_default:
+        #     self.update_deep_configs("logFile", 
+        #                              os.path.join(dir_name,
+        #                                           'vistrails_%s.log' % version))
+        log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
         if log_fname is not None:
             debug.DebugPrint.getInstance().set_logfile(log_fname)
             
+    def setup_debug(self):
+        if (self.temp_configuration.has('debugLevel') and
+            self.temp_configuration.debugLevel != -1):
+            verbose = self.temp_configuration.debugLevel
+            if verbose < 0:
+                msg = ("""Don't know how to set verboseness level to %s - "
+                       "setting to the lowest one I know of: 0""" % verbose)
+                debug.critical(msg)
+                verbose = 0
+            if verbose > 2:
+                msg = ("""Don't know how to set verboseness level to %s - "
+                       "setting to the highest one I know of: 2""" % verbose)
+                debug.critical(msg)
+                verbose = 2
+            dbg = debug.DebugPrint.getInstance()
+            levels = [dbg.Critical, dbg.Warning, dbg.Log]
+            dbg.set_message_level(levels[verbose])
+            debug.log("Set verboseness level to %s" % verbose)
+
+
     def setup_dot_vistrails(self):
-        self.setup_log_file()
-        for args in self.DIRECTORIES:
-            self.setup_directory(*args)
+        for i, args in enumerate(self.DIRECTORIES):
+            abs_dir_name = self.setup_directory(*args)
+            # Brittle, know that log directory is first
+            if i == 0:
+                self.setup_log_file(abs_dir_name)
+        self.setup_debug()
+
 
     def setup_non_dot_vistrails(self):
         self.temp_configuration.set_deep_value('logFile', None)
@@ -561,8 +588,8 @@ by startup.py. This should only be called after init()."""
             if not os.path.isdir(abstractions_dir):
                 try:
                     os.mkdir(abstractions_dir)
-                    self.configuration.abstractionsDirectory = abstractions_dir
-                    self.temp_configuration.abstractionsDirectory = \
+                    self.configuration.subworkflowsDirectory = abstractions_dir
+                    self.temp_configuration.subworkflowsDirectory = \
                         abstractions_dir
                 except:
                     msg = ("Failed to create subworkflows directory: '%s'.  "
@@ -681,8 +708,8 @@ by startup.py. This should only be called after init()."""
                                             'userpackages')
                 startup = os.path.join(self.temp_configuration.dotVistrails,
                                        'startup.py')
-                if self.temp_configuration.check('abstractionsDirectory'):
-                    abstractions = self.temp_configuration.abstractionsDirectory
+                if self.temp_configuration.check('subworkflowsDirectory'):
+                    abstractions = self.temp_configuration.subworkflowsDirectory
                 else:
                     abstractions = os.path.join(self.temp_configuration.dotVistrails,
                                             'subworkflows')
@@ -755,9 +782,9 @@ by startup.py. This should only be called after init()."""
         if self.temp_configuration.has('fileDirectory'):
             system.set_vistrails_file_directory( \
                 self.temp_configuration.fileDirectory)
-        if (self.temp_configuration.has('verbosenessLevel') and
-            self.temp_configuration.verbosenessLevel != -1):
-            verbose = self.temp_configuration.verbosenessLevel
+        if (self.temp_configuration.has('debugLevel') and
+            self.temp_configuration.debugLevel != -1):
+            verbose = self.temp_configuration.debugLevel
             if verbose < 0:
                 msg = ("""Don't know how to set verboseness level to %s - "
                        "setting to the lowest one I know of: 0""" % verbose)
@@ -794,8 +821,8 @@ class TestStartup(unittest.TestCase):
         import vistrails.core.system
         version = vistrails.core.system.vistrails_version()
         version = version.replace(".", "_")
-        self.assertTrue(os.path.isfile(os.path.join(dir_name, 
-                                                "vistrails_%s.log" % version)))
+        self.assertTrue(os.path.isfile(
+            os.path.join(dir_name, 'logs', "vistrails_%s.log" % version)))
 
     def test_simple_create(self):
         dir_name = tempfile.mkdtemp()
@@ -821,11 +848,13 @@ class TestStartup(unittest.TestCase):
         user_pkg_dir = tempfile.mkdtemp()
         abstractions_dir = tempfile.mkdtemp()
         thumbs_dir = tempfile.mkdtemp()
+        log_dir = tempfile.mkdtemp()
         config = vistrails.core.configuration.default()
         config.dotVistrails = dir_name
         config.userPackageDirectory = user_pkg_dir
-        config.abstractionsDirectory = abstractions_dir
+        config.subworkflowsDirectory = abstractions_dir
         config.thumbs.cacheDirectory = thumbs_dir
+        config.logDirectory = log_dir
         try:
             startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
@@ -839,7 +868,8 @@ class TestStartup(unittest.TestCase):
             shutil.rmtree(user_pkg_dir)
             shutil.rmtree(abstractions_dir)
             shutil.rmtree(thumbs_dir)
-            
+            shutil.rmtree(log_dir)
+
     def test_config_override_create(self):
         dir_name = tempfile.mkdtemp()
         outer_user_pkg_dir = tempfile.mkdtemp()
@@ -848,11 +878,14 @@ class TestStartup(unittest.TestCase):
         abstractions_dir = os.path.join(outer_abstractions_dir, 'subworkflows')
         outer_thumbs_dir = tempfile.mkdtemp()
         thumbs_dir = os.path.join(outer_thumbs_dir, 'thumbs')
+        outer_log_dir = tempfile.mkdtemp()
+        log_dir = os.path.join(outer_log_dir, 'logs')
         config = vistrails.core.configuration.default()
         config.dotVistrails = dir_name
         config.userPackageDirectory = user_pkg_dir
-        config.abstractionsDirectory = abstractions_dir
+        config.subworkflowsDirectory = abstractions_dir
         config.thumbs.cacheDirectory = thumbs_dir
+        config.logDirectory = log_dir
         try:
             startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
@@ -864,20 +897,22 @@ class TestStartup(unittest.TestCase):
             self.assertTrue(os.path.isdir(user_pkg_dir))
             self.assertTrue(os.path.isdir(abstractions_dir))
             self.assertTrue(os.path.isdir(thumbs_dir))
+            self.assertTrue(os.path.isdir(log_dir))
         finally:
             shutil.rmtree(dir_name)
             shutil.rmtree(outer_user_pkg_dir)
             shutil.rmtree(outer_abstractions_dir)
             shutil.rmtree(outer_thumbs_dir)
+            shutil.rmtree(outer_log_dir)
     
     def test_default_startup_xml(self):
         dir_name = tempfile.mkdtemp()
         config = ConfigurationObject(dotVistrails=dir_name)
         try:
             startup = VistrailsStartup(config, None)
-            self.assertFalse(startup.configuration.nologger)
-            self.assertTrue(startup.configuration.autosave)
-            self.assertTrue(startup.temp_configuration.autosave)
+            self.assertTrue(startup.configuration.executionLog)
+            self.assertTrue(startup.configuration.autoSave)
+            self.assertTrue(startup.temp_configuration.autoSave)
         finally:
             shutil.rmtree(dir_name)
 
@@ -901,11 +936,11 @@ class TestStartup(unittest.TestCase):
             os.chmod(dir_name, stat.S_IRWXU)
             shutil.rmtree(dir_name)
             
-    def test_load_packages(self):
-        from vistrails.core.system import default_dot_vistrails
-        dir_name = default_dot_vistrails()
-        config = ConfigurationObject(dotVistrails=dir_name)
-        startup = VistrailsStartup(config, None)
+    # def test_load_packages(self):
+    #     from vistrails.core.system import default_dot_vistrails
+    #     dir_name = default_dot_vistrails()
+    #     config = ConfigurationObject(dotVistrails=dir_name)
+    #     startup = VistrailsStartup(config, None)
         
         
 if __name__ == '__main__':

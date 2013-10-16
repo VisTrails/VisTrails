@@ -735,7 +735,7 @@ class RequestHandler(object):
 
                 elif medley._type == 'visit':
                     cur_dir = os.getcwd()
-                    os.chdir(self.temp_configuration.spreadsheetDumpCells)
+                    os.chdir(self.temp_configuration.outputDirectory)
                     if medley._id == 6:
                         session_file = 'crotamine.session'
                     elif medley._id == 7:

@@ -251,7 +251,7 @@ class VistrailController(QtCore.QObject, BaseController):
     def get_locator(self):
         from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
-            get_vistrails_application().configuration.check('autosave')):
+            get_vistrails_application().configuration.check('autoSave')):
             if self.locator is None:
                 raise ValueError("locator is None")
             return self.locator
@@ -1489,7 +1489,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
 
         config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
+        filename = os.path.join(config.subworkflowsDirectory,
                                 '__TestFloatList.xml')
         if os.path.exists(filename):
             os.remove(filename)
@@ -1526,7 +1526,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         import vistrails.core.db.io
         from vistrails.core.configuration import get_vistrails_configuration
         config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
+        filename = os.path.join(config.subworkflowsDirectory,
                                 '__TestFloatList.xml')
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml')

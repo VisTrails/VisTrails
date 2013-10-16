@@ -140,8 +140,8 @@ def package_dependencies():
     conf = get_vistrails_configuration()
 
     abstraction_dir = None
-    if conf.check("abstractionsDirectory"):
-        abstraction_dir = conf.abstractionsDirectory
+    if conf.check("subworkflowsDirectory"):
+        abstraction_dir = conf.subworkflowsDirectory
     else:
         debug.log("Subworkflows directory unset, cannot add any abstractions")
         return []

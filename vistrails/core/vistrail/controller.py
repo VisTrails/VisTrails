@@ -193,7 +193,7 @@ class VistrailController(object):
         self._pipelines = {0: Pipeline()}
 
     def logging_on(self):
-        return not get_vistrails_configuration().check('nologger')
+        return get_vistrails_configuration().check('executionLog')
             
     def get_logger(self):
         if self.logging_on():
@@ -1778,14 +1778,14 @@ class VistrailController(object):
         
     def get_abstraction_dir(self):
         conf = get_vistrails_configuration()
-        if conf.check('abstractionsDirectory'):
-            abstraction_dir = conf.abstractionsDirectory
+        if conf.check('subworkflowsDirectory'):
+            abstraction_dir = conf.subworkflowsDirectory
             if not os.path.exists(abstraction_dir):
                 raise VistrailsInternalError("Cannot find %s" % \
                                                  abstraction_dir)
             return abstraction_dir
         else:
-            raise VistrailsInternalError("'abstractionsDirectory' not"
+            raise VistrailsInternalError("'subworkflowsDirectory' not"
                                          " specified in configuration")
         return None
 
@@ -3107,7 +3107,7 @@ class VistrailController(object):
                                     return new_actions
             return new_actions
 
-        if get_vistrails_configuration().check('upgradeOn'):
+        if get_vistrails_configuration().check('upgrades'):
             cur_pipeline = copy.copy(e._pipeline)
             # note that cur_pipeline is modified to be the result of
             # applying the actions in new_actions

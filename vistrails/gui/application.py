@@ -176,7 +176,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
                 else:
                     return APP_FAIL  # error, we should shut down
-        interactive = self.temp_configuration.check('interactiveMode')
+        interactive = not self.temp_configuration.check('batch')
         if interactive:
             self.setIcon()
             self.createWindows()
@@ -373,7 +373,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.builderWindow.link_registry()
         
         self.process_interactive_input()
-        if not self.temp_configuration.showSpreadsheetOnly:
+        if self.temp_configuration.showWindow:
             self.showBuilderWindow()
         else:
             self.builderWindow.hide()
@@ -463,15 +463,15 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                     r[1])
                         debug.critical("*** Error in get_vt_graph: %s" % r[1])
                 
-            if self.temp_configuration.check('workflowInfo'):
-                workflow_info = self.temp_configuration.workflowInfo
+            if self.temp_configuration.check('outputDirectory'):
+                output_dir = self.temp_configuration.outputDirectory
             else:
-                workflow_info = None
+                output_dir = None
 
             extra_info = None
-            if self.temp_configuration.check('spreadsheetDumpCells'):
+            if self.temp_configuration.check('outputDirectory'):
                 extra_info = \
-                {'pathDumpCells': self.temp_configuration.spreadsheetDumpCells}
+                {'pathDumpCells': self.temp_configuration.outputDirectory}
             if self.temp_configuration.check('spreadsheetDumpPDF'):
                 if extra_info is None:
                     extra_info = {}
@@ -484,7 +484,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             else:
                 errs.extend(vistrails.core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
-                                      workflow_info, update_vistrail=True,
+                                      output_dir, update_vistrail=True,
                                       extra_info=extra_info))
             if len(errs) > 0:
                 for err in errs:
@@ -538,7 +538,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         # self.builderWindow = QBuilderWindow()
         self.builderWindow = QVistrailsWindow()
-        if not self.temp_configuration.showSpreadsheetOnly:
+        if self.temp_configuration.showWindow:
             # self.builderWindow.show()
             # self.setActiveWindow(self.builderWindow)
             pass
@@ -589,12 +589,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             byte_array = local_socket.readAll()
             self.temp_db_options = None
             self.temp_configuration.workflowGraph = None
-            self.temp_configuration.workflowInfo = None
             self.temp_configuration.evolutionGraph = None
+            self.temp_configuration.outputDirectory = None
             self.temp_configuration.spreadsheetDumpPDF = False
-            self.temp_configuration.spreadsheetDumpCells = None
-            self.temp_configuration.executeWorkflows = False
-            self.temp_configuration.interactiveMode = True
+            self.temp_configuration.execute = False
+            self.temp_configuration.batch = False
             
             try:
                 result = self.parse_input_args_from_other_instance(str(byte_array))
@@ -664,10 +663,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
                 self.readOptions()
-                interactive = self.temp_configuration.check('interactiveMode')
+                interactive = not self.temp_configuration.check('batch')
                 if interactive:
                     result = self.process_interactive_input()
-                    if not self.temp_configuration.showSpreadsheetOnly:
+                    if self.temp_configuration.showWindow:
                         # in some systems (Linux and Tiger) we need to make both calls
                         # so builderWindow is activated
                         self.builderWindow.raise_()

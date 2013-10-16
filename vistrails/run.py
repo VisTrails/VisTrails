@@ -161,8 +161,8 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(255)
-    if (app.temp_configuration.interactiveMode and
-        not app.temp_configuration.check('spreadsheetDumpCells')): 
+    if (not app.temp_configuration.batch and
+        not app.temp_configuration.check('outputDirectory')):
         v = app.exec_()
         
     vistrails.gui.application.stop_application()

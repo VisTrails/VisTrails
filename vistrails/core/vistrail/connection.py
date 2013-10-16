@@ -67,9 +67,9 @@ def moduleConnection(conn):
         oport = conn.source.name
         src.enableOutputPort(oport)
         conf = get_vistrails_configuration()
-        error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
+        error_on_others = getattr(conf, 'showConnectionErrors')
         error_on_variant = (error_on_others or
-                            getattr(conf, 'errorOnVariantTypeerror'))
+                            getattr(conf, 'showVariantErrors'))
         errors = [error_on_others, error_on_variant]
         if isinstance(src, InputPort_desc.module):
             typecheck = [False]

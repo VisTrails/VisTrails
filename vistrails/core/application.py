@@ -98,102 +98,104 @@ class VistrailsApplicationInterface(object):
         Check and store all command-line arguments
         
         """
-        add = command_line.CommandLineParser.add_option
-        add("-S", "--startup", action="store", type="str", default=None,
-            dest="dotVistrails",
-            help="Set startup file (default is ~/.vistrails)")
-        add("-?", action="help",
-            help="show this help message and exit")
-        add("-v", "--version", action="callback",
-            callback=lambda option, opt, value, parser: self.printVersion(),
-            help="print version information and quit")
-        add("-V", "--verbose", action="store", type="int", default=None,
-            dest="verbose", help="set verboseness level (0--2, "
-            "default=0, higher means more verbose)")
-        add("-n", "--nosplash", action="store_false",
-            default = None,
-            help="don't display splash on startup")
-        add("-c", "--cache", action="store", type="int", default=None,
-            dest="cache", help="enable/disable caching")
-        add("-m", "--movies", action="store", type="int", default=None,
-            dest="movies", help="set automatic movie creation on spreadsheet "
-            "(0 or 1, default=1. Set this to zero to work around vtk bug with "
-            "offscreen renderer and opengl texture3d mappers)")
-        add("-s", "--multiheads", action="store_true",
-            default = None,
-            help="display the builder and spreadsheet on different screens "
-            "(if available)")
-        add("-x", "--maximized", action="store_true",
-            default = None,
-            help="Maximize VisTrails windows at startup")
-        add("-b", "--noninteractive", action="store_true",
-            default = None,
-            help="run in non-interactive mode")
-        add("-e", "--dumpcells", action="store", dest="dumpcells",
-            default = None,
-            help="when running in non-interactive mode, directory to dump "
-            "spreadsheet cells before exiting")
-        add("-p", "--pdf", action="store_true",
-            default = None,
-            help="dump files in pdf format (non-interactive mode only)")
-        add("-l", "--nologger", action="store_true",
-            default = None,
-            help="disable the logging")
-        add("-d", "--debugsignals", action="store_true",
-            default = None,
-            help="debug Qt Signals")
-        add("-a", "--parameters", action="store", dest="parameters",
-            help="workflow parameter settings (non-interactive mode only)")
-        add("-t", "--host", action="store", dest="host",
-            help="hostname or ip address of database server")
-        add("-r", "--port", action="store", type="int", default=3306,
-            dest="port", help="database port")
-        add("-f", "--db", action="store", dest="db",
-            help="database name")
-        add("-u", "--user", action="store", dest="user",
-            help="database username")
-        add("-i", "--showspreadsheetonly", action="store_true",
-            default = None,
-            help="only the spreadsheet will be shown. This implies -w was given.\
-The builder window can be accessed by a spreadsheet menu option.")
-        add("-w", "--executeworkflows", action="store_true",
-            default = None,
-            help="The workflows will be executed")
-        add("-F", "--fixedcells", action="store_true",
-            default = None,
-            help="Use a fixed spreadsheet cell size of 200*180")
-        add("-I", "--workflowinfo", action="store",
-            default = None,
-            help=("Save workflow graph and spec in specified directory "
-                  "(only valid in console mode)."))
-        add("-E", "--reviewmode", action="store_true",
-            default = None,
-            help="Show the spreadsheet in the reviewing mode")
-        add("-q", "--quickstart", action="store",
-            help="Start VisTrails using the specified static registry")
-        add("-D", "--detachHistoryView", action="store_true",
-            help="Detach the history view from the builder windows")
-        add("-P", "--parameterExploration", action="store_true",
-            help="Execute Parameter Exploration")
-        add("-G", "--workflowgraph", action="store",
-            default = None,
-            help=("Save workflow graph in specified directory without running "
-                  "the workflow (only valid in console mode)."))
-        add("-U", "--evolutiongraph", action="store",
-            default = None,
-            help=("Save evolution graph in specified directory without running "
-                  "any workflow (only valid in console mode)."))
-        add("-g", "--noSingleInstance", action="store_true",
-            help=("Run VisTrails without the single instance restriction."))
-        add("--no-bundleinstall", action='store_false',
-            dest='installBundles',
-            help=("Do not try to install missing Python packages "
-                  "automatically"))
+        pass
 
-        if args != None:
-            command_line.CommandLineParser.parse_options(args=args)
-        else:
-            command_line.CommandLineParser.parse_options()
+#         add = command_line.CommandLineParser.add_option
+#         add("-S", "--startup", action="store", type="str", default=None,
+#             dest="dotVistrails",
+#             help="Set startup file (default is ~/.vistrails)")
+#         add("-?", action="help",
+#             help="show this help message and exit")
+#         add("-v", "--version", action="callback",
+#             callback=lambda option, opt, value, parser: self.printVersion(),
+#             help="print version information and quit")
+#         add("-V", "--verbose", action="store", type="int", default=None,
+#             dest="verbose", help="set verboseness level (0--2, "
+#             "default=0, higher means more verbose)")
+#         add("-n", "--nosplash", action="store_false",
+#             default = None,
+#             help="don't display splash on startup")
+#         add("-c", "--cache", action="store", type="int", default=None,
+#             dest="cache", help="enable/disable caching")
+#         add("-m", "--movies", action="store", type="int", default=None,
+#             dest="movies", help="set automatic movie creation on spreadsheet "
+#             "(0 or 1, default=1. Set this to zero to work around vtk bug with "
+#             "offscreen renderer and opengl texture3d mappers)")
+#         add("-s", "--multiheads", action="store_true",
+#             default = None,
+#             help="display the builder and spreadsheet on different screens "
+#             "(if available)")
+#         add("-x", "--maximized", action="store_true",
+#             default = None,
+#             help="Maximize VisTrails windows at startup")
+#         add("-b", "--noninteractive", action="store_true",
+#             default = None,
+#             help="run in non-interactive mode")
+#         add("-e", "--dumpcells", action="store", dest="dumpcells",
+#             default = None,
+#             help="when running in non-interactive mode, directory to dump "
+#             "spreadsheet cells before exiting")
+#         add("-p", "--pdf", action="store_true",
+#             default = None,
+#             help="dump files in pdf format (non-interactive mode only)")
+#         add("-l", "--nologger", action="store_true",
+#             default = None,
+#             help="disable the logging")
+#         add("-d", "--debugsignals", action="store_true",
+#             default = None,
+#             help="debug Qt Signals")
+#         add("-a", "--parameters", action="store", dest="parameters",
+#             help="workflow parameter settings (non-interactive mode only)")
+#         add("-t", "--host", action="store", dest="host",
+#             help="hostname or ip address of database server")
+#         add("-r", "--port", action="store", type="int", default=3306,
+#             dest="port", help="database port")
+#         add("-f", "--db", action="store", dest="db",
+#             help="database name")
+#         add("-u", "--user", action="store", dest="user",
+#             help="database username")
+#         add("-i", "--showspreadsheetonly", action="store_true",
+#             default = None,
+#             help="only the spreadsheet will be shown. This implies -w was given.\
+# The builder window can be accessed by a spreadsheet menu option.")
+#         add("-w", "--executeworkflows", action="store_true",
+#             default = None,
+#             help="The workflows will be executed")
+#         add("-F", "--fixedcells", action="store_true",
+#             default = None,
+#             help="Use a fixed spreadsheet cell size of 200*180")
+#         add("-I", "--workflowinfo", action="store",
+#             default = None,
+#             help=("Save workflow graph and spec in specified directory "
+#                   "(only valid in console mode)."))
+#         add("-E", "--reviewmode", action="store_true",
+#             default = None,
+#             help="Show the spreadsheet in the reviewing mode")
+#         add("-q", "--quickstart", action="store",
+#             help="Start VisTrails using the specified static registry")
+#         add("-D", "--detachHistoryView", action="store_true",
+#             help="Detach the history view from the builder windows")
+#         add("-P", "--parameterExploration", action="store_true",
+#             help="Execute Parameter Exploration")
+#         add("-G", "--workflowgraph", action="store",
+#             default = None,
+#             help=("Save workflow graph in specified directory without running "
+#                   "the workflow (only valid in console mode)."))
+#         add("-U", "--evolutiongraph", action="store",
+#             default = None,
+#             help=("Save evolution graph in specified directory without running "
+#                   "any workflow (only valid in console mode)."))
+#         add("-g", "--noSingleInstance", action="store_true",
+#             help=("Run VisTrails without the single instance restriction."))
+#         add("--no-bundleinstall", action='store_false',
+#             dest='installBundles',
+#             help=("Do not try to install missing Python packages "
+#                   "automatically"))
+
+#         if args != None:
+#             command_line.CommandLineParser.parse_options(args=args)
+#         else:
+#             command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
         """ printVersion() -> None
@@ -218,73 +220,85 @@ The builder window can be accessed by a spreadsheet menu option.")
         Read arguments from the command line
         
         """
-        command_line_config = ConfigurationObject()
-        get = command_line.CommandLineParser().get_option
-        if get('nosplash')!=None:
-            command_line_config.showSplash = bool(get('nosplash'))
-        # if get('debugsignals')!=None:
-        #     command_line_config.debugSignals = bool(get('debugsignals'))
-        if get('dotVistrails')!=None:
-            command_line_config.dotVistrails = get('dotVistrails')
-        if get('multiheads')!=None:
-            command_line_config.multiHeads = bool(get('multiheads'))
-        if get('maximized')!=None:
-            command_line_config.maximizeWindows = bool(get('maximized'))
-        if get('movies')!=None:
-            command_line_config.showMovies = bool(get('movies'))
-        if get('cache')!=None:
-            command_line_config.useCache = bool(get('cache'))
-        if get('verbose')!=None:
-            command_line_config.verbosenessLevel = get('verbose')
-        if get('fixedcells') != None:
-            command_line_config.fixedSpreadsheetCells = str(get('fixedcells'))
-        if get('noninteractive')!=None:
-            command_line_config.interactiveMode = \
-                                                  not bool(get('noninteractive'))
-            if get('workflowinfo') != None:
-                command_line_config.workflowInfo = str(get('workflowinfo'))
-            if get('dumpcells') != None:
-                command_line_config.spreadsheetDumpCells = get('dumpcells')
-            if get('pdf') != None:
-                command_line_config.spreadsheetDumpPDF = get('pdf')
-            if get('workflowgraph') != None:
-                command_line_config.workflowGraph = str(get('workflowgraph'))
-            if get('evolutiongraph') != None:
-                command_line_config.evolutionGraph = str(get('evolutiongraph'))
-        if get('executeworkflows') != None:
-            command_line_config.executeWorkflows = \
-                                            bool(get('executeworkflows'))
-        if get('showspreadsheetonly') != None:
-            command_line_config.showSpreadsheetOnly = \
-                                            bool(get('showspreadsheetonly'))
-            # asking to show only the spreadsheet will force the workflows to
-            # be executed
-            if get('reviewmode') != None:
-                command_line_config.reviewMode = bool(get('reviewmode'))
+        
+        parser = vistrails.core.configuration.build_default_parser()
+        command_line_config = vistrails.core.configuration.default()
+        try:
+            parser.parse_args(sys.argv[1:], namespace=command_line_config)
+        except SystemError, e:
+            print "GOT SYSTEM ERROR!"
+            import traceback
+            traceback.print_exc()
+        # get = command_line.CommandLineParser().get_option
+        # if get('nosplash')!=None:
+        #     command_line_config.showSplash = bool(get('nosplash'))
+        # # if get('debugsignals')!=None:
+        # #     command_line_config.debugSignals = bool(get('debugsignals'))
+        # if get('dotVistrails')!=None:
+        #     command_line_config.dotVistrails = get('dotVistrails')
+        # if get('multiheads')!=None:
+        #     command_line_config.multiHeads = bool(get('multiheads'))
+        # if get('maximized')!=None:
+        #     command_line_config.maximizeWindows = bool(get('maximized'))
+        # if get('movies')!=None:
+        #     command_line_config.showMovies = bool(get('movies'))
+        # if get('cache')!=None:
+        #     command_line_config.useCache = bool(get('cache'))
+        # if get('verbose')!=None:
+        #     command_line_config.verbosenessLevel = get('verbose')
+        # if get('fixedcells') != None:
+        #     command_line_config.fixedSpreadsheetCells = str(get('fixedcells'))
+        # if get('noninteractive')!=None:
+        #     command_line_config.interactiveMode = \
+        #                                           not bool(get('noninteractive'))
+        #     if get('workflowinfo') != None:
+        #         command_line_config.workflowInfo = str(get('workflowinfo'))
+        #     if get('dumpcells') != None:
+        #         command_line_config.spreadsheetDumpCells = get('dumpcells')
+        #     if get('pdf') != None:
+        #         command_line_config.spreadsheetDumpPDF = get('pdf')
+        #     if get('workflowgraph') != None:
+        #         command_line_config.workflowGraph = str(get('workflowgraph'))
+        #     if get('evolutiongraph') != None:
+        #         command_line_config.evolutionGraph = str(get('evolutiongraph'))
+        # if get('executeworkflows') != None:
+        #     command_line_config.executeWorkflows = \
+        #                                     bool(get('executeworkflows'))
+        # if get('showspreadsheetonly') != None:
+        #     command_line_config.showSpreadsheetOnly = \
+        #                                     bool(get('showspreadsheetonly'))
+        #     # asking to show only the spreadsheet will force the workflows to
+        #     # be executed
+        #     if get('reviewmode') != None:
+        #         command_line_config.reviewMode = bool(get('reviewmode'))
 
-            if command_line_config.showSpreadsheetOnly and not command_line_config.reviewMode:
-                command_line_config.executeWorkflows = True
+        #     if command_line_config.showSpreadsheetOnly and not command_line_config.reviewMode:
+        #         command_line_config.execute = True
             
-        self.temp_db_options = InstanceObject(host=get('host'),
-                                                 port=get('port'),
-                                                 db=get('db'),
-                                                 user=get('user'),
-                                                 parameters=get('parameters')
-                                                 )
-        if get('nologger')!=None:
-            command_line_config.nologger = bool(get('nologger'))
-        if get('quickstart') != None:
-            command_line_config.staticRegistry = str(get('quickstart'))
-        if get('parameterExploration')!= None:
-            command_line_config.parameterExploration = \
-                str(get('parameterExploration'))
-        if get('detachHistoryView')!= None:
-            command_line_config.detachHistoryView = bool(get('detachHistoryView'))
-        if get('noSingleInstance')!=None:
-            command_line_config.singleInstance = not bool(get('noSingleInstance'))
-        if get('installBundles')!=None:
-            command_line_config.installBundles = bool(get('installBundles'))
-        self.input = command_line.CommandLineParser().positional_arguments()
+        # self.temp_db_options = InstanceObject(host=get('host'),
+        #                                          port=get('port'),
+        #                                          db=get('db'),
+        #                                          user=get('user'),
+        #                                          parameters=get('parameters')
+        #                                          )
+        # if get('nologger')!=None:
+        #     command_line_config.nologger = bool(get('nologger'))
+        # if get('quickstart') != None:
+        #     command_line_config.staticRegistry = str(get('quickstart'))
+        # if get('parameterExploration')!= None:
+        #     command_line_config.parameterExploration = \
+        #         str(get('parameterExploration'))
+        # if get('detachHistoryView')!= None:
+        #     command_line_config.detachHistoryView = bool(get('detachHistoryView'))
+        # if get('noSingleInstance')!=None:
+        #     command_line_config.singleInstance = not bool(get('noSingleInstance'))
+        # if get('installBundles')!=None:
+        #     command_line_config.installBundles = bool(get('installBundles'))
+        # self.input = command_line.CommandLineParser().positional_arguments()
+
+        self.input = command_line_config.vistrails
+        if len(self.input) == 0:
+            self.input = None
 
         return command_line_config
 
@@ -458,14 +472,14 @@ The builder window can be accessed by a spreadsheet menu option.")
                             # version number
                             if locator._vtag != '':
                                 version = locator._vtag
-                    execute = self.temp_configuration.executeWorkflows
+                    execute = self.temp_configuration.execute
                     mashuptrail = None
                     mashupversion = None
                     if hasattr(locator, '_mshptrail'):
                         mashuptrail = locator._mshptrail
                     if hasattr(locator, '_mshpversion'):
                         mashupversion = locator._mshpversion
-                    if not self.temp_configuration.showSpreadsheetOnly:
+                    if self.temp_configuration.showWindow:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
                                                                     version, execute,
@@ -475,9 +489,6 @@ The builder window can be accessed by a spreadsheet menu option.")
                     if self.temp_configuration.check('parameterExploration'):
                         self.builderWindow.executeParameterExploration(pe)
                 
-                if self.temp_configuration.reviewMode:
-                    self.builderWindow.interactiveExportCurrentPipeline()
-
         return True
 
     def finishSession(self):

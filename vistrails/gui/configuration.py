@@ -397,19 +397,19 @@ changes to take effect")
         self._temp_configuration = temp_config
 
         #Autosave
-        if self._configuration.has('autosave'):
-            if self._configuration.autosave == True:
+        if self._configuration.has('autoSave'):
+            if self._configuration.autoSave == True:
                 self._autosave_always.setChecked(True)
                 self._autosave_never.setChecked(False)
                 self._autosave_cb.setText("No (for this session only)")
                 self._autosave_cb.setChecked(
-                                     not self._temp_configuration.autosave)
+                                     not self._temp_configuration.autoSave)
                     
             else:
                 self._autosave_always.setChecked(False)
                 self._autosave_never.setChecked(True)
                 self._autosave_cb.setText("Yes (for this session only)")        
-                self._autosave_cb.setChecked(self._temp_configuration.autosave)
+                self._autosave_cb.setChecked(self._temp_configuration.autoSave)
         
         #Read/Write from DB by default   
         if self._configuration.has('dbDefault'):
@@ -427,19 +427,19 @@ changes to take effect")
                 self._db_connect_cb.setChecked(
                                         self._temp_configuration.dbDefault)
         #Caching 
-        if self._configuration.has('useCache'):
-            if self._configuration.useCache == True:
+        if self._configuration.has('cache'):
+            if self._configuration.cache == True:
                 self._use_cache_always.setChecked(True)
                 self._use_cache_never.setChecked(False)
                 self._use_cache_cb.setText("No (for this session only)")
                 self._use_cache_cb.setChecked(
-                                        not self._temp_configuration.useCache)
+                                        not self._temp_configuration.cache)
                     
             else:
                 self._use_cache_always.setChecked(False)
                 self._use_cache_never.setChecked(True)
                 self._use_cache_cb.setText("Yes (for this session only)")        
-                self._use_cache_cb.setChecked(self._temp_configuration.useCache)
+                self._use_cache_cb.setChecked(self._temp_configuration.cache)
         
         if self._configuration.has('showSplash'):
             self._splash_cb.setChecked(self._configuration.showSplash)
@@ -473,8 +473,8 @@ changes to take effect")
             self._autosave_cb.setText("Yes (for this session only)")
             self._autosave_cb.setChecked(False)
             
-        self._configuration.autosave = value
-        self._temp_configuration.autosave = value
+        self._configuration.autoSave = value
+        self._temp_configuration.autoSave = value
         self.emit(QtCore.SIGNAL('configuration_changed'),
                   None, bool(on))
         
@@ -487,7 +487,7 @@ changes to take effect")
         if self._autosave_cb.text() == "No (for this session only)":
             value = not bool(on)
         
-        self._temp_configuration.autosave = value
+        self._temp_configuration.autoSave = value
 
     def db_connect_changed(self, on):
         """ db_connect_changed(on: int) -> None
@@ -531,8 +531,8 @@ changes to take effect")
             self._use_cache_cb.setText("Yes (for this session only)")
             self._use_cache_cb.setChecked(False)
             
-        self._configuration.useCache = value
-        self._temp_configuration.useCache = value
+        self._configuration.cache = value
+        self._temp_configuration.cache = value
         self.emit(QtCore.SIGNAL('configuration_changed'),
                   None, bool(on))
         
@@ -545,7 +545,7 @@ changes to take effect")
         if self._use_cache_cb.text() == "No (for this session only)":
             value = not bool(on)
         
-        self._temp_configuration.useCache = value
+        self._temp_configuration.cache = value
 
     def splash_changed(self, on):
         """ splash_changed(on: int) -> None
@@ -731,7 +731,7 @@ hovering tree nodes')
         #Auto save
         if self._configuration.has('thumbs'):
             if self._configuration.thumbs.has('autoSave'):
-                if self._configuration.autosave == True:
+                if self._configuration.thumbs.autoSave == True:
                     self._autosave_always.setChecked(True)
                     self._autosave_never.setChecked(False)
                     self._autosave_cb.setText("No (for this session only)")

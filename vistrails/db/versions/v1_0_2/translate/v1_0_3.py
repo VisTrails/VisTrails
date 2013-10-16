@@ -200,7 +200,7 @@ class TestTranslate(unittest.TestCase):
 
 if __name__ == '__main__':
     from vistrails.gui.application import start_application
-    v = start_application({'interactiveMode': False,
+    v = start_application({'batch': True,
                            'nologger': True,
                            'singleInstance': False,
                            'fixedSpreadsheetCells': True})
