@@ -320,7 +320,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
             item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_CRITICAL_COLOR))
             self.list.setItemHidden(item, not self.criticalFilter.isChecked())
         if self.isVisible() and not \
-          getattr(get_vistrails_configuration(),'alwaysShowDebugPopup',False):
+          getattr(get_vistrails_configuration(),'showDebugPopups',False):
             self.raise_()
             self.activateWindow()
             modal = get_vistrails_application().activeModalWidget()

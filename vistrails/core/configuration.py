@@ -34,8 +34,10 @@
 ###############################################################################
 
 """Configuration variables for controlling specific things in VisTrails."""
+import argparse
 import copy
 import os.path
+import re
 import shutil
 import sys
 import tempfile
@@ -52,6 +54,582 @@ from vistrails.db.domain import DBConfiguration, DBConfigKey, DBConfigStr, \
     DBConfigInt, DBConfigFloat, DBConfigBool
 
 ##############################################################################
+
+_docs = {}
+_usage_args = set()
+_documentation = """
+abstractionsDirectory: Path
+
+    The location where a user's local subworkflows are stored.
+
+autoConnect: Boolean
+
+    Try to automatically connect a newly dragged in module to the rest
+    of the workflow.
+
+autoSave: Boolean
+
+    Automatically save vistrails to allow recovery from crashes, etc.
+
+dataDirectory: Path
+
+    The location that VisTrails uses as a default directory for data.
+
+dbDefault: Boolean
+
+    Use a database as the default storage location for vistrails entities.
+
+defaultFileType: String
+
+    Defaults to .vt but could be .xml.
+
+detachHistoryView: Boolean
+
+    Whether or not to show the version tree in a separate window.
+
+dotVistrails: Path
+
+    The location to look for VisTrails user configurations and
+    storage.  Defaults to ~/.vistrails.
+
+enablePackagesSilently: Boolean
+
+    Whether to skip the prompt to ask to user to enable packages.
+
+errorOnConnectionTypeerror: Boolean
+
+    Whether to notify if the value along a connection doesn't match
+    connection types.
+
+errorOnVariantTypeerror: Boolean
+
+    Whether to notify if the value along a connection coming from a
+    Variant output matches the input port.
+
+executeWorkflows: Boolean
+
+    Whether to execute any workflows specified on the command-line.
+
+fileDirectory: Path
+
+    The location that VisTrails uses as a default directory for
+    specifying files.
+
+fixedSpreadsheetCells: Boolean
+
+    Whether to draw spreadsheet cells at a fixed size (for testing).
+
+installBundles: Boolean
+
+    Whether to try to install missing Python dependencies
+
+installBundlesWithPip: Boolean
+
+    Whether to try to use pip to install Python dependencies or use
+    distribution support.
+
+interactiveMode: Boolean
+
+    Whether to run vistrails in interactive mode or batch mode
+
+logFile: Path
+
+    The path that indicates where log files should be stored.
+
+logger: ConfigurationObject
+
+    *Deprecated*
+
+maxMemory: Integer
+
+    *Deprecated*
+
+maximizeWindows: Boolean
+
+    Whether the VisTrails windows should take up the entire screen space
+
+maxRecentVistrails: Integer
+
+    How many recently opened vistrails should be stored for "Open
+    Recent" access.
+
+migrateTags: Boolean
+
+    Whether or not the tag on a workflow that was upgraded should be
+    moved to point to the upgraded version.
+
+minMemory: Integer
+
+    *Deprecated*
+
+multiHeads: Boolean
+
+    Whether or not to use multiple screens for VisTrails windows.
+
+nologger: Boolean
+
+    Whether to run VisTrails without logging errors.
+
+packageDirectory: Path
+
+    The directory to look for VisTrails core packages (use
+    userPackageDirectory for user-defined packages)
+
+pythonPrompt: Boolean
+
+    *Deprecated*
+
+recentVistrailList: String
+
+    Storage for recent vistrails.  Users should not edit.
+
+repositoryLocalPath: Path
+
+    Path used to locate packages available to be installed
+
+repositoryHTTPURL: URL
+
+    URL used to locate packages available to be installed
+
+reviewMode: Boolean
+
+    *Deprecated* Used to interactively export a pipeline
+
+rootDirectory: Path
+
+    Directory that contains the VisTrails source code.
+
+runningJobsList: String
+
+    Storage for recent vistrails.  Users should not edit
+
+shell: ConfigurationObject
+
+    Settings for the appearance of the VisTrails console
+
+shell.font_face: String
+
+    The font to be used for the VisTrails console
+
+shell.font_size: Integer
+
+    The font size used for the VisTrails console
+
+showAllPopups: Boolean
+
+    Always show the debug popups or only if there is a modal widget.
+
+showMovies: Boolean
+
+    *Deprecated* Set automatic movie creation on the spreadsheet.
+
+showScrollbars: Boolean
+
+    Whether VisTrails should show scrollbars on the version tree and
+    workflow canvases.
+
+showSplash: Boolean
+
+    Whether the VisTrails splash screen should be shown on startup.
+
+showSpreadsheetOnly: Boolean
+
+    Whether the VisTrails main window should be hidden
+
+singleInstance: Boolean
+
+    Whether or not VisTrails should only allow one instance to be
+    running
+
+spreadsheetDumpCells: Path
+
+    If specified, defines the location for parameter exploration to
+    store the cells it generates.
+
+spreadsheetDumpPDF: Boolean
+
+    Whether the spreadsheet should dump images in PDF format
+
+staticRegistry: Path
+
+    If specified, VisTrails uses an XML file defining the VisTrails
+    module registry to load modules instead of from the packages
+    directly
+
+stopOnError: Boolean
+
+    Whether or not VisTrails stops executing the rest of the workflow
+    if it encounters an error in one module.
+
+temporaryDirectory: Path
+
+    The directory to use for temporary files generated by VisTrails
+
+thumbs: ConfiguationObject
+
+    Settings for generating and saving thumbnail images
+
+thumbs.autoSave: Boolean
+
+    Whether to save thumbnails of results when executing VisTrails
+
+thumbs.cacheDirectory: Path
+
+    The directory to be used to cache thumbnails
+
+thumbs.cacheSize: Integer
+
+    The size (in MB) of the thumbnail cache
+
+thumbs.mouseHover: Boolean
+
+    Whether to show thumbnails when hovering over a version in the
+    version tree
+
+thumbs.tagsOnly: Boolean
+
+    If True, only stores thumbnails for tagged versions.  Otherwise,
+    stores thumbnails for all versions.
+
+upgradeOn: Boolean
+
+    Whether to upgrade old workflows so they work with newer packages
+
+upgradeDelay: Boolean
+
+    If True, will only persist the upgrade when a user makes a
+    modification to or executes the workflow.  Otherwise, the upgrade
+    will be automatically added to the version tree when a user views
+    an upgraded workflow.
+
+upgradeModuleFailPrompt: Boolean
+
+    Whether to alert the user when an upgrade may fail when upgrading
+    a subworkflow.
+
+useCache: Boolean
+
+    Whether to cache previous results so they may be used in future
+    computations
+
+userPackageDirectory: Boolean
+
+    The location for user-installed packages (defaults to ~/.vistrails/userpacakges)
+
+verbosenessLevel: Integer
+
+    How much information VisTrails should alert the user about (0:
+    Critical errors only, 1: Critical errors and warnings, 2: Critical
+    errors, warnings, and log messages).
+
+webRepositoryLogin: String
+
+    The default username for logging into a VisTrails web repository
+    like crowdLabs
+
+webRepositoryURL: URL
+
+    The URL of the web repository that should be attached to VisTrails
+    (e.g. www.crowdlabs.org)
+
+isInServerMode: Boolean
+
+    Indicates whether VisTrails is being run as a server.
+
+useMacBrushedMetalStyle: Boolean
+
+    Whether should use a brushed metal interface (MacOS X only)
+
+"""
+
+class ConfigType(object):
+    NORMAL = 0
+    SHOW_HIDE = 1
+    ON_OFF = 2
+    COMMAND_LINE = 3
+    COMMAND_LINE_FLAG = 4
+    INTERNAL = 5
+    STORAGE = 6
+    PACKAGE = 7
+
+class ConfigCategory(object):
+    NORMAL = 0
+    PATHS = 1
+    INTERFACE = 2
+    COMMAND_LINE = 3
+
+class ConfigPath(object):
+    pass
+
+class ConfigURL(object):
+    pass
+
+base_config = [
+    # FORMAT: (<name>, <default_val>, <type>, <config_type>, <config_category>, <flag>, <nargs>, <command_line_rename>)
+
+    ('execute', False, bool, ConfigType.COMMAND_LINE_FLAG, 
+     ConfigType.COMMAND_LINE, '-e'),
+    ('batch', True, bool, ConfigType.COMMAND_LINE_FLAG, 
+     ConfigCategory.COMMAND_LINE, '-b'),
+    ('package', [], str, None, 
+     ConfigCategory.COMMAND_LINE, '-p', '*'),
+    ('outputVersionTree', None, str, None, ConfigType.COMMAND_LINE),
+    ('outputWorkflow', None, str, None, ConfigType.COMMAND_LINE),
+    ('outputWorkflowInfo', None, str, None, ConfigType.COMMAND_LINE),
+    # what other flags?
+    # parameter exploration?
+    # convert to script?
+    # output settings?
+    # how to best specify vistrail + workflow version?
+    # could do /path/to/example.vt -v aTag -v 35 -v 36
+
+    ('abstractionsDirectory', os.path.join("$DOT_VISTRAILS", "subworkflows"),
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('autoConnect', True, bool, ConfigType.ON_OFF),
+    ('autoSave', True, bool, ConfigType.ON_OFF),
+    ('dataDirectory', None, 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('dbDefault', False, bool, ConfigType.ON_OFF),
+    # 'debugSignals', False,
+    ('defaultFileType', system.vistrails_default_file_type(), str),
+    ('detachHistoryView', False, bool, ConfigType.ON_OFF),
+    ('dotVistrails', system.default_dot_vistrails(), 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS, "-S"),
+    ('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
+    ('fileDirectory', None, 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('installBundles', True, bool, ConfigType.ON_OFF),
+    ('installBundlesWithPip', False, bool, ConfigType.ON_OFF),    
+    ('logDirectory', "$DOT_VISTRAILS", 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('maximizeWindows', False, bool, ConfigType.ON_OFF),
+    ('maxRecentVistrails', 5, int),
+    ('migrateTags', False, bool, ConfigType.ON_OFF),
+    ('multiHeads', False, bool, ConfigType.ON_OFF),
+    ('executionLog', False, bool, ConfigType.ON_OFF),
+    ('outputDirectory', None, 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('packageDirectory', None, 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('recentVistrailList', None, str, ConfigType.STORAGE),
+    ('repositoryLocalPath', None, 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('repositoryHTTPURL', "http://www.vistrails.org/packages", 
+     ConfigURL, ConfigType.NORMAL),
+    ('rootDirectory', None,
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('runningJobsList', None, str, ConfigType.STORAGE),
+    ('shell', [('fontFace', system.shell_font_face(), str),
+               ('fontSize', system.shell_font_size(), int)]),
+    ('showConnectionErrors', False, bool, ConfigType.SHOW_HIDE),
+    ('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
+    ('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),
+    ('showScrollbars', True, bool, ConfigType.SHOW_HIDE),
+    ('showSplash', True, bool, ConfigType.SHOW_HIDE),
+    ('showWindow', True, bool, ConfigType.SHOW_HIDE),
+    ('singleInstance', True, bool, ConfigType.ON_OFF),
+    ('staticRegistry', None, ConfigPath),
+    ('stopOnError', True, bool, ConfigType.ON_OFF),
+    ('temporaryDirectory', None, 
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('thumbs', [('autoSave', True, bool, ConfigType.ON_OFF),
+                ('cacheDirectory', os.path.join("$DOT_VISTRAILS", "thumbs"),
+                 ConfigPath, ConfigType.NORMAL),
+                ('cacheSize', 20, int),
+                ('mouseHover', False, bool, ConfigType.ON_OFF),
+                ('tagsOnly', False, bool, ConfigType.ON_OFF)]),
+    ('upgrades', True, bool, ConfigType.ON_OFF),
+    ('upgradeDelay', True, bool, ConfigType.ON_OFF),
+    ('upgradeModuleFailPrompt', True, bool, ConfigType.ON_OFF),
+    ('cache', True, bool, ConfigType.ON_OFF),
+    ('userPackageDirectory', os.path.join("$DOT_VISTRAILS", "userpackages"),
+     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
+    ('debugLevel', 0, int),
+    ('webRepositoryUser', None, str),
+    ('webRepositoryURL', "http://www.crowdlabs.org", ConfigURL),
+    ('isInServerMode', False, bool, ConfigType.INTERNAL),
+    ('isRunningGUI', True, bool, ConfigType.INTERNAL),
+
+
+    # SPREADSHEE PACKAGE SETTINGS
+    # 'fixedSpreadsheetCells': False,
+    # 'outputPDF': False
+    ]
+
+mac_config = [
+    ('useMacBrushedMetalStyle', True, bool, ConfigType.ON_OFF),
+]
+
+win_config = [
+]
+
+linux_config = [
+]
+
+def build_config_obj(d):
+    new_d = {}
+    for conf in d:
+        assert(len(conf) >= 2)
+        k = conf[0]
+        if isinstance(conf[1], list):
+            new_d[k] = build_config_obj(conf[1])
+        else:
+            assert(len(conf) >= 3)
+            v = conf[1]
+            if v is None:
+                new_d[k] = (v, conf[2])
+            else:
+                new_d[k] = v
+    return ConfigurationObject(**new_d)
+
+def default():
+    return build_config_obj(base_config)
+
+def parse_documentation():
+    global _docs
+
+    line_iter = iter(_documentation.splitlines())
+    line_iter.next()
+    for line in line_iter:
+        arg_path, arg_type = line.strip().split(':', 1)
+        doc_lines = []
+        done_with_doc = False
+        line = line_iter.next()
+        while True:
+            line = line_iter.next()
+            if not line.strip():
+                break
+            doc_lines.append(line.strip())
+        _docs[arg_path] = (arg_type, ' '.join(doc_lines))
+
+def find_help(arg_path):
+    if len(_docs) == 0:
+        parse_documentation()
+
+    if arg_path in _docs:
+        return _docs[arg_path][1]
+    return None
+
+class VisTrailsHelpFormatter(argparse.HelpFormatter):
+    def add_usage(self, usage, actions, groups, prefix=None):
+        new_actions = []
+        new_actions.append(argparse.Action([], dest="__nowhere__",
+                                           metavar="[CONFIGURATION OPTIONS]"))
+        for action in actions:
+            if action.dest in _usage_args:
+                new_actions.append(action)
+        argparse.HelpFormatter.add_usage(self, usage, new_actions, groups,
+                                         prefix)
+
+def build_command_line_parser(d, parser=None, prefix=""):
+    global _usage_args
+
+    # if k is not a command-line-option, skip
+    # if k is show/hide, add --show-, --hide- options
+    # if k is an on/off, add --option, --no-option flags
+    # otherwise, run with k converted to dashed form and store res
+        
+
+    def camel_to_dashes(s):
+        # from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case/1176023#1176023
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', s)
+        return re.sub('([a-z0-9])([A-Z])', r'\1-\2', s1).lower()
+
+        
+    if parser is None:
+        parser = argparse.ArgumentParser(prog='vistrails',
+                                         formatter_class=VisTrailsHelpFormatter)
+        paths_group = parser.add_argument_group("Path Arguments")
+        config_group = parser.add_argument_group("Configuration Options")
+        parser._my_arg_groups = {}
+        parser._my_arg_groups[ConfigCategory.PATHS] = paths_group
+        parser._my_arg_groups[ConfigCategory.NORMAL] = config_group
+        parser.add_argument('vistrails', metavar='vistrail', type=file, nargs='*',
+                        help="Vistrail to open")
+        _usage_args.add('vistrails')
+
+
+    prefix_dashes = ''
+    if prefix:
+        prefix_dashes = camel_to_dashes(prefix.replace('.', '-'))
+    for conf in d:
+        k = conf[0]
+        if len(conf) <= 2 and isinstance(conf[1], list):
+            build_command_line_parser(conf[1], parser, '%s%s.' % (prefix, k))
+            continue
+        k_dashes = camel_to_dashes(k)
+        help_str = find_help('%s%s' % (prefix, k))
+        if len(conf) >= 4:
+            config_type = conf[3]
+        else:
+            config_type = ConfigType.NORMAL
+        if config_type == ConfigType.INTERNAL or \
+           config_type == ConfigType.STORAGE:
+            # these are not in the command line
+            continue
+        elif config_type == ConfigType.ON_OFF:
+            k_dashes = camel_to_dashes(k)
+            group = parser.add_mutually_exclusive_group()
+            group.add_argument('--%s%s' % (prefix_dashes, k_dashes), 
+                               action="store_true",
+                               dest=k, help=help_str)
+            group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes), 
+                               action="store_false",
+                               dest=k, help=help_str)
+        elif config_type == ConfigType.SHOW_HIDE:
+            # assume starts with show
+            k_dashes = camel_to_dashes(k[4:])
+            if len(conf) < 5 or conf[4] is None or \
+                 conf[4] == ConfigCategory.NORMAL:
+                group = parser._my_arg_groups[ConfigCategory.NORMAL]
+                group = group.add_mutually_exclusive_group()
+            else:
+                group = parser.add_mutually_exclusive_group()
+            group.add_argument('--show-%s%s' % (prefix_dashes, k_dashes), 
+                               action="store_true",
+                               dest=k, help=help_str)
+            group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes), 
+                               action="store_false",
+                               dest=k, help=help_str)
+        else:
+            k_dashes = camel_to_dashes(k)
+            long_arg = '--%s%s' % (prefix_dashes, k_dashes)
+            if len(conf) >= 6 and conf[5]:
+                args = (conf[5], long_arg)
+            else:
+                args = (long_arg,)
+            kwargs = {'dest': k,
+                      'help': help_str}
+            if conf[2] != ConfigPath and conf[2] != ConfigURL and \
+               conf[2] != str and conf[2] != bool:
+                kwargs["type"] = conf[2]
+            if config_type == ConfigType.COMMAND_LINE_FLAG:
+                kwargs["action"] = "store_true"
+            else:
+                kwargs["action"] = "store"
+            if conf[2] == ConfigPath:
+                kwargs["metavar"] = "DIR"
+            elif conf[2] == ConfigURL:
+                kwargs["metavar"] = "URL"
+            if len(conf) >= 7 and conf[6]:
+                kwargs["nargs"] = conf[6]
+
+            group = None
+            if len(conf) >= 5 and conf[4] == ConfigCategory.PATHS:
+                group = parser._my_arg_groups[ConfigCategory.PATHS]
+            elif len(conf) < 5 or conf[4] is None or \
+                 conf[4] == ConfigCategory.NORMAL:
+                group = parser._my_arg_groups[ConfigCategory.NORMAL]
+            else:
+                _usage_args.add(k)
+            if group is not None:
+                group.add_argument(*args, **kwargs)
+            else:
+                parser.add_argument(*args, **kwargs)
+    return parser
+
+def build_default_parser():
+    return build_command_line_parser(base_config)
 
 class ConfigValue(object):
     @staticmethod
@@ -376,168 +954,128 @@ class ConfigurationObject(DBConfiguration):
         return [k for k in self.db_config_keys_name_index
                 if not k.startswith('_')]
     
-    def write_to_dom(self, dom, element):
-        conf_element = dom.createElement('configuration')
-        element.appendChild(conf_element)
-        for (key, value) in self.__dict__.iteritems():
-            if key == '__subscribers__':
-                continue
-            key_element = dom.createElement('key')
-            key_element.setAttribute('name', key)
-            if isinstance(value, (int, long, basestring, bool, float)):
-                conf_element.appendChild(key_element)
-                value_element = quote_xml_value(dom, value)
-                key_element.appendChild(value_element)
-            elif isinstance(value, tuple):
-                pass
-            else:
-                assert isinstance(value, ConfigurationObject)
-                conf_element.appendChild(key_element)
-                value.write_to_dom(dom, key_element)
-
-    def set_from_dom_node(self, node):
-        assert str(node.nodeName) == 'configuration'
-        for key in elements_filter(node, lambda node: node.nodeName == 'key'):
-            key_name = str(key.attributes['name'].value)
-            value = [x for x in
-                     elements_filter(key, lambda node: node.nodeName in
-                                    ['unicode', 'bool', 'str', 'int', 'float', 'configuration'])][0]
-            value_type = value.nodeName
-            if value_type == 'configuration':
-                if hasattr(self,key_name):
-                    getattr(self, key_name).set_from_dom_node(value)
-            elif value_type in ['bool', 'str', 'int', 'float']:
-                setattr(self, key_name, eval_xml_value(value))
-        
-
-    # def __copy__(self):
-    #     result = ConfigurationObject()
-    #     for (key, value) in self.__dict__.iteritems():
-    #         setattr(result, key, copy.copy(value))
-    #     return result
-
-def default():
-    """ default() -> ConfigurationObject
-    Returns the default configuration of VisTrails
+# def default():
+#     """ default() -> ConfigurationObject
+#     Returns the default configuration of VisTrails
     
-    """
+#     """
 
-    base_dir = {
-        'abstractionsDirectory': os.path.join("$DOT_VISTRAILS",
-                                              "subworkflows"),
-        'alwaysShowDebugPopup': False,
-        'autoConnect': True,
-        'autosave': True,
-        'dataDirectory': (None, str),
-        'dbDefault': False,
-#        'debugSignals': False,
-        'defaultFileType':system.vistrails_default_file_type(),
-        'detachHistoryView': False,
-        'dotVistrails': system.default_dot_vistrails(),
-        'enablePackagesSilently': False,
-        'errorOnConnectionTypeerror': False,
-        'errorOnVariantTypeerror': True,
-        'executeWorkflows': False,
-        'fileDirectory': (None, str),
-        'fixedSpreadsheetCells': False,
-#        'evolutionGraph': (None, str),
-        'installBundles': True,
-        'installBundlesWithPip': False,
-        'interactiveMode': True,
-        'logFile': os.path.join("$DOT_VISTRAILS", "vistrails.log"),
-        'logger': default_logger(),
-        'maxMemory': (None, int),
-        'maximizeWindows': False,
-        'maxRecentVistrails': 5,
-        'migrateTags': False,
-        'minMemory': (None, int),
-        'multiHeads': False,
-        'nologger': False,
-        'packageDirectory': (None, str),
-        'pythonPrompt': False,
-        'recentVistrailList': (None, str),
-        'repositoryLocalPath': (None, str),
-        'repositoryHTTPURL': "http://www.vistrails.org/packages",
-        'reviewMode': False,
-        'rootDirectory': (None, str),
-        'runningJobsList': (None, str),
-        'shell': default_shell(),
-        'showScrollbars': True,
-        'showMovies': True,
-        'showSplash': True,
-        'showSpreadsheetOnly': False,
-        'singleInstance': True,
-        'spreadsheetDumpCells': (None, str),
-        'spreadsheetDumpPDF': False,
-        'staticRegistry': (None, str),
-        'stopOnError': True,
-        'temporaryDirectory': (None, str),
-        'thumbs': default_thumbs(),
-        'upgradeOn': True,
-        'upgradeDelay': True,
-        'upgradeModuleFailPrompt': True,
-        'useCache': True,
-        'userPackageDirectory': os.path.join("$DOT_VISTRAILS", "userpackages"),
-        'verbosenessLevel': (None, int),
-#        'workflowGraph': (None, str),
-#        'workflowInfo': (None, str),
-        'webRepositoryLogin': (None, str),
-        'webRepositoryURL': "http://www.crowdlabs.org",
-        'isInServerMode': False,
-        }
-    specific_dir = add_specific_config(base_dir)
-    return ConfigurationObject(**specific_dir)
+#     base_dir = {
+#         'abstractionsDirectory': os.path.join("$DOT_VISTRAILS",
+#                                               "subworkflows"),
+#         'alwaysShowDebugPopup': False,
+#         'autoConnect': True,
+#         'autosave': True,
+#         'dataDirectory': (None, str),
+#         'dbDefault': False,
+# #        'debugSignals': False,
+#         'defaultFileType':system.vistrails_default_file_type(),
+#         'detachHistoryView': False,
+#         'dotVistrails': system.default_dot_vistrails(),
+#         'enablePackagesSilently': False,
+#         'errorOnConnectionTypeerror': False,
+#         'errorOnVariantTypeerror': True,
+#         'executeWorkflows': False,
+#         'fileDirectory': (None, str),
+#         'fixedSpreadsheetCells': False,
+# #        'evolutionGraph': (None, str),
+#         'installBundles': True,
+#         'installBundlesWithPip': False,
+#         'interactiveMode': True,
+#         'logFile': os.path.join("$DOT_VISTRAILS", "vistrails.log"),
+#         'logger': default_logger(),
+#         'maxMemory': (None, int),
+#         'maximizeWindows': False,
+#         'maxRecentVistrails': 5,
+#         'migrateTags': False,
+#         'minMemory': (None, int),
+#         'multiHeads': False,
+#         'nologger': False,
+#         'packageDirectory': (None, str),
+#         'pythonPrompt': False,
+#         'recentVistrailList': (None, str),
+#         'repositoryLocalPath': (None, str),
+#         'repositoryHTTPURL': "http://www.vistrails.org/packages",
+#         'reviewMode': False,
+#         'rootDirectory': (None, str),
+#         'runningJobsList': (None, str),
+#         'shell': default_shell(),
+#         'showScrollbars': True,
+#         'showMovies': True,
+#         'showSplash': True,
+#         'showSpreadsheetOnly': False,
+#         'singleInstance': True,
+#         'spreadsheetDumpCells': (None, str),
+#         'spreadsheetDumpPDF': False,
+#         'staticRegistry': (None, str),
+#         'stopOnError': True,
+#         'temporaryDirectory': (None, str),
+#         'thumbs': default_thumbs(),
+#         'upgradeOn': True,
+#         'upgradeDelay': True,
+#         'upgradeModuleFailPrompt': True,
+#         'useCache': True,
+#         'userPackageDirectory': os.path.join("$DOT_VISTRAILS", "userpackages"),
+#         'verbosenessLevel': (None, int),
+# #        'workflowGraph': (None, str),
+# #        'workflowInfo': (None, str),
+#         'webRepositoryLogin': (None, str),
+#         'webRepositoryURL': "http://www.crowdlabs.org",
+#         'isInServerMode': False,
+#         }
+#     specific_dir = add_specific_config(base_dir)
+#     return ConfigurationObject(**specific_dir)
 
-def default_logger():
-    """default_logger() -> ConfigurationObject
-    Returns the default configuration for the VisTrails logger
+# def default_logger():
+#     """default_logger() -> ConfigurationObject
+#     Returns the default configuration for the VisTrails logger
     
-    """
-    logger_dir = {
-        'dbHost': '',
-        'dbName': '',
-        'dbPasswd': '',
-        'dbPort': 0,
-        'dbUser': '',
-        }
-    return ConfigurationObject(**logger_dir)
+#     """
+#     logger_dir = {
+#         'dbHost': '',
+#         'dbName': '',
+#         'dbPasswd': '',
+#         'dbPort': 0,
+#         'dbUser': '',
+#         }
+#     return ConfigurationObject(**logger_dir)
 
-def default_shell():
-    """default_shell() -> ConfigurationObject
-    Returns the default configuration for the VisTrails shell
+# def default_shell():
+#     """default_shell() -> ConfigurationObject
+#     Returns the default configuration for the VisTrails shell
     
-    """
-    if system.systemType == 'Linux':
-        shell_dir = {
-            'font_face': 'Fixed',
-            'font_size': 12,
-            }
-    elif system.systemType in ['Windows', 'Microsoft']:
-        shell_dir = {
-            'font_face': 'Courier New',
-            'font_size': 8,
-            }
-    elif system.systemType == 'Darwin':
-        shell_dir = {
-            'font_face': 'Monaco',
-            'font_size': 12,
-            }
-    else:
-        raise VistrailsInternalError('system type not recognized')
-    return ConfigurationObject(**shell_dir)
+#     """
+#     if system.systemType == 'Linux':
+#         shell_dir = {
+#             'font_face': 'Fixed',
+#             'font_size': 12,
+#             }
+#     elif system.systemType in ['Windows', 'Microsoft']:
+#         shell_dir = {
+#             'font_face': 'Courier New',
+#             'font_size': 8,
+#             }
+#     elif system.systemType == 'Darwin':
+#         shell_dir = {
+#             'font_face': 'Monaco',
+#             'font_size': 12,
+#             }
+#     else:
+#         raise VistrailsInternalError('system type not recognized')
+#     return ConfigurationObject(**shell_dir)
 
-def default_thumbs():
-    """default_thumbs() -> ConfigurationObject
-    Returns the default configuration for VisTrails Pipelines Thumbnails    
-    """
-    thumbs_dir = {
-                  'autoSave': True,
-                  'cacheDirectory': os.path.join("$DOT_VISTRAILS", "thumbs"),
-                  'cacheSize': 20,
-                  'mouseHover': False,
-                  'tagsOnly': False,
-                }
-    return ConfigurationObject(**thumbs_dir)
+# def default_thumbs():
+#     """default_thumbs() -> ConfigurationObject
+#     Returns the default configuration for VisTrails Pipelines Thumbnails    
+#     """
+#     thumbs_dir = {
+#                   'autoSave': True,
+#                   'cacheDirectory': os.path.join("$DOT_VISTRAILS", "thumbs"),
+#                   'cacheSize': 20,
+#                   'mouseHover': False,
+#                   'tagsOnly': False,
+#                 }
+#     return ConfigurationObject(**thumbs_dir)
 
 def add_specific_config(base_dir):
      """add_specific_config() -> dict
@@ -614,38 +1152,42 @@ class TestConfiguration(unittest.TestCase):
 
     def test_default(self):
         conf = default()
-        self.assertEqual(conf.showSpreadsheetOnly, False)
-        self.assertEqual(conf.logger.dbPort, 0)
+        self.assertEqual(conf.showWindow, True)
+        self.assertEqual(conf.maxRecentVistrails, 5)
 
     def test_has(self):
         conf = default()
-        self.assertTrue(conf.has("showSpreadsheetOnly"))
+        self.assertTrue(conf.has("showWindow"))
         self.assertFalse(conf.has("reallyDoesNotExist"))
     
     def test_check(self):
         conf = default()
-        self.assertFalse(conf.check("showSpreadsheetOnly"))
-        self.assertTrue(conf.check("autosave"))
+        self.assertTrue(conf.check("showWindow"))
+        self.assertFalse(conf.check("showDebugPopups"))
 
     def test_update(self):
         conf1 = default()
-        conf2 = ConfigurationObject(showSpreadsheetOnly=True, 
-                                    logFile="/tmp/vt.log",
-                                    shell=ConfigurationObject(font_face='Fixed',
-                                                              font_size=12))
+        conf2 = ConfigurationObject(showDebugPopups=True, 
+                                    logDirectory="/tmp",
+                                    thumbs=ConfigurationObject(
+                                        autoSave=True,
+                                        cacheDirectory="/tmp",
+                                        cacheSize=10,
+                                        mouseHover=True,
+                                        tagsOnly=False))
 
         conf1.update(conf2)
-        self.assertTrue(conf1.showSpreadsheetOnly)
-        self.assertEqual(conf1.logFile, "/tmp/vt.log")
-        self.assertEqual(conf1.shell.font_face, 'Fixed')
+        self.assertTrue(conf1.showDebugPopups)
+        self.assertEqual(conf1.logDirectory, "/tmp")
+        self.assertEqual(conf1.thumbs.mouseHover, True)
         
-        conf2.showSpreadsheetOnly = False
-        self.assertTrue(conf1.showSpreadsheetOnly)
+        conf2.showWindow = False
+        self.assertTrue(conf1.showWindow)
 
     def test_type_mismatch(self):
         conf = default()
         with self.assertRaises(TypeError):
-            conf.showSpreadsheetOnly = 1
+            conf.showWindow = 1
 
         # allowing this now
         # with self.assertRaises(AttributeError):
@@ -683,6 +1225,24 @@ class TestConfiguration(unittest.TestCase):
         self.check_equality(conf1, conf2)
         self.assertItemsEqual(conf1._unset_keys.keys(), 
                               conf2._unset_keys.keys())
+
+    def test_parser(self):
+        p = build_command_line_parser(base_config)
+        with self.assertRaises(SystemExit) as e:
+            p.parse_args(["-h"])
+        self.assertEqual(e.exception.code, 0)
+        with self.assertRaises(SystemExit) as e:
+            p.parse_args(["--db-default", "--no-db-default"])
+        self.assertEqual(e.exception.code, 2)
+
+    def test_parse_into_config(self):
+        p = build_command_line_parser(base_config)
+        config = default()
+        self.assertFalse(config.dbDefault)
+        p.parse_args(args=["--db-default", "--dot-vistrails", "/tmp"], 
+                     namespace=config)
+        self.assertTrue(config.dbDefault)
+        self.assertEqual(config.dotVistrails, "/tmp")
 
 if __name__ == '__main__':
     unittest.main()

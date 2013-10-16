@@ -302,6 +302,37 @@ def translateRegistry(_registry):
     registry.db_version = '1.0.3'
     return registry
 
+def translateStartup(_startup):
+    t = ('alwaysShowDebugPopup': 'showAllPopups',
+         'autosave': 'autoSave',
+         'errorOnConnectionTypeerror': 'showConnectionErrors',
+         'errorOnVariantTypeerror': 'showVariantErrors',
+         'interactiveMode': 'batch', # FIXME need to invert!!
+         'logFile': 'logDirectory', # FIXME need to os.path.dirname
+         'logger': None, # DELETE
+         'maxMemory': None,
+         'minMemory': None, 
+         'nologger': 'executionLog' # FIXME need to invert!
+         'pythonPrompt': None,
+         'reviewMode': None, # unknown what this was/is
+         'shell.font_face': 'shell.fontFace',
+         'shell.font_size': 'shell.fontSize',
+         'showMovies': None,
+         'showSpreadsheetOnly': 'showWindow', # FIXME need to invert
+         'spreadsheetDumpPDF': 'spreadsheet.outputPDF' ,
+         'spreadsheetDumpCells': 'outputDirectory',
+         'fixedSpreadsheetCells': 'spreadsheet.fixedCellSize',
+         'upgradeOn': 'upgrades',
+         'useCache': 'cache',
+         'verbosenessLevel': 'debugLevel',
+         'webRepositoryLogin': 'webRespositoryUser',
+         'evolutionGraph': 'outputVersionTree',
+         'workflowGraph': 'outputWorkflow'
+         'workflowInfo': 'outputWorkflowInfo'
+    )
+    
+    pass
+
 class TestTranslate(unittest.TestCase):
     def testParamexp(self):
         """test translating parameter explorations from 1.0.2 to 1.0.3"""
