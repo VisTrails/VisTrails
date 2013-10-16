@@ -198,7 +198,6 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
             if item._name == 'dbDefault':
                 # Update the state of the icons if changing between db and
                 # file support
-                print "dbDefault", new_value 
                 dbState = getattr(get_vistrails_configuration(), 'dbDefault')
                 if new_value != dbState:
                     from vistrails.gui.vistrails_window import _app
@@ -262,8 +261,9 @@ class QGeneralConfiguration(QtGui.QWidget):
         self.setLayout(layout)
         self._configuration = None
         self._temp_configuration = None
-        self.create_default_widgets(self,layout)
-        self.create_other_widgets(self,layout)
+        self.create_default_widgets(self, layout)
+        self.create_default_handler_button(self, layout)
+        self.create_other_widgets(self, layout)
         self.update_state(persistent_config, temp_config)
         self.connect_default_signals()
         self.connect_other_signals()
@@ -313,7 +313,7 @@ class QGeneralConfiguration(QtGui.QWidget):
             self.connect(self._use_metal_style_cb,
                          QtCore.SIGNAL('stateChanged(int)'),
                          self.metalstyle_changed)
-        
+
     def create_default_widgets(self, parent, layout):
         """create_default_widgets(parent: QWidget, layout: QLayout)-> None
         Creates default widgets in parent
@@ -369,7 +369,44 @@ class QGeneralConfiguration(QtGui.QWidget):
         parent._multi_head_cb = QtGui.QCheckBox(parent)
         parent._multi_head_cb.setText('Use multiple displays on startup*')
         layout.addWidget(parent._multi_head_cb)
-        
+
+    def create_default_handler_button(self, parent, layout):
+        if vistrails.core.system.systemType == 'Linux':
+            from vistrails.gui.application import linux_default_application_set
+            from vistrails.core.application import get_vistrails_application
+
+            group = QtGui.QGroupBox(u"Open .vt .vtl files with VisTrails")
+            layout.addWidget(group)
+            layout2 = QtGui.QHBoxLayout()
+            group.setLayout(layout2)
+
+            if linux_default_application_set():
+                label = u".vt .vtl has a handler set"
+            else:
+                label = u".vt .vtl has no handler"
+            self._handler_status = QtGui.QLabel(label)
+
+            def set_dont_ask(state):
+                self._configuration.handlerDontAsk = bool(state)
+                self._temp_configuration.handlerDontAsk = bool(state)
+                self.emit(QtCore.SIGNAL('configuration_changed'),
+                        'handlerDontAsk', bool(state))
+            self._handler_dont_ask = QtGui.QCheckBox(u"Don't ask at startup")
+            self.connect(self._handler_dont_ask,
+                         QtCore.SIGNAL('stateChanged(int)'),
+                         set_dont_ask)
+
+            def install():
+                app = get_vistrails_application()
+                if app.ask_update_default_application():
+                    self._handler_status.setText(u".vt .vtl has a handler set")
+            install_button = QtGui.QPushButton(u"Install handler")
+            self.connect(install_button, QtCore.SIGNAL('clicked()'),
+                         install)
+
+            layout2.addWidget(self._handler_status)
+            layout2.addWidget(self._handler_dont_ask)
+            layout2.addWidget(install_button)
 
     def create_other_widgets(self, parent, layout):
         """create_other_widgets(parent: QWidget, layout: QLayout)-> None
@@ -380,12 +417,11 @@ class QGeneralConfiguration(QtGui.QWidget):
             parent._use_metal_style_cb = QtGui.QCheckBox(parent)
             parent._use_metal_style_cb.setText('Use brushed metal appearance*')
             layout.addWidget(parent._use_metal_style_cb)
-        
+
         layout.addStretch()
         label = QtGui.QLabel("* It requires restarting VisTrails for these \
 changes to take effect")
         layout.addWidget(label)
-        layout.addStretch()
 
     def update_state(self, persistent_config, temp_config):
         """ update_state(configuration: VistrailConfiguration) -> None
@@ -447,9 +483,23 @@ changes to take effect")
             self._maximize_cb.setChecked(self._configuration.maximizeWindows)
         if self._configuration.has('multiHeads'):
             self._multi_head_cb.setChecked(self._configuration.multiHeads)
+
+        #Default handler
+        if vistrails.core.system.systemType == 'Linux':
+            from vistrails.gui.application import \
+                linux_default_application_set, linux_update_default_application
+
+            if linux_default_application_set():
+                self._handler_status.setText(u".vt .vtl has a handler set")
+            else:
+                self._handler_status.setText(u".vt .vtl has no handler")
+
+            self._handler_dont_ask.setChecked(
+                    self._configuration.check('handlerDontAsk'))
+
         #other widgets
         self.update_other_state()
-        
+
     def update_other_state(self):
         """ update_state(configuration: VistrailConfiguration) -> None
         
