@@ -214,6 +214,8 @@ def default():
         'rootDirectory': (None, str),
         'runningJobsList': (None, str),
         'shell': default_shell(),
+        'showHistoryViewOnLoad': False,
+        'showPipelineViewOnLoad': False,
         'showScrollbars': True,
         'showMovies': True,
         'showSplash': True,

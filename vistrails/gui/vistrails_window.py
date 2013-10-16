@@ -1656,6 +1656,13 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()
             view = self.open_vistrail(locator, version, is_abstraction)
+
+            conf = get_vistrails_configuration()
+            has_tag = len(view.controller.vistrail.get_tagMap()) > 0
+            if (not conf.check('showPipelineViewOnLoad')) and \
+               (conf.check('showHistoryViewOnLoad') or has_tag):
+                self.qactions['history'].trigger()
+
             if mashuptrail is not None and mashupVersion is not None:
                 view.open_mashup_from_mashuptrail_id(mashuptrail, mashupVersion)
             elif parameterExploration is not None:
