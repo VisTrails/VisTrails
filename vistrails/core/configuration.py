@@ -193,6 +193,7 @@ def default():
         'executeWorkflows': False,
         'fileDirectory': (None, str),
 #        'evolutionGraph': (None, str),
+        'handlerDontAsk': False,
         'installBundles': True,
         'installBundlesWithPip': False,
         'interactiveMode': True,
