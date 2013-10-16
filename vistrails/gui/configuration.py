@@ -398,7 +398,7 @@ class QGeneralConfiguration(QtGui.QWidget):
 
             def install():
                 app = get_vistrails_application()
-                if app.ask_update_default_application():
+                if app.ask_update_default_application(False):
                     self._handler_status.setText(u".vt .vtl has a handler set")
             install_button = QtGui.QPushButton(u"Install handler")
             self.connect(install_button, QtCore.SIGNAL('clicked()'),
