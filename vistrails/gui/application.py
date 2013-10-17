@@ -197,7 +197,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         # default handler installation
         if system.systemType == 'Linux':
-            if not self.configuration.check('handlerDontAsk'):
+            if not (self.temp_configuration.check('handlerDontAsk') or
+                    self.configuration.check('handlerDontAsk')):
                 if not linux_default_application_set():
                     self.ask_update_default_application()
 
