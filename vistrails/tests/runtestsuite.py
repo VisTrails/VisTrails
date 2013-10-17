@@ -231,6 +231,11 @@ for pkg in ('numpy', 'scipy', 'matplotlib'):
         print "Using %s %s" % (pkg, ipkg.__version__)
     except ImportError:
         print "%s not available" % pkg
+try:
+    import vtk
+    print "Using vtk %s" % vtk.VTK_VERSION
+except ImportError:
+    print "vtk not available"
 
 
 print ""
