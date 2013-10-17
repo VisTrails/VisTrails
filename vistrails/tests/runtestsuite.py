@@ -390,8 +390,7 @@ if not test_modules or test_images:
 
 class TestResult(unittest.TextTestResult):
     def addSkip(self, test, reason):
-        self.stream.writeln("skipped '{0}': {1}".format(test.description,
-                                                        reason))
+        self.stream.writeln("skipped '{0}': {1}".format(str(test), reason))
         super(TestResult, self).addSkip(test, reason)
 
 runner = unittest.TextTestRunner(
