@@ -37,8 +37,6 @@ import os
 import sys
 from vistrails.db.services import io
 
-sys.path.append("../..")
-
 def setup_tables(host, port, user, passwd, db):
     config = {'host': host, 
               'port': port,

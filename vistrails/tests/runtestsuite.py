@@ -42,20 +42,50 @@ runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
+
+# First, import unittest, replacing it with unittest2 if necessary
+import sys
+try:
+    import unittest2
+except ImportError:
+    pass
+else:
+    sys.modules['unittest'] = unittest2
+import unittest
+
+import atexit
 #import doctest
 import os
-import sys
 import traceback
-import unittest
 import os.path
 import optparse
 from optparse import OptionParser
+import platform
+import shutil
+import tempfile
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
 _this_dir = os.path.dirname(os.path.realpath(__file__))
 root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
 sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
+
+# Use a different temporary directory
+test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
+tempfile.tempdir = test_temp_dir
+@atexit.register
+def clean_tempdir():
+    nb_dirs = 0
+    nb_files = 0
+    for f in os.listdir(test_temp_dir):
+        if os.path.isdir(f):
+            nb_dirs += 1
+        else:
+            nb_files += 1
+    if nb_dirs > 0 or nb_files > 0:
+        sys.stdout.write("Warning: %d dirs and %d files were left behind in "
+                         "tempdir, cleaning up\n" % (nb_dirs, nb_files))
+    shutil.rmtree(test_temp_dir, ignore_errors=True)
 
 def setNewPyQtAPI():
     try:
@@ -72,6 +102,7 @@ import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
 import vistrails.gui.application
+from vistrails.core.system import vistrails_root_directory
 
 ###############################################################################
 # Testing Examples
@@ -132,7 +163,7 @@ parser.add_option("--installbundles", action='store_true',
                         "automatically"))
 parser.add_option("-S", "--startup", action="store", type="str", default=None,
                   dest="dotVistrails",
-                  help="Set startup file (default is ~/.vistrails)")
+                  help="Set startup file (default is temporary directory)")
 
 (options, args) = parser.parse_args()
 # remove empty strings
@@ -167,9 +198,13 @@ optionsDict = {
         'singleInstance': False,
         'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
+        'enablePackagesSilently': True,
+        'handlerDontAsk': True,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
+else:
+    optionsDict['spawned'] = True
 v = vistrails.gui.application.start_application(optionsDict)
 if v != 0:
     app = vistrails.gui.application.get_vistrails_application()
@@ -183,6 +218,27 @@ app.builderWindow.auto_view = False
 app.builderWindow.close_all_vistrails(True)
 
 print "Test Suite for VisTrails"
+print "Running on %s" % ', '.join(platform.uname())
+print "Python is %s" % sys.version
+try:
+    from PyQt4 import QtCore
+    print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
+except ImportError:
+    print "PyQt4 not available"
+for pkg in ('numpy', 'scipy', 'matplotlib'):
+    try:
+        ipkg = __import__(pkg, globals(), locals(), [], -1)
+        print "Using %s %s" % (pkg, ipkg.__version__)
+    except ImportError:
+        print "%s not available" % pkg
+try:
+    import vtk
+    print "Using vtk %s" % vtk.VTK_VERSION
+except ImportError:
+    print "vtk not available"
+
+
+print ""
 
 tests_passed = True
 
@@ -332,7 +388,15 @@ if not test_modules or test_images:
 
 ############## RUN TEST SUITE ####################
 
-result = unittest.TextTestRunner(verbosity=max(verbose, 1)).run(main_test_suite)
+class TestResult(unittest.TextTestResult):
+    def addSkip(self, test, reason):
+        self.stream.writeln("skipped '{0}': {1}".format(str(test), reason))
+        super(TestResult, self).addSkip(test, reason)
+
+runner = unittest.TextTestRunner(
+        verbosity=max(verbose, 1),
+        resultclass=TestResult)
+result = runner.run(main_test_suite)
 
 if not result.wasSuccessful():
     tests_passed = False

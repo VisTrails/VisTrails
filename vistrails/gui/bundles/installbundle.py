@@ -38,8 +38,8 @@ from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration
 from vistrails.core import debug
-from vistrails.core.system import get_executable_path, vistrails_root_directory
-from vistrails.core.system import systemType
+from vistrails.core.system import executable_is_in_path, get_executable_path
+from vistrails.core.system import vistrails_root_directory, systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 import subprocess
@@ -50,9 +50,6 @@ import sys
 def has_qt():
     try:
         import PyQt4.QtGui
-        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
-        # PyQt4.QtOpenGL by default
-        import PyQt4.QtOpenGL
         return True
     except ImportError:
         return False
@@ -64,13 +61,11 @@ except ImportError:
     pip_installed = False
 
 def hide_splash_if_necessary():
-    qt = has_qt()
-    # HACK, otherwise splashscreen stays in front of windows
-    if qt:
-        try:
-            get_vistrails_application().splashScreen.hide()
-        except:
-            pass
+    """Disables the splashscreen, otherwise it sits in front of windows.
+    """
+    app = get_vistrails_application()
+    if hasattr(app, 'splashScreen'):
+        app.splashScreen.hide()
 
 
 def shell_escape(arg):
@@ -134,10 +129,12 @@ def linux_debian_install(package_name):
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_debian_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_debian_install.py')
     else:
-        cmd = '%s install -y' % ('aptitude' if get_executable_path('aptitude') else 'apt-get')
+        cmd = '%s install -y' % ('aptitude'
+                                 if executable_is_in_path('aptitude')
+                                 else 'apt-get')
 
     return run_install_command_as_root(qt, cmd, package_name)
 
@@ -149,8 +146,8 @@ def linux_fedora_install(package_name):
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_fedora_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_debian_install.py')
     else:
         cmd = 'yum -y install'
 
@@ -160,10 +157,10 @@ def linux_fedora_install(package_name):
 def pip_install(package_name):
     hide_splash_if_necessary()
 
-    if vistrails.core.system.executable_is_in_path('pip'):
-        cmd = 'pip install'
+    if executable_is_in_path('pip'):
+        cmd = '%s install' % shell_escape(get_executable_path('pip'))
     else:
-        cmd = sys.executable + ' -m pip install'
+        cmd = shell_escape(sys.executable) + ' -m pip install'
     return run_install_command_as_root(has_qt(), cmd, package_name)
 
 def show_question(which_files, has_distro_pkg, has_pip):

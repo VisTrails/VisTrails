@@ -70,9 +70,9 @@ class LogControllerFactory(object):
     _instance = None
 
     @staticmethod
-    def getInstance(*args, **kw):
+    def getInstance(*args, **kwargs):
         if LogControllerFactory._instance is None:
-            obj = LogControllerFactory(*args, **kw)
+            obj = LogControllerFactory(*args, **kwargs)
             LogControllerFactory._instance = obj
         return LogControllerFactory._instance
 

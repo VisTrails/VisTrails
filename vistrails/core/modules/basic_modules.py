@@ -1038,7 +1038,7 @@ def zip_extract_file(archive, filename_in_archive, output_filename):
     return os.system(
             "%s > %s" % (
                     vistrails.core.system.list2cmdline([
-                            'unzip',
+                            vistrails.core.system.get_executable_path('unzip'),
                             '-p', archive,
                             filename_in_archive]),
                     vistrails.core.system.list2cmdline([output_filename])))
@@ -1047,7 +1047,7 @@ def zip_extract_file(archive, filename_in_archive, output_filename):
 def zip_extract_all_files(archive, output_path):
     return os.system(
             vistrails.core.system.list2cmdline([
-                    'unzip',
+                    vistrails.core.system.get_executable_path('unzip'),
                     archive,
                     '-d', output_path]))
 
@@ -1211,14 +1211,14 @@ def initialize(*args, **kwargs):
     reg.add_input_port(FileSink, "file", File)
     reg.add_input_port(FileSink, "outputPath", OutputPath)
     reg.add_input_port(FileSink, "overwrite", Boolean, True, 
-                       defaults="(True,)")
+                       defaults="('True',)")
     reg.add_input_port(FileSink,  "publishFile", Boolean, True)
     
     reg.add_module(DirectorySink)
     reg.add_input_port(DirectorySink, "dir", Directory)
     reg.add_input_port(DirectorySink, "outputPath", OutputPath)
     reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
-                       defaults="(True,)")
+                       defaults="('True',)")
 
     reg.add_module(WriteFile)
     reg.add_input_port(WriteFile, 'in_value', String)
@@ -1296,7 +1296,7 @@ def initialize(*args, **kwargs):
     reg.add_input_port(Round, 'in_value', Float)
     reg.add_output_port(Round, 'out_value', Integer)
     reg.add_input_port(Round, 'floor', Boolean, optional=True,
-                       defaults="(True,)")
+                       defaults="('True',)")
 
     reg.add_module(TupleToList, hide_descriptor=True)
     reg.add_input_port(TupleToList, 'in_value', Tuple)

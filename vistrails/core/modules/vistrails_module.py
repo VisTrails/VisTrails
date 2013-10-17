@@ -48,10 +48,6 @@ class IncompleteImplementation(Exception):
     def __str__(self):
         return "Module has incomplete implementation"
 
-
-class MissingModule(Exception):
-    pass
-
 class ModuleBreakpoint(Exception):
     def __init__(self, module):
         self.module = module

@@ -77,13 +77,13 @@ class Fold(Module):
                     children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
-    def setInitialValue(self):
+    def setInitialValue(self): # pragma: no cover
         """This method defines the initial value of the Fold structure. It must
         be defined before the operation() method."""
 
         pass
 
-    def operation(self):
+    def operation(self): # pragma: no cover
         """This method defines the interaction between the current element of
         the list and the previous iterations' result."""
 
@@ -119,7 +119,7 @@ class FoldWithModule(Fold, NotCacheable):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
+                            InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
     def updateFunctionPort(self):
@@ -150,7 +150,7 @@ class FoldWithModule(Fold, NotCacheable):
             for connector in self.inputPorts.get('FunctionPort'):
                 module = connector.obj
 
-                if not self.upToDate:
+                if not self.upToDate: # pragma: no partial
                     ## Type checking
                     if i == 0:
                         self.typeChecking(module, nameInput, inputList)
@@ -298,9 +298,9 @@ def get_module(value, signature):
     elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (get_module(value[element], signature[element]))
+            v_modules += (get_module(value[element], signature[element]),)
         return v_modules
-    else:
+    else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside"
                       "FoldWithModule module.")

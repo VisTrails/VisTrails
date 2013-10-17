@@ -37,9 +37,9 @@ from __future__ import with_statement
 from datetime import datetime
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
-from vistrails.core.system import get_elementtree_library, temporary_directory,\
-     execute_cmdline, systemType, get_executable_path
-from vistrails.core.utils import Chdir
+from vistrails.core.system import get_elementtree_library, \
+     execute_cmdline, get_executable_path
+from vistrails.core.utils import Chdir, VistrailsInternalError
 from vistrails.core.log.log import Log
 from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
@@ -702,12 +702,13 @@ def open_vistrail_bundle_from_zip_xml(filename):
     and thumbnails inside archive are '.png' files in 'thumbs' dir
 
     """
-
-    vistrails.core.requirements.require_executable('unzip')
+    unzipcmd = get_executable_path('unzip')
+    if unzipcmd is None:
+        raise VistrailsInternalError("unzip command is not available")
 
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     output = []
-    cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
+    cmdline = [unzipcmd, '-q','-o','-d', vt_save_dir, filename]
     result = execute_cmdline(cmdline, output)
 
     if result != 0 and len(output) != 0:
@@ -977,11 +978,9 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
 
     # on windows, we assume zip.exe is in the current directory when
     # running from the binary install
-    zipcmd = 'zip'
-    if systemType in ['Windows', 'Microsoft']:
-        zipcmd = get_executable_path('zip.exe')
-        if not zipcmd or not os.path.exists(zipcmd):
-            zipcmd = 'zip.exe' #assume zip is in path
+    zipcmd = get_executable_path('zip')
+    if zipcmd is None:
+        raise VistrailsInternalError("zip command is not available")
     cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
     try:
         #if we want that directories are also stored in the zip file
