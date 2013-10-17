@@ -383,7 +383,16 @@ if not test_modules or test_images:
 
 ############## RUN TEST SUITE ####################
 
-result = unittest.TextTestRunner(verbosity=max(verbose, 1)).run(main_test_suite)
+class TestResult(unittest.TextTestResult):
+    def addSkip(self, test, reason):
+        self.stream.writeln("skipped '{0}': {1}".format(test.description,
+                                                        reason))
+        super(TestResult, self).addSkip(test, reason)
+
+runner = unittest.TextTestRunner(
+        verbosity=max(verbose, 1),
+        resultclass=TestResult)
+result = runner.run(main_test_suite)
 
 if not result.wasSuccessful():
     tests_passed = False
