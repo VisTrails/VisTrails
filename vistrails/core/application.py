@@ -346,16 +346,30 @@ The builder window can be accessed by a spreadsheet menu option.")
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.temp_configuration, k, v)
-                
+
         # Command line options override temp_configuration
         self.readOptions()
-        
+
+        self.check_all_requirements()
+
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:
             reg = None
         self.vistrailsStartup.set_registry(reg)
-        
+
+    def check_all_requirements(self):
+        # check scipy
+        vistrails.core.requirements.require_python_module('scipy', {
+                'linux-debian': 'python-scipy',
+                'linux-ubuntu': 'python-scipy',
+                'linux-fedora': 'scipy',
+                'pip': 'scipy'})
+
+        # ZIP manipulations use the command-line executables
+        vistrails.core.requirements.require_executable('zip')
+        vistrails.core.requirements.require_executable('unzip')
+
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
 includes local definitions from startup.py. Should only be called
