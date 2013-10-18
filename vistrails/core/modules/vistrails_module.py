@@ -361,6 +361,7 @@ context."""
         self.logging.begin_update(self)
         self.updateUpstream()
         if self.suspended:
+            self.had_error = True
             return
         if self.upToDate:
             if not self.computed:
