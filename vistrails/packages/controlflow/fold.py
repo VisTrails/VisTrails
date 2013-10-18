@@ -156,7 +156,7 @@ class FoldWithModule(Fold, NotCacheable):
                         self.typeChecking(module, nameInput, inputList)
 
                     module.upToDate = False
-                    module.ran = False
+                    module.computed = False
 
                     ## Setting information for logging stuff
                     module.is_looping = True
