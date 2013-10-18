@@ -253,6 +253,7 @@ Designing New Modules
         self.outputPorts = {}
         self.upToDate = False
         self.ran = False
+        self.had_error = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -354,21 +355,21 @@ context."""
         modules. Report to the logger if available
         
         """
+        if self.ran and self.had_error:
+            raise ModuleHadError(self)
+        elif self.ran and self.computed:
+            return
+        self.ran = True
+        self.logging.begin_update(self)
+        self.updateUpstream()
+        if self.suspended:
+            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
             return
-        if self.ran:
-            if self.had_error:
-                raise ModuleHadError(self)
-            return
-        self.ran = True
         self.had_error = True # Unset later in this method
-        self.logging.begin_update(self)
-        self.updateUpstream()
-        if self.suspended:
-            return
         self.logging.begin_compute(self)
         try:
             if self.is_breakpoint:
