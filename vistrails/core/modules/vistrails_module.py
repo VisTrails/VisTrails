@@ -252,7 +252,6 @@ Designing New Modules
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
-        self.ran = False
         self.had_error = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
@@ -355,11 +354,10 @@ context."""
         modules. Report to the logger if available
         
         """
-        if self.ran and self.had_error:
+        if self.had_error:
             raise ModuleHadError(self)
-        elif self.ran and self.computed:
+        elif self.computed:
             return
-        self.ran = True
         self.logging.begin_update(self)
         self.updateUpstream()
         if self.suspended:
