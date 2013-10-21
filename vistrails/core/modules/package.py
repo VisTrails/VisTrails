@@ -490,15 +490,27 @@ class Package(DBPackage):
     def can_handle_identifier(self, identifier):
         """ Asks package if it can handle this package
         """
-        return hasattr(self.init_module, 'can_handle_identifier') and \
-            self.init_module.can_handle_identifier(identifier)
+        try:
+            return (hasattr(self.init_module, 'can_handle_identifier') and
+                    self.init_module.can_handle_identifier(identifier))
+        except Exception, e:
+            debug.critical("Got exception calling %s's can_handle_identifier: "
+                           "%s: %s" % (self.name,
+                                       type(e).__name__, ', '.join(e.args)))
+            return False
 
     def can_handle_vt_file(self, name):
         """ Asks package if it can handle a file inside a zipped vt file
         """
-        return hasattr(self.init_module, 'can_handle_vt_file') and \
-            self.init_module.can_handle_vt_file(name)
-    
+        try:
+            return (hasattr(self.init_module, 'can_handle_vt_file') and
+                    self.init_module.can_handle_vt_file(name))
+        except Exception, e:
+            debug.critical("Got exception calling %s's can_handle_vt_file: "
+                           "%s: %s" % (self.name,
+                                       type(e).__name__, ', '.join(e.args)))
+            return False
+
     def can_handle_missing_modules(self):
         return hasattr(self._init_module, 'handle_missing_module')
 
@@ -515,7 +527,6 @@ class Package(DBPackage):
         present, to allow the package to dynamically add a missing
         module.
         """
-        
         return self._init_module.handle_missing_module(*args, **kwargs)
 
     def add_abs_upgrade(self, new_desc, name, namespace, module_version):
@@ -557,11 +568,21 @@ class Package(DBPackage):
 
     def loadVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
-            self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
+            try:
+                self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
+            except Exception, e:
+                debug.critical("Got exception in %s's loadVistrailFileHook(): "
+                               "%s: %s" % (self.name, type(e).__name__,
+                                           ', '.join(e.args)))
 
     def saveVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
-            self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
+            try:
+                self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
+            except Exception, e:
+                debug.critical("Got exception in %s's saveVistrailFileHook(): "
+                               "%s: %s" % (self.name, type(e).__name__,
+                                           ', '.join(e.args)))
 
     def check_requirements(self):
         try:
@@ -577,7 +598,11 @@ class Package(DBPackage):
         except AttributeError:
             return None
         else:
-            return callable_()
+            try:
+                return callable_()
+            except Exception, e:
+                debug.critical("Couldn't load menu items for %s: %s: %s" % (
+                               self.name, type(e).__name__, ', '.join(e.args)))
 
     def finalize(self):
         if not self._initialized:
@@ -588,7 +613,11 @@ class Package(DBPackage):
         except AttributeError:
             pass
         else:
-            callable_()
+            try:
+                callable_()
+            except Exception, e:
+                debug.critical("Couldn't finalize %s: %s: %s" % (
+                               self.name, type(e).__name__, ', '.join(e.args)))
         # Save configuration
         if self.configuration:
             self.set_persistent_configuration()
@@ -603,7 +632,11 @@ class Package(DBPackage):
         except AttributeError:
             deps = []
         else:
-            deps = callable_()
+            try:
+                deps = callable_()
+            except Exception, e:
+                debug.critical("Couldn't get dependencies of %s: %s: %s" % (
+                               self.name, type(e).__name__, ', '.join(e.args)))
 
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):
