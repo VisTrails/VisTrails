@@ -80,14 +80,6 @@ def require_executable(filename):
     if not executable_file_exists(filename):
         raise MissingRequirement(filename)
 
-def check_all_vistrails_requirements():
-    # check scipy
-    require_python_module('scipy', {
-            'linux-debian': 'python-scipy',
-            'linux-ubuntu': 'python-scipy',
-            'linux-fedora': 'scipy',
-            'pip': 'scipy'})
-
 ##############################################################################
 
 class MissingRequirement(Exception):
