@@ -228,12 +228,16 @@ def show_question(which_files, has_distro_pkg, has_pip):
                     return 'pip'
             return 'distro'
     else:
-        print "Required package missing"
+        print "\nRequired package missing"
         print ("A required package is missing, but VisTrails can " +
                "automatically install it. " +
                "If you say Yes, VisTrails will need "+
                "administrator privileges, and you" +
                "might be asked for the administrator password.")
+        if has_distro_pkg:
+            print "(VisTrails will use your distribution's package manager)"
+        else:
+            print "(VisTrails will use the 'pip' installer)"
         print "Give VisTrails permission to try to install package? (y/N)"
         v = raw_input().upper()
         if v == 'Y' or v == 'YES':
