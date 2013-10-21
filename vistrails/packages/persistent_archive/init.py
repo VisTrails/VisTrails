@@ -61,3 +61,8 @@ _modules = {
             IntInRange,
         ],
     }
+
+
+def menu_items():
+    from ui import show_viewer
+    return [("Show archive content", show_viewer)]
