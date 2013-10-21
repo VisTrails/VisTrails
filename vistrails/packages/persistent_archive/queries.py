@@ -1,22 +1,54 @@
-from vistrails.core.modules.basic_modules import Integer, String
+from vistrails.core.modules.basic_modules import Constant, Integer, String
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 
-class QueryCondition(Module):
+def find_subclass(cls, subname):
+    """Find a subclass by name.
+    """
+    l = [cls]
+    while l:
+        l2 = []
+        for c in l:
+            if c.__name__ == subname:
+                return c
+            l2 += c.__subclasses__()
+        l = l2
+    return None
+
+
+class QueryCondition(Constant):
     """Base class for query conditions.
 
     This is abstract and implemented by modules Query*
     """
-
     _input_ports = [
             ('key', String)]
 
-    def compute(self):
-        self.condition = (self.getInputFromPort('key'),
-                          self.make_condition_dict())
+    @staticmethod
+    def translate_to_python(c):
+        try:
+            i = c.index('(')
+        except KeyError:
+            return None
+        cls = c[:i]
+        cls = find_subclass(QueryCondition, cls)
+        if cls is None:
+            return None
+        return cls(*eval(c[i+1:-1]))
 
-    def make_condition_dict(self):
-        raise NotImplementedError('make_condition_dict')
+    @staticmethod
+    def translate_to_string(cond):
+        return str(cond)
+
+    @staticmethod
+    def validate(cond):
+        return isinstance(cond, QueryCondition)
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        return self.__str__()
 
 QueryCondition._output_ports = [
         ('self', QueryCondition)]
@@ -34,10 +66,27 @@ class Metadata(QueryCondition):
             ('key', String),
             ('value', Module)]
 
+    def __init__(self, *args):
+        super(Metadata, self).__init__()
+
+        if args:
+            self.key, self.value = args
+            self.set_results()
+        else:
+            self.key, self.value = None, None
+
     def compute(self):
-        super(Metadata, self).compute()
-        self.metadata = (self.getInputFromPort('key'),
-                         self.getInputFromPort('value'))
+        self.key = self.getInputFromPort('key')
+        self.value = self.getInputFromPort('value')
+
+        self.set_results()
+
+    def set_results(self):
+        self.condition = (self.key, {'type': self._type, 'equal': self.value})
+        self.metadata = (self.key, self.value)
+
+    def __str__(self):
+        return '%s(%r, %r)' % (self.__class__.__name__, self.key, self.value)
 
 Metadata._output_ports = [
         ('self', Metadata)]
@@ -48,8 +97,7 @@ class EqualString(Metadata):
             ('key', String),
             ('value', String)]
 
-    def make_condition_dict(self):
-        return {'type': 'str', 'equal': self.getInputFromPort('value')}
+    _type = 'str'
 
 
 class EqualInt(Metadata):
@@ -57,8 +105,7 @@ class EqualInt(Metadata):
             ('key', String),
             ('value', Integer)]
 
-    def make_condition_dict(self):
-        return {'type': 'int', 'equal': self.getInputFromPort('value')}
+    _type = 'int'
 
 
 class IntInRange(QueryCondition):
@@ -67,13 +114,34 @@ class IntInRange(QueryCondition):
             ('lower_bound', Integer, True),
             ('higher_bound', Integer, True)]
 
-    def make_condition_dict(self):
-        dct = {}
+    def __init__(self, *args):
+        super(IntInRange, self).__init__()
+
+        if args:
+            self.key, self.low, self.high = args
+            self.set_results()
+        else:
+            self.key, self.low, self.high = None, None, None
+
+    def compute(self):
+        self.key = self.getInputFromPort('key')
         if self.hasInputFromPort('lower_bound'):
-            dct['gt'] = self.getInputFromPort('lower_bound')
+            self.low = self.getInputFromPort('lower_bound')
         if self.hasInputFromPort('higher_bound'):
-            dct['lt'] = self.getInputFromPort('higher_bound')
-        if not dct:
+            self.high = self.getInputFromPort('higher_bound')
+        if not (self.low is not None or self.high is not None):
             raise ModuleError(self, "No bound set")
+        self.set_results()
+
+    def set_results(self):
+        dct = {}
+        if self.low is not None:
+            dct['gt'] = self.low
+        if self.high is not None:
+            dct['lt'] = self.high
         dct['type'] = 'int'
-        return dct
+
+        self.condition = (self.key, dct)
+
+    def __str__(self):
+        return '%s(%r, %r, %r)' % ('IntInRange', self.key, self.low, self.high)
