@@ -165,7 +165,7 @@ parser.add_option('-L', '--locale', action='store', type='str', default='',
 # remove empty strings
 args = filter(len, args)
 verbose = options.verbose
-locale.setlocale(options.locale)
+locale.setlocale(locale.LC_ALL, options.locale or '')
 test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles
