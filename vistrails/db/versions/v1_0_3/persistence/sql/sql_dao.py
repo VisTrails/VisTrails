@@ -34,7 +34,7 @@
 ###############################################################################
 
 from vistrails.core import debug
-from vistrails.core.system import strftime
+from vistrails.core.system import strftime, time_strptime
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import get_db_lib
 
@@ -56,13 +56,13 @@ class SQLDAO:
                 if db_type == 'date':
                     return value
                 else:
-                    return date(*strptime(str(value), '%Y-%m-%d')[0:3])
+                    return date(*time_strptime(str(value), '%Y-%m-%d')[0:3])
             elif type == 'datetime':
                 if db_type == 'datetime':
                     return value
                 else:
-                    return datetime(*strptime(str(value), 
-                                              '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*time_strptime(str(value),
+                                                   '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     def convertWarning(self, before, after, _from, to):

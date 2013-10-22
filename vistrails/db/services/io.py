@@ -1818,7 +1818,7 @@ def get_current_time(db_connection=None):
             if row:
                 # FIXME MySQL versus sqlite3
                 timestamp = row[0]
-                # timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+                # timestamp = strptime(row[0], '%Y-%m-%d %H:%M:%S')
             c.close()
         except get_db_lib().Error, e:
             debug.critical("Logger Error %d: %s" % (e.args[0], e.args[1]))

@@ -32,19 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import sys
-import copy
 from datetime import datetime
-from time import strptime
+import sys
 
 from vistrails.core.data_structures.graph import Graph
+from vistrails.core.system import time_strptime
 from vistrails.db.versions.v0_6_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
     DBConnection, DBPortSpec, DBFunction, DBParameter, DBLocation, DBAdd, \
     DBChange, DBDelete, DBAnnotation, DBPort
 
 def convertDate(date):
     if date is not None and date != '':
-        return datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
+        return datetime(*time_strptime(date, '%d %b %Y %H:%M:%S')[0:6])
     return datetime(1900, 1, 1)
 
 def translateVistrail(_vistrail):

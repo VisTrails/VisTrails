@@ -34,7 +34,8 @@
 ###############################################################################
 
 from datetime import date, datetime
-from time import strptime
+
+from vistrails.core.system import time_strptime
 
 class XMLDAO:
     def __init__(self):
@@ -64,9 +65,9 @@ class XMLDAO:
                 elif type == 'int':
                     return int(value)
                 elif type == 'date':
-                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+                    return date(*time_strptime(value, '%Y-%m-%d')[0:3])
                 elif type == 'datetime':
-                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     def convertToStr(self, value, type):
