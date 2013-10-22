@@ -55,9 +55,6 @@ from optparse import OptionParser
 import shutil
 import tempfile
 
-# This is going to break everything
-locale.setlocale(locale.LC_ALL, '')
-
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
 _this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -160,11 +157,15 @@ parser.add_option("--installbundles", action='store_true',
 parser.add_option("-S", "--startup", action="store", type="str", default=None,
                   dest="dotVistrails",
                   help="Set startup file (default is temporary directory)")
+parser.add_option('-L', '--locale', action='store', type='str', default='',
+                  dest='locale',
+                  help="set locale to this string")
 
 (options, args) = parser.parse_args()
 # remove empty strings
 args = filter(len, args)
 verbose = options.verbose
+locale.setlocale(options.locale)
 test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles

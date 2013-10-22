@@ -120,7 +120,7 @@ if __name__ == '__main__':
     disable_lion_restore()
     enable_user_base()
 
-    # This is going to break everything
+    # Load the default locale (from environment)
     import locale
     locale.setlocale(locale.LC_ALL, '')
 
