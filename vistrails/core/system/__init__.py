@@ -75,6 +75,15 @@ def strptime(*args, **kwargs):
     return datetime.datetime.strptime(*args, **kwargs)
 
 @with_c_locale
+def time_strptime(*args, **kwargs):
+    """Version of time.strptime that always uses the C locale.
+
+    This is because date strings are used internally in the database, and
+    should not be localized.
+    """
+    return time.strptime(*args, **kwargs)
+
+@with_c_locale
 def strftime(dt, *args, **kwargs):
     """Version of datetime.strftime that always uses the C locale.
 
