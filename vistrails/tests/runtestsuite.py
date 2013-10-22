@@ -44,6 +44,7 @@ any unit tests, as a crude measure of code coverage.
 """
 #import doctest
 import atexit
+import locale
 import os
 import sys
 import traceback
@@ -53,6 +54,9 @@ import optparse
 from optparse import OptionParser
 import shutil
 import tempfile
+
+# This is going to break everything
+locale.setlocale(locale.LC_ALL, '')
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory

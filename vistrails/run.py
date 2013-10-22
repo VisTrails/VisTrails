@@ -120,6 +120,10 @@ if __name__ == '__main__':
     disable_lion_restore()
     enable_user_base()
 
+    # This is going to break everything
+    import locale
+    locale.setlocale(locale.LC_ALL, '')
+
     import vistrails.core.requirements
     import vistrails.gui.bundles.installbundle
 
