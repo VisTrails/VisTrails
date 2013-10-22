@@ -87,23 +87,23 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
         Creates a menu bar and adds it to the main layout.
 
         """
-        self.newSessionAct = QtGui.QAction(self.tr("&Restart"),self)
-        self.newSessionAct.setShortcut(self.tr("Ctrl+R"))
+        self.newSessionAct = QtGui.QAction("&Restart",self)
+        self.newSessionAct.setShortcut("Ctrl+R")
         self.connect(self.newSessionAct, QtCore.SIGNAL("triggered()"),
                      self.newSession)
 
-        self.saveSessionAct = QtGui.QAction(self.tr("&Save"), self)
-        self.saveSessionAct.setShortcut(self.tr("Ctrl+S"))
+        self.saveSessionAct = QtGui.QAction("&Save", self)
+        self.saveSessionAct.setShortcut("Ctrl+S")
         self.connect(self.saveSessionAct, QtCore.SIGNAL("triggered()"),
                      self.saveSession)
 
-        self.closeSessionAct = QtGui.QAction(self.tr("Close"), self)
-        self.closeSessionAct.setShortcut(self.tr("Ctrl+W"))
+        self.closeSessionAct = QtGui.QAction("Close", self)
+        self.closeSessionAct.setShortcut("Ctrl+W")
         self.connect(self.closeSessionAct,QtCore.SIGNAL("triggered()"), 
                      self.closeSession)
         
         self.menuBar = QtGui.QMenuBar(self)
-        menu = self.menuBar.addMenu(self.tr("&Session"))
+        menu = self.menuBar.addMenu("&Session")
         menu.addAction(self.newSessionAct)
         menu.addAction(self.saveSessionAct)
         menu.addAction(self.closeSessionAct)
