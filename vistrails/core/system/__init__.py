@@ -57,15 +57,12 @@ import unittest
 def with_c_locale(func):
     @functools.wraps(func)
     def newfunc(*args, **kwargs):
-        previous_locale = locale.getlocale(locale.LC_TIME)
-        if previous_locale[0]:
-            locale.setlocale(locale.LC_TIME, 'C')
-            try:
-                return func(*args, **kwargs)
-            finally:
-                locale.setlocale(locale.LC_TIME, previous_locale)
-        else:
+        previous_locale = locale.setlocale(locale.LC_TIME)
+        locale.setlocale(locale.LC_TIME, 'C')
+        try:
             return func(*args, **kwargs)
+        finally:
+            locale.setlocale(locale.LC_TIME, previous_locale)
     return newfunc
 
 @with_c_locale
