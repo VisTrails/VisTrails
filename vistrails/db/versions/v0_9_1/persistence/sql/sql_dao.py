@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from vistrails.core.system import strftime
+
 class SQLDAO:
     def __init__(self):
         pass
@@ -73,7 +75,7 @@ class SQLDAO:
             elif type == 'date':
                 return "'" + value.isoformat() + "'"
             elif type == 'datetime':
-                return "'" + value.strftime('%Y-%m-%d %H:%M:%S') + "'"
+                return "'" + strftime(value, '%Y-%m-%d %H:%M:%S') + "'"
             else:
                 return str(value)
 

@@ -32,9 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from vistrails.core import debug
+from vistrails.core.system import strftime
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import get_db_lib
-from vistrails.core import debug
 
 class SQLDAO:
     def __init__(self):
@@ -117,7 +119,7 @@ class SQLDAO:
             elif type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                return strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
 

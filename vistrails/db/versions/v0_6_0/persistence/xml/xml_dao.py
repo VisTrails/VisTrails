@@ -74,7 +74,7 @@ class XMLDAO:
             if type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                return strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
         return ''
