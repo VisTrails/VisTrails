@@ -35,11 +35,14 @@
 from __future__ import with_statement
 
 import datetime
+import functools
 import getpass
+import locale
 import os
 import os.path
 import subprocess
 import sys
+import time
 import platform
 import socket
 import urllib2
@@ -48,6 +51,43 @@ from vistrails.core.utils import unimplemented, VistrailsInternalError, Chdir
 import vistrails.core.requirements
 
 import unittest
+
+##############################################################################
+
+def with_c_locale(func):
+    @functools.wraps(func)
+    def newfunc(*args, **kwargs):
+        previous_locale = locale.getlocale(locale.LC_TIME)
+        if previous_locale[0]:
+            locale.setlocale(locale.LC_TIME, 'C')
+            try:
+                return func(*args, **kwargs)
+            finally:
+                locale.setlocale(locale.LC_TIME, previous_locale)
+        else:
+            return func(*args, **kwargs)
+    return newfunc
+
+@with_c_locale
+def strptime(*args, **kwargs):
+    """Version of datetime.strptime that always uses the C locale.
+
+    This is because date strings are used internally in the database, and
+    should not be localized.
+    """
+    return datetime.datetime.strptime(*args, **kwargs)
+
+@with_c_locale
+def strftime(dt, *args, **kwargs):
+    """Version of datetime.strftime that always uses the C locale.
+
+    This is because date strings are used internally in the database, and
+    should not be localized.
+    """
+    if hasattr(dt, 'strftime'):
+        return dt.strftime(*args, **kwargs)
+    else:
+        return time.strftime(dt, *args, **kwargs)
 
 ##############################################################################
 
