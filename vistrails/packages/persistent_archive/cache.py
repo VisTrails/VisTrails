@@ -54,6 +54,7 @@ class CachedPath(Module):
                                                 '%Y-%m-%d %H:%M:%S'),
                     KEY_SIGNATURE: self.signature}
             entry = file_store.add(newpath, metadata)
+            self.annotate({'added_file': entry['hash']})
             self._set_result(entry.filename)
 
     def check_path_type(self, path):

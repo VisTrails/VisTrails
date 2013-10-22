@@ -80,6 +80,7 @@ class PersistedInputPath(Module):
                     data[KEY_TIME] = datetime.strftime(datetime.utcnow(),
                                                        '%Y-%m-%d %H:%M:%S')
                     best = file_store.add(path, data)
+                    self.annotate({'added_file': best['hash']})
             elif localpath:
                 debug.warning("Local file does not exist: %s" % localpath)
             if best is None:
