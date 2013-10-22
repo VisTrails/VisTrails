@@ -32,9 +32,8 @@
 ##
 ###############################################################################
 from datetime import datetime
-from time import strptime
 
-from vistrails.core.system import strftime
+from vistrails.core.system import strftime, time_strptime
 from vistrails.db.domain import DBMashupAction
 from vistrails.core.mashup.mashup import Mashup
 
@@ -58,7 +57,7 @@ class Action(DBMashupAction):
         if isinstance(date, datetime):
             self.db_date = date
         elif isinstance(date, basestring) and date.strip() != '':
-            newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
+            newDate = datetime(*time_strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
         

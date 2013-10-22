@@ -46,7 +46,7 @@ from vistrails.core.modules.vistrails_module import Module
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
-from vistrails.core.system import current_dot_vistrails
+from vistrails.core.system import current_dot_vistrails, strptime
 import vistrails.gui.repository
 
 import datetime
@@ -60,8 +60,6 @@ import urllib2
 
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
-
-from vistrails.core.utils import DummyView
 
 from http_directory import download_directory
 
@@ -211,12 +209,10 @@ class HTTPFile(Module):
         local_time = \
                 datetime.datetime.utcfromtimestamp(os.path.getmtime(localFile))
         try:
-            remote_time = datetime.datetime.strptime(remoteHeader,
-                                                     "%a, %d %b %Y %H:%M:%S %Z")
+            remote_time = strptime(remoteHeader, "%a, %d %b %Y %H:%M:%S %Z")
         except ValueError:
             try:
-                remote_time = datetime.datetime.strptime(remoteHeader,
-                                                         "%a, %d %B %Y %H:%M:%S %Z")
+                remote_time = strptime(remoteHeader, "%a, %d %B %Y %H:%M:%S %Z")
             except ValueError:
                 # unable to parse last-modified header, download file again
                 debug.warning("Unable to parse Last-Modified header"

@@ -54,7 +54,6 @@ from PyQt4 import QtGui, QtCore
 import SocketServer
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 from datetime import date, datetime
-from time import strptime
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.gui.application import VistrailsApplicationInterface
@@ -1648,9 +1647,9 @@ class XMLObject(object):
                 elif type == 'bool':
                     return bool_conv(value)
                 elif type == 'date':
-                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+                    return date(*system.time_strptime(value, '%Y-%m-%d')[0:3])
                 elif type == 'datetime':
-                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*system.time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     @staticmethod

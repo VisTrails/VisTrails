@@ -32,17 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from datetime import date, datetime
-from time import strptime
 
+from datetime import datetime
+from itertools import izip
+import unittest
+
+from vistrails.db.domain import DBAction
+from vistrails.core.system import strftime, time_strptime
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from vistrails.db.domain import DBAction
-from itertools import izip
-
-import unittest
-import vistrails.core
-from vistrails.core.system import strftime
 
 class Action(DBAction):
 
@@ -96,7 +94,7 @@ class Action(DBAction):
         if isinstance(date, datetime):
             self.db_date = date
         elif isinstance(date, basestring) and date.strip() != '':
-            newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
+            newDate = datetime(*time_strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
 
