@@ -48,6 +48,7 @@ import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.system import strftime
 
 ################################################################################
 
@@ -108,7 +109,7 @@ class QCellWidget(QtGui.QWidget):
         # Generate filename
         current = datetime.datetime.now()
         tmpDir = tempfile.gettempdir()
-        fn = ( "hist_" + current.strftime("%Y_%m_%d__%H_%M_%S") +
+        fn = ( "hist_" + strftime(current, "%Y_%m_%d__%H_%M_%S") +
                "_" + str(current.microsecond)+".png")
         fn = os.path.join(tmpDir, fn)
         if self.saveToPNG(fn):

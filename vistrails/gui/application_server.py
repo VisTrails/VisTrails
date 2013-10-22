@@ -74,7 +74,6 @@ from vistrails.core.modules.module_registry import get_module_registry as module
 from vistrails.core import interpreter
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.gui.vistrail_controller import VistrailController
-import vistrails.core
 import vistrails.db.services.io
 import gc
 
@@ -83,7 +82,7 @@ import vistrails.core.console_mode
 
 from vistrails.db.versions import currentVersion
 
-ElementTree = vistrails.core.system.get_elementtree_library()
+ElementTree = system.get_elementtree_library()
 
 
 
@@ -1660,7 +1659,7 @@ class XMLObject(object):
             if type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                return system.strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
         return ''

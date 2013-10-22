@@ -42,6 +42,7 @@ from itertools import izip
 
 import unittest
 import vistrails.core
+from vistrails.core.system import strftime
 
 class Action(DBAction):
 
@@ -88,8 +89,8 @@ class Action(DBAction):
 
     def _get_date(self):
         if self.db_date is not None:
-            return self.db_date.strftime('%d %b %Y %H:%M:%S')
-        return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
+            return strftime(self.db_date, '%d %b %Y %H:%M:%S')
+        return strftime(datetime(1900,1,1), '%d %b %Y %H:%M:%S')
 
     def _set_date(self, date):
         if isinstance(date, datetime):
@@ -197,9 +198,7 @@ class TestAction(unittest.TestCase):
         from vistrails.core.vistrail.module import Module
         from vistrails.core.vistrail.module_function import ModuleFunction
         from vistrails.core.vistrail.module_param import ModuleParam
-        from vistrails.core.vistrail.operation import AddOp
         from vistrails.db.domain import IdScope
-        from datetime import datetime
         
         if id_scope is None:
             id_scope = IdScope()
@@ -247,7 +246,7 @@ class TestAction(unittest.TestCase):
 
     def test1(self):
         """Exercises aliasing on modules"""
-        import vistrails.core.vistrail
+        import vistrails.core.system
         from vistrails.core.db.locator import XMLFileLocator
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
@@ -260,7 +259,6 @@ class TestAction(unittest.TestCase):
 
     def test2(self):
         """Exercises aliasing on points"""
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +

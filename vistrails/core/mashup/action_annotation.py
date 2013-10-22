@@ -31,9 +31,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.db.domain import DBMashupActionAnnotation
-from datetime import date, datetime
+from datetime import datetime
 from time import strptime
+
+from vistrails.core.system import strftime
+from vistrails.db.domain import DBMashupActionAnnotation
 
 class ActionAnnotation(DBMashupActionAnnotation):
     def __init__(self, id, action_id, key=None, value=None, user=None, date=None):
@@ -47,8 +49,8 @@ class ActionAnnotation(DBMashupActionAnnotation):
         
     def _get_date(self):
         if self.db_date is not None:
-            return self.db_date.strftime('%d %b %Y %H:%M:%S')
-        return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
+            return strftime(self.db_date, '%d %b %Y %H:%M:%S')
+        return strftime(datetime(1900,1,1), '%d %b %Y %H:%M:%S')
 
     def _set_date(self, date):
         if isinstance(date, datetime):

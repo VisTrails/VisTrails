@@ -55,6 +55,7 @@ from vistrails.core.interpreter.default import get_default_interpreter
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.utils import create_port_spec_string
 import vistrails.core.system
+from vistrails.core.system import strftime
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.core.utils import all
@@ -142,7 +143,7 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
         Opens a File Save dialog and passes the filename to shell's saveSession.
 
         """
-        default = 'visTrails' + '-' + time.strftime("%Y%m%d-%H%M.log")
+        default = 'visTrails' + '-' + strftime("%Y%m%d-%H%M.log")
         default = os.path.join(vistrails.core.system.vistrails_file_directory(),default)
         fileName = QtGui.QFileDialog.getSaveFileName(self,
                                                      "Save Session As..",
