@@ -48,23 +48,11 @@ class DummyLogController(object):
     but simply ignores the calls."""
     def start_workflow_execution(self, *args, **kwargs): pass
     def finish_workflow_execution(self, *args, **kwargs): pass
-    def create_module_exec(self, *args, **kwargs): pass
-    def create_group_exec(self, *args, **kwargs): pass
-    def create_loop_exec(self, *args, **kwargs): pass
     def start_execution(self, *args, **kwargs): pass
     def finish_execution(self, *args, **kwargs): pass
-    def start_module_loop_execution(self, *args, **kwargs): pass
-    def finish_module_loop_execution(self, *args, **kwargs): pass
-    def start_group_loop_execution(self, *args, **kwargs): pass
-    def finish_group_loop_execution(self, *args, **kwargs): pass
-    def start_module_execution(self, *args, **kwargs): pass
-    def finish_module_execution(self, *args, **kwargs): pass
-    def start_group_execution(self, *args, **kwargs): pass
-    def finish_group_execution(self, *args, **kwargs): pass
-    def start_loop_execution(self, *args, **kwargs): pass
-    def finish_loop_execution(self, *args, **kwargs): pass
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
+    def add_exec(self, *args, **kwargs): pass
 
 class LogControllerFactory(object):
     _instance = None
@@ -151,7 +139,7 @@ class LogController(object):
         else:
             self.workflow_exec.add_item_exec(exec_)
 
-    def create_module_exec(self, module, module_id, module_name,
+    def _create_module_exec(self, module, module_id, module_name,
                            cached):
         m_exec_id = self.log.id_scope.getNewId(ModuleExec.vtType)
         module_exec = ModuleExec(id=m_exec_id,
@@ -163,7 +151,7 @@ class LogController(object):
                                  completed=0)
         return module_exec
 
-    def create_group_exec(self, group, module_id, group_name, cached):
+    def _create_group_exec(self, group, module_id, group_name, cached):
         g_exec_id = self.log.id_scope.getNewId(GroupExec.vtType)
         if isinstance(group, Abstraction):
             group_type = 'SubWorkflow'
@@ -179,7 +167,7 @@ class LogController(object):
                                completed=0)
         return group_exec
 
-    def create_loop_exec(self, iteration):
+    def _create_loop_exec(self, iteration):
         l_exec_id = self.log.id_scope.getNewId(LoopExec.vtType)
         loop_exec = LoopExec(id=l_exec_id,
                              iteration=iteration,
@@ -192,19 +180,19 @@ class LogController(object):
         """
         parent_exec = parent_execs[-1]
         if module.is_looping:
-            parent_exec = self.start_loop_execution(module, module_id,
+            parent_exec = self._start_loop_execution(module, module_id,
                                                     module_name,
                                                     parent_exec, cached,
                                                     module.loop_iteration)
             parent_execs.append(parent_exec)
 
         if isinstance(module, Group):
-            ret = self.start_group_execution(module, module_id, module_name,
+            ret = self._start_group_execution(module, module_id, module_name,
                                              parent_exec, cached)
             if ret is not None:
                 parent_execs.append(ret)
         else:
-            ret = self.start_module_execution(module, module_id, module_name,
+            ret = self._start_module_execution(module, module_id, module_name,
                                               parent_exec, cached)
             if ret is not None:
                 parent_execs.append(ret)
@@ -217,19 +205,19 @@ class LogController(object):
         interpreter after an exception.
         """
         if isinstance(module, Group):
-            if self.finish_group_execution(module, error, suspended):
+            if self._finish_group_execution(module, error, suspended):
                 parent_execs.pop()
         else:
-            if self.finish_module_execution(module, error, errorTrace, suspended):
+            if self._finish_module_execution(module, error, errorTrace, suspended):
                 parent_execs.pop()
         if module.is_looping:
-            self.finish_loop_execution(module, error, parent_execs.pop(), suspended)
+            self._finish_loop_execution(module, error, parent_execs.pop(), suspended)
 
-    def start_module_execution(self, module, module_id, module_name,
+    def _start_module_execution(self, module, module_id, module_name,
                                parent_exec, cached):
         """Called by start_execution() for regular modules.
         """
-        module_exec = self.create_module_exec(module, module_id,
+        module_exec = self._create_module_exec(module, module_id,
                                               module_name,
                                               cached)
         module.module_exec = module_exec
@@ -241,7 +229,7 @@ class LogController(object):
             return module_exec
         return None
 
-    def finish_module_execution(self, module, error, errorTrace=None,
+    def _finish_module_execution(self, module, error, errorTrace=None,
                                 suspended=False):
         """Called by finish_execution() for regular modules.
         """
@@ -266,11 +254,11 @@ class LogController(object):
         if module.is_looping_module:
             return True
 
-    def start_group_execution(self, group, module_id, group_name,
+    def _start_group_execution(self, group, module_id, group_name,
                               parent_exec, cached):
         """Called by start_execution() for groups.
         """
-        group_exec = self.create_group_exec(group, module_id,
+        group_exec = self._create_group_exec(group, module_id,
                                             group_name, cached)
         group.group_exec = group_exec
         if parent_exec:
@@ -279,7 +267,7 @@ class LogController(object):
             self.workflow_exec.add_item_exec(group_exec)
         return group_exec
 
-    def finish_group_execution(self, group, error, suspended=False):
+    def _finish_group_execution(self, group, error, suspended=False):
         """Called by finish_execution() for groups.
         """
         if not hasattr(group, 'group_exec'):
@@ -296,21 +284,21 @@ class LogController(object):
         del group.group_exec
         return True
 
-    def start_loop_execution(self, module, module_id, module_name,
+    def _start_loop_execution(self, module, module_id, module_name,
                              parent_exec, cached, iteration):
         """Called by start_execution() for modules on which is_looping is set.
 
         The module that acts as a loop sets is_looping on the module it's
         executing beforehand, so this method can create a LoopExec object.
         """
-        loop_exec = self.create_loop_exec(iteration)
+        loop_exec = self._create_loop_exec(iteration)
         if parent_exec:
             parent_exec.add_loop_exec(loop_exec)
         else:
             self.workflow_exec.add_item_exec(loop_exec)
         return loop_exec
 
-    def finish_loop_execution(self, module, error, loop_exec, suspended=True):
+    def _finish_loop_execution(self, module, error, loop_exec, suspended=True):
         """Called by finish_execution() for modules on which is_looping is set.
         """
         if not loop_exec:
