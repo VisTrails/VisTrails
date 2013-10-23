@@ -104,6 +104,8 @@ class LogController(object):
 
     def start_workflow_execution(self, vistrail=None, pipeline=None,
                                  currentVersion=None):
+        """Signals the start of the execution of a pipeline.
+        """
         if vistrail is not None:
             parent_type = Vistrail.vtType
             parent_id = vistrail.id
@@ -130,6 +132,8 @@ class LogController(object):
         self.log.add_workflow_exec(self.workflow_exec)
 
     def finish_workflow_execution(self, errors, suspended=False):
+        """Signals the end of the execution of a pipeline.
+        """
         self.workflow_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             self.workflow_exec.completed = -2
@@ -139,6 +143,8 @@ class LogController(object):
             self.workflow_exec.completed = 1
 
     def add_exec(self, exec_, parent_execs):
+        """Adds an execution object to the log.
+        """
         parent_exec = parent_execs[-1]
         if parent_exec:
             parent_exec.add_item_exec(exec_)
@@ -182,6 +188,8 @@ class LogController(object):
 
     def start_execution(self, module, module_id, module_name, parent_execs,
                         cached=0):
+        """Signals the start of the execution of a module (before compute).
+        """
         parent_exec = parent_execs[-1]
         if module.is_looping:
             parent_exec = self.start_loop_execution(module, module_id,
@@ -203,6 +211,11 @@ class LogController(object):
 
     def finish_execution(self, module, error, parent_execs, errorTrace=None,
                          suspended=False):
+        """Signals the end of the execution of a module.
+
+        Called by a module after succeeded of suspended, or called by the
+        interpreter after an exception.
+        """
         if isinstance(module, Group):
             if self.finish_group_execution(module, error, suspended):
                 parent_execs.pop()
@@ -214,6 +227,8 @@ class LogController(object):
 
     def start_module_execution(self, module, module_id, module_name,
                                parent_exec, cached):
+        """Called by start_execution() for regular modules.
+        """
         module_exec = self.create_module_exec(module, module_id,
                                               module_name,
                                               cached)
@@ -228,6 +243,8 @@ class LogController(object):
 
     def finish_module_execution(self, module, error, errorTrace=None,
                                 suspended=False):
+        """Called by finish_execution() for regular modules.
+        """
         if not hasattr(module, 'module_exec'):
             return False
         module.module_exec.ts_end = vistrails.core.system.current_time()
@@ -251,6 +268,8 @@ class LogController(object):
 
     def start_group_execution(self, group, module_id, group_name,
                               parent_exec, cached):
+        """Called by start_execution() for groups.
+        """
         group_exec = self.create_group_exec(group, module_id,
                                             group_name, cached)
         group.group_exec = group_exec
@@ -261,6 +280,8 @@ class LogController(object):
         return group_exec
 
     def finish_group_execution(self, group, error, suspended=False):
+        """Called by finish_execution() for groups.
+        """
         if not hasattr(group, 'group_exec'):
             return False
         group.group_exec.ts_end = vistrails.core.system.current_time()
@@ -277,6 +298,11 @@ class LogController(object):
 
     def start_loop_execution(self, module, module_id, module_name,
                              parent_exec, cached, iteration):
+        """Called by start_execution() for modules on which is_looping is set.
+
+        The module that acts as a loop sets is_looping on the module it's
+        executing beforehand, so this method can create a LoopExec object.
+        """
         loop_exec = self.create_loop_exec(iteration)
         if parent_exec:
             parent_exec.add_loop_exec(loop_exec)
@@ -285,6 +311,8 @@ class LogController(object):
         return loop_exec
 
     def finish_loop_execution(self, module, error, loop_exec, suspended=True):
+        """Called by finish_execution() for modules on which is_looping is set.
+        """
         if not loop_exec:
             return False
         loop_exec.ts_end = vistrails.core.system.current_time()
@@ -299,6 +327,8 @@ class LogController(object):
         return True
 
     def insert_module_annotations(self, module, a_dict):
+        """Adds an annotation on the execution object for this module.
+        """
         for k, v in a_dict.iteritems():
             a_id = self.log.id_scope.getNewId(Annotation.vtType)
             annotation = Annotation(id=a_id,
@@ -310,9 +340,11 @@ class LogController(object):
                 module.module_exec.add_annotation(annotation)
 
     def insert_workflow_exec_annotations(self, a_dict):
-        """insert_workflow_exec_annotations(a_dict)-> None
-        This will create an annotation for each pair in a_dict in
-        self.workflow_exec"""
+        """Adds an annotation on the whole workflow log object.
+
+        The information is not associated with the execution of a specific
+        module but of the whole pipeline.
+        """
         if self.workflow_exec:
             for k, v in a_dict.iteritems():
                 a_id = self.log.id_scope.getNewId(Annotation.vtType)
