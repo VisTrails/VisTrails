@@ -32,6 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+import copy
+
 from vistrails.core.log.workflow_exec import WorkflowExec
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.loop_exec import LoopExec
@@ -93,7 +96,7 @@ class LogController(object):
     def __init__(self, log, machine):
         self.log = log
         self.workflow_exec = None
-        self.machine = machine
+        self.machine = copy.copy(machine)
         to_add = True
         for machine in self.log.machine_list:
             if self.machine.equals_no_id(machine):
