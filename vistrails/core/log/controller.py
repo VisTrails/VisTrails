@@ -46,6 +46,7 @@ from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 import vistrails.core.system
 
+@apply
 class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
@@ -56,6 +57,7 @@ class DummyLogController(object):
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
     def add_exec(self, *args, **kwargs): pass
+    def __call__(self): return self
 
 class LogControllerFactory(object):
     _instance = None

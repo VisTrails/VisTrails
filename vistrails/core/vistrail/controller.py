@@ -199,7 +199,7 @@ class VistrailController(object):
         if self.logging_on():
             return LogControllerFactory.getInstance().create_logger(self.log)
         else:
-            return DummyLogController()
+            return DummyLogController
         
     def get_locator(self):
         return self.locator
