@@ -59,34 +59,19 @@ class DummyLogController(object):
     def add_exec(self, *args, **kwargs): pass
     def __call__(self): return self
 
-class LogControllerFactory(object):
-    _instance = None
-
-    @staticmethod
-    def getInstance(*args, **kwargs):
-        if LogControllerFactory._instance is None:
-            obj = LogControllerFactory(*args, **kwargs)
-            LogControllerFactory._instance = obj
-        return LogControllerFactory._instance
-
-    def __init__(self):
-        self.machine = Machine(id=-1,
-                               name=vistrails.core.system.current_machine(),
-                               os=vistrails.core.system.systemType,
-                               architecture=vistrails.core.system.current_architecture(),
-                               processor=vistrails.core.system.current_processor(),
-                               ram=vistrails.core.system.guess_total_memory())
-
-    def create_logger(self, log):
-        return LogController(log, self.machine)
-
-LogControllerFactory.getInstance()
-
 class LogController(object):
-    def __init__(self, log, machine):
+    local_machine = Machine(
+            id=-1,
+            name=vistrails.core.system.current_machine(),
+            os=vistrails.core.system.systemType,
+            architecture=vistrails.core.system.current_architecture(),
+            processor=vistrails.core.system.current_processor(),
+            ram=vistrails.core.system.guess_total_memory())
+
+    def __init__(self, log):
         self.log = log
         self.workflow_exec = None
-        self.machine = copy.copy(machine)
+        self.machine = copy.copy(self.local_machine)
         for machine in self.log.machine_list:
             if self.machine.equals_no_id(machine):
                 self.machine = machine

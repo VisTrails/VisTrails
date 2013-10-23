@@ -48,7 +48,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
-from vistrails.core.log.controller import LogControllerFactory, DummyLogController
+from vistrails.core.log.controller import LogController, DummyLogController
 from vistrails.core.log.log import Log
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg, \
     version as abstraction_ver
@@ -197,7 +197,7 @@ class VistrailController(object):
             
     def get_logger(self):
         if self.logging_on():
-            return LogControllerFactory.getInstance().create_logger(self.log)
+            return LogController(self.log)
         else:
             return DummyLogController
         
