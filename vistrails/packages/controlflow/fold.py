@@ -70,11 +70,6 @@ class Fold(Module):
             self.element = element
             self.operation()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
     def setInitialValue(self): # pragma: no cover
@@ -108,13 +103,27 @@ class FoldWithModule(Fold, NotCacheable):
 
         # everything is the same except that we don't update anything
         # upstream of FunctionPort
+        suspended = []
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    try:
+                        connector.obj.updateUpstream()
+                    except ModuleSuspended, e:
+                        suspended.append(e)
             else:
                 for connector in connector_list:
-                    connector.obj.update()
+                    try:
+                        connector.obj.update()
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
         for port_name, connectorList in copy.copy(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
@@ -166,10 +175,10 @@ class FoldWithModule(Fold, NotCacheable):
 
                     self.setInputValues(module, nameInput, element)
 
-                module.update()
-                if hasattr(module, 'suspended') and module.suspended:
-                    suspended.append(module._module_suspended)
-                    module.suspended = False
+                try:
+                    module.update()
+                except ModuleSuspended, e:
+                    suspended.append(e)
                     continue
                 ## Getting the result from the output port
                 if nameOutput not in module.outputPorts:
@@ -178,9 +187,11 @@ class FoldWithModule(Fold, NotCacheable):
                 self.elementResult = copy.copy(module.get_output(nameOutput))
             self.operation()
         if suspended:
-            self.suspended = "%d module(s) suspended: %s" % (
-                    len(suspended), suspended[0].msg)
-            self._module_suspended = suspended
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended)/len(inputList)),
+                    children=suspended)
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -254,11 +265,6 @@ class FoldWithModule(Fold, NotCacheable):
 
         self.updateFunctionPort()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
 ###############################################################################
