@@ -61,6 +61,7 @@ import traceback
 import os.path
 import optparse
 from optparse import OptionParser
+import platform
 import shutil
 import tempfile
 
@@ -221,6 +222,27 @@ app.builderWindow.auto_view = False
 app.builderWindow.close_all_vistrails(True)
 
 print "Test Suite for VisTrails"
+print "Running on %s" % ', '.join(platform.uname())
+print "Python is %s" % sys.version
+try:
+    from PyQt4 import QtCore
+    print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
+except ImportError:
+    print "PyQt4 not available"
+for pkg in ('numpy', 'scipy', 'matplotlib'):
+    try:
+        ipkg = __import__(pkg, globals(), locals(), [], -1)
+        print "Using %s %s" % (pkg, ipkg.__version__)
+    except ImportError:
+        print "%s not available" % pkg
+try:
+    import vtk
+    print "Using vtk %s" % vtk.vtkVersion().GetVTKVersion()
+except ImportError:
+    print "vtk not available"
+
+
+print ""
 
 tests_passed = True
 
