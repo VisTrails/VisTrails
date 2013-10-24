@@ -128,7 +128,7 @@ class ExcelTestCase(unittest.TestCase):
             with intercept_result(ExcelSpreadsheet, 'column_count') as cols:
                 self.assertFalse(execute([
                         ('read|ExcelSpreadsheet', identifier, [
-                            ('file', [('File', self._test_dir + '/xl.xlsx')]),
+                            ('file', [('File', self._test_dir + '/xl.xls')]),
                             ('sheet_index', [('Integer', '1')]),
                             ('sheet_name', [('String', 'Feuil2')]),
                             ('header_present', [('Boolean', 'False')])
@@ -150,7 +150,7 @@ class ExcelTestCase(unittest.TestCase):
         """
         err = execute([
                 ('read|ExcelSpreadsheet', identifier, [
-                    ('file', [('File', self._test_dir + '/xl.xlsx')]),
+                    ('file', [('File', self._test_dir + '/xl.xls')]),
                     ('sheet_index', [('Integer', '0')]),
                     ('sheet_name', [('String', 'Feuil2')]),
                 ]),
@@ -166,7 +166,7 @@ class ExcelTestCase(unittest.TestCase):
         """
         err = execute([
                 ('read|ExcelSpreadsheet', identifier, [
-                    ('file', [('File', self._test_dir + '/xl.xlsx')]),
+                    ('file', [('File', self._test_dir + '/xl.xls')]),
                     ('sheet_name', [('String', 'Sheet12')]),
                 ]),
             ])
@@ -180,7 +180,7 @@ class ExcelTestCase(unittest.TestCase):
             with intercept_result(ExcelSpreadsheet, 'column_count') as cols:
                 self.assertFalse(execute([
                         ('read|ExcelSpreadsheet', identifier, [
-                            ('file', [('File', self._test_dir + '/xl.xlsx')]),
+                            ('file', [('File', self._test_dir + '/xl.xls')]),
                             ('sheet_name', [('String', 'Feuil1')]),
                             ('header_present', [('Boolean', 'True')])
                         ]),
@@ -204,7 +204,7 @@ class ExcelTestCase(unittest.TestCase):
             with intercept_result(ExcelSpreadsheet, 'column_count') as cols:
                 self.assertFalse(execute([
                         ('read|ExcelSpreadsheet', identifier, [
-                            ('file', [('File', self._test_dir + '/xl.xlsx')]),
+                            ('file', [('File', self._test_dir + '/xl.xls')]),
                             # Will default to first sheet
                             ('header_present', [('Boolean', 'True')])
                         ]),
