@@ -415,6 +415,9 @@ class Package(DBPackage):
         if not self._loaded:
             raise VistrailsInternalError("Called initialize() on non-loaded "
                                          "Package %s" % self.codepath)
+
+        self.check_requirements()
+
         try:
             name = self.prefix + self.codepath + '.init'
             try:
@@ -442,7 +445,6 @@ class Package(DBPackage):
                         setattr(self._init_module, attr, getattr(self._module, attr))
                 self._module = self._init_module
 
-            self.check_requirements()
             if hasattr(self._init_module, 'initialize'):
                 self._init_module.initialize()
         except Exception:

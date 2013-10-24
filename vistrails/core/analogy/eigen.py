@@ -44,16 +44,7 @@ from pipeline_utils import *
 from vistrails.core.utils import append_to_dict_of_lists
 from vistrails.core.system import temporary_directory
 
-try:
-    scipy = py_import('scipy', {
-            'pip': 'scipy',
-            'linux-debian': 'python-scipy',
-            'linux-ubuntu': 'python-scipy',
-            'linux-fedora': 'scipy'})
-    _analogies_available = True
-except ImportError:
-    _analogies_available = False
-
+import scipy
 
 
 ##############################################################################
