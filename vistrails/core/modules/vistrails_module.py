@@ -327,17 +327,22 @@ context."""
         results
         
         """
-        suspended = None
+        suspended = []
         for connectorList in self.inputPorts.itervalues():
             for connector in connectorList:
                 try:
                     connector.obj.update()
                 except ModuleSuspended, e:
-                    suspended = e
+                    suspended.append(e)
                 # Here we keep going even if one of the module suspended, but
                 # we'll stop right after the loop
-        if suspended is not None:
-            raise suspended
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
