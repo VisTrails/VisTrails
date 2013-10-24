@@ -51,7 +51,7 @@ from vistrails.core import debug
 from vistrails.core.db.action import create_action
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException
+    ModuleRegistryException, MissingPackage
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
@@ -3297,10 +3297,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             selected_module_ids = selected_items[0]
             selected_connection_ids = selected_items[1]
             if len(selected_module_ids) > 0:
-                dialog = QControlFlowAssistDialog(self, selected_module_ids, 
-                                                  selected_connection_ids, 
-                                                  currentScene)
-                dialog.exec_()
+                try:
+                    dialog = QControlFlowAssistDialog(
+                            self,
+                            selected_module_ids, selected_connection_ids,
+                            currentScene)
+                except MissingPackage:
+                    debug.critical("The controlflow package is not available")
+                else:
+                    dialog.exec_()
             else:
                 QtGui.QMessageBox.warning(
                         self,
