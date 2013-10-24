@@ -233,7 +233,7 @@ for pkg in ('numpy', 'scipy', 'matplotlib'):
         print "%s not available" % pkg
 try:
     import vtk
-    print "Using vtk %s" % vtk.VTK_VERSION
+    print "Using vtk %s" % vtk.vtkVersion().GetVTKVersion()
 except ImportError:
     print "vtk not available"
 
