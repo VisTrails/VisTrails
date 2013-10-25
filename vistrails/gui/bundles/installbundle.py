@@ -147,7 +147,7 @@ def linux_fedora_install(package_name):
 
     if qt:
         cmd = shell_escape(vistrails_root_directory() +
-                           '/gui/bundles/linux_debian_install.py')
+                           '/gui/bundles/linux_fedora_install.py')
     else:
         cmd = 'yum -y install'
 
