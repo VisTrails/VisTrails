@@ -32,6 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from datetime import date, datetime
+from time import strptime
+
 from vistrails.db import VistrailsDBException
 
 class SQLDAO:

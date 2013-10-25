@@ -32,6 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from datetime import date, datetime
+from time import strptime
+
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import get_db_lib
 from vistrails.core import debug
