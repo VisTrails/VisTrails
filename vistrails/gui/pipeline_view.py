@@ -59,6 +59,7 @@ from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import Workflow as JobWorkflow
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
@@ -2986,27 +2987,14 @@ class QPipelineScene(QInteractiveGraphicsScene):
         QtCore.QCoreApplication.processEvents()
 
     def set_module_suspended(self, moduleId, error):
-        """ set_module_suspended(moduleId: int, error: str) -> None
+        """ set_module_suspended(moduleId: int, error: str/instance) -> None
         Post an event to the scene (self) for updating the module color
         
         """
-        msg = error if isinstance(error, str) else error.msg
-        text = "Module is suspended, reason: %s" % msg
+        text = "Module is suspended, reason: %s" % error
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, text))
         QtCore.QCoreApplication.processEvents()
-        # add to suspended modules dialog
-        if isinstance(error, str):
-            return
-        from vistrails.gui.job_monitor import QJobView
-        jobView = QJobView.instance()
-        try:
-            result = jobView.add_job(self.controller, error)
-            if result:
-                jobView.set_visible(True)
-        except Exception, e:
-            import traceback
-            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
             
     def reset_module_colors(self):
         for module in self.modules.itervalues():
@@ -3148,9 +3136,13 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         if jobView.updating_now:
             debug.critical("Execution Aborted: Job Monitor is updating. Please wait a few seconds and try again.")
             return
-        jobView.delete_job(self.controller)
         jobView.updating_now = True
-
+        if not jobView.jobMonitor.currentWorkflow() and target is None:
+            # this is a new job
+            version_id = self.controller.current_version
+            url = self.controller.locator.to_url()
+            current_workflow = JobWorkflow(url, version_id)
+            jobView.jobMonitor.startWorkflow(current_workflow)
         try:
             modules = len(self.controller.current_pipeline.modules)
             progress = ExecutionProgressDialog(modules)
@@ -3173,6 +3165,8 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
                            traceback.format_exc())
         finally:
             self.scene().progress = None
+            if jobView.jobMonitor.currentWorkflow():
+                jobView.jobMonitor.finishWorkflow()
             jobView.updating_now = False
             from vistrails.gui.vistrails_window import _app
             _app.notify('execution_updated')

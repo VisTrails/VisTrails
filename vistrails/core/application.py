@@ -48,6 +48,7 @@ from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
+import vistrails.core.interpreter.job
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
@@ -479,6 +480,7 @@ after self.init()"""
 
     def finishSession(self):
         vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
+        vistrails.core.interpreter.job.JobMonitor.getInstance().save_to_file()
         
     def save_configuration(self):
         """ save_configuration() -> None

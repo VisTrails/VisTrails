@@ -1473,7 +1473,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             self._first_view = None
 
     def ensureController(self, controller):
-        """ ensureController(locator: VistrailController) -> QVistrailView        
+        """ ensureController(controller: VistrailController) -> QVistrailView        
         This will first find among the opened vistrails to see if
         controller is open. If not, it will try to open it if a locator exist.
 
@@ -1496,6 +1496,24 @@ class QVistrailsWindow(QVistrailViewWindow):
         if controller.locator:
             return self.open_vistrail(controller.locator)
         return None
+
+    def getViewFromLocator(self, locator):
+        """ getViewFromLocator(locator: VistrailLocator) -> QVistrailView        
+        This will find the view associated with the locator. If not, it will
+        return None.
+        
+        """
+        if locator is None:
+            return None
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if view.controller.vistrail.locator == locator:
+                return view
+        for (view, window) in self.windows.iteritems():
+            if view.controller.vistrail.locator == locator:
+                return view
+        return None
+
 
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
@@ -1529,10 +1547,6 @@ class QVistrailsWindow(QVistrailViewWindow):
     def remove_vistrail(self, locator):
         for view in copy.copy(self.vistrail_widgets):
             if view.controller.locator == locator:
-                from vistrails.gui.job_monitor import QJobView
-                jobView = QJobView.instance()
-                jobView.delete_job(view.controller, all=True)
-
                 view.closeDetachedViews()
                 self.remove_view(view)
                 self.vistrail_widgets.remove(view)

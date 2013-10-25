@@ -47,6 +47,7 @@ from vistrails.core.vistrail.vistrail import Vistrail
 import copy
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
+from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -370,12 +371,43 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             view.set_module_not_executed(i)
             num_pops = logger.finish_execution(obj,'', self.parent_execs)
 
+
+        def end_suspended(obj, error):
+            """ end_suspended(obj: VistrailsModule, error: ModuleSuspended
+                ) -> None
+                Report module as suspended
+            """
+            # update job monitor because this may be an oldStyle job
+            id = error.module.signature
+            jm = JobMonitor.getInstance()
+            name = ''
+            m = self._persistent_pipeline.modules[obj.id]
+            if '__desc__' in m.db_annotations_key_index:
+                name = m.get_annotation_by_key('__desc__').value.strip()
+            else:
+                reg = modules.module_registry.get_module_registry()
+                name = reg.get_descriptor(obj.__class__).name
+            print "end_suspended", id, name, error.children
+            if not error.children and not jm.hasJob(id):
+                # this is an old-style job that needs to be added
+                print "adding old-style job", name
+                jm.addJob(id, {'__message__':error.msg}, name)
+
+            # this may be an old job, new job, or the parent of the job
+            jm.checkJob(error.module, error.queue, error, name)
+
+        
         # views and loggers work on local ids
-        def end_update(obj, error='', errorTrace=None, was_suspended = False):
+        def end_update(obj, error='', errorTrace=None, was_suspended=False):
+            """ end_update(obj: VistrailsModule, error: string/ModuleError,
+                         errorTrace: None/string, was_suspended: bool) -> None
+                If was_suspended then error may be an ModuleSuspended instance
+            """
             i = get_remapped_id(obj.id)
             if was_suspended:
-                view.set_module_suspended(i, error)
+                end_suspended(obj, error)
                 error = error.msg
+                view.set_module_suspended(i, error)
             elif not error:
                 view.set_module_success(i)
             else:
