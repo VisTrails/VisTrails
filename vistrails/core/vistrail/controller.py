@@ -2915,7 +2915,7 @@ class VistrailController(object):
         process_missing_packages(root_exceptions)
         new_exceptions = []
         
-        dep_graph = pm.build_dependency_graph(missing_packages)
+        dep_graph = pm.build_dependency_graph(missing_packages.keys())
         # for identifier, err_list in missing_packages.iteritems():
         for identifier in pm.get_ordered_dependencies(dep_graph):
             # print 'testing identifier', identifier
@@ -2936,7 +2936,7 @@ class VistrailController(object):
                     if not report_all_errors:
                         raise new_e
             else:
-                if identifier in missing_packages:
+                if identifier in missing_packages.iterkeys():
                     for err in missing_packages[identifier]:
                         err._was_handled = True
             # else assume the package was already enabled

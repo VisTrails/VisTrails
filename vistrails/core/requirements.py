@@ -38,6 +38,7 @@ runtime components such as binaries, libraries, other python modules, etc."""
 import sys
 
 import vistrails.core.bundles.installbundle
+from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.system
 
 ##############################################################################
@@ -70,7 +71,9 @@ Returns if certain file is in current path and is executable."""
 
 def require_python_module(module_name, dep_dict=None):
     exists = python_module_exists(module_name)
-    if not exists and dep_dict:
+    if (not exists and
+            dep_dict and
+            getattr(get_vistrails_configuration(), 'installBundles')):
         vistrails.core.bundles.installbundle.install(dep_dict)
         exists = python_module_exists(module_name)
     if not exists:

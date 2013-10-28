@@ -283,9 +283,7 @@ def save_profile_to_disk(callable_, filename):
     callable_.profiler_object.dump_stats(filename)
 
 def save_all_profiles():
-    # This is internal because core.system imports core.utils... :/
-    import vistrails.core.system
-    td = vistrails.core.system.temporary_directory()
+    td = tempfile.gettempdir()
     for (name, method) in get_profiled_methods():
         fout = td + name + '.pyp'
         #print fout

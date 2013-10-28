@@ -41,6 +41,7 @@ QModuleTreeWidgetItem
 """
 from PyQt4 import QtCore, QtGui
 from vistrails.core import get_vistrails_application
+from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import systemType
 from vistrails.core.utils import VistrailsInternalError
@@ -289,27 +290,32 @@ class QModuleTreeWidget(QSearchTreeWidget):
             identifiers = [i for i, j in self.parent().packages.iteritems()
                            if j == weakref.ref(p)]
             if identifiers:
-                identifier = identifiers[0]
-                registry = get_module_registry()
-                package = registry.packages[identifier]
-                if package.has_contextMenuName():
-                    name = package.contextMenuName(str(item.text(0)))
-                    if name:
-                        act = QtGui.QAction(name, self)
-                        act.setStatusTip(name)
-                        def callMenu():
-                            if package.has_callContextMenu():
-                                name = package.callContextMenu(str(item.text(0)))
-                            
-                        QtCore.QObject.connect(act,
-                                               QtCore.SIGNAL("triggered()"),
-                                               callMenu)
-                        menu = QtGui.QMenu(self)
-                        menu.addAction(act)
-                        menu.exec_(event.globalPos())
-                    return
+                try:
+                    identifier = identifiers[0]
+                    registry = get_module_registry()
+                    package = registry.packages[identifier]
+                    if package.has_contextMenuName():
+                        name = package.contextMenuName(str(item.text(0)))
+                        if name:
+                            act = QtGui.QAction(name, self)
+                            act.setStatusTip(name)
+                            def callMenu():
+                                if package.has_callContextMenu():
+                                    name = package.callContextMenu(str(item.text(0)))
 
-                    
+                            QtCore.QObject.connect(act,
+                                                   QtCore.SIGNAL("triggered()"),
+                                                   callMenu)
+                            menu = QtGui.QMenu(self)
+                            menu.addAction(act)
+                            menu.exec_(event.globalPos())
+                        return
+                except Exception, e:
+                    debug.warning("Got exception trying to display %s's "
+                                  "context menu in the palette: %s: %s" % (
+                                  package.name,
+                                  type(e).__name__, ', '.join(e.args)))
+
             item.contextMenuEvent(event, self)
 
     def startDrag(self, actions):
