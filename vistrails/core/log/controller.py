@@ -201,15 +201,6 @@ class LogWorkflowController(LogController):
         else:
             self.workflow_exec.completed = 1
 
-    def add_exec(self, exec_, parent_exec=None):
-        """Adds a completed execution object to the log.
-        """
-        print "LogWorkflowController#add_exec(%r, parent_exec=%r)" % (exec_, parent_exec)
-        if parent_exec is not None:
-            parent_exec.add_item_exec(exec_)
-        else:
-            self.workflow_exec.add_item_exec(exec_)
-
     def start_execution(self, module, module_id, module_name, cached=0):
         """Signals the start of the execution of a module (before compute).
         """
