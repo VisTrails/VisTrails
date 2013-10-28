@@ -325,10 +325,7 @@ class LogWorkflowController(LogController):
             annotation = Annotation(id=a_id,
                                     key=k,
                                     value=v)
-            if hasattr(module, 'is_group'):
-                module.group_exec.add_annotation(annotation)
-            else:
-                module.module_exec.add_annotation(annotation)
+            module.module_exec.add_annotation(annotation)
 
     def insert_workflow_exec_annotations(self, a_dict):
         """Adds an annotation on the whole workflow log object.
