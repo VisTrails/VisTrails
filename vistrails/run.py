@@ -111,6 +111,10 @@ if __name__ == '__main__':
     disable_lion_restore()
     enable_user_base()
 
+    # Load the default locale (from environment)
+    import locale
+    locale.setlocale(locale.LC_ALL, '')
+
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
 

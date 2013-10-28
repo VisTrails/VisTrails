@@ -55,6 +55,7 @@ import unittest
 
 import atexit
 #import doctest
+import locale
 import os
 import traceback
 import os.path
@@ -164,11 +165,15 @@ parser.add_option("--installbundles", action='store_true',
 parser.add_option("-S", "--startup", action="store", type="str", default=None,
                   dest="dotVistrails",
                   help="Set startup file (default is temporary directory)")
+parser.add_option('-L', '--locale', action='store', type='str', default='',
+                  dest='locale',
+                  help="set locale to this string")
 
 (options, args) = parser.parse_args()
 # remove empty strings
 args = filter(len, args)
 verbose = options.verbose
+locale.setlocale(locale.LC_ALL, options.locale or '')
 test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles
@@ -218,6 +223,7 @@ app.builderWindow.auto_view = False
 app.builderWindow.close_all_vistrails(True)
 
 print "Test Suite for VisTrails"
+print "Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(locale, s), None)) for s in ('LC_ALL', 'LC_TIME'))
 print "Running on %s" % ', '.join(platform.uname())
 print "Python is %s" % sys.version
 try:

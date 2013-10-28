@@ -42,10 +42,11 @@ import os
 import shutil
 import subprocess
 import tempfile
-import time
 
+from vistrails.core.system import time_strptime
 from vistrails.core.system.unix import executable_is_in_path, list2cmdline, \
      execute_cmdline, execute_piped_cmdlines, execute_cmdline2
+import vistrails.core.utils
 
 
 __all__ = ['executable_is_in_path', 'list2cmdline',
@@ -116,7 +117,7 @@ class OSXSystemProfiler(object):
             return float(self._content(node))
         elif node.tag == 'date': #  <date>2004-07-05T13:29:29Z</date>
             return datetime.datetime(
-                *time.strptime(self._content(node), '%Y-%m-%dT%H:%M:%SZ')[:5])
+                *time_strptime(self._content(node), '%Y-%m-%dT%H:%M:%SZ')[:5])
         elif node.tag == 'array':
             return [self._convert_value_node(n) for n in node.getchildren()]
         elif node.tag == 'dict':
