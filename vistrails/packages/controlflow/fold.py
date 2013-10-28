@@ -149,7 +149,6 @@ class FoldWithModule(Fold, NotCacheable):
         else:
             element_is_iter = True
             inputList = rawInputList
-        suspended = []
         ## Update everything for each value inside the list
         for i, element in enumerate(inputList):
             if element_is_iter:
@@ -175,23 +174,13 @@ class FoldWithModule(Fold, NotCacheable):
 
                     self.setInputValues(module, nameInput, element)
 
-                try:
-                    module.update()
-                except ModuleSuspended, e:
-                    suspended.append(e)
-                    continue
+                module.update()
                 ## Getting the result from the output port
                 if nameOutput not in module.outputPorts:
                     raise ModuleError(module,
                                       'Invalid output port: %s' % nameOutput)
                 self.elementResult = copy.copy(module.get_output(nameOutput))
             self.operation()
-        if suspended:
-            raise ModuleSuspended(
-                    self,
-                    "function module suspended in %d/%d iterations" % (
-                            len(suspended)/len(inputList)),
-                    children=suspended)
 
     def setInputValues(self, module, inputPorts, elementList):
         """
