@@ -79,6 +79,9 @@ class LogController(object):
     def __init__(self, log):
         self.log = log
         self.machine = copy.copy(self.local_machine)
+        self.module_execs = {}      # vistrails_module -> *Exec
+        self.parent_execs = {}      # vistrails_module -> *Exec
+        self.children_execs = {}    # vistrails_module -> [*Exec]
         for machine in self.log.machine_list:
             if self.machine.equals_no_id(machine):
                 self.machine = machine
@@ -132,9 +135,6 @@ class LogController(object):
                                      vistrail, pipeline, currentVersion)
 
 
-# TODO : store module_exec, parent_exec, children_exec in dicts here instead
-# of using Module attributes
-
 class LogWorkflowController(LogController):
     """A log controller for a specific workflow execution.
 
@@ -146,10 +146,9 @@ class LogWorkflowController(LogController):
         before starting the execution. Through it, the module can log events.
       * the interpreter directly uses the logger to record exceptions from the
         pipeline
-      * the logger sets the 'module_exec', 'parent_exec' and 'children_exec' on
-        modules while they are executing:
-         - module_exec is the execution entry for that module
-         - parent_exec is set via other modules to remember where the soon-to-
+      * while they are executing, the logger keeps a table mapping a Module to:
+         - module_execs has the execution entry for that module
+         - parent_execs is set via other modules to remember where the soon-to-
            be-created module_exec should be added (for example, loop modules
            and Group sets parent_exec on their dependent modules). If
            parent_exec is not set, the parent exec or WorkflowExec will be used
@@ -212,14 +211,14 @@ class LogWorkflowController(LogController):
         else:
             module_exec = self._create_module_exec(module, module_id,
                                                    module_name, cached)
-        if module.module_exec is not None:
-            print "  oops! module already has module_exec %r ; overwriting!" % module.module_exec
-        module.module_exec = module_exec
-        print "  .module_exec=%r" % module_exec
-        for parent_exec in (module.parent_exec, self.parent_exec,
+        if module in self.module_execs is not None:
+            print "  oops! module already has module_exec %r ; overwriting!" % self.module_execs[module]
+        self.module_execs[module] = module_exec
+        print "  module_execs[]=%r" % module_exec
+        for parent_exec in (self.parent_execs.get(module), self.parent_exec,
                             self.workflow_exec):
             if parent_exec is not None:
-                if parent_exec is module.parent_exec:
+                if parent_exec is self.parent_execs.get(module):
                     print "  adding to module's parent_exec %r" % parent_exec
                 elif parent_exec is self.parent_exec:
                     print "  adding to controller's parent_exec %r" % parent_exec
@@ -236,9 +235,9 @@ class LogWorkflowController(LogController):
         print "LogWorkflowController#start_loop_execution(loop_module=%r, looped_module=%r, %r, %r)" % (
                 loop_module, looped_module, iteration, total_iterations)
         loop_exec = self._create_loop_exec(iteration)
-        for parent_exec in (loop_module.parent_exec, self.parent_exec):
+        for parent_exec in (self.parent_execs.get(loop_module), self.parent_exec):
             if parent_exec is not None:
-                if parent_exec is loop_module.parent_exec:
+                if parent_exec is self.parent_execs.get(loop_module):
                     print "  adding LoopExec to loop_module's parent_exec %r" % parent_exec
                 else:
                     print "  adding LoopExec to controller's parent_exec" % parent_exec
@@ -247,17 +246,16 @@ class LogWorkflowController(LogController):
         else:
             print "  adding to workflow_exec %r" % self.workflow_exec
             self.workflow_exec.add_item_exec(loop_exec)
-        looped_module.parent_exec = loop_exec
-        loop_module.children_exec.add(loop_exec)
+        self.parent_execs[looped_module] = loop_exec
+        self.children_execs.setdefault(loop_module, set()).add(loop_exec)
 
     def finish_loop_execution(self, loop_module, looped_module, error, suspended=False):
         """Signals that we are done looping.
         """
         print "LogWorkflowController#finish_loop_execution(loop_module=%r, looping_module=%r)" % (
                 loop_module, looped_module)
-        loop_exec = looped_module.parent_exec
+        loop_exec = self.parent_execs.pop(looped_module)
         assert loop_exec is not None
-        looped_module.parent_exec = None
 
         loop_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
@@ -268,7 +266,7 @@ class LogWorkflowController(LogController):
         else:
             loop_exec.completed = -1
             loop_exec.error = error
-        loop_module.children_exec.remove(loop_exec)
+        self.children_execs.setdefault(loop_module, set()).discard(loop_exec)
 
     def finish_execution(self, module, error, errorTrace=None, suspended=False):
         """Signals the end of the execution of a module.
@@ -278,26 +276,24 @@ class LogWorkflowController(LogController):
         """
         print "LogWorkflowController#finish_execution(module=%r, error=%r, suspended=%r" % (
                 module, error, suspended)
-        assert (hasattr(module, 'module_exec') and
-                module.module_exec is not None)
-        module.module_exec.ts_end = vistrails.core.system.current_time()
+        module_exec = self.module_execs.pop(module)
+        module_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
-            module.module_exec.completed = -2
-            module.module_exec.error = error
+            module_exec.completed = -2
+            module_exec.error = error
         elif error:
-            module.module_exec.completed = -1
-            module.module_exec.error = error
+            module_exec.completed = -1
+            module_exec.error = error
             if errorTrace:
                 a_id = self.log.id_scope.getNewId(Annotation.vtType)
                 annotation = Annotation(id=a_id,
                                         key="errorTrace",
                                         value=errorTrace)
-                module.module_exec.add_annotation(annotation)
+                module_exec.add_annotation(annotation)
         else:
-            module.module_exec.completed = 1
-        module.module_exec = None
+            module_exec.completed = 1
 
-        for child in module.children_exec:
+        for child in self.children_execs.pop(module, ()):
             child.ts_end = vistrails.core.system.current_time()
             if suspended:
                 child.completed = -2
@@ -316,7 +312,7 @@ class LogWorkflowController(LogController):
             annotation = Annotation(id=a_id,
                                     key=k,
                                     value=v)
-            module.module_exec.add_annotation(annotation)
+            self.module_execs[module].add_annotation(annotation)
 
     def insert_workflow_exec_annotations(self, a_dict):
         """Adds an annotation on the whole workflow log object.

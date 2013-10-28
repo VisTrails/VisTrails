@@ -279,10 +279,6 @@ Designing New Modules
         # used for the logging stuff
         self.computed = False
 
-        self.module_exec = None
-        self.parent_exec = None
-        self.children_exec = set()
-
         self.signature = None
 
         # stores whether the output of the module should be annotated in the
