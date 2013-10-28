@@ -46,20 +46,28 @@ from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 import vistrails.core.system
 
+
 @apply
 class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
-    def start_workflow_execution(self, *args, **kwargs): pass
+    def start_workflow_execution(self, *args, **kwargs): return self
     def finish_workflow_execution(self, *args, **kwargs): pass
+    def add_exec(self, *args, **kwargs): pass
     def start_execution(self, *args, **kwargs): pass
+    def start_loop_execution(self, *args, **kwargs): pass
+    def finish_loop_execution(self, *args, **kwargs): pass
     def finish_execution(self, *args, **kwargs): pass
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
-    def add_exec(self, *args, **kwargs): pass
     def __call__(self): return self
 
+
 class LogController(object):
+    """The top-level log controller.
+
+    This holds a log.
+    """
     local_machine = Machine(
             id=-1,
             name=vistrails.core.system.current_machine(),
@@ -70,7 +78,6 @@ class LogController(object):
 
     def __init__(self, log):
         self.log = log
-        self.workflow_exec = None
         self.machine = copy.copy(self.local_machine)
         for machine in self.log.machine_list:
             if self.machine.equals_no_id(machine):
@@ -80,57 +87,8 @@ class LogController(object):
             self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
             self.log.add_machine(self.machine)
 
-    def start_workflow_execution(self, vistrail=None, pipeline=None,
-                                 currentVersion=None):
-        """Signals the start of the execution of a pipeline.
-        """
-        if vistrail is not None:
-            parent_type = Vistrail.vtType
-            parent_id = vistrail.id
-        else:
-            parent_type = Pipeline.vtType
-            parent_id = pipeline.id
-
-        wf_exec_id = self.log.id_scope.getNewId(WorkflowExec.vtType)
-        if vistrail is not None:
-            session = vistrail.current_session
-        else:
-            session = None
-        self.workflow_exec = WorkflowExec(
-                id=wf_exec_id,
-                user=vistrails.core.system.current_user(),
-                ip=vistrails.core.system.current_ip(),
-                vt_version=vistrails.core.system.vistrails_version(),
-                ts_start=vistrails.core.system.current_time(),
-                parent_type=parent_type,
-                parent_id=parent_id,
-                parent_version=currentVersion,
-                completed=0,
-                session=session)
-        self.log.add_workflow_exec(self.workflow_exec)
-
-    def finish_workflow_execution(self, errors, suspended=False):
-        """Signals the end of the execution of a pipeline.
-        """
-        self.workflow_exec.ts_end = vistrails.core.system.current_time()
-        if suspended:
-            self.workflow_exec.completed = -2
-        elif len(errors) > 0:
-            self.workflow_exec.completed = -1
-        else:
-            self.workflow_exec.completed = 1
-
-    def add_exec(self, exec_, parent_execs):
-        """Adds an execution object to the log.
-        """
-        parent_exec = parent_execs[-1]
-        if parent_exec:
-            parent_exec.add_item_exec(exec_)
-        else:
-            self.workflow_exec.add_item_exec(exec_)
-
     def _create_module_exec(self, module, module_id, module_name,
-                           cached):
+                            cached):
         m_exec_id = self.log.id_scope.getNewId(ModuleExec.vtType)
         module_exec = ModuleExec(id=m_exec_id,
                                  machine_id=self.machine.id,
@@ -164,135 +122,152 @@ class LogController(object):
                              ts_start=vistrails.core.system.current_time())
         return loop_exec
 
-    def start_execution(self, module, module_id, module_name, parent_execs,
-                        cached=0):
+    def start_workflow_execution(self, parent_exec,
+                                 vistrail=None, pipeline=None,
+                                 currentVersion=None):
+        """Signals the start of the execution of a pipeline.
+        """
+        print "LogController#start_workflow_execution()"
+        return LogWorkflowController(self.log, parent_exec,
+                                     vistrail, pipeline, currentVersion)
+
+
+# TODO : store module_exec, parent_exec, children_exec in dicts here instead
+# of using Module attributes
+
+class LogWorkflowController(LogController):
+    """A log controller for a specific workflow execution.
+
+    You get one of these by calling LogController#start_workflow_execution().
+    You can then add execution items through it.
+
+    How does this work:
+      * the interpreter sets a 'logging' attribute on summoned Module objects
+        before starting the execution. Through it, the module can log events.
+      * the interpreter directly uses the logger to record exceptions from the
+        pipeline
+      * the logger sets the 'module_exec', 'parent_exec' and 'children_exec' on
+        modules while they are executing:
+         - module_exec is the execution entry for that module
+         - parent_exec is set via other modules to remember where the soon-to-
+           be-created module_exec should be added (for example, loop modules
+           and Group sets parent_exec on their dependent modules). If
+           parent_exec is not set, the parent exec or WorkflowExec will be used
+         - children_exec is a list of ongoing exec items, children of
+           module_exec, such as LoopExec. They are kept their to be marked as
+           finished with the same error as the module if it fails before they
+           end
+    """
+    def __init__(self, log, parent_exec, vistrail=None, pipeline=None,
+                 currentVersion=None):
+        super(LogWorkflowController, self).__init__(log)
+        self.parent_exec = parent_exec
+
+        if vistrail is not None:
+            parent_type = Vistrail.vtType
+            parent_id = vistrail.id
+        else:
+            parent_type = Pipeline.vtType
+            parent_id = pipeline.id
+
+        wf_exec_id = self.log.id_scope.getNewId(WorkflowExec.vtType)
+        if vistrail is not None:
+            session = vistrail.current_session
+        else:
+            session = None
+        self.workflow_exec = WorkflowExec(
+                id=wf_exec_id,
+                user=vistrails.core.system.current_user(),
+                ip=vistrails.core.system.current_ip(),
+                vt_version=vistrails.core.system.vistrails_version(),
+                ts_start=vistrails.core.system.current_time(),
+                parent_type=parent_type,
+                parent_id=parent_id,
+                parent_version=currentVersion,
+                completed=0,
+                session=session)
+        print "LogWorkflowController() [self=%r, adding workflow_exec %r %d" % (self, self.workflow_exec, wf_exec_id)
+        self.log.add_workflow_exec(self.workflow_exec)
+
+    def finish_workflow_execution(self, errors, suspended=False):
+        """Signals the end of the execution of a pipeline.
+        """
+        print "LogWorkflowController#finish_workflow_execution(errors=%r, suspended=%r)" % (errors, suspended)
+        self.workflow_exec.ts_end = vistrails.core.system.current_time()
+        if suspended:
+            self.workflow_exec.completed = -2
+        elif len(errors) > 0:
+            self.workflow_exec.completed = -1
+        else:
+            self.workflow_exec.completed = 1
+
+    def add_exec(self, exec_, parent_exec=None):
+        """Adds a completed execution object to the log.
+        """
+        print "LogWorkflowController#add_exec(%r, parent_exec=%r)" % (exec_, parent_exec)
+        if parent_exec is not None:
+            parent_exec.add_item_exec(exec_)
+        else:
+            self.workflow_exec.add_item_exec(exec_)
+
+    def start_execution(self, module, module_id, module_name, cached=0):
         """Signals the start of the execution of a module (before compute).
         """
-        parent_exec = parent_execs[-1]
-        if module.is_looping:
-            parent_exec = self._start_loop_execution(module, module_id,
-                                                    module_name,
-                                                    parent_exec, cached,
-                                                    module.loop_iteration)
-            parent_execs.append(parent_exec)
-
+        print "LogWorkflowController#start_execution(module=%r, module_id=%r, module_name=%r, cached=%r)" % (
+                module, module_id, module_name, cached)
         if isinstance(module, Group):
-            ret = self._start_group_execution(module, module_id, module_name,
-                                             parent_exec, cached)
-            if ret is not None:
-                parent_execs.append(ret)
+            module_exec = self._create_group_exec(module, module_id,
+                                                 module_name, cached)
         else:
-            ret = self._start_module_execution(module, module_id, module_name,
-                                              parent_exec, cached)
-            if ret is not None:
-                parent_execs.append(ret)
-
-    def finish_execution(self, module, error, parent_execs, errorTrace=None,
-                         suspended=False):
-        """Signals the end of the execution of a module.
-
-        Called by a module after succeeded of suspended, or called by the
-        interpreter after an exception.
-        """
-        if isinstance(module, Group):
-            if self._finish_group_execution(module, error, suspended):
-                parent_execs.pop()
-        else:
-            if self._finish_module_execution(module, error, errorTrace, suspended):
-                parent_execs.pop()
-        if module.is_looping:
-            self._finish_loop_execution(module, error, parent_execs.pop(), suspended)
-
-    def _start_module_execution(self, module, module_id, module_name,
-                               parent_exec, cached):
-        """Called by start_execution() for regular modules.
-        """
-        module_exec = self._create_module_exec(module, module_id,
-                                              module_name,
-                                              cached)
+            module_exec = self._create_module_exec(module, module_id,
+                                                   module_name, cached)
+        if module.module_exec is not None:
+            print "  oops! module already has module_exec %r ; overwriting!" % module.module_exec
         module.module_exec = module_exec
-        if parent_exec:
-            parent_exec.add_item_exec(module_exec)
-        else:
-            self.workflow_exec.add_item_exec(module_exec)
-        if module.is_looping_module:
-            return module_exec
-        return None
+        print "  .module_exec=%r" % module_exec
+        for parent_exec in (module.parent_exec, self.parent_exec,
+                            self.workflow_exec):
+            if parent_exec is not None:
+                if parent_exec is module.parent_exec:
+                    print "  adding to module's parent_exec %r" % parent_exec
+                elif parent_exec is self.parent_exec:
+                    print "  adding to controller's parent_exec %r" % parent_exec
+                else:
+                    print "  adding to workflow_exec %r" % parent_exec
+                parent_exec.add_item_exec(module_exec)
+                return
+        assert False
 
-    def _finish_module_execution(self, module, error, errorTrace=None,
-                                suspended=False):
-        """Called by finish_execution() for regular modules.
+    def start_loop_execution(self, loop_module, looped_module,
+                             iteration, total_iterations=None):
+        """Registers a looped module.
         """
-        if not hasattr(module, 'module_exec'):
-            return False
-        module.module_exec.ts_end = vistrails.core.system.current_time()
-        if suspended:
-            module.module_exec.completed = -2
-            module.module_exec.error = error
-        elif not error:
-            module.module_exec.completed = 1
-        else:
-            module.module_exec.completed = -1
-            module.module_exec.error = error
-            if errorTrace:
-                a_id = self.log.id_scope.getNewId(Annotation.vtType)
-                annotation = Annotation(id=a_id,
-                                        key="errorTrace",
-                                        value=errorTrace)
-                module.module_exec.add_annotation(annotation)
-        del module.module_exec
-        if module.is_looping_module:
-            return True
-
-    def _start_group_execution(self, group, module_id, group_name,
-                              parent_exec, cached):
-        """Called by start_execution() for groups.
-        """
-        group_exec = self._create_group_exec(group, module_id,
-                                            group_name, cached)
-        group.group_exec = group_exec
-        if parent_exec:
-            parent_exec.add_item_exec(group_exec)
-        else:
-            self.workflow_exec.add_item_exec(group_exec)
-        return group_exec
-
-    def _finish_group_execution(self, group, error, suspended=False):
-        """Called by finish_execution() for groups.
-        """
-        if not hasattr(group, 'group_exec'):
-            return False
-        group.group_exec.ts_end = vistrails.core.system.current_time()
-        if suspended:
-            group.group_exec.completed = -2
-            group.group_exec.error = error
-        elif not error:
-            group.group_exec.completed = 1
-        else:
-            group.group_exec.completed = -1
-            group.group_exec.error = error
-        del group.group_exec
-        return True
-
-    def _start_loop_execution(self, module, module_id, module_name,
-                             parent_exec, cached, iteration):
-        """Called by start_execution() for modules on which is_looping is set.
-
-        The module that acts as a loop sets is_looping on the module it's
-        executing beforehand, so this method can create a LoopExec object.
-        """
+        print "LogWorkflowController#start_loop_execution(loop_module=%r, looped_module=%r, %r, %r)" % (
+                loop_module, looped_module, iteration, total_iterations)
         loop_exec = self._create_loop_exec(iteration)
-        if parent_exec:
-            parent_exec.add_loop_exec(loop_exec)
+        for parent_exec in (loop_module.parent_exec, self.parent_exec):
+            if parent_exec is not None:
+                if parent_exec is loop_module.parent_exec:
+                    print "  adding LoopExec to loop_module's parent_exec %r" % parent_exec
+                else:
+                    print "  adding LoopExec to controller's parent_exec" % parent_exec
+                parent_exec.add_loop_exec(loop_exec)
+                break
         else:
+            print "  adding to workflow_exec %r" % self.workflow_exec
             self.workflow_exec.add_item_exec(loop_exec)
-        return loop_exec
+        looped_module.parent_exec = loop_exec
+        loop_module.children_exec.add(loop_exec)
 
-    def _finish_loop_execution(self, module, error, loop_exec, suspended=True):
-        """Called by finish_execution() for modules on which is_looping is set.
+    def finish_loop_execution(self, loop_module, looped_module, error, suspended=False):
+        """Signals that we are done looping.
         """
-        if not loop_exec:
-            return False
+        print "LogWorkflowController#finish_loop_execution(loop_module=%r, looping_module=%r)" % (
+                loop_module, looped_module)
+        loop_exec = looped_module.parent_exec
+        assert loop_exec is not None
+        looped_module.parent_exec = None
+
         loop_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             loop_exec.completed = -2
@@ -302,7 +277,45 @@ class LogController(object):
         else:
             loop_exec.completed = -1
             loop_exec.error = error
-        return True
+        loop_module.children_exec.remove(loop_exec)
+
+    def finish_execution(self, module, error, errorTrace=None, suspended=False):
+        """Signals the end of the execution of a module.
+
+        Called by a module after succeeded of suspended, or called by the
+        interpreter after an exception.
+        """
+        print "LogWorkflowController#finish_execution(module=%r, error=%r, suspended=%r" % (
+                module, error, suspended)
+        assert (hasattr(module, 'module_exec') and
+                module.module_exec is not None)
+        module.module_exec.ts_end = vistrails.core.system.current_time()
+        if suspended:
+            module.module_exec.completed = -2
+            module.module_exec.error = error
+        elif error:
+            module.module_exec.completed = -1
+            module.module_exec.error = error
+            if errorTrace:
+                a_id = self.log.id_scope.getNewId(Annotation.vtType)
+                annotation = Annotation(id=a_id,
+                                        key="errorTrace",
+                                        value=errorTrace)
+                module.module_exec.add_annotation(annotation)
+        else:
+            module.module_exec.completed = 1
+        module.module_exec = None
+
+        for child in module.children_exec:
+            child.ts_end = vistrails.core.system.current_time()
+            if suspended:
+                child.completed = -2
+                child.error = error
+            elif not error:
+                child.completed = 1
+            else:
+                child.completed = -1
+                child.error = error
 
     def insert_module_annotations(self, module, a_dict):
         """Adds an annotation on the execution object for this module.

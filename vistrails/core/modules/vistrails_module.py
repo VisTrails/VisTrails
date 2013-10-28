@@ -275,18 +275,16 @@ Designing New Modules
 
         self.is_breakpoint = False
 
-        # is_looping stores wether the module is a part of a loop
-        self.is_looping = False
-
-        # is_looping_module stores whether the module is a looping module
-        self.is_looping_module = False
-
         # computed stores wether the module was computed
         # used for the logging stuff
         self.computed = False
 
+        self.module_exec = None
+        self.parent_exec = None
+        self.children_exec = set()
+
         self.signature = None
-        
+
         # stores whether the output of the module should be annotated in the
         # execution log
         self.annotate_output = False

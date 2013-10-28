@@ -57,17 +57,11 @@ import vistrails.core.vistrail.pipeline
 
 class ViewUpdatingLogController(object):
     def __init__(self, logger, view, remap_id,
-            parent_execs=None,
-            module_executed_hook=[]):
+                 module_executed_hook=[]):
         self.log = logger
         self.view = view
 
         self.remap_id = remap_id
-
-        if parent_execs is not None:
-            self.parent_execs = parent_execs
-        else:
-            self.parent_execs = []
 
         self.module_executed_hook = module_executed_hook
 
@@ -98,9 +92,7 @@ class ViewUpdatingLogController(object):
         reg = modules.module_registry.get_module_registry()
         module_name = reg.get_descriptor(obj.__class__).name
 
-        # !!!self.parent_execs is mutated!!!
-        self.log.start_execution(obj, i, module_name,
-                                 parent_execs=self.parent_execs)
+        self.log.start_execution(obj, i, module_name)
 
     def update_progress(self, obj, percentage=0.0):
         i = self.remap_id(obj.id)
@@ -116,8 +108,7 @@ class ViewUpdatingLogController(object):
         else:
             self.view.set_module_error(i, error)
 
-        # !!!self.parent_execs is mutated!!!
-        self.log.finish_execution(obj, error, self.parent_execs, errorTrace,
+        self.log.finish_execution(obj, error, errorTrace,
                                   was_suspended)
 
     def update_cached(self, obj):
@@ -127,19 +118,20 @@ class ViewUpdatingLogController(object):
         reg = modules.module_registry.get_module_registry()
         module_name = reg.get_descriptor(obj.__class__).name
 
-        # !!!self.parent_execs is mutated!!!
         self.log.start_execution(obj, i, module_name,
-                                 parent_execs=self.parent_execs,
                                  cached=1)
         self.view.set_module_not_executed(i)
-        self.log.finish_execution(obj,'', self.parent_execs)
+        self.log.finish_execution(obj, '')
 
     def set_computing(self, obj):
         i = self.remap_id(obj.id)
         self.view.set_module_computing(i)
 
-    def add_exec(self, exec_):
-        self.log.add_exec(exec_, self.parent_execs)
+    def add_exec(self, exec_, parent):
+        if parent is not None:
+            self.log.add_exec(exec_, parent.module_exec)
+        else:
+            self.log.add_exec(exec_)
 
     def annotate(self, obj, d):
         self.log.insert_module_annotations(obj, d)
@@ -236,6 +228,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
+        parent_exec = fetch('parent_exec', None)
 
         reg = modules.module_registry.get_module_registry()
 
@@ -392,6 +385,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
         stop_on_error = fetch('stop_on_error', True)
+        parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -405,7 +399,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 logger=logger,
                 view=view,
                 remap_id=get_remapped_id,
-                parent_execs=self.parent_execs,
                 module_executed_hook=module_executed_hook)
 
         # PARAMETER CHANGES SETUP
@@ -610,12 +603,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         # that positional parameter calls fail earlier
         new_kwargs = {}
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            new_kwargs[name] = r
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
+            new_kwargs[name] = r = kwargs.pop(name, default)
             return r
         controller = fetch('controller', None)
         locator = fetch('locator', None)
@@ -632,6 +620,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
+        parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -652,12 +641,13 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         else:
             vistrail = None
 
-        self.parent_execs = [None]
-        logger.start_workflow_execution(vistrail, pipeline, current_version)
+        logger = logger.start_workflow_execution(
+                parent_exec,
+                vistrail, pipeline, current_version)
+        new_kwargs['logger'] = logger
         self.annotate_workflow_execution(logger, reason, aliases, params)
         result = self.unlocked_execute(pipeline, **new_kwargs)
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
-        self.parent_execs = [None]
 
         return result
 
