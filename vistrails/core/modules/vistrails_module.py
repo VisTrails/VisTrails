@@ -98,21 +98,20 @@ error and the error message as a string."""
         self.errorTrace = traceback.format_exc()
 
 class ModuleSuspended(ModuleError):
-    """Exception representing a VisTrails module being suspended. Raising 
-    ModuleSuspended flags that the module is not ready to finish yet and
-    that the workflow should be executed later.  A suspended module does
-    not execute the modules downstream but all other branches will be
-    executed. This is useful when executing external jobs where you do not
-    want to block vistrails while waiting for the execution to finish.
+    """Exception representing a VisTrails module being suspended.
+
+    Raising ModuleSuspended flags that the module is not ready to finish yet
+    and that the workflow should be executed later.
+    This is useful when executing external jobs where you do not want to block
+    vistrails while waiting for the execution to finish.
 
     'queue' is a class instance that should provide a finished() method for
     checking if the job has finished
 
     'children' is a list of ModuleSuspended instances that is used for nested
     modules
-    
     """
-    
+
     def __init__(self, module, errormsg, queue=None, children=None):
         self.queue = queue
         self.children = children
@@ -285,8 +284,6 @@ Designing New Modules
         # computed stores wether the module was computed
         # used for the logging stuff
         self.computed = False
-        
-        self.suspended = False
 
         self.signature = None
         
@@ -318,10 +315,7 @@ context."""
         # update single port
         if port in self.inputPorts:
             for connector in self.inputPorts[port]:
-                connector.obj.update()
-                if hasattr(connector.obj, 'suspended') and \
-                   connector.obj.suspended:
-                    self.suspended = connector.obj.suspended
+                connector.obj.update() # Might raise
             for connector in copy.copy(self.inputPorts[port]):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(port, connector)
@@ -333,17 +327,27 @@ context."""
         results
         
         """
+        suspended = []
         for connectorList in self.inputPorts.itervalues():
             for connector in connectorList:
-                connector.obj.update()
-                if hasattr(connector.obj, 'suspended') and \
-                   connector.obj.suspended:
-                    self.suspended = connector.obj.suspended
+                try:
+                    connector.obj.update()
+                except ModuleSuspended, e:
+                    suspended.append(e)
+                # Here we keep going even if one of the module suspended, but
+                # we'll stop right after the loop
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(iport, connector)
-                    
+
     def update(self):
         """ update() -> None        
         Check if the module is up-to-date then update the
@@ -356,9 +360,6 @@ context."""
             return
         self.logging.begin_update(self)
         self.updateUpstream()
-        if self.suspended:
-            self.had_error = True
-            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
@@ -372,17 +373,12 @@ context."""
             self.compute()
             self.computed = True
         except ModuleSuspended, e:
-            self.suspended = e.msg
-            self._module_suspended = e
-            self.logging.end_update(self, e, was_suspended=True)
-            self.logging.signalSuspended(self)
-            return
+            raise
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
                 raise
             else:
-                msg = "A dynamic module raised an exception: '%s'"
-                msg %= str(me)
+                msg = "A dynamic module raised an exception: '%s'" % me
                 raise ModuleError(self, msg)
         except ModuleErrors:
             raise

@@ -48,7 +48,7 @@ from vistrails.core.log.controller import DummyLogController
 from vistrails.core import modules
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
-    ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors
+    ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors, ModuleSuspended
 from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -58,8 +58,7 @@ import vistrails.core.vistrail.pipeline
 class ViewUpdatingLogController(object):
     def __init__(self, logger, view, remap_id,
             parent_execs=None,
-            module_executed_hook=[],
-            module_suspended_hook=[]):
+            module_executed_hook=[]):
         self.log = logger
         self.view = view
 
@@ -71,7 +70,6 @@ class ViewUpdatingLogController(object):
             self.parent_execs = []
 
         self.module_executed_hook = module_executed_hook
-        self.module_suspended_hook = module_suspended_hook
 
         self.errors = {}
         self.executed = {}
@@ -83,10 +81,8 @@ class ViewUpdatingLogController(object):
         for callable_ in self.module_executed_hook:
             callable_(obj.id)
 
-    def signalSuspended(self, obj):
-        self.suspended[obj.id] = obj.suspended
-        for callable_ in self.module_suspended_hook:
-            callable_(obj.id)
+    def signalSuspended(self, obj, error):
+        self.suspended[obj.id] = error
 
     def signalError(self, obj, error):
         self.errors[obj.id] = error
@@ -111,11 +107,10 @@ class ViewUpdatingLogController(object):
         self.view.set_module_progress(i, percentage)
 
     def end_update(self, obj, error='', errorTrace=None,
-            was_suspended = False):
+            was_suspended=False):
         i = self.remap_id(obj.id)
         if was_suspended:
             self.view.set_module_suspended(i, error)
-            error = error.msg
         elif not error:
             self.view.set_module_success(i)
         else:
@@ -166,7 +161,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self._objects = {}
         self._executed = {}
         self.filePool = self._file_pool
-        
+
     def clear(self):
         self._file_pool.cleanup()
         self._persistent_pipeline.clear()
@@ -195,12 +190,11 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         """clean_non_cacheable_modules() -> None
 
         Removes all modules that are not cacheable from the persistent
-        pipeline, and the modules that depend on them, and 
-        previously suspended modules """
+        pipeline, and the modules that depend on them.
+        """
         non_cacheable_modules = [i for
                                  (i, mod) in self._objects.iteritems()
-                                 if not mod.is_cacheable() or \
-                                 mod.suspended]
+                                 if not mod.is_cacheable()]
         self.clean_modules(non_cacheable_modules)
 
     def _clear_package(self, identifier):
@@ -395,7 +389,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         reason = fetch('reason', None)
         actions = fetch('actions', None)
         module_executed_hook = fetch('module_executed_hook', [])
-        module_suspended_hook = fetch('module_suspended_hook', [])
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
         stop_on_error = fetch('stop_on_error', True)
@@ -413,8 +406,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 view=view,
                 remap_id=get_remapped_id,
                 parent_execs=self.parent_execs,
-                module_executed_hook=module_executed_hook,
-                module_suspended_hook=module_suspended_hook)
+                module_executed_hook=module_executed_hook)
 
         # PARAMETER CHANGES SETUP
         parameter_changes = []
@@ -463,6 +455,11 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 pass
             except AbortExecution:
                 break
+            except ModuleSuspended, ms:
+                ms.module.logging.end_update(ms.module, ms.msg,
+                                             was_suspended=True)
+                logging_obj.signalSuspended(ms.module, ms)
+                abort = True
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
@@ -506,6 +503,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 execs[tmp_id] = logging_obj.executed[obj.id]
             elif obj.id in logging_obj.suspended:
                 suspends[tmp_id] = logging_obj.suspended[obj.id]
+                if not clean_pipeline:
+                    to_delete.append(obj.id)
             elif obj.id in logging_obj.cached:
                 caches[tmp_id] = logging_obj.cached[obj.id]
             else:

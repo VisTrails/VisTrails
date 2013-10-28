@@ -3,7 +3,7 @@ from itertools import izip
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
-    ModuleSuspended, ModuleError, ModuleConnector
+    ModuleError, ModuleConnector
 
 from fold import create_constant
 
@@ -92,9 +92,7 @@ class While(Module):
                                 'value')
                         module.set_input_port(port, new_connector)
 
-            module.update()
-            if hasattr(module, 'suspended') and module.suspended:
-                raise ModuleSuspended(module._module_suspended)
+            module.update() # might raise ModuleSuspended
 
             if name_condition is not None:
                 if name_condition not in module.outputPorts:
