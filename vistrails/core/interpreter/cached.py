@@ -378,24 +378,24 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 Report module as suspended
             """
             # update job monitor because this may be an oldStyle job
-            id = error.module.signature
             jm = JobMonitor.getInstance()
-            name = ''
             m = self._persistent_pipeline.modules[obj.id]
             if '__desc__' in m.db_annotations_key_index:
                 name = m.get_annotation_by_key('__desc__').value.strip()
             else:
                 reg = modules.module_registry.get_module_registry()
                 name = reg.get_descriptor(obj.__class__).name
-            print "end_suspended", id, name, error.children
-            if not error.children and not jm.hasJob(id):
-                # this is an old-style job that needs to be added
-                print "adding old-style job", name
-                jm.addJob(id, {'__message__':error.msg}, name)
-
-            # this may be an old job, new job, or the parent of the job
-            jm.checkJob(error.module, error.queue, error, name)
-
+            i = "%s" % get_remapped_id(obj.id)
+            if obj.is_looping:
+                i = '%s:%s' % (i, obj.loop_iteration) 
+                name = '%s:%s' % (name, obj.loop_iteration)
+            # add to parent list for computing the module tree later
+            error.name = name
+            # if signature is not set we use the module identifier
+            if not error.signature:
+                error.signature = i
+            print "suspending", error.signature, name
+            jm.addParent(error)
         
         # views and loggers work on local ids
         def end_update(obj, error='', errorTrace=None, was_suspended=False):
@@ -529,7 +529,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     to_delete.append(obj.id)
             if obj.id in executed:
                 execs[tmp_id] = executed[obj.id]
-            elif obj.id in suspended:
+            elif obj.id in suspended and not obj.is_looping: # ignore looping
                 suspends[tmp_id] = suspended[obj.id]
             elif obj.id in cached:
                 caches[tmp_id] = cached[obj.id]

@@ -54,15 +54,22 @@ import weakref
 JOBS_FILENAME = "jobs.json"
 
 class JobMixin:
+    """ Provides a finished compute method for implementing job handling
+        The package developer needs to implement the method stubs
+
+    """
+    
     def compute(self):
+        params = self.readInputs()
+        signature = self.getId(params)
         jm = JobMonitor.getInstance()
         # use cached job if it exist
-        cache = jm.getCache(self.signature)
+        cache = jm.getCache(signature)
         if cache:
             self.setResults(cache.parameters)
             return
         # check if job is running
-        job = jm.getJob(self.signature)
+        job = jm.getJob(signature)
         if job:
             params = job.parameters
         else:
@@ -76,14 +83,20 @@ class JobMixin:
             else:
                 reg = get_module_registry()
                 name = reg.get_descriptor(self.__class__).name
-            jm.addJob(self.signature, params, name)
+            jm.addJob(signature, params, name)
         # call method to check job
-        monitor = self.getMonitor(params)
-        jm.checkJob(self, monitor)
+        jm.checkJob(self, signature, self.getMonitor(params), job.name)
         # job is finished, set outputs
         params = self.finishJob()
-        cache = jm.setCache(self.signature, params)
+        cache = jm.setCache(signature, params)
         
+    def readInputs(self):
+        """readInputs() -> None
+            Should read inputs, and return them in a dict
+        
+        """
+        raise NotImplementedError
+
     def startJob(self):
         """startJob() -> None
             Should read inputs, start the job, and return dict with the 
@@ -111,7 +124,16 @@ class JobMixin:
             Possible methods
             .finished() - required, returns True if job has completed
         """
-        raise None
+        return None
+
+    def getId(self, params):
+        """ getId(params: dict) -> job identifier
+            Should return an string completely identifying this instance of the job
+            It will usually be based on input values stored in params
+            WARNING: The default implementation does not work correctly in
+                     maps and groups
+        """
+        return self.signature
     
 class Workflow:
     """ Represents a running workflow
@@ -140,6 +162,8 @@ class Workflow:
         self.user = getpass.getuser()
         self.start = start if start else str(datetime.datetime.now())
         self.modules = modules if modules else {}
+        # parent modules are stored as temporary exceptions
+        self.parents = {}
 
     def to_dict(self):
         wf = dict()
@@ -177,6 +201,7 @@ class Workflow:
     def reset(self):
         for job in self.modules.itervalues():
             job.reset()
+        self.parents = {}
 
     def completed(self):
         """ Returns true if there are no suspended jobs
@@ -372,18 +397,44 @@ class JobMonitor:
             self.callback.startWorkflow(workflow)
         
     
+    def addChildRec(self, obj, parent_id=None):
+        id = '%s/%s' % (parent_id, obj.signature) if parent_id \
+                                                  else obj.signature
+        if obj.children:
+            for child in obj.children:
+                self.addChildRec(child, id)
+            return
+        workflow = self._current_workflow
+        if obj.signature in workflow.modules:
+            # this is an already existing new-style job
+            # mark that it have been used
+            workflow.modules[obj.signature].mark()
+            return
+        if id in workflow.modules:
+            # this is an already existing new-style job
+            # mark that it have been used
+            workflow.modules[id].mark()
+            return
+        # this is a new old-style job that we need to add
+        self.addJob(id, {'__message__':obj.msg}, obj.name)
+        
     def finishWorkflow(self):
         """ finish_job() -> None
         
             Finishes the running workflow
 
         """
+        workflow = self._current_workflow
+        # untangle parents
+        for parent in workflow.parents.itervalues():
+            self.addChildRec(parent)
+        
         # Assume all unfinished jobs that were not updated are now finished
-        for job in self._current_workflow.modules.values():
+        for job in workflow.modules.values():
             if not job.finished and not job.updated:
                 job.finish()
         if self.callback:
-            self.callback.finishWorkflow(self._current_workflow)
+            self.callback.finishWorkflow(workflow)
         self._current_workflow = None
     
     def addJob(self, id, params=None, name='', finished=False):
@@ -414,34 +465,39 @@ class JobMonitor:
         if self.callback:
             self.callback.addJob(self.getJob(id))
 
+    def addParent(self, error):
+        """ addParent(id: str, name: str, finished: bool) -> None
+        
+            Adds an exception to be used later
+
+        """
+        workflow = self.currentWorkflow()
+        if not workflow:
+            return # ignore non-monitored jobs
+        # only keep the top item
+        if error.children:
+            for child in error.children:
+                if id(child) in workflow.parents:
+                    del workflow.parents[id(child)]
+        workflow.parents[id(error)] = error
+
     def addCache(self, id, params, name=''):
         self.addJob(id, params, name, True)
 
-    def checkJob(self, module, monitor=None, exception=None, name=''):
-        """ checkJob(module: VistrailsModule, monitor: instance,
-                                exception: ModuleSuspended, name: str) -> None
+    def checkJob(self, module, id, monitor):
+        """ checkJob(module: VistrailsModule, id: str, monitor: instance) -> None
             Starts monitoring the job for the current running workflow
-            module - the module to check
+            module - the module to suspend
+            id - the job identifier
             monitor - a class instance with a finished method for 
                       checking if the job has completed
-            exception - contains the suspended error info
-            name - may contain a custom name to use
 
         """
         if not self.currentWorkflow():
             return # ignore non-monitored jobs
-        job = self.getJob(module.signature)
-        if job:
-            if name:
-                job.name = name
-            else:
-                name = job.name
-            job.mark() # job has been updated during this execution
-
+        job = self.getJob(id)
         if self.callback:
-            self.callback.checkJob(module, monitor, exception, name)
-            return
-        if exception: # execution is already aborted so skip the rest
+            self.callback.checkJob(module, id, monitor)
             return
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
@@ -451,13 +507,16 @@ class JobMonitor:
                 try:
                     while not monitor.finished():
                         time.sleep(interval)
-                        print "Checking job:", job.name
+                        print ("Waiting for job: %s," 
+                               "press Ctrl+C to suspend") % job.name
                 except KeyboardInterrupt, e:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
-                                           ' is still running', queue=monitor)
+                                           ' is still running', queue=monitor,
+                                           job_id=id)
         else:
             if not monitor or not monitor.finished():
-                raise ModuleSuspended(module, 'Job is running', queue=monitor)
+                raise ModuleSuspended(module, 'Job is running', queue=monitor,
+                                      job_id=id)
 
     def getJob(self, id):
         """ getJob(id: str) -> Module

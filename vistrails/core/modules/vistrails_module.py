@@ -117,9 +117,11 @@ class ModuleSuspended(ModuleError):
     
     """
     
-    def __init__(self, module, errormsg, queue=None, children=None):
+    def __init__(self, module, errormsg, queue=None, children=None, job_id=None):
         self.queue = queue
         self.children = children
+        self.signature = job_id
+        self.name = None
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):

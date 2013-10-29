@@ -149,10 +149,43 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
     def startWorkflow(self, workflow):
         pass
 
+    def addChildRec(self, obj, parent_id=None):
+        workflow = self.jobMonitor.currentWorkflow()
+        workflowItem = self.workflowItems[workflow.id]
+        base = workflowItem.intermediates[parent_id] if parent_id is not None\
+                                                     else workflowItem
+
+        id = '%s/%s' % (parent_id, obj.signature) if parent_id \
+                                                  else obj.signature
+        print "recursing", obj.name, id, '<-', parent_id
+        print "in", id in workflow.modules
+        if obj.children:
+            # add parent items and their children
+            if id not in workflowItem.intermediates:
+                workflowItem.intermediates[id] = QParentItem(id,obj.name,base)
+            for child in obj.children:
+                self.addChildRec(child, id)
+        elif obj.signature in workflow.modules:
+            # this is an already existing new-style job
+            job = workflowItem.jobs[obj.signature]
+            job.queue = obj.queue
+            base.addChild(job)
+        elif id in workflow.modules:
+            # this is an already existing old-style job
+            job = workflowItem.jobs[id]
+            job.queue = obj.queue
+            # need to force takeChild for some reason!
+            base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
+        
     def finishWorkflow(self, workflow):
         """ update workflow status
         
         """
+        workflow = self.jobMonitor.currentWorkflow()
+        # untangle parents
+        for parent in workflow.parents.itervalues():
+            self.addChildRec(parent)
+
         workflowItem = self.workflowItems.get(workflow.id, None)
         if workflowItem:
             workflowItem.updateJobs()
@@ -246,42 +279,18 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             workflowItem.jobs[job.id] = QJobItem(job, workflowItem)
         workflowItem.updateJobs()
 
-    def checkJob(self, module, monitor, exception=None, name=''):
-        """ checkJob(module: VistrailsModule, monitor: instance,
-                     exception: ModuleSuspended) -> None
+    def checkJob(self, module, id, monitor):
+        """ checkJob(module: VistrailsModule, id: str, monitor: instance)
             Checks if job has completed
-            Also creates parent modules
 
         """
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
             return
         workflowItem = self.workflowItems[workflow.id]
-        id = module.signature
         item = workflowItem.jobs.get(id, None)
-        if item:
-            item.setText(0, name if name else item.job.name)
-        else:
-            # this is a new parent item
-            parentItem = QParentItem(module.signature, name, workflowItem)
-            workflowItem.intermediates[module.signature] = parentItem
-            for child in exception.children:
-                # set all child jobs as child of this one
-                item = workflowItem.jobs.get(child.module.signature, None)
-                if item:
-                    parentItem.addChild(item)
-                # set all child intermediates as child of this one
-                item = workflowItem.intermediates.get(child.module.signature,
-                                                      None)
-                if item:
-                    parentItem.addChild(item)
-            return
-        if exception:
-            # This is a suspended old/new job
-            # we don't need to do anything else here
-            return
-        # we are still running, we should check the status using monitor
-        # and show dialog
+        item.setText(0, item.job.name)
+        # we should check the status using monitor and show dialog
         # get current view progress bar and hijack it
         if monitor:
             item.queue = monitor
@@ -365,6 +374,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.workflow = workflow
         self.has_queue = True
         self.setIcon(0, theme.get_current_theme().JOB_CHECKING)
+        self.setExpanded(True)
         self.workflowFinished = False
         self.jobs = {}
         self.intermediates = {}
@@ -375,7 +385,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
             job.updateJob()
             if not job.job.finished and not job.queue:
                 self.has_queue = False
-        count = self.childCount()
+        count = len(self.jobs)
         finished = sum([job.jobFinished for job in self.jobs.values()])
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
@@ -408,6 +418,7 @@ class QJobItem(QtGui.QTreeWidgetItem):
         self.job = job
         self.queue = None
         self.updateJob()
+        self.setExpanded(True)
     
     def updateJob(self):
         self.jobFinished = self.job.finished
@@ -422,9 +433,12 @@ class QJobItem(QtGui.QTreeWidgetItem):
         else:
             self.setIcon(0, theme.get_current_theme().JOB_CHECKING)
             self.setToolTip(0, "This Job is Running")
+        self.setToolTip(1, self.job.id)
 
 class QParentItem(QtGui.QTreeWidgetItem):
     """ A parent module of a suspended job """
     def __init__(self, id, name, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent, [name, ''])
         self.id = id
+        self.setExpanded(True)
+        self.setToolTip(0, self.id)
