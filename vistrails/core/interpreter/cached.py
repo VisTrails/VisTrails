@@ -127,12 +127,6 @@ class ViewUpdatingLogController(object):
         i = self.remap_id(obj.id)
         self.view.set_module_computing(i)
 
-    def add_exec(self, exec_, parent):
-        if parent is not None:
-            self.log.add_exec(exec_, parent.module_exec)
-        else:
-            self.log.add_exec(exec_)
-
     def annotate(self, obj, d):
         self.log.insert_module_annotations(obj, d)
 
