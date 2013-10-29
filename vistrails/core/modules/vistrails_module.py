@@ -84,6 +84,8 @@ class ModuleHadError(Exception):
 
     It is caught by the interpreter that doesn't log it.
     """
+    def __init__(self, module):
+        self.module = module
 
 class ModuleError(Exception):
 
