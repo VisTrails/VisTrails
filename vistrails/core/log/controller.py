@@ -128,15 +128,16 @@ class LogController(object):
         """Signals the start of the execution of a pipeline.
         """
         print "LogController#start_workflow_execution()"
-        return LogWorkflowController(self.log, self.machine, parent_exec,
-                                     vistrail, pipeline, currentVersion)
+        return LogWorkflowExecController(self.log, self.machine, parent_exec,
+                                         vistrail, pipeline, currentVersion)
 
 
 class LogWorkflowController(LogController):
     """A log controller for a specific workflow execution.
 
-    You get one of these by calling LogController#start_workflow_execution().
-    You can then add execution items through it.
+    You get one of these by calling LogController#start_workflow_execution() or
+    LogWorkflowController#recursing(). You can then add execution items through
+    it.
 
     How does this work:
       * the interpreter sets a 'logging' attribute on summoned Module objects
@@ -154,49 +155,23 @@ class LogWorkflowController(LogController):
            finished with the same error as the module if it fails before they
            end
     """
-    def __init__(self, log, machine, parent_exec, vistrail=None, pipeline=None,
-                 currentVersion=None):
+    def __init__(self, log, machine, parent_exec, workflow_exec):
         super(LogWorkflowController, self).__init__(log, machine)
         self.parent_exec = parent_exec
+        self.workflow_exec = workflow_exec
 
-        if vistrail is not None:
-            parent_type = Vistrail.vtType
-            parent_id = vistrail.id
-        else:
-            parent_type = Pipeline.vtType
-            parent_id = pipeline.id
+    def recursing(self, parent_exec):
+        """Enters a recursing execution.
 
-        wf_exec_id = self.log.id_scope.getNewId(WorkflowExec.vtType)
-        if vistrail is not None:
-            session = vistrail.current_session
-        else:
-            session = None
-        self.workflow_exec = WorkflowExec(
-                id=wf_exec_id,
-                user=vistrails.core.system.current_user(),
-                ip=vistrails.core.system.current_ip(),
-                vt_version=vistrails.core.system.vistrails_version(),
-                ts_start=vistrails.core.system.current_time(),
-                parent_type=parent_type,
-                parent_id=parent_id,
-                parent_version=currentVersion,
-                completed=0,
-                session=session,
-                machines=[self.machine])
-        print "LogWorkflowController() [self=%r, adding workflow_exec %r %d" % (self, self.workflow_exec, wf_exec_id)
-        self.log.add_workflow_exec(self.workflow_exec)
-
-    def finish_workflow_execution(self, errors, suspended=False):
-        """Signals the end of the execution of a pipeline.
+        This returns a new log controller object for that execution context.
         """
-        print "LogWorkflowController#finish_workflow_execution(errors=%r, suspended=%r)" % (errors, suspended)
-        self.workflow_exec.ts_end = vistrails.core.system.current_time()
-        if suspended:
-            self.workflow_exec.completed = -2
-        elif len(errors) > 0:
-            self.workflow_exec.completed = -1
-        else:
-            self.workflow_exec.completed = 1
+        print "LogWorkflowController#recursing(%r)" % parent_exec
+        if parent_exec in self.module_execs:
+            parent_exec = self.module_execs[parent_exec]
+            print "  it's a module, using parent_exec=%r" % parent_exec
+        return LogWorkflowController(self.log, self.machine, parent_exec,
+                                     self.workflow_exec)
+
 
     def start_execution(self, module, module_id, module_name, cached=0):
         """Signals the start of the execution of a module (before compute).
@@ -325,3 +300,53 @@ class LogWorkflowController(LogController):
                                         key=k,
                                         value=v)
                 self.workflow_exec.add_annotation(annotation)
+
+
+class LogWorkflowExecController(LogWorkflowController):
+    """Top-level LogWorkflowController, returned by start_workflow_execution().
+
+    This one has finish_workflow_execution(). The LogWorkflowController,
+    obtained through recursing(), don't.
+    """
+    def __init__(self, log, machine, parent_exec, vistrail=None, pipeline=None,
+                 currentVersion=None):
+        if vistrail is not None:
+            parent_type = Vistrail.vtType
+            parent_id = vistrail.id
+        else:
+            parent_type = Pipeline.vtType
+            parent_id = pipeline.id
+
+        wf_exec_id = log.id_scope.getNewId(WorkflowExec.vtType)
+        if vistrail is not None:
+            session = vistrail.current_session
+        else:
+            session = None
+        workflow_exec = WorkflowExec(
+                id=wf_exec_id,
+                user=vistrails.core.system.current_user(),
+                ip=vistrails.core.system.current_ip(),
+                vt_version=vistrails.core.system.vistrails_version(),
+                ts_start=vistrails.core.system.current_time(),
+                parent_type=parent_type,
+                parent_id=parent_id,
+                parent_version=currentVersion,
+                completed=0,
+                session=session,
+                machines=[machine])
+        print "LogWorkflowExecController() [self=%r, adding workflow_exec %r %d" % (self, workflow_exec, wf_exec_id)
+        log.add_workflow_exec(workflow_exec)
+
+        super(LogWorkflowExecController, self).__init__(log, machine, parent_exec, workflow_exec)
+
+    def finish_workflow_execution(self, errors, suspended=False):
+        """Signals the end of the execution of a pipeline.
+        """
+        print "LogWorkflowExecController#finish_workflow_execution(errors=%r, suspended=%r)" % (errors, suspended)
+        self.workflow_exec.ts_end = vistrails.core.system.current_time()
+        if suspended:
+            self.workflow_exec.completed = -2
+        elif len(errors) > 0:
+            self.workflow_exec.completed = -1
+        else:
+            self.workflow_exec.completed = 1
