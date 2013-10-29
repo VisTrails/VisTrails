@@ -127,7 +127,6 @@ class LogController(object):
                                  currentVersion=None):
         """Signals the start of the execution of a pipeline.
         """
-        print "LogController#start_workflow_execution()"
         return LogWorkflowExecController(self.log, self.machine, parent_exec,
                                          vistrail, pipeline, currentVersion)
 
@@ -165,10 +164,8 @@ class LogWorkflowController(LogController):
 
         This returns a new log controller object for that execution context.
         """
-        print "LogWorkflowController#recursing(%r)" % parent_exec
         if parent_exec in self.module_execs:
             parent_exec = self.module_execs[parent_exec]
-            print "  it's a module, using parent_exec=%r" % parent_exec
         return LogWorkflowController(self.log, self.machine, parent_exec,
                                      self.workflow_exec)
 
@@ -176,8 +173,6 @@ class LogWorkflowController(LogController):
     def start_execution(self, module, module_id, module_name, cached=0):
         """Signals the start of the execution of a module (before compute).
         """
-        print "LogWorkflowController#start_execution(module=%r, module_id=%r, module_name=%r, cached=%r)" % (
-                module, module_id, module_name, cached)
         if isinstance(module, Group):
             module_exec = self._create_group_exec(module, module_id,
                                                  module_name, cached)
@@ -185,18 +180,16 @@ class LogWorkflowController(LogController):
             module_exec = self._create_module_exec(module, module_id,
                                                    module_name, cached)
         if module in self.module_execs is not None:
-            print "  oops! module already has module_exec %r ; overwriting!" % self.module_execs[module]
+            debug.warning(
+                    "%s#start_execution(module=%r, module_id=%r, "
+                    "module_name=%r, cached=%r): module already has a "
+                    "module_exec! Overwriting" % (
+                    type(self).__name__,
+                    module, module_id, module_name, cached))
         self.module_execs[module] = module_exec
-        print "  module_execs[]=%r" % module_exec
         for parent_exec in (self.parent_execs.get(module), self.parent_exec,
                             self.workflow_exec):
             if parent_exec is not None:
-                if parent_exec is self.parent_execs.get(module):
-                    print "  adding to module's parent_exec %r" % parent_exec
-                elif parent_exec is self.parent_exec:
-                    print "  adding to controller's parent_exec %r" % parent_exec
-                else:
-                    print "  adding to workflow_exec %r" % parent_exec
                 parent_exec.add_item_exec(module_exec)
                 return
         assert False
@@ -205,19 +198,12 @@ class LogWorkflowController(LogController):
                              iteration, total_iterations=None):
         """Registers a looped module.
         """
-        print "LogWorkflowController#start_loop_execution(loop_module=%r, looped_module=%r, %r, %r)" % (
-                loop_module, looped_module, iteration, total_iterations)
         loop_exec = self._create_loop_exec(iteration)
         for parent_exec in (self.parent_execs.get(loop_module), self.parent_exec):
             if parent_exec is not None:
-                if parent_exec is self.parent_execs.get(loop_module):
-                    print "  adding LoopExec to loop_module's parent_exec %r" % parent_exec
-                else:
-                    print "  adding LoopExec to controller's parent_exec" % parent_exec
                 parent_exec.add_loop_exec(loop_exec)
                 break
         else:
-            print "  adding to workflow_exec %r" % self.workflow_exec
             self.workflow_exec.add_item_exec(loop_exec)
         self.parent_execs[looped_module] = loop_exec
         self.children_execs.setdefault(loop_module, set()).add(loop_exec)
@@ -225,8 +211,6 @@ class LogWorkflowController(LogController):
     def finish_loop_execution(self, loop_module, looped_module, error, suspended=False):
         """Signals that we are done looping.
         """
-        print "LogWorkflowController#finish_loop_execution(loop_module=%r, looping_module=%r)" % (
-                loop_module, looped_module)
         loop_exec = self.parent_execs.pop(looped_module)
         assert loop_exec is not None
 
@@ -247,8 +231,6 @@ class LogWorkflowController(LogController):
         Called by a module after succeeded of suspended, or called by the
         interpreter after an exception.
         """
-        print "LogWorkflowController#finish_execution(module=%r, error=%r, suspended=%r" % (
-                module, error, suspended)
         module_exec = self.module_execs.pop(module, None)
         if module_exec is None:
             # The module can finish execution without starting (if it was
@@ -338,7 +320,6 @@ class LogWorkflowExecController(LogWorkflowController):
                 completed=0,
                 session=session,
                 machines=[machine])
-        print "LogWorkflowExecController() [self=%r, adding workflow_exec %r %d" % (self, workflow_exec, wf_exec_id)
         log.add_workflow_exec(workflow_exec)
 
         super(LogWorkflowExecController, self).__init__(log, machine, parent_exec, workflow_exec)
@@ -346,7 +327,6 @@ class LogWorkflowExecController(LogWorkflowController):
     def finish_workflow_execution(self, errors, suspended=False):
         """Signals the end of the execution of a pipeline.
         """
-        print "LogWorkflowExecController#finish_workflow_execution(errors=%r, suspended=%r)" % (errors, suspended)
         self.workflow_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             self.workflow_exec.completed = -2
