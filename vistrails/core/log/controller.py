@@ -249,7 +249,11 @@ class LogWorkflowController(LogController):
         """
         print "LogWorkflowController#finish_execution(module=%r, error=%r, suspended=%r" % (
                 module, error, suspended)
-        module_exec = self.module_execs.pop(module)
+        module_exec = self.module_execs.pop(module, None)
+        if module_exec is None:
+            # The module can finish execution without starting (if it was
+            # suspended, etc...)
+            return
         module_exec.ts_end = vistrails.core.system.current_time()
         if suspended:
             module_exec.completed = -2
