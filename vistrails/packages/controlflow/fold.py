@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput, ModuleSuspended
+    ModuleConnector, InvalidOutput, ModuleSuspended, ModuleWasSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
     Float, NotCacheable, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
@@ -104,17 +104,22 @@ class FoldWithModule(Fold, NotCacheable):
         # everything is the same except that we don't update anything
         # upstream of FunctionPort
         suspended = []
+        was_suspended = None
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
                     try:
                         connector.obj.updateUpstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
                     except ModuleSuspended, e:
                         suspended.append(e)
             else:
                 for connector in connector_list:
                     try:
                         connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
                     except ModuleSuspended, e:
                         suspended.append(e)
         if len(suspended) == 1:
@@ -124,6 +129,8 @@ class FoldWithModule(Fold, NotCacheable):
                     self,
                     "multiple suspended upstream modules",
                     children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
         for port_name, connectorList in copy.copy(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:

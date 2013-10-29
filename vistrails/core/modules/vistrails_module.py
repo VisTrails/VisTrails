@@ -80,6 +80,12 @@ class ModuleHadError(Exception):
 
     It is caught by the interpreter that doesn't log it.
     """
+    def __init__(self, module):
+        self.module = module
+
+class ModuleWasSuspended(ModuleHadError):
+    """Exception occurring when a module that was suspended gets updated again.
+    """
 
 class ModuleError(Exception):
 
@@ -248,6 +254,7 @@ Designing New Modules
         self.outputPorts = {}
         self.upToDate = False
         self.had_error = False
+        self.was_suspended = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -328,10 +335,13 @@ context."""
         
         """
         suspended = []
+        was_suspended = None
         for connectorList in self.inputPorts.itervalues():
             for connector in connectorList:
                 try:
                     connector.obj.update()
+                except ModuleWasSuspended, e:
+                    was_suspended = e
                 except ModuleSuspended, e:
                     suspended.append(e)
                 # Here we keep going even if one of the module suspended, but
@@ -343,6 +353,8 @@ context."""
                     self,
                     "multiple suspended upstream modules",
                     children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
@@ -356,6 +368,8 @@ context."""
         """
         if self.had_error:
             raise ModuleHadError(self)
+        elif self.was_suspended:
+            raise ModuleWasSuspended(self)
         elif self.computed:
             return
         self.logging.begin_update(self)
@@ -373,6 +387,7 @@ context."""
             self.compute()
             self.computed = True
         except ModuleSuspended, e:
+            self.had_error, self.was_suspended = False, True
             raise
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
