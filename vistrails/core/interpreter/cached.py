@@ -47,8 +47,9 @@ import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core import modules
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
-from vistrails.core.modules.vistrails_module import ModuleConnector, \
-    ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors, ModuleSuspended
+from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
+    ModuleConnector, ModuleError, ModuleErrors, ModuleHadError, \
+    ModuleSuspended, ModuleWasSuspended
 from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -438,7 +439,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             try:
                 obj.update()
                 continue
-            except ModuleHadError:
+            except (ModuleHadError, ModuleWasSuspended):
                 pass
             except AbortExecution:
                 break
@@ -446,7 +447,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 ms.module.logging.end_update(ms.module, ms.msg,
                                              was_suspended=True)
                 logging_obj.signalSuspended(ms.module, ms)
-                abort = True
+                continue
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)

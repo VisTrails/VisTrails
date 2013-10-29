@@ -92,7 +92,8 @@ class While(Module):
                                 'value')
                         module.set_input_port(port, new_connector)
 
-            module.update() # might raise ModuleSuspended
+            module.update() # might raise ModuleError, ModuleSuspended,
+                            # ModuleHadError, ModuleWasSuspended
 
             if name_condition is not None:
                 if name_condition not in module.outputPorts:
