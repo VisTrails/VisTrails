@@ -76,16 +76,13 @@ class LogController(object):
             processor=vistrails.core.system.current_processor(),
             ram=vistrails.core.system.guess_total_memory())
 
-    def __init__(self, log):
+    def __init__(self, log, machine=None):
         self.log = log
-        self.machine = copy.copy(self.local_machine)
-        for machine in self.log.machine_list:
-            if self.machine.equals_no_id(machine):
-                self.machine = machine
-                break
+        if machine is not None:
+            self.machine = machine
         else:
+            self.machine = copy.copy(self.local_machine)
             self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
-            self.log.add_machine(self.machine)
 
     def _create_module_exec(self, module, module_id, module_name,
                             cached):
@@ -128,7 +125,7 @@ class LogController(object):
         """Signals the start of the execution of a pipeline.
         """
         print "LogController#start_workflow_execution()"
-        return LogWorkflowController(self.log, parent_exec,
+        return LogWorkflowController(self.log, self.machine, parent_exec,
                                      vistrail, pipeline, currentVersion)
 
 
@@ -158,9 +155,9 @@ class LogWorkflowController(LogController):
            finished with the same error as the module if it fails before they
            end
     """
-    def __init__(self, log, parent_exec, vistrail=None, pipeline=None,
+    def __init__(self, log, machine, parent_exec, vistrail=None, pipeline=None,
                  currentVersion=None):
-        super(LogWorkflowController, self).__init__(log)
+        super(LogWorkflowController, self).__init__(log, machine)
         self.parent_exec = parent_exec
 
         if vistrail is not None:
@@ -185,7 +182,8 @@ class LogWorkflowController(LogController):
                 parent_id=parent_id,
                 parent_version=currentVersion,
                 completed=0,
-                session=session)
+                session=session,
+                machines=[self.machine])
         print "LogWorkflowController() [self=%r, adding workflow_exec %r %d" % (self, self.workflow_exec, wf_exec_id)
         self.log.add_workflow_exec(self.workflow_exec)
 

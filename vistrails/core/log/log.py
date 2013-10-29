@@ -34,7 +34,6 @@
 ###############################################################################
 import copy
 
-from vistrails.core.log.machine import Machine
 from vistrails.core.log.workflow_exec import WorkflowExec
 from vistrails.db.domain import DBLog
 
@@ -57,8 +56,6 @@ class Log(DBLog):
         if _log.__class__ == Log:
             return
         _log.__class__ = Log
-        for machine in _log.machine_list:
-            Machine.convert(machine)
         for workflow_exec in _log.workflow_execs:
             WorkflowExec.convert(workflow_exec)
 
@@ -71,15 +68,6 @@ class Log(DBLog):
     def _set_id(self, id):
         self.db_id = id
     id = property(_get_id, _set_id)
-
-    def _get_machines(self):
-        return self.db_machines_id_index
-    machines = property(_get_machines)
-    def _get_machine_list(self):
-        return self.db_machines
-    machine_list = property(_get_machine_list)
-    def add_machine(self, machine):
-        self.db_add_machine(machine)
 
     def _get_workflow_execs(self):
         return self.db_workflow_execs
