@@ -451,7 +451,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 ms.module.logging.end_update(ms.module, ms.msg,
                                              was_suspended=True)
                 suspended[ms.module.id] = ms
-                abort = True
+                continue
             except ModuleErrors, mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me.msg)
