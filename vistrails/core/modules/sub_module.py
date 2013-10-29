@@ -88,27 +88,32 @@ class Group(Module):
         self.persistent_modules = []
 
     def compute(self):
+        # Check required attributes
         if not hasattr(self, 'pipeline') or self.pipeline is None:
-            raise VistrailsInternalError("%s cannot execute--" % \
-                                             self.__class__.__name__ + \
-                                         "pipeline doesn't exist")
-        elif not hasattr(self, 'input_remap') or self.input_remap is None or \
-                not hasattr(self, 'output_remap') or self.output_remap is None:
-            raise VistrailsInternalError("%s cannot execute--" % \
-                                             self.__class__.__name__ + \
-                                         "remap dictionaries don't exist")
-            
+            raise VistrailsInternalError(
+                    "%s cannot execute -- pipeline doesn't exist" %
+                    self.__class__.__name__)
+        elif (not hasattr(self, 'output_remap') or self.output_remap is None or
+                not hasattr(self, 'input_remap') or self.input_remap is None):
+            raise VistrailsInternalError(
+                    "%s cannot execute -- remap dictionaries don't exist" %
+                    self.__class__.__name__)
+
+        # Setup pipeline for execution
         res = self.interpreter.setup_pipeline(self.pipeline)
         self.persistent_modules = res[0].values()
         if len(res[5]) > 0:
-            raise ModuleError(self, 'Error(s) inside group:\n' +
-                              '\n'.join(me.msg for me in res[5].itervalues()))
+            raise ModuleError(self, "Error(s) inside group:\n" +
+                              "\n".join(me.msg for me in res[5].itervalues()))
         tmp_id_to_module_map = res[0]
+
+        # Connect Group's external input ports to internal InputPort modules
         for iport_name, conn in self.inputPorts.iteritems():
             iport_module = self.input_remap[iport_name]
             iport_obj = tmp_id_to_module_map[iport_module.id]
             iport_obj.set_input_port('ExternalPipe', conn[0])
-        
+
+        # Execute pipeline
         kwargs = {'logger': self.logging.log, 'clean_pipeline': True,
                   'current_version': self.moduleInfo['version']}
         module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
@@ -116,28 +121,32 @@ class Group(Module):
             if arg in self.moduleInfo:
                 kwargs[arg] = self.moduleInfo[arg]
 
-#         if hasattr(self, 'group_exec'):
-#             kwargs['parent_exec'] = self.group_exec
-
-        res = self.interpreter.execute_pipeline(self.pipeline, *(res[:2]), 
+        res = self.interpreter.execute_pipeline(self.pipeline,
+                                                *res[:2],
                                                 **kwargs)
+
+        # Check and propagate errors
         if len(res[2]) > 0:
-            raise ModuleError(self, 'Error(s) inside group:\n' +
-                              '\n '.join(me.module.__class__.__name__ + ': ' + \
-                                            me.msg for me in res[2].itervalues()))
+            raise ModuleError(self, "Error(s) inside group:\n" +
+                              "\n".join("%s: %s" % (
+                                      me.module.__class__.__name__, me.msg)
+                              for me in res[2].itervalues()))
+
+        # Check and propagate ModuleSuspended exceptions
         if res[4]:
-            # extract messages and previous ModuleSuspended exceptions
-            message = '\n'.join([ms.msg for ms in res[4].itervalues()])
+            message = "\n".join([ms.msg for ms in res[4].itervalues()])
             children = list(res[4].values())
             raise ModuleSuspended(self, message, children=children)
 
+        # Connect internal OutputPort modules to Group's external output ports
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
-                # oport_module = self.output_remap[oport_name]
                 oport_obj = tmp_id_to_module_map[oport_module.id]
-                self.setResult(oport_name, oport_obj.get_output('ExternalPipe'))
+                self.setResult(oport_name,
+                               oport_obj.get_output('ExternalPipe'))
+
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1],
-                                           **{'reset_computed': False})
+                                           reset_computed=False)
 
     def is_cacheable(self):
         return all(m.is_cacheable() for m in self.persistent_modules)
