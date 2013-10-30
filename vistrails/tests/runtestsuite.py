@@ -178,6 +178,8 @@ dotVistrails = options.dotVistrails
 test_modules = None
 if len(args) > 0:
     test_modules = args
+else:
+    test_images = True
 
 if dotVistrails is None:
     shutil.copyfile(
@@ -307,8 +309,9 @@ for (p, subdirs, files) in os.walk(root_directory):
         elif verbose >= 2:
             print msg, "Ok: %d test cases." % suite.countTestCases()
 
-sub_print("Imported modules. Running %d tests..." %
+sub_print("Imported modules. Running %d tests%s..." % (
           main_test_suite.countTestCases(),
+          ", and thumbnails comparison" if test_images else ''),
           overline=True)
 
 ############## TEST VISTRAIL IMAGES ####################
@@ -341,7 +344,8 @@ if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= LooseVersion('5.8.0'):
         idiff.Update()
         return idiff.GetThresholdedError()
 else:
-    print "Warning: old VTK version detected, NOT comparing thumbnails"
+    if test_images:
+        print "Warning: old VTK version detected, NOT comparing thumbnails"
     def compare_thumbnails(prev, next):
         import scipy.misc
         prev_img = scipy.misc.imread(prev)
@@ -375,7 +379,7 @@ def image_test_generator(vtfile, version):
 class TestVistrailImages(unittest.TestCase):
     pass
 
-if not test_modules or test_images:
+if test_images:
     for vt, t in image_tests:
         for name, version in t:
             test_name = 'test_%s' % name
