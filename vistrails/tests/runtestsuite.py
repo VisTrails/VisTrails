@@ -54,6 +54,7 @@ else:
 import unittest
 
 import atexit
+from distutils.version import LooseVersion
 #import doctest
 import os
 import traceback
@@ -319,25 +320,35 @@ image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
                                   ("terminator_CRSW", "Combined Rendering SW"),
                                   ("terminator_ISSW", "Image Slices SW")])
                ]
-def compare_thumbnails(prev, next):
-    import vtk
-    #vtkImageDifference assumes RGB, so strip alpha
-    def removeAlpha(file):
-        freader = vtk.vtkPNGReader()
-        freader.SetFileName(file)
-        removealpha = vtk.vtkImageExtractComponents()
-        removealpha.SetComponents(0,1,2)
-        removealpha.SetInputConnection(freader.GetOutputPort())
-        removealpha.Update()
-        return removealpha.GetOutput()
-    #do the image comparison
-    a = removeAlpha(prev)
-    b = removeAlpha(next)
-    idiff = vtk.vtkImageDifference()
-    idiff.SetInput(a)
-    idiff.SetImage(b)
-    idiff.Update()
-    return idiff.GetThresholdedError()
+if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= LooseVersion('5.8.0'):
+    def compare_thumbnails(prev, next):
+        import vtk
+        #vtkImageDifference assumes RGB, so strip alpha
+        def removeAlpha(file):
+            freader = vtk.vtkPNGReader()
+            freader.SetFileName(file)
+            removealpha = vtk.vtkImageExtractComponents()
+            removealpha.SetComponents(0,1,2)
+            removealpha.SetInputConnection(freader.GetOutputPort())
+            removealpha.Update()
+            return removealpha.GetOutput()
+        #do the image comparison
+        a = removeAlpha(prev)
+        b = removeAlpha(next)
+        idiff = vtk.vtkImageDifference()
+        idiff.SetInput(a)
+        idiff.SetImage(b)
+        idiff.Update()
+        return idiff.GetThresholdedError()
+else:
+    print "Warning: old VTK version detected, NOT comparing thumbnails"
+    def compare_thumbnails(prev, next):
+        import scipy.misc
+        prev_img = scipy.misc.imread(prev)
+        next_img = scipy.misc.imread(next)
+        assert len(prev_img.shape) == 3
+        assert len(next_img.shape) == 3
+        return 0 if prev_img.shape[:2] == next_img.shape[:2] else float('Inf')
 
 def image_test_generator(vtfile, version):
     from vistrails.core.db.locator import FileLocator
