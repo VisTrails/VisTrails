@@ -35,6 +35,7 @@
 
 import copy
 
+from vistrails.core import debug
 from vistrails.core.log.workflow_exec import WorkflowExec
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.loop_exec import LoopExec
@@ -199,7 +200,8 @@ class LogWorkflowController(LogController):
         """Registers a looped module.
         """
         loop_exec = self._create_loop_exec(iteration)
-        for parent_exec in (self.parent_execs.get(loop_module), self.parent_exec):
+        for parent_exec in (self.module_execs.get(loop_module),
+                            self.parent_exec):
             if parent_exec is not None:
                 parent_exec.add_loop_exec(loop_exec)
                 break
@@ -208,21 +210,13 @@ class LogWorkflowController(LogController):
         self.parent_execs[looped_module] = loop_exec
         self.children_execs.setdefault(loop_module, set()).add(loop_exec)
 
-    def finish_loop_execution(self, loop_module, looped_module, error, suspended=False):
+    def finish_loop_execution(self, loop_module, looped_module):
         """Signals that we are done looping.
         """
         loop_exec = self.parent_execs.pop(looped_module)
         assert loop_exec is not None
 
         loop_exec.ts_end = vistrails.core.system.current_time()
-        if suspended:
-            loop_exec.completed = -2
-            loop_exec.error = error
-        elif not error:
-            loop_exec.completed = 1
-        else:
-            loop_exec.completed = -1
-            loop_exec.error = error
         self.children_execs.setdefault(loop_module, set()).discard(loop_exec)
 
     def finish_execution(self, module, error, errorTrace=None, suspended=False):

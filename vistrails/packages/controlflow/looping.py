@@ -76,12 +76,6 @@ class While(Module):
                 module.upToDate = False
                 module.computed = False
 
-                # For logging
-                module.is_looping = True
-                module.first_iteration = i == 0
-                module.last_iteration = False
-                module.loop_iteration = i
-
                 # Set state on input ports
                 if i > 0 and name_state_input:
                     for value, port in izip(state, name_state_input):
@@ -92,8 +86,14 @@ class While(Module):
                                 'value')
                         module.set_input_port(port, new_connector)
 
+
+            self.logging.begin_loop_execution(self, module,
+                                              i, max_iterations)
+
             module.update() # might raise ModuleError, ModuleSuspended,
                             # ModuleHadError, ModuleWasSuspended
+
+            self.logging.end_loop_execution(self, module)
 
             if name_condition is not None:
                 if name_condition not in module.outputPorts:

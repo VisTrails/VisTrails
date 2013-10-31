@@ -173,15 +173,15 @@ class FoldWithModule(Fold, NotCacheable):
                     module.upToDate = False
                     module.computed = False
 
-                    ## Setting information for logging stuff
-                    module.is_looping = True
-                    module.first_iteration = i == 0
-                    module.last_iteration = i == len(inputList) - 1
-                    module.loop_iteration = i
-
                     self.setInputValues(module, nameInput, element)
 
+                self.logging.begin_loop_execution(self, module,
+                                                  i, len(inputList))
+
                 module.update()
+
+                self.logging.end_loop_execution(self, module)
+
                 ## Getting the result from the output port
                 if nameOutput not in module.outputPorts:
                     raise ModuleError(module,
