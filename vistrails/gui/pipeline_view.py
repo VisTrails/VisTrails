@@ -2907,6 +2907,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
            appropriate action
         """
         if self.progress.wasCanceled():
+            if self.progress._progress_canceled:
+                # It has already been confirmed in a progress update
+                self.progress._progress_canceled = False
+                raise AbortExecution("Execution aborted by user")
             r = QtGui.QMessageBox.question(self.parent(),
                 'Execution Paused',
                 'Are you sure you want to abort the execution?',
@@ -2973,7 +2977,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.progress:
-            self.cancel_progress()
+            try:
+                self.cancel_progress()
+            except AbortExecution:
+                self.progress._progress_canceled = True
+                raise
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
                                                         '%d%% Completed' % int(progress*100),
@@ -3328,6 +3336,7 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0
+        self._progress_canceled = False
 
     def setValue(self, value):
         self._last_set_value = value
