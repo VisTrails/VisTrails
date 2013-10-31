@@ -131,7 +131,7 @@ class FoldWithModule(Fold, NotCacheable):
                     children=suspended)
         elif was_suspended is not None:
             raise was_suspended
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
@@ -163,7 +163,7 @@ class FoldWithModule(Fold, NotCacheable):
             else:
                 self.element = element[0]
             for connector in self.inputPorts.get('FunctionPort'):
-                module = connector.obj
+                module = copy.copy(connector.obj)
 
                 if not self.upToDate: # pragma: no partial
                     ## Type checking
@@ -186,7 +186,7 @@ class FoldWithModule(Fold, NotCacheable):
                 if nameOutput not in module.outputPorts:
                     raise ModuleError(module,
                                       'Invalid output port: %s' % nameOutput)
-                self.elementResult = copy.copy(module.get_output(nameOutput))
+                self.elementResult = module.get_output(nameOutput)
             self.operation()
 
     def setInputValues(self, module, inputPorts, elementList):

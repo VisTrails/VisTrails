@@ -292,6 +292,20 @@ Designing New Modules
         # execution log
         self.annotate_output = False
 
+    def __copy__(self):
+        """Makes a copy of the input/output ports on shallow copy.
+        """
+        s = super(Module, self)
+        if hasattr(s, '__copy__'):
+            clone = s.__copy__()
+        else:
+            clone = object.__new__(self.__class__)
+            clone.__dict__ = self.__dict__.copy()
+        clone.inputPorts = copy.copy(self.inputPorts)
+        clone.outputPorts = copy.copy(self.outputPorts)
+        clone.outputPorts['self'] = clone
+        return clone
+
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
 deletion."""
