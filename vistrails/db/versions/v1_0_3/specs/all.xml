@@ -967,8 +967,7 @@
     </property>
 
     <property ref="true" object="workflow_exec" type="long" 
-	      mapping="many-to-one" 
-	      inverse="true">
+	      mapping="many-to-one" inverse="true">
       <sql column="log_id" type="int"/>
     </property>
 
@@ -2402,7 +2401,7 @@
     </property>
 
   </object>
-
+  
   <!--++++++++++++++++++++++++++-->
   <!-- MASHUP_ACTION +++++++++++-->
   <!--++++++++++++++++++++++++++-->
@@ -2774,7 +2773,7 @@
       <sql type="char(16)"/>
     </property>
   </object>
-  
+
   <!--++++++++++++++++++++++++++-->
   <!-- OPM_GRAPH +++++++++++++++-->
   <!--++++++++++++++++++++++++++-->
