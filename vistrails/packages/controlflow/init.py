@@ -76,6 +76,9 @@ def initialize(*args,**keywords):
     registerControl(ExecuteInOrder)
     registerControl(While)
 
+    reg.add_output_port(Or, 'Result', (Boolean, ""))
+    reg.add_output_port(And, 'Result', (Boolean, ""))
+
     reg.add_input_port(Fold, 'InputList', (List, ""))
     reg.add_output_port(Fold, 'Result', (Variant, ""))
 
@@ -98,7 +101,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(ElementwiseProduct, 'List1', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'List2', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'NumericalProduct', (Boolean, ""),
-                       optional=True, defaults='[True]')
+                       optional=True, defaults="['True']")
     reg.add_output_port(ElementwiseProduct, 'Result', (List, ""))
 
     reg.add_module(Dot)

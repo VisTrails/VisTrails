@@ -374,7 +374,10 @@ class VistrailController(QtCore.QObject, BaseController):
         return ([], False)
     
     def enable_missing_package(self, identifier, deps):
-        from vistrails.gui.application import get_vistrails_application
+        configuration = get_vistrails_configuration()
+        if getattr(configuration, 'enablePackagesSilently', False):
+            return True
+
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 

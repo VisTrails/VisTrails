@@ -370,6 +370,7 @@ after self.init()"""
         """
         if hasattr(self, 'vistrailsStartup'):
             self.vistrailsStartup.destroy()
+        Collection.clearInstance()
 
     def __del__(self):
         """ __del__() -> None
