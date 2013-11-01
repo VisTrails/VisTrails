@@ -156,12 +156,14 @@ class FoldWithModule(Fold, NotCacheable):
         else:
             element_is_iter = True
             inputList = rawInputList
+        suspended = []
         ## Update everything for each value inside the list
         for i, element in enumerate(inputList):
             if element_is_iter:
                 self.element = element
             else:
                 self.element = element[0]
+            do_operation = True
             for connector in self.inputPorts.get('FunctionPort'):
                 module = copy.copy(connector.obj)
 
@@ -178,7 +180,12 @@ class FoldWithModule(Fold, NotCacheable):
                 self.logging.begin_loop_execution(self, module,
                                                   i, len(inputList))
 
-                module.update()
+                try:
+                    module.update()
+                except ModuleSuspended, e:
+                    suspended.append(e)
+                    do_operation = False
+                    break
 
                 self.logging.end_loop_execution(self, module)
 
@@ -187,7 +194,15 @@ class FoldWithModule(Fold, NotCacheable):
                     raise ModuleError(module,
                                       'Invalid output port: %s' % nameOutput)
                 self.elementResult = module.get_output(nameOutput)
-            self.operation()
+            if do_operation:
+                self.operation()
+
+        if suspended:
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), len(inputList)),
+                    children=suspended)
 
     def setInputValues(self, module, inputPorts, elementList):
         """
