@@ -164,7 +164,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         vistrails.gui.theme.initializeCurrentTheme()
         # DAK this is handled by finalize_vistrails in core.application now
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
-        VistrailsApplicationInterface.init(self,optionsDict)
+        VistrailsApplicationInterface.init(self, optionsDict)
         
         #singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
@@ -197,7 +197,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         # default handler installation
         if system.systemType == 'Linux':
-            if not self.configuration.check('handlerDontAsk'):
+            if not (self.temp_configuration.check('handlerDontAsk') or
+                    self.configuration.check('handlerDontAsk')):
                 if not linux_default_application_set():
                     self.ask_update_default_application()
 
@@ -837,14 +838,6 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    
-    try:
-        vistrails.core.requirements.check_all_vistrails_requirements()
-    except vistrails.core.requirements.MissingRequirement, e:
-        msg = ("VisTrails requires %s to properly run.\n" %
-               e.requirement)
-        debug.critical("Missing requirement", msg)
-        sys.exit(1)
     x = VistrailsApplication.init(optionsDict)
     return x
 

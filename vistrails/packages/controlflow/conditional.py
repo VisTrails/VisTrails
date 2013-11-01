@@ -86,7 +86,6 @@ class If(Module, NotCacheable):
             raise ModuleError(self, 'Must set ' + port_name)
 
         for connector in self.inputPorts.get(port_name):
-            connector.obj.upToDate = False
             connector.obj.update()
 
             if self.hasInputFromPort(output_ports_name):

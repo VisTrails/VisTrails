@@ -32,29 +32,11 @@
 ##
 ###############################################################################
 
-import copy
-import time
+import pylab
 import urllib
 
-import vistrails.core.modules
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
-import vistrails.core.modules.module_registry
-from vistrails.core import debug
-from vistrails.core.modules.basic_modules import File, String, Boolean
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
-
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg', warn=False)
-    pylab = py_import('pylab', mpl_dict)
-    import matplotlib.transforms as mtransforms
-except Exception, e:
-    debug.critical("Exception: %s" % e)
+from vistrails.core.modules.vistrails_module import Module, NotCacheable
 
 ################################################################################
 

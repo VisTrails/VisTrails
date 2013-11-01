@@ -37,6 +37,10 @@
 QControlFlowAssistDialog
 """
 from PyQt4 import QtCore, QtGui
+
+from vistrails.core import debug
+from vistrails.core.modules.module_registry import MissingPackage
+from vistrails.core.packagemanager import get_package_manager
 from vistrails.gui.utils import show_info
 
 ################################################################################
@@ -70,7 +74,9 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         self.pipelineView = QReadOnlyPortSelectPipelineView(self, scene, True, selected_module_ids)
         self.controller = self.pipelineView.scene().controller
         layout.addWidget(self.pipelineView)
-        
+
+        self.enablePackage()
+
         # Add ok/cancel buttons
         buttonLayout = QtGui.QHBoxLayout()
         buttonLayout.setMargin(5)
@@ -86,7 +92,18 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         layout.addLayout(buttonLayout)
         self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okClicked)
         self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
-    
+
+    def enablePackage(self):
+        """ enablePackge() -> None
+        Tries to enable the controlflow package through the controller.
+        """
+        pm = get_package_manager()
+        cf_pkg_id = 'org.vistrails.vistrails.control_flow'
+        if not pm.has_package(cf_pkg_id):
+            dep_graph = pm.build_dependency_graph([cf_pkg_id])
+            if not self.controller.try_to_enable_package(cf_pkg_id, dep_graph):
+                raise MissingPackage(cf_pkg_id)
+
     def getInputPortsInfo(self):
         """ getInputPortsInfo() -> list
         Gets a list of tuples from the selected input port (QGraphicsPortItem) objects
@@ -108,6 +125,12 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         Verify selected ports and initiate control flow creation
         
         """
+        try:
+            self.enablePackage()
+        except MissingPackage:
+            debug.critical("The controlflow package is not available")
+            return
+
         # Verify that at least one input and one output have been chosen
         input_ports_info = self.getInputPortsInfo()
         output_ports_info = self.getOutputPortsInfo()

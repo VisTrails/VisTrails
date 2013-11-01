@@ -51,7 +51,7 @@ from vistrails.core import debug
 from vistrails.core.db.action import create_action
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException
+    ModuleRegistryException, MissingPackage
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
@@ -2908,6 +2908,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
            appropriate action
         """
         if self.progress.wasCanceled():
+            if self.progress._progress_canceled:
+                # It has already been confirmed in a progress update
+                self.progress._progress_canceled = False
+                raise AbortExecution("Execution aborted by user")
             r = QtGui.QMessageBox.question(self.parent(),
                 'Execution Paused',
                 'Are you sure you want to abort the execution?',
@@ -2974,7 +2978,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.progress:
-            self.cancel_progress()
+            try:
+                self.cancel_progress()
+            except AbortExecution:
+                self.progress._progress_canceled = True
+                raise
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
                                                         '%d%% Completed' % int(progress*100),
@@ -3291,10 +3299,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             selected_module_ids = selected_items[0]
             selected_connection_ids = selected_items[1]
             if len(selected_module_ids) > 0:
-                dialog = QControlFlowAssistDialog(self, selected_module_ids, 
-                                                  selected_connection_ids, 
-                                                  currentScene)
-                dialog.exec_()
+                try:
+                    dialog = QControlFlowAssistDialog(
+                            self,
+                            selected_module_ids, selected_connection_ids,
+                            currentScene)
+                except MissingPackage:
+                    debug.critical("The controlflow package is not available")
+                else:
+                    dialog.exec_()
             else:
                 QtGui.QMessageBox.warning(
                         self,
@@ -3317,6 +3330,7 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0
+        self._progress_canceled = False
 
     def setValue(self, value):
         self._last_set_value = value

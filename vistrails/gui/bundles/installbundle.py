@@ -50,9 +50,6 @@ import sys
 def has_qt():
     try:
         import PyQt4.QtGui
-        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
-        # PyQt4.QtOpenGL by default
-        import PyQt4.QtOpenGL
         return True
     except ImportError:
         return False
@@ -64,13 +61,11 @@ except ImportError:
     pip_installed = False
 
 def hide_splash_if_necessary():
-    qt = has_qt()
-    # HACK, otherwise splashscreen stays in front of windows
-    if qt:
-        try:
-            get_vistrails_application().splashScreen.hide()
-        except:
-            pass
+    """Disables the splashscreen, otherwise it sits in front of windows.
+    """
+    app = get_vistrails_application()
+    if hasattr(app, 'splashScreen'):
+        app.splashScreen.hide()
 
 
 def shell_escape(arg):
@@ -152,7 +147,7 @@ def linux_fedora_install(package_name):
 
     if qt:
         cmd = shell_escape(vistrails_root_directory() +
-                           '/gui/bundles/linux_debian_install.py')
+                           '/gui/bundles/linux_fedora_install.py')
     else:
         cmd = 'yum -y install'
 
@@ -228,12 +223,16 @@ def show_question(which_files, has_distro_pkg, has_pip):
                     return 'pip'
             return 'distro'
     else:
-        print "Required package missing"
+        print "\nRequired package missing"
         print ("A required package is missing, but VisTrails can " +
                "automatically install it. " +
                "If you say Yes, VisTrails will need "+
                "administrator privileges, and you" +
                "might be asked for the administrator password.")
+        if has_distro_pkg:
+            print "(VisTrails will use your distribution's package manager)"
+        else:
+            print "(VisTrails will use the 'pip' installer)"
         print "Give VisTrails permission to try to install package? (y/N)"
         v = raw_input().upper()
         if v == 'Y' or v == 'YES':

@@ -67,14 +67,14 @@ class While(Module):
         if len(connectors) != 1:
             raise ModuleError(self,
                               "Multiple modules connected on FunctionPort")
-        module = connectors[0].obj
+        module = copy.copy(connectors[0].obj)
 
         state = None
 
         for i in xrange(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
-                module.ran = False
+                module.computed = False
 
                 # For logging
                 module.is_looping = True
@@ -114,7 +114,7 @@ class While(Module):
         if name_output not in module.outputPorts:
             raise ModuleError(module,
                               "Invalid output port: %s" % name_output)
-        result = copy.copy(module.get_output(name_output))
+        result = module.get_output(name_output)
         self.setResult('Result', result)
 
 

@@ -472,13 +472,15 @@ def initialize(*args, **keywords):
 
 
 class TestHTTPFile(unittest.TestCase):
-    
-    
     @classmethod
     def setUpClass(cls):
-        global identifier
-        if identifier not in globals():
-            identifier = 'org.vistrails.vistrails.http'
+        from vistrails.core.packagemanager import get_package_manager
+        from vistrails.core.modules.module_registry import MissingPackage
+        pm = get_package_manager()
+        try:
+            pm.get_package('org.vistrails.vistrails.http')
+        except MissingPackage:
+            pm.late_enable_package('HTTP')
 
     def testParseURL(self):
         foo = HTTPFile()
@@ -487,58 +489,20 @@ class TestHTTPFile(unittest.TestCase):
         self.assertEquals(foo.filename, '/~cscheid/stuff/vtkdata-5.0.2.zip')
 
     def testIncorrectURL(self):
-        from vistrails.core.db.locator import XMLFileLocator
-        import vistrails.core.vistrail
-        from vistrails.core.vistrail.module import Module
-        from vistrails.core.vistrail.module_function import ModuleFunction
-        from vistrails.core.vistrail.module_param import ModuleParam
-        import vistrails.core.interpreter
-        p = vistrails.core.vistrail.pipeline.Pipeline()
-        m_param = ModuleParam(type='String',
-                              val='http://illbetyouthisdoesnotexistohrly',
-                              )
-        m_function = ModuleFunction(name='url',
-                                    parameters=[m_param],
-                                    )
-        p.add_module(Module(name='HTTPFile',
-                            package=identifier,
-                            version=version,
-                            id=0,
-                            functions=[m_function],
-                            ))
-        interpreter = vistrails.core.interpreter.default.get_default_interpreter()
-        kwargs = {'locator': XMLFileLocator('foo'),
-                  'current_version': 1L,
-                  'view': DummyView(),
-                  }
-        interpreter.execute(p, **kwargs)
+        from vistrails.tests.utils import execute
+        self.assertTrue(execute([
+                ('HTTPFile', identifier, [
+                    ('url', [('String', 'http://idbetthisdoesnotexistohrly')]),
+                ]),
+            ]))
 
     def testIncorrectURL_2(self):
-        import vistrails.core.vistrail
-        from vistrails.core.db.locator import XMLFileLocator
-        from vistrails.core.vistrail.module import Module
-        from vistrails.core.vistrail.module_function import ModuleFunction
-        from vistrails.core.vistrail.module_param import ModuleParam
-        import vistrails.core.interpreter
-        p = vistrails.core.vistrail.pipeline.Pipeline()
-        m_param = ModuleParam(type='String',
-                              val='http://neitherodesthisohrly',
-                              )
-        m_function = ModuleFunction(name='url',
-                                    parameters=[m_param],
-                                    )
-        p.add_module(Module(name='HTTPFile',
-                           package=identifier,
-                           version=version,
-                           id=0,
-                           functions=[m_function],
-                           ))
-        interpreter = vistrails.core.interpreter.default.get_default_interpreter()
-        kwargs = {'locator': XMLFileLocator('foo'),
-                  'current_version': 1L,
-                  'view': DummyView(),
-                  }
-        interpreter.execute(p, **kwargs)
+        from vistrails.tests.utils import execute
+        self.assertTrue(execute([
+                ('HTTPFile', identifier, [
+                    ('url', [('String', 'http://neitherodesthisohrly')]),
+                ]),
+            ]))
 
 class TestHTTPDirectory(unittest.TestCase):
     def test_download(self):

@@ -501,6 +501,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
+                abort = True
             if stop_on_error or abort:
                 break
 
