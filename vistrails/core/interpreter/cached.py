@@ -76,9 +76,6 @@ class ViewUpdatingLogController(object):
         for callable_ in self.module_executed_hook:
             callable_(obj.id)
 
-    def signalSuspended(self, obj, error):
-        self.suspended[obj.id] = error
-
     def signalError(self, obj, error):
         self.errors[obj.id] = error
 
@@ -111,7 +108,11 @@ class ViewUpdatingLogController(object):
             was_suspended=False):
         i = self.remap_id(obj.id)
         if was_suspended:
+            self.suspended[obj.id] = error
             self.view.set_module_suspended(i, error)
+            if error.children:
+                for child in error.children:
+                    self.end_update(child.module, child, was_suspended=True)
         elif error is None:
             self.view.set_module_success(i)
         else:
@@ -455,7 +456,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             except ModuleSuspended, ms:
                 ms.module.logging.end_update(ms.module, ms,
                                              was_suspended=True)
-                logging_obj.signalSuspended(ms.module, ms)
                 continue
             except ModuleErrors, mes:
                 for me in mes.module_errors:
