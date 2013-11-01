@@ -2937,7 +2937,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 1, error,
-                                                      errorTrace = errorTrace))
+                                                        errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_not_executed(self, moduleId):
@@ -2966,7 +2966,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if self.progress:
             self.cancel_progress()
             self.progress.setValue(self.progress.value() + 1)
-            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
+            pipeline = self.controller.current_pipeline
+            module = pipeline.get_module_by_id(moduleId)
+            self.progress.setLabelText(module.name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
@@ -2982,10 +2984,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
             except AbortExecution:
                 self.progress._progress_canceled = True
                 raise
+        status = '%d%% Completed' % int(progress*100)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
-                                                        '%d%% Completed' % int(progress*100),
-                                                        progress))
+                                                        status, progress))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_persistent(self, moduleId):
@@ -2998,14 +3000,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        msg = error if isinstance(error, str) else error.msg
-        text = "Module is suspended, reason: %s" % msg
+        status = "Module is suspended, reason: %s" % error.msg
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 7, text))
+                                     QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
+
         # add to suspended modules dialog
-        if isinstance(error, str):
-            return
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
         try:
@@ -3014,8 +3014,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 jobView.set_visible(True)
         except Exception, e:
             import traceback
-            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
-            
+            debug.critical("Error Monitoring Job: %s" % e,
+                           traceback.format_exc())
+
     def reset_module_colors(self):
         for module in self.modules.itervalues():
             module.statusBrush = None
