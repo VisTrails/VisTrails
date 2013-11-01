@@ -217,6 +217,7 @@ class LogWorkflowController(LogController):
         assert loop_exec is not None
 
         loop_exec.ts_end = vistrails.core.system.current_time()
+        loop_exec.completed = 1
         self.children_execs.setdefault(loop_module, set()).discard(loop_exec)
 
     def finish_execution(self, module, error, errorTrace=None, suspended=False):
