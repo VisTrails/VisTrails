@@ -518,22 +518,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             except KeyError:
                 pass
             return r
-        view = fetch('view', DummyView())
         reset_computed = fetch('reset_computed', True)
-     
-        self.clean_modules(to_delete)
 
-        for i in objs:
-            if i in errs:
-                view.set_module_error(i, errs[i].msg, errs[i].errorTrace)
-            elif i in suspended and suspended[i]:
-                view.set_module_suspended(i, suspended[i])
-            elif i in execs and execs[i]:
-                view.set_module_success(i)
-            elif i in cached and cached[i]:
-                view.set_module_not_executed(i)
-            else:
-                view.set_module_persistent(i)
+        self.clean_modules(to_delete)
 
         if reset_computed:
             for module in self._objects.itervalues():
