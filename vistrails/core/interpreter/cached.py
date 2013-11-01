@@ -496,15 +496,19 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 errs[tmp_id] = logging_obj.errors[obj.id]
                 if not clean_pipeline:
                     to_delete.append(obj.id)
+            executed = False
             if obj.id in logging_obj.executed:
                 execs[tmp_id] = logging_obj.executed[obj.id]
-            elif obj.id in logging_obj.suspended:
+                executed = True
+            if obj.id in logging_obj.suspended:
                 suspends[tmp_id] = logging_obj.suspended[obj.id]
                 if not clean_pipeline:
                     to_delete.append(obj.id)
-            elif obj.id in logging_obj.cached:
+                executed = True
+            if obj.id in logging_obj.cached:
                 caches[tmp_id] = logging_obj.cached[obj.id]
-            else:
+                executed = True
+            if not executed:
                 # these modules didn't execute
                 execs[tmp_id] = False
 
