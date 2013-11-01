@@ -107,17 +107,18 @@ class ViewUpdatingLogController(object):
     def end_loop_execution(self, obj, looped_obj):
         self.log.finish_loop_execution(obj, looped_obj)
 
-    def end_update(self, obj, error='', errorTrace=None,
+    def end_update(self, obj, error=None, errorTrace=None,
             was_suspended=False):
         i = self.remap_id(obj.id)
         if was_suspended:
             self.view.set_module_suspended(i, error)
-        elif not error:
+        elif error is None:
             self.view.set_module_success(i)
         else:
             self.view.set_module_error(i, error)
 
-        self.log.finish_execution(obj, error, errorTrace,
+        msg = '' if error is None else error.msg
+        self.log.finish_execution(obj, msg, errorTrace,
                                   was_suspended)
 
     def update_cached(self, obj):
@@ -452,17 +453,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             except AbortExecution:
                 break
             except ModuleSuspended, ms:
-                ms.module.logging.end_update(ms.module, ms.msg,
+                ms.module.logging.end_update(ms.module, ms,
                                              was_suspended=True)
                 logging_obj.signalSuspended(ms.module, ms)
                 continue
             except ModuleErrors, mes:
                 for me in mes.module_errors:
-                    me.module.logging.end_update(me.module, me.msg)
+                    me.module.logging.end_update(me.module, me)
                     logging_obj.signalError(me.module, me)
                     abort = abort or me.abort
             except ModuleError, me:
-                me.module.logging.end_update(me.module, me.msg, me.errorTrace)
+                me.module.logging.end_update(me.module, me, me.errorTrace)
                 logging_obj.signalError(me.module, me)
                 abort = me.abort
             except ModuleBreakpoint, mb:
