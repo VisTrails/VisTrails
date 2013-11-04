@@ -46,6 +46,7 @@ from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_st
 from vistrails.core.utils.color import ColorByName
 from vistrails.core.utils.lockmethod import lock_method
 import copy
+from distutils.version import LooseVersion
 import errno
 import itertools
 import os
@@ -412,38 +413,13 @@ def version_string_to_list(version):
     numbers and strings:
 
     version_string('0.1') -> [0, 1]
-    version_string('0.9.9alpha') -> [0, 9, '9alpha']
+    version_string('0.9.9alpha1') -> [0, 9, 9, alpha', 1]
 
     """
-    def convert(value):
-        try:
-            return int(value)
-        except ValueError:
-            return value
-    return [convert(value) for value in version.split('.')]
+    return LooseVersion(version).version
 
 def versions_increasing(v1, v2):
-    v1_list = v1.split('.')
-    v1_list.reverse()
-    v2_list = v2.split('.')
-    v2_list.reverse()
-    try:
-        while len(v1_list) > 0 and len(v2_list) > 0:
-            v1_num = int(v1_list.pop())
-            v2_num = int(v2_list.pop())
-            if v1_num < v2_num:
-                return True
-            elif v1_num > v2_num:
-                return False
-        if len(v1_list) < len(v2_list):
-            return True
-        elif len(v1_list) > len(v2_list):
-            return False
-    except ValueError:
-        vistrails.core.debug.critical("Cannot compare versions whose components " +
-                       "are not integers")
-    return False
-                
+    return LooseVersion(v1) < LooseVersion(v2)
 
 ##############################################################################
 # DummyView & DummyScene
@@ -612,7 +588,8 @@ class TestCommon(unittest.TestCase):
     def test_version_string_to_list(self):
         self.assertEquals(version_string_to_list("0.1"), [0, 1])
         self.assertEquals(version_string_to_list("1.0.2"), [1, 0, 2])
-        self.assertEquals(version_string_to_list("1.0.2beta"), [1, 0, '2beta'])
+        self.assertEquals(version_string_to_list("1.0.2beta"),
+                          [1, 0, 2, 'beta'])
     
     def test_ref(self):
         class C(object):

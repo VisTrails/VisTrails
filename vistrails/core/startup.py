@@ -39,6 +39,7 @@ from vistrails.core import system
 from vistrails.core.utils.uxml import named_elements, elements_filter, \
      eval_xml_value, enter_named_element
 import copy
+from distutils.version import LooseVersion
 import vistrails.core.packagemanager
 import vistrails.core.utils
 import os.path
@@ -322,8 +323,7 @@ by startup.py. This should only be called after init()."""
                     try:
                         d = self.startup_dom()
                         v = str(d.getElementsByTagName('startup')[0].attributes['version'].value)
-                        r = vistrails.core.utils.version_string_to_list(v)
-                        return r >= [0, 1]
+                        return LooseVersion('0.1') <= LooseVersion(v)
                     except:
                         return False
                 else:

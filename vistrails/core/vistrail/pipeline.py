@@ -58,7 +58,7 @@ from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
+from vistrails.core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
