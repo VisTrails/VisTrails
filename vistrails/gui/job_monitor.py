@@ -154,11 +154,9 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         workflowItem = self.workflowItems[workflow.id]
         base = workflowItem.intermediates[parent_id] if parent_id is not None\
                                                      else workflowItem
-
-        id = '%s/%s' % (parent_id, obj.signature) if parent_id \
-                                                  else obj.signature
-        print "recursing", obj.name, id, '<-', parent_id
-        print "in", id in workflow.modules
+        id = obj.signature
+        if id not in workflow.modules and parent_id:
+            id = '%s/%s' % (parent_id, obj.signature)
         if obj.children:
             # add parent items and their children
             if id not in workflowItem.intermediates:
@@ -169,12 +167,13 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             # this is an already existing new-style job
             job = workflowItem.jobs[obj.signature]
             job.queue = obj.queue
-            base.addChild(job)
+            # need to force takeChild
+            base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
         elif id in workflow.modules:
             # this is an already existing old-style job
             job = workflowItem.jobs[id]
             job.queue = obj.queue
-            # need to force takeChild for some reason!
+            # need to force takeChild
             base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
         
     def finishWorkflow(self, workflow):
@@ -190,7 +189,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         if workflowItem:
             workflowItem.updateJobs()
             self.set_visible(True)
-            
+
     def update_jobs(self):
         """ check all jobs both for workflows with and without monitors
         """
@@ -294,30 +293,49 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         # get current view progress bar and hijack it
         if monitor:
             item.queue = monitor
-        workflow = self.job.currentWorkflow()
-        workflow.countJobs()
+        workflow = self.jobMonitor.currentWorkflow()
         workflowItem = self.workflowItems.get(workflow.id, None)
-        progress = workflowItem.view.current_pipeline_scene().progress
+        workflowItem.updateJobs()
+        progress = workflowItem.view.controller.current_pipeline_scene.progress
 
         conf = configuration.get_vistrails_configuration()
         interval = conf.jobCheckInterval
-        if interval:
+        if interval and not conf.jobAutorun and not progress.suspended:
+            # we should keep checking the job
             if monitor:
                 # wait for module to complete
+                labelText = (("Running external job %s\n"
+                                       "Started %s\n"
+                                       "Press Cancel to suspend")
+                                       % (item.job.name,
+                                          item.job.start))
+                progress.setLabelText(labelText)
                 while not monitor.finished():
-                    progress.setLabelText(("%s- external job\n"
-                                           "Started %s\n"
-                                           "Press Cancel to suspend")
-                                           % (item.job.name,
-                                              item.job.started))
-                    time.sleep(interval)
-                    QtCore.QCoreApplication.processEvents()
-                    if progress.wasCanceled():
-                        raise ModuleSuspended(module,
+                    i = 0
+                    while i < interval:
+                        i += 1
+                        time.sleep(1)
+                        QtCore.QCoreApplication.processEvents()
+                        if progress.wasCanceled():
+                            # this does not work, need to create a new progress dialog
+                            #progress.goOn()
+                            new_progress =  progress.__class__(progress.maximum())
+                            new_progress.setValue(progress.value())
+                            new_progress.setLabelText(labelText)
+                            new_progress.setMinimumDuration(0)
+                            new_progress.suspended = True
+                            workflowItem.view.controller.current_pipeline_scene.progress = new_progress
+                            progress = new_progress
+                            progress.show()
+                            QtCore.QCoreApplication.processEvents()
+                            raise ModuleSuspended(module,
                                        'Interrupted by user, job'
-                                       ' is still running', queue=monitor)
+                                       ' is still running', queue=monitor,
+                                       job_id=id)
+                return
         if not monitor or not monitor.finished():
-            raise ModuleSuspended(module, 'Job is running', queue=monitor)
+            raise ModuleSuspended(module, 'Job is running', queue=monitor,
+                                  job_id=id)
         
     def deleteWorkflow(self, id):
         """ deleteWorkflow(id: str) -> None
@@ -416,12 +434,15 @@ class QJobItem(QtGui.QTreeWidgetItem):
                                                       job.description()])
         self.setToolTip(1, job.description())
         self.job = job
+        # This is different from job.jobFinished after queue finishes
+        self.jobFinished = self.job.finished
         self.queue = None
         self.updateJob()
         self.setExpanded(True)
     
     def updateJob(self):
-        self.jobFinished = self.job.finished
+        if self.job.finished:
+            self.jobFinished = self.job.finished
         self.setText(1, self.job.parameters.get('__message__',
                         "Finished" if self.jobFinished else "Running"))
         if self.jobFinished:

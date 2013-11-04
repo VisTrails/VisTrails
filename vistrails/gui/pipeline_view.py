@@ -3206,7 +3206,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return module_ids_len > 0
 
     def has_selected_module(self, module):
-        #print 'calling has_selected_module'
+        # 'calling has_selected_module'
         return self.has_selected_modules(module, True)
 
     def has_selected_groups(self, module, only_one=False):
@@ -3331,6 +3331,8 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0
         self._progress_canceled = False
+        # if suspended is true we should not wait for a job to complete
+        self.suspended = False
 
     def setValue(self, value):
         self._last_set_value = value

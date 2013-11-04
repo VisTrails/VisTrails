@@ -94,7 +94,9 @@ class While(Module):
 
             module.update()
             if hasattr(module, 'suspended') and module.suspended:
-                raise ModuleSuspended(module._module_suspended)
+                raise ModuleSuspended(module,
+                                      "While suspended: %s"%module.suspended,
+                                      children=[module._module_suspended])
 
             if name_condition is not None:
                 if name_condition not in module.outputPorts:

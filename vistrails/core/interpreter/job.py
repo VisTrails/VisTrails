@@ -39,7 +39,7 @@
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import current_dot_vistrails
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import ModuleSuspended
+from vistrails.core.modules.vistrails_module import ModuleSuspended, NotCacheable
 
 from uuid import uuid1
 
@@ -53,7 +53,7 @@ import weakref
 
 JOBS_FILENAME = "jobs.json"
 
-class JobMixin:
+class JobMixin(NotCacheable):
     """ Provides a finished compute method for implementing job handling
         The package developer needs to implement the method stubs
 
@@ -74,7 +74,7 @@ class JobMixin:
             params = job.parameters
         else:
             # start job
-            params = self.startJob()
+            params = self.startJob(params)
             # set visible name
             # check custom name
             m = self.interpreter._persistent_pipeline.modules[self.id]
@@ -85,9 +85,10 @@ class JobMixin:
                 name = reg.get_descriptor(self.__class__).name
             jm.addJob(signature, params, name)
         # call method to check job
-        jm.checkJob(self, signature, self.getMonitor(params), job.name)
+        jm.checkJob(self, signature, self.getMonitor(params))
         # job is finished, set outputs
-        params = self.finishJob()
+        params = self.finishJob(params)
+        self.setResults(params)
         cache = jm.setCache(signature, params)
         
     def readInputs(self):
@@ -97,29 +98,29 @@ class JobMixin:
         """
         raise NotImplementedError
 
-    def startJob(self):
-        """startJob() -> None
-            Should read inputs, start the job, and return dict with the 
+    def startJob(self, params):
+        """startJob(params: dict) -> None
+            Should start the job, and return a dict with the 
             parameters needed to check the job
         
         """
         raise NotImplementedError
 
-    def finishJob(self, parameters):
-        """finishJob(parameters: dict) -> None
+    def finishJob(self, params):
+        """finishJob(params: dict) -> None
             Should finish the job and set outputs
             
         """
         raise NotImplementedError
         
-    def setResults(self, parameters):
-        """ setResults(parameters: dict) -> None
-            Sets outputs using the parameters dict
+    def setResults(self, params):
+        """ setResults(params: dict) -> None
+            Sets outputs using the params dict
         """
         raise NotImplementedError
 
-    def getMonitor(self, parameters):
-        """ getMonitor(parameters: dict) -> None
+    def getMonitor(self, params):
+        """ getMonitor(params: dict) -> None
             Should return an instance with methods for checking the job state
             Possible methods
             .finished() - required, returns True if job has completed
@@ -128,8 +129,8 @@ class JobMixin:
 
     def getId(self, params):
         """ getId(params: dict) -> job identifier
-            Should return an string completely identifying this instance of the job
-            It will usually be based on input values stored in params
+            Should return an string completely identifying this job
+            Class name + input values are usually unique
             WARNING: The default implementation does not work correctly in
                      maps and groups
         """
@@ -227,8 +228,8 @@ class Module:
         
         """
         self.id = id
-        self.name = name
         self.parameters = parameters
+        self.name = name
         self.start = start if start else str(datetime.datetime.now())
         self.finished = finished
         self.updated = True
@@ -398,13 +399,14 @@ class JobMonitor:
         
     
     def addChildRec(self, obj, parent_id=None):
-        id = '%s/%s' % (parent_id, obj.signature) if parent_id \
-                                                  else obj.signature
+        workflow = self.currentWorkflow()
+        id = obj.signature
+        if id not in workflow.modules and parent_id:
+            id = '%s/%s' % (parent_id, obj.signature)
         if obj.children:
             for child in obj.children:
                 self.addChildRec(child, id)
             return
-        workflow = self._current_workflow
         if obj.signature in workflow.modules:
             # this is an already existing new-style job
             # mark that it have been used
@@ -456,7 +458,8 @@ class JobMonitor:
             # update job attributes
             job = self.getJob(id)
             job.params = params
-            job.name = name if name else job.name
+            if name:
+                job.name = name
             job.finished = finished
             # we want to keep the start date
         else:
@@ -481,7 +484,7 @@ class JobMonitor:
                     del workflow.parents[id(child)]
         workflow.parents[id(error)] = error
 
-    def addCache(self, id, params, name=''):
+    def setCache(self, id, params, name=''):
         self.addJob(id, params, name, True)
 
     def checkJob(self, module, id, monitor):
@@ -499,9 +502,10 @@ class JobMonitor:
         if self.callback:
             self.callback.checkJob(module, id, monitor)
             return
+
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
-        if interval:
+        if interval and not conf.jobAutorun:
             if monitor:
                 # wait for module to complete
                 try:
@@ -528,6 +532,17 @@ class JobMonitor:
             return None
         return self._current_workflow.modules.get(id, None)
 
+    def getCache(self, id):
+        """ getCache(id: str) -> Module
+            Checks if a completed module exists using its id and returns it
+        """
+        if not self._current_workflow:
+            return None
+        job = self._current_workflow.modules.get(id, None)
+        if not job:
+            return None
+        return job if job.finished else None
+
     def hasJob(self, id):
         """ hasJob(id: str) -> bool
         
@@ -546,8 +561,8 @@ class TestJob(unittest.TestCase):
 
     def test_job(self):
         job = JobMonitor.getInstance()
-        module1 = Module('someid34', {'a':3, 'b':'7'})
-        module2 = Module('81', {'a':6}, 'a_string_date', True)
+        module1 = Module('`13/5', {'a':3, 'b':'7'})
+        module2 = Module('3', {'a':6}, 'my_name', 'a_string_date', True)
         # test module to/from dict
         module3 = Module.from_dict(module2.to_dict())
         self.assertEqual(module2, module3)
@@ -570,7 +585,7 @@ class TestJob(unittest.TestCase):
         job.startWorkflow(workflow2)
         job.addJob('my_uuid_id', {'myparam': 0})
         self.assertIn('my_uuid_id', workflow2.modules)
-        job.finish_workflow()
+        job.finishWorkflow()
         
         # test serialization
         job._running_workflows[workflow1.id] = workflow1

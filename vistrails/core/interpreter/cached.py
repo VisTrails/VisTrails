@@ -394,7 +394,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             # if signature is not set we use the module identifier
             if not error.signature:
                 error.signature = i
-            print "suspending", error.signature, name
             jm.addParent(error)
         
         # views and loggers work on local ids
@@ -530,7 +529,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     to_delete.append(obj.id)
             if obj.id in executed:
                 execs[tmp_id] = executed[obj.id]
-            elif obj.id in suspended and not obj.is_looping: # ignore looping
+            elif obj.id in suspended and obj.suspended and not obj.is_looping: # ignore looping
                 suspends[tmp_id] = suspended[obj.id]
             elif obj.id in cached:
                 caches[tmp_id] = cached[obj.id]
