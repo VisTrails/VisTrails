@@ -94,10 +94,6 @@ class FoldWithModule(Fold, NotCacheable):
     that this module will use.
     """
 
-    def __init__(self):
-        Fold.__init__(self)
-        self.is_looping_module = True
-
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
 
