@@ -143,6 +143,7 @@ class FoldWithModule(Fold, NotCacheable):
         suspended = []
         ## Update everything for each value inside the list
         for i, element in enumerate(inputList):
+            self.logging.update_progress(self, float(i)/len(inputList))
             if element_is_iter:
                 self.element = element
             else:
