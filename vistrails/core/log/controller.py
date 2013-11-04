@@ -135,7 +135,12 @@ class LogController(object):
             self.workflow_exec.completed = -1
         else:
             self.workflow_exec.completed = 1
-            
+
+    def add_machine(self, machine):
+        machine.id = self.log.id_scope.getNewId(Machine.vtType)
+        self.workflow_exec.add_machine(machine)
+        return machine.id
+
     def add_exec(self, exec_, parent_execs):
         parent_exec = parent_execs[-1]
         if parent_exec:

@@ -395,7 +395,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                                      end_update=end_update,
                                      update_cached=update_cached,
                                      set_computing=set_computing,
-                                     add_exec = add_exec,
+                                     add_machine=logger.add_machine,
+                                     add_exec=add_exec,
                                      annotate=annotate,
                                      log=logger)
 
