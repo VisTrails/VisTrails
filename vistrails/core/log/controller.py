@@ -282,6 +282,14 @@ class LogWorkflowController(LogController):
                                         value=v)
                 self.workflow_exec.add_annotation(annotation)
 
+    def add_machine(self, machine):
+        machine.id = self.log.id_scope.getNewId(Machine.vtType)
+        self.workflow_exec.add_machine(machine)
+        return machine.id
+
+    def add_exec(self, exec_):
+        self.workflow_exec.add_item_exec(exec_)
+
 
 class LogWorkflowExecController(LogWorkflowController):
     """Top-level LogWorkflowController, returned by start_workflow_execution().

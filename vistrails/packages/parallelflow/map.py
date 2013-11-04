@@ -94,7 +94,8 @@ def execute_wf(wf, output_port):
 
         # Get the execution log from the controller
         module_log = controller.log.workflow_execs[0].item_execs[0]
-        machine = controller.log.machine_list[0]
+        machine = controller.log.workflow_execs[0].machines[
+                module_log.machine_id]
         xml_log = serialize(module_log)
         machine_log = serialize(machine)
 
@@ -401,19 +402,17 @@ class Map(Module, NotCacheable):
 
             # before adding the execution log, we need to get the machine information
             machine = unserialize(map_result[engine]['machine_log'], Machine)
-            machine.id = self.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-            self.logging.log.log.add_machine(machine)
+            machine_id = self.logging.add_machine(machine)
 
             # recursively add machine information to execution items
             def add_machine_recursive(exec_):
-                for i in range(len(exec_.item_execs)):
-                    if hasattr(exec_.item_execs[i], 'machine_id'):
-                        exec_.item_execs[i].machine_id = machine.id
-                        vt_type = exec_.item_execs[i].vtType
-                        if (vt_type == 'abstraction') or (vt_type == 'group'):
-                            add_machine_recursive(exec_.item_execs[i])
+                for item in exec_.item_execs:
+                    if hasattr(item, 'machine_id'):
+                        item.machine_id = machine_id
+                        if item.vtType in ('abstraction', 'group'):
+                            add_machine_recursive(item)
 
-            exec_.machine_id = machine.id
+            exec_.machine_id = machine_id
             if (vtType == 'abstraction') or (vtType == 'group'):
                 add_machine_recursive(exec_)
 

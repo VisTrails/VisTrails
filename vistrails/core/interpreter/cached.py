@@ -141,6 +141,12 @@ class ViewUpdatingLogController(object):
     def annotate(self, obj, d):
         self.log.insert_module_annotations(obj, d)
 
+    def add_machine(self, machine):
+        return self.log.add_machine(machine)
+
+    def add_exec(self, exec_):
+        return self.log.add_exec(exec_)
+
 ###############################################################################
 
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
