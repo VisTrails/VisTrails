@@ -199,6 +199,8 @@ def default():
         'interactiveMode': True,
         'jobCheckInterval': 10,
         'jobAutorun': False,
+        'jobRun': (None, str),
+        'jobList': False,
         'logFile': (None, str),
         'logger': default_logger(),
         'maxMemory': (None, int),

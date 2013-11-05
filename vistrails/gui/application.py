@@ -43,7 +43,8 @@ from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
-from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.db.locator import FileLocator, DBLocator, BaseLocator
+from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.requirements
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
@@ -166,6 +167,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         VistrailsApplicationInterface.init(self, optionsDict)
         
+        JobMonitor.getInstance().load_from_file()
+        if self.temp_configuration.check('jobRun') or \
+           self.temp_configuration.check('jobList'):
+            self.temp_configuration.interactiveMode = False
+
         #singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
         if singleInstance:
@@ -202,7 +208,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if not linux_default_application_set():
                     self.ask_update_default_application()
 
-        if interactive:
+        if self.temp_configuration.check('jobList'):
+            job = JobMonitor.getInstance()
+            for i, j in job.load_from_file().iteritems():
+                print "JOB: ", i, j.vistrail, j.version, j.start, \
+                      "FINISHED" if j.completed() else "RUNNING"
+        elif self.temp_configuration.check('jobRun'):
+            self.runJob(self.temp_configuration.jobRun)
+        elif interactive:
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
@@ -711,6 +724,22 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
                 self.readOptions()
+                if self.temp_configuration.check('jobList'):
+                    job = JobMonitor.getInstance()
+                    return '\n'.join(
+                        ["JOB: %s %s %s %s %s" %(i,
+                                                 j.vistrail,
+                                                 j.version,
+                                                 j.start,
+                              "FINISHED" if j.completed() else "RUNNING")
+                         for i, j in job.load_from_file().iteritems()])
+                if self.temp_configuration.check('jobRun'):
+                    # skip waiting for completion
+                    autoRun = self.configuration.get('autoRun')
+                    self.configuration.autoRun = True
+                    result = self.runJob(self.temp_configuration.jobRun)
+                    self.configuration.autoRun = autoRun
+                    return result
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
                     result = self.process_interactive_input()
@@ -727,6 +756,20 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         else:
             debug.critical("Invalid input: %s" % msg)
         return False
+
+    def runJob(self, job_id):
+        jobMonitor = JobMonitor.getInstance()
+        workflow = jobMonitor.getWorkflow(job_id)
+        
+        locator = BaseLocator.from_url(workflow.vistrail)
+        jobMonitor.startWorkflow(workflow)
+        import vistrails.core.console_mode
+        error = vistrails.core.console_mode.run([(locator, workflow.version)],
+                                                update_vistrail=True)
+        jobMonitor.finishWorkflow()
+        print "FINISHED" if workflow.completed() else "SUSPENDED"
+        return APP_SUCCESS
+
 
 def linux_default_application_set():
     """linux_default_application_set() -> True|False|None
@@ -843,6 +886,7 @@ def start_application(optionsDict=None):
 
 def stop_application():
     """Stop and finalize the application singleton."""
+    JobMonitor.getInstance().save_to_file()
     VistrailsApplication = get_vistrails_application()
     VistrailsApplication.finishSession()
     VistrailsApplication.save_configuration()

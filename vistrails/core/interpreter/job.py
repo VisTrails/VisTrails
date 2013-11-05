@@ -430,7 +430,7 @@ class JobMonitor:
         # untangle parents
         for parent in workflow.parents.itervalues():
             self.addChildRec(parent)
-        
+
         # Assume all unfinished jobs that were not updated are now finished
         for job in workflow.modules.values():
             if not job.finished and not job.updated:

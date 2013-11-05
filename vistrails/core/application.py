@@ -48,7 +48,6 @@ from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
-import vistrails.core.interpreter.job
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject
@@ -187,6 +186,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             dest='installBundles',
             help=("Do not try to install missing Python packages "
                   "automatically"))
+        add("--runJob", action="store",
+            help=("Run job with specified id."))
+        add("--listJobs", action="store_true",
+            help=("List all jobs."))
 
         if args != None:
             command_line.CommandLineParser.parse_options(args=args)
@@ -281,7 +284,12 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         if get('installBundles')!=None:
             self.temp_configuration.installBundles = bool(get('installBundles'))
+        if get('runJob')!=None:
+            self.temp_configuration.jobRun = get('runJob')
+        if get('listJobs')!=None:
+            self.temp_configuration.jobList = bool(get('listJobs'))
         self.input = command_line.CommandLineParser().positional_arguments()
+
     def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
@@ -495,7 +503,6 @@ after self.init()"""
 
     def finishSession(self):
         vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
-        vistrails.core.interpreter.job.JobMonitor.getInstance().save_to_file()
         
     def save_configuration(self):
         """ save_configuration() -> None
