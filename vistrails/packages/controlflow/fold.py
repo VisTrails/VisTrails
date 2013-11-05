@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput, ModuleSuspended
+    ModuleConnector, InvalidOutput
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
     Float, NotCacheable, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
@@ -70,11 +70,6 @@ class Fold(Module):
             self.element = element
             self.operation()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
     def setInitialValue(self): # pragma: no cover
@@ -168,12 +163,7 @@ class FoldWithModule(Fold, NotCacheable):
         self.logging.begin_compute(self)
         output_port = self.getInputFromPort('OutputPort')
 
-        suspended = []
         for module, element in self.modules_to_run:
-            if hasattr(module, 'suspended') and module.suspended:
-                suspended.append(module._module_suspended)
-                module.suspended = False
-                continue
             # Getting the result from the output port
             if output_port not in module.outputPorts:
                 raise ModuleError(module,
@@ -191,12 +181,6 @@ class FoldWithModule(Fold, NotCacheable):
             self.elementResult = module.get_output(output_port)
             self.operation()
 
-        if suspended:
-            self.suspended = "%d module(s) suspended: %s" % (
-                    len(suspended), suspended[0].msg)
-            self._module_suspended = suspended
-        if self.suspended:
-            return
         self.setResult('Result', self.partialResult)
 
         self.upToDate = True

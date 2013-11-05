@@ -3,7 +3,7 @@ from itertools import izip
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
-    ModuleSuspended, ModuleError, ModuleConnector
+    ModuleError, ModuleConnector
 
 from fold import create_constant
 
@@ -105,9 +105,6 @@ class While(Module):
     def iteration_done(self, i, module):
         """Finishes or starts a new iteration.
         """
-        if hasattr(module, 'suspended') and module.suspended:
-            return
-
         if self.name_condition is not None:
             if self.name_condition not in module.outputPorts:
                 raise ModuleError(

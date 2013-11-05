@@ -119,10 +119,9 @@ class Group(Module):
                                          me.msg for me in res[2].itervalues()))
 
         # Check and propagate ModuleSuspended exceptions
-        if len(res[4]) > 0:
-            message = '\n'.join([msg for msg in res[4].itervalues()])
-            children = [tmp_id_to_module_map[module_id]._module_suspended
-                        for module_id in res[4]]
+        if res[4]:
+            message = '\n'.join([ms.msg for ms in res[4].itervalues()])
+            children = list(res[4].values())
             raise ModuleSuspended(self, message, children=children)
 
         # Connect internal OutputPort modules to Group's external output ports

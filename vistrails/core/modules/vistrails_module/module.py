@@ -40,7 +40,7 @@ from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.task_system import Task
 
 from .errors import InvalidOutput, ModuleBreakpoint, \
-    ModuleError, ModuleErrors, ModuleSuspended
+    ModuleError, ModuleErrors
 
 
 ###############################################################################
@@ -211,8 +211,6 @@ Designing New Modules
         # used for the logging stuff
         self.computed = False
 
-        self.suspended = False
-
         self.signature = None
 
         # stores whether the output of the module should be annotated in the
@@ -340,17 +338,11 @@ context."""
         Callback for the TaskRunner, triggered when all upstream modules have
         completed.
         """
-        for connector in connectors:
-            if (hasattr(connector.obj, 'suspended') and
-                    connector.obj.suspended):
-                self.suspended = connector.obj.suspended
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(iport, connector)
 
-        if self.suspended:
-            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
@@ -385,18 +377,11 @@ context."""
                 self.compute()
             self.computed = True
             self.done()
-        except ModuleSuspended, e:
-            self.suspended = e.msg
-            self._module_suspended = e
-            self.logging.end_update(self, e, was_suspended=True)
-            self.logging.signalSuspended(self)
-            return
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
                 raise
             else:
-                msg = "A dynamic module raised an exception: '%s'"
-                msg %= str(me)
+                msg = "A dynamic module raised an exception: '%s'" % me
                 raise ModuleError(self, msg)
         except ModuleErrors:
             raise
