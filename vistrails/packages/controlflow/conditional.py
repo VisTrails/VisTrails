@@ -104,19 +104,27 @@ class Default(Module, NotCacheable):
     Default port won't be executed (short-circuit).
     """
 
-    def updateUpstream(self, callback=None, priority=None):
-        try:
-            self.__connector = self.getInputConnector('Input')
-        except ModuleError:
-            self.__connector = self.getInputConnector('Default')
-
+    def updateUpstream(self, targets=None):
         super(Default, self).updateUpstream(
-                callback,
-                [self.__connector],
-                priority)
+                None,
+                ['Input'],
+                priority=self.UPDATE_UPSTREAM_PRIORITY)
+
+    def on_upstream_ready(self, connectors):
+        if self.hasInputFromPort('Input'):
+            # Normally we should change priority to COMPUTE_PRIORITY but there
+            # is no need here since we don't actually perform computations
+            super(Default, self).on_upstream_ready(connectors)
+        else:
+            super(Default, self).updateUpstream(
+                    targets=['Default'],
+                    callback=super(Default, self).on_upstream_ready)
 
     def compute(self):
-        self.setResult('Result', self.__connector())
+        if self.hasInputFromPort('Input'):
+            self.setResult('Result', self.getInputFromPort('Input'))
+        else:
+            self.setResult('Result', self.getInputFromPort('Default'))
 
 
 ###############################################################################
