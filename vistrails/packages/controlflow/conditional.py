@@ -57,14 +57,15 @@ class If(Module, NotCacheable):
             self.done()
             return
 
-        self.__condition = self.getInputFromPort('Condition')
-        if self.__condition:
-            port_name = 'TruePort'
+        if self.getInputFromPort('Condition'):
+            mod_port_name = 'TruePort'
+            self.__ports_port_name = 'TrueOutputPorts'
         else:
-            port_name = 'FalsePort'
+            mod_port_name = 'FalsePort'
+            self.__ports_port_name = 'FalseOutputPorts'
         self.updateUpstream(
                 self.input_ready,
-                [self.getInputConnector(port_name)],
+                [self.getInputConnector(mod_port_name)],
                 priority=50)
         # This module does nothing, it just forwards the value we get from
         # upstream, so we might as well give it a higher priority
@@ -72,10 +73,17 @@ class If(Module, NotCacheable):
     def input_ready(self, connectors):
         self.done()
         self.logging.begin_compute(self)
-        if self.__condition:
-            self.setResult('Result', self.getInputFromPort('TruePort'))
-        else:
-            self.setResult('Result', self.getInputFromPort('FalsePort'))
+        module, = connectors
+        module = module.obj
+        if self.hasInputFromPort(self.__ports_port_name):
+            output_ports = self.getInputFromPort(self.__ports_port_name)
+            result = []
+            for output_port in output_ports:
+                result.append(module.get_output(output_port))
+            if len(output_ports) == 1:
+                self.setResult('Result', result[0])
+            else:
+                self.setResult('Result', result)
         self.upToDate = True
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
