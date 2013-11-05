@@ -133,7 +133,7 @@ def strip_ansi_codes(s):
 ###############################################################################
 # Map Operator
 #
-class Map(Module, NotCacheable):
+class Map(Module):
     """The Map Module executes a map operator in parallel on IPython engines.
 
     The FunctionPort should be connected to the 'self' output of the module you
