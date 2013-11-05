@@ -40,11 +40,17 @@ constants.
 
 """
 from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression
+from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
 
 ############################################################################
+
+def setLineEditPlaceholderText(line_edit, value):
+    if versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
+        line_edit.setText(value)
+    else:
+        line_edit.setPlaceholderText(value)
 
 class ConstantWidgetMixin(object):
 
@@ -146,7 +152,8 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetBase):
         return contents
 
     def setDefault(self, value):
-        self.setPlaceholderText(value)
+        # check if we support setPlaceholderText
+        setLineEditPlaceholderText(self, value)
 
 class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
     def __init__(self, param, parent=None):
@@ -188,9 +195,9 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
         if idx > -1:
             self.setCurrentIndex(idx)
             if self.isEditable():
-                self.lineEdit().setPlaceholderText(value)
+                setLineEditPlaceholderText(self.lineEdit(), value)
         elif self.isEditable():
-            self.lineEdit().setPlaceholderText(value)
+            setLineEditPlaceholderText(self.lineEdit(), value)
 
 ###############################################################################
 # Multi-line String Widget
