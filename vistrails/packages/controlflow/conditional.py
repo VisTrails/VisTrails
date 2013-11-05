@@ -57,14 +57,15 @@ class If(Module, NotCacheable):
             self.done()
             return
 
-        self.__condition = self.getInputFromPort('Condition')
-        if self.__condition:
-            port_name = 'TruePort'
+        if self.getInputFromPort('Condition'):
+            mod_port_name = 'TruePort'
+            self.__ports_port_name = 'TrueOutputPorts'
         else:
-            port_name = 'FalsePort'
+            mod_port_name = 'FalsePort'
+            self.__ports_port_name = 'FalseOutputPorts'
         self.updateUpstream(
                 self.input_ready,
-                [self.getInputConnector(port_name)],
+                [self.getInputConnector(mod_port_name)],
                 priority=50)
         # This module does nothing, it just forwards the value we get from
         # upstream, so we might as well give it a higher priority
@@ -72,10 +73,17 @@ class If(Module, NotCacheable):
     def input_ready(self, connectors):
         self.done()
         self.logging.begin_compute(self)
-        if self.__condition:
-            self.setResult('Result', self.getInputFromPort('TruePort'))
-        else:
-            self.setResult('Result', self.getInputFromPort('FalsePort'))
+        module, = connectors
+        module = module.obj
+        if self.hasInputFromPort(self.__ports_port_name):
+            output_ports = self.getInputFromPort(self.__ports_port_name)
+            result = []
+            for output_port in output_ports:
+                result.append(module.get_output(output_port))
+            if len(output_ports) == 1:
+                self.setResult('Result', result[0])
+            else:
+                self.setResult('Result', result)
         self.upToDate = True
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
@@ -96,16 +104,103 @@ class Default(Module, NotCacheable):
     Default port won't be executed (short-circuit).
     """
 
-    def updateUpstream(self, callback=None, priority=None):
-        try:
-            self.__connector = self.getInputConnector('Input')
-        except ModuleError:
-            self.__connector = self.getInputConnector('Default')
-
+    def updateUpstream(self, targets=None):
         super(Default, self).updateUpstream(
-                callback,
-                [self.__connector],
-                priority)
+                None,
+                ['Input'],
+                priority=self.UPDATE_UPSTREAM_PRIORITY)
+
+    def on_upstream_ready(self, connectors):
+        if self.hasInputFromPort('Input'):
+            # Normally we should change priority to COMPUTE_PRIORITY but there
+            # is no need here since we don't actually perform computations
+            super(Default, self).on_upstream_ready(connectors)
+        else:
+            super(Default, self).updateUpstream(
+                    targets=['Default'],
+                    callback=super(Default, self).on_upstream_ready)
 
     def compute(self):
-        self.setResult('Result', self.__connector())
+        if self.hasInputFromPort('Input'):
+            self.setResult('Result', self.getInputFromPort('Input'))
+        else:
+            self.setResult('Result', self.getInputFromPort('Default'))
+
+
+###############################################################################
+
+import unittest
+import urllib2
+
+from vistrails.tests.utils import intercept_result, execute
+
+class TestIf(unittest.TestCase):
+    def do_if(self, val):
+        with intercept_result(If, 'Result') as results:
+            interp_dict = execute([
+                    ('If', 'org.vistrails.vistrails.control_flow', [
+                        ('FalseOutputPorts', [('List', "['value']")]),
+                        ('TrueOutputPorts', [('List', "['value']")]),
+                        ('Condition', [('Boolean', str(val))]),
+                    ]),
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '42')]),
+                    ]),
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '28')]),
+                    ]),
+                ],
+                [
+                    (1, 'self', 0, 'TruePort'),
+                    (2, 'self', 0, 'FalsePort'),
+                ],
+                full_results=True)
+            self.assertFalse(interp_dict.errors)
+        if val:
+            self.assertEqual(results, [42])
+        else:
+            self.assertEqual(results, [28])
+        self.assertEqual(interp_dict.executed, {0: True, 1: val, 2: not val})
+
+    def test_if_true(self):
+        self.do_if(True)
+
+    def test_if_false(self):
+        self.do_if(False)
+
+
+class TestDefault(unittest.TestCase):
+    def do_default(self, val):
+        if val:
+            src = 'o = 42'
+        else:
+            src = ('from vistrails.core.modules.vistrails_module import '
+                   'InvalidOutput\n'
+                   'o = InvalidOutput')
+        src = urllib2.quote(src)
+        with intercept_result(Default, 'Result') as results:
+            self.assertFalse(execute([
+                    ('Default', 'org.vistrails.vistrails.control_flow', [
+                        ('Default', [('Integer', '28')]),
+                    ]),
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', src)]),
+                    ]),
+                ],
+                [
+                    (1, 'o', 0, 'Input'),
+                ],
+                add_port_specs=[
+                    (1, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Integer'),
+                ]))
+        if val:
+            self.assertEqual(results, [42])
+        else:
+            self.assertEqual(results, [28])
+
+    def test_default_set(self):
+        self.do_default(True)
+
+    def test_default_unset(self):
+        self.do_default(False)

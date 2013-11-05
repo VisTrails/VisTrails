@@ -32,23 +32,12 @@
 ##
 ###############################################################################
 
+import matplotlib
+import pylab
 import urllib
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
-from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg', warn=False)
-    pylab = py_import('pylab', mpl_dict)
-except Exception, e:
-    debug.critical("Exception: %s" % e)
 
 ################################################################################
 
@@ -100,7 +89,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
         source = self.getInputFromPort('source')
         s = ('from pylab import *\n'
              'from numpy import *\n' +
-             'figure(%d)' % self.figInstance.number +
+             'figure(%d)\n' % self.figInstance.number +
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)

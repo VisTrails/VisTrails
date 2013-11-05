@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from .errors import IncompleteImplementation, InvalidOutput, MissingModule, \
+from .errors import IncompleteImplementation, InvalidOutput, \
     ModuleBreakpoint, ModuleError, ModuleErrors, ModuleSuspended, \
     NeedsInputPort
 from .module import Module, ModuleConnector, new_module

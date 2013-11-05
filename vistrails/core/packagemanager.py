@@ -47,10 +47,11 @@ from vistrails.core import debug, get_vistrails_application
 from vistrails.core.configuration import ConfigurationObject
 import vistrails.core.data_structures.graph
 import vistrails.core.db.io
-from vistrails.core.modules.module_registry import ModuleRegistry, MissingPackage
+from vistrails.core.modules.module_registry import ModuleRegistry, \
+                                         MissingPackage, MissingPackageVersion
 from vistrails.core.modules.package import Package
 from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
-    versions_increasing
+    versions_increasing, VistrailsDeprecation
 import vistrails.packages
 ##############################################################################
 
@@ -348,7 +349,12 @@ Returns true if given package identifier is present."""
             if version is not None:
                 return package_versions[version]
         except KeyError:
-            raise MissingPackage(identifier)
+            # dynamic packages are only registered in the registry
+            try:
+                return self._registry.get_package_by_name(identifier, version)
+            except MissingPackageVersion:
+                return self._registry.get_package_by_name(identifier)
+            
 
         max_version = '0'
         max_pkg = None
@@ -375,7 +381,7 @@ Returns true if given package identifier is present."""
         warnings.warn(
                 "You should use get_package instead of "
                 "get_package_by_identifier",
-                DeprecationWarning,
+                VistrailsDeprecation,
                 stacklevel=2)
         return self.get_package(identifier)
 

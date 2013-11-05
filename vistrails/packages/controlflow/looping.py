@@ -49,7 +49,7 @@ class While(Module):
         if (self.name_condition is None and
                 not self.hasInputFromPort('MaxIterations')):
             raise ModuleError(self,
-                              "Please set MaxIterations use a ConditionPort")
+                              "Please set MaxIterations or use ConditionPort")
 
         if self.name_state_input or self.name_state_output:
             if not self.name_state_input or not self.name_state_output:
@@ -81,7 +81,7 @@ class While(Module):
 
         if not self.upToDate:
             module.upToDate = False
-            module.ran = False
+            module.computed = False
 
             # For logging
             module.is_looping = True
@@ -137,7 +137,7 @@ class While(Module):
         if self.name_output not in module.outputPorts:
             raise ModuleError(self.orig_module,
                               "Invalid output port: %s" % self.name_output)
-        result = copy.copy(module.get_output(self.name_output))
+        result = module.get_output(self.name_output)
         self.setResult('Result', result)
 
         self.logging.end_update(self)

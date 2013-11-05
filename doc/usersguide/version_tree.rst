@@ -54,7 +54,7 @@ version tree will be shown with these expansion buttons.
 
 .. topic:: Try it now!
 
-   To see an example of a version tree, load the example vistrail "vtk\_book\_3rd\_p189.vt." All versions will be shown in orange unless your username happens to be "emanuele."  Recall that this tree displays the structure of changes to a workflow, so let's make some changes to see their effect on the version history. In the ``History`` view, select the node tagged ``Almost there``, and then click on the ``Pipeline`` button to switch to a view of the workflow.  Select a connection and delete it.  Now, switch back to the ``History`` view, and notice that there is a new child node connected to ``Almost there``.  In addition, the line connecting the new node to its parent is solid, indicating that only a single change has been made.  If we delete more connections, an expansion button would appear (Figures :ref:`All versions created..., Deleting a connection..., and More interations... <fig-creating_versions>`).
+   To see an example of a version tree, load the example vistrail :vtl:`vtk\_book\_3rd\_p189.vt`. All versions will be shown in orange unless your username happens to be "emanuele."  Recall that this tree displays the structure of changes to a workflow, so let's make some changes to see their effect on the version history. In the ``History`` view, select the node tagged ``Almost there``, and then click on the ``Pipeline`` button to switch to a view of the workflow.  Select a connection and delete it.  Now, switch back to the ``History`` view, and notice that there is a new child node connected to ``Almost there``.  In addition, the line connecting the new node to its parent is solid, indicating that only a single change has been made.  If we delete more connections, an expansion button would appear (Figures :ref:`All versions created..., Deleting a connection..., and More interations... <fig-creating_versions>`).
 
 .. _fig-creating_versions:
 
@@ -168,6 +168,6 @@ In the new tab, the difference is displayed in a manner that is very similar to 
 
 .. topic:: Try it now!
 
-  To try out this feature, open the "lung.vt" example vistrail, and click the ``History`` button. Within the version tree, click and drag the ``z-space`` version to the ``textureMapper`` version.  After the diff appears, select ``View`` :math:`\rightarrow` ``Diff Properties`` (if the ``Diff Properties`` panel is not visible), and then click on the ``vtkRenderer`` module to see the parameter differences.  We can see that one of the changes from ``z-space`` to ``textureMapper`` was to add a black background. Figure :ref:`A Visual Diff showing the difference... <fig-visual_diff>` shows the result of this comparison.
+  To try out this feature, open the :vtl:`lung.vt` example vistrail, and click the ``History`` button. Within the version tree, click and drag the ``z-space`` version to the ``textureMapper`` version.  After the diff appears, select ``View`` :math:`\rightarrow` ``Diff Properties`` (if the ``Diff Properties`` panel is not visible), and then click on the ``vtkRenderer`` module to see the parameter differences.  We can see that one of the changes from ``z-space`` to ``textureMapper`` was to add a black background. Figure :ref:`A Visual Diff showing the difference... <fig-visual_diff>` shows the result of this comparison.
 
 .. index:: versions

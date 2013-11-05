@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 import copy
 
 from vistrails.core.log.workflow_exec import WorkflowExec
@@ -69,17 +70,16 @@ class DummyLogController(object):
     def finish_loop_execution(self, *args, **kwargs): pass
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
+    def add_exec(self, *args, **kwargs): pass
 
 class LogControllerFactory(object):
     _instance = None
-    class LogControllerFactorySingleton(object):
-        def __call__(self, *args, **kw):
-            if LogControllerFactory._instance is None:
-                obj = LogControllerFactory(*args, **kw)
-                LogControllerFactory._instance = obj
-            return LogControllerFactory._instance
-        
-    getInstance = LogControllerFactorySingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if LogControllerFactory._instance is None:
+            obj = LogControllerFactory(*args, **kwargs)
+            LogControllerFactory._instance = obj
+        return LogControllerFactory._instance
     
     def __init__(self):
         self.machine = Machine(id=-1,
@@ -98,7 +98,7 @@ class LogController(object):
     def __init__(self, log, machine):
         self.log = log
         self.workflow_exec = None
-        self.machine = machine
+        self.machine = copy.copy(machine)
         self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
             
     def start_workflow_execution(self, vistrail=None, pipeline=None, 
@@ -125,7 +125,7 @@ class LogController(object):
                                           parent_version=currentVersion,
                                           completed=0,
                                           session=session,
-                                          machines=[copy.copy(self.machine)],
+                                          machines=[self.machine],
                                           reason=reason)
         self.log.add_workflow_exec(self.workflow_exec)
 

@@ -38,7 +38,7 @@ import os.path
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
-                        default_connections_file
+                        default_connections_file, vistrails_examples_directory
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -741,6 +741,9 @@ class FileLocator(CoreLocator):
                 newvtname = os.path.join(dirname,vtname)
                 if os.path.exists(newvtname):
                     vtname = newvtname
+            #check for magic strings
+            if "@examples" in vtname:
+                vtname=vtname.replace("@examples", vistrails_examples_directory())
             return FileLocator(vtname, version_node=version, version_tag=tag,
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,

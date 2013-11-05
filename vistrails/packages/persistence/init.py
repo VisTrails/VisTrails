@@ -355,6 +355,25 @@ class PersistentPath(Module):
             rep_path = os.path.join(local_db, ref.id)
             do_update = True
             if os.path.exists(rep_path):
+                if os.path.isdir(rep_path):
+                    actual_type = 'tree'
+                elif os.path.isfile(rep_path):
+                    actual_type = 'blob'
+                else:
+                    raise ModuleError(self, "Path is something not a file or "
+                                      "a directory")
+                if path_type is None:
+                    path_type = actual_type
+                else:
+                    if path_type != actual_type:
+                        def show_type(t):
+                            if t == 'tree': return "directory"
+                            elif t == 'blob': return "file"
+                            else: return '"%s"' % t
+                        raise ModuleError(self, "Path is not a %s but a %s" % (
+                                          show_type(path_type),
+                                          show_type(actual_type)))
+
                 old_hash = repo.get_current_repo().get_hash(ref.id, 
                                                             path_type=path_type)
                 debug_print('old_hash:', old_hash)
@@ -364,6 +383,12 @@ class PersistentPath(Module):
                     
             if do_update:
                 debug_print('doing update')
+
+                if path_type == 'tree':
+                    if (not os.path.exists(path) or
+                            not os.listdir(path)):
+                        raise ModuleError(self, "This directory is empty")
+
                 self.copypath(path, os.path.join(local_db, ref.id))
 
                 # commit (and add to) repository

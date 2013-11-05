@@ -50,7 +50,7 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.db.action import create_action
 from vistrails.core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException, MissingModule
+    ModuleRegistryException, MissingModule, MissingPackage
 from vistrails.core.system import systemType, get_vistrails_basic_pkg_id
 from vistrails.core.parallelization import Parallelization
 from vistrails.core.parallelization.preferences import localExecutionTarget
@@ -3068,6 +3068,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
            appropriate action
         """
         if self.progress.wasCanceled():
+            if self.progress._progress_canceled:
+                # It has already been confirmed in a progress update
+                self.progress._progress_canceled = False
+                raise AbortExecution("Execution aborted by user")
             r = QtGui.QMessageBox.question(self.parent(),
                 'Execution Paused',
                 'Are you sure you want to abort the execution?',
@@ -3094,7 +3098,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 1, error,
-                                                      errorTrace = errorTrace))
+                                                        errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_not_executed(self, moduleId):
@@ -3123,7 +3127,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if self.progress:
             self.cancel_progress()
             self.progress.setValue(self.progress.value() + 1)
-            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
+            pipeline = self.controller.current_pipeline
+            module = pipeline.get_module_by_id(moduleId)
+            self.progress.setLabelText(module.name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
@@ -3134,11 +3140,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.progress:
-            self.cancel_progress()
+            try:
+                self.cancel_progress()
+            except AbortExecution:
+                self.progress._progress_canceled = True
+                raise
+        status = '%d%% Completed' % int(progress*100)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
-                                                        '%d%% Completed' % int(progress*100),
-                                                        progress))
+                                                        status, progress))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_persistent(self, moduleId):
@@ -3151,14 +3161,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        msg = error if isinstance(error, str) else error.msg
-        text = "Module is suspended, reason: %s" % msg
+        status = "Module is suspended, reason: %s" % error.msg
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 7, text))
+                                     QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
+
         # add to suspended modules dialog
-        if isinstance(error, str):
-            return
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
         try:
@@ -3167,8 +3175,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 jobView.set_visible(True)
         except Exception, e:
             import traceback
-            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
-            
+            debug.critical("Error Monitoring Job: %s" % e,
+                           traceback.format_exc())
+
     def reset_module_colors(self):
         for module in self.modules.itervalues():
             module.statusBrush = None
@@ -3458,10 +3467,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             selected_module_ids = selected_items[0]
             selected_connection_ids = selected_items[1]
             if len(selected_module_ids) > 0:
-                dialog = QControlFlowAssistDialog(self, selected_module_ids, 
-                                                  selected_connection_ids, 
-                                                  currentScene)
-                dialog.exec_()
+                try:
+                    dialog = QControlFlowAssistDialog(
+                            self,
+                            selected_module_ids, selected_connection_ids,
+                            currentScene)
+                except MissingPackage:
+                    debug.critical("The controlflow package is not available")
+                else:
+                    dialog.exec_()
             else:
                 QtGui.QMessageBox.warning(
                         self,
@@ -3484,6 +3498,7 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0
+        self._progress_canceled = False
 
     def setValue(self, value):
         self._last_set_value = value

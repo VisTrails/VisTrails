@@ -77,13 +77,13 @@ class Fold(Module):
                     children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
-    def setInitialValue(self):
+    def setInitialValue(self): # pragma: no cover
         """This method defines the initial value of the Fold structure. It must
         be defined before the operation() method."""
 
         pass
 
-    def operation(self):
+    def operation(self): # pragma: no cover
         """This method defines the interaction between the current element of
         the list and the previous iterations' result."""
 
@@ -123,7 +123,7 @@ class FoldWithModule(Fold, NotCacheable):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     mod, port = connector.obj, connector.port
-                    if mod.get_output(port) is InvalidOutput:
+                    if mod.get_output(port) is InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
         self.setInitialValue()
@@ -142,6 +142,42 @@ class FoldWithModule(Fold, NotCacheable):
         # Loop on the input to update the function modules
         self.modules_to_run = []
         for i, element in enumerate(input_list):
+            connector, = self.inputPorts['FunctionPort']
+            module = copy.copy(connector.obj)
+
+            if not self.upToDate: # pragma: no partial
+                # Type checking
+                if i == 0:
+                    self.typeChecking(module, input_port, input_list)
+
+                module.upToDate = False
+                module.computed = False
+                self.setInputValues(module, input_port, element)
+
+            self.modules_to_run.append((module, element))
+
+        if not self.upToDate:
+            self.run_upstream_module(
+                    self.functions_ready,
+                    *(m for m, e in self.modules_to_run))
+        else:
+            self.done()
+
+    def functions_ready(self):
+        self.done()
+        self.logging.begin_compute(self)
+        output_port = self.getInputFromPort('OutputPort')
+
+        suspended = []
+        for module, element in self.modules_to_run:
+            if hasattr(module, 'suspended') and module.suspended:
+                suspended.append(module._module_suspended)
+                module.suspended = False
+                continue
+            # Getting the result from the output port
+            if output_port not in module.outputPorts:
+                raise ModuleError(module,
+                                  'Invalid output port: %s' % output_port)
             # If only one input port is set, self.input_is_single_element is
             # True and the operation() method receives this single element
             # directly as self.elementResult (not in a 1-element list)
@@ -152,43 +188,6 @@ class FoldWithModule(Fold, NotCacheable):
                 self.element, = element
             else:
                 self.element = element
-
-            connector, = self.inputPorts['FunctionPort']
-            module = copy.copy(connector.obj)
-
-            if not self.upToDate:
-                # Type checking
-                if i == 0:
-                    self.typeChecking(module, input_port, input_list)
-
-                module.upToDate = False
-                self.setInputValues(module, input_port, element)
-
-            self.modules_to_run.append(module)
-
-        if not self.upToDate:
-            self.run_upstream_module(
-                    self.functions_ready,
-                    *self.modules_to_run)
-        else:
-            self.done()
-
-    def functions_ready(self):
-        self.done()
-        self.logging.begin_compute(self)
-        output_port = self.getInputFromPort('OutputPort')
-
-        suspended = []
-        for module in self.modules_to_run:
-            if hasattr(module, 'suspended') and module.suspended:
-                suspended.append(module._module_suspended)
-                module.suspended = False
-                continue
-            # Getting the result from the output port
-            if output_port not in module.outputPorts:
-                raise ModuleError(module,
-                                  'Invalid output port: %s' % output_port)
-
             self.elementResult = module.get_output(output_port)
             self.operation()
 
@@ -305,9 +304,9 @@ def get_module(value, signature):
     elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (get_module(value[element], signature[element]))
+            v_modules += (get_module(value[element], signature[element]),)
         return v_modules
-    else:
+    else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside"
                       "FoldWithModule module.")

@@ -42,4 +42,3 @@ def install(dependency_dictionary):
 
     import vistrails.gui.bundles.installbundle
     return vistrails.gui.bundles.installbundle.install(dependency_dictionary)
-

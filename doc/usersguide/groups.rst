@@ -22,7 +22,7 @@ An example may clarify how this works.
 
 .. topic:: Try it now!
 
-   Open "vtk_book_3rd_p189.vt".  Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`Box selection of four modules <fig-groupinga>`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`The modules represented as a single group module <fig-groupingb>`. Since the label "Group" isn't very descriptive, you can change this by selecting the ``Group`` module, and entering a name in the ``Name`` box of the ``Module Information`` panel.  Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`Renaming the group <fig-groupingc>`).
+   Open :vtl:`vtk_book_3rd_p189.vt`.  Select the ``vtkOutlineFilter``, ``vtkPolyDataMapper``, ``vtkProperty``, and ``vtkActor`` modules on the left side of the pipeline, as shown in Figure :ref:`Box selection of four modules <fig-groupinga>`. Type 'Ctrl-G' to group these modules. Notice how the pipeline changes, as shown in Figure :ref:`The modules represented as a single group module <fig-groupingb>`. Since the label "Group" isn't very descriptive, you can change this by selecting the ``Group`` module, and entering a name in the ``Name`` box of the ``Module Information`` panel.  Type a more descriptive name, such as "BoundingBox," into the text field and click ``OK``. The new label is reflected in the pipeline (Figure :ref:`Renaming the group <fig-groupingc>`).
 
 .. _fig-groupinga:
 
