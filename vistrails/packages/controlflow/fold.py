@@ -142,17 +142,6 @@ class FoldWithModule(Fold, NotCacheable):
         # Loop on the input to update the function modules
         self.modules_to_run = []
         for i, element in enumerate(input_list):
-            # If only one input port is set, self.input_is_single_element is
-            # True and the operation() method receives this single element
-            # directly as self.elementResult (not in a 1-element list)
-            # If several input ports are set, self.input_is_single_element is
-            # False and the operation() method receives a list of the arguments
-            # as self.elementResult
-            if self.input_is_single_element:
-                self.element, = element
-            else:
-                self.element = element
-
             connector, = self.inputPorts['FunctionPort']
             module = copy.copy(connector.obj)
 
@@ -165,12 +154,12 @@ class FoldWithModule(Fold, NotCacheable):
                 module.computed = False
                 self.setInputValues(module, input_port, element)
 
-            self.modules_to_run.append(module)
+            self.modules_to_run.append((module, element))
 
         if not self.upToDate:
             self.run_upstream_module(
                     self.functions_ready,
-                    *self.modules_to_run)
+                    *(m for m, e in self.modules_to_run))
         else:
             self.done()
 
@@ -180,7 +169,7 @@ class FoldWithModule(Fold, NotCacheable):
         output_port = self.getInputFromPort('OutputPort')
 
         suspended = []
-        for module in self.modules_to_run:
+        for module, element in self.modules_to_run:
             if hasattr(module, 'suspended') and module.suspended:
                 suspended.append(module._module_suspended)
                 module.suspended = False
@@ -189,7 +178,16 @@ class FoldWithModule(Fold, NotCacheable):
             if output_port not in module.outputPorts:
                 raise ModuleError(module,
                                   'Invalid output port: %s' % output_port)
-
+            # If only one input port is set, self.input_is_single_element is
+            # True and the operation() method receives this single element
+            # directly as self.elementResult (not in a 1-element list)
+            # If several input ports are set, self.input_is_single_element is
+            # False and the operation() method receives a list of the arguments
+            # as self.elementResult
+            if self.input_is_single_element:
+                self.element, = element
+            else:
+                self.element = element
             self.elementResult = module.get_output(output_port)
             self.operation()
 
