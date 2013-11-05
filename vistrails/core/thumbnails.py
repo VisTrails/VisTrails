@@ -60,15 +60,13 @@ class ThumbnailCache(object):
     _instance = None
     IMAGE_MAX_WIDTH = 200 
     SUPPORTED_TYPES = ['image/png','image/jpeg','image/bmp','image/gif']
-    class ThumbnailCacheSingleton(object):
-        def __call__(self, *args, **kw):
-            if ThumbnailCache._instance is None:
-                obj = ThumbnailCache(*args, **kw)
-                ThumbnailCache._instance = obj
-            return ThumbnailCache._instance
-        
-    getInstance = ThumbnailCacheSingleton()
-    
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if ThumbnailCache._instance is None:
+            obj = ThumbnailCache(*args, **kwargs)
+            ThumbnailCache._instance = obj
+        return ThumbnailCache._instance
+
     def __init__(self):
         self.elements = {}
         self.vtelements = {}

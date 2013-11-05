@@ -194,7 +194,7 @@ VisTrails supports the use of global variables, which allows the user to create 
 
 .. topic:: Try it now!
 
-   Open vtk_http.vt and go to the ``Pipeline`` view of the ``Fran Cut Smoothed`` version.  Select ``Views`` :math:`\rightarrow` ``Vistrail Variables``.  Select the ``String`` module from ``Basic Modules``, drag it over to the ``Vistrail Variables`` tab, and drop it (see Figure :ref:`Create a Variable... <fig-global-create>`).  Name it 'Filename1' and assign it the following value: 'http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip'.  Click on ``String``, which is just below ``Filename1`` in the ``Vistrail Variables`` tab.  Drag it over and drop it in the port of the ``HTTPFile`` (as shown in Figure :ref:`Assign a Variable... <fig-global-assign>`). The variable should be assigned and the port should be filled in with yellow.
+   Open vtk_http.vt and go to the ``Pipeline`` view of the ``Fran Cut Smoothed`` version.  Select ``Views`` :math:`\rightarrow` ``Vistrail Variables``.  Select the ``String`` module from ``Basic Modules``, drag it over to the ``Vistrail Variables`` tab, and drop it (see Figure :ref:`Create a Variable... <fig-global-create>`).  Name it 'Filename1' and assign it the following value: 'http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip'.  Click on ``String``, which is just below ``Filename1`` in the ``Vistrail Variables`` tab.  Drag it over and drop it in the port of the ``HTTPFile`` (as shown in Figure :ref:`Assign a Variable... <fig-global-assign>`). The variable should be assigned and the port should be filled in with yellow. :vtl:`(Open result) <global_variables1.vt>`
 
 To delete a global variable, simply click on the 'X' button that appears to the right of its name.  This will remove the variable, but if any ports are assigned to it, they need to be disconnected.  You can do this by right-clicking on the port and selecting ``Disconnect Vistrail Variables`` (see Figure :ref:`Disconnect a Variable... <fig-disconnect>`).
 
@@ -237,9 +237,7 @@ Configuring Module Ports
 
 For convenience, all the inputs and outputs of a module are not always
 shown in the canvas as ports.  The ports that are shown by default are
-defined with the method signatures of a package.  A full list of ports is available in the ``Module Configuraton`` window, which is accessed by clicking on the ``Configure`` button in the module information tab or pressing 'Ctrl-E' when a module is selected.  Alternatively, module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs of the ``Module Information`` tab (see Figure :ref:`Enabling the GetRadius port from the Module Information tab <fig-enabling_ports>`).  When enabled, an eye icon will appear to the left of the port name.  New ports will appear on the module with a circle icon instead of a square to signify that they are not visible by default, but can be connected in the same way as the others.
-
-.. %TODO module_configuration.png should be changed to reflect v2.0.  Caption: The module configuration window allows the hidden ports to be displayed.
+defined with the method signatures of a package.  A full list of ports is available on the ``Module Information`` panel, which is displayed on the right by default.  There, module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs (see Figure :ref:`Enabling the GetRadius port from the Module Information tab <fig-enabling_ports>`).  When enabled, an eye icon will appear to the left of the port name.
 
 .. topic:: Try it now!
 

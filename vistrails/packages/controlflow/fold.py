@@ -77,13 +77,13 @@ class Fold(Module):
                     children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
-    def setInitialValue(self):
+    def setInitialValue(self): # pragma: no cover
         """This method defines the initial value of the Fold structure. It must
         be defined before the operation() method."""
 
         pass
 
-    def operation(self):
+    def operation(self): # pragma: no cover
         """This method defines the interaction between the current element of
         the list and the previous iterations' result."""
 
@@ -123,7 +123,7 @@ class FoldWithModule(Fold, NotCacheable):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     mod, port = connector.obj, connector.port
-                    if mod.get_output(port) is InvalidOutput:
+                    if mod.get_output(port) is InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
         self.setInitialValue()
@@ -156,12 +156,13 @@ class FoldWithModule(Fold, NotCacheable):
             connector, = self.inputPorts['FunctionPort']
             module = copy.copy(connector.obj)
 
-            if not self.upToDate:
+            if not self.upToDate: # pragma: no partial
                 # Type checking
                 if i == 0:
                     self.typeChecking(module, input_port, input_list)
 
                 module.upToDate = False
+                module.computed = False
                 self.setInputValues(module, input_port, element)
 
             self.modules_to_run.append(module)
@@ -305,9 +306,9 @@ def get_module(value, signature):
     elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (get_module(value[element], signature[element]))
+            v_modules += (get_module(value[element], signature[element]),)
         return v_modules
-    else:
+    else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside"
                       "FoldWithModule module.")

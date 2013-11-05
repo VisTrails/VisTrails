@@ -93,6 +93,7 @@ def make_timezone(s):
 
         try:
             pytz = py_import('pytz', {
+                    'pip': 'pytz',
                     'linux-debian': 'python-tz',
                     'linux-ubuntu': 'python-tz',
                     'linux-fedora': 'pytz'})
@@ -204,6 +205,8 @@ class StringsToDates(Module):
                         # For dst -> standard (fall): the time will be in dst,
                         #   although it could also have been standard (there is
                         #   noway to know which one was meant)
+        else:
+            result = [dt.replace(tzinfo=None) for dt in result]
 
         return result
 
@@ -235,6 +238,7 @@ class DatesToMatplotlib(Module):
     def compute(self):
         try:
             py_import('matplotlib', {
+                    'pip': 'matplotlib',
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
@@ -264,6 +268,7 @@ class TimestampsToMatplotlib(Module):
     def compute(self):
         try:
             py_import('matplotlib', {
+                    'pip': 'matplotlib',
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
@@ -297,6 +302,7 @@ class StringsToMatplotlib(Module):
     def compute(self):
         try:
             py_import('matplotlib', {
+                    'pip': 'matplotlib',
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
@@ -394,7 +400,7 @@ class TestStringsToDates(unittest.TestCase):
             self.skipTest("dateutil is not available")
 
         dates = ['2013-05-20 9:25',
-                 'Thu Sep 25 10:36:28 2003',
+                 'Thu Sep 25 10:36:26 2003',
                  '2003 10:36:28 CET 25 Sep Thu'] # Timezone will be ignored
         with intercept_result(StringsToDates, 'dates') as results:
             self.assertFalse(execute([
@@ -408,7 +414,7 @@ class TestStringsToDates(unittest.TestCase):
         self.assertEqual(
                 [d.strftime(fmt) for d in results],
                 ['2013-05-20 09:25:00  ',
-                 '2003-09-25 10:36:28  ',
+                 '2003-09-25 10:36:26  ',
                  '2003-09-25 10:36:28  '])
 
     def test_timezone(self):

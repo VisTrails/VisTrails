@@ -38,20 +38,18 @@ import glob
 from itertools import chain
 import os
 from datetime import datetime
-from time import strptime
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
 from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity, \
     VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
 from vistrails.core.collection.search import SearchCompiler, SearchParseError
 from vistrails.core.db.locator import FileLocator
+from vistrails.core.system import time_strptime
 from vistrails.gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.module_palette import QModuleTreeWidgetItemDelegate
 from vistrails.gui.vis_diff import QDiffView
-from vistrails.core.collection.entity import Entity
-import vistrails.gui
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
@@ -415,7 +413,7 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
     #    if sort_col in set([4]):
     #        return int(self.text(sort_col)) < int(other.text(sort_col))
     #    elif sort_col in set([2,3]):
-    #        return datetime(*strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
+    #        return datetime(*time_strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
     #    return QtGui.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):
@@ -494,7 +492,7 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         if sort_col in set([4]):
             return int(self.text(sort_col)) < int(other.text(sort_col))
         elif sort_col in set([2,3]):
-            return datetime(*strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
+            return datetime(*time_strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
         return QtGui.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):

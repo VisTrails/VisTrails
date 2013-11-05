@@ -34,7 +34,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails x64
-AppVerName=VisTrails x64 2.1 beta
+AppVerName=VisTrails x64 2.1 beta2
 WizardImageFile=..\resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
@@ -91,6 +91,7 @@ Source: ..\..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Compone
 Source: ..\..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
 Source: ..\..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\usersguide\*; DestDir: {app}\examples\usersguide; Components: examples
 ;Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
@@ -164,7 +165,8 @@ Source: C:\Users\vistrails\code\extra_packages\gdal\x64\site-packages\*; DestDir
 Name: {app}\vistrails
 ;;Name: {app}\Configuration
 ;;Name: {app}\itkExtras
-Name: {app}\examples; Components: examples; Tasks: 
+Name: {app}\examples; Components: examples; Tasks: N
+Name: {app}\examples\usersguide
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
 Name: {app}\extensions; Components: extensions; Tasks:

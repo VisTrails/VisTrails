@@ -831,8 +831,9 @@ class Vistrail(DBVistrail):
     def get_upgrade(self, action_id, root_level=True):
         a = self.get_action_annotation(action_id, Vistrail.UPGRADE_ANNOTATION)
         if a is not None:
-            # Recurse to get the newest upgrade in case there are multiple chained upgrades
-            return self.get_upgrade(a.value, False)
+            # Recurse to get the newest upgrade in case there are
+            # multiple chained upgrades
+            return self.get_upgrade(long(a.value), False)
         if root_level:
             return None
         return action_id
@@ -1027,7 +1028,6 @@ class Vistrail(DBVistrail):
 
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
-    #    return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):

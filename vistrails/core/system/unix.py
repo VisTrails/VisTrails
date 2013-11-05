@@ -35,46 +35,24 @@
 
 """Routines common to Linux and OSX."""
 import os
-import os.path
-import stat
 import subprocess
-import sys
-import vistrails.core.utils
-import re
+
+
+__all__ = ['executable_is_in_path', 'list2cmdline', 'execute_cmdline',
+           'get_executable_path', 'execute_piped_cmdlines', 'execute_cmdline2']
+
+###############################################################################
 
 def executable_is_in_path(filename):
-    """executable_is_in_path(filename): string
-    Tests if filename corresponds to an executable file on the path. Returns
-the filename if true, or an empty string if false."""
-    cmdline = ['which','%s' % filename]
-    output = []
-    result = execute_cmdline(cmdline, output)
-    if result == 1:
-        return ""
-    if result != 0:
-        msg = ("'%s' failed. Return code %s. Output: %s" %
-               (cmdline, result, output))
-        raise vistrails.core.utils.VistrailsInternalError(msg)
-    else:
-        output = output[0][:-1]
-        return output
-
-def executable_is_in_pythonpath(filename):
-    """executable_is_in_pythonpath(filename: str)
-    Check if exename can be reached in the PYTHONPATH environment. Return
-    the filename if true, or an empty string if false.
-    
+    """ executable_is_in_path(filename: str) -> string
+    Check if exename can be reached in the PATH environment.
     """
-    pathlist = sys.path
-    for dir in pathlist:
-        fullpath = os.path.join(dir, filename)
-        try:
-            st = os.stat(fullpath)
-        except os.error:
-            continue        
-        if stat.S_ISREG(st[stat.ST_MODE]):
-            return filename
-    return ""
+    pathlist = os.environ['PATH'].split(os.pathsep) + ["."]
+    for path in pathlist:
+        fullpath = os.path.join(path, filename)
+        if os.path.isfile(fullpath):
+            return True
+    return False
 
 def list2cmdline(lst):
     for el in lst:
@@ -102,13 +80,14 @@ def execute_cmdline(lst, output):
     return result
 
 def get_executable_path(executable_name):
-    paths = os.environ['PATH']
-    paths = paths.split(os.pathsep)
-    for prefix in paths:
-        path = os.path.join(prefix, executable_name)
-        if os.path.exists(path):
-            return path
-    return None
+    """get_executable_path(executable_name: str) -> str
+    Get the absolute filename of an executable, searching in the PATH.
+    """
+    pathlist = os.environ['PATH'].split(os.pathsep)
+    for path in pathlist:
+        fullpath = os.path.join(path, executable_name)
+        if os.path.isfile(fullpath):
+            return os.path.abspath(fullpath)
 
 def execute_piped_cmdlines(cmd_list_list):
     stdin = subprocess.PIPE
@@ -123,3 +102,6 @@ def execute_piped_cmdlines(cmd_list_list):
     (output, errs) = process.communicate()
     result = process.returncode
     return (result, output, errs)
+
+def execute_cmdline2(cmd_list):
+    return execute_piped_cmdlines([cmd_list])

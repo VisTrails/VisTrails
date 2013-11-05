@@ -41,12 +41,14 @@
 from PyQt4 import QtCore, QtGui
 import datetime
 import os
-from vistrails.core import system, debug
+import tempfile
+from vistrails.core import debug
 import cell_rc
 import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.system import strftime
 
 ################################################################################
 
@@ -106,10 +108,10 @@ class QCellWidget(QtGui.QWidget):
         """
         # Generate filename
         current = datetime.datetime.now()
-        tmpDir = system.temporary_directory()
-        fn = (tmpDir + "hist_" +
-              current.strftime("%Y_%m_%d__%H_%M_%S") +
-              "_" + str(current.microsecond)+".png")
+        tmpDir = tempfile.gettempdir()
+        fn = ( "hist_" + strftime(current, "%Y_%m_%d__%H_%M_%S") +
+               "_" + str(current.microsecond)+".png")
+        fn = os.path.join(tmpDir, fn)
         if self.saveToPNG(fn):
             self._historyImages.append(fn)
 

@@ -39,12 +39,21 @@ used as a template for creating a configuration widget for other custom
 constants.
 
 """
+
 from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression
+from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
 
 ############################################################################
+
+def setPlaceholderTextCompat(self, value):
+    """ Qt pre 4.7.0 does not have setPlaceholderText
+    """
+    if versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
+        self.setText(value)
+    else:
+        self.setPlaceholderText(value)
 
 class ConstantWidgetMixin(object):
 
@@ -117,7 +126,8 @@ class StandardConstantWidgetBase(ConstantWidgetMixin):
             self.setDefault(psi.default)
         contents = param.strValue
         contentType = param.type
-        self.setText(contents)
+        if contents: # do not replace old default value with empty value
+            self.setText(contents)
         self._contentType = contentType
 
     def setDefault(self, default):
@@ -171,7 +181,7 @@ class StandardConstantWidget(QtGui.QLineEdit, StandardConstantWidgetBase):
                      self.update_parent)
 
     def setDefault(self, value):
-        self.setPlaceholderText(value)
+        setPlaceholderTextCompat(self, value)
 
     def sizeHint(self):
         metrics = QtGui.QFontMetrics(self.font())
@@ -233,7 +243,7 @@ class SingleLineStringWidget(BaseStringWidget, QtGui.QLineEdit):
         return contents
 
     def setDefault(self, value):
-        self.setPlaceholderText(value)
+        setPlaceholderTextCompat(self, value)
 
     def sizeHint(self):
         metrics = QtGui.QFontMetrics(self.font())
@@ -419,9 +429,9 @@ class StandardConstantEnumWidget(QtGui.QComboBox, StandardConstantWidgetBase):
         if idx > -1:
             self.setCurrentIndex(idx)
             if self.isEditable():
-                self.lineEdit().setPlaceholderText(value)
+                setPlaceholderTextCompat(self.lineEdit(), value)
         elif self.isEditable():
-            self.lineEdit().setPlaceholderText(value)
+            setPlaceholderTextCompat(self.lineEdit(), value)
 
 
     ###########################################################################
@@ -620,13 +630,22 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         Initializes the line edit with contents
         """
         QtGui.QCheckBox.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param.strValue)
-        assert param.type == 'Boolean'
-        assert param.identifier == 'org.vistrails.vistrails.basic'
-        assert param.namespace is None
-        self._silent = False
-        self.setContents(param.strValue)
-        self._is_default = not param.strValue
+
+        psi = param.port_spec_item
+        if param.strValue:
+            value = param.strValue
+        elif psi and psi.default:
+            value = psi.default
+        else:
+            value = param.strValue
+        ConstantWidgetMixin.__init__(self, value)
+
+        if psi and psi.default:
+            self.setDefault(psi.default)
+        if param.strValue:
+            self.setContents(param.strValue)
+
+        self._silent= False
         self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
                      self.change_state)
         
@@ -634,24 +653,19 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         return self._values[self._states.index(self.checkState())]
 
     def setContents(self, strValue, silent=True):
-        if strValue:
-            value = strValue
-        else:
-            value = "False"
-        assert value in self._values
+        if not strValue:
+            return
+
+        assert strValue in self._values
         if silent:
             self._silent = True
-        self.setCheckState(self._states[self._values.index(value)])
+        self.setCheckState(self._states[self._values.index(strValue)])
         if not silent:
             self.update_parent()
-        else:
-            self._silent = False
-        self._is_default = False
+        self._silent = False
 
     def setDefault(self, strValue):
-        if self._is_default:
-            self.setContents(strValue)
-            self._is_default = True
+        self.setContents(strValue)
 
     def change_state(self, state):
         if not self._silent:

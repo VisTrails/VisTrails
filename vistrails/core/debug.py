@@ -77,14 +77,12 @@ class DebugPrint:
                                 logging.INFO) #python logging levels
     #Singleton technique
     _instance = None
-    class DebugPrintSingleton():
-        def __call__(self, *args, **kw):
-            if DebugPrint._instance is None:
-                obj = DebugPrint(*args, **kw)
-                DebugPrint._instance = obj
-            return DebugPrint._instance
-        
-    getInstance = DebugPrintSingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if DebugPrint._instance is None:
+            obj = DebugPrint(*args, **kwargs)
+            DebugPrint._instance = obj
+        return DebugPrint._instance
     
     def make_logger(self, f=None):
         self.fhandler = None
@@ -120,6 +118,12 @@ class DebugPrint:
     def set_logfile(self, f):
         """set_logfile(file) -> None. Redirects debugging
         output to file."""
+        if f is None:
+            if self.fhandler:
+                self.logger.removeHandler(self.fhandler)
+                self.fhandler = None
+            return
+
         def rotate_file_if_necessary(filename):
             statinfo = os.stat(filename)
             if statinfo.st_size > 1024*1024:
@@ -138,7 +142,7 @@ class DebugPrint:
                     os.rename("%s.%s"%(filename, count), "%s.%s"%(filename, count+1))
                     count = count -1
                 os.rename(filename, "%s.%s"%(filename, mincount))
-        
+
         try:
             # there's a problem on Windows with RotatingFileHandler and that 
             # happens when VisTrails starts child processes (it seems related

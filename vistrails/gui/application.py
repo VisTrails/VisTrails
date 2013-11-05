@@ -42,6 +42,7 @@ from vistrails.core.application import VistrailsApplicationInterface, \
 from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
+from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
 from vistrails.core.db.locator import FileLocator, DBLocator
 import vistrails.core.requirements
 from vistrails.db import VistrailsDBException
@@ -96,7 +97,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if QtCore.QT_VERSION >= 0x40400:
             self.timeout = 600000
             self._unique_key = os.path.join(system.home_directory(),
-                                            "vistrails-single-instance-check-%s"%getpass.getuser())
+                       "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
             self.local_server = None
             if self.shared_memory.attach():
@@ -136,8 +137,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         if self.local_server.listen(self._unique_key):
                             debug.log("Listening on %s"%self.local_server.fullServerName())
                         else:
-                            debug.warning("Server is not listening. This means it will not accept \
-parameters from other instances")
+                            debug.warning("Server is not listening. This \
+                            means it will not accept parameters from other \
+                            instances")
 
     def found_another_instance_running(self):
         debug.critical("Found another instance of VisTrails running")
@@ -162,7 +164,7 @@ parameters from other instances")
         vistrails.gui.theme.initializeCurrentTheme()
         # DAK this is handled by finalize_vistrails in core.application now
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
-        VistrailsApplicationInterface.init(self,optionsDict)
+        VistrailsApplicationInterface.init(self, optionsDict)
         
         #singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
@@ -170,15 +172,16 @@ parameters from other instances")
             self.run_single_instance()
             if self._is_running:
                 if self.found_another_instance_running():
-                    sys.exit(0)
+                    return APP_DONE # success, we should shut down 
+
                 else:
-                    return False
+                    return APP_FAIL  # error, we should shut down
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
             self.createWindows()
             self.processEvents()
-            
+
         self.vistrailsStartup.init()
         # ugly workaround for configuration initialization order issue
         # If we go through the configuration too late,
@@ -191,12 +194,62 @@ parameters from other instances")
                 self.builderWindow.setDBDefault(True)
         self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
-        
+
+        # default handler installation
+        if system.systemType == 'Linux':
+            if not (self.temp_configuration.check('handlerDontAsk') or
+                    self.configuration.check('handlerDontAsk')):
+                if not linux_default_application_set():
+                    self.ask_update_default_application()
+
         if interactive:
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
-            return r
+            return APP_SUCCESS if r is True else APP_FAIL
+        return APP_SUCCESS
+
+    def ask_update_default_application(self, dont_ask_checkbox=True):
+        dialog = QtGui.QDialog()
+        dialog.setWindowTitle(u"Install .vt .vtl handler")
+        layout = QtGui.QVBoxLayout()
+        dialog.setLayout(layout)
+        layout.addWidget(QtGui.QLabel(u"Install VisTrails as default handler "
+                                      u"to open .vt and .vtl files?"))
+        if dont_ask_checkbox:
+            dont_ask = QtGui.QCheckBox(u"Don't ask on startup")
+            dont_ask_setting = self.configuration.check('handlerDontAsk')
+            dont_ask.setChecked(dont_ask_setting)
+            layout.addWidget(dont_ask)
+        buttons = QtGui.QDialogButtonBox(
+                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
+        layout.addWidget(buttons)
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
+                     dialog, QtCore.SLOT('accept()'))
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
+                     dialog, QtCore.SLOT('reject()'))
+
+        res = dialog.exec_()
+        if dont_ask_checkbox:
+            if dont_ask.isChecked() != dont_ask_setting:
+                self.configuration.handlerDontAsk = dont_ask.isChecked()
+                self.configuration.handlerDontAsk = dont_ask.isChecked()
+        if res != QtGui.QDialog.Accepted:
+            return False
+        if system.systemType == 'Linux':
+            if not linux_update_default_application():
+                QtGui.QMessageBox.warning(
+                        None,
+                        u"Install .vt .vtl handler",
+                        u"Couldn't set VisTrails as default handler "
+                        u"to open .vt and .vtl files")
+                return False
+        else:
+            QtGui.QMessageBox.warning(
+                    None,
+                    u"Install .vt .vtl handler",
+                    u"Can't install a default handler on this platform")
+            return False
         return True
 
     def is_running_gui(self):
@@ -590,14 +643,19 @@ parameters from other instances")
             self.temp_configuration.executeWorkflows = False
             self.temp_configuration.interactiveMode = True
             
-            result = self.parse_input_args_from_other_instance(str(byte_array))
+            try:
+                result = self.parse_input_args_from_other_instance(str(byte_array))
+            except Exception, e:
+                import traceback
+                debug.critical("Unknown error: %s" % str(e))
+                result = traceback.format_exc()
             if None == result:
                 result = True
             if True == result:
                 result = "Command Completed"
             elif False == result:
                 result = "Command Failed"
-            else:
+            elif type(result) == list:
                 result = '\n'.join(result[1])
             self.shared_memory.lock()
             local_socket.write(bytes(result))
@@ -670,6 +728,105 @@ parameters from other instances")
             debug.critical("Invalid input: %s" % msg)
         return False
 
+def linux_default_application_set():
+    """linux_default_application_set() -> True|False|None
+    For Linux - checks if a handler is set for .vt and .vtl files.
+    """
+    command = ['xdg-mime', 'query', 'filetype',
+               os.path.join(system.vistrails_examples_directory(),
+                            'terminator.vt')]
+    try:
+        output = []
+        result = system.execute_cmdline(command, output)
+        if result != 0:
+            # something is wrong, abort
+            debug.warning("Error checking mimetypes: %s" % output[0])
+            return None
+    except OSError, e:
+        debug.warning("Error checking mimetypes: %s" % e.message)
+        return None
+    if 'application/x-vistrails' == output[0].strip():
+        return True
+    return False
+
+def linux_update_default_application():
+    """ update_default_application() -> None
+    For Linux - checks if we should install vistrails as the default
+    application for .vt and .vtl files.
+    If replace is False, don't replace an existing handler.
+
+    Returns True if installation succeeded.
+    """
+    root = system.vistrails_root_directory()
+    home = os.path.expanduser('~')
+
+    # install mime type
+    command = ['xdg-mime', 'install', 
+               os.path.join(system.vistrails_root_directory(),
+                            'gui/resources/vistrails-mime.xml')]
+    output = []
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        debug.warning("Error running xdg-mime")
+        return False
+
+    command = ['update-mime-database', home + '/.local/share/mime']
+    output = []
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        debug.warning("Error running update-mime-database")
+        return False
+
+    # install icon
+    command = ['xdg-icon-resource', 'install',
+               '--context', 'mimetypes',
+               '--size', '48',
+               os.path.join(system.vistrails_root_directory(),
+                            'gui/resources/images/vistrails_icon_small.png'),
+               'application-x-vistrails']
+    output = []
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        debug.warning("Error running xdg-icon-resource")
+        return True # the handler is set anyway
+
+    # install desktop file
+    dirs = [home + '/.local', home + '/.local/share',
+            home + '/.local/share/applications']
+
+    for d in dirs:
+        if not os.path.isdir(d):
+            os.mkdir(d)
+    desktop = """[Desktop Entry]
+Name=VisTrails
+Exec=python {root}/run.py %f
+Icon={root}/gui/resources/images/vistrails_icon_small.png
+Type=Application
+MimeType=application/x-vistrails
+""".format(root=root)
+    f = open(os.path.join(dirs[2], 'vistrails.desktop'), 'w')
+    f.write(desktop)
+    f.close()
+
+    command = ['update-desktop-database', dirs[2]]
+    output = []
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        debug.warning("Error running update-desktop-database")
+    return True
+
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
@@ -681,19 +838,8 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    
-    try:
-        vistrails.core.requirements.check_all_vistrails_requirements()
-    except vistrails.core.requirements.MissingRequirement, e:
-        msg = ("VisTrails requires %s to properly run.\n" %
-               e.requirement)
-        debug.critical("Missing requirement", msg)
-        sys.exit(1)
     x = VistrailsApplication.init(optionsDict)
-    if x == True:
-        return 0
-    else:
-        return 1
+    return x
 
 def stop_application():
     """Stop and finalize the application singleton."""

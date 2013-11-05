@@ -1,0 +1,21 @@
+To link to examples you need to put a vtl file on the server first
+
+To create  a link to an example:
+
+1. Create the example in examples/usersguide/, or use an existing example
+
+2. Create a vtl file containing a link to the example like this:
+   <vtlink filename="@examples/usersguide/global_variables.vt" version="60"/>
+   Name it something like global_variables.vtl
+   Place it in the doc/usersguide/vtl directory
+
+3. Create the link in the usersguide like this:
+   Using macro (title will be same as vt filename):
+       :vtl:`terminator.vt`
+   Using macro with custom title:
+       :vtl:`(Open result) <global_variables.vt>`
+   Raw version:
+   `(Open result) <http://www.vistrails.org/usersguide/v2.1/examples/global_variables.vtl>`_
+
+4. Copy the new vtl files to the server:
+    scp doc/usersguide/vtl/* vistrails.org:/srv/wiki/vistrails/usersguide/v2.1/examples/

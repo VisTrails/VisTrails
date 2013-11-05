@@ -109,3 +109,82 @@ class Default(Module, NotCacheable):
 
     def compute(self):
         self.setResult('Result', self.__connector())
+
+
+###############################################################################
+
+import unittest
+import urllib2
+
+from vistrails.tests.utils import intercept_result, execute
+
+class TestIf(unittest.TestCase):
+    def do_if(self, val):
+        with intercept_result(If, 'Result') as results:
+            interp_dict = execute([
+                    ('If', 'org.vistrails.vistrails.control_flow', [
+                        ('FalseOutputPorts', [('List', "['value']")]),
+                        ('TrueOutputPorts', [('List', "['value']")]),
+                        ('Condition', [('Boolean', str(val))]),
+                    ]),
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '42')]),
+                    ]),
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '28')]),
+                    ]),
+                ],
+                [
+                    (1, 'self', 0, 'TruePort'),
+                    (2, 'self', 0, 'FalsePort'),
+                ],
+                full_results=True)
+            self.assertFalse(interp_dict.errors)
+        if val:
+            self.assertEqual(results, [42])
+        else:
+            self.assertEqual(results, [28])
+        self.assertEqual(interp_dict.executed, {0: True, 1: val, 2: not val})
+
+    def test_if_true(self):
+        self.do_if(True)
+
+    def test_if_false(self):
+        self.do_if(False)
+
+
+class TestDefault(unittest.TestCase):
+    def do_default(self, val):
+        if val:
+            src = 'o = 42'
+        else:
+            src = ('from vistrails.core.modules.vistrails_module import '
+                   'InvalidOutput\n'
+                   'o = InvalidOutput')
+        src = urllib2.quote(src)
+        with intercept_result(Default, 'Result') as results:
+            self.assertFalse(execute([
+                    ('Default', 'org.vistrails.vistrails.control_flow', [
+                        ('Default', [('Integer', '28')]),
+                    ]),
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', src)]),
+                    ]),
+                ],
+                [
+                    (1, 'o', 0, 'Input'),
+                ],
+                add_port_specs=[
+                    (1, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Integer'),
+                ]))
+        if val:
+            self.assertEqual(results, [42])
+        else:
+            self.assertEqual(results, [28])
+
+    def test_default_set(self):
+        self.do_default(True)
+
+    def test_default_unset(self):
+        self.do_default(False)

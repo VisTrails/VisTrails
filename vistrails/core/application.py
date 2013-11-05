@@ -32,10 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import atexit
 import copy
-import os.path
+import os
+import shutil
 import sys
+import tempfile
 import weakref
+import warnings
 
 from vistrails.core import command_line
 from vistrails.core import debug
@@ -50,9 +54,11 @@ import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.parallelization import Parallelization
+from vistrails.core.requirements import require_executable, \
+    require_python_module
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject
+from vistrails.core.utils import InstanceObject, VistrailsWarning
 from vistrails.core.utils.uxml import enter_named_element
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -60,6 +66,9 @@ from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 
 VistrailsApplication = None
+APP_SUCCESS = 0 # Success exit code
+APP_FAIL = 1 # fialed exit code
+APP_DONE = 2 # Success but shut down prematurely (other instance called)
 
 def finalize_vistrails(app):
     vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
@@ -135,6 +144,10 @@ class VistrailsApplicationInterface(object):
         add("-l", "--nologger", action="store_true",
             default = None,
             help="disable the logging")
+        add('--no-logfile', action='store_true',
+            dest='nologfile',
+            default=None,
+            help="Disable the log file (output still happens in terminal)")
         add("-d", "--debugsignals", action="store_true",
             default = None,
             help="debug Qt Signals")
@@ -185,6 +198,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             dest='installBundles',
             help=("Do not try to install missing Python packages "
                   "automatically"))
+        add('--spawned-mode', '--spawned', action='store_true',
+            dest='spawned',
+            help=("Do not use the .vistrails directory, and load packages "
+                  "automatically when needed"))
 
         if args != None:
             command_line.CommandLineParser.parse_options(args=args)
@@ -198,17 +215,47 @@ The builder window can be accessed by a spreadsheet menu option.")
         """
         print system.about_string()
         sys.exit(0)
-        
-    def read_dotvistrails_option(self):
+
+    def read_dotvistrails_option(self, optionsDict=None):
         """ read_dotvistrails_option() -> None
-        Check if the user sets a new dotvistrails folder and updates 
-        self.temp_configuration with the new value. 
-        
+        Check if the user sets a new dotvistrails folder and updates
+        self.temp_configuration with the new value.
+
+        Also handles the 'spawned-mode' option, by using a temporary directory
+        as .vistrails directory, and a specific default configuration.
         """
-        get = command_line.CommandLineParser().get_option
-        if get('dotVistrails')!=None:
+        if optionsDict is None:
+            optionsDict = {}
+        def get(opt):
+            return (optionsDict.get(opt) or
+                    command_line.CommandLineParser().get_option(opt))
+
+        if get('spawned'):
+            # Here we are in 'spawned' mode, i.e. we are running
+            # non-interactively as a slave
+            # We are going to create a .vistrails directory as a temporary
+            # directory and copy a specific configuration file
+            # We don't want to load packages that the user might enabled in
+            # this machine's configuration file as it would slow down the
+            # startup time, but we'll load any needed package without
+            # confirmation
+            tmpdir = tempfile.mkdtemp(prefix='vt_spawned_')
+            @atexit.register
+            def clean_dotvistrails():
+                shutil.rmtree(tmpdir, ignore_errors=True)
+            self.temp_configuration.dotVistrails = tmpdir
+            if get('dotVistrails') is not None:
+                debug.warning("--startup option ignored since --spawned-mode "
+                              "is used")
+            shutil.copyfile(os.path.join(system.vistrails_root_directory(),
+                                         'core', 'resources',
+                                         'spawned_startup_xml'),
+                            os.path.join(tmpdir, 'startup.xml'))
+            self.temp_configuration.enablePackagesSilently = True
+            self.temp_configuration.nologfile = True
+        elif get('dotVistrails') is not None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
-            
+
     def readOptions(self):
         """ readOptions() -> None
         Read arguments from the command line
@@ -280,12 +327,14 @@ The builder window can be accessed by a spreadsheet menu option.")
         if get('installBundles')!=None:
             self.temp_configuration.installBundles = bool(get('installBundles'))
         self.input = command_line.CommandLineParser().positional_arguments()
+
     def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
         """
+        warnings.simplefilter('once', VistrailsWarning, append=True)
         # gui.theme.initializeCurrentTheme()
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
@@ -319,10 +368,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # Read only new .vistrails folder option if passed in the command line
         # or in the optionsDict because this may affect the configuration file 
         # VistrailsStartup will load. This updates self.temp_configuration
-        self.read_dotvistrails_option()
-        
-        if optionsDict and optionsDict.get('dotVistrails'):
-            self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
+        self.read_dotvistrails_option(optionsDict)
 
         # the problem here is that if the user pointed to a new .vistrails
         # folder, the persistent configuration will always point to the 
@@ -345,21 +391,12 @@ The builder window can be accessed by a spreadsheet menu option.")
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.temp_configuration, k, v)
-                
+
         # Command line options override temp_configuration
         self.readOptions()
 
-        try:
-            vistrails.core.requirements.require_python_module('concurrent.futures')
-        except vistrails.core.requirements.MissingRequirement:
-            if not vistrails.core.bundles.installbundle.install({
-                    'linux-debian': ['python-concurrent.futures'],
-                    'linux-ubuntu': ['python-concurrent.futures'],
-                    'linux-fedora': ['python-futures'],
-                    'pip': ['futures']}):
-                raise
+        self.check_all_requirements()
 
-        # Create the registry and load default packages
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:
@@ -368,6 +405,25 @@ The builder window can be accessed by a spreadsheet menu option.")
 
         # Register parallelization schemes
         Parallelization.setup_parallelization_schemes()
+
+    def check_all_requirements(self):
+        # check scipy
+        require_python_module('scipy', {
+                'linux-debian': 'python-scipy',
+                'linux-ubuntu': 'python-scipy',
+                'linux-fedora': 'scipy',
+                'pip': 'scipy'})
+
+        # check concurrent.futures
+        require_python_module('concurrent.futures', {
+                'linux-debian': ['python-concurrent.futures'],
+                'linux-ubuntu': ['python-concurrent.futures'],
+                'linux-fedora': ['python-futures'],
+                'pip': ['futures']})
+
+        # ZIP manipulations use the command-line executables
+        require_executable('zip')
+        require_executable('unzip')
 
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
@@ -382,6 +438,7 @@ after self.init()"""
         """
         if hasattr(self, 'vistrailsStartup'):
             self.vistrailsStartup.destroy()
+        Collection.clearInstance()
 
         Parallelization.finalize_parallelization_schemes()
 

@@ -58,7 +58,7 @@ from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
+from vistrails.core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -102,6 +102,10 @@ class MissingVistrailVariable(Exception):
             return "%s|%s" % (self._namespace, self._name)
         return self._name
     _module_name = property(_get_module_name)
+
+class CycleInPipeline(Exception):
+    def __str__(self):
+        return "Pipeline contains a cycle"
 
 class Pipeline(DBWorkflow):
     """ A Pipeline is a set of modules and connections between them. """
@@ -803,15 +807,21 @@ class Pipeline(DBWorkflow):
 
     # Subpipelines
 
-    def subpipeline_signature(self, module_id):
+    def subpipeline_signature(self, module_id, visited_ids=None):
         """subpipeline_signature(module_id): string
         Returns the signature for the subpipeline whose sink id is module_id."""
+        if visited_ids is None:
+            visited_ids = set([module_id])
+        elif module_id in visited_ids:
+            raise CycleInPipeline()
         try:
             return self._subpipeline_signatures[module_id]
         except KeyError:
-            upstream_sigs = [(self.subpipeline_signature(m) +
+            upstream_sigs = [(self.subpipeline_signature(
+                                      m,
+                                      visited_ids | set([module_id])) +
                               Hasher.connection_signature(
-                                  self.connections[edge_id]))
+                                      self.connections[edge_id]))
                              for (m, edge_id) in
                              self.graph.edges_to(module_id)]
             module_sig = self.module_signature(module_id)
@@ -1241,6 +1251,13 @@ class Pipeline(DBWorkflow):
 
 
 class TestPipeline(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # make sure pythonCalc is loaded
+        from vistrails.core.packagemanager import get_package_manager
+        pm = get_package_manager()
+        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no partial
+            pm.late_enable_package('pythonCalc')
 
     def create_default_pipeline(self, id_scope=None):
         if id_scope is None:
