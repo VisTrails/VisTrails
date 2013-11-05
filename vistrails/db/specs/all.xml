@@ -1096,12 +1096,7 @@
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="int"/>
       </property>
-      
-      <property ref="true" object="loop_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="int"/>
-      </property>
-      
+            
       <property ref="true" object="module_exec" type="long" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="int"/>
