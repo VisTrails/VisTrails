@@ -54,6 +54,7 @@ else:
 import unittest
 
 import atexit
+from distutils.version import LooseVersion
 #import doctest
 import locale
 import os
@@ -181,6 +182,8 @@ dotVistrails = options.dotVistrails
 test_modules = None
 if len(args) > 0:
     test_modules = args
+else:
+    test_images = True
 
 def module_filter(name):
     if test_modules is None:
@@ -326,8 +329,9 @@ for (p, subdirs, files) in os.walk(root_directory):
         elif verbose >= 2:
             print msg, "Ok: %d test cases." % suite.countTestCases()
 
-sub_print("Imported modules. Running %d tests..." %
+sub_print("Imported modules. Running %d tests%s..." % (
           main_test_suite.countTestCases(),
+          ", and thumbnails comparison" if test_images else ''),
           overline=True)
 
 ############## TEST VISTRAIL IMAGES ####################
@@ -339,25 +343,36 @@ image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
                                   ("terminator_CRSW", "Combined Rendering SW"),
                                   ("terminator_ISSW", "Image Slices SW")])
                ]
-def compare_thumbnails(prev, next):
-    import vtk
-    #vtkImageDifference assumes RGB, so strip alpha
-    def removeAlpha(file):
-        freader = vtk.vtkPNGReader()
-        freader.SetFileName(file)
-        removealpha = vtk.vtkImageExtractComponents()
-        removealpha.SetComponents(0,1,2)
-        removealpha.SetInputConnection(freader.GetOutputPort())
-        removealpha.Update()
-        return removealpha.GetOutput()
-    #do the image comparison
-    a = removeAlpha(prev)
-    b = removeAlpha(next)
-    idiff = vtk.vtkImageDifference()
-    idiff.SetInput(a)
-    idiff.SetImage(b)
-    idiff.Update()
-    return idiff.GetThresholdedError()
+if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= LooseVersion('5.8.0'):
+    def compare_thumbnails(prev, next):
+        import vtk
+        #vtkImageDifference assumes RGB, so strip alpha
+        def removeAlpha(file):
+            freader = vtk.vtkPNGReader()
+            freader.SetFileName(file)
+            removealpha = vtk.vtkImageExtractComponents()
+            removealpha.SetComponents(0,1,2)
+            removealpha.SetInputConnection(freader.GetOutputPort())
+            removealpha.Update()
+            return removealpha.GetOutput()
+        #do the image comparison
+        a = removeAlpha(prev)
+        b = removeAlpha(next)
+        idiff = vtk.vtkImageDifference()
+        idiff.SetInput(a)
+        idiff.SetImage(b)
+        idiff.Update()
+        return idiff.GetThresholdedError()
+else:
+    if test_images:
+        print "Warning: old VTK version detected, NOT comparing thumbnails"
+    def compare_thumbnails(prev, next):
+        import scipy.misc
+        prev_img = scipy.misc.imread(prev)
+        next_img = scipy.misc.imread(next)
+        assert len(prev_img.shape) == 3
+        assert len(next_img.shape) == 3
+        return 0 if prev_img.shape[:2] == next_img.shape[:2] else float('Inf')
 
 def image_test_generator(vtfile, version):
     from vistrails.core.db.locator import FileLocator
@@ -384,7 +399,7 @@ def image_test_generator(vtfile, version):
 class TestVistrailImages(unittest.TestCase):
     pass
 
-if not test_modules or test_images:
+if test_images:
     for vt, t in image_tests:
         for name, version in t:
             test_name = 'test_%s' % name
