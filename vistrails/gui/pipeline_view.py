@@ -2936,7 +2936,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error,
+                                     QModuleStatusEvent(moduleId, 1, error.msg,
                                                         errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 

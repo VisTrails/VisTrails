@@ -14,10 +14,6 @@ class While(Module):
     is false. Then, it returns the result.
     """
 
-    def __init__(self):
-        Module.__init__(self)
-        self.is_looping_module = True
-
     def update(self):
         self.logging.begin_update(self)
 
@@ -83,12 +79,6 @@ class While(Module):
             module.upToDate = False
             module.computed = False
 
-            # For logging
-            module.is_looping = True
-            module.first_iteration = i == 0
-            module.last_iteration = False
-            module.loop_iteration = i
-
             # Set state on input ports
             if i > 0 and self.name_state_input:
                 for value, port in izip(state, self.name_state_input):
@@ -99,12 +89,16 @@ class While(Module):
                             'value')
                     module.set_input_port(port, new_connector)
 
+        self.logging.begin_loop_execution(self, module,
+                                          i, self.max_iterations)
         self.run_upstream_module(lambda: self.iteration_done(i, module),
                                  module)
 
     def iteration_done(self, i, module):
         """Finishes or starts a new iteration.
         """
+        self.logging.end_loop_execution(self, module)
+
         if self.name_condition is not None:
             if self.name_condition not in module.outputPorts:
                 raise ModuleError(

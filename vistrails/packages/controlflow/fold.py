@@ -94,10 +94,6 @@ class FoldWithModule(Fold, NotCacheable):
     that this module will use.
     """
 
-    def __init__(self):
-        Fold.__init__(self)
-        self.is_looping_module = True
-
     def update(self):
         self.logging.begin_update(self)
         if len(self.inputPorts.get('FunctionPort', [])) != 1:
@@ -114,7 +110,7 @@ class FoldWithModule(Fold, NotCacheable):
                 priority=self.UPDATE_UPSTREAM_PRIORITY)
 
     def other_ports_ready(self):
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     mod, port = connector.obj, connector.port
@@ -149,6 +145,9 @@ class FoldWithModule(Fold, NotCacheable):
                 module.computed = False
                 self.setInputValues(module, input_port, element)
 
+                self.logging.begin_loop_execution(self, module,
+                                                  i, len(input_list))
+
             self.modules_to_run.append((module, element))
 
         if not self.upToDate:
@@ -164,6 +163,8 @@ class FoldWithModule(Fold, NotCacheable):
         output_port = self.getInputFromPort('OutputPort')
 
         for module, element in self.modules_to_run:
+            self.logging.end_loop_execution(self, module)
+
             # Getting the result from the output port
             if output_port not in module.outputPorts:
                 raise ModuleError(module,
