@@ -34,13 +34,12 @@
 ###############################################################################
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError
-from vistrails.core.modules.basic_modules import NotCacheable
 import copy
 
 #################################################################################
 ## If Operator
 
-class If(Module, NotCacheable):
+class If(Module):
     """
     The If Module alows the user to choose the part of the workflow to be
     executed through the use of a condition.
@@ -103,7 +102,7 @@ class If(Module, NotCacheable):
 #################################################################################
 ## Default module
 
-class Default(Module, NotCacheable):
+class Default(Module):
     """
     The Default module allows the user to provide a default value.
 
