@@ -285,7 +285,9 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
-            return
+            if not monitor or not monitor.finished():
+                raise ModuleSuspended(module, 'Job is running', queue=monitor,
+                                      job_id=id)
         workflowItem = self.workflowItems[workflow.id]
         item = workflowItem.jobs.get(id, None)
         item.setText(0, item.job.name)

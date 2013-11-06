@@ -43,6 +43,7 @@ import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
 from vistrails.core import debug
+from vistrails.core.interpreter.job import JobMonitor, Workflow as JobWorkflow
 from vistrails.core.utils import VistrailsInternalError, expression
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -69,6 +70,10 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     aliases = {}
     result = []
     for locator, workflow in w_list:
+        jobMonitor = JobMonitor.getInstance()
+        if not jobMonitor.currentWorkflow():
+            current_workflow = JobWorkflow(locator.to_url(), workflow)
+            jobMonitor.getInstance().startWorkflow(current_workflow)
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
         controller = VistrailController(v, locator, abstractions, thumbnails, 
                                         mashups, auto_save=update_vistrail)
@@ -126,6 +131,8 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
+        if jobMonitor.currentWorkflow():
+            jobMonitor.finishWorkflow()
     return result
 
 ################################################################################

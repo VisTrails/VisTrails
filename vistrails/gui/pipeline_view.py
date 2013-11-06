@@ -3145,12 +3145,28 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             debug.critical("Execution Aborted: Job Monitor is updating. Please wait a few seconds and try again.")
             return
         jobView.updating_now = True
-        if not jobView.jobMonitor.currentWorkflow() and target is None:
-            # this is a new job
+        if not jobView.jobMonitor.currentWorkflow():
             version_id = self.controller.current_version
             url = self.controller.locator.to_url()
-            current_workflow = JobWorkflow(url, version_id)
-            jobView.jobMonitor.startWorkflow(current_workflow)
+            # check if a job for this workflow exists
+            current_workflow = None
+            for job in jobView.jobMonitor._running_workflows.itervalues():
+                if version_id == job.version and url == job.vistrail:
+                    # ask to continue the existing job
+                    r = QtGui.QMessageBox.question(getBuilderWindow(),
+                       'Running Job Found',
+                       'A job for this workflow is already running.\n'
+                       'Do you want to start a new job?',
+                       QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                       QtGui.QMessageBox.No)
+
+                    if r==QtGui.QMessageBox.No:
+                        current_workflow = job
+                        jobView.jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(url, version_id)
+                jobView.jobMonitor.startWorkflow(current_workflow)
+                        
         try:
             modules = len(self.controller.current_pipeline.modules)
             progress = ExecutionProgressDialog(modules)

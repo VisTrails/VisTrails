@@ -497,7 +497,9 @@ class JobMonitor:
 
         """
         if not self.currentWorkflow():
-            return # ignore non-monitored jobs
+            if not monitor or not monitor.finished():
+                raise ModuleSuspended(module, 'Job is running', queue=monitor,
+                                      job_id=id)
         job = self.getJob(id)
         if self.callback:
             self.callback.checkJob(module, id, monitor)
