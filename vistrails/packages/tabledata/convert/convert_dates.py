@@ -103,7 +103,7 @@ def make_timezone(s):
                              "install pytz?)" % s)
         else:
             ver = LooseVersion(pytz.__version__)
-            if ver < LooseVersion('2013'):
+            if ver < LooseVersion('2012'):
                 warnings.warn(
                         "You are using an old version of pytz (%s). You might "
                         "run into some issues with daylight saving handling." %
@@ -452,7 +452,7 @@ class TestStringsToDates(unittest.TestCase):
             import pytz
         except ImportError:
             self.skipTest("pytz is not available")
-        if LooseVersion(pytz.__version__) < LooseVersion('2013'):
+        if LooseVersion(pytz.__version__) < LooseVersion('2012'):
             self.skipTest("pytz version is known to cause issues (%s)" %
                           pytz.__version__)
 
