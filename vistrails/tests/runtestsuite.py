@@ -343,9 +343,15 @@ image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
                                   ("terminator_CRSW", "Combined Rendering SW"),
                                   ("terminator_ISSW", "Image Slices SW")])
                ]
-if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= LooseVersion('5.8.0'):
+compare_use_vtk = False
+try:
+    import vtk
+    if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= LooseVersion('5.8.0'):
+        compare_use_vtk = True
+except ImportError:
+    pass
+if compare_use_vtk:
     def compare_thumbnails(prev, next):
-        import vtk
         #vtkImageDifference assumes RGB, so strip alpha
         def removeAlpha(file):
             freader = vtk.vtkPNGReader()

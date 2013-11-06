@@ -1,9 +1,12 @@
 import datetime
+from distutils.version import LooseVersion
 import re
 import time
+import warnings
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.bundles import py_import
+from vistrails.core.utils import VistrailsWarning
 
 
 class UTC(datetime.tzinfo):
@@ -101,6 +104,13 @@ def make_timezone(s):
             raise ValueError("can't understand timezone %r (maybe you should "
                              "install pytz?)" % s)
         else:
+            ver = LooseVersion(pytz.__version__)
+            if ver < LooseVersion('2013'):
+                warnings.warn(
+                        "You are using an old version of pytz (%s). You might "
+                        "run into some issues with daylight saving handling." %
+                        pytz.__version__,
+                        category=VistrailsWarning)
             try:
                 return pytz.timezone(s)
             except KeyError:
@@ -447,6 +457,9 @@ class TestStringsToDates(unittest.TestCase):
             import pytz
         except ImportError:
             self.skipTest("pytz is not available")
+        if LooseVersion(pytz.__version__) < LooseVersion('2013'):
+            self.skipTest("pytz version is known to cause issues (%s)" %
+                          pytz.__version__)
 
         dates = ['2013-01-20 9:25', '2013-01-20 09:31', '2013-06-02 19:05']
         in_fmt = '%Y-%m-%d %H:%M'
