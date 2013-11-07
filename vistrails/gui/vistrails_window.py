@@ -2468,6 +2468,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                         p.toolWindow().close()
                       
     def applicationFocusChanged(self, old, current):
+        if self._is_quitting:
+            return
         from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
         from vistrails.gui.paramexplore.pe_view import QParamExploreView
         from vistrails.gui.mashups.alias_inspector import QAliasInspector
