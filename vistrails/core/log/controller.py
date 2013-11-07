@@ -53,6 +53,7 @@ class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
     def start_workflow_execution(self, *args, **kwargs): return self
+    def recursing(self, *args, **kwargs): return self
     def finish_workflow_execution(self, *args, **kwargs): pass
     def add_exec(self, *args, **kwargs): pass
     def start_execution(self, *args, **kwargs): pass
@@ -61,6 +62,7 @@ class DummyLogController(object):
     def finish_execution(self, *args, **kwargs): pass
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
+    def add_machine(self, *args, **kwargs): return -1
     def __call__(self): return self
 
 
@@ -169,7 +171,6 @@ class LogWorkflowController(LogController):
             parent_exec = self.module_execs[parent_exec]
         return LogWorkflowController(self.log, self.machine, parent_exec,
                                      self.workflow_exec)
-
 
     def start_execution(self, module, module_id, module_name, cached=0):
         """Signals the start of the execution of a module (before compute).
@@ -281,6 +282,14 @@ class LogWorkflowController(LogController):
                                         key=k,
                                         value=v)
                 self.workflow_exec.add_annotation(annotation)
+
+    def add_machine(self, machine):
+        machine.id = self.log.id_scope.getNewId(Machine.vtType)
+        self.workflow_exec.add_machine(machine)
+        return machine.id
+
+    def add_exec(self, exec_):
+        self.workflow_exec.add_item_exec(exec_)
 
 
 class LogWorkflowExecController(LogWorkflowController):

@@ -14,10 +14,6 @@ class While(Module):
     is false. Then, it returns the result.
     """
 
-    def __init__(self):
-        Module.__init__(self)
-        self.is_looping_module = True
-
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
 
