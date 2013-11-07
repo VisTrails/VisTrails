@@ -2941,78 +2941,6 @@ class DBOpmProcesses(object):
     
 
 
-class DBRefProvActivity(object):
-
-    vtType = 'ref_prov_activity'
-
-    def __init__(self, prov_ref=None):
-        self._db_prov_ref = prov_ref
-        self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBRefProvActivity.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
-        
-        # recreate indices and set flags
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBRefProvActivity()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'prov_ref' in class_dict:
-            res = class_dict['prov_ref'](old_obj, trans_dict)
-            new_obj.db_prov_ref = res
-        elif hasattr(old_obj, 'db_prov_ref') and old_obj.db_prov_ref is not None:
-            new_obj.db_prov_ref = old_obj.db_prov_ref
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
-        return [(self, parent[0], parent[1])]
-    def db_deleted_children(self, remove=False):
-        children = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        return False
-    def __get_db_prov_ref(self):
-        return self._db_prov_ref
-    def __set_db_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-        self.is_dirty = True
-    db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
-    def db_add_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-    def db_change_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-    def db_delete_prov_ref(self, prov_ref):
-        self._db_prov_ref = None
-    
-
-
 class DBOpmAccountId(object):
 
     vtType = 'opm_account_id'
@@ -4157,26 +4085,42 @@ class DBLog(object):
     def getPrimaryKey(self):
         return self._db_id
 
-class DBMashupAlias(object):
+class DBLoopIteration(object):
 
-    vtType = 'mashup_alias'
+    vtType = 'loop_iteration'
 
-    def __init__(self, id=None, name=None, component=None):
+    def __init__(self, item_execs=None, id=None, ts_start=None, ts_end=None, iteration=None, completed=None, error=None):
+        self.db_deleted_item_execs = []
+        self.db_item_execs_id_index = {}
+        if item_execs is None:
+            self._db_item_execs = []
+        else:
+            self._db_item_execs = item_execs
+            for v in self._db_item_execs:
+                self.db_item_execs_id_index[v.db_id] = v
         self._db_id = id
-        self._db_name = name
-        self.db_deleted_component = []
-        self._db_component = component
+        self._db_ts_start = ts_start
+        self._db_ts_end = ts_end
+        self._db_iteration = iteration
+        self._db_completed = completed
+        self._db_error = error
         self.is_dirty = True
         self.is_new = True
     
     def __copy__(self):
-        return DBMashupAlias.do_copy(self)
+        return DBLoopIteration.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBMashupAlias(id=self._db_id,
-                           name=self._db_name)
-        if self._db_component is not None:
-            cp._db_component = self._db_component.do_copy(new_ids, id_scope, id_remap)
+        cp = DBLoopIteration(id=self._db_id,
+                             ts_start=self._db_ts_start,
+                             ts_end=self._db_ts_end,
+                             iteration=self._db_iteration,
+                             completed=self._db_completed,
+                             error=self._db_error)
+        if self._db_item_execs is None:
+            cp._db_item_execs = []
+        else:
+            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
         
         # set new ids
         if new_ids:
@@ -4188,6 +4132,7 @@ class DBMashupAlias(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
+        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -4196,54 +4141,133 @@ class DBMashupAlias(object):
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
-            new_obj = DBMashupAlias()
+            new_obj = DBLoopIteration()
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'item_execs' in class_dict:
+            res = class_dict['item_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_item_exec(obj)
+        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
+            for obj in old_obj.db_item_execs:
+                if obj.vtType == 'module_exec':
+                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'group_exec':
+                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'loop_exec':
+                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
+            for obj in old_obj.db_deleted_item_execs:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
-        if 'name' in class_dict:
-            res = class_dict['name'](old_obj, trans_dict)
-            new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
-            new_obj.db_name = old_obj.db_name
-        if 'component' in class_dict:
-            res = class_dict['component'](old_obj, trans_dict)
-            new_obj.db_component = res
-        elif hasattr(old_obj, 'db_component') and old_obj.db_component is not None:
-            obj = old_obj.db_component
-            new_obj.db_add_component(DBMashupComponent.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_component') and hasattr(new_obj, 'db_deleted_component'):
-            for obj in old_obj.db_deleted_component:
-                n_obj = DBMashupComponent.update_version(obj, trans_dict)
-                new_obj.db_deleted_component.append(n_obj)
+        if 'ts_start' in class_dict:
+            res = class_dict['ts_start'](old_obj, trans_dict)
+            new_obj.db_ts_start = res
+        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
+            new_obj.db_ts_start = old_obj.db_ts_start
+        if 'ts_end' in class_dict:
+            res = class_dict['ts_end'](old_obj, trans_dict)
+            new_obj.db_ts_end = res
+        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
+            new_obj.db_ts_end = old_obj.db_ts_end
+        if 'iteration' in class_dict:
+            res = class_dict['iteration'](old_obj, trans_dict)
+            new_obj.db_iteration = res
+        elif hasattr(old_obj, 'db_iteration') and old_obj.db_iteration is not None:
+            new_obj.db_iteration = old_obj.db_iteration
+        if 'completed' in class_dict:
+            res = class_dict['completed'](old_obj, trans_dict)
+            new_obj.db_completed = res
+        elif hasattr(old_obj, 'db_completed') and old_obj.db_completed is not None:
+            new_obj.db_completed = old_obj.db_completed
+        if 'error' in class_dict:
+            res = class_dict['error'](old_obj, trans_dict)
+            new_obj.db_error = res
+        elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
+            new_obj.db_error = old_obj.db_error
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
-        if self._db_component is not None:
-            children.extend(self._db_component.db_children((self.vtType, self.db_id), orphan, for_action))
+        to_del = []
+        for child in self.db_item_execs:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
-                self._db_component = None
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_item_exec(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_component)
+        children.extend(self.db_deleted_item_execs)
         if remove:
-            self.db_deleted_component = []
+            self.db_deleted_item_execs = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        if self._db_component is not None and self._db_component.has_changes():
-            return True
+        for child in self._db_item_execs:
+            if child.has_changes():
+                return True
         return False
+    def __get_db_item_execs(self):
+        return self._db_item_execs
+    def __set_db_item_execs(self, item_execs):
+        self._db_item_execs = item_execs
+        self.is_dirty = True
+    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
+    def db_get_item_execs(self):
+        return self._db_item_execs
+    def db_add_item_exec(self, item_exec):
+        self.is_dirty = True
+        self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_change_item_exec(self, item_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                self._db_item_execs[i] = item_exec
+                found = True
+                break
+        if not found:
+            self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_delete_item_exec(self, item_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                if not self._db_item_execs[i].is_new:
+                    self.db_deleted_item_execs.append(self._db_item_execs[i])
+                del self._db_item_execs[i]
+                break
+        del self.db_item_execs_id_index[item_exec.db_id]
+    def db_get_item_exec(self, key):
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == key:
+                return self._db_item_execs[i]
+        return None
+    def db_get_item_exec_by_id(self, key):
+        return self.db_item_execs_id_index[key]
+    def db_has_item_exec_with_id(self, key):
+        return key in self.db_item_execs_id_index
+    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -4257,33 +4281,70 @@ class DBMashupAlias(object):
     def db_delete_id(self, id):
         self._db_id = None
     
-    def __get_db_name(self):
-        return self._db_name
-    def __set_db_name(self, name):
-        self._db_name = name
+    def __get_db_ts_start(self):
+        return self._db_ts_start
+    def __set_db_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
         self.is_dirty = True
-    db_name = property(__get_db_name, __set_db_name)
-    def db_add_name(self, name):
-        self._db_name = name
-    def db_change_name(self, name):
-        self._db_name = name
-    def db_delete_name(self, name):
-        self._db_name = None
+    db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+    def db_add_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_change_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_delete_ts_start(self, ts_start):
+        self._db_ts_start = None
     
-    def __get_db_component(self):
-        return self._db_component
-    def __set_db_component(self, component):
-        self._db_component = component
+    def __get_db_ts_end(self):
+        return self._db_ts_end
+    def __set_db_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
         self.is_dirty = True
-    db_component = property(__get_db_component, __set_db_component)
-    def db_add_component(self, component):
-        self._db_component = component
-    def db_change_component(self, component):
-        self._db_component = component
-    def db_delete_component(self, component):
-        if not self.is_new:
-            self.db_deleted_component.append(self._db_component)
-        self._db_component = None
+    db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+    def db_add_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_change_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_delete_ts_end(self, ts_end):
+        self._db_ts_end = None
+    
+    def __get_db_iteration(self):
+        return self._db_iteration
+    def __set_db_iteration(self, iteration):
+        self._db_iteration = iteration
+        self.is_dirty = True
+    db_iteration = property(__get_db_iteration, __set_db_iteration)
+    def db_add_iteration(self, iteration):
+        self._db_iteration = iteration
+    def db_change_iteration(self, iteration):
+        self._db_iteration = iteration
+    def db_delete_iteration(self, iteration):
+        self._db_iteration = None
+    
+    def __get_db_completed(self):
+        return self._db_completed
+    def __set_db_completed(self, completed):
+        self._db_completed = completed
+        self.is_dirty = True
+    db_completed = property(__get_db_completed, __set_db_completed)
+    def db_add_completed(self, completed):
+        self._db_completed = completed
+    def db_change_completed(self, completed):
+        self._db_completed = completed
+    def db_delete_completed(self, completed):
+        self._db_completed = None
+    
+    def __get_db_error(self):
+        return self._db_error
+    def __set_db_error(self, error):
+        self._db_error = error
+        self.is_dirty = True
+    db_error = property(__get_db_error, __set_db_error)
+    def db_add_error(self, error):
+        self._db_error = error
+    def db_change_error(self, error):
+        self._db_error = error
+    def db_delete_error(self, error):
+        self._db_error = None
     
     def getPrimaryKey(self):
         return self._db_id
@@ -7485,6 +7546,137 @@ class DBAbstraction(object):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
+class DBMashupAlias(object):
+
+    vtType = 'mashup_alias'
+
+    def __init__(self, id=None, name=None, component=None):
+        self._db_id = id
+        self._db_name = name
+        self.db_deleted_component = []
+        self._db_component = component
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBMashupAlias.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBMashupAlias(id=self._db_id,
+                           name=self._db_name)
+        if self._db_component is not None:
+            cp._db_component = self._db_component.do_copy(new_ids, id_scope, id_remap)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBMashupAlias()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
+            new_obj.db_name = old_obj.db_name
+        if 'component' in class_dict:
+            res = class_dict['component'](old_obj, trans_dict)
+            new_obj.db_component = res
+        elif hasattr(old_obj, 'db_component') and old_obj.db_component is not None:
+            obj = old_obj.db_component
+            new_obj.db_add_component(DBMashupComponent.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_component') and hasattr(new_obj, 'db_deleted_component'):
+            for obj in old_obj.db_deleted_component:
+                n_obj = DBMashupComponent.update_version(obj, trans_dict)
+                new_obj.db_deleted_component.append(n_obj)
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        children = []
+        if self._db_component is not None:
+            children.extend(self._db_component.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                self._db_component = None
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_component)
+        if remove:
+            self.db_deleted_component = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        if self._db_component is not None and self._db_component.has_changes():
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_name(self):
+        return self._db_name
+    def __set_db_name(self, name):
+        self._db_name = name
+        self.is_dirty = True
+    db_name = property(__get_db_name, __set_db_name)
+    def db_add_name(self, name):
+        self._db_name = name
+    def db_change_name(self, name):
+        self._db_name = name
+    def db_delete_name(self, name):
+        self._db_name = None
+    
+    def __get_db_component(self):
+        return self._db_component
+    def __set_db_component(self, component):
+        self._db_component = component
+        self.is_dirty = True
+    db_component = property(__get_db_component, __set_db_component)
+    def db_add_component(self, component):
+        self._db_component = component
+    def db_change_component(self, component):
+        self._db_component = component
+    def db_delete_component(self, component):
+        if not self.is_new:
+            self.db_deleted_component.append(self._db_component)
+        self._db_component = None
     
     def getPrimaryKey(self):
         return self._db_id
@@ -13624,21 +13816,16 @@ class DBLoopExec(object):
 
     vtType = 'loop_exec'
 
-    def __init__(self, item_execs=None, id=None, ts_start=None, ts_end=None, iteration=None, completed=None, error=None):
-        self.db_deleted_item_execs = []
-        self.db_item_execs_id_index = {}
-        if item_execs is None:
-            self._db_item_execs = []
-        else:
-            self._db_item_execs = item_execs
-            for v in self._db_item_execs:
-                self.db_item_execs_id_index[v.db_id] = v
+    def __init__(self, id=None, loop_iterations=None):
         self._db_id = id
-        self._db_ts_start = ts_start
-        self._db_ts_end = ts_end
-        self._db_iteration = iteration
-        self._db_completed = completed
-        self._db_error = error
+        self.db_deleted_loop_iterations = []
+        self.db_loop_iterations_id_index = {}
+        if loop_iterations is None:
+            self._db_loop_iterations = []
+        else:
+            self._db_loop_iterations = loop_iterations
+            for v in self._db_loop_iterations:
+                self.db_loop_iterations_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -13646,16 +13833,11 @@ class DBLoopExec(object):
         return DBLoopExec.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBLoopExec(id=self._db_id,
-                        ts_start=self._db_ts_start,
-                        ts_end=self._db_ts_end,
-                        iteration=self._db_iteration,
-                        completed=self._db_completed,
-                        error=self._db_error)
-        if self._db_item_execs is None:
-            cp._db_item_execs = []
+        cp = DBLoopExec(id=self._db_id)
+        if self._db_loop_iterations is None:
+            cp._db_loop_iterations = []
         else:
-            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
+            cp._db_loop_iterations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_iterations]
         
         # set new ids
         if new_ids:
@@ -13667,7 +13849,7 @@ class DBLoopExec(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
+        cp.db_loop_iterations_id_index = dict((v.db_id, v) for v in cp._db_loop_iterations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -13680,59 +13862,22 @@ class DBLoopExec(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'item_execs' in class_dict:
-            res = class_dict['item_execs'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_item_exec(obj)
-        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
-            for obj in old_obj.db_item_execs:
-                if obj.vtType == 'module_exec':
-                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'group_exec':
-                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'loop_exec':
-                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
-            for obj in old_obj.db_deleted_item_execs:
-                if obj.vtType == 'module_exec':
-                    n_obj = DBModuleExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'group_exec':
-                    n_obj = DBGroupExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'loop_exec':
-                    n_obj = DBLoopExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
-        if 'ts_start' in class_dict:
-            res = class_dict['ts_start'](old_obj, trans_dict)
-            new_obj.db_ts_start = res
-        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
-            new_obj.db_ts_start = old_obj.db_ts_start
-        if 'ts_end' in class_dict:
-            res = class_dict['ts_end'](old_obj, trans_dict)
-            new_obj.db_ts_end = res
-        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
-            new_obj.db_ts_end = old_obj.db_ts_end
-        if 'iteration' in class_dict:
-            res = class_dict['iteration'](old_obj, trans_dict)
-            new_obj.db_iteration = res
-        elif hasattr(old_obj, 'db_iteration') and old_obj.db_iteration is not None:
-            new_obj.db_iteration = old_obj.db_iteration
-        if 'completed' in class_dict:
-            res = class_dict['completed'](old_obj, trans_dict)
-            new_obj.db_completed = res
-        elif hasattr(old_obj, 'db_completed') and old_obj.db_completed is not None:
-            new_obj.db_completed = old_obj.db_completed
-        if 'error' in class_dict:
-            res = class_dict['error'](old_obj, trans_dict)
-            new_obj.db_error = res
-        elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
-            new_obj.db_error = old_obj.db_error
+        if 'loop_iterations' in class_dict:
+            res = class_dict['loop_iterations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_loop_iteration(obj)
+        elif hasattr(old_obj, 'db_loop_iterations') and old_obj.db_loop_iterations is not None:
+            for obj in old_obj.db_loop_iterations:
+                new_obj.db_add_loop_iteration(DBLoopIteration.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_loop_iterations') and hasattr(new_obj, 'db_deleted_loop_iterations'):
+            for obj in old_obj.db_deleted_loop_iterations:
+                n_obj = DBLoopIteration.update_version(obj, trans_dict)
+                new_obj.db_deleted_loop_iterations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -13740,69 +13885,27 @@ class DBLoopExec(object):
     def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
-        for child in self.db_item_execs:
+        for child in self.db_loop_iterations:
             children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
-            self.db_delete_item_exec(child)
+            self.db_delete_loop_iteration(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_item_execs)
+        children.extend(self.db_deleted_loop_iterations)
         if remove:
-            self.db_deleted_item_execs = []
+            self.db_deleted_loop_iterations = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        for child in self._db_item_execs:
+        for child in self._db_loop_iterations:
             if child.has_changes():
                 return True
         return False
-    def __get_db_item_execs(self):
-        return self._db_item_execs
-    def __set_db_item_execs(self, item_execs):
-        self._db_item_execs = item_execs
-        self.is_dirty = True
-    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
-    def db_get_item_execs(self):
-        return self._db_item_execs
-    def db_add_item_exec(self, item_exec):
-        self.is_dirty = True
-        self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_change_item_exec(self, item_exec):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                self._db_item_execs[i] = item_exec
-                found = True
-                break
-        if not found:
-            self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_delete_item_exec(self, item_exec):
-        self.is_dirty = True
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                if not self._db_item_execs[i].is_new:
-                    self.db_deleted_item_execs.append(self._db_item_execs[i])
-                del self._db_item_execs[i]
-                break
-        del self.db_item_execs_id_index[item_exec.db_id]
-    def db_get_item_exec(self, key):
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == key:
-                return self._db_item_execs[i]
-        return None
-    def db_get_item_exec_by_id(self, key):
-        return self.db_item_execs_id_index[key]
-    def db_has_item_exec_with_id(self, key):
-        return key in self.db_item_execs_id_index
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -13816,70 +13919,47 @@ class DBLoopExec(object):
     def db_delete_id(self, id):
         self._db_id = None
     
-    def __get_db_ts_start(self):
-        return self._db_ts_start
-    def __set_db_ts_start(self, ts_start):
-        self._db_ts_start = ts_start
+    def __get_db_loop_iterations(self):
+        return self._db_loop_iterations
+    def __set_db_loop_iterations(self, loop_iterations):
+        self._db_loop_iterations = loop_iterations
         self.is_dirty = True
-    db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
-    def db_add_ts_start(self, ts_start):
-        self._db_ts_start = ts_start
-    def db_change_ts_start(self, ts_start):
-        self._db_ts_start = ts_start
-    def db_delete_ts_start(self, ts_start):
-        self._db_ts_start = None
-    
-    def __get_db_ts_end(self):
-        return self._db_ts_end
-    def __set_db_ts_end(self, ts_end):
-        self._db_ts_end = ts_end
+    db_loop_iterations = property(__get_db_loop_iterations, __set_db_loop_iterations)
+    def db_get_loop_iterations(self):
+        return self._db_loop_iterations
+    def db_add_loop_iteration(self, loop_iteration):
         self.is_dirty = True
-    db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
-    def db_add_ts_end(self, ts_end):
-        self._db_ts_end = ts_end
-    def db_change_ts_end(self, ts_end):
-        self._db_ts_end = ts_end
-    def db_delete_ts_end(self, ts_end):
-        self._db_ts_end = None
-    
-    def __get_db_iteration(self):
-        return self._db_iteration
-    def __set_db_iteration(self, iteration):
-        self._db_iteration = iteration
+        self._db_loop_iterations.append(loop_iteration)
+        self.db_loop_iterations_id_index[loop_iteration.db_id] = loop_iteration
+    def db_change_loop_iteration(self, loop_iteration):
         self.is_dirty = True
-    db_iteration = property(__get_db_iteration, __set_db_iteration)
-    def db_add_iteration(self, iteration):
-        self._db_iteration = iteration
-    def db_change_iteration(self, iteration):
-        self._db_iteration = iteration
-    def db_delete_iteration(self, iteration):
-        self._db_iteration = None
-    
-    def __get_db_completed(self):
-        return self._db_completed
-    def __set_db_completed(self, completed):
-        self._db_completed = completed
+        found = False
+        for i in xrange(len(self._db_loop_iterations)):
+            if self._db_loop_iterations[i].db_id == loop_iteration.db_id:
+                self._db_loop_iterations[i] = loop_iteration
+                found = True
+                break
+        if not found:
+            self._db_loop_iterations.append(loop_iteration)
+        self.db_loop_iterations_id_index[loop_iteration.db_id] = loop_iteration
+    def db_delete_loop_iteration(self, loop_iteration):
         self.is_dirty = True
-    db_completed = property(__get_db_completed, __set_db_completed)
-    def db_add_completed(self, completed):
-        self._db_completed = completed
-    def db_change_completed(self, completed):
-        self._db_completed = completed
-    def db_delete_completed(self, completed):
-        self._db_completed = None
-    
-    def __get_db_error(self):
-        return self._db_error
-    def __set_db_error(self, error):
-        self._db_error = error
-        self.is_dirty = True
-    db_error = property(__get_db_error, __set_db_error)
-    def db_add_error(self, error):
-        self._db_error = error
-    def db_change_error(self, error):
-        self._db_error = error
-    def db_delete_error(self, error):
-        self._db_error = None
+        for i in xrange(len(self._db_loop_iterations)):
+            if self._db_loop_iterations[i].db_id == loop_iteration.db_id:
+                if not self._db_loop_iterations[i].is_new:
+                    self.db_deleted_loop_iterations.append(self._db_loop_iterations[i])
+                del self._db_loop_iterations[i]
+                break
+        del self.db_loop_iterations_id_index[loop_iteration.db_id]
+    def db_get_loop_iteration(self, key):
+        for i in xrange(len(self._db_loop_iterations)):
+            if self._db_loop_iterations[i].db_id == key:
+                return self._db_loop_iterations[i]
+        return None
+    def db_get_loop_iteration_by_id(self, key):
+        return self.db_loop_iterations_id_index[key]
+    def db_has_loop_iteration_with_id(self, key):
+        return key in self.db_loop_iterations_id_index
     
     def getPrimaryKey(self):
         return self._db_id
@@ -15672,6 +15752,78 @@ class DBDelete(object):
     
     def getPrimaryKey(self):
         return self._db_id
+
+class DBRefProvActivity(object):
+
+    vtType = 'ref_prov_activity'
+
+    def __init__(self, prov_ref=None):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBRefProvActivity.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBRefProvActivity()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'prov_ref' in class_dict:
+            res = class_dict['prov_ref'](old_obj, trans_dict)
+            new_obj.db_prov_ref = res
+        elif hasattr(old_obj, 'db_prov_ref') and old_obj.db_prov_ref is not None:
+            new_obj.db_prov_ref = old_obj.db_prov_ref
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_prov_ref(self):
+        return self._db_prov_ref
+    def __set_db_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+    db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+    def db_add_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_change_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_delete_prov_ref(self, prov_ref):
+        self._db_prov_ref = None
+    
+
 
 class DBProvAssociation(object):
 
