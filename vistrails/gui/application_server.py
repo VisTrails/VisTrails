@@ -212,14 +212,11 @@ class RequestHandler(object):
             if p:
                 result = []
                 for module in p.module_list:
-                    descriptor = \
-                       module_registry().get_descriptor_by_name(module.package,
-                                                                module.name,
-                                                                module.namespace)
-                    if descriptor.module.__doc__:
-                        documentation = descriptor.module.__doc__
-                    else:
-                        documentation = "Documentation not available."
+                    descriptor = module_registry().get_descriptor_by_name(
+                            module.package,
+                            module.name,
+                            module.namespace)
+                    documentation = descriptor.module_documentation()
                     result.append({'name':module.name,
                                               'package':module.package,
                                               'documentation':documentation})

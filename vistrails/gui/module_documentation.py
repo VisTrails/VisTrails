@@ -106,10 +106,7 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
             self.name_label.setText("Module name: %s" % descriptor.name)
             self.package_label.setText("Module package: %s" % \
                                            descriptor.module_package())
-            if descriptor.module.__doc__:
-                self.textEdit.setText(descriptor.module.__doc__)
-            else:
-                self.textEdit.setText("Documentation not available.")
+            self.textEdit.setText(descriptor.module_documentation())
 
     def activate(self):
         if self.isVisible() == False:
