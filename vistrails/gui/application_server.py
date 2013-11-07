@@ -41,6 +41,7 @@ import logging
 import logging.handlers
 import os
 import os.path
+import pydoc
 import shutil
 import subprocess
 import tempfile
@@ -254,15 +255,13 @@ class RequestHandler(object):
                 package_dic[package.identifier] = {}
                 package_dic[package.identifier]['modules'] = []
                 for module in package._db_module_descriptors:
-                    if module.module.__doc__:
-                        documentation = module.module.__doc__
-                    else:
-                        documentation = "Documentation not available."
+                    documentation = (pydoc.getdoc(module.module) or
+                                     "(No documentation available)")
                     package_dic[package.identifier]['modules'].append({'name':module.name,
                                                                        'package':module.package,
                                                                        'documentation':documentation})
                 package_dic[package.identifier]['description'] = \
-                        package.description if package.description else "No description available"
+                        package.description if package.description else "(No description available)"
             return (package_dic, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
