@@ -107,6 +107,7 @@ class LoopIteration(DBLoopIteration):
     ts_end = DBLoopIteration.db_ts_end
     completed = DBLoopIteration.db_completed
     error = DBLoopIteration.db_error
+    iteration = DBLoopIteration.db_iteration
 
     def _get_duration(self):
         if self.db_ts_end is not None:
