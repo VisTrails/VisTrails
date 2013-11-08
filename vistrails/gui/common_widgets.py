@@ -831,3 +831,103 @@ class QDockPushButton(QtGui.QPushButton):
         QtGui.QPushButton.__init__(self, text, parent) 
         if systemType in ['Darwin']:
             self.setMinimumHeight(32)
+
+class QPathChooserToolButton(QtGui.QToolButton):
+    """
+    QPathChooserToolButton is a toolbar button that opens a browser for
+    paths.  The lineEdit is updated with the pathname that is selected.
+    
+    emits pathChanged when the path is changed
+
+    """
+    pathChanged = pyqtSignal()
+
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        """
+        PathChooserToolButton(parent: QWidget, 
+                              lineEdit: StandardConstantWidget) ->
+                 PathChooserToolButton
+
+        """
+        QtGui.QToolButton.__init__(self, parent)
+        self.setIcon(QtGui.QIcon(
+                self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
+        self.setIconSize(QtCore.QSize(12,12))
+        if toolTip is None:
+            toolTip = 'Open a path chooser'
+        self.defaultPath = defaultPath
+        self.setToolTip(toolTip)
+        self.setAutoRaise(True)
+        self.lineEdit = lineEdit
+        self.connect(self,
+                     QtCore.SIGNAL('clicked()'),
+                     self.runDialog)
+
+    def setPath(self, path):
+        """
+        setPath() -> None
+
+        """
+        if self.lineEdit and path:
+            self.lineEdit.setText(path)
+            self.pathChanged.emit()
+    
+    def getDefaultText(self):
+        return self.lineEdit.text() or self.defaultPath
+
+    def openChooser(self):
+        return QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Select Path...',
+                                                 self.getDefaultText(),
+                                                 'All files '
+                                                 '(*.*)')
+
+    def runDialog(self):
+        path = self.openChooser()
+        self.setPath(path)
+
+
+class QFileChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a file chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                        defaultPath)
+
+    def openChooser(self):
+        return QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Select File...',
+                                                 self.getDefaultText(),
+                                                 'All files '
+                                                 '(*.*)')
+
+class QDirectoryChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a directory chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                       defaultPath)
+
+    def openChooser(self):
+        return QtGui.QFileDialog.getExistingDirectory(self,
+                                                      'Select Directory...',
+                                                      self.getDefaultText())
+
+class QOutputPathChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a path chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                       defaultPath)
+    
+    def openChooser(self):
+        return QtGui.QFileDialog.getSaveFileName(self,
+                                                 'Select Output Location...',
+                                                 self.getDefaultText(),
+                                                 'All files (*.*)')
+    
+    
