@@ -359,6 +359,9 @@ parameters from other instances")
             vt_list = []
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
+                if not f_name:
+                    debug.critical("File not found: %s" % filename)
+                    return False
                 if not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                 else:
@@ -380,8 +383,7 @@ parameters from other instances")
                             ok = locator.update_from_console()
                         if not ok:
                             debug.critical("Cannot login to database")
-                if f_name and version:
-                    w_list.append((locator, version))
+                w_list.append((locator, version))
                 vt_list.append(locator)
             import core.console_mode
             if self.temp_db_options.parameters == None:
