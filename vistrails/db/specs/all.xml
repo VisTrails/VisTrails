@@ -1081,6 +1081,16 @@
       <sql type="int"/>
     </property>
 
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
     <property name="parentType" type="str" inverse="true">
       <sql column="parent_type" type="char(32)"/>
     </property>
