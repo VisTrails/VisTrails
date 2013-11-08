@@ -13816,8 +13816,10 @@ class DBLoopExec(object):
 
     vtType = 'loop_exec'
 
-    def __init__(self, id=None, loop_iterations=None):
+    def __init__(self, id=None, ts_start=None, ts_end=None, loop_iterations=None):
         self._db_id = id
+        self._db_ts_start = ts_start
+        self._db_ts_end = ts_end
         self.db_deleted_loop_iterations = []
         self.db_loop_iterations_id_index = {}
         if loop_iterations is None:
@@ -13833,7 +13835,9 @@ class DBLoopExec(object):
         return DBLoopExec.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBLoopExec(id=self._db_id)
+        cp = DBLoopExec(id=self._db_id,
+                        ts_start=self._db_ts_start,
+                        ts_end=self._db_ts_end)
         if self._db_loop_iterations is None:
             cp._db_loop_iterations = []
         else:
@@ -13867,6 +13871,16 @@ class DBLoopExec(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        if 'ts_start' in class_dict:
+            res = class_dict['ts_start'](old_obj, trans_dict)
+            new_obj.db_ts_start = res
+        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
+            new_obj.db_ts_start = old_obj.db_ts_start
+        if 'ts_end' in class_dict:
+            res = class_dict['ts_end'](old_obj, trans_dict)
+            new_obj.db_ts_end = res
+        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
+            new_obj.db_ts_end = old_obj.db_ts_end
         if 'loop_iterations' in class_dict:
             res = class_dict['loop_iterations'](old_obj, trans_dict)
             for obj in res:
@@ -13918,6 +13932,32 @@ class DBLoopExec(object):
         self._db_id = id
     def db_delete_id(self, id):
         self._db_id = None
+    
+    def __get_db_ts_start(self):
+        return self._db_ts_start
+    def __set_db_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+        self.is_dirty = True
+    db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+    def db_add_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_change_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_delete_ts_start(self, ts_start):
+        self._db_ts_start = None
+    
+    def __get_db_ts_end(self):
+        return self._db_ts_end
+    def __set_db_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+        self.is_dirty = True
+    db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+    def db_add_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_change_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_delete_ts_end(self, ts_end):
+        self._db_ts_end = None
     
     def __get_db_loop_iterations(self):
         return self._db_loop_iterations

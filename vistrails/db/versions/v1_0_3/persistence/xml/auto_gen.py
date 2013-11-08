@@ -4709,6 +4709,10 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         # read attributes
         data = node.get('id', None)
         id = self.convertFromStr(data, 'long')
+        data = node.get('tsStart', None)
+        ts_start = self.convertFromStr(data, 'datetime')
+        data = node.get('tsEnd', None)
+        ts_end = self.convertFromStr(data, 'datetime')
         
         loop_iterations = []
         
@@ -4727,6 +4731,8 @@ class DBLoopExecXMLDAOBase(XMLDAO):
                 print '*** ERROR *** tag = %s' % child.tag
         
         obj = DBLoopExec(id=id,
+                         ts_start=ts_start,
+                         ts_end=ts_end,
                          loop_iterations=loop_iterations)
         obj.is_dirty = False
         return obj
@@ -4737,6 +4743,8 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         
         # set attributes
         node.set('id',self.convertToStr(loop_exec.db_id, 'long'))
+        node.set('tsStart',self.convertToStr(loop_exec.db_ts_start, 'datetime'))
+        node.set('tsEnd',self.convertToStr(loop_exec.db_ts_end, 'datetime'))
         
         # set elements
         loop_iterations = loop_exec.db_loop_iterations

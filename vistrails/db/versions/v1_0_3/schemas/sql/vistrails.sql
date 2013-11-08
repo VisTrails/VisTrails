@@ -450,6 +450,8 @@ CREATE TABLE parameter_exploration(
 
 CREATE TABLE loop_exec(
     id int,
+    ts_start datetime,
+    ts_end datetime,
     parent_type char(32),
     entity_id int,
     entity_type char(16),

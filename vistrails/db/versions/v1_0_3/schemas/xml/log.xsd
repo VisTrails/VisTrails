@@ -134,6 +134,8 @@
         <xs:element name="loop_iteration" ref="loopIteration" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="tsStart" type="xs:dateTime"/>
+      <xs:attribute name="tsEnd" type="xs:dateTime"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="loopIteration">

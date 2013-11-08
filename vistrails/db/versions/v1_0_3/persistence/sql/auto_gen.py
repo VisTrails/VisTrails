@@ -6589,7 +6589,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -6599,12 +6599,16 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            parentType = self.convertFromDB(row[1], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[2], 'long', 'int')
-            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
-            parent = self.convertFromDB(row[4], 'long', 'long')
+            ts_start = self.convertFromDB(row[1], 'datetime', 'datetime')
+            ts_end = self.convertFromDB(row[2], 'datetime', 'datetime')
+            parentType = self.convertFromDB(row[3], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[4], 'long', 'int')
+            entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
+            parent = self.convertFromDB(row[6], 'long', 'long')
             
-            loop_exec = DBLoopExec(id=id)
+            loop_exec = DBLoopExec(ts_start=ts_start,
+                                   ts_end=ts_end,
+                                   id=id)
             loop_exec.db_parentType = parentType
             loop_exec.db_entity_id = entity_id
             loop_exec.db_entity_type = entity_type
@@ -6614,7 +6618,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -6624,12 +6628,16 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            parentType = self.convertFromDB(row[1], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[2], 'long', 'int')
-            entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
-            parent = self.convertFromDB(row[4], 'long', 'long')
+            ts_start = self.convertFromDB(row[1], 'datetime', 'datetime')
+            ts_end = self.convertFromDB(row[2], 'datetime', 'datetime')
+            parentType = self.convertFromDB(row[3], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[4], 'long', 'int')
+            entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
+            parent = self.convertFromDB(row[6], 'long', 'long')
             
-            loop_exec = DBLoopExec(id=id)
+            loop_exec = DBLoopExec(ts_start=ts_start,
+                                   ts_end=ts_end,
+                                   id=id)
             loop_exec.db_parentType = parentType
             loop_exec.db_entity_id = entity_id
             loop_exec.db_entity_type = entity_type
@@ -6652,7 +6660,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -6663,6 +6671,12 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_ts_start') and obj.db_ts_start is not None:
+            columnMap['ts_start'] = \
+                self.convertToDB(obj.db_ts_start, 'datetime', 'datetime')
+        if hasattr(obj, 'db_ts_end') and obj.db_ts_end is not None:
+            columnMap['ts_end'] = \
+                self.convertToDB(obj.db_ts_end, 'datetime', 'datetime')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
@@ -6686,7 +6700,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -6697,6 +6711,12 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_ts_start') and obj.db_ts_start is not None:
+            columnMap['ts_start'] = \
+                self.convertToDB(obj.db_ts_start, 'datetime', 'datetime')
+        if hasattr(obj, 'db_ts_end') and obj.db_ts_end is not None:
+            columnMap['ts_end'] = \
+                self.convertToDB(obj.db_ts_end, 'datetime', 'datetime')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
