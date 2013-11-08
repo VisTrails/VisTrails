@@ -39,7 +39,7 @@ from PyQt4 import QtCore, QtGui
 
 from core import debug
 from core.collection import Collection
-from core.db.locator import untitled_locator
+from core.db.locator import untitled_locator, DBLocator
 from core.debug import critical
 from core.data_structures.bijectivedict import Bidict
 from core.system import vistrails_default_file_type
@@ -874,6 +874,17 @@ class QVistrailView(QtGui.QWidget):
             locator_class = type(locator)
 
         #print "CALLED SAVE VISTRAIL", locator_class
+        if self.controller._mashups and issubclass(locator_class, DBLocator):    
+            msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+                                    "VisTrails",
+                                    "Your Mashups cannot be exported to the "
+                                    "database.\n"
+                                    "Do you still want to export?",
+                                    (QtGui.QMessageBox.Yes |
+                                     QtGui.QMessageBox.No),
+                                    self)
+            if msg.exec_() == QtGui.QMessageBox.No:
+                return False
 
         self.flush_changes()
         gui_get = locator_class.save_from_gui
