@@ -59,6 +59,9 @@ class LoopExec(DBLoopExec):
     # Properties
 
     id = DBLoopExec.db_id
+    ts_start = DBLoopIteration.db_ts_start
+    ts_end = DBLoopIteration.db_ts_end
+
     def _get_loop_iterations(self):
         return self.db_loop_iterations
     def _set_loop_iterations(self, iterations):
