@@ -252,8 +252,6 @@ class QConfigurationPane(QtGui.QWidget):
         self.setLayout(layout)
         self._configuration = persistent_config
         self._temp_configuration = temp_config
-        self._temp_configuration.migrateTags = not self._configuration.migrateTags
-        self._temp_configuration.dbDefault = not self._configuration.dbDefault
 
         self._fields = {}
         self._field_layouts = {}
