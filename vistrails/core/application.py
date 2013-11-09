@@ -222,7 +222,7 @@ class VistrailsApplicationInterface(object):
         """
         
         parser = vistrails.core.configuration.build_default_parser()
-        command_line_config = vistrails.core.configuration.default()
+        command_line_config = vistrails.core.configuration.ConfigurationObject()
         try:
             parser.parse_args(sys.argv[1:], namespace=command_line_config)
         except SystemError, e:

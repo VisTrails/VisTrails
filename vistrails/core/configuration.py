@@ -56,7 +56,22 @@ from vistrails.db.domain import DBConfiguration, DBConfigKey, DBConfigStr, \
 ##############################################################################
 
 _docs = {}
+_simple_docs = {}
 _usage_args = set()
+
+_simple_documentation = """
+autoSave: Automatically save backup vistrails every two minutes
+dbDefault: Save vistrails in a database by default
+cache: Cache previous results so they may be used in future computations
+stopOnError: Stop all workflow execution immediately after first error
+executionLog: Track execution provenance when running workflows
+defaultFileType: Default file type/extension for vistrails (.vt or .xml)
+enablePackagesSilently: Automatically enable packages when needed
+installBundles: Install missing Python dependencies
+installBundlesWithPip: Use pip to install missing Python dependencies
+upgrades: Attempt to automatically upgrade old workflows
+"""
+
 _documentation = """
 subworkflowsDirectory: Path
 
@@ -298,6 +313,9 @@ upgradeOn: Boolean
 
 upgradeDelay: Boolean
 
+    Persist upgrade only after other changes
+
+OLDupgradeDelay: Boolean
     If True, will only persist the upgrade when a user makes a
     modification to or executes the workflow.  Otherwise, the upgrade
     will be automatically added to the version tree when a user views
@@ -349,7 +367,7 @@ withWorkflow: Boolean
     Output the workflow graph as an image
 
 """
-
+    
 class ConfigType(object):
     NORMAL = 0
     SHOW_HIDE = 1
@@ -360,143 +378,161 @@ class ConfigType(object):
     STORAGE = 6
     PACKAGE = 7
 
-class ConfigCategory(object):
-    NORMAL = 0
-    PATHS = 1
-    INTERFACE = 2
-    COMMAND_LINE = 3
-
 class ConfigPath(object):
     pass
 
 class ConfigURL(object):
     pass
 
-base_config = [
-    # FORMAT: (<name>, <default_val>, <type>, <config_type>, <config_category>, <flag>, <nargs>, <command_line_rename>)
+class ConfigField(object):
+    def __init__(self, name, default_val, val_type, 
+                 field_type=ConfigType.NORMAL, category=None, flag=None,
+                 nargs=None, widget_type=None, 
+                 widget_options=None, depends_on=None):
+        self.name = name
+        self.default_val = default_val
+        self.val_type = val_type
+        self.field_type = field_type
+        self.category = category
+        self.flag = flag
+        self.nargs = nargs
+        self.widget_type = widget_type
+        self.widget_options = widget_options
+        self.depends_on = depends_on
 
-    ('execute', False, bool, ConfigType.COMMAND_LINE_FLAG, 
-     ConfigType.COMMAND_LINE, '-e'),
-    ('batch', False, bool, ConfigType.COMMAND_LINE_FLAG, 
-     ConfigCategory.COMMAND_LINE, '-b'),
-    ('outputDirectory', None, 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.COMMAND_LINE, '-o'),
-    ('package', [], str, None, 
-     ConfigCategory.COMMAND_LINE, '-p', '*'),
-    ('withVersionTree', False, bool, 
-     ConfigType.COMMAND_LINE_FLAG, ConfigCategory.COMMAND_LINE),
-    ('withWorkflow', False, bool, 
-     ConfigType.COMMAND_LINE_FLAG, ConfigCategory.COMMAND_LINE),
+class ConfigFieldParent(object):
+    def __init__(self, name, sub_fields):
+        self.name = name
+        self.sub_fields = sub_fields
+
+base_config = {
+    "Command-Line":
+    [ConfigField("execute", False, bool, ConfigType.COMMAND_LINE_FLAG, 
+                 flag='-e'),
+     ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG, 
+                 flag='-b'),
+     ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
+     # ConfigField("package", [], str, flag='-p', nargs='*'),
+     ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),],
+    "General":
+    [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
+     ConfigField('dbDefault', False, bool, ConfigType.ON_OFF),
+     ConfigField('cache', True, bool, ConfigType.ON_OFF),
+     ConfigField('stopOnError', True, bool, ConfigType.ON_OFF),
+     ConfigField('executionLog', False, bool, ConfigType.ON_OFF),
+     ConfigField('defaultFileType', system.vistrails_default_file_type(), str,
+                 widget_type="combo",
+                 widget_options={"allowed_values": [".vt", ".xml"],
+                                 "label": "Default File Type/Extension:"}),
+     ConfigField('debugLevel', 0, int, widget_type="combo",
+                 widget_options={"allowed_values": [0,1,2], 
+                                 "label": "Show alerts for:",
+                                 "remap": {0: "Critical Errors Only",
+                                           1: "Critical Errors and Warnings",
+                                           2: "Errors, Warnings, and " \
+                                           "Debug Messages"}})],
+    "Startup":
+    [ConfigField('maximizeWindows', False, bool, ConfigType.ON_OFF),
+     ConfigField('multiHeads', False, bool, ConfigType.ON_OFF),
+     ConfigField('showSplash', True, bool, ConfigType.SHOW_HIDE)],
+    "Upgrades":
+    [ConfigField('upgrades', True, bool, ConfigType.ON_OFF),
+     ConfigField('migrateTags', False, bool, ConfigType.ON_OFF, 
+                 depends_on="upgrades"),
+     ConfigField('upgradeDelay', True, bool, ConfigType.ON_OFF,
+                 depends_on="upgrades"),
+     ConfigField('upgradeModuleFailPrompt', True, bool, ConfigType.ON_OFF,
+                 depends_on="upgrades")],
+    "Interface":
+    [ConfigField('autoConnect', True, bool, ConfigType.ON_OFF),
+     ConfigField('detachHistoryView', False, bool, ConfigType.ON_OFF),
+     ConfigField('showConnectionErrors', False, bool, ConfigType.SHOW_HIDE),
+     ConfigField('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
+     ConfigField('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),
+     ConfigField('showScrollbars', True, bool, ConfigType.SHOW_HIDE),
+     ConfigFieldParent('shell', 
+        [ConfigField('fontFace', system.shell_font_face(), str),
+         ConfigField('fontSize', system.shell_font_size(), int)]),
+     ConfigField('maxRecentVistrails', 5, int)],
+    "Thumbnails":
+    [ConfigFieldParent('thumbs', 
+        [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
+         # FIXME add clear button for cache in preferences dialog!
+         ConfigField('cacheDirectory', os.path.join("$DOT_VISTRAILS", "thumbs"),
+                     ConfigPath, ConfigType.NORMAL),
+         ConfigField('cacheSize', 20, int),
+         ConfigField('mouseHover', False, bool, ConfigType.ON_OFF),
+         ConfigField('tagsOnly', False, bool, ConfigType.ON_OFF)])],
+    "Packages":
+    [ConfigField('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
+     ConfigField('installBundles', True, bool, ConfigType.ON_OFF),
+     ConfigField('installBundlesWithPip', False, bool, ConfigType.ON_OFF,
+                 depends_on="installBundles"),
+     ConfigField('repositoryLocalPath', None, ConfigPath),
+     ConfigField('repositoryHTTPURL', "http://www.vistrails.org/packages", 
+                 ConfigURL)],
+    "Paths":
+    [ConfigField('dotVistrails', system.default_dot_vistrails(), 
+                 ConfigPath, flag="-S"),
+     ConfigField('subworkflowsDirectory', 
+                 os.path.join("$DOT_VISTRAILS", "subworkflows"), ConfigPath),
+     ConfigField('dataDirectory', None, ConfigPath),
+     ConfigField('packageDirectory', None, ConfigPath),
+     ConfigField('fileDirectory', None, ConfigPath),
+     ConfigField('logDirectory', os.path.join("$DOT_VISTRAILS", "logs"), 
+                 ConfigPath),
+     ConfigField('rootDirectory', None, ConfigPath),
+     ConfigField('temporaryDirectory', None,  ConfigPath),
+     ConfigField('userPackageDirectory', 
+                 os.path.join("$DOT_VISTRAILS", "userpackages"), ConfigPath)],
+    "Advanced":
+    [ConfigField('singleInstance', True, bool, ConfigType.ON_OFF),
+     ConfigField('staticRegistry', None, ConfigPath)],
+    "Web Sharing":
+    [ConfigField('webRepositoryUser', None, str),
+     ConfigField('webRepositoryURL', "http://www.crowdlabs.org", ConfigURL)],
+    "Internal":
+    [ConfigField('recentVistrailList', None, str, ConfigType.STORAGE),
+     ConfigField('runningJobsList', None, str, ConfigType.STORAGE),
+     ConfigField('isInServerMode', False, bool, ConfigType.INTERNAL),
+     ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL)],
     
-    # what other flags?
-    # parameter exploration?
-    # convert to script?
-    # output settings?
-    # how to best specify vistrail + workflow version?
-    # could do /path/to/example.vt -v aTag -v 35 -v 36
+}                
+                
+# FIXME make sure that the platform-specific configs are added!
+mac_config = {
+    "Interface":
+    [('useMacBrushedMetalStyle', True, bool, ConfigType.ON_OFF)]
+}
 
-    ('subworkflowsDirectory', os.path.join("$DOT_VISTRAILS", "subworkflows"),
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('autoConnect', True, bool, ConfigType.ON_OFF),
-    ('autoSave', True, bool, ConfigType.ON_OFF),
-    ('dataDirectory', None, 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('dbDefault', False, bool, ConfigType.ON_OFF),
-    # 'debugSignals', False,
-    ('defaultFileType', system.vistrails_default_file_type(), str),
-    ('detachHistoryView', False, bool, ConfigType.ON_OFF),
-    ('dotVistrails', system.default_dot_vistrails(), 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS, "-S"),
-    ('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
-    ('fileDirectory', None, 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('installBundles', True, bool, ConfigType.ON_OFF),
-    ('installBundlesWithPip', False, bool, ConfigType.ON_OFF),    
-    ('logDirectory', "$DOT_VISTRAILS/logs", 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('maximizeWindows', False, bool, ConfigType.ON_OFF),
-    ('maxRecentVistrails', 5, int),
-    ('migrateTags', False, bool, ConfigType.ON_OFF),
-    ('multiHeads', False, bool, ConfigType.ON_OFF),
-    ('executionLog', False, bool, ConfigType.ON_OFF),
-    ('packageDirectory', None, 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('recentVistrailList', None, str, ConfigType.STORAGE),
-    ('repositoryLocalPath', None, 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('repositoryHTTPURL', "http://www.vistrails.org/packages", 
-     ConfigURL, ConfigType.NORMAL),
-    ('rootDirectory', None,
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('runningJobsList', None, str, ConfigType.STORAGE),
-    ('shell', [('fontFace', system.shell_font_face(), str),
-               ('fontSize', system.shell_font_size(), int)]),
-    ('showConnectionErrors', False, bool, ConfigType.SHOW_HIDE),
-    ('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
-    ('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),
-    ('showScrollbars', True, bool, ConfigType.SHOW_HIDE),
-    ('showSplash', True, bool, ConfigType.SHOW_HIDE),
-    ('showWindow', True, bool, ConfigType.SHOW_HIDE),
-    ('singleInstance', True, bool, ConfigType.ON_OFF),
-    ('staticRegistry', None, ConfigPath),
-    ('stopOnError', True, bool, ConfigType.ON_OFF),
-    ('temporaryDirectory', None, 
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('thumbs', [('autoSave', True, bool, ConfigType.ON_OFF),
-                ('cacheDirectory', os.path.join("$DOT_VISTRAILS", "thumbs"),
-                 ConfigPath, ConfigType.NORMAL),
-                ('cacheSize', 20, int),
-                ('mouseHover', False, bool, ConfigType.ON_OFF),
-                ('tagsOnly', False, bool, ConfigType.ON_OFF)]),
-    ('upgrades', True, bool, ConfigType.ON_OFF),
-    ('upgradeDelay', True, bool, ConfigType.ON_OFF),
-    ('upgradeModuleFailPrompt', True, bool, ConfigType.ON_OFF),
-    ('cache', True, bool, ConfigType.ON_OFF),
-    ('userPackageDirectory', os.path.join("$DOT_VISTRAILS", "userpackages"),
-     ConfigPath, ConfigType.NORMAL, ConfigCategory.PATHS),
-    ('debugLevel', 0, int),
-    ('webRepositoryUser', None, str),
-    ('webRepositoryURL', "http://www.crowdlabs.org", ConfigURL),
-    ('isInServerMode', False, bool, ConfigType.INTERNAL),
-    ('isRunningGUI', True, bool, ConfigType.INTERNAL),
+win_config = { }
 
-
-    # SPREADSHEE PACKAGE SETTINGS
-    # 'fixedSpreadsheetCells': False,
-    # 'outputPDF': False
-    ]
-
-mac_config = [
-    ('useMacBrushedMetalStyle', True, bool, ConfigType.ON_OFF),
-]
-
-win_config = [
-]
-
-linux_config = [
-]
+linux_config = { }
 
 def build_config_obj(d):
     new_d = {}
-    for conf in d:
-        assert(len(conf) >= 2)
-        k = conf[0]
-        if isinstance(conf[1], list):
-            new_d[k] = build_config_obj(conf[1])
-        else:
-            assert(len(conf) >= 3)
-            v = conf[1]
-            if v is None:
-                val_type = conf[2]
-                if conf[2] == ConfigPath or conf[2] == ConfigURL:
-                    val_type = basestring
-                new_d[k] = (v, val_type)
+    for category, fields in d.iteritems():
+        for field in fields:
+            if isinstance(field, ConfigFieldParent):
+                new_d[field.name] = build_config_obj({category:
+                                                      field.sub_fields})
             else:
-                new_d[k] = v
+                v = field.default_val
+                if v is None:
+                    val_type = field.val_type
+                    if (field.val_type == ConfigPath or 
+                        field.val_type == ConfigURL):
+                        val_type = basestring
+                    new_d[field.name] = (v, val_type)
+                else:
+                    new_d[field.name] = v
     return ConfigurationObject(**new_d)
 
 def default():
-    return build_config_obj(base_config)
+    retval =  build_config_obj(base_config)
+    return retval
 
 def parse_documentation():
     global _docs
@@ -515,6 +551,15 @@ def parse_documentation():
             doc_lines.append(line.strip())
         _docs[arg_path] = (arg_type, ' '.join(doc_lines))
 
+def parse_simple_docs():
+    global _simple_docs
+ 
+    line_iter = iter(_simple_documentation.splitlines())
+    line = line_iter.next()
+    for line in line_iter:
+        (arg, doc) = line.strip().split(':', 1)
+        _simple_docs[arg] = doc
+
 def find_help(arg_path):
     if len(_docs) == 0:
         parse_documentation()
@@ -523,6 +568,14 @@ def find_help(arg_path):
         return _docs[arg_path][1]
     return None
 
+def find_simpledoc(arg_path):
+    if len(_simple_docs) == 0:
+        parse_simple_docs()
+
+    if arg_path in _simple_docs:
+        return _simple_docs[arg_path]
+    return find_help(arg_path)
+    
 class VisTrailsHelpFormatter(argparse.HelpFormatter):
     def add_usage(self, usage, actions, groups, prefix=None):
         new_actions = []
@@ -551,12 +604,9 @@ def build_command_line_parser(d, parser=None, prefix=""):
         
     if parser is None:
         parser = argparse.ArgumentParser(prog='vistrails',
-                                         formatter_class=VisTrailsHelpFormatter)
-        paths_group = parser.add_argument_group("Path Arguments")
-        config_group = parser.add_argument_group("Configuration Options")
+                                         formatter_class=VisTrailsHelpFormatter,
+                                         argument_default=argparse.SUPPRESS)
         parser._my_arg_groups = {}
-        parser._my_arg_groups[ConfigCategory.PATHS] = paths_group
-        parser._my_arg_groups[ConfigCategory.NORMAL] = config_group
         parser.add_argument('vistrails', metavar='vistrail', type=file, nargs='*',
                         help="Vistrail to open")
         _usage_args.add('vistrails')
@@ -565,87 +615,85 @@ def build_command_line_parser(d, parser=None, prefix=""):
     prefix_dashes = ''
     if prefix:
         prefix_dashes = camel_to_dashes(prefix.replace('.', '-'))
-    for conf in d:
-        k = conf[0]
-        if len(conf) <= 2 and isinstance(conf[1], list):
-            build_command_line_parser(conf[1], parser, '%s%s.' % (prefix, k))
-            continue
-        k_dashes = camel_to_dashes(k)
-        help_str = find_help('%s%s' % (prefix, k))
-        if len(conf) >= 4:
-            config_type = conf[3]
-        else:
-            config_type = ConfigType.NORMAL
-        if config_type == ConfigType.INTERNAL or \
-           config_type == ConfigType.STORAGE:
-            # these are not in the command line
-            continue
-        elif config_type == ConfigType.ON_OFF:
-            k_dashes = camel_to_dashes(k)
-            if len(conf) < 5 or conf[4] is None or \
-                 conf[4] == ConfigCategory.NORMAL:
-                group = parser._my_arg_groups[ConfigCategory.NORMAL]
-                group = group.add_mutually_exclusive_group()
-            else:
-                group = parser.add_mutually_exclusive_group()
-            group.add_argument('--%s%s' % (prefix_dashes, k_dashes), 
-                               action="store_true",
-                               dest=k, help=help_str)
-            group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes), 
-                               action="store_false",
-                               dest=k, help=("Inverse of --%s%s" % 
-                                             (prefix_dashes, k_dashes)))
-        elif config_type == ConfigType.SHOW_HIDE:
-            # assume starts with show
-            k_dashes = camel_to_dashes(k[4:])
-            if len(conf) < 5 or conf[4] is None or \
-                 conf[4] == ConfigCategory.NORMAL:
-                group = parser._my_arg_groups[ConfigCategory.NORMAL]
-                group = group.add_mutually_exclusive_group()
-            else:
-                group = parser.add_mutually_exclusive_group()
-            group.add_argument('--show-%s%s' % (prefix_dashes, k_dashes), 
-                               action="store_true",
-                               dest=k, help=help_str)
-            group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes), 
-                               action="store_false",
-                               dest=k, help=("Inverse of --show-%s%s" % 
-                                             (prefix_dashes, k_dashes)))
-        else:
-            k_dashes = camel_to_dashes(k)
-            long_arg = '--%s%s' % (prefix_dashes, k_dashes)
-            if len(conf) >= 6 and conf[5]:
-                args = (conf[5], long_arg)
-            else:
-                args = (long_arg,)
-            kwargs = {'dest': k,
-                      'help': help_str}
-            if conf[2] != ConfigPath and conf[2] != ConfigURL and \
-               conf[2] != str and conf[2] != bool:
-                kwargs["type"] = conf[2]
-            if config_type == ConfigType.COMMAND_LINE_FLAG:
-                kwargs["action"] = "store_true"
-            else:
-                kwargs["action"] = "store"
-            if conf[2] == ConfigPath:
-                kwargs["metavar"] = "DIR"
-            elif conf[2] == ConfigURL:
-                kwargs["metavar"] = "URL"
-            if len(conf) >= 7 and conf[6]:
-                kwargs["nargs"] = conf[6]
 
-            group = None
-            if len(conf) >= 5 and conf[4] == ConfigCategory.PATHS:
-                group = parser._my_arg_groups[ConfigCategory.PATHS]
-            elif len(conf) < 5 or conf[4] is None or \
-                 conf[4] == ConfigCategory.NORMAL:
-                group = parser._my_arg_groups[ConfigCategory.NORMAL]
+    for category, fields in d.iteritems():
+        if category == "Internal":
+            # don't deal with these
+            continue
+        if category == "Command-Line":
+            cat_group = parser
+        else:
+            if category not in parser._my_arg_groups:
+                parser._my_arg_groups[category] = \
+                                        parser.add_argument_group(category)
+            cat_group = parser._my_arg_groups[category]
+        
+        for field in fields:
+            if isinstance(field, ConfigFieldParent):
+                build_command_line_parser({category: field.sub_fields},
+                                          parser, 
+                                          '%s%s.' % (prefix, field.name))
+                continue
+            k_dashes = camel_to_dashes(field.name)
+            help_str = find_help('%s%s' % (prefix, field.name))
+
+            config_type = field.field_type
+            if config_type is None:
+                config_type = ConfigType.NORMAL
+            if config_type == ConfigType.INTERNAL or \
+               config_type == ConfigType.STORAGE:
+                # these are not in the command line
+                continue
+            elif config_type == ConfigType.ON_OFF:
+                k_dashes = camel_to_dashes(field.name)
+                group = cat_group.add_mutually_exclusive_group()                
+                group.add_argument('--%s%s' % (prefix_dashes, k_dashes), 
+                                   action="store_true",
+                                   dest=field.name, help=help_str)
+                group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes), 
+                                   action="store_false",
+                                   dest=field.name, 
+                                   help=("Inverse of --%s%s" % 
+                                         (prefix_dashes, k_dashes)))
+            elif config_type == ConfigType.SHOW_HIDE:
+                k_dashes = camel_to_dashes(field.name[4:])
+                group = cat_group.add_mutually_exclusive_group()
+                group.add_argument('--show-%s%s' % (prefix_dashes, k_dashes), 
+                                   action="store_true",
+                                   dest=field.name, help=help_str)
+                group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes), 
+                                   action="store_false",
+                                   dest=field.name, 
+                                   help=("Inverse of --show-%s%s" % 
+                                         (prefix_dashes, k_dashes)))
             else:
-                _usage_args.add(k)
-            if group is not None:
-                group.add_argument(*args, **kwargs)
-            else:
-                parser.add_argument(*args, **kwargs)
+                k_dashes = camel_to_dashes(field.name)
+                long_arg = '--%s%s' % (prefix_dashes, k_dashes)
+                if field.flag is not None:
+                    args = (field.flag, long_arg)
+                else:
+                    args = (long_arg,)
+                kwargs = {'dest': field.name,
+                          'help': help_str}
+                if (field.val_type != ConfigPath and 
+                    field.val_type != ConfigURL and 
+                    field.val_type != str and 
+                    field.val_type != bool):
+                    kwargs["type"] = field.val_type
+                if config_type == ConfigType.COMMAND_LINE_FLAG:
+                    kwargs["action"] = "store_true"
+                else:
+                    kwargs["action"] = "store"
+                if field.val_type == ConfigPath:
+                    kwargs["metavar"] = "DIR"
+                elif field.val_type == ConfigURL:
+                    kwargs["metavar"] = "URL"
+                if field.nargs is not None:
+                    kwargs["nargs"] = conf[6]
+
+                cat_group.add_argument(*args, **kwargs)
+                if cat_group == "Command-Line":
+                    _usage_args.add(field.name)
     return parser
 
 def build_default_parser():

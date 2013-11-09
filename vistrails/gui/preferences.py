@@ -39,12 +39,12 @@ from vistrails.core.modules.package import Package
 from vistrails.core.utils import InvalidPipeline
 from vistrails.core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
-from vistrails.gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
-                               QThumbnailConfiguration)
+from vistrails.gui.configuration import QConfigurationWidget, \
+    QConfigurationPane
 from vistrails.gui.module_palette import QModulePalette
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
-    get_vistrails_configuration
+    get_vistrails_configuration, base_config
 from vistrails.core import debug
 import os.path
 
@@ -67,10 +67,8 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 
         layout = QtGui.QVBoxLayout(self)
         self.setLayout(layout)
-        self._status_bar = QtGui.QStatusBar(self)
 
-        self._configuration_widget = QConfigurationWidget(self, c, c,
-                                                          self._status_bar)
+        self._configuration_widget = QConfigurationWidget(self, c, c)
         layout.addWidget(self._configuration_widget)
 
         btns = (QtGui.QDialogButtonBox.Close |
@@ -86,7 +84,6 @@ class QPackageConfigurationDialog(QtGui.QDialog):
                      QtCore.SIGNAL('configuration_changed'),
                      self.configuration_changed)
                      
-        layout.addWidget(self._status_bar)
         layout.addWidget(self._button_box)
 
     def button_clicked(self, button):
@@ -126,9 +123,8 @@ class QPackagesWidget(QtGui.QWidget):
     ##########################################################################
     # Initialization
 
-    def __init__(self, parent, status_bar):
+    def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
-        self._status_bar = status_bar
 
         base_layout = QtGui.QHBoxLayout(self)
         
@@ -524,7 +520,6 @@ class QPreferencesDialog(QtGui.QDialog):
 
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
-        self._status_bar = QtGui.QStatusBar(self)
         self.setWindowTitle('VisTrails Preferences')
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -542,71 +537,43 @@ class QPreferencesDialog(QtGui.QDialog):
         self._tab_widget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
 
-        self._general_tab = self.create_general_tab()
-        self._tab_widget.addTab(self._general_tab, 'General Configuration')
-
-        self._thumbs_tab = self.create_thumbs_tab()
-        self._tab_widget.addTab(self._thumbs_tab, 'Thumbnails Configuration')
+        tabs = [("General", ["General", "Packages"]),
+                ("Interface", ["Interface", "Startup"]),
+                ("Paths && URLs", ["Paths", "Web Sharing"]),
+                ("Advanced", ["Upgrades", "Thumbnails", "Advanced"]),
+                ]
+        for (tab_name, categories) in tabs:
+            tab = QConfigurationPane(self, 
+                                     get_vistrails_persistent_configuration(),
+                                     get_vistrails_configuration(),
+                                     [(c, base_config[c]) for c in categories])
+            self._tab_widget.addTab(tab, tab_name)
         
+
         self._packages_tab = self.create_packages_tab()
-        self._tab_widget.addTab(self._packages_tab, 'Module Packages')
+        self._tab_widget.addTab(self._packages_tab, 'Packages')
         
         self._configuration_tab = self.create_configuration_tab()
-        self._tab_widget.addTab(self._configuration_tab, 'Expert Configuration')
+        self._tab_widget.addTab(self._configuration_tab, 'Expert')
 
-        self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
-                                                  QtCore.Qt.Horizontal,
-                                                  f)
         self.connect(self._tab_widget,
                      QtCore.SIGNAL('currentChanged(int)'),
                      self.tab_changed)
-
-        self.connect(self._button_box,
-                     QtCore.SIGNAL('clicked(QAbstractButton *)'),
-                     self.close_dialog)
 
         self.connect(self._configuration_tab._tree.treeWidget,
                      QtCore.SIGNAL('configuration_changed'),
                      self.configuration_changed)
 
-        self.connect(self._general_tab,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
-        
-        self.connect(self._thumbs_tab,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
-
-        l.addWidget(self._button_box)
-        l.addWidget(self._status_bar)
-
     def close_dialog(self):
         self.done(0)
-
-    def create_general_tab(self):
-        """ create_general_tab() -> QGeneralConfiguration
-        
-        """
-        return QGeneralConfiguration(self,
-                                     get_vistrails_persistent_configuration(),
-                                     get_vistrails_configuration())
-        
-    def create_thumbs_tab(self):
-        """ create_thumbs_tab() -> QThumbnailConfiguration
-        
-        """
-        return QThumbnailConfiguration(self,
-                                       get_vistrails_persistent_configuration(),
-                                       get_vistrails_configuration())
 
     def create_configuration_tab(self):
         return QConfigurationWidget(self,
                                     get_vistrails_persistent_configuration(),
-                                    get_vistrails_configuration(),
-                                    self._status_bar)
+                                    get_vistrails_configuration())
 
     def create_packages_tab(self):
-        return QPackagesWidget(self, self._status_bar)
+        return QPackagesWidget(self)
 
     def sizeHint(self):
         return QtCore.QSize(800, 600)
@@ -616,10 +583,9 @@ class QPreferencesDialog(QtGui.QDialog):
         Keep general and advanced configurations in sync
         
         """
+
+        # FIXME Need to fix this
         self._configuration_tab.configuration_changed(
-                                       get_vistrails_persistent_configuration(),
-                                       get_vistrails_configuration())
-        self._general_tab.update_state(
                                        get_vistrails_persistent_configuration(),
                                        get_vistrails_configuration())
     

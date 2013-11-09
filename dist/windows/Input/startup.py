@@ -39,9 +39,8 @@
 ##############################################################################
 # Basic configuration
 
-# Comment this to use the logging mechanism (which is being 
-# overhauled, so right now it's also broken)
-configuration.nologger = True
+# Comment this to bypass the logging mechanism
+# configuration.nologger = True
 
 # Uncomment this to prevent VisTrails's splash screen from appearing
 # configuration.showSplash = False
