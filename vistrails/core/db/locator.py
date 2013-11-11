@@ -37,7 +37,7 @@ import base64
 import getpass
 import os.path
 from core import get_vistrails_application
-from core.configuration import get_vistrails_configuration
+from core.configuration import get_vistrails_configuration, get_vistrails_temp_configuration
 from core.system import vistrails_default_file_type, get_elementtree_library, \
                         default_connections_file, default_dot_vistrails
 from core.external_connection import ExtConnectionList, DBConnection
@@ -736,7 +736,7 @@ class FileLocator(CoreLocator):
     ##########################################################################
 def untitled_locator():
     basename = 'untitled' + vistrails_default_file_type()
-    config = get_vistrails_configuration()
+    config = get_vistrails_temp_configuration()
     if config:
         dot_vistrails = config.dotVistrails
     else:

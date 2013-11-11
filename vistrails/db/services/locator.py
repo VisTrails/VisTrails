@@ -164,7 +164,7 @@ class XMLFileLocator(BaseLocator):
         self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
         self._mshpversion = kwargs.get('mashupVersion', None)
-        config = core.configuration.get_vistrails_configuration()
+        config = core.configuration.get_vistrails_temp_configuration()
         if config:
             self._dot_vistrails = config.dotVistrails
         else:

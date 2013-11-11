@@ -41,6 +41,7 @@ import core.system
 import core.modules.module_registry
 import core.modules.basic_modules
 import traceback
+from core.configuration import get_vistrails_temp_configuration
 from core.packagemanager import get_package_manager
 from core.modules import vistrails_module
 from core.modules.package import Package
@@ -138,7 +139,7 @@ def initialize(*args, **keywords):
     global package_cache
 
     #Create a directory for the SUDSWebServices package
-    location = os.path.join(core.system.default_dot_vistrails(),
+        location = os.path.join(get_vistrails_temp_configuration().dotVistrails,
                                      "SUDSWebServices")
     if not os.path.isdir(location):
         try:

@@ -48,7 +48,7 @@ from core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
 from core.db.io import load_vistrail
 import core.system
 import db.services.io
-from core.configuration import get_vistrails_configuration
+from core.configuration import get_vistrails_temp_configuration
 from core import debug
 
 schema = ["create table entity(id integer primary key, type integer, "
@@ -97,13 +97,11 @@ class Collection(object):
     class CollectionSingleton():
         def __call__(self, *args, **kw):
             if Collection._instance is None:
-                config = get_vistrails_configuration()
+                config = get_vistrails_temp_configuration()
                 if config:
                     self.dotVistrails = config.dotVistrails
                 else:
                     self.dotVistrails = core.system.default_dot_vistrails()
-
-                config = get_vistrails_configuration()
                 path = os.path.join(self.dotVistrails, "index.db")
                 obj = Collection(path)
                 Collection._instance = obj

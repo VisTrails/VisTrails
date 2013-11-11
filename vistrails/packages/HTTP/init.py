@@ -43,7 +43,8 @@ headers.
 
 from PyQt4 import QtGui
 from core.modules.vistrails_module import ModuleError
-from core.configuration import get_vistrails_persistent_configuration
+from core.configuration import get_vistrails_persistent_configuration,\
+                               get_vistrails_temp_configuration
 from gui.utils import show_warning
 import core.modules.vistrails_module
 import core.modules
@@ -402,7 +403,7 @@ def initialize(*args, **keywords):
                         (basic.String, 'Checksum'), optional=True)
 
     global package_directory
-    package_directory = core.system.default_dot_vistrails() + "/HTTP"
+    package_directory = get_vistrails_temp_configuration().dotVistrails + "/HTTP"
 
     if not os.path.isdir(package_directory):
         try:

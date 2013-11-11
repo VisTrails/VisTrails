@@ -40,6 +40,7 @@ import shutil
 import subprocess
 import sys
 
+from core.configuration import get_vistrails_temp_configuration
 from core.modules.vistrails_module import Module, ModuleError, IncompleteImplementation, new_module
 import core.modules.module_registry
 from core import debug
@@ -400,7 +401,7 @@ def add_tool(path):
 def initialize(*args, **keywords):
     if "CLTools" == identifiers.name:
         # this is the original package 
-        location = os.path.join(core.system.default_dot_vistrails(),
+        location = os.path.join(get_vistrails_temp_configuration().dotVistrails,
                                      "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
@@ -435,7 +436,7 @@ def reload_scripts():
         reg.delete_module(identifiers.identifier, tool_name)
     if "CLTools" == identifiers.name:
         # this is the original package 
-        location = os.path.join(core.system.default_dot_vistrails(),
+        location = os.path.join(get_vistrails_temp_configuration().dotVistrails,
                                      "CLTools")
         # make sure dir exist
         if not os.path.isdir(location):
