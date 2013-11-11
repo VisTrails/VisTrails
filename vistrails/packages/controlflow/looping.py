@@ -68,6 +68,9 @@ class While(Module):
         self.orig_module = connectors[0].obj
 
         self.logging.begin_compute(self)
+        self.loop_logging = self.logging.begin_loop_execution(
+                self,
+                self.max_iterations)
         self.iteration(0, None)
 
     def iteration(self, i, state):
@@ -89,15 +92,14 @@ class While(Module):
                             'value')
                     module.set_input_port(port, new_connector)
 
-        self.logging.begin_loop_execution(self, module,
-                                          i, self.max_iterations)
+        self.loop_logging.begin_iteration(module, i)
         self.run_upstream_module(lambda: self.iteration_done(i, module),
                                  module)
 
     def iteration_done(self, i, module):
         """Finishes or starts a new iteration.
         """
-        self.logging.end_loop_execution(self, module)
+        self.loop_logging.end_iteration(module)
 
         if self.name_condition is not None:
             if self.name_condition not in module.outputPorts:
@@ -131,6 +133,7 @@ class While(Module):
         result = module.get_output(self.name_output)
         self.setResult('Result', result)
 
+        self.loop_logging.end_loop_execution()
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
         self.done()

@@ -38,7 +38,7 @@ import copy
 from vistrails.core import debug
 from vistrails.core.log.workflow_exec import WorkflowExec
 from vistrails.core.log.module_exec import ModuleExec
-from vistrails.core.log.loop_exec import LoopExec
+from vistrails.core.log.loop_exec import LoopExec, LoopIteration
 from vistrails.core.log.group_exec import GroupExec
 from vistrails.core.log.machine import Machine
 from vistrails.core.modules.sub_module import Group, Abstraction
@@ -53,14 +53,16 @@ class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
     def start_workflow_execution(self, *args, **kwargs): return self
+    def recursing(self, *args, **kwargs): return self
     def finish_workflow_execution(self, *args, **kwargs): pass
     def add_exec(self, *args, **kwargs): pass
     def start_execution(self, *args, **kwargs): pass
-    def start_loop_execution(self, *args, **kwargs): pass
+    def start_loop_execution(self, *args, **kwargs): return self
     def finish_loop_execution(self, *args, **kwargs): pass
     def finish_execution(self, *args, **kwargs): pass
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
+    def add_machine(self, *args, **kwargs): return -1
     def __call__(self): return self
 
 
@@ -116,10 +118,9 @@ class LogController(object):
                                completed=0)
         return group_exec
 
-    def _create_loop_exec(self, iteration):
+    def _create_loop_exec(self):
         l_exec_id = self.log.id_scope.getNewId(LoopExec.vtType)
         loop_exec = LoopExec(id=l_exec_id,
-                             iteration=iteration,
                              ts_start=vistrails.core.system.current_time())
         return loop_exec
 
@@ -130,6 +131,47 @@ class LogController(object):
         """
         return LogWorkflowExecController(self.log, self.machine, parent_exec,
                                          vistrail, pipeline, currentVersion)
+
+
+class LogLoopController(object):
+    def __init__(self, controller, loop_exec, loop_module):
+        self.controller = controller
+        self.loop_exec = loop_exec
+        self.loop_module = loop_module
+
+    def _create_loop_iteration(self, iteration):
+        l_iteration_id = self.controller.log.id_scope.getNewId(
+                LoopIteration.vtType)
+        loop_iteration = LoopIteration(id=l_iteration_id,
+                                       ts_start=vistrails.core.system.current_time(),
+                                       iteration=iteration)
+        return loop_iteration
+
+    def finish_loop_execution(self):
+        """Signals that we are done looping.
+        """
+        self.loop_exec.ts_end = vistrails.core.system.current_time()
+        try:
+            execs = self.controller.children_execs[self.loop_module]
+            execs.discard(self.loop_exec)
+        except KeyError:
+            pass
+
+    def start_iteration(self, looped_module, iteration):
+        """Signals that we are executing a module as an iteration of the loop.
+        """
+        loop_iteration = self._create_loop_iteration(iteration)
+        self.loop_exec.add_loop_iteration(loop_iteration)
+        self.controller.parent_execs[looped_module] = loop_iteration
+
+    def finish_iteration(self, looped_module):
+        """Signals that the iteration is done.
+        """
+        loop_iteration = self.controller.parent_execs.pop(looped_module)
+        assert loop_iteration is not None
+
+        loop_iteration.ts_end = vistrails.core.system.current_time()
+        loop_iteration.completed = 1
 
 
 class LogWorkflowController(LogController):
@@ -170,7 +212,6 @@ class LogWorkflowController(LogController):
         return LogWorkflowController(self.log, self.machine, parent_exec,
                                      self.workflow_exec)
 
-
     def start_execution(self, module, module_id, module_name, cached=0):
         """Signals the start of the execution of a module (before compute).
         """
@@ -195,11 +236,10 @@ class LogWorkflowController(LogController):
                 return
         assert False
 
-    def start_loop_execution(self, loop_module, looped_module,
-                             iteration, total_iterations=None):
-        """Registers a looped module.
+    def start_loop_execution(self, loop_module, total_iterations=None):
+        """Starts a loop.
         """
-        loop_exec = self._create_loop_exec(iteration)
+        loop_exec = self._create_loop_exec()
         for parent_exec in (self.module_execs.get(loop_module),
                             self.parent_exec):
             if parent_exec is not None:
@@ -207,18 +247,8 @@ class LogWorkflowController(LogController):
                 break
         else:
             self.workflow_exec.add_item_exec(loop_exec)
-        self.parent_execs[looped_module] = loop_exec
         self.children_execs.setdefault(loop_module, set()).add(loop_exec)
-
-    def finish_loop_execution(self, loop_module, looped_module):
-        """Signals that we are done looping.
-        """
-        loop_exec = self.parent_execs.pop(looped_module)
-        assert loop_exec is not None
-
-        loop_exec.ts_end = vistrails.core.system.current_time()
-        loop_exec.completed = 1
-        self.children_execs.setdefault(loop_module, set()).discard(loop_exec)
+        return LogLoopController(self, loop_exec, loop_module)
 
     def finish_execution(self, module, error, errorTrace=None, suspended=False):
         """Signals the end of the execution of a module.

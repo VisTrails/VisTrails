@@ -58,6 +58,20 @@ import vistrails.core.vistrail.pipeline
 ###############################################################################
 
 class ViewUpdatingLogController(object):
+    class Loop(object):
+        def __init__(self, logger, view):
+            self.log = logger
+            self.view = view
+
+        def end_loop_execution(self):
+            self.log.finish_loop_execution()
+
+        def begin_iteration(self, looped_obj, iteration):
+            self.log.start_iteration(looped_obj, iteration)
+
+        def end_iteration(self, looped_obj):
+            self.log.finish_iteration(looped_obj)
+
     def __init__(self, logger, view, remap_id,
                  module_executed_hook=[]):
         self.log = logger
@@ -97,17 +111,21 @@ class ViewUpdatingLogController(object):
         i = self.remap_id(obj.id)
         self.view.set_module_progress(i, percentage)
 
-    def begin_loop_execution(self, obj, looped_obj,
-                             iteration, total_iterations=None):
-        self.log.start_loop_execution(obj, looped_obj,
-                                      iteration, total_iterations)
-
-    def end_loop_execution(self, obj, looped_obj):
-        self.log.finish_loop_execution(obj, looped_obj)
+    def begin_loop_execution(self, obj, total_iterations=None):
+        return ViewUpdatingLogController.Loop(
+                self.log.start_loop_execution(obj, total_iterations),
+                self.view)
 
     def end_update(self, obj, error=None, errorTrace=None,
             was_suspended=False):
-        i = self.remap_id(obj.id)
+        try:
+            i = self.remap_id(obj.id)
+        except KeyError:
+            # This happens with Groups: we get end_update for modules inside
+            # the Group, which we can't remap to the current pipeline
+            # It's ok, because that was already logged by the recursive
+            # execute_pipeline() call
+            return
         if was_suspended:
             self.suspended[obj.id] = error
             self.view.set_module_suspended(i, error)

@@ -971,39 +971,6 @@ class DBOpmProcessesXMLDAOBase(XMLDAO):
         
         return node
 
-class DBRefProvActivityXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'prov:activity':
-            return None
-        
-        # read attributes
-        data = node.get('prov:ref', None)
-        prov_ref = self.convertFromStr(data, 'str')
-        
-        obj = DBRefProvActivity(prov_ref=prov_ref)
-        obj.is_dirty = False
-        return obj
-    
-    def toXML(self, ref_prov_activity, node=None):
-        if node is None:
-            node = ElementTree.Element('prov:activity')
-        
-        # set attributes
-        node.set('prov:ref',self.convertToStr(ref_prov_activity.db_prov_ref, 'str'))
-        
-        return node
-
 class DBOpmAccountIdXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -1366,7 +1333,7 @@ class DBLogXMLDAOBase(XMLDAO):
         
         return node
 
-class DBMashupAliasXMLDAOBase(XMLDAO):
+class DBLoopIterationXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
         self.daoList = daoList
@@ -1379,16 +1346,24 @@ class DBMashupAliasXMLDAOBase(XMLDAO):
             node_tag = node.tag.split("}")[1]
         else:
             node_tag = node.tag
-        if node_tag != 'alias':
+        if node_tag != 'loopIteration':
             return None
         
         # read attributes
         data = node.get('id', None)
         id = self.convertFromStr(data, 'long')
-        data = node.get('name', None)
-        name = self.convertFromStr(data, 'str')
+        data = node.get('tsStart', None)
+        ts_start = self.convertFromStr(data, 'datetime')
+        data = node.get('tsEnd', None)
+        ts_end = self.convertFromStr(data, 'datetime')
+        data = node.get('iteration', None)
+        iteration = self.convertFromStr(data, 'int')
+        data = node.get('completed', None)
+        completed = self.convertFromStr(data, 'int')
+        data = node.get('error', None)
+        error = self.convertFromStr(data, 'str')
         
-        component = None
+        item_execs = []
         
         # read children
         for child in node.getchildren():
@@ -1396,34 +1371,54 @@ class DBMashupAliasXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'component':
-                _data = self.getDao('mashup_component').fromXML(child)
-                component = _data
+            if child_tag == 'moduleExec':
+                _data = self.getDao('module_exec').fromXML(child)
+                item_execs.append(_data)
+            elif child_tag == 'groupExec':
+                _data = self.getDao('group_exec').fromXML(child)
+                item_execs.append(_data)
+            elif child_tag == 'loopExec':
+                _data = self.getDao('loop_exec').fromXML(child)
+                item_execs.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBMashupAlias(id=id,
-                            name=name,
-                            component=component)
+        obj = DBLoopIteration(item_execs=item_execs,
+                              id=id,
+                              ts_start=ts_start,
+                              ts_end=ts_end,
+                              iteration=iteration,
+                              completed=completed,
+                              error=error)
         obj.is_dirty = False
         return obj
     
-    def toXML(self, mashup_alias, node=None):
+    def toXML(self, loop_iteration, node=None):
         if node is None:
-            node = ElementTree.Element('alias')
+            node = ElementTree.Element('loopIteration')
         
         # set attributes
-        node.set('id',self.convertToStr(mashup_alias.db_id, 'long'))
-        node.set('name',self.convertToStr(mashup_alias.db_name, 'str'))
+        node.set('id',self.convertToStr(loop_iteration.db_id, 'long'))
+        node.set('tsStart',self.convertToStr(loop_iteration.db_ts_start, 'datetime'))
+        node.set('tsEnd',self.convertToStr(loop_iteration.db_ts_end, 'datetime'))
+        node.set('iteration',self.convertToStr(loop_iteration.db_iteration, 'int'))
+        node.set('completed',self.convertToStr(loop_iteration.db_completed, 'int'))
+        node.set('error',self.convertToStr(loop_iteration.db_error, 'str'))
         
         # set elements
-        component = mashup_alias.db_component
-        if component is not None:
-            if (component is not None) and (component != ""):
-                childNode = ElementTree.SubElement(node, 'component')
-                self.getDao('mashup_component').toXML(component, childNode)
+        item_execs = loop_iteration.db_item_execs
+        for item_exec in item_execs:
+            if item_exec.vtType == 'module_exec':
+                childNode = ElementTree.SubElement(node, 'moduleExec')
+                self.getDao('module_exec').toXML(item_exec, childNode)
+            elif item_exec.vtType == 'group_exec':
+                childNode = ElementTree.SubElement(node, 'groupExec')
+                self.getDao('group_exec').toXML(item_exec, childNode)
+            elif item_exec.vtType == 'loop_exec':
+                childNode = ElementTree.SubElement(node, 'loopExec')
+                self.getDao('loop_exec').toXML(item_exec, childNode)
         
         return node
 
@@ -2596,6 +2591,67 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        
+        return node
+
+class DBMashupAliasXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'alias':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('name', None)
+        name = self.convertFromStr(data, 'str')
+        
+        component = None
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag[0] == "{":
+                child_tag = child.tag.split("}")[1]
+            else:
+                child_tag = child.tag
+            if child_tag == 'component':
+                _data = self.getDao('mashup_component').fromXML(child)
+                component = _data
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBMashupAlias(id=id,
+                            name=name,
+                            component=component)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, mashup_alias, node=None):
+        if node is None:
+            node = ElementTree.Element('alias')
+        
+        # set attributes
+        node.set('id',self.convertToStr(mashup_alias.db_id, 'long'))
+        node.set('name',self.convertToStr(mashup_alias.db_name, 'str'))
+        
+        # set elements
+        component = mashup_alias.db_component
+        if component is not None:
+            if (component is not None) and (component != ""):
+                childNode = ElementTree.SubElement(node, 'component')
+                self.getDao('mashup_component').toXML(component, childNode)
         
         return node
 
@@ -4657,14 +4713,8 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         ts_start = self.convertFromStr(data, 'datetime')
         data = node.get('tsEnd', None)
         ts_end = self.convertFromStr(data, 'datetime')
-        data = node.get('iteration', None)
-        iteration = self.convertFromStr(data, 'int')
-        data = node.get('completed', None)
-        completed = self.convertFromStr(data, 'int')
-        data = node.get('error', None)
-        error = self.convertFromStr(data, 'str')
         
-        item_execs = []
+        loop_iterations = []
         
         # read children
         for child in node.getchildren():
@@ -4672,27 +4722,18 @@ class DBLoopExecXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'moduleExec':
-                _data = self.getDao('module_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child_tag == 'groupExec':
-                _data = self.getDao('group_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child_tag == 'loopExec':
-                _data = self.getDao('loop_exec').fromXML(child)
-                item_execs.append(_data)
+            if child_tag == 'loopIteration':
+                _data = self.getDao('loop_iteration').fromXML(child)
+                loop_iterations.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBLoopExec(item_execs=item_execs,
-                         id=id,
+        obj = DBLoopExec(id=id,
                          ts_start=ts_start,
                          ts_end=ts_end,
-                         iteration=iteration,
-                         completed=completed,
-                         error=error)
+                         loop_iterations=loop_iterations)
         obj.is_dirty = False
         return obj
     
@@ -4704,22 +4745,13 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         node.set('id',self.convertToStr(loop_exec.db_id, 'long'))
         node.set('tsStart',self.convertToStr(loop_exec.db_ts_start, 'datetime'))
         node.set('tsEnd',self.convertToStr(loop_exec.db_ts_end, 'datetime'))
-        node.set('iteration',self.convertToStr(loop_exec.db_iteration, 'int'))
-        node.set('completed',self.convertToStr(loop_exec.db_completed, 'int'))
-        node.set('error',self.convertToStr(loop_exec.db_error, 'str'))
         
         # set elements
-        item_execs = loop_exec.db_item_execs
-        for item_exec in item_execs:
-            if item_exec.vtType == 'module_exec':
-                childNode = ElementTree.SubElement(node, 'moduleExec')
-                self.getDao('module_exec').toXML(item_exec, childNode)
-            elif item_exec.vtType == 'group_exec':
-                childNode = ElementTree.SubElement(node, 'groupExec')
-                self.getDao('group_exec').toXML(item_exec, childNode)
-            elif item_exec.vtType == 'loop_exec':
-                childNode = ElementTree.SubElement(node, 'loopExec')
-                self.getDao('loop_exec').toXML(item_exec, childNode)
+        loop_iterations = loop_exec.db_loop_iterations
+        for loop_iteration in loop_iterations:
+            if (loop_iterations is not None) and (loop_iterations != ""):
+                childNode = ElementTree.SubElement(node, 'loopIteration')
+                self.getDao('loop_iteration').toXML(loop_iteration, childNode)
         
         return node
 
@@ -5362,6 +5394,39 @@ class DBDeleteXMLDAOBase(XMLDAO):
         
         return node
 
+class DBRefProvActivityXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:activity':
+            return None
+        
+        # read attributes
+        data = node.get('prov:ref', None)
+        prov_ref = self.convertFromStr(data, 'str')
+        
+        obj = DBRefProvActivity(prov_ref=prov_ref)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, ref_prov_activity, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:activity')
+        
+        # set attributes
+        node.set('prov:ref',self.convertToStr(ref_prov_activity.db_prov_ref, 'str'))
+        
+        return node
+
 class DBProvAssociationXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -5690,8 +5755,6 @@ class XMLDAOListBase(dict):
             self['opm_account'] = DBOpmAccountXMLDAOBase(self)
         if 'opm_processes' not in self:
             self['opm_processes'] = DBOpmProcessesXMLDAOBase(self)
-        if 'ref_prov_activity' not in self:
-            self['ref_prov_activity'] = DBRefProvActivityXMLDAOBase(self)
         if 'opm_account_id' not in self:
             self['opm_account_id'] = DBOpmAccountIdXMLDAOBase(self)
         if 'port' not in self:
@@ -5704,8 +5767,8 @@ class XMLDAOListBase(dict):
             self['group'] = DBGroupXMLDAOBase(self)
         if 'log' not in self:
             self['log'] = DBLogXMLDAOBase(self)
-        if 'mashup_alias' not in self:
-            self['mashup_alias'] = DBMashupAliasXMLDAOBase(self)
+        if 'loop_iteration' not in self:
+            self['loop_iteration'] = DBLoopIterationXMLDAOBase(self)
         if 'opm_agents' not in self:
             self['opm_agents'] = DBOpmAgentsXMLDAOBase(self)
         if 'mashup' not in self:
@@ -5742,6 +5805,8 @@ class XMLDAOListBase(dict):
             self['actionAnnotation'] = DBActionAnnotationXMLDAOBase(self)
         if 'abstraction' not in self:
             self['abstraction'] = DBAbstractionXMLDAOBase(self)
+        if 'mashup_alias' not in self:
+            self['mashup_alias'] = DBMashupAliasXMLDAOBase(self)
         if 'workflow' not in self:
             self['workflow'] = DBWorkflowXMLDAOBase(self)
         if 'opm_artifact_id_cause' not in self:
@@ -5814,6 +5879,8 @@ class XMLDAOListBase(dict):
             self['opm_agent'] = DBOpmAgentXMLDAOBase(self)
         if 'delete' not in self:
             self['delete'] = DBDeleteXMLDAOBase(self)
+        if 'ref_prov_activity' not in self:
+            self['ref_prov_activity'] = DBRefProvActivityXMLDAOBase(self)
         if 'prov_association' not in self:
             self['prov_association'] = DBProvAssociationXMLDAOBase(self)
         if 'vistrail' not in self:

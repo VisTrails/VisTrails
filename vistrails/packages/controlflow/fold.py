@@ -130,6 +130,11 @@ class FoldWithModule(Fold, NotCacheable):
         else:
             self.input_is_single_element = False
 
+        self.logging.begin_compute(self)
+        self.loop_logging = self.logging.begin_loop_execution(
+                self,
+                len(input_list))
+
         # Loop on the input to update the function modules
         self.modules_to_run = []
         for i, element in enumerate(input_list):
@@ -145,8 +150,7 @@ class FoldWithModule(Fold, NotCacheable):
                 module.computed = False
                 self.setInputValues(module, input_port, element)
 
-                self.logging.begin_loop_execution(self, module,
-                                                  i, len(input_list))
+                self.loop_logging.begin_iteration(module, i)
 
             self.modules_to_run.append((module, element))
 
@@ -159,11 +163,10 @@ class FoldWithModule(Fold, NotCacheable):
 
     def functions_ready(self):
         self.done()
-        self.logging.begin_compute(self)
         output_port = self.getInputFromPort('OutputPort')
 
         for module, element in self.modules_to_run:
-            self.logging.end_loop_execution(self, module)
+            self.loop_logging.end_iteration(module)
 
             # Getting the result from the output port
             if output_port not in module.outputPorts:
@@ -185,6 +188,7 @@ class FoldWithModule(Fold, NotCacheable):
         self.setResult('Result', self.partialResult)
 
         self.upToDate = True
+        self.loop_logging.end_loop_execution()
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
