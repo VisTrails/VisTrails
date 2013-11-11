@@ -1145,10 +1145,67 @@
       <sql type="datetime"/>
     </property>
 
-    <!--<property name="input" type="str">
-      <xml name="input" nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(1023)"/>
-    </property>-->
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="workflow_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+            
+      <property ref="true" object="module_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property ref="true" object="loop_iteration" type="list"
+            mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- LOOP_ITERATION ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="loop_iteration">
+    <layout>
+      <xml name="loopIteration" nodeType="xs:element"/>
+      <sql table="loop_iteration"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
 
     <property name="iteration" type="int">
       <xml nodeType="xs:attribute" type="xs:int"/>
@@ -1179,32 +1236,10 @@
       </property>
     </choice>
 
-    <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(32)"/>
+    <property name="parent" ref="true" object="loop_exec"
+            mapping="many-to-one" inverse="true">
+      <sql column="parent_id" type="int"/>
     </property>
-
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
-            mapping="many-to-one">
-      <property ref="true" object="workflow_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="int"/>
-      </property>
-
-      <property ref="true" object="group_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="int"/>
-      </property>
-      
-      <property ref="true" object="loop_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="int"/>
-      </property>
-      
-      <property ref="true" object="module_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="int"/>
-      </property>
-    </choice>
 
     <property name="entity_id" type="long" inverse="true">
       <sql type="int"/>
@@ -1305,7 +1340,7 @@
 	<sql column="parent_id" type="int"/>
       </property>
 
-      <property ref="true" object="loop_exec" type="long" 
+      <property ref="true" object="loop_iteration" type="long" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="int"/>
       </property>
@@ -1410,7 +1445,7 @@
 	<sql column="parent_id" type="int"/>
       </property>
 
-      <property ref="true" object="loop_exec" type="long" 
+      <property ref="true" object="loop_iteration" type="long" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="int"/>
       </property>

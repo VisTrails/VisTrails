@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput, ModuleSuspended
+    ModuleConnector, InvalidOutput
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
     Float, NotCacheable, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
@@ -70,11 +70,6 @@ class Fold(Module):
             self.element = element
             self.operation()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
     def setInitialValue(self): # pragma: no cover
@@ -99,10 +94,6 @@ class FoldWithModule(Fold, NotCacheable):
     that this module will use.
     """
 
-    def __init__(self):
-        Fold.__init__(self)
-        self.is_looping_module = True
-
     def update(self):
         self.logging.begin_update(self)
         if len(self.inputPorts.get('FunctionPort', [])) != 1:
@@ -119,7 +110,7 @@ class FoldWithModule(Fold, NotCacheable):
                 priority=self.UPDATE_UPSTREAM_PRIORITY)
 
     def other_ports_ready(self):
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     mod, port = connector.obj, connector.port
@@ -139,6 +130,11 @@ class FoldWithModule(Fold, NotCacheable):
         else:
             self.input_is_single_element = False
 
+        self.logging.begin_compute(self)
+        self.loop_logging = self.logging.begin_loop_execution(
+                self,
+                len(input_list))
+
         # Loop on the input to update the function modules
         self.modules_to_run = []
         for i, element in enumerate(input_list):
@@ -154,6 +150,8 @@ class FoldWithModule(Fold, NotCacheable):
                 module.computed = False
                 self.setInputValues(module, input_port, element)
 
+                self.loop_logging.begin_iteration(module, i)
+
             self.modules_to_run.append((module, element))
 
         if not self.upToDate:
@@ -165,15 +163,11 @@ class FoldWithModule(Fold, NotCacheable):
 
     def functions_ready(self):
         self.done()
-        self.logging.begin_compute(self)
         output_port = self.getInputFromPort('OutputPort')
 
-        suspended = []
         for module, element in self.modules_to_run:
-            if hasattr(module, 'suspended') and module.suspended:
-                suspended.append(module._module_suspended)
-                module.suspended = False
-                continue
+            self.loop_logging.end_iteration(module)
+
             # Getting the result from the output port
             if output_port not in module.outputPorts:
                 raise ModuleError(module,
@@ -191,15 +185,10 @@ class FoldWithModule(Fold, NotCacheable):
             self.elementResult = module.get_output(output_port)
             self.operation()
 
-        if suspended:
-            self.suspended = "%d module(s) suspended: %s" % (
-                    len(suspended), suspended[0].msg)
-            self._module_suspended = suspended
-        if self.suspended:
-            return
         self.setResult('Result', self.partialResult)
 
         self.upToDate = True
+        self.loop_logging.end_loop_execution()
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 

@@ -53,10 +53,6 @@ class If(Module, NotCacheable):
                 [self.getInputConnector('Condition')])
 
     def condition_ready(self, connectors):
-        if self.suspended:
-            self.done()
-            return
-
         if self.getInputFromPort('Condition'):
             mod_port_name = 'TruePort'
             self.__ports_port_name = 'TrueOutputPorts'

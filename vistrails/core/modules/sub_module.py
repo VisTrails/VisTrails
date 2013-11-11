@@ -97,31 +97,29 @@ class Group(Module):
             iport_obj.set_input_port('ExternalPipe', conn[0])
 
         # Execute pipeline
-        kwargs = {'logger': self.logging.log, 'clean_pipeline': True,
+        kwargs = {'logger': self.logging.log.recursing(self),
+                  'clean_pipeline': True,
                   'current_version': self.moduleInfo['version']}
         module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
         for arg in module_info_args:
             if arg in self.moduleInfo:
                 kwargs[arg] = self.moduleInfo[arg]
 
-#         if hasattr(self, 'group_exec'):
-#             kwargs['parent_exec'] = self.group_exec
-
         res = self.interpreter.execute_pipeline(self.pipeline,
                                                 *(self.setup_result[:2]),
                                                 **kwargs)
 
         # Check and propagate errors
-        if len(res[2]) > 0:
-            raise ModuleError(self, 'Error(s) inside group:\n' +
-                              '\n '.join(me.module.__class__.__name__ + ': ' +
-                                         me.msg for me in res[2].itervalues()))
+        if res[2]:
+            raise ModuleError(self, "Error(s) inside group:\n" +
+                              "\n".join("%s: %s" % (
+                                      me.module.__class__.__name__, me.msg)
+                              for me in res[2].itervalues()))
 
         # Check and propagate ModuleSuspended exceptions
-        if len(res[4]) > 0:
-            message = '\n'.join([msg for msg in res[4].itervalues()])
-            children = [tmp_id_to_module_map[module_id]._module_suspended
-                        for module_id in res[4]]
+        if res[4]:
+            message = "\n".join([ms.msg for ms in res[4].itervalues()])
+            children = list(res[4].values())
             raise ModuleSuspended(self, message, children=children)
 
         # Connect internal OutputPort modules to Group's external output ports
@@ -132,7 +130,7 @@ class Group(Module):
                                oport_obj.get_output('ExternalPipe'))
 
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1],
-                                           **{'reset_computed': False})
+                                           reset_computed=False)
 
     def is_cacheable(self):
         return all(m.is_cacheable() for m in self.persistent_modules)

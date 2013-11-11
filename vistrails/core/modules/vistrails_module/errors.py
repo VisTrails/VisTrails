@@ -91,12 +91,12 @@ error and the error message as a string."""
         self.errorTrace = traceback.format_exc()
 
 class ModuleSuspended(ModuleError):
-    """Exception representing a VisTrails module being suspended. Raising
-    ModuleSuspended flags that the module is not ready to finish yet and
-    that the workflow should be executed later.  A suspended module does
-    not execute the modules downstream but all other branches will be
-    executed. This is useful when executing external jobs where you do not
-    want to block vistrails while waiting for the execution to finish.
+    """Exception representing a VisTrails module being suspended.
+
+    Raising ModuleSuspended flags that the module is not ready to finish yet
+    and that the workflow should be executed later.
+    This is useful when executing external jobs where you do not want to block
+    vistrails while waiting for the execution to finish.
 
     'queue' is a class instance that should provide a finished() method for
     checking if the job has finished
