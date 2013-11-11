@@ -59,6 +59,8 @@ class DummyLogController(object):
     def start_execution(self, *args, **kwargs): pass
     def start_loop_execution(self, *args, **kwargs): return self
     def finish_loop_execution(self, *args, **kwargs): pass
+    def start_iteration(self, *args, **kwargs): pass
+    def finish_iteration(self, *args, **kwargs): pass
     def finish_execution(self, *args, **kwargs): pass
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
