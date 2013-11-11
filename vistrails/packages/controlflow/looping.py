@@ -67,6 +67,7 @@ class While(Module):
 
         state = None
 
+        loop = self.logging.begin_loop_execution(self, max_iterations)
         for i in xrange(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
@@ -82,14 +83,12 @@ class While(Module):
                                 'value')
                         module.set_input_port(port, new_connector)
 
-
-            self.logging.begin_loop_execution(self, module,
-                                              i, max_iterations)
+            loop.begin_iteration(module, i)
 
             module.update() # might raise ModuleError, ModuleSuspended,
                             # ModuleHadError, ModuleWasSuspended
 
-            self.logging.end_loop_execution(self, module)
+            loop.end_iteration(module)
 
             if name_condition is not None:
                 if name_condition not in module.outputPorts:
@@ -105,6 +104,8 @@ class While(Module):
             # Get state on output ports
             if name_state_output:
                 state = [module.get_output(port) for port in name_state_output]
+
+        loop.end_loop_execution()
 
         if name_output not in module.outputPorts:
             raise ModuleError(module,
