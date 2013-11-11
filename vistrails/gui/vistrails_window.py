@@ -71,6 +71,11 @@ from vistrails.gui import merge_gui
 from vistrails.gui.vistrail_variables import QVistrailVariables
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.paramexplore.pe_view import QParamExploreView
+from vistrails.gui.mashups.alias_inspector import QAliasInspector
+from vistrails.gui.mashups.mashup_view import QMashupViewTab
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 from vistrails.db.services.io import SaveBundle
 import vistrails.db.services.vistrail
 from vistrails.db import VistrailsDBException
@@ -2468,11 +2473,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                         p.toolWindow().close()
                       
     def applicationFocusChanged(self, old, current):
-        from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
-        from vistrails.gui.paramexplore.pe_view import QParamExploreView
-        from vistrails.gui.mashups.alias_inspector import QAliasInspector
-        from vistrails.gui.mashups.mashup_view import QMashupViewTab
-        from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
+        if self._is_quitting:
+            return
         def is_or_has_parent_of_types(widget, types):
             while widget is not None:
                 for _type in types:
