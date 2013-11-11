@@ -51,10 +51,6 @@ class Complicated(NotCacheable, Module):
                         self.getInputConnector('condition2')])
 
     def conditions_ready(self, connectors):
-        if self.suspended:
-            self.done()
-            return
-
         self.__condition = (self.getInputFromPort('condition1') and
                             self.getInputFromPort('condition2'))
         if self.__condition:
@@ -67,10 +63,6 @@ class Complicated(NotCacheable, Module):
                 priority=50)
 
     def input_ready(self, connectors):
-        if self.suspended:
-            self.done()
-            return
-
         self.logging.begin_compute(self)
         if self.__condition:
             self.setResult('result', self.getInputFromPort('if_true'))
