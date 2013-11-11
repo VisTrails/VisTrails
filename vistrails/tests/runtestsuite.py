@@ -350,15 +350,28 @@ if compare_use_vtk:
         idiff.Update()
         return idiff.GetThresholdedError()
 else:
+    try:
+        from scipy.misc import imread
+    except ImportError:
+        imread = None
     if test_images:
         print "Warning: old VTK version detected, NOT comparing thumbnails"
-    def compare_thumbnails(prev, next):
-        import scipy.misc
-        prev_img = scipy.misc.imread(prev)
-        next_img = scipy.misc.imread(next)
-        assert len(prev_img.shape) == 3
-        assert len(next_img.shape) == 3
-        return 0 if prev_img.shape[:2] == next_img.shape[:2] else float('Inf')
+    if imread is not None:
+        def compare_thumbnails(prev, next):
+            prev_img = imread(prev)
+            next_img = imread(next)
+            assert len(prev_img.shape) == 3
+            assert len(next_img.shape) == 3
+            if prev_img.shape[:2] == next_img.shape[:2]:
+                return 0
+            else:
+                return float('Inf')
+    else:
+        def compare_thumbnails(prev, next):
+            if os.path.isfile(prev) and os.path.isfile(next):
+                return 0
+            else:
+                return float('Inf')
 
 def image_test_generator(vtfile, version):
     from vistrails.core.db.locator import FileLocator
