@@ -106,7 +106,14 @@ class ViewUpdatingLogController(object):
 
     def end_update(self, obj, error=None, errorTrace=None,
             was_suspended=False):
-        i = self.remap_id(obj.id)
+        try:
+            i = self.remap_id(obj.id)
+        except KeyError:
+            # This happens with Groups: we get end_update for modules inside
+            # the Group, which we can't remap to the current pipeline
+            # It's ok, because that was already logged by the recursive
+            # execute_pipeline() call
+            return
         if was_suspended:
             self.suspended[obj.id] = error
             self.view.set_module_suspended(i, error)
