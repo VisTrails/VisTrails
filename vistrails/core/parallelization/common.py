@@ -174,18 +174,19 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
 
         # Get the output values
         outputs = {}
-        for executed_module in execution[0][0].executed:
-            if executed_module != moduleId:
-                continue
-            executed_module = execution[0][0].objects[executed_module]
-            try:
-                for port in output_ports:
-                    outputs[port] = executed_module.get_output(port)
-                break
-            except ModuleError, e:
-                errors.append("Output port not found: %s (%s)" % (port, e.msg))
-        else:
-            errors.append("Module not found")
+        if not execution_errors:
+            for executed_module in execution[0][0].executed:
+                if executed_module != moduleId:
+                    continue
+                executed_module = execution[0][0].objects[executed_module]
+                try:
+                    for port in output_ports:
+                        outputs[port] = executed_module.get_output(port)
+                    break
+                except ModuleError, e:
+                    errors.append("Output port not found: %s (%s)" % (port, e.msg))
+            else:
+                errors.append("Module not found")
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
