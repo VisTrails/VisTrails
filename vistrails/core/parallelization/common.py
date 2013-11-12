@@ -200,10 +200,7 @@ def module_to_serialized_pipeline(module):
     original_pipeline = module.moduleInfo['pipeline']
     module_id = module.moduleInfo['moduleId']
 
-    pipeline_modules = dict((k, m.do_copy())
-                            for k, m in original_pipeline.modules.iteritems())
-
-    pipeline_db_module = pipeline_modules[module_id]
+    pipeline_db_module = original_pipeline.modules[module_id].do_copy()
 
     # transforming a subworkflow in a group
     # TODO: should we also transform inner subworkflows?
