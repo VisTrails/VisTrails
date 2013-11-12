@@ -99,20 +99,21 @@ def execute_wf(wf, output_port):
         machine_log = serialize(machine)
 
         # Get the output value
-        executed_module, = execution[0][0].executed
-        executed_module = execution[0][0].objects[executed_module]
-        try:
-            output = executed_module.get_output(output_port)
-        except ModuleError, e:
-            errors.append("Output port not found: %s" % output_port)
-            return dict(errors=errors)
-        reg = vistrails.core.modules.module_registry.get_module_registry()
-        base_classes = inspect.getmro(type(output))
-        if Module in base_classes:
-            serializable = reg.get_descriptor(type(output)).sigstring
-            output = output.serialize()
-        else:
-            serializable = None
+        output = None
+        serializable = None
+        if not execution_errors:
+            executed_module, = execution[0][0].executed
+            executed_module = execution[0][0].objects[executed_module]
+            try:
+                output = executed_module.get_output(output_port)
+            except ModuleError, e:
+                errors.append("Output port not found: %s" % output_port)
+                return dict(errors=errors)
+            reg = vistrails.core.modules.module_registry.get_module_registry()
+            base_classes = inspect.getmro(type(output))
+            if Module in base_classes:
+                serializable = reg.get_descriptor(type(output)).sigstring
+                output = output.serialize()
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
