@@ -288,19 +288,18 @@ def set_results(module, results):
 
         # before adding the execution log, we need to get the machine information
         machine = unserialize(results['machine_log'], Machine)
-        machine.id = module.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-        module.logging.log.workflow_exec.add_machine(machine)
+        machine_id = module.logging.add_machine(machine)
 
         # recursively add machine information to execution items
         def add_machine_recursive(exec_):
             for i in range(len(exec_.item_execs)):
                 if hasattr(exec_.item_execs[i], 'machine_id'):
-                    exec_.item_execs[i].machine_id = machine.id
+                    exec_.item_execs[i].machine_id = machine_id
                     vt_type = exec_.item_execs[i].vtType
                     if (vt_type == 'abstraction') or (vt_type == 'group'):
                         add_machine_recursive(exec_.item_execs[i])
 
-        exec_.machine_id = machine.id
+        exec_.machine_id = machine_id
         if (vtType == 'abstraction') or (vtType == 'group'):
             add_machine_recursive(exec_)
 
