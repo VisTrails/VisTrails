@@ -277,11 +277,11 @@ class ModuleDescriptor(DBModuleDescriptor):
             return None
         return (self._left_fringe, self._right_fringe)
 
-    def module_documentation(self):
+    def module_documentation(self, module=None):
         doc = pydoc.getdoc(self.module)
         if hasattr(self.module, 'get_documentation'):
             try:
-                doc = self.module.get_documentation(doc)
+                doc = self.module.get_documentation(doc, module)
             except Exception, e:
                 import traceback
                 debug.critical(str(e), traceback.format_exc())

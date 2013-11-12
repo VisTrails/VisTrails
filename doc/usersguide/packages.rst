@@ -201,8 +201,7 @@ Be sure to put a readable description and your usage information there.
 
 If you want to customize that documentation, you can provide a staticmethod or
 classmethod 'get_documentation' on your Module. The string it returns will be
-used as the documentation. The function receives a single argument: the string
-that was about to be used (the module's docstring or an empty string).
+used as the documentation.
 
 .. code-block:: python
    :linenos:
@@ -212,8 +211,13 @@ that was about to be used (the module's docstring or an empty string).
        """
 
        @classmethod
-       def get_documentation(cls, docstring):
+       def get_documentation(cls, docstring, module=None):
            return docstring.upper()
+
+The function receives two arguments: the string that was about to be used (the
+module's docstring or an empty string), and the module object from the
+pipeline if the documentation was requested for a specific instance of that
+module (else, None is passed).
 
 .. _fig-packages-custom_documentation:
 

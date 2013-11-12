@@ -217,7 +217,7 @@ class RequestHandler(object):
                             module.package,
                             module.name,
                             module.namespace)
-                    documentation = descriptor.module_documentation()
+                    documentation = descriptor.module_documentation(module)
                     result.append({'name':module.name,
                                               'package':module.package,
                                               'documentation':documentation})
