@@ -171,7 +171,7 @@ class TaskRunner(object):
             elif hasattr(task, '__call__'):
                 done = False
                 with task_hook():
-                    task(self)
+                    task()
                     done = True
                 if done:
                     self.task_done(task)
@@ -286,7 +286,7 @@ class TestNode(Task):
                          priority=10,
                          cb_priority=self.prio)
 
-    def upstream_done(self, runner):
+    def upstream_done(self):
         self.exe_list.append('compute %s' % self)
         self.done()
 
@@ -302,18 +302,18 @@ class TestNode(Task):
 class TestPrioNode(TestNode):
     prio = 50
 
-    def upstream_done(self, runner):
+    def upstream_done(self):
         self.exe_list.append('compute %s' % self)
         self.done()
 
 
 class TestBackgroundNode(TestPrioNode):
-    def upstream_done(self, runner):
+    def upstream_done(self):
         self.exe_list.append('compute_start %s' % self)
         future = TestScheduler.thread_pool.submit(lambda: time.sleep(0.5))
-        async_task = runner.make_async_task()
+        async_task = self._runner.make_async_task()
 
-        def done_task(runner):
+        def done_task():
             self.exe_list.append('compute_end %s' % self)
             self.done()
         def thread_done(result):
