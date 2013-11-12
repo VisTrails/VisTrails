@@ -46,9 +46,7 @@ class Complicated(NotCacheable, Module):
         self.logging.begin_update(self)
         self.updateUpstream(
                 self.conditions_ready,
-                [
-                        self.getInputConnector('condition1'),
-                        self.getInputConnector('condition2')])
+                ['condition1', 'condition2'])
 
     def conditions_ready(self, connectors):
         self.__condition = (self.getInputFromPort('condition1') and
@@ -59,7 +57,7 @@ class Complicated(NotCacheable, Module):
             port = 'if_false'
         self.updateUpstream(
                 self.input_ready,
-                [self.getInputConnector(port)],
+                [port],
                 priority=50)
 
     def input_ready(self, connectors):
