@@ -220,13 +220,11 @@ class Map(Module):
                 else:
                     self.element = element[0]
 
-                pipeline_modules = dict((k,m.do_copy()) for k, m in original_pipeline.modules.iteritems())
-
                 # checking type and setting input in the module
                 self.typeChecking(connector.obj, nameInput, inputList)
                 self.setInputValues(connector.obj, nameInput, element)
 
-                pipeline_db_module = pipeline_modules[module_id]
+                pipeline_db_module = original_pipeline.modules[module_id].do_copy()
 
                 # transforming a subworkflow in a group
                 # TODO: should we also transform inner subworkflows?
