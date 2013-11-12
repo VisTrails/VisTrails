@@ -307,7 +307,6 @@ class TestPrioNode(TestNode):
         self.done()
 
 
-# If this somehow deadlocks, it's going to end instead of failing. Meh...
 class TestBackgroundNode(TestPrioNode):
     def upstream_done(self, runner):
         self.exe_list.append('compute_start %s' % self)
@@ -341,72 +340,107 @@ class TestScheduler(unittest.TestCase):
     def test_simple_1(self):
         l = []
         self.run_graph(
-            TestNode('m5', l, [
-                TestNode('m3', l, [
-                    TestNode('m1', l),
+            TestNode('5m', l, [
+                TestNode('3m', l, [
+                    TestNode('1m', l),
                 ]),
-                TestPrioNode('t4', l, [
-                    TestNode('m2', l),
+                TestPrioNode('4t', l, [
+                    TestNode('2m', l),
                 ]),
             ]),
          )
         self.assertEqual(l, [
-                'init m5',
-                'init m3',
-                'init t4',
-                'init m2',
-                'init m1',
-                'compute m2',
-                'compute t4',
-                'compute m1',
-                'compute m3',
-                'compute m5'])
+                'init 5m',
+                'init 3m',
+                'init 4t',
+                'init 2m',
+                'init 1m',
+                'compute 2m',
+                'compute 4t',
+                'compute 1m',
+                'compute 3m',
+                'compute 5m'])
 
     def test_simple_2(self):
         l = []
         self.run_graph(
-            TestNode('m5', l, [
-                TestPrioNode('t3', l, [
-                    TestNode('m1', l),
+            TestNode('5m', l, [
+                TestPrioNode('3t', l, [
+                    TestNode('1m', l),
                 ]),
-                TestNode('m4', l, [
-                    TestNode('m2', l),
+                TestNode('4m', l, [
+                    TestNode('2m', l),
                 ]),
             ]),
         )
         self.assertEqual(l, [
-                'init m5',
-                'init m4',
-                'init t3',
-                'init m1',
-                'init m2',
-                'compute m1',
-                'compute t3',
-                'compute m2',
-                'compute m4',
-                'compute m5'])
+                'init 5m',
+                'init 3t',
+                'init 4m',
+                'init 1m',
+                'init 2m',
+                'compute 1m',
+                'compute 3t',
+                'compute 2m',
+                'compute 4m',
+                'compute 5m'])
+
+    def test_long(self):
+        l = []
+        self.run_graph(
+            TestNode('8m', l, [
+                TestPrioNode('2t', l, [
+                    TestNode('1m', l),
+                ]),
+                TestNode('4m', l, [
+                    TestNode('3m', l),
+                ]),
+                TestNode('7m', l, [
+                    TestPrioNode('6t', l, [
+                        TestNode('5m', l),
+                    ]),
+                ]),
+            ]),
+        )
+        self.assertEqual(l, [
+                'init 8m',
+                'init 2t',
+                'init 4m',
+                'init 7m',
+                'init 1m',
+                'init 3m',
+                'init 6t',
+                'init 5m',
+                'compute 1m',
+                'compute 2t',
+                'compute 5m',
+                'compute 6t',
+                'compute 3m',
+                'compute 4m',
+                'compute 7m',
+                'compute 8m'])
 
     def test_threaded(self):
         l = []
         self.run_graph(
-            TestNode('m5', l, [
-                TestBackgroundNode('t3', l, [
-                    TestNode('m1', l),
+            TestNode('5m', l, [
+                TestBackgroundNode('3t', l, [
+                    TestNode('1m', l),
                 ]),
-                TestNode('m4', l, [
-                    TestNode('m2', l),
+                TestNode('4m', l, [
+                    TestNode('2m', l),
                 ]),
             ]),
         )
         self.assertEqual(l, [
-                'init m5',
-                'init m4',
-                'init t3',
-                'init m1',
-                'init m2',
-                'compute m1',
-                'compute_start t3',
-                'compute m2',
-                'compute m4',
-                'compute_end t3',
-                'compute m5'])
+                'init 5m',
+                'init 3t',
+                'init 4m',
+                'init 1m',
+                'init 2m',
+                'compute 1m',
+                'compute_start 3t',
+                'compute 2m',
+                'compute 4m',
+                'compute_end 3t',
+                'compute 5m'])
