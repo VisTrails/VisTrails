@@ -71,13 +71,13 @@ class ViewUpdatingLogController(object):
         def end_iteration(self, looped_obj):
             self.log.finish_iteration(looped_obj)
 
-    def __init__(self, logger, view, remap_id,
+    def __init__(self, logger, view, remap_id, ids,
                  module_executed_hook=[]):
         self.log = logger
         self.view = view
-
         self.remap_id = remap_id
-
+        self.ids = set(ids) # modules left to be executed
+        self.nb_modules = len(self.ids)
         self.module_executed_hook = module_executed_hook
 
         self.errors = {}
@@ -135,6 +135,11 @@ class ViewUpdatingLogController(object):
             self.view.set_module_success(i)
         else:
             self.view.set_module_error(i, error)
+
+        if i in self.ids:
+            self.ids.remove(i)
+            self.view.set_execution_progress(
+                    len(self.ids) * 1.0 / self.nb_modules)
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
@@ -428,6 +433,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 logger=logger,
                 view=view,
                 remap_id=get_remapped_id,
+                ids=pipeline.modules.keys(),
                 module_executed_hook=module_executed_hook)
 
         # PARAMETER CHANGES SETUP
