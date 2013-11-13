@@ -7,6 +7,6 @@ configuration = ConfigurationObject(file_store=(None, str))
 
 
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('file_archive'):
-        raise vistrails.core.requirements.MissingRequirement('file_archive')
+    from vistrails.core.requirements import require_python_module
+    require_python_module('file_archive', {
+            'pip': 'file_archive'})

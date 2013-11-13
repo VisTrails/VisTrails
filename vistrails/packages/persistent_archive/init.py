@@ -13,9 +13,6 @@ from .persistedinput import PersistedInputPath, \
 from .queriedinput import QueriedInputPath, QueriedInputFile, QueriedInputDir
 from .persistedoutput import PersistedPath, PersistedFile, PersistedDir
 
-file_archive = py_import('file_archive', {
-        'pip': 'file_archive'})
-
 
 def initialize():
     if configuration.check('file_store'):
