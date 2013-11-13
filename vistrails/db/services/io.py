@@ -37,7 +37,7 @@ from __future__ import with_statement
 from datetime import datetime
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
-from vistrails.core.system import get_elementtree_library, \
+from vistrails.core.system import get_elementtree_library, strftime, \
      execute_cmdline, get_executable_path
 from vistrails.core.utils import Chdir, VistrailsInternalError
 from vistrails.core.log.log import Log
@@ -73,6 +73,7 @@ import vistrails.core.system
 
 ElementTree = get_elementtree_library()
 
+CONNECT_TIMEOUT = 15
 
 _db_lib = None
 def get_db_lib():
@@ -186,6 +187,8 @@ def open_db_connection(config):
     if config is None:
         msg = "You need to provide valid config dictionary"
         raise VistrailsDBException(msg)
+    if 'connect_timeout' not in config:
+        config['connect_timeout'] = CONNECT_TIMEOUT
     try:
         # FIXME allow config to be kwargs and args?
         db_connection = get_db_lib().connect(**config)
@@ -206,6 +209,8 @@ def test_db_connection(config):
     
     """
     #print "Testing config", config
+    if 'connect_timeout' not in config:
+        config['connect_timeout'] = CONNECT_TIMEOUT
     try:
         db_connection = get_db_lib().connect(**config)
         close_db_connection(db_connection)
@@ -240,7 +245,7 @@ def translate_to_tbl_name(obj_type):
     return map[obj_type]
 
 def date_to_str(date):
-    return date.strftime('%Y-%m-%d %H:%M:%S')
+    return strftime(date, '%Y-%m-%d %H:%M:%S')
 
 def get_db_object_list(config, obj_type):
     
@@ -1667,7 +1672,7 @@ def save_thumbnails_to_db(absfnames, db_connection):
             image_file = open(absfname, 'rb')
             image_bytes = image_file.read()
             image_file.close()
-            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, get_current_time(db_connection).strftime('%Y-%m-%d %H:%M:%S')))
+            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, strftime(get_current_time(db_connection), '%Y-%m-%d %H:%M:%S')))
             db_connection.commit()
         c.close()
     except IOError, e:
@@ -1817,7 +1822,7 @@ def get_current_time(db_connection=None):
             if row:
                 # FIXME MySQL versus sqlite3
                 timestamp = row[0]
-                # timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+                # timestamp = strptime(row[0], '%Y-%m-%d %H:%M:%S')
             c.close()
         except get_db_lib().Error, e:
             debug.critical("Logger Error %d: %s" % (e.args[0], e.args[1]))

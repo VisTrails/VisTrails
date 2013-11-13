@@ -71,6 +71,11 @@ from vistrails.gui import merge_gui
 from vistrails.gui.vistrail_variables import QVistrailVariables
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.paramexplore.pe_view import QParamExploreView
+from vistrails.gui.mashups.alias_inspector import QAliasInspector
+from vistrails.gui.mashups.mashup_view import QMashupViewTab
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 from vistrails.db.services.io import SaveBundle
 import vistrails.db.services.vistrail
 from vistrails.db import VistrailsDBException
@@ -1627,6 +1632,25 @@ class QVistrailsWindow(QVistrailViewWindow):
         If parameterExploration is not None, it will be opened.
         
         """
+        
+        # move additional information from locator to variables
+        if not version:
+            if 'version' in locator.kwargs:
+                version = locator.kwargs['version']
+                del locator.kwargs['version']
+        if not parameterExploration:
+            if 'parameterExploration' in locator.kwargs:
+                parameterExploration = locator.kwargs['parameterExploration']
+                del locator.kwargs['parameterExploration']
+        if not mashuptrail:
+            if 'mashuptrail' in locator.kwargs:
+                mashuptrail = locator.kwargs['mashuptrail']
+                del locator.kwargs['mashuptrail']
+        if not mashupVersion:
+            if 'mashupVersion' in locator.kwargs:
+                mashupVersion = locator.kwargs['mashupVersion']
+                del locator.kwargs['mashupVersion']
+            
         if not locator.is_valid():
             ok = locator.update_from_gui(self)
         else:
@@ -1637,6 +1661,13 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()
             view = self.open_vistrail(locator, version, is_abstraction)
+
+            conf = get_vistrails_configuration()
+            has_tag = len(view.controller.vistrail.get_tagMap()) > 0
+            if (not conf.check('showPipelineViewOnLoad')) and \
+               (conf.check('showHistoryViewOnLoad') or has_tag):
+                self.qactions['history'].trigger()
+
             if mashuptrail is not None and mashupVersion is not None:
                 view.open_mashup_from_mashuptrail_id(mashuptrail, mashupVersion)
             elif parameterExploration is not None:
@@ -2147,12 +2178,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         update_menu(self.qmenus['openRecent'])
         for w in self.windows.values():
             update_menu(w.qmenus['openRecent'])
-            
+
     def update_window_menu(self):
         def compute_action_items():
             actions = []
-            action = QtGui.QAction("Main Window", self, 
-                                   triggered=self.activateWindow)
+            action = QtGui.QAction(
+                    "Main Window", self,
+                    triggered=lambda b=None: self.activateWindow())
             action.setCheckable(True)
             
             base_view_windows = {}
@@ -2441,11 +2473,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                         p.toolWindow().close()
                       
     def applicationFocusChanged(self, old, current):
-        from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
-        from vistrails.gui.paramexplore.pe_view import QParamExploreView
-        from vistrails.gui.mashups.alias_inspector import QAliasInspector
-        from vistrails.gui.mashups.mashup_view import QMashupViewTab
-        from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
+        if self._is_quitting:
+            return
         def is_or_has_parent_of_types(widget, types):
             while widget is not None:
                 for _type in types:

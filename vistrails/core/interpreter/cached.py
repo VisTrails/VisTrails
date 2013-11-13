@@ -469,6 +469,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
+                abort = True
             if stop_on_error or abort:
                 break
 
@@ -516,22 +517,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             except KeyError:
                 pass
             return r
-        view = fetch('view', DummyView())
         reset_computed = fetch('reset_computed', True)
-     
-        self.clean_modules(to_delete)
 
-        for i in objs:
-            if i in errs:
-                view.set_module_error(i, errs[i].msg, errs[i].errorTrace)
-            elif i in suspended and suspended[i]:
-                view.set_module_suspended(i, suspended[i])
-            elif i in execs and execs[i]:
-                view.set_module_success(i)
-            elif i in cached and cached[i]:
-                view.set_module_not_executed(i)
-            else:
-                view.set_module_persistent(i)
+        self.clean_modules(to_delete)
 
         if reset_computed:
             for module in self._objects.itervalues():
@@ -788,42 +776,49 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 class TestCachedInterpreter(unittest.TestCase):
 
     def test_cache(self):
-        from vistrails.core.db.locator import XMLFileLocator
-        from vistrails.core.vistrail.controller import VistrailController
-        from vistrails.core.db.io import load_vistrail
-        
-        """Test if basic caching is working."""
-        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
-        
-        # the controller will take care of upgrades
-        controller = VistrailController(v, locator, abstractions, thumbnails, 
-                                        mashups)
-        p1 = v.getPipeline('int chain')
-        n = v.get_version_number('int chain')
-        controller.change_selected_version(n)
-        controller.flush_delayed_actions()
-        p1 = controller.current_pipeline
-        
-        view = DummyView()
-        interpreter = vistrails.core.interpreter.cached.CachedInterpreter.get()
-        result = interpreter.execute(p1, 
-                                     locator=v,
-                                     current_version=n,
-                                     view=view,
-                                     )
-        # to force fresh params
-        p2 = v.getPipeline('int chain')
-        controller.change_selected_version(n)
-        controller.flush_delayed_actions()
-        p2 = controller.current_pipeline
-        result = interpreter.execute(p2, 
-                                     locator=v,
-                                     current_version=n,
-                                     view=view,
-                                     )
-        assert len(result.modules_added) == 1
+        from vistrails.core.modules.basic_modules import StandardOutput
+        old_compute = StandardOutput.compute
+        StandardOutput.compute = lambda s: None
+
+        try:
+            from vistrails.core.db.locator import XMLFileLocator
+            from vistrails.core.vistrail.controller import VistrailController
+            from vistrails.core.db.io import load_vistrail
+
+            """Test if basic caching is working."""
+            locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
+                                '/tests/resources/dummy.xml')
+            (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
+
+            # the controller will take care of upgrades
+            controller = VistrailController(v, locator, abstractions,
+                                            thumbnails,  mashups)
+            p1 = v.getPipeline('int chain')
+            n = v.get_version_number('int chain')
+            controller.change_selected_version(n)
+            controller.flush_delayed_actions()
+            p1 = controller.current_pipeline
+
+            view = DummyView()
+            interpreter = CachedInterpreter.get()
+            result = interpreter.execute(p1,
+                                         locator=v,
+                                         current_version=n,
+                                         view=view,
+                                         )
+            # to force fresh params
+            p2 = v.getPipeline('int chain')
+            controller.change_selected_version(n)
+            controller.flush_delayed_actions()
+            p2 = controller.current_pipeline
+            result = interpreter.execute(p2,
+                                         locator=v,
+                                         current_version=n,
+                                         view=view,
+                                         )
+            self.assertEqual(len(result.modules_added), 1)
+        finally:
+            StandardOutput.compute = old_compute
 
 
 if __name__ == '__main__':

@@ -80,6 +80,8 @@ class ModuleHadError(Exception):
 
     It is caught by the interpreter that doesn't log it.
     """
+    def __init__(self, module):
+        self.module = module
 
 class ModuleError(Exception):
 
@@ -248,7 +250,7 @@ Designing New Modules
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
-        self.ran = False
+        self.had_error = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -293,6 +295,20 @@ Designing New Modules
         # stores whether the output of the module should be annotated in the
         # execution log
         self.annotate_output = False
+
+    def __copy__(self):
+        """Makes a copy of the input/output ports on shallow copy.
+        """
+        s = super(Module, self)
+        if hasattr(s, '__copy__'):
+            clone = s.__copy__()
+        else:
+            clone = object.__new__(self.__class__)
+            clone.__dict__ = self.__dict__.copy()
+        clone.inputPorts = copy.copy(self.inputPorts)
+        clone.outputPorts = copy.copy(self.outputPorts)
+        clone.outputPorts['self'] = clone
+        return clone
 
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -350,21 +366,21 @@ context."""
         modules. Report to the logger if available
         
         """
+        if self.had_error:
+            raise ModuleHadError(self)
+        elif self.computed:
+            return
+        self.logging.begin_update(self)
+        self.updateUpstream()
+        if self.suspended:
+            self.had_error = True
+            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
             return
-        if self.ran:
-            if self.had_error:
-                raise ModuleHadError(self)
-            return
-        self.ran = True
         self.had_error = True # Unset later in this method
-        self.logging.begin_update(self)
-        self.updateUpstream()
-        if self.suspended:
-            return
         self.logging.begin_compute(self)
         try:
             if self.is_breakpoint:

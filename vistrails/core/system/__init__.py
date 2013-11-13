@@ -35,22 +35,67 @@
 from __future__ import with_statement
 
 import datetime
+import functools
 import getpass
+import locale
 import os
 import platform
 import socket
 import subprocess
 import sys
+import time
 import urllib2
 
 from vistrails.core import debug
 from vistrails.core.utils import unimplemented, VistrailsInternalError, Chdir
-import vistrails.core.requirements
 
 
 ###############################################################################
 
 from common import *
+
+def with_c_locale(func):
+    @functools.wraps(func)
+    def newfunc(*args, **kwargs):
+        previous_locale = locale.setlocale(locale.LC_TIME)
+        locale.setlocale(locale.LC_TIME, 'C')
+        try:
+            return func(*args, **kwargs)
+        finally:
+            locale.setlocale(locale.LC_TIME, previous_locale)
+    return newfunc
+
+@with_c_locale
+def strptime(*args, **kwargs):
+    """Version of datetime.strptime that always uses the C locale.
+
+    This is because date strings are used internally in the database, and
+    should not be localized.
+    """
+    return datetime.datetime.strptime(*args, **kwargs)
+
+@with_c_locale
+def time_strptime(*args, **kwargs):
+    """Version of time.strptime that always uses the C locale.
+
+    This is because date strings are used internally in the database, and
+    should not be localized.
+    """
+    return time.strptime(*args, **kwargs)
+
+@with_c_locale
+def strftime(dt, *args, **kwargs):
+    """Version of datetime.strftime that always uses the C locale.
+
+    This is because date strings are used internally in the database, and
+    should not be localized.
+    """
+    if hasattr(dt, 'strftime'):
+        return dt.strftime(*args, **kwargs)
+    else:
+        return time.strftime(dt, *args, **kwargs)
+
+##############################################################################
 
 systemType = platform.system()
 
@@ -82,6 +127,12 @@ __dataDir = os.path.realpath(os.path.join(__rootDir,
                                           'data'))
 __fileDir = os.path.realpath(os.path.join(__rootDir,
                                           '..','examples'))
+__examplesDir = __fileDir
+
+if systemType in ['Darwin'] and not os.path.exists(__fileDir):
+    # Assume we are running from py2app
+    __fileDir = os.path.realpath(os.path.join(__rootDir,
+                                              '/'.join(['..']*5),'examples'))
 
 __defaultFileType = '.vt'
 
@@ -152,11 +203,18 @@ def vistrails_root_directory():
     return __rootDir
 
 def vistrails_file_directory():
-    """ vistrails_file_directory() -> str
-    Returns vistrails examples directory
+    """ vistrails_file_directory() -> str 
+    Returns current vistrails file directory
 
     """
     return __fileDir
+
+def vistrails_examples_directory():
+    """ vistrails_file_directory() -> str 
+    Returns vistrails examples directory
+
+    """
+    return __examplesDir
 
 def vistrails_data_directory():
     """ vistrails_data_directory() -> str
@@ -273,6 +331,7 @@ def vistrails_revision():
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
         release = "99faabb791a0"
+        import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(

@@ -35,7 +35,6 @@
 
 import uuid
 from datetime import date, datetime
-from time import strptime
 ################################################################################                           
 
 def conv_to_bool(x):
@@ -94,9 +93,9 @@ def convert_symbols(val):
 #                elif type == 'bool':
 #                    return bool_conv(value)
 #                elif type == 'date':
-#                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+#                    return date(*time_strptime(value, '%Y-%m-%d')[0:3])
 #                elif type == 'datetime':
-#                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+#                    return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
 #                elif type == 'uuid':
 #                    return uuid.UUID(value)
 #        return None
@@ -107,7 +106,7 @@ def convert_symbols(val):
 #            if type == 'date':
 #                return value.isoformat()
 #            elif type == 'datetime':
-#                return value.strftime('%Y-%m-%d %H:%M:%S')
+#                return strftime(value, '%Y-%m-%d %H:%M:%S')
 #            else:
 #                return str(value)
 #        return ''

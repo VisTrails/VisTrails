@@ -1130,6 +1130,13 @@ class ModuleRegistry(DBRegistry):
             except KeyError:
                 pass
             return r
+
+        default_identifier = None
+        default_version = ""
+        if self._current_package is not None:
+            default_identifier = self._current_package.identifier
+            default_version = self._current_package.version
+            
         name = fetch('name', module.__name__)
         configureWidgetType = fetch('configureWidgetType', None)
         signatureCallable = fetch('signatureCallable', None)
@@ -1139,11 +1146,10 @@ class ModuleRegistry(DBRegistry):
         moduleLeftFringe = fetch('moduleLeftFringe', None) 
         moduleRightFringe = fetch('moduleRightFringe', None)
         is_abstract = fetch('abstract', False)
-        identifier = fetch('package', self._current_package.identifier)
+        identifier = fetch('package', default_identifier)
         namespace = fetch('namespace', None)
         version = fetch('version', None)
-        package_version = fetch('package_version', 
-                                self._current_package.version)
+        package_version = fetch('package_version', default_version)
         hide_namespace = fetch('hide_namespace', False)
         hide_descriptor = fetch('hide_descriptor', False)
         is_root = fetch('is_root', False)
@@ -1155,6 +1161,11 @@ class ModuleRegistry(DBRegistry):
             raise VistrailsInternalError(
                 'Wrong parameters passed to addModule: %s' % kwargs)
         
+        if identifier is None:
+            raise VistrailsInternalError("No package is currently being "
+                                         "loaded and arugment 'package' is "
+                                         "not specified.")
+
         package = self.package_versions[(identifier, package_version)]
         desc_key = (name, namespace, version)
         if desc_key in package.descriptor_versions:

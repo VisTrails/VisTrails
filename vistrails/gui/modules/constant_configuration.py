@@ -39,12 +39,21 @@ used as a template for creating a configuration widget for other custom
 constants.
 
 """
+
 from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression
+from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
 
 ############################################################################
+
+def setPlaceholderTextCompat(self, value):
+    """ Qt pre 4.7.0 does not have setPlaceholderText
+    """
+    if versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
+        self.setText(value)
+    else:
+        self.setPlaceholderText(value)
 
 class ConstantWidgetMixin(object):
 
@@ -117,7 +126,8 @@ class StandardConstantWidgetBase(ConstantWidgetMixin):
             self.setDefault(psi.default)
         contents = param.strValue
         contentType = param.type
-        self.setText(contents)
+        if contents: # do not replace old default value with empty value
+            self.setText(contents)
         self._contentType = contentType
 
     def setDefault(self, default):
@@ -171,7 +181,7 @@ class StandardConstantWidget(QtGui.QLineEdit, StandardConstantWidgetBase):
                      self.update_parent)
 
     def setDefault(self, value):
-        self.setPlaceholderText(value)
+        setPlaceholderTextCompat(self, value)
 
     def sizeHint(self):
         metrics = QtGui.QFontMetrics(self.font())
@@ -233,7 +243,7 @@ class SingleLineStringWidget(BaseStringWidget, QtGui.QLineEdit):
         return contents
 
     def setDefault(self, value):
-        self.setPlaceholderText(value)
+        setPlaceholderTextCompat(self, value)
 
     def sizeHint(self):
         metrics = QtGui.QFontMetrics(self.font())
@@ -419,9 +429,9 @@ class StandardConstantEnumWidget(QtGui.QComboBox, StandardConstantWidgetBase):
         if idx > -1:
             self.setCurrentIndex(idx)
             if self.isEditable():
-                self.lineEdit().setPlaceholderText(value)
+                setPlaceholderTextCompat(self.lineEdit(), value)
         elif self.isEditable():
-            self.lineEdit().setPlaceholderText(value)
+            setPlaceholderTextCompat(self.lineEdit(), value)
 
 
     ###########################################################################

@@ -58,7 +58,7 @@ from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
+from vistrails.core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -1251,6 +1251,13 @@ class Pipeline(DBWorkflow):
 
 
 class TestPipeline(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # make sure pythonCalc is loaded
+        from vistrails.core.packagemanager import get_package_manager
+        pm = get_package_manager()
+        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no partial
+            pm.late_enable_package('pythonCalc')
 
     def create_default_pipeline(self, id_scope=None):
         if id_scope is None:
