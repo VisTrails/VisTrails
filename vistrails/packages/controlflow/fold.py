@@ -193,6 +193,8 @@ class FoldWithModule(Fold, NotCacheable):
             if do_operation:
                 self.operation()
 
+            self.logging.update_progress(self, i * 1.0 / len(inputList))
+
         if suspended:
             raise ModuleSuspended(
                     self,

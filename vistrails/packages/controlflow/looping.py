@@ -105,6 +105,8 @@ class While(Module):
             if name_state_output:
                 state = [module.get_output(port) for port in name_state_output]
 
+            self.logging.update_progress(self, i * 1.0 / max_iterations)
+
         loop.end_loop_execution()
 
         if name_output not in module.outputPorts:
