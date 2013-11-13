@@ -539,8 +539,17 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         def fetch(name, default):
             return kwargs.pop(name, default)
         reset_computed = fetch('reset_computed', True)
+        view = fetch('view', None)
 
         self.clean_modules(to_delete)
+
+        def dict2set(s):
+            return set(k for k, v in s.iteritems() if v)
+        if view is not None:
+            persistent = set(objs) - (dict2set(errs) | dict2set(execs) |
+                                      dict2set(suspended) | dict2set(cached))
+            for i in persistent:
+                view.set_module_persistent(i)
 
         if reset_computed:
             for module in self._objects.itervalues():
