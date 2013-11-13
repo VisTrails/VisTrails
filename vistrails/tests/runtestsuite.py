@@ -60,7 +60,7 @@ if not _this_dir:
     root_directory = os.path.join('.','..')
 else:
     root_directory = os.path.join(_this_dir,  '..')
-sys.path.append(root_directory)
+sys.path.insert(0, root_directory)
 
 import tests
 import core
