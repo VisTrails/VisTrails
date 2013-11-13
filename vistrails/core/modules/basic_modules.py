@@ -1105,6 +1105,13 @@ class Round(Converter):
 class TupleToList(Converter):
     """Turns a Tuple into a List.
     """
+    @classmethod
+    def can_convert(cls, sub_descs, super_descs):
+        if len(sub_descs) <= 1:
+            return False
+        reg = get_module_registry()
+        return super_descs == [reg.get_descriptor(List)]
+
     def compute(self):
         tu = self.getInputFromPort('in_value')
         if not isinstance(tu, tuple):
