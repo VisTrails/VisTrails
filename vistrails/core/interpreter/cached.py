@@ -106,9 +106,9 @@ class ViewUpdatingLogController(object):
 
         self.log.start_execution(obj, i, module_name)
 
-    def update_progress(self, obj, percentage=0.0):
+    def update_progress(self, obj, progress=0.0):
         i = self.remap_id(obj.id)
-        self.view.set_module_progress(i, percentage)
+        self.view.set_module_progress(i, progress)
 
     def begin_loop_execution(self, obj, total_iterations=None):
         return ViewUpdatingLogController.Loop(
