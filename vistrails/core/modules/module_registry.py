@@ -1124,12 +1124,7 @@ class ModuleRegistry(DBRegistry):
         # Setup named arguments. We don't use named parameters so
         # that positional parameter calls fail earlier
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
 
         default_identifier = None
         default_version = ""

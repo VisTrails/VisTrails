@@ -241,12 +241,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         instances of modules that aren't in the cache.
         """
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         controller = fetch('controller', None)
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
@@ -397,12 +392,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def execute_pipeline(self, pipeline, tmp_id_to_module_map, 
                          persistent_to_tmp_id_map, **kwargs):
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         controller = fetch('controller', None)
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
@@ -547,12 +537,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def finalize_pipeline(self, pipeline, to_delete, objs, errs, execs,
                           suspended, cached, **kwargs):
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         reset_computed = fetch('reset_computed', True)
 
         self.clean_modules(to_delete)
