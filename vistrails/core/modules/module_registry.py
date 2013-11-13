@@ -1765,12 +1765,14 @@ class ModuleRegistry(DBRegistry):
             in_port = self.get_port_spec_from_descriptor(
                     converter,
                     'in_value', 'input')
-            if not check_types(sub_descs, in_port.descriptors()):
+            if (len(sub_descs) != len(in_port.descriptors()) or
+                    not check_types(sub_descs, in_port.descriptors())):
                 continue
             out_port = self.get_port_spec_from_descriptor(
                     converter,
                     'out_value', 'output')
-            if not check_types(out_port.descriptors(), super_descs):
+            if (len(out_port.descriptors()) != len(super_descs)
+                    or not check_types(out_port.descriptors(), super_descs)):
                 continue
 
             converters.append(converter)
@@ -1803,8 +1805,6 @@ class ModuleRegistry(DBRegistry):
             return False
         elif super_descs == [variant_desc]:
             return True
-        if len(sub_descs) != len(super_descs):
-            return False
 
         def check_types(sub_descs, super_descs):
             for (sub_desc, super_desc) in izip(sub_descs, super_descs):
@@ -1814,7 +1814,8 @@ class ModuleRegistry(DBRegistry):
                     return False
             return True
 
-        if check_types(sub_descs, super_descs):
+        if (len(sub_descs) == len(super_descs) and
+                check_types(sub_descs, super_descs)):
             return True
 
         if allow_conversion:
