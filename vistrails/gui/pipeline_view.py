@@ -2902,7 +2902,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
-    def cancel_progress(self):
+    def check_progress_canceled(self):
         """Checks if the user have canceled the execution and takes
            appropriate action
         """
@@ -2964,7 +2964,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.progress:
-            self.cancel_progress()
+            self.check_progress_canceled()
             pipeline = self.controller.current_pipeline
             module = pipeline.get_module_by_id(moduleId)
             self.progress.setLabelText(module.name)
@@ -2979,7 +2979,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.progress:
             try:
-                self.cancel_progress()
+                self.check_progress_canceled()
             except AbortExecution:
                 self.progress._progress_canceled = True
                 raise
