@@ -35,6 +35,7 @@
 import copy
 from itertools import chain
 import os
+import pydoc
 import re
 import sys
 import traceback
@@ -478,11 +479,9 @@ class Package(DBPackage):
             except AttributeError:
                 v = self._module
             raise e
-        if hasattr(self._module, '__doc__') and self._module.__doc__:
-            self.description = self._module.__doc__
-        else:
-            self.description = "No description available"
-            
+        self.description = (pydoc.getdoc(self._module) or
+                            "(No description available)")
+
     def can_handle_all_errors(self):
         return hasattr(self._init_module, 'handle_all_errors')
 

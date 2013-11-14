@@ -99,20 +99,21 @@ def execute_wf(wf, output_port):
         machine_log = serialize(machine)
 
         # Get the output value
-        executed_module, = execution[0][0].executed
-        executed_module = execution[0][0].objects[executed_module]
-        try:
-            output = executed_module.get_output(output_port)
-        except ModuleError, e:
-            errors.append("Output port not found: %s" % output_port)
-            return dict(errors=errors)
-        reg = vistrails.core.modules.module_registry.get_module_registry()
-        base_classes = inspect.getmro(type(output))
-        if Module in base_classes:
-            serializable = reg.get_descriptor(type(output)).sigstring
-            output = output.serialize()
-        else:
-            serializable = None
+        output = None
+        serializable = None
+        if not execution_errors:
+            executed_module, = execution[0][0].executed
+            executed_module = execution[0][0].objects[executed_module]
+            try:
+                output = executed_module.get_output(output_port)
+            except ModuleError, e:
+                errors.append("Output port not found: %s" % output_port)
+                return dict(errors=errors)
+            reg = vistrails.core.modules.module_registry.get_module_registry()
+            base_classes = inspect.getmro(type(output))
+            if Module in base_classes:
+                serializable = reg.get_descriptor(type(output)).sigstring
+                output = output.serialize()
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
@@ -220,13 +221,11 @@ class Map(Module):
                 else:
                     self.element = element[0]
 
-                pipeline_modules = dict((k,m.do_copy()) for k, m in original_pipeline.modules.iteritems())
-
                 # checking type and setting input in the module
                 self.typeChecking(connector.obj, nameInput, inputList)
                 self.setInputValues(connector.obj, nameInput, element)
 
-                pipeline_db_module = pipeline_modules[module_id]
+                pipeline_db_module = original_pipeline.modules[module_id].do_copy()
 
                 # transforming a subworkflow in a group
                 # TODO: should we also transform inner subworkflows?
@@ -249,11 +248,8 @@ class Map(Module):
 
                 # getting highest id between functions to guarantee unique ids
                 # TODO: can get current IdScope here?
-                high_id = 0
-                module_functions = pipeline_db_module.functions
-                for function in module_functions:
-                    if int(function.id) > high_id:
-                        high_id = int(function.id)
+                high_id = max(function.db_id
+                              for function in pipeline_db_module.functions)
 
                 # adding function and parameter to module in pipeline
                 # TODO: 'pos' should not be always 0 here

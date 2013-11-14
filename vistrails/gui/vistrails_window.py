@@ -678,6 +678,12 @@ class QVistrailViewWindow(QBaseViewWindow):
                        'enabled': True,
                        'callback': _app.add_tag}),
                      "---",
+                     ("reLayout", "Re-Layout",
+                      {'statusTip': "Re-layouts the version tree",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through(self.get_current_controller,
+                                             'invalidate_version_tree')}),
                      ("expandBranch", "Expand Branch",
                       {'statusTip': "Expand all versions in the tree below " \
                            "the current version",

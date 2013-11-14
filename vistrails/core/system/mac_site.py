@@ -80,3 +80,16 @@ def getusersitepackages():
 
     USER_SITE = get_path('purelib', '%s_user' % os.name)
     return USER_SITE
+
+class _Helper(object):
+    """Define the builtin 'help'.
+    This is a wrapper around pydoc.help (with a twist).
+    
+    """
+
+    def __repr__(self):
+        return "Type help() for interactive help, " \
+               "or help(object) for help about object."
+    def __call__(self, *args, **kwds):
+        import pydoc
+        return pydoc.help(*args, **kwds)
