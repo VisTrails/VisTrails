@@ -33,9 +33,9 @@
 ##
 ###############################################################################
 import copy
+import inspect
 from itertools import chain
 import os
-import pydoc
 import re
 import sys
 import traceback
@@ -479,8 +479,11 @@ class Package(DBPackage):
             except AttributeError:
                 v = self._module
             raise e
-        self.description = (pydoc.getdoc(self._module) or
-                            "(No description available)")
+        descr = inspect.getdoc(self._module)
+        if descr:
+            self.description = re.sub('^ *\n', '', descr.rstrip())
+        else:
+            self.description = "(No description available)"
 
     def can_handle_all_errors(self):
         return hasattr(self._init_module, 'handle_all_errors')
