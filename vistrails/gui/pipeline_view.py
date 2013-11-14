@@ -165,12 +165,11 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self._pen_color = CurrentTheme.PORT_PEN_COLOR_NORMAL
             # self.setPen(CurrentTheme.PORT_PEN)
             self.setBrush(CurrentTheme.PORT_BRUSH)
-        if self._connected > 0:
-            self.setBrush(CurrentTheme.PORT_CONNECTED_BRUSH)
-        elif self._connected < self._min_conns:
-            self.setBrush(CurrentTheme.PORT_MANDATORY_BRUSH)
-        else:
-            self.setBrush(CurrentTheme.PORT_BRUSH)
+        if self.brush() == CurrentTheme.PORT_BRUSH:
+            if self._connected > 0:
+                self.setBrush(CurrentTheme.PORT_CONNECTED_BRUSH)
+            elif self._connected < self._min_conns:
+                self.setBrush(CurrentTheme.PORT_MANDATORY_BRUSH)
         if self._selected:
             self._pen_width = CurrentTheme.PORT_PEN_WIDTH_SELECTED
         elif self._min_conns > 0 and self._connected < self._min_conns:
