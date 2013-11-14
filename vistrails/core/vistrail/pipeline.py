@@ -1075,8 +1075,8 @@ class Pipeline(DBWorkflow):
         for module in self.modules.itervalues():
             for function in module.functions:
                 is_valid = True
-                # FIXME also check for the corresponding spec for a function?
-                if not module.has_port_spec(function.name, 'input'):
+                if module.is_valid and not module.has_port_spec(function.name, 
+                                                                'input'):
                     is_valid = False
                     e = MissingFunction(function.name, module.name, module.id)
                     e._module_id = module.id
