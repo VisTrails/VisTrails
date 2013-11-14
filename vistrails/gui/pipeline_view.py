@@ -245,7 +245,8 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
 
     def updateToolTip(self):
         tooltip = ""
-        if self.port is not None and hasattr(self.port, 'toolTip'):
+        if (self.port is not None and self.port.is_valid and
+            hasattr(self.port, 'toolTip')):
             tooltip = self.port.toolTip()
         for vistrail_var in self.vistrail_vars.itervalues():
             tooltip += '\nConnected to vistrail var "%s"' % vistrail_var.name
@@ -2237,7 +2238,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         min_dis = None
         selected_convs = None
         for o_item in output_ports:
+            if o_item.invalid:
+                continue
             for i_item in input_ports:
+                if i_item.invalid:
+                    continue
                 convs = []
                 if reg.ports_can_connect(o_item.port, i_item.port,
                                          allow_conversion=True,
