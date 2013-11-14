@@ -103,6 +103,17 @@ class MissingVistrailVariable(Exception):
         return self._name
     _module_name = property(_get_module_name)
 
+class MissingFunction(Exception):
+    def __init__(self, name, module_name, module_id=None):
+        self.name = name
+        self.module_name = module_name
+        self.module_id = module_id
+
+    def __str__(self):
+        return ("Missing Function '%s' on module '%s'%s" % 
+                (self.name, self.module_name, " (id %d)" % self.module_id if
+                 self.module_id is not None else ""))
+
 class CycleInPipeline(Exception):
     def __str__(self):
         return "Pipeline contains a cycle"
@@ -1065,6 +1076,11 @@ class Pipeline(DBWorkflow):
             for function in module.functions:
                 is_valid = True
                 # FIXME also check for the corresponding spec for a function?
+                if not module.has_port_spec(function.name, 'input'):
+                    is_valid = False
+                    e = MissingFunction(function.name, module.name, module.id)
+                    e._module_id = module.id
+                    exceptions.add(e)
                 pos_map = {}
                 for p in function.parameters:
                     if p.identifier == '':

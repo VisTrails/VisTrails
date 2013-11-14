@@ -394,7 +394,6 @@ class PortsList(QtGui.QTreeWidget):
             if self.port_type == 'input':
                 for function in module.functions:
                     if not function.is_valid:
-                        debug.critical("function '%s' not valid", function.name)
                         continue
                     port_spec, item = self.port_spec_items[function.name]
                     subitem = self.entry_klass(port_spec, function)
