@@ -2902,7 +2902,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
-    def cancel_progress(self):
+    def check_progress_canceled(self):
         """Checks if the user have canceled the execution and takes
            appropriate action
         """
@@ -2964,8 +2964,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.progress:
-            self.cancel_progress()
-            self.progress.setValue(self.progress.value() + 1)
+            self.check_progress_canceled()
             pipeline = self.controller.current_pipeline
             module = pipeline.get_module_by_id(moduleId)
             self.progress.setLabelText(module.name)
@@ -2980,7 +2979,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.progress:
             try:
-                self.cancel_progress()
+                self.check_progress_canceled()
             except AbortExecution:
                 self.progress._progress_canceled = True
                 raise
@@ -3016,6 +3015,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
             import traceback
             debug.critical("Error Monitoring Job: %s" % e,
                            traceback.format_exc())
+
+    def set_execution_progress(self, progress):
+        if self.progress:
+            self.progress.setValue(int(progress * 100))
 
     def reset_module_colors(self):
         for module in self.modules.itervalues():
@@ -3161,8 +3164,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         jobView.updating_now = True
 
         try:
-            modules = len(self.controller.current_pipeline.modules)
-            progress = ExecutionProgressDialog(modules)
+            progress = ExecutionProgressDialog()
             self.scene().progress = progress
             progress.show()
 
@@ -3173,7 +3175,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             else:
                 self.controller.execute_current_workflow()
 
-            progress.setValue(modules)
+            progress.setValue(100)
             #progress.hide()
             self.scene().progress = None
         except Exception, e:
@@ -3330,10 +3332,10 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return module_item.paintToPixmap(m.m11(), m.m22())
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
-    def __init__(self, modules):
+    def __init__(self):
         QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
-                                       0, modules)
+                                       0, 100)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0

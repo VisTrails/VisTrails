@@ -464,6 +464,7 @@ class DummyView(object):
     def set_module_not_executed(self, *args, **kwargs): pass
     def set_module_progress(self, *args, **kwargs): pass
     def set_module_persistent(self, *args, **kwargs): pass
+    def set_execution_progress(self, *args, **kwargs): pass
     def flushMoveActions(self, *args, **kwargs): pass
     def scene(self): 
         return self._scene

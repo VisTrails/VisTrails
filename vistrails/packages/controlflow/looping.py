@@ -119,6 +119,8 @@ class While(Module):
             state = [module.get_output(port)
                      for port in self.name_state_output]
 
+        self.logging.update_progress(self, i * 1.0 / self.max_iterations)
+
         if i + 1 >= self.max_iterations:
             self.finished(module)
         else:

@@ -72,13 +72,13 @@ class ViewUpdatingLogController(object):
         def end_iteration(self, looped_obj):
             self.log.finish_iteration(looped_obj)
 
-    def __init__(self, logger, view, remap_id,
+    def __init__(self, logger, view, remap_id, ids,
                  module_executed_hook=[]):
         self.log = logger
         self.view = view
-
         self.remap_id = remap_id
-
+        self.ids = set(ids) # modules left to be executed
+        self.nb_modules = len(self.ids)
         self.module_executed_hook = module_executed_hook
 
         self.errors = {}
@@ -107,9 +107,9 @@ class ViewUpdatingLogController(object):
 
         self.log.start_execution(obj, i, module_name)
 
-    def update_progress(self, obj, percentage=0.0):
+    def update_progress(self, obj, progress=0.0):
         i = self.remap_id(obj.id)
-        self.view.set_module_progress(i, percentage)
+        self.view.set_module_progress(i, progress)
 
     def begin_loop_execution(self, obj, total_iterations=None):
         return ViewUpdatingLogController.Loop(
@@ -136,6 +136,11 @@ class ViewUpdatingLogController(object):
             self.view.set_module_success(i)
         else:
             self.view.set_module_error(i, error)
+
+        if i in self.ids:
+            self.ids.remove(i)
+            self.view.set_execution_progress(
+                    len(self.ids) * 1.0 / self.nb_modules)
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
@@ -242,12 +247,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         instances of modules that aren't in the cache.
         """
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         controller = fetch('controller', None)
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
@@ -397,12 +397,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def execute_pipeline(self, pipeline, tmp_id_to_module_map, 
                          persistent_to_tmp_id_map, **kwargs):
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         controller = fetch('controller', None)
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
@@ -433,6 +428,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 logger=logger,
                 view=view,
                 remap_id=get_remapped_id,
+                ids=pipeline.modules.keys(),
                 module_executed_hook=module_executed_hook)
 
         # PARAMETER CHANGES SETUP
@@ -559,15 +555,19 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def finalize_pipeline(self, pipeline, to_delete, objs, errs, execs,
                           suspended, cached, **kwargs):
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         reset_computed = fetch('reset_computed', True)
+        view = fetch('view', None)
 
         self.clean_modules(to_delete)
+
+        def dict2set(s):
+            return set(k for k, v in s.iteritems() if v)
+        if view is not None:
+            persistent = set(objs) - (dict2set(errs) | dict2set(execs) |
+                                      dict2set(suspended) | dict2set(cached))
+            for i in persistent:
+                view.set_module_persistent(i)
 
         if reset_computed:
             for module in self._objects.itervalues():
