@@ -66,6 +66,7 @@ from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from vistrails.gui.version_prop import QVersionProp
 
 import vistrails.core.analogy
 import copy
@@ -264,6 +265,12 @@ class VistrailController(QtCore.QObject, BaseController):
             locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
+        # close associated mashup apps
+        version_prop = QVersionProp.instance()
+        for app in version_prop.versionMashups.apps.values():
+            if app.view == self.vistrail_view:
+                app.close()
+
 
     ##########################################################################
     # Actions, etc
