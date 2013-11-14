@@ -95,6 +95,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if not modules_to_clean:
             return
         g = self._persistent_pipeline.graph
+        modules_to_clean = (set(modules_to_clean) &
+                            set(self._persistent_pipeline.modules.iterkeys()))
         dependencies = g.vertices_topological_sort(modules_to_clean)
         for v in dependencies:
             self._persistent_pipeline.delete_module(v)
