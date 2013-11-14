@@ -36,12 +36,13 @@
 import Queue
 import base64
 import hashlib
+import inspect
 import sys
 import logging
 import logging.handlers
 import os
 import os.path
-import pydoc
+import re
 import shutil
 import subprocess
 import tempfile
@@ -253,8 +254,11 @@ class RequestHandler(object):
                 package_dic[package.identifier] = {}
                 package_dic[package.identifier]['modules'] = []
                 for module in package._db_module_descriptors:
-                    documentation = (pydoc.getdoc(module.module) or
-                                     "(No documentation available)")
+                    documentation = inspect.getdoc(module.module)
+                    if documentation:
+                        documentation = re.sub('^ *\n', '', documentation.rstrip())
+                    else:
+                        documentation = "(No documentation available)"
                     package_dic[package.identifier]['modules'].append({'name':module.name,
                                                                        'package':module.package,
                                                                        'documentation':documentation})

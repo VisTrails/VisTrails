@@ -268,7 +268,7 @@ class VistrailController(QtCore.QObject, BaseController):
         # close associated mashup apps
         version_prop = QVersionProp.instance()
         for app in version_prop.versionMashups.apps.values():
-            if app.view == self.vistrail_view:
+            if app and app.view == self.vistrail_view:
                 app.close()
 
 
