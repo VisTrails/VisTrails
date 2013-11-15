@@ -104,7 +104,7 @@ class While(Module):
                 if not module.get_output(name_condition):
                     break
 
-            if delay:
+            if delay and i+1 != max_iterations:
                 time.sleep(delay)
 
             # Get state on output ports
