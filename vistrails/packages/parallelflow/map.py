@@ -248,8 +248,11 @@ class Map(Module):
 
                 # getting highest id between functions to guarantee unique ids
                 # TODO: can get current IdScope here?
-                high_id = max(function.db_id
-                              for function in pipeline_db_module.functions)
+                if pipeline_db_module.functions:
+                    high_id = max(function.db_id
+                                  for function in pipeline_db_module.functions)
+                else:
+                    high_id = 0
 
                 # adding function and parameter to module in pipeline
                 # TODO: 'pos' should not be always 0 here
