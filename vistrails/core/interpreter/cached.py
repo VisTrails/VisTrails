@@ -35,10 +35,12 @@
 import base64
 from vistrails.core import modules
 from vistrails.core.common import *
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.db.io
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleConnector, \
     ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors
 from vistrails.core.utils import DummyView
@@ -59,6 +61,9 @@ import vistrails.core.packagemanager
 # from core.modules.module_utils import FilePool
 
 ##############################################################################
+
+Variant_desc = None
+InputPort_desc = None
 
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
@@ -122,6 +127,36 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                    for mod in self._persistent_pipeline.module_list
                    if mod.module_descriptor.identifier == identifier]
         self.clean_modules(modules)
+
+    def make_connection(self, conn, src, dst):
+        """make_connection(self, conn, src, dst)
+        Builds a execution-time connection between modules.
+
+        """
+        global Variant_desc, InputPort_desc
+        if Variant_desc is None:
+            reg = get_module_registry()
+            Variant_desc = reg.get_descriptor_by_name(
+                    'org.vistrails.vistrails.basic', 'Variant')
+            InputPort_desc = reg.get_descriptor_by_name(
+                    'org.vistrails.vistrails.basic', 'InputPort')
+
+        iport = conn.destination.name
+        oport = conn.source.name
+        src.enableOutputPort(oport)
+        conf = get_vistrails_configuration()
+        error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
+        error_on_variant = (error_on_others or
+                            getattr(conf, 'errorOnVariantTypeerror'))
+        errors = [error_on_others, error_on_variant]
+        if isinstance(src, InputPort_desc.module):
+            typecheck = [False]
+        else:
+            typecheck = [errors[desc is Variant_desc]
+                         for desc in conn.source.spec.descriptors()]
+        dst.set_input_port(iport,
+                           ModuleConnector(src, oport, conn.destination.spec, 
+                                           typecheck))
 
     def setup_pipeline(self, pipeline, **kwargs):
         """setup_pipeline(controller, pipeline, locator, currentVersion,
@@ -269,7 +304,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             conn = self._persistent_pipeline.connections[persistent_id]
             src = self._objects[conn.sourceId]
             dst = self._objects[conn.destinationId]
-            conn.makeConnection(src, dst)
+            self.make_connection(conn, src, dst)
 
         if self.done_summon_hook:
             self.done_summon_hook(self._persistent_pipeline, self._objects)
