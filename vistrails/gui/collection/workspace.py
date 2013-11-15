@@ -45,13 +45,12 @@ from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity,
     VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
 from vistrails.core.collection.search import SearchCompiler, SearchParseError
 from vistrails.core.db.locator import FileLocator
+from vistrails.db.services.locator import UntitledLocator
 from vistrails.gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.module_palette import QModuleTreeWidgetItemDelegate
 from vistrails.gui.vis_diff import QDiffView
-from vistrails.core.collection.entity import Entity
-import vistrails.gui
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
@@ -963,7 +962,7 @@ class QVistrailList(QtGui.QTreeWidget):
         open_vistrail = _app.open_vistrail_without_prompt
         set_current_locator = _app.set_current_locator
 
-        if not locator:
+        if not locator or isinstance(locator, UntitledLocator):
             # assuming an unsaved vistrail - need to use view
             vistrail_widget = widget_item
             view = None
