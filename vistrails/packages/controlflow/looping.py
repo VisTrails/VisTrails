@@ -115,6 +115,7 @@ class While(Module):
             pass
 
         # Get state on output ports
+        state = None
         if self.name_state_output:
             state = [module.get_output(port)
                      for port in self.name_state_output]
