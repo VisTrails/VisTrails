@@ -93,10 +93,15 @@ def execute_wf(wf, output_port):
                 errors.append(msg)
 
         # Get the execution log from the controller
-        module_log = controller.log.workflow_execs[0].item_execs[0]
-        machine = controller.log.machine_list[0]
-        xml_log = serialize(module_log)
-        machine_log = serialize(machine)
+        try:
+            module_log = controller.log.workflow_execs[0].item_execs[0]
+        except IndexError:
+            errors.append("Module log not found")
+            return dict(errors=errors)
+        else:
+            machine = controller.log.machine_list[0]
+            xml_log = serialize(module_log)
+            machine_log = serialize(machine)
 
         # Get the output value
         output = None
@@ -106,7 +111,7 @@ def execute_wf(wf, output_port):
             executed_module = execution[0][0].objects[executed_module]
             try:
                 output = executed_module.get_output(output_port)
-            except ModuleError, e:
+            except ModuleError:
                 errors.append("Output port not found: %s" % output_port)
                 return dict(errors=errors)
             reg = vistrails.core.modules.module_registry.get_module_registry()
@@ -248,8 +253,11 @@ class Map(Module):
 
                 # getting highest id between functions to guarantee unique ids
                 # TODO: can get current IdScope here?
-                high_id = max(function.db_id
-                              for function in pipeline_db_module.functions)
+                if pipeline_db_module.functions:
+                    high_id = max(function.db_id
+                                  for function in pipeline_db_module.functions)
+                else:
+                    high_id = 0
 
                 # adding function and parameter to module in pipeline
                 # TODO: 'pos' should not be always 0 here
