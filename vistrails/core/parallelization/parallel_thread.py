@@ -29,7 +29,7 @@ class ThreadScheme(ParallelizationScheme):
         future = self.thread_pool().submit(module.compute)
         async_task = module._runner.make_async_task()
 
-        def thread_done(runner):
+        def thread_done():
             module.do_compute(compute=future.result)
         future.add_done_callback(lambda res: async_task.callback(thread_done))
 
