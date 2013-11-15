@@ -1,5 +1,6 @@
 import copy
 from itertools import izip
+import threading
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
@@ -110,10 +111,6 @@ class While(Module):
                 self.finished(module)
                 return
 
-        if self.delay:
-            # TODO : how do I do that? need to start a delayer thread...
-            pass
-
         # Get state on output ports
         state = None
         if self.name_state_output:
@@ -125,7 +122,16 @@ class While(Module):
         if i + 1 >= self.max_iterations:
             self.finished(module)
         else:
-            self.iteration(i + 1, state)
+            if self.delay:
+                async_task = self._runner.make_async_task()
+                def delayer():
+                    time.sleep(self.delay)
+                    async_task.callback(lambda: self.iteration(i + 1, state))
+                t = threading.Thread(target=delayer,
+                                     name="ControlFlow While module delay")
+                t.start()
+            else:
+                self.iteration(i + 1, state)
 
     def finished(self, module):
         """Execution done, set result.
