@@ -6,6 +6,7 @@ back when the tasks you are waiting on are done. It also respects priorities.
 
 
 import Queue
+import functools
 import warnings
 
 
@@ -17,6 +18,27 @@ class empty_contextmanager(object):
         pass
     def __call__(self):
         return self
+
+
+@functools.total_ordering
+class TaskItem(object):
+    """Internal structure put in the task queue.
+
+    Provides rich priority comparisons between tasks.
+    """
+    def __init__(self, priority, inherited_priority, task):
+        self.tuple = (priority,
+                      min(priority,
+                          min(inherited_priority)),
+                      inherited_priority)
+        self.inherited_priority = inherited_priority
+        self.task = task
+
+    def __lt__(self, other):
+        return self.tuple < other.tuple
+
+    def __eq__(self, other):
+        return self.tuple == other.tuple
 
 
 class DependentTask(object):
@@ -72,7 +94,9 @@ class AsyncTask(object):
 
     def callback(self, callback, priority=100):
         self.runner.running_threads -= 1
-        self.runner.tasks.put((priority, self.inherited_priority, callback))
+        self.runner.tasks.put(TaskItem(priority,
+                                       self.inherited_priority,
+                                       callback))
         self.runner = None
 
 
@@ -124,8 +148,10 @@ class TaskRunner(object):
         # No tasks: add the callback
         if not tasks:
             if callback is not None:
-                self.tasks.put(
-                        (cb_priority, self._inherited_priority, callback))
+                self.tasks.put(TaskItem(
+                        cb_priority,
+                        self._inherited_priority,
+                        callback))
             return
 
         # Compute inherited priority from the currently running task
@@ -134,7 +160,9 @@ class TaskRunner(object):
         inh_priority += (cb_priority,)
         # Add tasks
         for task in tasks:
-            self.tasks.put((priority, inh_priority, task))
+            self.tasks.put(TaskItem(priority,
+                                    inh_priority,
+                                    task))
         if callback is not None:
             dependent = DependentTask(callback, set(tasks),
                                       cb_priority, self._inherited_priority)
@@ -160,10 +188,11 @@ class TaskRunner(object):
         """
         while True:
             try:
-                prio, inh_prio, task = self.tasks.get(self.running_threads > 0)
+                item = self.tasks.get(self.running_threads > 0)
             except Queue.Empty:
                 break
-            self._inherited_priority = inh_prio
+            self._inherited_priority = item.inherited_priority
+            task = item.task
             if isinstance(task, Task):
                 self.tasks_ran.add(task)
                 with task_hook():
@@ -205,7 +234,9 @@ class TaskRunner(object):
         for dep in list(dependents):
             if dep.task_done(task):
                 dependents.remove(dep)
-                self.tasks.put((dep.priority, dep.inh_priority, dep.callback))
+                self.tasks.put(TaskItem(dep.priority,
+                                        dep.inh_priority,
+                                        dep.callback))
         if not self.dependencies[task]:
             del self.dependencies[task]
 
@@ -415,9 +446,10 @@ class TestScheduler(unittest.TestCase):
                 'compute 2t',
                 'compute 5m',
                 'compute 6t',
+                'compute 7m', # this is here instead, but that's fine
                 'compute 3m',
                 'compute 4m',
-                'compute 7m',
+                #'compute 7m',
                 'compute 8m'])
 
     def test_threaded(self):
