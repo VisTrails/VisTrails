@@ -702,8 +702,10 @@ class StandardOutput(NotCacheable, Module):
     mostly as a debugging device."""
     
     def compute(self):
-        v = self.getInputFromPort("value")
-        print v
+        values = self.getInputListFromPort("value")
+        for i in xrange(len(values)-1):
+            print values[i],
+        print values[-1]
 
 ##############################################################################
 
@@ -746,26 +748,31 @@ class Untuple(Module):
 
 ##############################################################################
 
-# TODO: Create a better Module for ConcatenateString.
-class ConcatenateString(Module):
-    """ConcatenateString takes many strings as input and produces the
-    concatenation as output. Useful for constructing filenames, for
-    example.
+# # TODO: Create a better Module for ConcatenateString.
+# class ConcatenateString(Module):
+#     """ConcatenateString takes many strings as input and produces the
+#     concatenation as output. Useful for constructing filenames, for
+#     example.
 
-    This class will probably be replaced with a better API in the
-    future."""
+#     This class will probably be replaced with a better API in the
+#     future."""
 
-    fieldCount = 4
+#     fieldCount = 4
 
+#     def compute(self):
+#         result = ""
+#         for i in xrange(self.fieldCount):
+#             v = i+1
+#             port = "str%s" % v
+#             if self.hasInputFromPort(port):
+#                 inp = self.getInputFromPort(port)
+#                 result += inp
+#         self.setResult("value", result)
+
+class ConcatenateStrings(Module):
     def compute(self):
-        result = ""
-        for i in xrange(self.fieldCount):
-            v = i+1
-            port = "str%s" % v
-            if self.hasInputFromPort(port):
-                inp = self.getInputFromPort(port)
-                result += inp
-        self.setResult("value", result)
+        values = self.getInputListFromPort("value")
+        self.setResult("value", "".join(values))
 
 ##############################################################################
 
@@ -1242,12 +1249,15 @@ def initialize(*args, **kwargs):
                                         "UntupleConfigurationWidget"))
     reg.add_input_port(Untuple, 'tuple', Tuple)
 
-    reg.add_module(ConcatenateString)
-    for i in xrange(ConcatenateString.fieldCount):
-        j = i+1
-        port = "str%s" % j
-        reg.add_input_port(ConcatenateString, port, String)
-    reg.add_output_port(ConcatenateString, "value", String)
+    # reg.add_module(ConcatenateString)
+    # for i in xrange(ConcatenateString.fieldCount):
+    #     j = i+1
+    #     port = "str%s" % j
+    #     reg.add_input_port(ConcatenateString, port, String)
+    # reg.add_output_port(ConcatenateString, "value", String)
+    reg.add_module(ConcatenateStrings)
+    reg.add_input_port(ConcatenateStrings, "value", String)
+    reg.add_output_port(ConcatenateStrings, "value", String)
 
     reg.add_module(Not)
     reg.add_input_port(Not, 'input', Boolean)
