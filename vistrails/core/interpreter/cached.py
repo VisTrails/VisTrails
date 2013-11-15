@@ -156,7 +156,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                          for desc in conn.source.spec.descriptors()]
         dst.set_input_port(iport,
                            ModuleConnector(src, oport, conn.destination.spec, 
-                                           typecheck))
+                                           typecheck, conn.pos))
 
     def setup_pipeline(self, pipeline, **kwargs):
         """setup_pipeline(controller, pipeline, locator, currentVersion,

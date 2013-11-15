@@ -315,6 +315,28 @@ class Module(DBModule):
         ports.extend(self.input_port_specs)
         return ports
 
+    def add_input_conn(self, conn):
+        port_name = conn.destination.name
+        if port_name not in self.connected_input_ports:
+            self.connected_input_ports[port_name] = [conn]
+        else:
+            self.connected_input_ports[port_name].append(conn)
+
+    def del_input_conn(self, conn):
+        port_name = conn.destination.name
+        self.connected_input_ports[port_name].remove(conn)
+
+    def add_output_conn(self, conn):
+        port_name = conn.source.name
+        if port_name not in self.connected_output_ports:
+            self.connected_output_ports[port_name] = 1
+        else:
+            self.connected_output_ports[port_name] += 1
+
+    def del_output_conn(self, conn):
+        port_name = conn.source.name
+        self.connected_output_ports[port_name] -= 1
+
     ##########################################################################
     # Debugging
 

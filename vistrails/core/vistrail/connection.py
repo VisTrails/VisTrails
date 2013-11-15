@@ -88,6 +88,7 @@ class Connection(DBConnection):
         if not len(self.ports) > 0:
             self.source = Port(type='source')
             self.destination = Port(type='destination')
+        self._pos = -1
 
     def __copy__(self):
         """__copy__() -> Connection -  Returns a clone of self.
@@ -100,6 +101,7 @@ class Connection(DBConnection):
         cp.__class__ = Connection
         for port in cp.ports:
             Port.convert(port)
+        cp._pos = self._pos
         return cp
 
     ##########################################################################
@@ -113,6 +115,7 @@ class Connection(DBConnection):
 
         for port in _connection.ports:
             Port.convert(port)
+        _connection._pos = -1
 
     ##########################################################################
     # Debugging
@@ -138,6 +141,12 @@ class Connection(DBConnection):
     id = DBConnection.db_id
     ports = DBConnection.db_ports
     
+    def _get_pos(self):
+        return self._pos
+    def _set_pos(self, pos):
+        self._pos = pos
+    pos = property(_get_pos, _set_pos)
+
     def add_port(self, port):
         self.db_add_port(port)
 

@@ -517,6 +517,7 @@ Makes sure input port 'name' is filled."""
     def set_input_port(self, inputPort, conn, is_method=False):
         if self.inputPorts.has_key(inputPort):
             self.inputPorts[inputPort].append(conn)
+            self.inputPorts[inputPort].sort(key=lambda x: x.pos)
         else:
             self.inputPorts[inputPort] = [conn]
         if is_method:
@@ -559,6 +560,7 @@ Makes sure input port 'name' is filled."""
             conList = self.inputPorts[inputPort]
             if connector in conList:
                 conList.remove(connector)
+                conList.sort(key=lambda x: x.pos)
             if conList==[]:
                 del self.inputPorts[inputPort]
 
@@ -608,13 +610,14 @@ class Converter(Module):
 ################################################################################
 
 class ModuleConnector(object):
-    def __init__(self, obj, port, spec=None, typecheck=None):
+    def __init__(self, obj, port, spec=None, typecheck=None, pos=-1):
         # typecheck is a list of booleans indicating which descriptors to
         # typecheck
         self.obj = obj
         self.port = port
         self.spec = spec
         self.typecheck = typecheck
+        self.pos = pos
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""

@@ -652,6 +652,13 @@ class VistrailController(object):
         conn_id = id_scope.getNewId(Connection.vtType)
         connection = Connection(id=conn_id,
                                 ports=[input_port, output_port])
+
+        input_ports = input_module.connected_input_ports
+        if input_port_spec.name in input_ports:
+            connection.pos = max(c.pos 
+                                 for c in input_ports[input_port_spec.name]) + 1
+        else:
+            connection.pos = 0
         return connection
 
     def create_param(self, *args, **kwargs):
