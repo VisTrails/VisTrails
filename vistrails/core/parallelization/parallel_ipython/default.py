@@ -77,7 +77,7 @@ class IPythonScheme(ParallelizationScheme):
         # invalid to perform any other operation on the Client while it is
         # pending
         def callback(res):
-            def get_results(runner):
+            def get_results():
                 def compute():
                     try:
                         set_results(module, res.get())

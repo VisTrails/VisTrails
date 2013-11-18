@@ -121,7 +121,7 @@ class IPythonStandaloneScheme(ParallelizationScheme):
         async_task = module._runner.make_async_task()
 
         def callback(res):
-            def get_results(runner):
+            def get_results():
                 def compute():
                     try:
                         results = res.get()
