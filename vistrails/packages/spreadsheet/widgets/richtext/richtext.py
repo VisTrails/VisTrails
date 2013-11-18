@@ -35,38 +35,55 @@
 ################################################################################
 # Richtext widgets implementation
 ################################################################################
-from vistrails.core.modules.vistrails_module import Module
-from PyQt4 import QtCore, QtGui
+import os
+from PyQt4 import QtGui
+from vistrails.core.bundles.pyimport import py_import
+from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
-import shutil
-import os.path
 ################################################################################
 
 class RichTextCell(SpreadsheetCell):
     """
     RichTextCell is a custom Module to view HTML files
-    
+
     """
     def compute(self):
         """ compute() -> None
         Dispatch the HTML contents to the spreadsheet
         """
-        if self.hasInputFromPort("File"):
-            fileValue = self.getInputFromPort("File")
-        else:
-            fileValue = None
-        self.cellWidget = self.displayAndWait(RichTextCellWidget, (fileValue,))
+        filename = self.getInputFromPort("File").name
+
+        text_format = self.getInputFromPort("Format")
+        with open(filename, 'rb') as fp:
+            if text_format == 'html':
+                html = fp.read()
+            elif text_format == 'rtf':
+                try:
+                    py_import('pyth', {'pip': 'pyth'})
+                except ImportError:
+                    raise ModuleError(self, "'rtf' format requires the pyth "
+                                      "Python library")
+                else:
+                    from pyth.plugins.rtf15.reader import Rtf15Reader
+                    from pyth.plugins.xhtml.writer import XHTMLWriter
+                    doc = Rtf15Reader.read(fp)
+                    html = XHTMLWriter.write(doc).read().decode('utf-8')
+            else:
+                raise ModuleError(self, "'%s' format is unknown" % text_format)
+
+        self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
+
 
 class RichTextCellWidget(QCellWidget):
     """
     RichTextCellWidget has a QTextBrowser to display HTML files
-    
+
     """
     def __init__(self, parent=None):
         """ RichTextCellWidget(parent: QWidget) -> RichTextCellWidget
         Create a rich text cell without a toolbar
-        
+
         """
         QCellWidget.__init__(self, parent)
         self.setLayout(QtGui.QVBoxLayout(self))
@@ -74,43 +91,30 @@ class RichTextCellWidget(QCellWidget):
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.browser.controlBarType = None
-        self.fileSrc = None
-        
+        self.html = None
+
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
-        Updates the contents with a new changed in filename
-        
+        Updates the contents with a new HTML document
+
         """
-        self.fileSrc = None
-        (fileValue,) = inputPorts
-        if fileValue:
-            try:
-                fi = open(fileValue.name, "r")
-            except IOError:
-                self.browser.setText("Cannot load the HTML file!")
-                return            
-            self.browser.setHtml(fi.read())
-            fi.close()
-            self.fileSrc = fileValue.name
-        else:
-            self.browser.setText("No HTML file is specified!")
-            
+        (self.html,) = inputPorts
+        self.browser.setHtml(self.html)
+
     def dumpToFile(self, filename):
-        """ dumpToFile(filename) -> None 
+        """ dumpToFile(filename) -> None
         It will generate a screenshot of the cell contents and dump to filename.
-        It will also create a copy of the original text file used with 
+        It will also create a copy of the original text file used with
         filename's basename and the original extension.
         """
-        if self.fileSrc is not None:
-            (_, s_ext) = os.path.splitext(self.fileSrc)
-            (f_root, f_ext) = os.path.splitext(filename)
-            ori_filename = f_root + s_ext
-            shutil.copyfile(self.fileSrc, ori_filename)
+        if self.html is not None:
+            basename, ext = os.path.splitext(filename)
+            with open(basename + '.html', 'wb') as fp:
+                fp.write(self.html.encode('utf-8'))
         QCellWidget.dumpToFile(self,filename)
-            
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)
-        
