@@ -514,6 +514,14 @@ class QVistrailViewWindow(QBaseViewWindow):
                        'callback': \
                            _app.pass_through_locator(self.get_current_view,
                                                      'save_vistrail_as')}),
+                     ('saveToOther', "Save To DB...",
+                      {'statusTip': "Save the current vistrail to a " \
+                           "database",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through_locator(self.get_current_view,
+                                                     'save_vistrail_as', 
+                                                     reverse=True)}),
                      ('closeVistrail', "Close",
                       {'shortcut': QtGui.QKeySequence.Close,
                        'statusTip': "Close the current vistrail",
@@ -2101,9 +2109,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             saveFileAsAction = self.qactions['saveFileAs']
             saveFileAsAction.setStatusTip('Save the current vistrail to a '
                                           'different database location')
+            saveToOtherAction = self.qactions['saveToOther']
+            saveToOtherAction.setText('Save To File...')
+            saveToOtherAction.setStatusTip('Save the current vistrail to '
+                                          'a file')
             exportFileAction = self.qactions['exportFile']
-            exportFileAction.setText('To XML File...')
-            exportFileAction.setStatusTip('Save the current vistrail to '
+            exportFileAction.setText('To File...')
+            exportFileAction.setStatusTip('Export the current vistrail to '
                                           'a file')
         else:
             openFileAction = self.qactions['openFile']
@@ -2121,9 +2133,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             saveFileAsAction = self.qactions['saveFileAs']
             saveFileAsAction.setStatusTip('Save the current vistrail to a '
                                           'different file location')
+            saveToOtherAction = self.qactions['saveToOther']
+            saveToOtherAction.setText('Save To DB...')
+            saveToOtherAction.setStatusTip('Save the current vistrail to '
+                                          'a database')
             exportFileAction = self.qactions['exportFile']
-            exportFileAction.setText('To DB...')
-            exportFileAction.setStatusTip('Save the current vistrail to '
+            exportFileAction.setText('Export To DB...')
+            exportFileAction.setStatusTip('Export the current vistrail to '
                                           'a database')
 
     def flush_cache(self):
