@@ -44,7 +44,6 @@ from vistrails.core.utils.timemethod import time_method, time_call
 from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_stack, \
      trace_method_options, trace_method_args
 from vistrails.core.utils.color import ColorByName
-from vistrails.core.utils.lockmethod import lock_method
 import copy
 import errno
 import itertools
