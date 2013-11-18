@@ -140,7 +140,7 @@ class ViewUpdatingLogController(object):
         if i in self.ids:
             self.ids.remove(i)
             self.view.set_execution_progress(
-                    len(self.ids) * 1.0 / self.nb_modules)
+                    1.0 - (len(self.ids) * 1.0 / self.nb_modules))
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
