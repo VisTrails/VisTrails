@@ -265,6 +265,15 @@ class Map(Module):
                 for elementValue, inputPort in izip(element, nameInput):
 
                     p_spec = pipeline_db_module.get_port_spec(inputPort, 'input')
+                    descrs = p_spec.descriptors()
+                    if len(descrs) != 1:
+                        raise ModuleError(
+                                self,
+                                "Tuple input ports are not supported")
+                    if not issubclass(descrs[0].module, Constant):
+                        raise ModuleError(
+                                self,
+                                "Module inputs should be Constant types")
                     type = p_spec.sigstring[1:-1]
 
                     mod_function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
@@ -288,10 +297,12 @@ class Map(Module):
         # IPython stuff
         try:
             rc = get_client()
-            engines = rc.ids
         except Exception, error:
             raise ModuleError(self, "Exception while loading IPython: "
                               "%s" % error)
+        if rc is None:
+            raise ModuleError(self, "Couldn't get an IPython connection")
+        engines = rc.ids
         if not engines:
             raise ModuleError(
                     self,
