@@ -716,16 +716,6 @@
       <port id="55" moduleId="7" moduleName="PythonCalc" name="op" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
     </add>
   </action>
-  <action date="2013-06-13 15:06:35" id="83" prevId="82" session="4" user="Remi">
-    <delete id="202" objectId="6" parentObjId="3" parentObjType="connection" what="port" />
-    <delete id="203" objectId="7" parentObjId="3" parentObjType="connection" what="port" />
-    <delete id="204" objectId="3" parentObjId="" parentObjType="" what="connection" />
-    <delete id="205" objectId="42" parentObjId="21" parentObjType="connection" what="port" />
-    <delete id="206" objectId="43" parentObjId="21" parentObjType="connection" what="port" />
-    <delete id="207" objectId="21" parentObjId="" parentObjType="" what="connection" />
-    <delete id="208" objectId="10" parentObjId="4" parentObjType="module" what="location" />
-    <delete id="209" objectId="4" parentObjId="" parentObjType="" what="module" />
-  </action>
   <action date="2013-06-13 15:06:41" id="84" prevId="82" session="4" user="Remi">
     <delete id="210" objectId="46" parentObjId="23" parentObjType="connection" what="port" />
     <delete id="211" objectId="47" parentObjId="23" parentObjType="connection" what="port" />
