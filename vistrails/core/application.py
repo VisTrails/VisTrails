@@ -441,8 +441,6 @@ after self.init()"""
             self.vistrailsStartup.destroy()
         Collection.clearInstance()
 
-        Parallelization.finalize_parallelization_schemes()
-
     def __del__(self):
         """ __del__() -> None
         Make sure to finalize in the destructor
@@ -552,7 +550,9 @@ after self.init()"""
 
     def finishSession(self):
         vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
-        
+
+        Parallelization.finalize_parallelization_schemes()
+
     def save_configuration(self):
         """ save_configuration() -> None
         Save the current vistrail configuration to the startup.xml file.
