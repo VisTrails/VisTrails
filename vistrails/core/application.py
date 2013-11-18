@@ -248,6 +248,7 @@ The builder window can be accessed by a spreadsheet menu option.")
                             os.path.join(tmpdir, 'startup.xml'))
             self.temp_configuration.enablePackagesSilently = True
             self.temp_configuration.nologfile = True
+            self.temp_configuration.singleInstance = False
         elif get('dotVistrails') is not None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
 
