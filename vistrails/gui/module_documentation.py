@@ -92,10 +92,9 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
                 descriptor = module.module_descriptor
         except ModuleRegistryException:
             pass
-        self.update_descriptor(descriptor)
+        self.update_descriptor(descriptor, module)
 
-    def update_descriptor(self, descriptor=None):
-        self.descriptor = descriptor
+    def update_descriptor(self, descriptor=None, module=None):
         if descriptor is None:
             # self.setWindowTitle("Module Documentation")
             self.name_label.setText("Module name:")
@@ -106,10 +105,7 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
             self.name_label.setText("Module name: %s" % descriptor.name)
             self.package_label.setText("Module package: %s" % \
                                            descriptor.module_package())
-            if descriptor.module.__doc__:
-                self.textEdit.setText(descriptor.module.__doc__)
-            else:
-                self.textEdit.setText("Documentation not available.")
+            self.textEdit.setText(descriptor.module_documentation(module))
 
     def activate(self):
         if self.isVisible() == False:

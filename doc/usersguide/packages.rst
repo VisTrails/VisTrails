@@ -192,6 +192,38 @@ That is it --- you have successfully created a new package and
 module. From now on, we will look at more complicated examples, and
 more advanced features of the package mechanism.
 
+Module documentation
+====================
+
+The docstring you set on your Module subclass will be displayed to the user
+when he clicks on the 'Documentation' button in the 'Module Information' panel.
+Be sure to put a readable description and your usage information there.
+
+If you want to customize that documentation, you can provide a staticmethod or
+classmethod 'get_documentation' on your Module. The string it returns will be
+used as the documentation.
+
+.. code-block:: python
+   :linenos:
+
+   class TestMod(Module):
+       """This very simple module doesn't do anything sensible.
+       """
+
+       @classmethod
+       def get_documentation(cls, docstring, module=None):
+           return docstring.upper()
+
+The function receives two arguments: the string that was about to be used (the
+module's docstring or an empty string), and the module object from the
+pipeline if the documentation was requested for a specific instance of that
+module (else, None is passed).
+
+.. _fig-packages-custom_documentation:
+
+.. figure:: figures/packages/custom_documentation.png
+   :align: center
+
 Creating Reloadable Packages
 ============================
 

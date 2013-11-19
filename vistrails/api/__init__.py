@@ -264,7 +264,7 @@ def add_port_spec(module_id, port_spec, controller=None):
     # module = controller.current_pipeline.modules[module_id]
     controller.add_module_port(module_id, (port_spec.type, port_spec.name,
                                            port_spec.sigstring))
-    controller.updatePipleineScene()
+    controller.updatePipelineScene()
 
 ##############################################################################
 

@@ -36,11 +36,13 @@
 import Queue
 import base64
 import hashlib
+import inspect
 import sys
 import logging
 import logging.handlers
 import os
 import os.path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -210,14 +212,11 @@ class RequestHandler(object):
             if p:
                 result = []
                 for module in p.module_list:
-                    descriptor = \
-                       module_registry().get_descriptor_by_name(module.package,
-                                                                module.name,
-                                                                module.namespace)
-                    if descriptor.module.__doc__:
-                        documentation = descriptor.module.__doc__
-                    else:
-                        documentation = "Documentation not available."
+                    descriptor = module_registry().get_descriptor_by_name(
+                            module.package,
+                            module.name,
+                            module.namespace)
+                    documentation = descriptor.module_documentation(module)
                     result.append({'name':module.name,
                                               'package':module.package,
                                               'documentation':documentation})
@@ -255,15 +254,16 @@ class RequestHandler(object):
                 package_dic[package.identifier] = {}
                 package_dic[package.identifier]['modules'] = []
                 for module in package._db_module_descriptors:
-                    if module.module.__doc__:
-                        documentation = module.module.__doc__
+                    documentation = inspect.getdoc(module.module)
+                    if documentation:
+                        documentation = re.sub('^ *\n', '', documentation.rstrip())
                     else:
-                        documentation = "Documentation not available."
+                        documentation = "(No documentation available)"
                     package_dic[package.identifier]['modules'].append({'name':module.name,
                                                                        'package':module.package,
                                                                        'documentation':documentation})
                 package_dic[package.identifier]['description'] = \
-                        package.description if package.description else "No description available"
+                        package.description if package.description else "(No description available)"
             return (package_dic, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"

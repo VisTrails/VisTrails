@@ -66,6 +66,7 @@ from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from vistrails.gui.version_prop import QVersionProp
 
 import vistrails.core.analogy
 import copy
@@ -261,9 +262,16 @@ class VistrailController(QtCore.QObject, BaseController):
     def cleanup(self):
         locator = self.get_locator()
         if locator:
-            locator.clean_temporaries()
+            if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
+                locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
+        # close associated mashup apps
+        version_prop = QVersionProp.instance()
+        for app in version_prop.versionMashups.apps.values():
+            if app and app.view == self.vistrail_view:
+                app.close()
+
 
     ##########################################################################
     # Actions, etc
@@ -359,7 +367,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.flush_delayed_actions()
         if self.current_pipeline:
             locator = self.get_locator()
-            if locator:
+            if locator and isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
             return self.execute_workflow_list([(self.locator,

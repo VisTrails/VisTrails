@@ -45,6 +45,7 @@ from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity,
 from vistrails.core.collection.search import SearchCompiler, SearchParseError
 from vistrails.core.db.locator import FileLocator
 from vistrails.core.system import time_strptime
+from vistrails.db.services.locator import UntitledLocator
 from vistrails.gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
@@ -961,7 +962,7 @@ class QVistrailList(QtGui.QTreeWidget):
         open_vistrail = _app.open_vistrail_without_prompt
         set_current_locator = _app.set_current_locator
 
-        if not locator:
+        if not locator or isinstance(locator, UntitledLocator):
             # assuming an unsaved vistrail - need to use view
             vistrail_widget = widget_item
             view = None

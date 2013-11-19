@@ -1684,6 +1684,7 @@ class ModuleRegistry(DBRegistry):
         return port_spec.type == 'input' and \
             all(self.is_descriptor_subclass(d, constant_desc) 
                 for d in port_spec.descriptors())
+    is_constant = is_method
 
     def method_ports(self, module_descriptor):
         """method_ports(module_descriptor: ModuleDescriptor) 

@@ -305,10 +305,21 @@ class TestConsoleMode(unittest.TestCase):
             manager.late_disable_package('console_mode_test')
             
     def test1(self):
-        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                                 '/tests/resources/dummy.xml')
-        result = run([(locator, "int chain")], update_vistrail=False)
-        self.assertEqual(len(result), 0)
+        from vistrails.core.modules.basic_modules import StandardOutput
+        values = []
+        def mycompute(s):
+            v = s.getInputFromPort('value')
+            values.append(v)
+        orig_compute = StandardOutput.compute
+        StandardOutput.compute = mycompute
+        try:
+            locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
+                                     '/tests/resources/dummy.xml')
+            result = run([(locator, "int chain")], update_vistrail=False)
+            self.assertEqual(len(result), 0)
+            self.assertEqual(values, [2])
+        finally:
+            StandardOutput.compute = orig_compute
 
     def test_tuple(self):
         from vistrails.core.vistrail.module_param import ModuleParam

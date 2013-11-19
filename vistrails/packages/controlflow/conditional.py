@@ -32,13 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.vistrails_module import Module, ModuleError
-from vistrails.core.modules.basic_modules import NotCacheable
+from vistrails.core.modules.vistrails_module import Module
 
 #################################################################################
 ## If Operator
 
-class If(Module, NotCacheable):
+class If(Module):
     """
     Return one of two values depending on a boolean condition.
 
@@ -87,7 +86,7 @@ class If(Module, NotCacheable):
 #################################################################################
 ## Default module
 
-class Default(Module, NotCacheable):
+class Default(Module):
     """
     The Default module allows the user to provide a default value.
 

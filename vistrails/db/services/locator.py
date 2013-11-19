@@ -1068,7 +1068,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     def __ne__(self, other):

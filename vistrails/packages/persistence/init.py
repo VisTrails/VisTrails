@@ -643,15 +643,38 @@ def menu_items():
     return menu_tuple
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-    module_remap = {'PersistentFile':
-                        [(None, '0.1.0', 'PersistentIntermediateFile',
-                          {'dst_port_remap':
-                               {'compress': None}})],
-                    'PersistentDirectory':
-                        [(None, '0.1.0', 'PersistentIntermediateDir',
-                          {'dst_port_remap':
-                               {'compress': None}})]
-                    }
+    module_remap = {
+            # Migrates from pre-0.1.0 to 0.2.0+
+            'PersistentFile': [
+                (None, '0.1.0', 'PersistentIntermediateFile', {
+                    'dst_port_remap': {
+                        'compress': None}})],
+            'PersistentDirectory': [
+                (None, '0.1.0', 'PersistentIntermediateDir', {
+                    'dst_port_remap': {
+                        'compress': None}})],
+            # Migrates from persistence_exp (0.1.0-0.2.0) to 0.2.0+
+            'ManagedRef': [
+                ('0.1.0', None, 'persistence:PersistentRef', {})],
+            'ManagedPath': [
+                ('0.1.0', None, 'persistence:PersistentPath', {})],
+            'ManagedFile': [
+                ('0.1.0', None, 'persistence:PersistentFile', {})],
+            'ManagedDir': [
+                ('0.1.0', None, 'persistence:PersistentDir', {})],
+            'ManagedInputFile': [
+                ('0.1.0', None, 'persistence:PersistentInputFile', {})],
+            'ManagedOutputFile': [
+                ('0.1.0', None, 'persistence:PersistentOutputFile', {})],
+            'ManagedIntermediateFile': [
+                ('0.1.0', None, 'persistence:PersistentIntermediateFile', {})],
+            'ManagedInputDir': [
+                ('0.1.0', None, 'persistence:PersistentInputDir', {})],
+            'ManagedOutputDir': [
+                ('0.1.0', None, 'persistence:PersistentOutputDir', {})],
+            'ManagedIntermediateDir': [
+                ('0.1.0', None, 'persistence:PersistentIntermediateDir', {})]
+        }
     for module in ['PersistentPath', 'PersistentFile', 'PersistentDir',
                    'PersistentInputFile', 'PersistentOutputFile',
                    'PersistentIntermediateFile',
@@ -663,55 +686,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
             module_remap[module].append(upgrade)
         else:
             module_remap[module] = [upgrade]
-    
+
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
-    
-# def handle_missing_module(controller, module_id, pipeline):
-#     reg = get_module_registry()
-#     module_remap = {'PersistentFile': PersistentIntermediateFile,
-#                     'PersistentDirectory': PersistentIntermediateDir,
-#                     } # 'PersistentPath': PersistentIntermediatePath}
-#     function_remap = {'value': 'value',
-#                       'compress': None}
-#     src_port_remap = {'value': 'value',
-#                       'compress': None},
-#     dst_port_remap = {'value': 'value'}
-
-#     old_module = pipeline.modules[module_id]
-#     debug_print('running handle_missing_module', old_module.name)
-#     if old_module.name in module_remap:
-#         debug_print('running through remamp')
-#         new_descriptor = reg.get_descriptor(module_remap[old_module.name])
-#         action_list = \
-#             UpgradeWorkflowHandler.replace_module(controller, pipeline,
-#                                                   module_id, new_descriptor,
-#                                                   function_remap,
-#                                                   src_port_remap,
-#                                                   dst_port_remap)
-#         debug_print('action_list', action_list)
-#         return action_list
-
-#     return False
-
-# def handle_all_errors(controller, err_list, pipeline):
-#     new_actions = []
-#     debug_print('starting handle_all_errors')
-#     for err in err_list:
-#         debug_print('processing', err)
-#         if isinstance(err, MissingModule):
-#             debug_print('got missing')
-#             actions = handle_missing_module(controller, err._module_id, 
-#                                             pipeline)
-#             if actions:
-#                 new_actions.extend(actions)
-#         elif isinstance(err, MissingPackageVersion):
-#             debug_print('got package version change')
-#             actions = handle_module_upgrade_request(controller, err._module_id,
-#                                                     pipeline)
-#             if actions:
-#                 new_actions.extend(actions)
-
-#     if len(new_actions) == 0:
-#         return None
-#     return new_actions
