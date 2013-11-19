@@ -93,7 +93,7 @@ def get_module_inputs_with_defaults(module):
 
 def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
     if get_vistrails_application() is None:
-        vistrails.core.application.init(args=[])
+        vistrails.core.application.init({'spawned': True}, args=[])
 
     Parallelization.set_is_subprocess()
 

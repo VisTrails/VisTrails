@@ -24,7 +24,7 @@ def initialize_then_execute_serialized_pipeline(*args):
         import vistrails.core.application
 
         # Start a VisTrails application
-        app = vistrails.core.application.init(args=[])
+        app = vistrails.core.application.init({'spawned': True}, args=[])
 
         init = True
 
