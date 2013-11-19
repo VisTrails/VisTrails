@@ -262,7 +262,8 @@ class VistrailController(QtCore.QObject, BaseController):
     def cleanup(self):
         locator = self.get_locator()
         if locator:
-            locator.clean_temporaries()
+            if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
+                locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
         # close associated mashup apps
@@ -366,7 +367,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.flush_delayed_actions()
         if self.current_pipeline:
             locator = self.get_locator()
-            if locator:
+            if locator and isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
             return self.execute_workflow_list([(self.locator,

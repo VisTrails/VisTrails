@@ -241,7 +241,8 @@ class VistrailController(object):
         if not self.vistrail.is_abstraction:
             self.unload_abstractions()
         if locator is not None:
-            locator.clean_temporaries()
+            if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
+                locator.clean_temporaries()
             locator.close()
 
     def cleanup(self):
@@ -3587,7 +3588,9 @@ class VistrailController(object):
                                                     save_bundle.abstractions) 
                     self.set_file_name(locator.name)
                     if old_locator and not export:
-                        old_locator.clean_temporaries()
+                        if isinstance(old_locator,
+                                    vistrails.core.db.locator.XMLFileLocator):
+                            old_locator.clean_temporaries()
                         old_locator.close()
                     self.flush_pipeline_cache()
                     self.change_selected_version(new_vistrail.db_currentVersion, 
@@ -3626,7 +3629,8 @@ class VistrailController(object):
                 if self.log:
                     self.log.delete_all_workflow_execs()
                 self.set_changed(False)
-                locator.clean_temporaries()
+                if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
+                    locator.clean_temporaries()
 
             # delete any temporary subworkflows
                 try:

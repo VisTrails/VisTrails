@@ -182,6 +182,7 @@ class StringsToDates(Module):
         if not fmt:
             try:
                 py_import('dateutil', {
+                    'pip': 'python-dateutil',
                     'linux-debian': 'python-dateutil',
                     'linux-ubuntu': 'python-dateutil',
                     'linux-fedora': 'python-dateutil'})
