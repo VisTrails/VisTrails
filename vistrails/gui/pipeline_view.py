@@ -168,12 +168,11 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self._pen_color = CurrentTheme.PORT_PEN_COLOR_NORMAL
             # self.setPen(CurrentTheme.PORT_PEN)
             self.setBrush(CurrentTheme.PORT_BRUSH)
-        if self._connected > 0:
-            self.setBrush(CurrentTheme.PORT_CONNECTED_BRUSH)
-        elif self._connected < self._min_conns:
-            self.setBrush(CurrentTheme.PORT_MANDATORY_BRUSH)
-        else:
-            self.setBrush(CurrentTheme.PORT_BRUSH)
+        if self.brush() == CurrentTheme.PORT_BRUSH:
+            if self._connected > 0:
+                self.setBrush(CurrentTheme.PORT_CONNECTED_BRUSH)
+            elif self._connected < self._min_conns:
+                self.setBrush(CurrentTheme.PORT_MANDATORY_BRUSH)
         if self._selected:
             self._pen_width = CurrentTheme.PORT_PEN_WIDTH_SELECTED
         elif self._min_conns > 0 and self._connected < self._min_conns:
@@ -248,7 +247,8 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
 
     def updateToolTip(self):
         tooltip = ""
-        if self.port is not None and hasattr(self.port, 'toolTip'):
+        if (self.port is not None and self.port.is_valid and
+            hasattr(self.port, 'toolTip')):
             tooltip = self.port.toolTip()
         for vistrail_var in self.vistrail_vars.itervalues():
             tooltip += '\nConnected to vistrail var "%s"' % vistrail_var.name
@@ -2398,7 +2398,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         min_dis = None
         selected_convs = None
         for o_item in output_ports:
+            if o_item.invalid:
+                continue
             for i_item in input_ports:
+                if i_item.invalid:
+                    continue
                 convs = []
                 if reg.ports_can_connect(o_item.port, i_item.port,
                                          allow_conversion=True,
@@ -3063,7 +3067,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
-    def cancel_progress(self):
+    def check_progress_canceled(self):
         """Checks if the user have canceled the execution and takes
            appropriate action
         """
@@ -3125,8 +3129,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.progress:
-            self.cancel_progress()
-            self.progress.setValue(self.progress.value() + 1)
+            self.check_progress_canceled()
             pipeline = self.controller.current_pipeline
             module = pipeline.get_module_by_id(moduleId)
             self.progress.setLabelText(module.name)
@@ -3141,7 +3144,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.progress:
             try:
-                self.cancel_progress()
+                self.check_progress_canceled()
             except AbortExecution:
                 self.progress._progress_canceled = True
                 raise
@@ -3177,6 +3180,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
             import traceback
             debug.critical("Error Monitoring Job: %s" % e,
                            traceback.format_exc())
+
+    def set_execution_progress(self, progress):
+        if self.progress:
+            self.progress.setValue(int(progress * 100))
 
     def reset_module_colors(self):
         for module in self.modules.itervalues():
@@ -3322,8 +3329,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         jobView.updating_now = True
 
         try:
-            modules = len(self.controller.current_pipeline.modules)
-            progress = ExecutionProgressDialog(modules)
+            progress = ExecutionProgressDialog()
             self.scene().progress = progress
             progress.show()
 
@@ -3334,7 +3340,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             else:
                 self.controller.execute_current_workflow()
 
-            progress.setValue(modules)
+            progress.setValue(100)
             #progress.hide()
             self.scene().progress = None
         except Exception, e:
@@ -3491,10 +3497,10 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return module_item.paintToPixmap(m.m11(), m.m22())
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
-    def __init__(self, modules):
+    def __init__(self):
         QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
-                                       0, modules)
+                                       0, 100)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0

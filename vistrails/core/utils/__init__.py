@@ -44,7 +44,6 @@ from vistrails.core.utils.timemethod import time_method, time_call
 from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_stack, \
      trace_method_options, trace_method_args
 from vistrails.core.utils.color import ColorByName
-from vistrails.core.utils.lockmethod import lock_method
 import copy
 from distutils.version import LooseVersion
 import errno
@@ -464,6 +463,7 @@ class DummyView(object):
     def set_module_not_executed(self, *args, **kwargs): pass
     def set_module_progress(self, *args, **kwargs): pass
     def set_module_persistent(self, *args, **kwargs): pass
+    def set_execution_progress(self, *args, **kwargs): pass
     def flushMoveActions(self, *args, **kwargs): pass
     def scene(self): 
         return self._scene
@@ -554,12 +554,18 @@ class _PickleableStaticMethod(object):
 
 
 
-class _TestFibo(object):
-    @memo_method
+class _TestRegularFibo(object):
+    def __init__(self):
+        self.calls = 0
+
     def f(self, x):
+        self.calls += 1
         if x == 0: return 0
         if x == 1: return 1
         return self.f(x-1) + self.f(x-2)
+
+class _TestMemoFibo(_TestRegularFibo):
+    f = memo_method(_TestRegularFibo.f)
 
 class TestCommon(unittest.TestCase):
     def test_append_to_dict_of_lists(self):
@@ -577,28 +583,17 @@ class TestCommon(unittest.TestCase):
         append_to_dict_of_lists(f, 2, "Foo")
         self.assertEquals(f.has_key(2), True)
         self.assertEquals(f[2], ["Foo"])
-        
+
     def test_memo(self):
-        import time
-        t1 = time.time()
-        for i in xrange(10000):
-            _TestFibo().f(102)
-        t2 = time.time()
-        for i in xrange(10000):
-            _TestFibo().f(104)
-        t3 = time.time()
-        for i in xrange(10000):
-            _TestFibo().f(106)
-        t4 = time.time()
-        d1 = t2 - t1
-        d2 = t3 - t2
-        d3 = t4 - t3
-        if d1 == 0: r1 = 0
-        else: r1 = d2 / d1
-        if d2 == 0: r2 = 0
-        else: r2 = d3 / d2
-        self.assertEquals(r1 < 2.618, True)
-        self.assertEquals(r2 < 2.618, True)
+        regular = _TestRegularFibo()
+        r1 = regular.f(20)
+        memoized = _TestMemoFibo()
+        r2 = memoized.f(20)
+        self.assertEqual(r1, 6765)
+        self.assertEqual(r2, 6765)
+        self.assertLess(memoized.calls, regular.calls)
+        self.assertEqual(regular.calls, 21891)
+        self.assertEqual(memoized.calls, 21)
 
     def test_memo_2(self):
         count = [0]

@@ -34,6 +34,7 @@
 ###############################################################################
 
 identifier = 'org.vistrails.vistrails.persistence'
-version = '0.3.1'
+version = '0.3.2'
 name = 'Persistence'
-old_identifiers = ['edu.utah.sci.vistrails.persistence']
+old_identifiers = ['edu.utah.sci.vistrails.persistence',
+                   'edu.utah.sci.vistrails.persistence.exp']

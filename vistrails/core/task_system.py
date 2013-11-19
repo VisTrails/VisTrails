@@ -6,6 +6,7 @@ back when the tasks you are waiting on are done. It also respects priorities.
 
 
 import Queue
+import functools
 import warnings
 
 
@@ -17,6 +18,27 @@ class empty_contextmanager(object):
         pass
     def __call__(self):
         return self
+
+
+@functools.total_ordering
+class TaskItem(object):
+    """Internal structure put in the task queue.
+
+    Provides rich priority comparisons between tasks.
+    """
+    def __init__(self, priority, inherited_priority, task):
+        self.tuple = (priority,
+                      min(priority,
+                          min(inherited_priority)),
+                      inherited_priority)
+        self.inherited_priority = inherited_priority
+        self.task = task
+
+    def __lt__(self, other):
+        return self.tuple < other.tuple
+
+    def __eq__(self, other):
+        return self.tuple == other.tuple
 
 
 class DependentTask(object):
@@ -72,7 +94,9 @@ class AsyncTask(object):
 
     def callback(self, callback, priority=100):
         self.runner.running_threads -= 1
-        self.runner.tasks.put((priority, self.inherited_priority, callback))
+        self.runner.tasks.put(TaskItem(priority,
+                                       self.inherited_priority,
+                                       callback))
         self.runner = None
 
 
@@ -124,8 +148,10 @@ class TaskRunner(object):
         # No tasks: add the callback
         if not tasks:
             if callback is not None:
-                self.tasks.put(
-                        (cb_priority, self._inherited_priority, callback))
+                self.tasks.put(TaskItem(
+                        cb_priority,
+                        self._inherited_priority,
+                        callback))
             return
 
         # Compute inherited priority from the currently running task
@@ -134,7 +160,9 @@ class TaskRunner(object):
         inh_priority += (cb_priority,)
         # Add tasks
         for task in tasks:
-            self.tasks.put((priority, inh_priority, task))
+            self.tasks.put(TaskItem(priority,
+                                    inh_priority,
+                                    task))
         if callback is not None:
             dependent = DependentTask(callback, set(tasks),
                                       cb_priority, self._inherited_priority)
@@ -160,10 +188,11 @@ class TaskRunner(object):
         """
         while True:
             try:
-                prio, inh_prio, task = self.tasks.get(self.running_threads > 0)
+                item = self.tasks.get(self.running_threads > 0)
             except Queue.Empty:
                 break
-            self._inherited_priority = inh_prio
+            self._inherited_priority = item.inherited_priority
+            task = item.task
             if isinstance(task, Task):
                 self.tasks_ran.add(task)
                 with task_hook():
@@ -171,7 +200,7 @@ class TaskRunner(object):
             elif hasattr(task, '__call__'):
                 done = False
                 with task_hook():
-                    task(self)
+                    task()
                     done = True
                 if done:
                     self.task_done(task)
@@ -205,7 +234,9 @@ class TaskRunner(object):
         for dep in list(dependents):
             if dep.task_done(task):
                 dependents.remove(dep)
-                self.tasks.put((dep.priority, dep.inh_priority, dep.callback))
+                self.tasks.put(TaskItem(dep.priority,
+                                        dep.inh_priority,
+                                        dep.callback))
         if not self.dependencies[task]:
             del self.dependencies[task]
 
@@ -286,7 +317,7 @@ class TestNode(Task):
                          priority=10,
                          cb_priority=self.prio)
 
-    def upstream_done(self, runner):
+    def upstream_done(self):
         self.exe_list.append('compute %s' % self)
         self.done()
 
@@ -302,19 +333,18 @@ class TestNode(Task):
 class TestPrioNode(TestNode):
     prio = 50
 
-    def upstream_done(self, runner):
+    def upstream_done(self):
         self.exe_list.append('compute %s' % self)
         self.done()
 
 
-# If this somehow deadlocks, it's going to end instead of failing. Meh...
 class TestBackgroundNode(TestPrioNode):
-    def upstream_done(self, runner):
+    def upstream_done(self):
         self.exe_list.append('compute_start %s' % self)
         future = TestScheduler.thread_pool.submit(lambda: time.sleep(0.5))
-        async_task = runner.make_async_task()
+        async_task = self._runner.make_async_task()
 
-        def done_task(runner):
+        def done_task():
             self.exe_list.append('compute_end %s' % self)
             self.done()
         def thread_done(result):
@@ -341,72 +371,108 @@ class TestScheduler(unittest.TestCase):
     def test_simple_1(self):
         l = []
         self.run_graph(
-            TestNode('m5', l, [
-                TestNode('m3', l, [
-                    TestNode('m1', l),
+            TestNode('5m', l, [
+                TestNode('3m', l, [
+                    TestNode('1m', l),
                 ]),
-                TestPrioNode('t4', l, [
-                    TestNode('m2', l),
+                TestPrioNode('4t', l, [
+                    TestNode('2m', l),
                 ]),
             ]),
          )
         self.assertEqual(l, [
-                'init m5',
-                'init m3',
-                'init t4',
-                'init m2',
-                'init m1',
-                'compute m2',
-                'compute t4',
-                'compute m1',
-                'compute m3',
-                'compute m5'])
+                'init 5m',
+                'init 3m',
+                'init 4t',
+                'init 2m',
+                'init 1m',
+                'compute 2m',
+                'compute 4t',
+                'compute 1m',
+                'compute 3m',
+                'compute 5m'])
 
     def test_simple_2(self):
         l = []
         self.run_graph(
-            TestNode('m5', l, [
-                TestPrioNode('t3', l, [
-                    TestNode('m1', l),
+            TestNode('5m', l, [
+                TestPrioNode('3t', l, [
+                    TestNode('1m', l),
                 ]),
-                TestNode('m4', l, [
-                    TestNode('m2', l),
+                TestNode('4m', l, [
+                    TestNode('2m', l),
                 ]),
             ]),
         )
         self.assertEqual(l, [
-                'init m5',
-                'init m4',
-                'init t3',
-                'init m1',
-                'init m2',
-                'compute m1',
-                'compute t3',
-                'compute m2',
-                'compute m4',
-                'compute m5'])
+                'init 5m',
+                'init 3t',
+                'init 4m',
+                'init 1m',
+                'init 2m',
+                'compute 1m',
+                'compute 3t',
+                'compute 2m',
+                'compute 4m',
+                'compute 5m'])
+
+    def test_long(self):
+        l = []
+        self.run_graph(
+            TestNode('8m', l, [
+                TestPrioNode('2t', l, [
+                    TestNode('1m', l),
+                ]),
+                TestNode('4m', l, [
+                    TestNode('3m', l),
+                ]),
+                TestNode('7m', l, [
+                    TestPrioNode('6t', l, [
+                        TestNode('5m', l),
+                    ]),
+                ]),
+            ]),
+        )
+        self.assertEqual(l, [
+                'init 8m',
+                'init 2t',
+                'init 4m',
+                'init 7m',
+                'init 1m',
+                'init 3m',
+                'init 6t',
+                'init 5m',
+                'compute 1m',
+                'compute 2t',
+                'compute 5m',
+                'compute 6t',
+                'compute 7m', # this is here instead, but that's fine
+                'compute 3m',
+                'compute 4m',
+                #'compute 7m',
+                'compute 8m'])
 
     def test_threaded(self):
         l = []
         self.run_graph(
-            TestNode('m5', l, [
-                TestBackgroundNode('t3', l, [
-                    TestNode('m1', l),
+            TestNode('5m', l, [
+                TestBackgroundNode('3t', l, [
+                    TestNode('1m', l),
                 ]),
-                TestNode('m4', l, [
-                    TestNode('m2', l),
+                TestNode('4m', l, [
+                    TestNode('2m', l),
                 ]),
             ]),
         )
         self.assertEqual(l, [
-                'init m5',
-                'init m4',
-                'init t3',
-                'init m1',
-                'init m2',
-                'compute m1',
-                'compute_start t3',
-                'compute m2',
-                'compute m4',
-                'compute_end t3',
-                'compute m5'])
+                'init 5m',
+                'init 3t',
+                'init 4m',
+                'init 1m',
+                'init 2m',
+                'compute 1m',
+                'compute_start 3t',
+                'compute 2m',
+                'compute 4m',
+                'compute_end 3t',
+                'compute 5m'])

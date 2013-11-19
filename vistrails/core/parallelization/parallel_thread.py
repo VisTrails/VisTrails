@@ -38,7 +38,7 @@ class ThreadScheme(ParallelizationScheme):
         future = self.thread_pool(size).submit(module.compute)
         async_task = module._runner.make_async_task()
 
-        def thread_done(runner):
+        def thread_done():
             def compute():
                 try:
                     return future.result()

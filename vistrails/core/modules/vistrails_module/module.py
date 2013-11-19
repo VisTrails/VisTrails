@@ -251,7 +251,7 @@ Designing New Modules
             priority = self.COMPUTE_PRIORITY
         modules = [m.obj if isinstance(m, ModuleConnector) else m
                    for m in modules]
-        self._runner.add(*modules, callback=lambda r: callback(),
+        self._runner.add(*modules, callback=callback,
                          priority=self.UPDATE_UPSTREAM_PRIORITY,
                          cb_priority=priority)
 

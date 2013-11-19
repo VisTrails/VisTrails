@@ -461,6 +461,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             vt_list = []
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
+                if not f_name:
+                    debug.critical("File not found: %s" % filename)
+                    return False
                 if not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                 else:
@@ -482,8 +485,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             ok = locator.update_from_console()
                         if not ok:
                             debug.critical("Cannot login to database")
-                if f_name and version:
-                    w_list.append((locator, version))
+                w_list.append((locator, version))
                 vt_list.append(locator)
             import vistrails.core.console_mode
             if self.temp_db_options.parameters == None:
@@ -591,14 +593,20 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             pass
 
     def finishSession(self):
+        VistrailsApplicationInterface.finishSession(self)
+
+        # The order is important here: the parent's finishSession() must be
+        # called before, to delete the forked processes, or detaching the
+        # shared memory will not destroy it, and we'll have issues with single
+        # instance code on the next session
+
         if QtCore.QT_VERSION >= 0x40400 and self.shared_memory is not None:
             self.shared_memory.detach()
             if self.local_server:
                 self.local_server.close()
         if system.systemType in ['Darwin']:
             self.removeEventFilter(self)
-        VistrailsApplicationInterface.finishSession(self)
-   
+
     def eventFilter(self, o, event):
         """eventFilter(obj,event)-> boolean
         This will filter all create events and will set on the WA_MacMetalStyle

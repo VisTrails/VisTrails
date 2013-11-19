@@ -174,18 +174,19 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
 
         # Get the output values
         outputs = {}
-        for executed_module in execution[0][0].executed:
-            if executed_module != moduleId:
-                continue
-            executed_module = execution[0][0].objects[executed_module]
-            try:
-                for port in output_ports:
-                    outputs[port] = executed_module.get_output(port)
-                break
-            except ModuleError, e:
-                errors.append("Output port not found: %s (%s)" % (port, e.msg))
-        else:
-            errors.append("Module not found")
+        if not execution_errors:
+            for executed_module in execution[0][0].executed:
+                if executed_module != moduleId:
+                    continue
+                executed_module = execution[0][0].objects[executed_module]
+                try:
+                    for port in output_ports:
+                        outputs[port] = executed_module.get_output(port)
+                    break
+                except ModuleError, e:
+                    errors.append("Output port not found: %s (%s)" % (port, e.msg))
+            else:
+                errors.append("Module not found")
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
@@ -200,10 +201,7 @@ def module_to_serialized_pipeline(module):
     original_pipeline = module.moduleInfo['pipeline']
     module_id = module.moduleInfo['moduleId']
 
-    pipeline_modules = dict((k, m.do_copy())
-                            for k, m in original_pipeline.modules.iteritems())
-
-    pipeline_db_module = pipeline_modules[module_id]
+    pipeline_db_module = original_pipeline.modules[module_id].do_copy()
 
     # transforming a subworkflow in a group
     # TODO: should we also transform inner subworkflows?
@@ -282,19 +280,18 @@ def set_results(module, results, scheme, annotations=[]):
 
         # before adding the execution log, we need to get the machine information
         machine = unserialize(results['machine_log'], Machine)
-        machine.id = module.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-        module.logging.log.workflow_exec.add_machine(machine)
+        machine_id = module.logging.add_machine(machine)
 
         # recursively add machine information to execution items
         def add_machine_recursive(exec_):
             for i in range(len(exec_.item_execs)):
                 if hasattr(exec_.item_execs[i], 'machine_id'):
-                    exec_.item_execs[i].machine_id = machine.id
+                    exec_.item_execs[i].machine_id = machine_id
                     vt_type = exec_.item_execs[i].vtType
                     if (vt_type == 'abstraction') or (vt_type == 'group'):
                         add_machine_recursive(exec_.item_execs[i])
 
-        exec_.machine_id = machine.id
+        exec_.machine_id = machine_id
         if (vtType == 'abstraction') or (vtType == 'group'):
             add_machine_recursive(exec_)
 

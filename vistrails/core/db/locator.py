@@ -58,7 +58,7 @@ class BaseLocator(_BaseLocator):
         elif locator.__class__ == _ZIPFileLocator:
             locator.__class__ = ZIPFileLocator
         elif locator.__class__ == _DBLocator:
-            locator.__class__ = DBLocator
+            DBLocator.convert(locator)
         elif locator.__class__ == _UntitledLocator:
             locator.__class__ = UntitledLocator
             
@@ -446,7 +446,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     ##########################################################################
@@ -472,6 +472,12 @@ class DBLocator(_DBLocator, CoreLocator):
         locator.__class__ = DBLocator
         return locator
     
+    @staticmethod
+    def convert(locator):
+        locator.__class__ = DBLocator
+        locator.__list = ExtConnectionList.getInstance(
+                                                   default_connections_file())
+
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename, **kwargs):

@@ -98,7 +98,7 @@ class PasswordDialog(TextDialog):
 def initialize(*args, **keywords):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     basic = vistrails.core.modules.basic_modules
-    reg.add_module(Dialog)
+    reg.add_module(Dialog, abstract=True)
     reg.add_module(TextDialog)
 
     reg.add_input_port(TextDialog, "title", basic.String)
@@ -106,5 +106,5 @@ def initialize(*args, **keywords):
     reg.add_input_port(TextDialog, "default", basic.String)
     reg.add_input_port(TextDialog, "cacheable", basic.Boolean)
     reg.add_output_port(TextDialog, "result", basic.String)
-    
+
     reg.add_module(PasswordDialog)

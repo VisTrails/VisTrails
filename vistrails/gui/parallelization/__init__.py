@@ -204,7 +204,9 @@ class QParallelizationSettings(QtGui.QWidget, QVistrailsPaletteInterface):
     def add_target(self, target):
         widget_klass = self.WIDGETS.get(target.scheme, UnknownSystem)
         widget = widget_klass(self, target)
-        wrapper = SchemeWidgetWrapper(self, widget, self.colors.next())
+        c = self.colors.next()
+        print "add_target(target=%r) c=%r" % (target, c)
+        wrapper = SchemeWidgetWrapper(self, widget, c)
         item = self._add_widget(wrapper)
         self._widgets[wrapper] = item, target
         self._target2widget[target.id] = wrapper

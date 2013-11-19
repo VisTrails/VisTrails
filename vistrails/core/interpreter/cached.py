@@ -39,7 +39,7 @@ import copy
 import gc
 import cPickle as pickle
 
-from vistrails.core.common import InstanceObject, lock_method, \
+from vistrails.core.common import InstanceObject, \
     VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.interpreter.utils
@@ -72,13 +72,13 @@ class ViewUpdatingLogController(object):
         def end_iteration(self, looped_obj):
             self.log.finish_iteration(looped_obj)
 
-    def __init__(self, logger, view, remap_id,
+    def __init__(self, logger, view, remap_id, ids,
                  module_executed_hook=[]):
         self.log = logger
         self.view = view
-
         self.remap_id = remap_id
-
+        self.ids = set(ids) # modules left to be executed
+        self.nb_modules = len(self.ids)
         self.module_executed_hook = module_executed_hook
 
         self.errors = {}
@@ -107,9 +107,9 @@ class ViewUpdatingLogController(object):
 
         self.log.start_execution(obj, i, module_name)
 
-    def update_progress(self, obj, percentage=0.0):
+    def update_progress(self, obj, progress=0.0):
         i = self.remap_id(obj.id)
-        self.view.set_module_progress(i, percentage)
+        self.view.set_module_progress(i, progress)
 
     def begin_loop_execution(self, obj, total_iterations=None):
         return ViewUpdatingLogController.Loop(
@@ -136,6 +136,11 @@ class ViewUpdatingLogController(object):
             self.view.set_module_success(i)
         else:
             self.view.set_module_error(i, error)
+
+        if i in self.ids:
+            self.ids.remove(i)
+            self.view.set_execution_progress(
+                    1.0 - (len(self.ids) * 1.0 / self.nb_modules))
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
@@ -212,6 +217,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if not modules_to_clean:
             return
         g = self._persistent_pipeline.graph
+        modules_to_clean = (set(modules_to_clean) &
+                            set(self._persistent_pipeline.modules.iterkeys()))
         dependencies = g.vertices_topological_sort(modules_to_clean)
         for v in dependencies:
             self._persistent_pipeline.delete_module(v)
@@ -246,12 +253,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         instances of modules that aren't in the cache.
         """
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         controller = fetch('controller', None)
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
@@ -401,12 +403,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def execute_pipeline(self, pipeline, tmp_id_to_module_map, 
                          persistent_to_tmp_id_map, **kwargs):
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         controller = fetch('controller', None)
         locator = fetch('locator', None)
         current_version = fetch('current_version', None)
@@ -437,6 +434,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 logger=logger,
                 view=view,
                 remap_id=get_remapped_id,
+                ids=pipeline.modules.keys(),
                 module_executed_hook=module_executed_hook)
 
         # PARAMETER CHANGES SETUP
@@ -563,46 +561,24 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def finalize_pipeline(self, pipeline, to_delete, objs, errs, execs,
                           suspended, cached, **kwargs):
         def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
+            return kwargs.pop(name, default)
         reset_computed = fetch('reset_computed', True)
+        view = fetch('view', None)
 
         self.clean_modules(to_delete)
+
+        def dict2set(s):
+            return set(k for k, v in s.iteritems() if v)
+        if view is not None:
+            persistent = set(objs) - (dict2set(errs) | dict2set(execs) |
+                                      dict2set(suspended) | dict2set(cached))
+            for i in persistent:
+                view.set_module_persistent(i)
 
         if reset_computed:
             for module in self._objects.itervalues():
                 module.computed = False
 
-    def unlocked_execute(self, pipeline, **kwargs):
-        """unlocked_execute(pipeline, **kwargs): Executes a pipeline using
-        caching. Caching works by reusing pipelines directly.  This
-        means that there exists one global pipeline whose parts get
-        executed over and over again. This allows nested execution."""
-
-        res = self.setup_pipeline(pipeline, **kwargs)
-        modules_added = res[2]
-        conns_added = res[3]
-        to_delete = res[4]
-        errors = res[5]
-        if len(errors) == 0:
-            res = self.execute_pipeline(pipeline, *(res[:2]), **kwargs)
-        else:
-            res = (to_delete, res[0], errors, {}, {}, {}, [])
-        self.finalize_pipeline(pipeline, *(res[:-1]), **kwargs)
-        
-        return InstanceObject(objects=res[1],
-                              errors=res[2],
-                              executed=res[3],
-                              suspended=res[4],
-                              parameter_changes=res[6],
-                              modules_added=modules_added,
-                              conns_added=conns_added)
-
-    @lock_method(vistrails.core.interpreter.utils.get_interpreter_lock())
     def execute(self, pipeline, **kwargs):
         """execute(pipeline, **kwargs):
 
@@ -688,7 +664,26 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 reason)
         new_kwargs['logger'] = logger
         self.annotate_workflow_execution(logger, aliases, params)
-        result = self.unlocked_execute(pipeline, **new_kwargs)
+
+        res = self.setup_pipeline(pipeline, **new_kwargs)
+        modules_added = res[2]
+        conns_added = res[3]
+        to_delete = res[4]
+        errors = res[5]
+        if len(errors) == 0:
+            res = self.execute_pipeline(pipeline, *(res[:2]), **new_kwargs)
+        else:
+            res = (to_delete, res[0], errors, {}, {}, {}, [])
+        self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
+
+        result = InstanceObject(objects=res[1],
+                              errors=res[2],
+                              executed=res[3],
+                              suspended=res[4],
+                              parameter_changes=res[6],
+                              modules_added=modules_added,
+                              conns_added=conns_added)
+
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
 
         return result
@@ -827,42 +822,49 @@ import unittest
 class TestCachedInterpreter(unittest.TestCase):
 
     def test_cache(self):
-        from vistrails.core.db.locator import XMLFileLocator
-        from vistrails.core.vistrail.controller import VistrailController
-        from vistrails.core.db.io import load_vistrail
-        
-        """Test if basic caching is working."""
-        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
-        
-        # the controller will take care of upgrades
-        controller = VistrailController(v, locator, abstractions, thumbnails, 
-                                        mashups)
-        p1 = v.getPipeline('int chain')
-        n = v.get_version_number('int chain')
-        controller.change_selected_version(n)
-        controller.flush_delayed_actions()
-        p1 = controller.current_pipeline
-        
-        view = DummyView()
-        interpreter = vistrails.core.interpreter.cached.CachedInterpreter.get()
-        result = interpreter.execute(p1, 
-                                     locator=v,
-                                     current_version=n,
-                                     view=view,
-                                     )
-        # to force fresh params
-        p2 = v.getPipeline('int chain')
-        controller.change_selected_version(n)
-        controller.flush_delayed_actions()
-        p2 = controller.current_pipeline
-        result = interpreter.execute(p2, 
-                                     locator=v,
-                                     current_version=n,
-                                     view=view,
-                                     )
-        assert len(result.modules_added) == 1
+        from vistrails.core.modules.basic_modules import StandardOutput
+        old_compute = StandardOutput.compute
+        StandardOutput.compute = lambda s: None
+
+        try:
+            from vistrails.core.db.locator import XMLFileLocator
+            from vistrails.core.vistrail.controller import VistrailController
+            from vistrails.core.db.io import load_vistrail
+
+            """Test if basic caching is working."""
+            locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
+                                '/tests/resources/dummy.xml')
+            (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
+
+            # the controller will take care of upgrades
+            controller = VistrailController(v, locator, abstractions,
+                                            thumbnails,  mashups)
+            p1 = v.getPipeline('int chain')
+            n = v.get_version_number('int chain')
+            controller.change_selected_version(n)
+            controller.flush_delayed_actions()
+            p1 = controller.current_pipeline
+
+            view = DummyView()
+            interpreter = CachedInterpreter.get()
+            result = interpreter.execute(p1,
+                                         locator=v,
+                                         current_version=n,
+                                         view=view,
+                                         )
+            # to force fresh params
+            p2 = v.getPipeline('int chain')
+            controller.change_selected_version(n)
+            controller.flush_delayed_actions()
+            p2 = controller.current_pipeline
+            result = interpreter.execute(p2,
+                                         locator=v,
+                                         current_version=n,
+                                         view=view,
+                                         )
+            self.assertEqual(len(result.modules_added), 1)
+        finally:
+            StandardOutput.compute = old_compute
 
 
 if __name__ == '__main__':

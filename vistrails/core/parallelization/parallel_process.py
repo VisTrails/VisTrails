@@ -50,7 +50,7 @@ class ProcessScheme(ParallelizationScheme):
         def get_results():
             results = future.result() # Might raise
             set_results(module, results, 'multiprocessing')
-        def process_done(runner):
+        def process_done():
             module.do_compute(compute=get_results)
         future.add_done_callback(lambda res: async_task.callback(process_done))
 

@@ -176,7 +176,7 @@ class Group(Module):
         else:
             # Some modules are not parallelizable: go to low priority then
             # execute serially
-            self._runner.add(lambda r: self.on_upstream_ready(connectors),
+            self._runner.add(lambda: self.on_upstream_ready(connectors),
                              priority=self.COMPUTE_PRIORITY)
 
 ###############################################################################

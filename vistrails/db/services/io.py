@@ -75,6 +75,7 @@ import vistrails.core.system
 
 ElementTree = get_elementtree_library()
 
+CONNECT_TIMEOUT = 15
 
 _db_lib = None
 def get_db_lib():
@@ -190,6 +191,8 @@ def open_db_connection(config):
     if config is None:
         msg = "You need to provide valid config dictionary"
         raise VistrailsDBException(msg)
+    if 'connect_timeout' not in config:
+        config['connect_timeout'] = CONNECT_TIMEOUT
     try:
         # FIXME allow config to be kwargs and args?
         db_connection = get_db_lib().connect(**config)
@@ -210,6 +213,8 @@ def test_db_connection(config):
     
     """
     #print "Testing config", config
+    if 'connect_timeout' not in config:
+        config['connect_timeout'] = CONNECT_TIMEOUT
     try:
         db_connection = get_db_lib().connect(**config)
         close_db_connection(db_connection)
