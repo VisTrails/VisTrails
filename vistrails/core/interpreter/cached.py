@@ -527,32 +527,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             for module in self._objects.itervalues():
                 module.computed = False
 
-    def unlocked_execute(self, pipeline, **kwargs):
-        """unlocked_execute(pipeline, **kwargs): Executes a pipeline using
-        caching. Caching works by reusing pipelines directly.  This
-        means that there exists one global pipeline whose parts get
-        executed over and over again. This allows nested execution."""
-
-        res = self.setup_pipeline(pipeline, **kwargs)
-        modules_added = res[2]
-        conns_added = res[3]
-        to_delete = res[4]
-        errors = res[5]
-        if len(errors) == 0:
-            res = self.execute_pipeline(pipeline, *(res[:2]), **kwargs)
-        else:
-            res = (to_delete, res[0], errors, {}, {}, {}, [])
-        self.finalize_pipeline(pipeline, *(res[:-1]), **kwargs)
-        
-        return InstanceObject(objects=res[1],
-                              errors=res[2],
-                              executed=res[3],
-                              suspended=res[4],
-                              parameter_changes=res[6],
-                              modules_added=modules_added,
-                              conns_added=conns_added)
-
-    @lock_method(vistrails.core.interpreter.utils.get_interpreter_lock())
     def execute(self, pipeline, **kwargs):
         """execute(pipeline, **kwargs):
 
@@ -639,7 +613,26 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self.parent_execs = [None]
         logger.start_workflow_execution(vistrail, pipeline, current_version)
         self.annotate_workflow_execution(logger, reason, aliases, params)
-        result = self.unlocked_execute(pipeline, **new_kwargs)
+
+        res = self.setup_pipeline(pipeline, **new_kwargs)
+        modules_added = res[2]
+        conns_added = res[3]
+        to_delete = res[4]
+        errors = res[5]
+        if len(errors) == 0:
+            res = self.execute_pipeline(pipeline, *(res[:2]), **new_kwargs)
+        else:
+            res = (to_delete, res[0], errors, {}, {}, {}, [])
+        self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
+
+        result = InstanceObject(objects=res[1],
+                              errors=res[2],
+                              executed=res[3],
+                              suspended=res[4],
+                              parameter_changes=res[6],
+                              modules_added=modules_added,
+                              conns_added=conns_added)
+
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
         self.parent_execs = [None]
 
