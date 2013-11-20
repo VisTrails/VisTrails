@@ -35,7 +35,7 @@
 ################################################################################
 # RichText plugin for VisTrails Spreadsheet
 ################################################################################
-from richtext import RichTextCell
+from richtext import RichTextCell, XSLCell
 
 ################################################################################
 
@@ -59,3 +59,8 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_input_port(RichTextCell, "Format", basicModules.String,
                        entry_types=['enum'], values=["['html', 'rtf']"],
                        optional=True, defaults="['html']")
+
+    reg.add_module(XSLCell)
+    reg.add_input_port(XSLCell, "Location", basicWidgets.CellLocation)
+    reg.add_input_port(XSLCell, "XML", basicModules.File)
+    reg.add_input_port(XSLCell, "XSL", basicModules.File)
