@@ -70,7 +70,7 @@ import tempfile
 # from the root directory
 _this_dir = os.path.dirname(os.path.realpath(__file__))
 root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
-sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
+sys.path.insert(0, os.path.realpath(os.path.join(root_directory, '..')))
 
 # Use a different temporary directory
 test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')

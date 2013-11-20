@@ -1756,16 +1756,6 @@ class ModuleRegistry(DBRegistry):
         except KeyError:
             pass
 
-        basic_pkg = get_vistrails_basic_pkg_id()
-        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
-        def check_types(sub_descs, super_descs):
-            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-                if (sub_desc == variant_desc or super_desc == variant_desc):
-                    continue
-                if not self.is_descriptor_subclass(sub_desc, super_desc):
-                    return False
-            return True
-
         converters = []
 
         # Compute the result
@@ -1774,18 +1764,8 @@ class ModuleRegistry(DBRegistry):
                     vistrails.core.modules.vistrails_module.Converter):
                 continue
 
-            in_port = self.get_port_spec_from_descriptor(
-                    converter,
-                    'in_value', 'input')
-            if not check_types(sub_descs, in_port.descriptors()):
-                continue
-            out_port = self.get_port_spec_from_descriptor(
-                    converter,
-                    'out_value', 'output')
-            if not check_types(out_port.descriptors(), super_descs):
-                continue
-
-            converters.append(converter)
+            if converter.module.can_convert(sub_descs, super_descs):
+                converters.append(converter)
 
         # Store in the cache that there was no result
         self._conversions[key] = converters
@@ -1815,8 +1795,6 @@ class ModuleRegistry(DBRegistry):
             return False
         elif super_descs == [variant_desc]:
             return True
-        if len(sub_descs) != len(super_descs):
-            return False
 
         def check_types(sub_descs, super_descs):
             for (sub_desc, super_desc) in izip(sub_descs, super_descs):
@@ -1826,7 +1804,8 @@ class ModuleRegistry(DBRegistry):
                     return False
             return True
 
-        if check_types(sub_descs, super_descs):
+        if (len(sub_descs) == len(super_descs) and
+                check_types(sub_descs, super_descs)):
             return True
 
         if allow_conversion:
