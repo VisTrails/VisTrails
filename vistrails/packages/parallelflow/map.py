@@ -339,8 +339,11 @@ class Map(Module):
 
             # initializing a VisTrails application
             try:
-                init_view.execute('app = vistrails.core.application.init(args=[])',
-                                  block=True)
+                init_view.execute(
+                        'app = vistrails.core.application.init('
+                        '        {"spawned": True},'
+                        '        args=[])',
+                        block=True)
             except CompositeError, e:
                 self.print_compositeerror(e)
                 raise ModuleError(self, "Error initializing application on "
