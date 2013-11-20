@@ -126,7 +126,8 @@ def initialize(*args,**keywords):
     reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
 
     reg.add_input_port(While, 'FunctionPort', (Module, ""))
-    reg.add_input_port(While, 'OutputPort', (String, ""))
+    reg.add_input_port(While, 'OutputPort', (String, ""),
+                       optional=True, defaults="['self']")
     reg.add_input_port(While, 'ConditionPort', (String, ""))
     reg.add_input_port(While, 'StateInputPorts', (List, ""),
                        optional=True)
