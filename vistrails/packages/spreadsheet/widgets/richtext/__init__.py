@@ -56,3 +56,6 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_module(RichTextCell)
     reg.add_input_port(RichTextCell, "Location", basicWidgets.CellLocation)
     reg.add_input_port(RichTextCell, "File", basicModules.File)
+    reg.add_input_port(RichTextCell, "Format", basicModules.String,
+                       entry_types=['enum'], values=["['html', 'rtf']"],
+                       optional=True, defaults="['html']")
