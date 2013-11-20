@@ -1105,11 +1105,18 @@ class Round(Converter):
 class TupleToList(Converter):
     """Turns a Tuple into a List.
     """
+    @classmethod
+    def can_convert(cls, sub_descs, super_descs):
+        if len(sub_descs) <= 1:
+            return False
+        reg = get_module_registry()
+        return super_descs == [reg.get_descriptor(List)]
+
     def compute(self):
         tu = self.getInputFromPort('in_value')
-        if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
+        if not isinstance(tu, tuple):
             raise ModuleError(self, "Input is not a tuple")
-        self.setResult('out_value', list(tu.values))
+        self.setResult('out_value', list(tu))
 
 ##############################################################################
     
@@ -1235,12 +1242,10 @@ def initialize(*args, **kwargs):
     reg.add_module(Tuple, 
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "TupleConfigurationWidget"))
-    reg.add_output_port(Tuple, 'self', Tuple)
 
     reg.add_module(Untuple, 
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "UntupleConfigurationWidget"))
-    reg.add_input_port(Untuple, 'tuple', Tuple)
 
     reg.add_module(ConcatenateString)
     for i in xrange(ConcatenateString.fieldCount):
@@ -1299,7 +1304,7 @@ def initialize(*args, **kwargs):
                        defaults="('True',)")
 
     reg.add_module(TupleToList, hide_descriptor=True)
-    reg.add_input_port(TupleToList, 'in_value', Tuple)
+    reg.add_input_port(TupleToList, 'in_value', Variant)
     reg.add_output_port(TupleToList, 'out_value', List)
 
     # initialize the sub_module modules, too
