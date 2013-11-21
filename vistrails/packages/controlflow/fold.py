@@ -130,6 +130,8 @@ class FoldWithModule(Fold):
         else:
             self.input_is_single_element = False
 
+        connector, = self.inputPorts['FunctionPort']
+
         self.logging.begin_compute(self)
         self.loop_logging = self.logging.begin_loop_execution(
                 self,
@@ -138,7 +140,6 @@ class FoldWithModule(Fold):
         # Loop on the input to update the function modules
         self.modules_to_run = []
         for i, element in enumerate(input_list):
-            connector, = self.inputPorts['FunctionPort']
             module = copy.copy(connector.obj)
 
             if not self.upToDate: # pragma: no partial

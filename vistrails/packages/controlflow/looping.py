@@ -4,7 +4,7 @@ import threading
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
-    ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
+    ModuleError, ModuleConnector
 
 from fold import create_constant
 
@@ -153,70 +153,47 @@ class For(Module):
     The For Module runs a module with input from a range.
     """
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update(self):
+        self.logging.begin_update(self)
+        if len(self.inputPorts.get('FunctionPort', [])) != 1:
+            raise ModuleError(self,
+                              "%s module should have exactly one connection "
+                              "on its FunctionPort" % self.__class__.__name)
+        connectors = []
+        for port, connectorList in self.inputPorts.iteritems():
+            if port != 'FunctionPort':
+                connectors.extend(connectorList)
+        self.run_upstream_module(
+                self.other_ports_ready,
+                *connectors,
+                priority=self.UPDATE_UPSTREAM_PRIORITY)
 
-        # everything is the same except that we don't update the module on
-        # FunctionPort
-        suspended = []
-        was_suspended = None
-        for port_name, connector_list in self.inputPorts.iteritems():
-            if port_name == 'FunctionPort':
-                for connector in connector_list:
-                    try:
-                        connector.obj.updateUpstream()
-                    except ModuleWasSuspended, e:
-                        was_suspended = e
-                    except ModuleSuspended, e:
-                        suspended.append(e)
-            else:
-                for connector in connector_list:
-                    try:
-                        connector.obj.update()
-                    except ModuleWasSuspended, e:
-                        was_suspended = e
-                    except ModuleSuspended, e:
-                        suspended.append(e)
-        if len(suspended) == 1:
-            raise suspended[0]
-        elif suspended:
-            raise ModuleSuspended(
-                    self,
-                    "multiple suspended upstream modules",
-                    children=suspended)
-        elif was_suspended is not None:
-            raise was_suspended
+    def other_ports_ready(self):
         for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
-                    if connector.obj.get_output(connector.port) is \
-                            InvalidOutput: # pragma: no cover
+                    mod, port = connector.obj, connector.port
+                    if mod.get_output(port) is InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
-    def compute(self):
-        name_output = self.getInputFromPort('OutputPort') # or 'self'
         name_input = self.forceGetInputFromPort('InputPort') # or None
         lower_bound = self.getInputFromPort('LowerBound') # or 0
         higher_bound = self.getInputFromPort('HigherBound') # required
-        delay = self.forceGetInputFromPort('Delay') # or None
 
-        connectors = self.inputPorts.get('FunctionPort')
-        if len(connectors) != 1:
-            raise ModuleError(self,
-                              "Multiple modules connected on FunctionPort")
+        connector, = self.inputPorts.get('FunctionPort')
 
-        outputs = []
-        suspended = []
-        loop = self.logging.begin_loop_execution(self,
-                                                 higher_bound - lower_bound)
+        self.logging.begin_compute(self)
+        self.loop_logging = self.logging.begin_loop_execution(
+                self,
+                higher_bound - lower_bound)
+
+        self.modules_to_run = []
         for i in xrange(lower_bound, higher_bound):
-            module = copy.copy(connectors[0].obj)
+            module = copy.copy(connector.obj)
 
-            if not self.upToDate:
+            if not self.upToDate: # pragma: no partial
                 module.upToDate = False
                 module.computed = False
-
-                # Pass iteration number on input port
                 if name_input is not None:
                     if name_input in module.inputPorts:
                         del module.inputPorts[name_input]
@@ -225,33 +202,29 @@ class For(Module):
                             'value')
                     module.set_input_port(name_input, new_connector)
 
-            loop.begin_iteration(module, i)
+                self.loop_logging.begin_iteration(module, i)
 
-            try:
-                module.update()
-            except ModuleSuspended, e:
-                suspended.append(e)
-                loop.end_iteration(module)
-                continue
+            self.modules_to_run.append(module)
 
-            loop.end_iteration(module)
+        if not self.upToDate:
+            self.run_upstream_module(
+                    self.functions_ready,
+                    *self.modules_to_run)
 
-            if i+1 != higher_bound and delay:
-                time.sleep(delay)
+    def functions_ready(self):
+        self.done()
+        name_output = self.getInputFromPort('OutputPort') # or 'self'
+
+        outputs = []
+        for module in self.modules_to_run:
+            self.loop_logging.end_iteration(module)
 
             if name_output not in module.outputPorts:
                 raise ModuleError(module,
                                   "Invalid output port: %s" % name_output)
             outputs.append(module.get_output(name_output))
 
-        if suspended:
-            raise ModuleSuspended(
-                    self,
-                    "function module suspended in %d/%d iterations" % (
-                            len(suspended), higher_bound - lower_bound),
-                        children=suspended)
-        loop.end_loop_execution()
-
+        self.loop_logging.end_loop_execution()
         self.setResult('Result', outputs)
 
 
