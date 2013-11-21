@@ -147,8 +147,6 @@ def initialize(*args,**keywords):
     reg.add_input_port(For, 'LowerBound', (Integer, ""),
                        optional=True, defaults="['0']")
     reg.add_input_port(For, 'HigherBound', (Integer, ""))
-    reg.add_input_port(For, 'Delay', (Float, ""),
-                       optional=True)
     reg.add_output_port(For, 'Result', (List, ""))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
