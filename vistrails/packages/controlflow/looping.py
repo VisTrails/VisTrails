@@ -3,7 +3,7 @@ from itertools import izip
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
-    ModuleError, ModuleConnector
+    ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
 
 from fold import create_constant
 
@@ -19,18 +19,39 @@ class While(Module):
 
         # everything is the same except that we don't update the module on
         # FunctionPort
+        suspended = []
+        was_suspended = None
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    try:
+                        connector.obj.updateUpstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
             else:
                 for connector in connector_list:
-                    connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+                    try:
+                        connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
+                            InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
     def compute(self):
