@@ -33,8 +33,9 @@
 ##
 ###############################################################################
 import copy
+from itertools import izip
+
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.utils import VistrailsInternalError
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -47,10 +48,6 @@ class NeedsInputPort(Exception):
 class IncompleteImplementation(Exception):
     def __str__(self):
         return "Module has incomplete implementation"
-
-
-class MissingModule(Exception):
-    pass
 
 class ModuleBreakpoint(Exception):
     def __init__(self, module):
@@ -84,6 +81,8 @@ class ModuleHadError(Exception):
 
     It is caught by the interpreter that doesn't log it.
     """
+    def __init__(self, module):
+        self.module = module
 
 class ModuleError(Exception):
 
@@ -252,7 +251,7 @@ Designing New Modules
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
-        self.ran = False
+        self.had_error = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -297,6 +296,20 @@ Designing New Modules
         # stores whether the output of the module should be annotated in the
         # execution log
         self.annotate_output = False
+
+    def __copy__(self):
+        """Makes a copy of the input/output ports on shallow copy.
+        """
+        s = super(Module, self)
+        if hasattr(s, '__copy__'):
+            clone = s.__copy__()
+        else:
+            clone = object.__new__(self.__class__)
+            clone.__dict__ = self.__dict__.copy()
+        clone.inputPorts = copy.copy(self.inputPorts)
+        clone.outputPorts = copy.copy(self.outputPorts)
+        clone.outputPorts['self'] = clone
+        return clone
 
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -354,21 +367,21 @@ context."""
         modules. Report to the logger if available
         
         """
+        if self.had_error:
+            raise ModuleHadError(self)
+        elif self.computed:
+            return
+        self.logging.begin_update(self)
+        self.updateUpstream()
+        if self.suspended:
+            self.had_error = True
+            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
             return
-        if self.ran:
-            if self.had_error:
-                raise ModuleHadError(self)
-            return
-        self.ran = True
         self.had_error = True # Unset later in this method
-        self.logging.begin_update(self)
-        self.updateUpstream()
-        if self.suspended:
-            return
         self.logging.begin_compute(self)
         try:
             if self.is_breakpoint:
@@ -589,7 +602,42 @@ class Converter(Module):
 
     You must override the 'in_value' and 'out_value' ports by providing the
     types your module actually matches.
+
+    Alternatively, you can override the classmethod can_convert() to provide
+    a custom condition.
     """
+    @classmethod
+    def can_convert(cls, sub_descs, super_descs):
+        from vistrails.core.modules.module_registry import get_module_registry
+        from vistrails.core.system import get_vistrails_basic_pkg_id
+        reg = get_module_registry()
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
+        desc = reg.get_descriptor(cls)
+
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not reg.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        in_port = reg.get_port_spec_from_descriptor(
+                desc,
+                'in_value', 'input')
+        if (len(sub_descs) != len(in_port.descriptors()) or
+                not check_types(sub_descs, in_port.descriptors())):
+            return False
+        out_port = reg.get_port_spec_from_descriptor(
+                desc,
+                'out_value', 'output')
+        if (len(out_port.descriptors()) != len(super_descs)
+                or not check_types(out_port.descriptors(), super_descs)):
+            return False
+
+        return True
+
     def compute(self):
         raise NotImplementedError
 

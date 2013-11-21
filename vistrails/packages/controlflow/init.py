@@ -43,7 +43,7 @@ from utils import Map, Filter, Sum, And, Or
 from conditional import If, Default
 from products import ElementwiseProduct, Dot, Cross, CartesianProduct
 from order import ExecuteInOrder
-from looping import While
+from looping import For, While
 
 
 #################################################################################
@@ -75,6 +75,10 @@ def initialize(*args,**keywords):
     registerControl(Default)
     registerControl(ExecuteInOrder)
     registerControl(While)
+    registerControl(For)
+
+    reg.add_output_port(Or, 'Result', (Boolean, ""))
+    reg.add_output_port(And, 'Result', (Boolean, ""))
 
     reg.add_input_port(Fold, 'InputList', (List, ""))
     reg.add_output_port(Fold, 'Result', (Variant, ""))
@@ -98,7 +102,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(ElementwiseProduct, 'List1', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'List2', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'NumericalProduct', (Boolean, ""),
-                       optional=True, defaults='[True]')
+                       optional=True, defaults="['True']")
     reg.add_output_port(ElementwiseProduct, 'Result', (List, ""))
 
     reg.add_module(Dot)
@@ -122,7 +126,8 @@ def initialize(*args,**keywords):
     reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
 
     reg.add_input_port(While, 'FunctionPort', (Module, ""))
-    reg.add_input_port(While, 'OutputPort', (String, ""))
+    reg.add_input_port(While, 'OutputPort', (String, ""),
+                       optional=True, defaults="['self']")
     reg.add_input_port(While, 'ConditionPort', (String, ""))
     reg.add_input_port(While, 'StateInputPorts', (List, ""),
                        optional=True)
@@ -133,6 +138,18 @@ def initialize(*args,**keywords):
     reg.add_input_port(While, 'Delay', (Float, ""),
                        optional=True)
     reg.add_output_port(While, 'Result', (Variant, ""))
+
+    reg.add_input_port(For, 'FunctionPort', (Module, ""))
+    reg.add_input_port(For, 'InputPort', (String, ""),
+                       optional=True)
+    reg.add_input_port(For, 'OutputPort', (String, ""),
+                       optional=True, defaults="['self']")
+    reg.add_input_port(For, 'LowerBound', (Integer, ""),
+                       optional=True, defaults="['0']")
+    reg.add_input_port(For, 'HigherBound', (Integer, ""))
+    reg.add_input_port(For, 'Delay', (Float, ""),
+                       optional=True)
+    reg.add_output_port(For, 'Result', (List, ""))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     reg = get_module_registry()

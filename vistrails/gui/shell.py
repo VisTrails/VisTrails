@@ -55,6 +55,7 @@ from vistrails.core.interpreter.default import get_default_interpreter
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.utils import create_port_spec_string
 import vistrails.core.system
+from vistrails.core.system import strftime
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.core.utils import all
@@ -86,23 +87,23 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
         Creates a menu bar and adds it to the main layout.
 
         """
-        self.newSessionAct = QtGui.QAction(self.tr("&Restart"),self)
-        self.newSessionAct.setShortcut(self.tr("Ctrl+R"))
+        self.newSessionAct = QtGui.QAction("&Restart",self)
+        self.newSessionAct.setShortcut("Ctrl+R")
         self.connect(self.newSessionAct, QtCore.SIGNAL("triggered()"),
                      self.newSession)
 
-        self.saveSessionAct = QtGui.QAction(self.tr("&Save"), self)
-        self.saveSessionAct.setShortcut(self.tr("Ctrl+S"))
+        self.saveSessionAct = QtGui.QAction("&Save", self)
+        self.saveSessionAct.setShortcut("Ctrl+S")
         self.connect(self.saveSessionAct, QtCore.SIGNAL("triggered()"),
                      self.saveSession)
 
-        self.closeSessionAct = QtGui.QAction(self.tr("Close"), self)
-        self.closeSessionAct.setShortcut(self.tr("Ctrl+W"))
+        self.closeSessionAct = QtGui.QAction("Close", self)
+        self.closeSessionAct.setShortcut("Ctrl+W")
         self.connect(self.closeSessionAct,QtCore.SIGNAL("triggered()"), 
                      self.closeSession)
         
         self.menuBar = QtGui.QMenuBar(self)
-        menu = self.menuBar.addMenu(self.tr("&Session"))
+        menu = self.menuBar.addMenu("&Session")
         menu.addAction(self.newSessionAct)
         menu.addAction(self.saveSessionAct)
         menu.addAction(self.closeSessionAct)
@@ -142,7 +143,7 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
         Opens a File Save dialog and passes the filename to shell's saveSession.
 
         """
-        default = 'visTrails' + '-' + time.strftime("%Y%m%d-%H%M.log")
+        default = 'visTrails' + '-' + strftime("%Y%m%d-%H%M.log")
         default = os.path.join(vistrails.core.system.vistrails_file_directory(),default)
         fileName = QtGui.QFileDialog.getSaveFileName(self,
                                                      "Save Session As..",

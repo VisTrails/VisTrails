@@ -38,6 +38,7 @@
 from itertools import izip
 import vtk
 
+from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from identifiers import identifier as vtk_pkg_identifier
@@ -218,13 +219,20 @@ class vtkBaseModule(Module):
 
         # Call update if appropriate
         if hasattr(self.vtkInstance, 'Update'):
-            def ProgressEvent(obj, event):
-                self.logging.update_progress(self, obj.GetProgress())
+            is_aborted = False
             isAlgorithm = issubclass(self.vtkClass, vtk.vtkAlgorithm)
+            cbId = None
             if isAlgorithm:
+                def ProgressEvent(obj, event):
+                    try:
+                        self.logging.update_progress(self, obj.GetProgress())
+                    except AbortExecution:
+                        obj.SetAbortExecute(True)
+                        self.vtkInstance.RemoveObserver(cbId)
+                        is_aborted = True
                 cbId = self.vtkInstance.AddObserver('ProgressEvent', ProgressEvent)
             self.vtkInstance.Update()
-            if isAlgorithm:
+            if isAlgorithm and not is_aborted:
                 self.vtkInstance.RemoveObserver(cbId)
 
         # Then update the output ports also with appropriate function calls

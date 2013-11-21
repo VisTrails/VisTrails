@@ -64,7 +64,9 @@ def can_handle_vt_file(name):
 #    return ['edu.utah.sci.vistrails.http']
     
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('suds'):
-        raise vistrails.core.requirements.MissingRequirement('suds')
-    import suds
+    from vistrails.core.requirements import require_python_module
+    require_python_module('suds', {
+            'pip': 'suds',
+            'linux-debian': 'python-suds',
+            'linux-ubuntu': 'python-suds',
+            'linux-fedora': 'python-suds'})

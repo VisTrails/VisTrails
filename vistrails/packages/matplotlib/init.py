@@ -32,10 +32,13 @@
 ##
 ###############################################################################
 
-import vistrails.core.modules
-import vistrails.core.modules.module_registry
+import matplotlib
+matplotlib.use('Qt4Agg', warn=False)
+
 import vistrails.core.db.action
-from vistrails.core.modules.basic_modules import Color, Float, Integer, List, String
+from vistrails.core.modules.basic_modules import Color, Float, Integer, List, \
+    String
+import vistrails.core.modules.module_registry
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 

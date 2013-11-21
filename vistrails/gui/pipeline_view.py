@@ -51,7 +51,7 @@ from vistrails.core import debug
 from vistrails.core.db.action import create_action
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException
+    ModuleRegistryException, MissingPackage
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
@@ -165,12 +165,11 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self._pen_color = CurrentTheme.PORT_PEN_COLOR_NORMAL
             # self.setPen(CurrentTheme.PORT_PEN)
             self.setBrush(CurrentTheme.PORT_BRUSH)
-        if self._connected > 0:
-            self.setBrush(CurrentTheme.PORT_CONNECTED_BRUSH)
-        elif self._connected < self._min_conns:
-            self.setBrush(CurrentTheme.PORT_MANDATORY_BRUSH)
-        else:
-            self.setBrush(CurrentTheme.PORT_BRUSH)
+        if self.brush() == CurrentTheme.PORT_BRUSH:
+            if self._connected > 0:
+                self.setBrush(CurrentTheme.PORT_CONNECTED_BRUSH)
+            elif self._connected < self._min_conns:
+                self.setBrush(CurrentTheme.PORT_MANDATORY_BRUSH)
         if self._selected:
             self._pen_width = CurrentTheme.PORT_PEN_WIDTH_SELECTED
         elif self._min_conns > 0 and self._connected < self._min_conns:
@@ -245,7 +244,8 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
 
     def updateToolTip(self):
         tooltip = ""
-        if self.port is not None and hasattr(self.port, 'toolTip'):
+        if (self.port is not None and self.port.is_valid and
+            hasattr(self.port, 'toolTip')):
             tooltip = self.port.toolTip()
         for vistrail_var in self.vistrail_vars.itervalues():
             tooltip += '\nConnected to vistrail var "%s"' % vistrail_var.name
@@ -2237,7 +2237,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         min_dis = None
         selected_convs = None
         for o_item in output_ports:
+            if o_item.invalid:
+                continue
             for i_item in input_ports:
+                if i_item.invalid:
+                    continue
                 convs = []
                 if reg.ports_can_connect(o_item.port, i_item.port,
                                          allow_conversion=True,
@@ -2907,6 +2911,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
            appropriate action
         """
         if self.progress.wasCanceled():
+            if self.progress._progress_canceled:
+                # It has already been confirmed in a progress update
+                self.progress._progress_canceled = False
+                raise AbortExecution("Execution aborted by user")
             r = QtGui.QMessageBox.question(self.parent(),
                 'Execution Paused',
                 'Are you sure you want to abort the execution?',
@@ -2933,7 +2941,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 1, error,
-                                                      errorTrace = errorTrace))
+                                                        errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_not_executed(self, moduleId):
@@ -2962,7 +2970,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if self.progress:
             self.cancel_progress()
             self.progress.setValue(self.progress.value() + 1)
-            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
+            pipeline = self.controller.current_pipeline
+            module = pipeline.get_module_by_id(moduleId)
+            self.progress.setLabelText(module.name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
@@ -2973,11 +2983,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.progress:
-            self.cancel_progress()
+            try:
+                self.cancel_progress()
+            except AbortExecution:
+                self.progress._progress_canceled = True
+                raise
+        status = '%d%% Completed' % int(progress*100)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
-                                                        '%d%% Completed' % int(progress*100),
-                                                        progress))
+                                                        status, progress))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_persistent(self, moduleId):
@@ -2990,14 +3004,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        msg = error if isinstance(error, str) else error.msg
-        text = "Module is suspended, reason: %s" % msg
+        status = "Module is suspended, reason: %s" % error.msg
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 7, text))
+                                     QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
+
         # add to suspended modules dialog
-        if isinstance(error, str):
-            return
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
         try:
@@ -3006,8 +3018,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 jobView.set_visible(True)
         except Exception, e:
             import traceback
-            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
-            
+            debug.critical("Error Monitoring Job: %s" % e,
+                           traceback.format_exc())
+
     def reset_module_colors(self):
         for module in self.modules.itervalues():
             module.statusBrush = None
@@ -3299,10 +3312,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             selected_module_ids = selected_items[0]
             selected_connection_ids = selected_items[1]
             if len(selected_module_ids) > 0:
-                dialog = QControlFlowAssistDialog(self, selected_module_ids, 
-                                                  selected_connection_ids, 
-                                                  currentScene)
-                dialog.exec_()
+                try:
+                    dialog = QControlFlowAssistDialog(
+                            self,
+                            selected_module_ids, selected_connection_ids,
+                            currentScene)
+                except MissingPackage:
+                    debug.critical("The controlflow package is not available")
+                else:
+                    dialog.exec_()
             else:
                 QtGui.QMessageBox.warning(
                         self,
@@ -3332,6 +3350,7 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0
+        self._progress_canceled = False
 
     def setValue(self, value):
         self._last_set_value = value

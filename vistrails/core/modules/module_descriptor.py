@@ -33,10 +33,11 @@
 ##
 ###############################################################################
 import copy
+import pydoc
 
+from vistrails.core import debug
 from vistrails.core.utils import VistrailsInternalError
-from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
-import vistrails.core.debug
+from vistrails.core.vistrail.port_spec import PortSpec
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.utils import create_descriptor_string
 from vistrails.db.domain import DBModuleDescriptor
@@ -275,6 +276,18 @@ class ModuleDescriptor(DBModuleDescriptor):
         if self._left_fringe is None and self._right_fringe is None:
             return None
         return (self._left_fringe, self._right_fringe)
+
+    def module_documentation(self, module=None):
+        doc = pydoc.getdoc(self.module)
+        if hasattr(self.module, 'get_documentation'):
+            try:
+                doc = self.module.get_documentation(doc, module)
+            except Exception, e:
+                import traceback
+                debug.critical(str(e), traceback.format_exc())
+                doc = doc or "(Error getting documentation)"
+        doc = doc or "(No documentation available)"
+        return doc
 
     def module_package(self):
         return self.identifier

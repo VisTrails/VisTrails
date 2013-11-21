@@ -58,8 +58,15 @@ def package_dependencies():
     return deps
 
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('matplotlib'):
-        raise vistrails.core.requirements.MissingRequirement('matplotlib')
-    if not vistrails.core.requirements.python_module_exists('pylab'):
-        raise vistrails.core.requirements.MissingRequirement('pylab')
+    from vistrails.core.requirements import require_python_module
+    require_python_module('numpy', {
+            'pip': 'numpy',
+            'linux-debian': 'python-numpy',
+            'linux-ubuntu': 'python-numpy',
+            'linux-fedora': 'numpy'})
+    mpl_dict = {'pip': 'matplotlib',
+                'linux-debian': 'python-matplotlib',
+                'linux-ubuntu': 'python-matplotlib',
+                'linux-fedora': 'python-matplotlib'}
+    require_python_module('matplotlib', mpl_dict)
+    require_python_module('pylab', mpl_dict)

@@ -75,7 +75,7 @@ One useful purpose for the CFA is to provide a version-based approach to paramet
    8) Connect the 'List' module's output port 'value' to the 'Group' module's input port 'value1'.
    9) Connect the 'Group' module's output port 'Result' to the 'StandardOutput' module's input port 'value' (see Figure :ref:`Example 1.3 <fig-pipeline>`)
    10) Execute the current workflow.
-   11) In your Standard Output console, you should see a List containing the computation for each element in the input list: [2.0, 4.0, 6.0, 8.0, 10.0]
+   11) In your Standard Output console, you should see a List containing the computation for each element in the input list: [2.0, 4.0, 6.0, 8.0, 10.0] :vtl:`(Open result) <cfassistant1.vt>`
 
 .. _fig-assistant:
 
@@ -105,7 +105,7 @@ One useful purpose for the CFA is to provide a version-based approach to paramet
 
    Performing a Parameter Exploration:
 
-   1) Go to 'File->Open', explore to the VisTrails examples folder, and open 'spx.vt'
+   1) Go to 'File->Open', explore to the VisTrails examples folder, and open :vtl:`spx.vt`.
    2) Open the History view and select the version tagged as 'decimate'.
    3) Open the Pipeline view.
    4) Select the 'vtkContourFilter' module and enable the 'SetValue' input port by clicking to the left of 'SetValue' in the Module Information panel (see Figure :ref:`Example 2.1 <fig-cfassistant-enable-port>`).
@@ -117,7 +117,7 @@ One useful purpose for the CFA is to provide a version-based approach to paramet
       c) Click 'OK' to close the window and build the loop structure as a Group module
    7) Select the newly created 'Group' module, and set the 'SetValue' parameter to: [(0, 0.5), (0, 0.75), (0, 1.0)]
    8) Execute the current workflow.
-   9) In your VisTrails Spreadsheet, you should see three visualizations, one for each set of input parameters to the 'SetValue' port of 'vtkContourFilter' (see Figure :ref:`Example 2.3 <fig-cfassistant-results>`).
+   9) In your VisTrails Spreadsheet, you should see three visualizations, one for each set of input parameters to the 'SetValue' port of 'vtkContourFilter' (see Figure :ref:`Example 2.3 <fig-cfassistant-results>`). :vtl:`(Open result) <cfassistant2.vt>`
 
 .. _fig-cfassistant-enable-port:
 

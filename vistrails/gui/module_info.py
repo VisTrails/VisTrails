@@ -151,6 +151,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.type_edit.setText("")
             # self.type_edit.setEnabled(False)
             self.package_edit.setText("")
+            self.module_id.setText("")
         else:
             if module.has_annotation_with_key('__desc__'):
                 label = module.get_annotation_by_key('__desc__').value.strip()
@@ -159,7 +160,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.name_edit.setText(label)
             if not label and not versions_increasing(QtCore.QT_VERSION_STR, 
                                                      '4.7.0'):
-                #print QtCore.QT_VERSION_STR, versions_increasing(QtCore.QT_VERSION_STR, '4.7.0')
                 self.name_edit.setPlaceholderText(self.module.name)
 
             # self.name_edit.setEnabled(True)

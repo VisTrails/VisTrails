@@ -42,15 +42,27 @@ runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
-#import doctest
-import atexit
-import os
+
+# First, import unittest, replacing it with unittest2 if necessary
 import sys
-import traceback
+try:
+    import unittest2
+except ImportError:
+    pass
+else:
+    sys.modules['unittest'] = unittest2
 import unittest
+
+import atexit
+from distutils.version import LooseVersion
+#import doctest
+import locale
+import os
+import traceback
 import os.path
 import optparse
 from optparse import OptionParser
+import platform
 import shutil
 import tempfile
 
@@ -58,11 +70,10 @@ import tempfile
 # from the root directory
 _this_dir = os.path.dirname(os.path.realpath(__file__))
 root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
-sys.path.append(os.path.realpath(os.path.join(root_directory, '..')))
+sys.path.insert(0, os.path.realpath(os.path.join(root_directory, '..')))
 
 # Use a different temporary directory
 test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
-test_dotvistrails = tempfile.mkdtemp(prefix='vt_testsuite_dotvistrails_')
 tempfile.tempdir = test_temp_dir
 @atexit.register
 def clean_tempdir():
@@ -77,7 +88,6 @@ def clean_tempdir():
         sys.stdout.write("Warning: %d dirs and %d files were left behind in "
                          "tempdir, cleaning up\n" % (nb_dirs, nb_files))
     shutil.rmtree(test_temp_dir, ignore_errors=True)
-    shutil.rmtree(test_dotvistrails, ignore_errors=True)
 
 def setNewPyQtAPI():
     try:
@@ -94,6 +104,7 @@ import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
 import vistrails.gui.application
+from vistrails.core.system import vistrails_root_directory
 
 ###############################################################################
 # Testing Examples
@@ -155,11 +166,15 @@ parser.add_option("--installbundles", action='store_true',
 parser.add_option("-S", "--startup", action="store", type="str", default=None,
                   dest="dotVistrails",
                   help="Set startup file (default is temporary directory)")
+parser.add_option('-L', '--locale', action='store', type='str', default='',
+                  dest='locale',
+                  help="set locale to this string")
 
 (options, args) = parser.parse_args()
 # remove empty strings
 args = filter(len, args)
 verbose = options.verbose
+locale.setlocale(locale.LC_ALL, options.locale or '')
 test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles
@@ -167,6 +182,8 @@ dotVistrails = options.dotVistrails
 test_modules = None
 if len(args) > 0:
     test_modules = args
+else:
+    test_images = True
 
 def module_filter(name):
     if test_modules is None:
@@ -189,11 +206,13 @@ optionsDict = {
         'singleInstance': False,
         'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
+        'enablePackagesSilently': True,
+        'handlerDontAsk': True,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
 else:
-    optionsDict['dotVistrails'] = test_dotvistrails
+    optionsDict['spawned'] = True
 v = vistrails.gui.application.start_application(optionsDict)
 if v != 0:
     app = vistrails.gui.application.get_vistrails_application()
@@ -207,6 +226,28 @@ app.builderWindow.auto_view = False
 app.builderWindow.close_all_vistrails(True)
 
 print "Test Suite for VisTrails"
+print "Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(locale, s), None)) for s in ('LC_ALL', 'LC_TIME'))
+print "Running on %s" % ', '.join(platform.uname())
+print "Python is %s" % sys.version
+try:
+    from PyQt4 import QtCore
+    print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
+except ImportError:
+    print "PyQt4 not available"
+for pkg in ('numpy', 'scipy', 'matplotlib'):
+    try:
+        ipkg = __import__(pkg, globals(), locals(), [], -1)
+        print "Using %s %s" % (pkg, ipkg.__version__)
+    except ImportError:
+        print "%s not available" % pkg
+try:
+    import vtk
+    print "Using vtk %s" % vtk.vtkVersion().GetVTKVersion()
+except ImportError:
+    print "vtk not available"
+
+
+print ""
 
 tests_passed = True
 
@@ -288,8 +329,9 @@ for (p, subdirs, files) in os.walk(root_directory):
         elif verbose >= 2:
             print msg, "Ok: %d test cases." % suite.countTestCases()
 
-sub_print("Imported modules. Running %d tests..." %
+sub_print("Imported modules. Running %d tests%s..." % (
           main_test_suite.countTestCases(),
+          ", and thumbnails comparison" if test_images else ''),
           overline=True)
 
 ############## TEST VISTRAIL IMAGES ####################
@@ -301,25 +343,55 @@ image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
                                   ("terminator_CRSW", "Combined Rendering SW"),
                                   ("terminator_ISSW", "Image Slices SW")])
                ]
-def compare_thumbnails(prev, next):
+compare_use_vtk = False
+try:
     import vtk
-    #vtkImageDifference assumes RGB, so strip alpha
-    def removeAlpha(file):
-        freader = vtk.vtkPNGReader()
-        freader.SetFileName(file)
-        removealpha = vtk.vtkImageExtractComponents()
-        removealpha.SetComponents(0,1,2)
-        removealpha.SetInputConnection(freader.GetOutputPort())
-        removealpha.Update()
-        return removealpha.GetOutput()
-    #do the image comparison
-    a = removeAlpha(prev)
-    b = removeAlpha(next)
-    idiff = vtk.vtkImageDifference()
-    idiff.SetInput(a)
-    idiff.SetImage(b)
-    idiff.Update()
-    return idiff.GetThresholdedError()
+    if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= LooseVersion('5.8.0'):
+        compare_use_vtk = True
+except ImportError:
+    pass
+if compare_use_vtk:
+    def compare_thumbnails(prev, next):
+        #vtkImageDifference assumes RGB, so strip alpha
+        def removeAlpha(file):
+            freader = vtk.vtkPNGReader()
+            freader.SetFileName(file)
+            removealpha = vtk.vtkImageExtractComponents()
+            removealpha.SetComponents(0,1,2)
+            removealpha.SetInputConnection(freader.GetOutputPort())
+            removealpha.Update()
+            return removealpha.GetOutput()
+        #do the image comparison
+        a = removeAlpha(prev)
+        b = removeAlpha(next)
+        idiff = vtk.vtkImageDifference()
+        idiff.SetInput(a)
+        idiff.SetImage(b)
+        idiff.Update()
+        return idiff.GetThresholdedError()
+else:
+    try:
+        from scipy.misc import imread
+    except ImportError:
+        imread = None
+    if test_images:
+        print "Warning: old VTK version detected, NOT comparing thumbnails"
+    if imread is not None:
+        def compare_thumbnails(prev, next):
+            prev_img = imread(prev)
+            next_img = imread(next)
+            assert len(prev_img.shape) == 3
+            assert len(next_img.shape) == 3
+            if prev_img.shape[:2] == next_img.shape[:2]:
+                return 0
+            else:
+                return float('Inf')
+    else:
+        def compare_thumbnails(prev, next):
+            if os.path.isfile(prev) and os.path.isfile(next):
+                return 0
+            else:
+                return float('Inf')
 
 def image_test_generator(vtfile, version):
     from vistrails.core.db.locator import FileLocator
@@ -346,7 +418,7 @@ def image_test_generator(vtfile, version):
 class TestVistrailImages(unittest.TestCase):
     pass
 
-if not test_modules or test_images:
+if test_images:
     for vt, t in image_tests:
         for name, version in t:
             test_name = 'test_%s' % name
@@ -356,7 +428,15 @@ if not test_modules or test_images:
 
 ############## RUN TEST SUITE ####################
 
-result = unittest.TextTestRunner(verbosity=max(verbose, 1)).run(main_test_suite)
+class TestResult(unittest.TextTestResult):
+    def addSkip(self, test, reason):
+        self.stream.writeln("skipped '{0}': {1}".format(str(test), reason))
+        super(TestResult, self).addSkip(test, reason)
+
+runner = unittest.TextTestRunner(
+        verbosity=max(verbose, 1),
+        resultclass=TestResult)
+result = runner.run(main_test_suite)
 
 if not result.wasSuccessful():
     tests_passed = False
