@@ -4,7 +4,7 @@ import threading
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
-    ModuleError, ModuleConnector
+    ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
 
 from fold import create_constant
 
@@ -146,6 +146,113 @@ class While(Module):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
         self.done()
+
+
+class For(Module):
+    """
+    The For Module runs a module with input from a range.
+    """
+
+    def updateUpstream(self):
+        """A modified version of the updateUpstream method."""
+
+        # everything is the same except that we don't update the module on
+        # FunctionPort
+        suspended = []
+        was_suspended = None
+        for port_name, connector_list in self.inputPorts.iteritems():
+            if port_name == 'FunctionPort':
+                for connector in connector_list:
+                    try:
+                        connector.obj.updateUpstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+            else:
+                for connector in connector_list:
+                    try:
+                        connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
+        for port_name, connectorList in list(self.inputPorts.items()):
+            if port_name != 'FunctionPort':
+                for connector in connectorList:
+                    if connector.obj.get_output(connector.port) is \
+                            InvalidOutput: # pragma: no cover
+                        self.removeInputConnector(port_name, connector)
+
+    def compute(self):
+        name_output = self.getInputFromPort('OutputPort') # or 'self'
+        name_input = self.forceGetInputFromPort('InputPort') # or None
+        lower_bound = self.getInputFromPort('LowerBound') # or 0
+        higher_bound = self.getInputFromPort('HigherBound') # required
+        delay = self.forceGetInputFromPort('Delay') # or None
+
+        connectors = self.inputPorts.get('FunctionPort')
+        if len(connectors) != 1:
+            raise ModuleError(self,
+                              "Multiple modules connected on FunctionPort")
+
+        outputs = []
+        suspended = []
+        loop = self.logging.begin_loop_execution(self,
+                                                 higher_bound - lower_bound)
+        for i in xrange(lower_bound, higher_bound):
+            module = copy.copy(connectors[0].obj)
+
+            if not self.upToDate:
+                module.upToDate = False
+                module.computed = False
+
+                # Pass iteration number on input port
+                if name_input is not None:
+                    if name_input in module.inputPorts:
+                        del module.inputPorts[name_input]
+                    new_connector = ModuleConnector(
+                            create_constant(i),
+                            'value')
+                    module.set_input_port(name_input, new_connector)
+
+            loop.begin_iteration(module, i)
+
+            try:
+                module.update()
+            except ModuleSuspended, e:
+                suspended.append(e)
+                loop.end_iteration(module)
+                continue
+
+            loop.end_iteration(module)
+
+            if i+1 != higher_bound and delay:
+                time.sleep(delay)
+
+            if name_output not in module.outputPorts:
+                raise ModuleError(module,
+                                  "Invalid output port: %s" % name_output)
+            outputs.append(module.get_output(name_output))
+
+        if suspended:
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), higher_bound - lower_bound),
+                        children=suspended)
+        loop.end_loop_execution()
+
+        self.setResult('Result', outputs)
 
 
 ###############################################################################

@@ -545,8 +545,6 @@ Makes sure input port 'name' is filled."""
         return None
 
 
-###############################################################################
-
 class ModuleConnector(object):
     def __init__(self, obj, port, spec=None, typecheck=None):
         # typecheck is a list of booleans indicating which descriptors to
