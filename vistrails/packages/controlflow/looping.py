@@ -151,7 +151,6 @@ class For(Module):
         name_input = self.forceGetInputFromPort('InputPort') # or None
         lower_bound = self.getInputFromPort('LowerBound') # or 0
         higher_bound = self.getInputFromPort('HigherBound') # required
-        delay = self.forceGetInputFromPort('Delay') # or None
 
         connectors = self.inputPorts.get('FunctionPort')
         if len(connectors) != 1:
@@ -183,9 +182,6 @@ class For(Module):
                     module.set_input_port(name_input, new_connector)
 
             module.update()
-
-            if i+1 != higher_bound and delay:
-                time.sleep(delay)
 
             if hasattr(module, 'suspended') and module.suspended:
                 suspended.append(module._module_suspended)
