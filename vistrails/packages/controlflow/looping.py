@@ -159,6 +159,7 @@ class For(Module):
                               "Multiple modules connected on FunctionPort")
 
         outputs = []
+        suspended = []
         for i in xrange(lower_bound, higher_bound):
             module = copy.copy(connectors[0].obj)
 
@@ -182,18 +183,25 @@ class For(Module):
                     module.set_input_port(name_input, new_connector)
 
             module.update()
-            if hasattr(module, 'suspended') and module.suspended:
-                raise ModuleSuspended(module._module_suspended)
 
             if i+1 != higher_bound and delay:
                 time.sleep(delay)
+
+            if hasattr(module, 'suspended') and module.suspended:
+                suspended.append(module._module_suspended)
+                continue
 
             if name_output not in module.outputPorts:
                 raise ModuleError(module,
                                   "Invalid output port: %s" % name_output)
             outputs.append(module.get_output(name_output))
 
-        self.setResult('Result', outputs)
+        if suspended:
+            self.suspended = "%d module(s) suspended: %s" % (
+                    len(suspended), suspended[0].msg)
+            self._module_suspended = suspended
+        else:
+            self.setResult('Result', outputs)
 
 
 ###############################################################################
