@@ -7,6 +7,7 @@ import vistrails.core.application
 from vistrails.core.application import get_vistrails_application
 from vistrails.core.db.io import serialize, unserialize
 from vistrails.core.db.locator import XMLFileLocator
+from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.log.group_exec import GroupExec
 from vistrails.core.log.machine import Machine
@@ -14,7 +15,7 @@ from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.modules.basic_modules import Unpickle
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.sub_module import InputPort
-from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.parallelization import Parallelization
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.controller import VistrailController
@@ -32,10 +33,18 @@ def get_pickled_module_inputs(module):
     for name, conns in module.inputPorts.iteritems():
         inputlist = []
         for conn in conns:
+            input_obj = conn()
+            if isinstance(input_obj, Module):
+                debug.critical(
+                        "Serializing an input of type Module: module '%s', "
+                        "input port '%s', obj=%r" % (
+                        module.__class__.__name__,
+                        name,
+                        input_obj))
             if isinstance(conn.obj, InputPort):
-                inputlist.insert(0, pickle.dumps(conn(), PICKLE_VERSION))
+                inputlist.insert(0, pickle.dumps(input_obj, PICKLE_VERSION))
             else:
-                inputlist.append(pickle.dumps(conn(), PICKLE_VERSION))
+                inputlist.append(pickle.dumps(input_obj, PICKLE_VERSION))
         if inputlist:
             inputs[name] = inputlist
     return inputs
