@@ -182,7 +182,8 @@ class FoldWithModule(Fold):
                 except ModuleSuspended, e:
                     suspended.append(e)
                     do_operation = False
-                    break
+                    loop.end_iteration(module)
+                    continue
 
                 loop.end_iteration(module)
 
