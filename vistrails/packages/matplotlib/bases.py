@@ -120,9 +120,9 @@ class MplFigure(Module):
         pylab.hold(True)
 
         # Set it on the plots
-        for connectorList in self.inputPorts.itervalues():
-            for connector in connectorList:
-                connector.obj.set_figure(self.figInstance)
+        connectorList = self.inputPorts.get('addPlot', [])
+        for connector in connectorList:
+            connector.obj.set_figure(self.figInstance)
 
         # Now we can run upstream modules
         super(MplFigure, self).updateUpstream()
