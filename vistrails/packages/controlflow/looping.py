@@ -195,6 +195,7 @@ class For(Module):
                               "Multiple modules connected on FunctionPort")
 
         outputs = []
+        suspended = []
         loop = self.logging.begin_loop_execution(self,
                                                  higher_bound - lower_bound)
         for i in xrange(lower_bound, higher_bound):
@@ -215,12 +216,14 @@ class For(Module):
 
             loop.begin_iteration(module, i)
 
-            module.update() # might raise ModuleSuspended (or something else)
+            try:
+                module.update()
+            except ModuleSuspended, e:
+                suspended.append(e)
+                loop.end_iteration(module)
+                continue
 
             loop.end_iteration(module)
-
-            if hasattr(module, 'suspended') and module.suspended:
-                raise ModuleSuspended(module._module_suspended)
 
             if i+1 != higher_bound and delay:
                 time.sleep(delay)
@@ -230,6 +233,12 @@ class For(Module):
                                   "Invalid output port: %s" % name_output)
             outputs.append(module.get_output(name_output))
 
+        if suspended:
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), higher_bound - lower_bound),
+                        children=suspended)
         loop.end_loop_execution()
 
         self.setResult('Result', outputs)
