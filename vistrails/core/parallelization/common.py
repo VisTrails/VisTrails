@@ -24,15 +24,18 @@ from vistrails.core.vistrail.vistrail import Vistrail
 import vistrails.db.versions
 
 
+PICKLE_VERSION = 2
+
+
 def get_pickled_module_inputs(module):
     inputs = {}
     for name, conns in module.inputPorts.iteritems():
         inputlist = []
         for conn in conns:
             if isinstance(conn.obj, InputPort):
-                inputlist.insert(0, pickle.dumps(conn()))
+                inputlist.insert(0, pickle.dumps(conn(), PICKLE_VERSION))
             else:
-                inputlist.append(pickle.dumps(conn()))
+                inputlist.append(pickle.dumps(conn(), PICKLE_VERSION))
         if inputlist:
             inputs[name] = inputlist
     return inputs
