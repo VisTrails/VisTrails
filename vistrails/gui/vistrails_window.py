@@ -71,6 +71,11 @@ from vistrails.gui import merge_gui
 from vistrails.gui.vistrail_variables import QVistrailVariables
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.paramexplore.pe_view import QParamExploreView
+from vistrails.gui.mashups.alias_inspector import QAliasInspector
+from vistrails.gui.mashups.mashup_view import QMashupViewTab
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 from vistrails.db.services.io import SaveBundle
 import vistrails.db.services.vistrail
 from vistrails.db import VistrailsDBException
@@ -509,6 +514,14 @@ class QVistrailViewWindow(QBaseViewWindow):
                        'callback': \
                            _app.pass_through_locator(self.get_current_view,
                                                      'save_vistrail_as')}),
+                     ('saveToOther', "Save To DB...",
+                      {'statusTip': "Save the current vistrail to a " \
+                           "database",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through_locator(self.get_current_view,
+                                                     'save_vistrail_as', 
+                                                     reverse=True)}),
                      ('closeVistrail', "Close",
                       {'shortcut': QtGui.QKeySequence.Close,
                        'statusTip': "Close the current vistrail",
@@ -673,6 +686,12 @@ class QVistrailViewWindow(QBaseViewWindow):
                        'enabled': True,
                        'callback': _app.add_tag}),
                      "---",
+                     ("reLayout", "Re-Layout",
+                      {'statusTip': "Re-layouts the version tree",
+                       'enabled': True,
+                       'callback': \
+                           _app.pass_through(self.get_current_controller,
+                                             'invalidate_version_tree')}),
                      ("expandBranch", "Expand Branch",
                       {'statusTip': "Expand all versions in the tree below " \
                            "the current version",
@@ -1566,8 +1585,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.collection.workspace import QWorkspaceWindow
         view = self.get_current_view()
         view.is_abstraction = view.controller.is_abstraction
-        QWorkspaceWindow.instance().remove_vt_window(view)
-        QWorkspaceWindow.instance().add_vt_window(view)
         return view
 
     def open_vistrail_from_locator(self, locator_class):
@@ -1656,13 +1673,16 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()
             view = self.open_vistrail(locator, version, is_abstraction)
-
+            view.version_view.select_current_version()
             conf = get_vistrails_configuration()
             has_tag = len(view.controller.vistrail.get_tagMap()) > 0
             if (not conf.check('showPipelineViewOnLoad')) and \
                (conf.check('showHistoryViewOnLoad') or has_tag):
                 self.qactions['history'].trigger()
 
+            if version:
+                self.qactions['pipeline'].trigger()
+                
             if mashuptrail is not None and mashupVersion is not None:
                 view.open_mashup_from_mashuptrail_id(mashuptrail, mashupVersion)
             elif parameterExploration is not None:
@@ -2089,9 +2109,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             saveFileAsAction = self.qactions['saveFileAs']
             saveFileAsAction.setStatusTip('Save the current vistrail to a '
                                           'different database location')
+            saveToOtherAction = self.qactions['saveToOther']
+            saveToOtherAction.setText('Save To File...')
+            saveToOtherAction.setStatusTip('Save the current vistrail to '
+                                          'a file')
             exportFileAction = self.qactions['exportFile']
-            exportFileAction.setText('To XML File...')
-            exportFileAction.setStatusTip('Save the current vistrail to '
+            exportFileAction.setText('To File...')
+            exportFileAction.setStatusTip('Export the current vistrail to '
                                           'a file')
         else:
             openFileAction = self.qactions['openFile']
@@ -2109,9 +2133,13 @@ class QVistrailsWindow(QVistrailViewWindow):
             saveFileAsAction = self.qactions['saveFileAs']
             saveFileAsAction.setStatusTip('Save the current vistrail to a '
                                           'different file location')
+            saveToOtherAction = self.qactions['saveToOther']
+            saveToOtherAction.setText('Save To DB...')
+            saveToOtherAction.setStatusTip('Save the current vistrail to '
+                                          'a database')
             exportFileAction = self.qactions['exportFile']
-            exportFileAction.setText('To DB...')
-            exportFileAction.setStatusTip('Save the current vistrail to '
+            exportFileAction.setText('Export To DB...')
+            exportFileAction.setStatusTip('Export the current vistrail to '
                                           'a database')
 
     def flush_cache(self):
@@ -2179,7 +2207,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             actions = []
             action = QtGui.QAction(
                     "Main Window", self,
-                    triggered=lambda b=None: self.activateWindow())
+                    triggered=lambda checked=False: self.activateWindow())
             action.setCheckable(True)
             
             base_view_windows = {}
@@ -2468,11 +2496,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                         p.toolWindow().close()
                       
     def applicationFocusChanged(self, old, current):
-        from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
-        from vistrails.gui.paramexplore.pe_view import QParamExploreView
-        from vistrails.gui.mashups.alias_inspector import QAliasInspector
-        from vistrails.gui.mashups.mashup_view import QMashupViewTab
-        from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
+        if self._is_quitting:
+            return
         def is_or_has_parent_of_types(widget, types):
             while widget is not None:
                 for _type in types:

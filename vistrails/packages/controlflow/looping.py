@@ -17,8 +17,8 @@ class While(Module):
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
 
-        # everything is the same except that we don't update anything
-        # upstream of FunctionPort
+        # everything is the same except that we don't update the module on
+        # FunctionPort
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
@@ -98,7 +98,7 @@ class While(Module):
                 if not module.get_output(name_condition):
                     break
 
-            if delay:
+            if delay and i+1 != max_iterations:
                 time.sleep(delay)
 
             # Get state on output ports
@@ -114,6 +114,84 @@ class While(Module):
                               "Invalid output port: %s" % name_output)
         result = module.get_output(name_output)
         self.setResult('Result', result)
+
+
+class For(Module):
+    """
+    The For Module runs a module with input from a range.
+    """
+
+    def __init__(self):
+        Module.__init__(self)
+        self.is_looping_module = True
+
+    def updateUpstream(self):
+        """A modified version of the updateUpstream method."""
+
+        # everything is the same except that we don't update the module on
+        # FunctionPort
+        for port_name, connector_list in self.inputPorts.iteritems():
+            if port_name == 'FunctionPort':
+                for connector in connector_list:
+                    connector.obj.updateUpstream()
+            else:
+                for connector in connector_list:
+                    connector.obj.update()
+        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+            if port_name != 'FunctionPort':
+                for connector in connectorList:
+                    if connector.obj.get_output(connector.port) is \
+                            InvalidOutput:
+                        self.removeInputConnector(port_name, connector)
+
+    def compute(self):
+        name_output = self.getInputFromPort('OutputPort') # or 'self'
+        name_input = self.forceGetInputFromPort('InputPort') # or None
+        lower_bound = self.getInputFromPort('LowerBound') # or 0
+        higher_bound = self.getInputFromPort('HigherBound') # required
+        delay = self.forceGetInputFromPort('Delay') # or None
+
+        connectors = self.inputPorts.get('FunctionPort')
+        if len(connectors) != 1:
+            raise ModuleError(self,
+                              "Multiple modules connected on FunctionPort")
+
+        outputs = []
+        for i in xrange(lower_bound, higher_bound):
+            module = copy.copy(connectors[0].obj)
+
+            if not self.upToDate:
+                module.upToDate = False
+                module.computed = False
+
+                # For logging
+                module.is_looping = True
+                module.first_iteration = i == lower_bound
+                module.last_iteration = i+1 == higher_bound
+                module.loop_iteration = i - lower_bound
+
+                # Pass iteration number on input port
+                if name_input is not None:
+                    if name_input in module.inputPorts:
+                        del module.inputPorts[name_input]
+                    new_connector = ModuleConnector(
+                            create_constant(i),
+                            'value')
+                    module.set_input_port(name_input, new_connector)
+
+            module.update()
+            if hasattr(module, 'suspended') and module.suspended:
+                raise ModuleSuspended(module._module_suspended)
+
+            if i+1 != higher_bound and delay:
+                time.sleep(delay)
+
+            if name_output not in module.outputPorts:
+                raise ModuleError(module,
+                                  "Invalid output port: %s" % name_output)
+            outputs.append(module.get_output(name_output))
+
+        self.setResult('Result', outputs)
 
 
 ###############################################################################

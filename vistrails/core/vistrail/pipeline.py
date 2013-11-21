@@ -41,7 +41,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException, MissingModuleVersion, PortMismatch
+    ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
 from vistrails.core.system import get_vistrails_default_pkg_prefix, \
     get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
@@ -58,7 +58,7 @@ from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
+from vistrails.core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -102,6 +102,17 @@ class MissingVistrailVariable(Exception):
             return "%s|%s" % (self._namespace, self._name)
         return self._name
     _module_name = property(_get_module_name)
+
+class MissingFunction(Exception):
+    def __init__(self, name, module_name, module_id=None):
+        self.name = name
+        self.module_name = module_name
+        self.module_id = module_id
+
+    def __str__(self):
+        return ("Missing Function '%s' on module '%s'%s" % 
+                (self.name, self.module_name, " (id %d)" % self.module_id if
+                 self.module_id is not None else ""))
 
 class CycleInPipeline(Exception):
     def __str__(self):
@@ -1064,7 +1075,12 @@ class Pipeline(DBWorkflow):
         for module in self.modules.itervalues():
             for function in module.functions:
                 is_valid = True
-                # FIXME also check for the corresponding spec for a function?
+                if module.is_valid and not module.has_port_spec(function.name, 
+                                                                'input'):
+                    is_valid = False
+                    e = MissingFunction(function.name, module.name, module.id)
+                    e._module_id = module.id
+                    exceptions.add(e)
                 pos_map = {}
                 for p in function.parameters:
                     if p.identifier == '':
@@ -1126,14 +1142,16 @@ class Pipeline(DBWorkflow):
             try:
                 for port_spec in module.port_specs.itervalues():
                     try:
-                        # port_spec.create_entries_and_descriptors()
                         port_spec.descriptors()
+                    except MissingPackage, e:
+                        port_spec.is_valid = False
+                        e._module_id = module.id
+                        exceptions.add(e)
                     except ModuleRegistryException, e:
                         e = PortMismatch(module.package, module.name,
                                          module.namespace, port_spec.name,
                                          port_spec.type, port_spec.sigstring)
                         port_spec.is_valid = False
-                        is_valid = False
                         e._module_id = module.id
                         exceptions.add(e)
             except ModuleRegistryException, e:
