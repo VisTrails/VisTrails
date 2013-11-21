@@ -225,6 +225,8 @@ class For(Module):
             outputs.append(module.get_output(name_output))
 
         self.loop_logging.end_loop_execution()
+        self.logging.end_update(self)
+        self.logging.signalSuccess(self)
         self.setResult('Result', outputs)
 
 
