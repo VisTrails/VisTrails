@@ -149,6 +149,8 @@ class FoldWithModule(Fold):
                 module.upToDate = False
                 module.computed = False
                 self.setInputValues(module, input_port, element)
+                module.serialized_outputports = [
+                        self.getInputFromPort('OutputPort')]
 
                 self.loop_logging.begin_iteration(module, i)
 

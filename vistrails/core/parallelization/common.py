@@ -229,8 +229,11 @@ def module_to_serialized_pipeline(module):
     wf = _serialize_module(pipeline_db_module)
 
     # identify outputs
-    connected_outputports = set(
-            pipeline_db_module.connected_output_ports.iterkeys())
+    if getattr(module, 'serialized_outputports', None) is None:
+        connected_outputports = set(
+                pipeline_db_module.connected_output_ports.iterkeys())
+    else:
+        connected_outputports = set(module.serialized_outputports)
 
     return wf, module_id, connected_outputports
 
