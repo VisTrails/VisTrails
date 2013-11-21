@@ -142,27 +142,44 @@ class For(Module):
     The For Module runs a module with input from a range.
     """
 
-    def __init__(self):
-        Module.__init__(self)
-        self.is_looping_module = True
-
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
 
         # everything is the same except that we don't update the module on
         # FunctionPort
+        suspended = []
+        was_suspended = None
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    try:
+                        connector.obj.updateUpstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
             else:
                 for connector in connector_list:
-                    connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+                    try:
+                        connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
+                            InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
     def compute(self):
@@ -178,18 +195,14 @@ class For(Module):
                               "Multiple modules connected on FunctionPort")
 
         outputs = []
+        loop = self.logging.begin_loop_execution(self,
+                                                 higher_bound - lower_bound)
         for i in xrange(lower_bound, higher_bound):
             module = copy.copy(connectors[0].obj)
 
             if not self.upToDate:
                 module.upToDate = False
                 module.computed = False
-
-                # For logging
-                module.is_looping = True
-                module.first_iteration = i == lower_bound
-                module.last_iteration = i+1 == higher_bound
-                module.loop_iteration = i - lower_bound
 
                 # Pass iteration number on input port
                 if name_input is not None:
@@ -200,7 +213,12 @@ class For(Module):
                             'value')
                     module.set_input_port(name_input, new_connector)
 
-            module.update()
+            loop.begin_iteration(module, i)
+
+            module.update() # might raise ModuleSuspended (or something else)
+
+            loop.end_iteration(module)
+
             if hasattr(module, 'suspended') and module.suspended:
                 raise ModuleSuspended(module._module_suspended)
 
@@ -211,6 +229,8 @@ class For(Module):
                 raise ModuleError(module,
                                   "Invalid output port: %s" % name_output)
             outputs.append(module.get_output(name_output))
+
+        loop.end_loop_execution()
 
         self.setResult('Result', outputs)
 
