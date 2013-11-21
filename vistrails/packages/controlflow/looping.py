@@ -92,6 +92,11 @@ class While(Module):
                             create_constant(value),
                             'value')
                     module.set_input_port(port, new_connector)
+                    module.serialized_outputports = [self.name_output]
+                    if self.name_state_output:
+                        module.serialized_outputports.extend(self.name_state_output)
+                    if self.name_condition is not None:
+                        module.serialized_outputports.append(self.name_condition)
 
         self.loop_logging.begin_iteration(module, i)
         self.run_upstream_module(lambda: self.iteration_done(i, module),
