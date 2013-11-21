@@ -143,7 +143,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(For, 'InputPort', (String, ""),
                        optional=True)
     reg.add_input_port(For, 'OutputPort', (String, ""),
-                       optional=True, defaults="['self']")
+                       optional=True)
     reg.add_input_port(For, 'LowerBound', (Integer, ""),
                        optional=True, defaults="['0']")
     reg.add_input_port(For, 'HigherBound', (Integer, ""))

@@ -181,6 +181,7 @@ class For(Module):
                     if mod.get_output(port) is InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
+        self.name_output = self.forceGetInputFromPort('OutputPort') # or None
         name_input = self.forceGetInputFromPort('InputPort') # or None
         lower_bound = self.getInputFromPort('LowerBound') # or 0
         higher_bound = self.getInputFromPort('HigherBound') # required
@@ -206,6 +207,10 @@ class For(Module):
                             create_constant(i),
                             'value')
                     module.set_input_port(name_input, new_connector)
+                    if self.name_output is not None:
+                        module.serialized_outputports = [self.name_output]
+                    else:
+                        module.serialized_outputports = []
 
                 self.loop_logging.begin_iteration(module, i)
 
@@ -218,21 +223,23 @@ class For(Module):
 
     def functions_ready(self):
         self.done()
-        name_output = self.getInputFromPort('OutputPort') # or 'self'
 
         outputs = []
         for module in self.modules_to_run:
             self.loop_logging.end_iteration(module)
 
-            if name_output not in module.outputPorts:
-                raise ModuleError(module,
-                                  "Invalid output port: %s" % name_output)
-            outputs.append(module.get_output(name_output))
+            if self.name_output is not None:
+                if self.name_output not in module.outputPorts:
+                    raise ModuleError(
+                            module,
+                            "Invalid output port: %s" % self.name_output)
+                outputs.append(module.get_output(self.name_output))
 
         self.loop_logging.end_loop_execution()
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
-        self.setResult('Result', outputs)
+        if self.name_output is not None:
+            self.setResult('Result', outputs)
 
 
 ###############################################################################
