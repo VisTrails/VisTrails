@@ -39,8 +39,7 @@ import copy
 import gc
 import cPickle as pickle
 
-from vistrails.core.common import InstanceObject, \
-    VistrailsInternalError
+from vistrails.core.common import InstanceObject, VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.interpreter.utils
 from vistrails.core.interpreter.base import AbortExecution

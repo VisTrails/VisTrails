@@ -14,7 +14,7 @@ from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.modules.basic_modules import Unpickle
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.sub_module import InputPort
-from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.parallelization import Parallelization
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.controller import VistrailController
@@ -24,15 +24,27 @@ from vistrails.core.vistrail.vistrail import Vistrail
 import vistrails.db.versions
 
 
+PICKLE_VERSION = 2
+
+
 def get_pickled_module_inputs(module):
     inputs = {}
     for name, conns in module.inputPorts.iteritems():
         inputlist = []
         for conn in conns:
+            input_obj = conn()
+            if isinstance(input_obj, Module):
+                raise ModuleError(
+                        module,
+                        "Serializing an input of type Module: module '%s', "
+                        "input port '%s', obj=%r" % (
+                        module.__class__.__name__,
+                        name,
+                        input_obj))
             if isinstance(conn.obj, InputPort):
-                inputlist.insert(0, pickle.dumps(conn()))
+                inputlist.insert(0, pickle.dumps(input_obj, PICKLE_VERSION))
             else:
-                inputlist.append(pickle.dumps(conn()))
+                inputlist.append(pickle.dumps(input_obj, PICKLE_VERSION))
         if inputlist:
             inputs[name] = inputlist
     return inputs
@@ -93,7 +105,7 @@ def get_module_inputs_with_defaults(module):
 
 def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
     if get_vistrails_application() is None:
-        vistrails.core.application.init(args=[])
+        vistrails.core.application.init({'spawned': True}, args=[])
 
     Parallelization.set_is_subprocess()
 
@@ -157,7 +169,16 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
         if execution_errors:
             for key in execution_errors:
                 module = pipeline.modules[key]
-                msg = '%s: %s' %(module.name, execution_errors[key])
+                msg = '%s: %s' % (module.name, execution_errors[key])
+                errors.append(msg)
+
+        # Check for suspended status
+        execution_suspended = execution[0][0].suspended
+        if execution_suspended:
+            for key, ms in execution_suspended.iteritems():
+                module = pipeline.modules[key]
+                msg = '%s: module suspended remotely: %s' % (
+                        module.name, ms.msg)
                 errors.append(msg)
 
         # Get the execution log from the controller
@@ -174,17 +195,25 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
 
         # Get the output values
         outputs = {}
-        if not execution_errors:
+        if not errors:
             for executed_module in execution[0][0].executed:
                 if executed_module != moduleId:
                     continue
                 executed_module = execution[0][0].objects[executed_module]
-                try:
-                    for port in output_ports:
-                        outputs[port] = executed_module.get_output(port)
-                    break
-                except ModuleError, e:
-                    errors.append("Output port not found: %s (%s)" % (port, e.msg))
+                for port in output_ports:
+                    try:
+                        output = executed_module.get_output(port)
+                    except ModuleError, e:
+                        errors.append("Output port not found: %s (%s)" % (
+                                      port, e.msg))
+                    else:
+                        if isinstance(output, Module):
+                            errors.append("Can't serialize output of Module "
+                                          "type: output port '%s', obj=%r" % (
+                                          port, output))
+                        else:
+                            outputs[port] = output
+                break
             else:
                 errors.append("Module not found")
 
@@ -226,8 +255,11 @@ def module_to_serialized_pipeline(module):
     wf = _serialize_module(pipeline_db_module)
 
     # identify outputs
-    connected_outputports = set(
-            pipeline_db_module.connected_output_ports.iterkeys())
+    if getattr(module, 'serialized_outputports', None) is None:
+        connected_outputports = set(
+                pipeline_db_module.connected_output_ports.iterkeys())
+    else:
+        connected_outputports = set(module.serialized_outputports)
 
     return wf, module_id, connected_outputports
 

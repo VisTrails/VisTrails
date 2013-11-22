@@ -495,6 +495,15 @@ the previous run.
    The final pipeline
 
 
+For loop
+========
+
+The ``For`` module is very similar to ``Map``, except that it uses input values
+from a range. It can be used to make a module or group run several times with
+successive integer input, or just to repeatedly execute a task (optionally
+waiting between each iteration).
+
+
 Boolean operations
 ==================
 

@@ -2210,7 +2210,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             actions = []
             action = QtGui.QAction(
                     "Main Window", self,
-                    triggered=lambda b=None: self.activateWindow())
+                    triggered=lambda checked=False: self.activateWindow())
             action.setCheckable(True)
             
             base_view_windows = {}

@@ -92,6 +92,11 @@ class While(Module):
                             create_constant(value),
                             'value')
                     module.set_input_port(port, new_connector)
+                    module.serialized_outputports = [self.name_output]
+                    if self.name_state_output:
+                        module.serialized_outputports.extend(self.name_state_output)
+                    if self.name_condition is not None:
+                        module.serialized_outputports.append(self.name_condition)
 
         self.loop_logging.begin_iteration(module, i)
         self.run_upstream_module(lambda: self.iteration_done(i, module),
@@ -146,6 +151,95 @@ class While(Module):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
         self.done()
+
+
+class For(Module):
+    """
+    The For Module runs a module with input from a range.
+    """
+
+    def update(self):
+        self.logging.begin_update(self)
+        if len(self.inputPorts.get('FunctionPort', [])) != 1:
+            raise ModuleError(self,
+                              "%s module should have exactly one connection "
+                              "on its FunctionPort" % self.__class__.__name)
+        connectors = []
+        for port, connectorList in self.inputPorts.iteritems():
+            if port != 'FunctionPort':
+                connectors.extend(connectorList)
+        self.run_upstream_module(
+                self.other_ports_ready,
+                *connectors,
+                priority=self.UPDATE_UPSTREAM_PRIORITY)
+
+    def other_ports_ready(self):
+        for port_name, connectorList in list(self.inputPorts.items()):
+            if port_name != 'FunctionPort':
+                for connector in connectorList:
+                    mod, port = connector.obj, connector.port
+                    if mod.get_output(port) is InvalidOutput: # pragma: no cover
+                        self.removeInputConnector(port_name, connector)
+
+        self.name_output = self.forceGetInputFromPort('OutputPort') # or None
+        name_input = self.forceGetInputFromPort('InputPort') # or None
+        lower_bound = self.getInputFromPort('LowerBound') # or 0
+        higher_bound = self.getInputFromPort('HigherBound') # required
+
+        connector, = self.inputPorts.get('FunctionPort')
+
+        self.logging.begin_compute(self)
+        self.loop_logging = self.logging.begin_loop_execution(
+                self,
+                higher_bound - lower_bound)
+
+        self.modules_to_run = []
+        for i in xrange(lower_bound, higher_bound):
+            module = copy.copy(connector.obj)
+
+            if not self.upToDate: # pragma: no partial
+                module.upToDate = False
+                module.computed = False
+                if name_input is not None:
+                    if name_input in module.inputPorts:
+                        del module.inputPorts[name_input]
+                    new_connector = ModuleConnector(
+                            create_constant(i),
+                            'value')
+                    module.set_input_port(name_input, new_connector)
+                    if self.name_output is not None:
+                        module.serialized_outputports = [self.name_output]
+                    else:
+                        module.serialized_outputports = []
+
+                self.loop_logging.begin_iteration(module, i)
+
+            self.modules_to_run.append(module)
+
+        if not self.upToDate:
+            self.run_upstream_module(
+                    self.functions_ready,
+                    *self.modules_to_run)
+
+    def functions_ready(self):
+        self.done()
+
+        outputs = []
+        for module in self.modules_to_run:
+            self.loop_logging.end_iteration(module)
+
+            if self.name_output is not None:
+                if self.name_output not in module.outputPorts:
+                    raise ModuleError(
+                            module,
+                            "Invalid output port: %s" % self.name_output)
+                outputs.append(module.get_output(self.name_output))
+
+        self.loop_logging.end_loop_execution()
+        self.logging.end_update(self)
+        self.logging.signalSuccess(self)
+        if self.name_output is not None:
+            self.setResult('Result', outputs)
 
 
 ###############################################################################
