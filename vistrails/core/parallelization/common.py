@@ -200,12 +200,20 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
                 if executed_module != moduleId:
                     continue
                 executed_module = execution[0][0].objects[executed_module]
-                try:
-                    for port in output_ports:
-                        outputs[port] = executed_module.get_output(port)
-                    break
-                except ModuleError, e:
-                    errors.append("Output port not found: %s (%s)" % (port, e.msg))
+                for port in output_ports:
+                    try:
+                        output = executed_module.get_output(port)
+                    except ModuleError, e:
+                        errors.append("Output port not found: %s (%s)" % (
+                                      port, e.msg))
+                    else:
+                        if isinstance(output, Module):
+                            errors.append("Can't serialize output of Module "
+                                          "type: output port '%s', obj=%r" % (
+                                          port, output))
+                        else:
+                            outputs[port] = output
+                break
             else:
                 errors.append("Module not found")
 
