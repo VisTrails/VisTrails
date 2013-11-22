@@ -169,7 +169,16 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
         if execution_errors:
             for key in execution_errors:
                 module = pipeline.modules[key]
-                msg = '%s: %s' %(module.name, execution_errors[key])
+                msg = '%s: %s' % (module.name, execution_errors[key])
+                errors.append(msg)
+
+        # Check for suspended status
+        execution_suspended = execution[0][0].suspended
+        if execution_suspended:
+            for key, ms in execution_suspended.iteritems():
+                module = pipeline.modules[key]
+                msg = '%s: module suspended remotely: %s' % (
+                        module.name, ms.msg)
                 errors.append(msg)
 
         # Get the execution log from the controller
@@ -186,7 +195,7 @@ def execute_serialized_pipeline(wf, moduleId, inputs, output_ports):
 
         # Get the output values
         outputs = {}
-        if not execution_errors:
+        if not errors:
             for executed_module in execution[0][0].executed:
                 if executed_module != moduleId:
                     continue
