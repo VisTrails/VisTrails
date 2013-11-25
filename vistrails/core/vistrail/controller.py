@@ -2256,8 +2256,8 @@ class VistrailController(object):
                                 abstractions[key] = []
                             abstractions[key].append(abstraction)
         if recurse:
-            for abstraction_list in abstractions.itervalues():
-                for abstraction in abstraction_list:
+            for abstraction_list in abstractions.values():
+                for abstraction in abstraction_list[:]:
                     try:
                         vistrail = abstraction.vistrail
                     except MissingPackageVersion, e:
