@@ -2319,7 +2319,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
             data = event.mimeData()
             if not self.read_only_mode:
                 if hasattr(data, 'items'):
-                    if get_vistrails_configuration().check('autoConnect'):
+                    if self.tmp_module_item and \
+                       get_vistrails_configuration().check('autoConnect'):
                         self.tmp_module_item.setPos(event.scenePos())
                         self.updateTmpInputConnection(event.scenePos())
                         self.updateTmpOutputConnection(event.scenePos())
@@ -2341,7 +2342,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
             if hasattr(data, 'items') and not self.read_only_mode:
-                if get_vistrails_configuration().check('autoConnect'):
+                if self.tmp_module_item and \
+                   get_vistrails_configuration().check('autoConnect'):
                     self.tmp_module_item.setPos(event.scenePos())
                     self.updateTmpInputConnection(event.scenePos())
                     self.updateTmpOutputConnection(event.scenePos())
@@ -2546,7 +2548,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 isinstance(event.source(), QModuleTreeWidget) or
                 isinstance(event.source(), QDragVariableLabel))):
             data = event.mimeData()
-            if hasattr(data, 'items') and not self.read_only_mode:
+            if hasattr(data, 'items') and not self.read_only_mode and \
+                self.controller.current_pipeline == self.current_pipeline:
                 assert len(data.items) == 1
                 self.add_module_event(event, data)
                 event.accept()

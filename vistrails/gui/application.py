@@ -351,12 +351,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def send_notification(self, notification_id, *args):
         # do global notifications
         if notification_id in self.notifications:
-            # print 'global notification ', notification_id
             for m in self.notifications[notification_id]:
                 try:
-                    #print "  m: ", m
                     m(*args)
-                except Exception, e:
+                except Exception:
                     import traceback
                     traceback.print_exc()
         notifications = {}
@@ -366,19 +364,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # do window notifications
         if current_window in self.window_notifications:
             notifications = self.window_notifications[current_window]
-            # print 'window notification', notification_id, current_window
 
-        if notification_id in notifications:
-            # print "found notification:", notification_id
-            for m in notifications[notification_id]:
-                try:
-                    # print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
-        # else:
-        #     print "no notification...", notifications.keys()
+            if notification_id in notifications:
+                for m in notifications[notification_id]:
+                    try:
+                        m(*args)
+                    except Exception:
+                        import traceback
+                        traceback.print_exc()
 
         if current_window is not None:
             current_view = current_window.current_view
@@ -387,16 +380,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # do local notifications
         if current_view in self.view_notifications:
             notifications = self.view_notifications[current_view]
-            # print 'local notification ', notification_id, current_view
-                
-        if notification_id in notifications:
-            for m in notifications[notification_id]:
-                try:
-                    #print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
+
+            if notification_id in notifications:
+                for m in notifications[notification_id]:
+                    try:
+                        m(*args)
+                    except Exception:
+                        import traceback
+                        traceback.print_exc()
 
     def showBuilderWindow(self):
         # in some systems (Linux and Tiger) we need to make both calls

@@ -876,7 +876,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.setCentralWidget(self.stack)        
         self.auto_view = True
 
-        self._previous_vt_view = None
         self._focus_owner = None
         self._previous_view = None
         self._is_quitting = False
@@ -889,6 +888,24 @@ class QVistrailsWindow(QVistrailViewWindow):
                      self.applicationFocusChanged)
 
         self.preferencesDialog = QPreferencesDialog(self)
+
+        # To track the current view we need to track all mouse clicks
+        builder = self
+        class FocusEvent(QtGui.QWidget):
+            def __init__(self):
+                QtGui.QWidget.__init__(self)
+                self.old_focus = None
+                self.vt_app = get_vistrails_application()
+            def eventFilter(self, object, event):
+                if event.type() == QtCore.QEvent.MouseButtonPress:
+                    # object may be the old one when this window gets focus
+                    object = self.vt_app.widgetAt(QtGui.QCursor.pos())
+                    if object != self.old_focus:
+                        builder.applicationFocusChanged(self.old_focus, object)
+                        self.old_focus = object
+                return False
+        self.focusEvent = FocusEvent()
+        self.focusEvent.vt_app.installEventFilter(self.focusEvent)
 
         if get_vistrails_configuration().detachHistoryView:
             self.history_view = QBaseViewWindow(parent=None)
@@ -1142,8 +1159,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                      QtCore.SIGNAL("detachVistrail"),
                      self.detach_view)
 
-    def dock_palettes(self):
-        window = QtGui.QApplication.activeWindow()
+    def dock_palettes(self, window=None):
+        if not window:
+            window = QtGui.QApplication.activeWindow()
         if window == self or window in self.windows.values():
             left_first_added = None
             right_first_added = None
@@ -1382,9 +1400,28 @@ class QVistrailsWindow(QVistrailViewWindow):
                          self.window_closed)
             window.qactions['history'].setChecked(True)
             window.show()
+            # this is needed to make dropping modules work
+            self.dock_palettes(window)
+            self.dock_palettes(self)
             self.view_changed(view)
         else:
             self.view_changed(view)
+
+    def attach_view(self, view=None):
+        if not view:
+            view = self.current_view
+        if view not in self.windows:
+            return
+        window = view.window()
+        self.disconnect(window, QtCore.SIGNAL("window_closed"),
+                        self.window_closed)
+        self.stack.addWidget(view)
+        del self.windows[view]
+        # disable save_vistrail call
+        window.closeEvent = lambda event: event.accept()
+        window.close()
+        self.stack.setCurrentWidget(view)
+        self.view_changed(view)
             
     def window_closed(self, view):
         if view in self.windows:
@@ -1560,7 +1597,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 elif not self.stack.count() and not self._is_quitting and \
                      self.auto_view:
                     self.create_first_vistrail()
-                view = self.get_current_view()
+                view = self.get_next_view()
                 self.change_view(view)
 
     def select_version(self, version):
@@ -1791,7 +1828,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return False
         
         if locator is not None:
-            get_vistrails_application().close_vistrail(locator)
+            get_vistrails_application().close_vistrail(locator, current_view.controller)
         return True
 
     def close_all_vistrails(self, quiet=False):
@@ -1830,51 +1867,18 @@ class QVistrailsWindow(QVistrailViewWindow):
         QModulePalette.instance().link_registry()
        
     def get_current_view(self):
-        from vistrails.packages.spreadsheet.spreadsheet_window import SpreadsheetWindow
-        from vistrails.gui.common_widgets import QToolWindow
-        if self.isActiveWindow():
+        # return the current global view
+        return self.current_view
+
+    def get_next_view(self):
+        # return an available view if one exist
+        # this can be used after closing a vistrail to get a new current one
+        if self.stack.count() > 0:
             return self.stack.currentWidget()
         else:
-            window = QtGui.QApplication.activeWindow()
-            for view, w in self.windows.iteritems():
-                if w == window:
-                    return view
-            if isinstance(window, QBaseViewWindow):
-                return window.view.vistrail_view
-            elif (window == self.palette_window or 
-                  window in self.palette_window.windows):
-                return self.stack.currentWidget()
-            elif isinstance(window, QMashupAppMainWindow):
-                return window.view
-            elif (window is None or isinstance(window,SpreadsheetWindow)
-                  or isinstance(window, QtGui.QMessageBox)
-                  or isinstance(window, QtGui.QMenu)
-                  or isinstance(window, QToolWindow)):
-                #in this case we should return the current view (if valid)
-                #or the immediate previous view. If both are invalid we return
-                #the first valid view we find
-                if self.current_view is not None:
-                    return self.current_view
-                elif self._previous_vt_view is not None:
-                    return self._previous_vt_view
-                else:
-                    if self.stack.count() > 0:
-                        return self.stack.currentWidget()
-                    else:
-                        if len(self.windows) > 0:
-                            return self.windows.iterkeys().next()
-                        return self.stack.currentWidget()
-            #please do not remove this warning. It is necessary to know
-            #what type of window is causing the get_current_view to return
-            # a wrong value -- Emanuele.
-            debug.debug("[invalid view] get_current_view() -> %s"%window)
-            #instead of returning the current widget lets try to return any 
-            #previous view
-            if self.current_view is not None:
-                return self.current_view
-            elif self._previous_vt_view is not None:
-                return self._previous_vt_view
-            return self.stack.currentWidget()
+            if len(self.windows) > 0:
+                return self.windows.iterkeys().next()
+        return None
         
     def get_current_controller(self):
         if self.get_current_view() is None:
@@ -2270,6 +2274,15 @@ class QVistrailsWindow(QVistrailViewWindow):
             update_menu(w.qmenus['window'])
             for dw in v.detached_views.values():
                 update_menu(dw.qmenus['window'])
+                
+        if current_view and current_view.window() in self.windows.values():
+            # add detach action
+            current_view.window().qmenus['window'].addSeparator()
+            action = QtGui.QAction(
+                    "Re-attach Vistrail View", self,
+                    triggered=lambda b=None: self.attach_view())
+            current_view.window().qmenus['window'].addAction(action)
+            
             
     def update_merge_menu(self):
         #check if we have enough actions
@@ -2494,67 +2507,70 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if (p.toolWindow().isVisible() and 
                         not p.toolWindow().isFloating() and not p.get_pin_status()):
                         p.toolWindow().close()
-                      
+                 
     def applicationFocusChanged(self, old, current):
+        """ This method updates the current vistrail view when needed
+            Clicking a vistrail view selects it as the current unless clicking
+            in a vistrail palette widget which are global
+        """
         if self._is_quitting:
             return
-        def is_or_has_parent_of_types(widget, types):
-            while widget is not None:
-                for _type in types:
-                    if isinstance(widget, _type):
-                        return True
-                widget = widget.parent()
-            return False
-                
+        # focus owner is used to prevent view update when re-clicking a detached view
+        focus_owner = self._focus_owner
+        self._focus_owner = None
+
+        vt_app = get_vistrails_application()
+        # sometimes the correct widget is not selected
+        current = vt_app.widgetAt(QtGui.QCursor.pos())
+        
         if current is not None:
             owner = current.window()
             #print "\n\n\n >>>>>> applicationfocuschanged"
-            #print "focus_owner: ", self._focus_owner," previous_vt_view ", self._previous_vt_view, " previous_view ", self._previous_view
             #print "owner: ", owner, " current: ", current
+            def is_or_has_parent_of_types(widget, types):
+                while widget is not None:
+                    for _type in types:
+                        if isinstance(widget, _type):
+                            return True
+                    widget = widget.parent()
+                return False
             allowed_widgets = [ConstantWidgetMixin,
                                QParamExploreView,
                                QAliasInspector,
                                QCellWidget,
-                               QMashupViewTab]
-            if (self.isAncestorOf(current) or 
-                owner in self.windows.values()):
-                view = self.get_current_view()
-                #print "view: ", view
-                if view and (view == current or view.isAncestorOf(current)):
-                    # when a widget spans another control, for example, a Color
-                    # wheel, VisTrails will lose focus to that widget and it 
-                    # will try to generate a view_changed() event. This will
-                    # reset the view and happens with parameter exploration 
-                    # and mashups preview.
-                    # To avoid that, we will check if the current widget is a 
-                    # constant widget or a parameter exploration widget or has
-                    # any of these types as a parent in the hierarchy.  
-                    if (owner != self._focus_owner and 
-                        not is_or_has_parent_of_types(current, allowed_widgets)):
-                        #print "generating view_changed"
-                        self._previous_vt_view = view
-                        self._focus_owner = owner
-                        self.change_view(view)
-                        self.update_window_menu()
-                        self._previous_view = view.get_current_tab()
-                        view.reset_tab_view_to_current()
-                        view.view_changed()    
-                        
-            elif isinstance(owner, QBaseViewWindow):
+                               QMashupViewTab,
+                               QVistrailsPaletteInterface]
+            old_view = self.get_current_view()
+            view = None
+            if self.isAncestorOf(current):
+                view = self.stack.currentWidget()
+            elif  owner in self.windows.values():
                 view = owner.get_current_view()
-                #print "QBaseViewWindow view: ", view
-                if (view and owner != self._focus_owner and 
-                    not is_or_has_parent_of_types(current, allowed_widgets)):
-                    #print "generating view changed"
-                    self._previous_vt_view = view
-                    self._focus_owner = owner
+            if view:
+                # owner is a vistrail view
+                if not is_or_has_parent_of_types(current, allowed_widgets):
+                    # clicked in a valid view, so update it
+                    #print "generating view_changed", view
                     self.change_view(view)
-                    self.update_window_menu()
-                    self._previous_view = view.get_current_tab()
-                    view.set_to_current(current)
+                    if view != old_view:
+                        self.update_window_menu()
+                    self._previous_view = self.current_view.current_tab
+                    view.reset_tab_view_to_current()
+                    view.view_changed()    
+                return
+            if isinstance(owner, QBaseViewWindow):
+                # this is a pipeline view
+                self._focus_owner = owner
+                view = owner.get_current_view()
+                if (view and owner != focus_owner and 
+                    not is_or_has_parent_of_types(current, allowed_widgets)):
+                    #print "generating view changed2", view
+                    self.change_view(view)
+                    if view != old_view:
+                        self.update_window_menu()
+                    self._previous_view = self.current_view.current_tab
+                    view.set_to_current(owner.get_current_tab())
                     view.view_changed()
-        else:
-            self._focus_owner = None
 _app = None
 #_global_menubar = None
     
