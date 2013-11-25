@@ -1828,7 +1828,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return False
         
         if locator is not None:
-            get_vistrails_application().close_vistrail(locator)
+            get_vistrails_application().close_vistrail(locator, current_view.controller)
         return True
 
     def close_all_vistrails(self, quiet=False):
@@ -2275,7 +2275,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             for dw in v.detached_views.values():
                 update_menu(dw.qmenus['window'])
                 
-        if current_view.window() in self.windows.values():
+        if current_view and current_view.window() in self.windows.values():
             # add detach action
             current_view.window().qmenus['window'].addSeparator()
             action = QtGui.QAction(
