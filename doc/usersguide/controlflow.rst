@@ -260,7 +260,7 @@ the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and 
   ``http://www.ebi.ac.uk/Tools/webservices/wsdl/WSDbfetch.wsdl``
 
 
-  Don't forget to ensure that the ``webServices`` package is enabled in the  ``Preferences`` dialog. For more information about web services in |vistrails|, see Chapter :ref:`chap-webservices`.
+  Don't forget to ensure that the ``SudsWebServices`` package is enabled in the  ``Preferences`` dialog. For more information about web services in |vistrails|, see Chapter :ref:`chap-webservices`.
 
   Now, you're going to drag the following modules to the canvas:
 
