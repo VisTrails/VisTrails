@@ -2211,7 +2211,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             action.setCheckable(True)
             
             base_view_windows = {}
-            if current_view == None or QtGui.QApplication.activeWindow() == self:
+            if current_view == None or \
+               QtGui.QApplication.activeWindow() == self:
                 action.setChecked(True)
             actions.append(action)
             if current_view and current_view.window() == self:
@@ -2222,9 +2223,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             if len(self.windows) > 0:
                 windowactions = []
                 for view, w in self.windows.iteritems():
-                    action = QtGui.QAction(view.get_name(),
-                                           self,
-                                           triggered=w.activateWindow)
+                    action = QtGui.QAction(view.get_name(), self,
+                           triggered=lambda checked=False: w.activateWindow())
                     action.setCheckable(True)
                     if w == QtGui.QApplication.activeWindow():
                         action.setChecked(True)
@@ -2235,9 +2235,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             if len(base_view_windows) > 0:
                 base_view_actions = []
                 for view, w in base_view_windows.iteritems():
-                    action = QtGui.QAction(w.windowTitle(),
-                                           self,
-                                           triggered=w.activateWindow)
+                    action = QtGui.QAction(w.windowTitle(), self,
+                           triggered=lambda checked=False: w.activateWindow())
                     action.setCheckable(True)
                     if w == QtGui.QApplication.activeWindow():
                         action.setChecked(True)
