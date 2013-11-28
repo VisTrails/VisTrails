@@ -1646,10 +1646,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         
         # move additional information from locator to variables
-        if not version:
-            if 'version' in locator.kwargs:
-                version = locator.kwargs['version']
-                del locator.kwargs['version']
+        print version, locator.kwargs
+        if 'version_node' in locator.kwargs:
+            version = locator.kwargs['version_node']
+            del locator.kwargs['version_node']
+        if 'version_tag' in locator.kwargs:
+            version = locator.kwargs['version_tag']
+            del locator.kwargs['version_tag']
         if not parameterExploration:
             if 'parameterExploration' in locator.kwargs:
                 parameterExploration = locator.kwargs['parameterExploration']

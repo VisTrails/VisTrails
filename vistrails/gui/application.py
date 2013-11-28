@@ -77,6 +77,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
+        if system.systemType in ['Darwin']:
+            self.installEventFilter(self)
         self.builderWindow = None
         # local notifications
         self.window_notifications = {}
@@ -568,8 +570,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         self.setupSplashScreen()
-        if system.systemType in ['Darwin']:
-            self.installEventFilter(self)
 
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.

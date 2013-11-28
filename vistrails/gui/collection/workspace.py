@@ -1461,7 +1461,7 @@ class QVistrailList(QtGui.QTreeWidget):
         entity = None
         if url is None:
             locator = vistrail_window.controller.locator
-            if locator:
+            if locator and not isinstance(locator, UntitledLocator):
                 entity = self.collection.fromUrl(locator.to_url())
         else:
             entity = self.collection.fromUrl(url)
