@@ -1646,7 +1646,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         
         # move additional information from locator to variables
-        print version, locator.kwargs
         if 'version_node' in locator.kwargs:
             version = locator.kwargs['version_node']
             del locator.kwargs['version_node']
