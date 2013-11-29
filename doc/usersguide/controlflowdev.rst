@@ -49,10 +49,10 @@ idea. Create a new package, and the code inside it would be as follows:
 
    version = "0.1"
    name = "My Control Modules"
-   identifier = "edu.utah.sci.my_control_modules"
+   identifier = "org.vistrails.my_control_modules"
 
    def package_dependencies():
-       return ["edu.utah.sci.vistrails.control_flow"]
+       return ["org.vistrails.vistrails.control_flow"]
 
    class Sum(Fold):
        def setInitialValue(self):
@@ -73,10 +73,10 @@ idea. Create a new package, and the code inside it would be as follows:
 
    version = "0.1"
    name = "My Control Modules"
-   identifier = "edu.utah.sci.my_control_modules"
+   identifier = "org.vistrails.my_control_modules"
 
    :red:`def package_dependencies():`
-       :red:`return ["edu.utah.sci.vistrails.control_flow"]`
+       :red:`return ["org.vistrails.vistrails.control_flow"]`
 
    class Sum(:red:`Fold`):
        :red:`def setInitialValue(self):`

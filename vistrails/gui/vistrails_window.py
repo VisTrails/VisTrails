@@ -1553,6 +1553,23 @@ class QVistrailsWindow(QVistrailViewWindow):
             return self.open_vistrail(controller.locator)
         return None
 
+    def getViewFromLocator(self, locator):
+        """ getViewFromLocator(locator: VistrailLocator) -> QVistrailView        
+        This will find the view associated with the locator. If not, it will
+        return None.
+        
+        """
+        if locator is None:
+            return None
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if view.controller.vistrail.locator == locator:
+                return view
+        for (view, window) in self.windows.iteritems():
+            if view.controller.vistrail.locator == locator:
+                return view
+        return None
+
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if
@@ -1631,9 +1648,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
         if locator:
-            if locator.has_temporaries():
-                if not locator_class.prompt_autosave(self):
-                    locator.clean_temporaries()
+            if not self.getViewFromLocator(locator):
+                if locator.has_temporaries():
+                    if not locator_class.prompt_autosave(self):
+                        locator.clean_temporaries()
             if hasattr(locator, '_vnode'):
                 version = locator._vnode
                 if hasattr(locator,'_vtag'):
@@ -1683,12 +1701,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         
         # move additional information from locator to variables
-        print version, locator.kwargs
         if 'version_node' in locator.kwargs:
-            version = locator.kwargs['version_node']
+            if locator.kwargs['version_node']:
+                version = locator.kwargs['version_node']
             del locator.kwargs['version_node']
         if 'version_tag' in locator.kwargs:
-            version = locator.kwargs['version_tag']
+            if locator.kwargs['version_tag']:
+                version = locator.kwargs['version_tag']
             del locator.kwargs['version_tag']
         if not parameterExploration:
             if 'parameterExploration' in locator.kwargs:
@@ -1708,7 +1727,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         else:
             ok = True
         if ok:
-            if locator:
+            if locator and not self.getViewFromLocator(locator):
                 if locator.has_temporaries():
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()

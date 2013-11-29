@@ -55,11 +55,11 @@ Here is a simplified example of a very simple user-defined module:
                raise ModuleError(self, "Division by zero")
            self.setResult("result", arg1 / arg2)
 
-       _input_ports = [('arg1', '(edu.utah.sci.vistrails.basic:Float)',\
+       _input_ports = [('arg1', '(org.vistrails.vistrails.basic:Float)',\
                         {"labels": str(["dividend"])}),\
-                       ('arg2', '(edu.utah.sci.vistrails.basic:Float)',\
+                       ('arg2', '(org.vistrails.vistrails.basic:Float)',\
                         {"labels": str(["divisor"])})]
-       _output_ports = [('result', '(edu.utah.sci.vistrails.basic:Float)',\
+       _output_ports = [('result', '(org.vistrails.vistrails.basic:Float)',\
                         {"labels": str(["quotient"])})]
 
    _modules = [Divide]
@@ -232,15 +232,15 @@ When creating or making changes to packages, it is often desirable to reload the
 .. code-block:: python
    :linenos:
 
-   identifier = 'edu.utah.sci.vistrails.matplotlib'
+   identifier = 'org.vistrails.vistrails.matplotlib'
    name = 'matplotlib'
    version = '0.9.0'
 
    def package_dependencies():
        import core.packagemanager
        manager = core.packagemanager.get_package_manager()
-       if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-           return ['edu.utah.sci.vistrails.spreadsheet']
+       if manager.has_package('org.vistrails.vistrails.spreadsheet'):
+           return ['org.vistrails.vistrails.spreadsheet']
        else:
            return []
 
@@ -291,7 +291,7 @@ a subclass of ``Afront``. A first attempt at writing this package might look som
 
    name = "Afront"
    version = "0.1.0"
-   identifier = "edu.utah.sci.vistrails.afront"
+   identifier = "edu.utah.vistrails.afront"
 
    class Afront(Module):
        def compute(self):
@@ -632,7 +632,7 @@ As an example of this function's usage, let's take a look at a (simplified) code
    :linenos:
 
    def package_dependencies():
-       return ['edu.utah.sci.vistrails.spreadsheet']
+       return ['org.vistrails.vistrails.spreadsheet']
 
 
 As you can see, the ``package_dependencies`` function is quite straightforward; it simply returns a list of the identifiers for the packages required by the VTK package. In this case, the list contains just a single string, as the |vistrails| Spreadsheet is the only package dependency for the VTK package.
@@ -645,8 +645,8 @@ The simple approach taken by the above code works well for the majority of cases
    def package_dependencies():
        import core.packagemanager
        manager = core.packagemanager.get_package_manager()
-       if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-           return ['edu.utah.sci.vistrails.spreadsheet']
+       if manager.has_package('org.vistrails.vistrails.spreadsheet'):
+           return ['org.vistrails.vistrails.spreadsheet']
        else:
            return []
 
@@ -794,7 +794,7 @@ Observe that ``_modules`` is assigned a list of modules to be registered, and mo
 .. index::
    pair: port; shortcut
 
-Notice that "String" and "Integer" were used for the portSignature instead of ``edu.utah.sci.vistrails.basic:String`` and ``edu.utah.sci.vistrails.basic:Integer``.  That is because the current package, ``edu.utah.sci.vistrails.basic`` is used by default.
+Notice that "String" and "Integer" were used for the portSignature instead of ``org.vistrails.vistrails.basic:String`` and ``org.vistrails.vistrails.basic:Integer``.  That is because the current package, ``org.vistrails.vistrails.basic`` is used by default.
 
 .. topic:: Note
 
@@ -928,8 +928,8 @@ Configuring Ports
    :linenos:
 
    class TestDefaults(Module):
-      _input_ports = [('f1', '(edu.utah.sci.vistrails.basic:Float,\
-                               edu.utah.sci.vistrails.basic:String)',
+      _input_ports = [('f1', '(org.vistrails.vistrails.basic:Float,\
+                               org.vistrails.vistrails.basic:String)',
                        {"defaults": str([1.23, "abc"]), 
                         "labels": str(["temp", "name"])})]
    _modules = [TestDefaults]
@@ -954,11 +954,11 @@ or in the older syntax,
 .. code-block:: python
    :linenos:
 
-   _input_ports = [('MyPort', '(edu.utah.sci.vistrails.basic:String)',
+   _input_ports = [('MyPort', '(org.vistrails.vistrails.basic:String)',
                        {"optional": True})]
 
    reg.add_input_port(MyModule, "MyPort", 
-                      "(edu.utah.sci.vistrails.basic:String)", 
+                      "(org.vistrails.vistrails.basic:String)", 
                       optional=True)
 
 
@@ -985,13 +985,13 @@ For example,
 .. code-block:: python
 
    registry.add_input_port(MyModule, 'myInputPort', \
-                           '(edu.utah.sci.vistrails.basic:String)')
+                           '(org.vistrails.vistrails.basic:String)')
 
 or
 
 .. code-block:: python
 
-   _input_ports = [('myInputPort', '(edu.utah.sci.vistrails.basic:String)')]
+   _input_ports = [('myInputPort', '(org.vistrails.vistrails.basic:String)')]
 
 .. index::
    pair: ports; input dependency
@@ -1013,8 +1013,8 @@ on the parent module to check if there are any downstream connections from the p
    :linenos:
 
    class TestModule(Module):
-       _output_ports = [('a1', '(edu.utah.sci.vistrails.basic:String)'),
-                        ('a2', '(edu.utah.sci.vistrails.basic:String)')]
+       _output_ports = [('a1', '(org.vistrails.vistrails.basic:String)'),
+                        ('a2', '(org.vistrails.vistrails.basic:String)')]
        def __init__(self):
            Module.__init__(self)
            self._cached_output_ports = set()
@@ -1046,7 +1046,7 @@ When wrapping existing libraries or trying to generate modules in a more procedu
 
    from core.configuration import ConfigurationObject
  
-   identifier = "edu.utah.sci.dakoop.auto_example"
+   identifier = "org.vistrails.dakoop.auto_example"
    version = "0.0.1"
    name = "AutoExample"
  
@@ -1061,7 +1061,7 @@ The expand_ports and build_modules methods are functions to help the constructio
 
    from core.modules.vistrails_module import new_module, Module
  
-   identifier = "edu.utah.sci.dakoop.auto_example"
+   identifier = "org.vistrails.dakoop.auto_example"
  
    def expand_ports(port_list):
        new_port_list = []
@@ -1085,7 +1085,7 @@ The expand_ports and build_modules methods are functions to help the constructio
                        else:
                            module_name = parts[1]
                        if len(parts[0].split('.')) == 1:
-                           id_str = 'edu.utah.sci.vistrails.' + parts[0]
+                           id_str = 'org.vistrails.vistrails.' + parts[0]
                        else:
                            id_str = parts[0]
                    else:

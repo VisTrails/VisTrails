@@ -1261,6 +1261,9 @@ class QVistrailList(QtGui.QTreeWidget):
 
     def state_changed(self, view):
         """ update tags, mashups and parameter explorations """
+        # sometimes references to closed views trigger a state_changed event
+        if id(view) not in self.items:
+            return
         item = self.items[id(view)]
         entity = item.entity
         

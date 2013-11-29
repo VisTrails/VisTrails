@@ -17,7 +17,7 @@
 
    version = "0.9.0"
    name = "PythonCalc"
-   identifier = "edu.utah.sci.vistrails.pythoncalc"
+   identifier = "org.vistrails.vistrails.pythoncalc"
 
    class PythonCalc(Module):
        """PythonCalc is a module that performs simple arithmetic operations on its inputs."""
