@@ -1610,10 +1610,11 @@ class QVistrailsWindow(QVistrailViewWindow):
         depending on the locator class given.
         """
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
-        if locator and not self.getViewFromLocator(locator):
-            if locator.has_temporaries():
-                if not locator_class.prompt_autosave(self):
-                    locator.clean_temporaries()
+        if locator:
+            if not self.getViewFromLocator(locator):
+                if locator.has_temporaries():
+                    if not locator_class.prompt_autosave(self):
+                        locator.clean_temporaries()
             if hasattr(locator, '_vnode'):
                 version = locator._vnode
                 if hasattr(locator,'_vtag'):
@@ -1664,10 +1665,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         
         # move additional information from locator to variables
         if 'version_node' in locator.kwargs:
-            version = locator.kwargs['version_node']
+            if locator.kwargs['version_node']:
+                version = locator.kwargs['version_node']
             del locator.kwargs['version_node']
         if 'version_tag' in locator.kwargs:
-            version = locator.kwargs['version_tag']
+            if locator.kwargs['version_tag']:
+                version = locator.kwargs['version_tag']
             del locator.kwargs['version_tag']
         if not parameterExploration:
             if 'parameterExploration' in locator.kwargs:
