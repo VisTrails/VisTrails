@@ -1516,6 +1516,23 @@ class QVistrailsWindow(QVistrailViewWindow):
             return self.open_vistrail(controller.locator)
         return None
 
+    def getViewFromLocator(self, locator):
+        """ getViewFromLocator(locator: VistrailLocator) -> QVistrailView        
+        This will find the view associated with the locator. If not, it will
+        return None.
+        
+        """
+        if locator is None:
+            return None
+        for i in xrange(self.stack.count()):
+            view = self.stack.widget(i)
+            if view.controller.vistrail.locator == locator:
+                return view
+        for (view, window) in self.windows.iteritems():
+            if view.controller.vistrail.locator == locator:
+                return view
+        return None
+
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if
@@ -1593,7 +1610,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         depending on the locator class given.
         """
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
-        if locator:
+        if locator and not self.getViewFromLocator(locator):
             if locator.has_temporaries():
                 if not locator_class.prompt_autosave(self):
                     locator.clean_temporaries()
@@ -1670,7 +1687,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         else:
             ok = True
         if ok:
-            if locator:
+            if locator and not self.getViewFromLocator(locator):
                 if locator.has_temporaries():
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()
