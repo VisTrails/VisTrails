@@ -115,6 +115,12 @@ class BaseLocator(object):
     def has_temporaries(self):
         return self.get_temporary() is not None
 
+    def clean_temporaries(self):
+        pass
+
+    def save_temporary(self, obj):
+        pass
+    
     def serialize(self, dom, element):
         """Serializes this locator to XML.
 
@@ -366,7 +372,7 @@ class SaveTemporariesMixin(object):
             number = int(temporary[split:])
             return base + str(number+1)
 
-class UntitledLocator(BaseLocator, SaveTemporariesMixin):
+class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
