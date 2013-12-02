@@ -327,7 +327,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             item = mime_data.items[0]
             
             app = get_vistrails_application()
-            pipeline_view = app.builderWindow.get_current_view().get_current_tab()
+            pipeline_view = app.builderWindow.get_current_controller().current_pipeline_view
             if hasattr(pipeline_view.scene(), 'add_tmp_module'):
                 module_item = \
                     pipeline_view.scene().add_tmp_module(item.descriptor)
