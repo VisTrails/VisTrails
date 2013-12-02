@@ -118,7 +118,7 @@ class BaseLocator(object):
     def clean_temporaries(self):
         pass
 
-    def save_temporary(self):
+    def save_temporary(self, obj):
         pass
     
     def serialize(self, dom, element):
@@ -372,7 +372,7 @@ class SaveTemporariesMixin(object):
             number = int(temporary[split:])
             return base + str(number+1)
 
-class UntitledLocator(BaseLocator, SaveTemporariesMixin):
+class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
