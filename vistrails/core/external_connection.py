@@ -33,21 +33,20 @@
 ##
 ###############################################################################
 """ This file contains classes related to loading and saving a set of
-connection objects to an XML file. 
+connection objects to an XML file.
 It defines the following
 classes:
  - ExtConnection
  - DBConnection
- - ExtConnectionList 
+ - ExtConnectionList
 """
-import os.path
+import os
+import tempfile
+import unittest
+
 from vistrails.core.utils import VistrailsInternalError, abstract
 from vistrails.core.utils.enum import enum
 from vistrails.core.utils.uxml import named_elements, XMLWrapper
-
-import unittest
-import vistrails.core.system
-import os
 ################################################################################
 
 ConnectionType = enum('ConnectionType',
@@ -312,36 +311,40 @@ allowed!'
         """get_fresh_id() -> int - Returns an unused id. """
         return self.current_id
 
-       
+
 ###############################################################################
 
 class TestConnectionList(unittest.TestCase):
     def test1(self):
         """ Exercising writing and reading a file """
-        conns = ExtConnectionList.getInstance()
-        conns.filename = 'connections.xml'
-        conns.clear()
-        conn = DBConnection()
-        conn.id = 1
-        conn.name = 'test'
-        conn.host = 'somehost.com'
-        conn.port = 1234
-        conn.user = 'nobody'
-        conn.passwd = '123'
-        conn.database = 'anydatabase'
-        conn.dbtype = 'MySQL'
-        
-        conns.add_connection(conn)
+        fd, filename = tempfile.mkstemp(prefix='vt_', suffix='_connections.xml')
+        os.close(fd)
+        try:
+            conns = ExtConnectionList.getInstance()
+            conns.filename = filename
+            conns.clear()
+            conn = DBConnection()
+            conn.id = 1
+            conn.name = 'test'
+            conn.host = 'somehost.com'
+            conn.port = 1234
+            conn.user = 'nobody'
+            conn.passwd = '123'
+            conn.database = 'anydatabase'
+            conn.dbtype = 'MySQL'
 
-        #reading it again
-        conns.clear()
-        self.assertEquals(conns.count(),0)
-        conns.load_connections()
-        self.assertEquals(conns.count(),1)
-        newconn = conns.get_connection(1)
-        assert conn == newconn
-        #remove created file
-        os.unlink('connections.xml')
+            conns.add_connection(conn)
+
+            #reading it again
+            conns.clear()
+            self.assertEquals(conns.count(),0)
+            conns.load_connections()
+            self.assertEquals(conns.count(),1)
+            newconn = conns.get_connection(1)
+            self.assertEqual(conn, newconn)
+        finally:
+            #remove created file
+            os.unlink(filename)
 
 if __name__ == '__main__':
     unittest.main()
