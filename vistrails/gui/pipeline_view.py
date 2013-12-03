@@ -59,7 +59,6 @@ from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.interpreter.job import Workflow as JobWorkflow
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
@@ -1874,7 +1873,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
-        self.progress = None
 
         self.tmp_module_item = None
         self.tmp_input_conn = None
@@ -2907,10 +2905,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """Checks if the user have canceled the execution and takes
            appropriate action
         """
-        if self.progress.wasCanceled():
-            if self.progress._progress_canceled:
+        p = self.controller.progress
+        if p.wasCanceled():
+            if p._progress_canceled:
                 # It has already been confirmed in a progress update
-                self.progress._progress_canceled = False
+                p._progress_canceled = False
                 raise AbortExecution("Execution aborted by user")
             r = QtGui.QMessageBox.question(self.parent(),
                 'Execution Paused',
@@ -2920,7 +2919,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             if r == QtGui.QMessageBox.Yes:
                 raise AbortExecution("Execution aborted by user")
             else:
-                self.progress.goOn()
+                p.goOn()
 
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
@@ -2964,10 +2963,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        if self.progress:
+        p = self.controller.progress
+        if p:
             self.cancel_progress()
-            self.progress.setValue(self.progress.value() + 1)
-            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
+            p.setValue(p.value() + 1)
+            p.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
@@ -2977,11 +2977,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        if self.progress:
+        p = self.controller.progress
+        if p:
             try:
                 self.cancel_progress()
             except AbortExecution:
-                self.progress._progress_canceled = True
+                p._progress_canceled = True
                 raise
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
@@ -3137,63 +3138,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return False
     
     def execute(self, target=None):
-        # view.checkModuleConfigPanel()
         # reset job view
-        from vistrails.gui.job_monitor import QJobView
-        jobView = QJobView.instance()
-        if jobView.updating_now:
-            debug.critical("Execution Aborted: Job Monitor is updating. Please wait a few seconds and try again.")
-            return
-        jobView.updating_now = True
-        if not jobView.jobMonitor.currentWorkflow():
-            version_id = self.controller.current_version
-            url = self.controller.locator.to_url()
-            # check if a job for this workflow exists
-            current_workflow = None
-            for job in jobView.jobMonitor._running_workflows.itervalues():
-                if version_id == job.version and url == job.vistrail:
-                    # ask to continue the existing job
-                    r = QtGui.QMessageBox.question(getBuilderWindow(),
-                       'Running Job Found',
-                       'A job for this workflow is already running.\n'
-                       'Do you want to start a new job?',
-                       QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                       QtGui.QMessageBox.No)
-
-                    if r==QtGui.QMessageBox.No:
-                        current_workflow = job
-                        jobView.jobMonitor.startWorkflow(job)
-            if not current_workflow:
-                current_workflow = JobWorkflow(url, version_id)
-                jobView.jobMonitor.startWorkflow(current_workflow)
-                        
-        try:
-            modules = len(self.controller.current_pipeline.modules)
-            progress = ExecutionProgressDialog(modules)
-            self.scene().progress = progress
-            progress.show()
-
-            if target is not None:
-                self.controller.execute_current_workflow(
-                        sinks=[target],
-                        reason="Execute specific module")
-            else:
-                self.controller.execute_current_workflow()
-
-            progress.setValue(modules)
-            #progress.hide()
-            self.scene().progress = None
-        except Exception, e:
-            import traceback
-            debug.critical(str(e) or e.__class__.__name__,
-                           traceback.format_exc())
-        finally:
-            self.scene().progress = None
-            if jobView.jobMonitor.currentWorkflow():
-                jobView.jobMonitor.finishWorkflow()
-            jobView.updating_now = False
-            from vistrails.gui.vistrails_window import _app
-            _app.notify('execution_updated')
+        if target is not None:
+            self.controller.execute_user_workflow(
+                    sinks=[target],
+                    reason="Execute specific module")
+        else:
+            self.controller.execute_user_workflow()
+        from vistrails.gui.vistrails_window import _app
+        _app.notify('execution_updated')
         
     def publish_to_web(self):
         from vistrails.gui.publishing import QVersionEmbed
@@ -3337,27 +3290,6 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def paintModuleToPixmap(self, module_item):
         m = self.matrix()
         return module_item.paintToPixmap(m.m11(), m.m22())
-
-class ExecutionProgressDialog(QtGui.QProgressDialog):
-    def __init__(self, modules):
-        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
-                                       '&Cancel',
-                                       0, modules)
-        self.setWindowTitle('Executing')
-        self.setWindowModality(QtCore.Qt.WindowModal)
-        self._last_set_value = 0
-        self._progress_canceled = False
-        # if suspended is true we should not wait for a job to complete
-        self.suspended = False
-
-    def setValue(self, value):
-        self._last_set_value = value
-        super(ExecutionProgressDialog, self).setValue(value)
-
-    def goOn(self):
-        self.reset()
-        self.show()
-        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
 ################################################################################
 # Testing
