@@ -1887,17 +1887,19 @@ class TestDBIO(unittest.TestCase):
         """ test saving a vt file """
 
         # FIXME include abstractions
-        filename = os.path.join(vistrails.core.system.vistrails_root_directory(),
-                                'tests/resources/dummy_new_temp.vt')
-    
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
-            DBVistrail.vtType,
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy_new.vt'))
-        try:
-            save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
-            if os.path.isfile(filename):
-                os.unlink(filename)
-        except Exception, e:
-            self.fail(str(e))
+        testdir = tempfile.mkdtemp(prefix='vt_')
+        filename = os.path.join(testdir, 'dummy_new.vt')
 
+        try:
+            (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(
+                DBVistrail.vtType,
+                os.path.join(vistrails.core.system.vistrails_root_directory(),
+                             'tests/resources/dummy_new.vt'))
+            try:
+                save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
+                if os.path.isfile(filename):
+                    os.unlink(filename)
+            except Exception, e:
+                self.fail(str(e))
+        finally:
+            os.rmdir(testdir)
