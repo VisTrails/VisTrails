@@ -139,9 +139,18 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         if self.local_server.listen(self._unique_key):
                             debug.log("Listening on %s"%self.local_server.fullServerName())
                         else:
-                            debug.warning("Server is not listening. This \
-                            means it will not accept parameters from other \
-                            instances")
+                            debug.warning(
+                                    "Server is not listening. This means it "
+                                    "will not accept parameters from other "
+                                    "instances")
+
+        if self._is_running:
+            if self.found_another_instance_running():
+                return APP_DONE # success, we should shut down
+            else:
+                return APP_FAIL  # error, we should shut down
+        else:
+            return None
 
     def found_another_instance_running(self):
         debug.critical("Found another instance of VisTrails running")
@@ -164,20 +173,15 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         vistrails.gui.theme.initializeCurrentTheme()
-        # DAK this is handled by finalize_vistrails in core.application now
-        # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         VistrailsApplicationInterface.init(self, optionsDict)
-        
-        #singleInstance configuration
+
+        # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
         if singleInstance:
-            self.run_single_instance()
-            if self._is_running:
-                if self.found_another_instance_running():
-                    return APP_DONE # success, we should shut down 
+            finished = self.run_single_instance()
+            if finished is not None:
+                return finished
 
-                else:
-                    return APP_FAIL  # error, we should shut down
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
