@@ -83,6 +83,12 @@ def make_fake_module_and_execute(compute_code, inputs):
 
 @apply
 class IPythonStandaloneScheme(ParallelizationScheme):
+    @staticmethod
+    def get_gui_widget():
+        from vistrails.gui.parallelization.parallel_ipython import \
+            QParallelIPythonSettings
+        return QParallelIPythonSettings
+
     def __init__(self):
         ParallelizationScheme.__init__(self,
                 40, # higher than regular IPython

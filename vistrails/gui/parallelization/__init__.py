@@ -1,10 +1,7 @@
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.parallelization import Parallelization
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-
-from .parallel_thread import QParallelThreadSettings
-from .parallel_process import QParallelProcessSettings
-from .parallel_ipython import QParallelIPythonSettings
 
 
 class QParallelizationSettings(QtGui.QTabWidget, QVistrailsPaletteInterface):
@@ -22,6 +19,9 @@ class QParallelizationSettings(QtGui.QTabWidget, QVistrailsPaletteInterface):
                     QtCore.Qt.ScrollBarAsNeeded)
             self.addTab(scrollArea, klass.TAB_NAME)
 
-        add(QParallelThreadSettings)
-        add(QParallelProcessSettings)
-        add(QParallelIPythonSettings)
+        widgets = set()
+        for scheme in Parallelization.parallelization_schemes:
+            widget = scheme.get_gui_widget()
+            if widget is not None and widget not in widgets:
+                add(widget)
+                widgets.add(widget)

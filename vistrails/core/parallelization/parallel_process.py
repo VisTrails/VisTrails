@@ -9,6 +9,12 @@ from vistrails.core.parallelization.common import get_pickled_module_inputs, \
 
 @apply
 class ProcessScheme(ParallelizationScheme):
+    @staticmethod
+    def get_gui_widget():
+        from vistrails.gui.parallelization.parallel_process import \
+            QParallelProcessSettings
+        return QParallelProcessSettings
+
     def __init__(self):
         ParallelizationScheme.__init__(self,
                 100,

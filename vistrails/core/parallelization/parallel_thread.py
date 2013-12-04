@@ -7,6 +7,12 @@ from vistrails.core.parallelization import SchemeType, Parallelization, \
 
 @apply
 class ThreadScheme(ParallelizationScheme):
+    @staticmethod
+    def get_gui_widget():
+        from vistrails.gui.parallelization.parallel_thread import \
+            QParallelThreadSettings
+        return QParallelThreadSettings
+
     def __init__(self):
         ParallelizationScheme.__init__(self,
                 200, # low priority

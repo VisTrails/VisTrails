@@ -12,6 +12,10 @@ class ParallelizationScheme(object):
     This is the base class for all the different way to execute code in
     parallel, for instance in a thread, another process, on a cluster...
     """
+    @staticmethod
+    def get_gui_widget():
+        return None
+
     def __init__(self, priority, scheme_type, name):
         self.priority = priority
         self.scheme_type = scheme_type
@@ -155,6 +159,10 @@ class Parallelization(object):
         for priority, scheme in self._parallelization_schemes:
             scheme.finalize()
         self._parallelization_schemes = []
+
+    @property
+    def parallelization_schemes(self):
+        return [scheme for priority, scheme in self._parallelization_schemes]
 
 
 ###############################################################################

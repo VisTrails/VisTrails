@@ -33,6 +33,12 @@ def initialize_then_execute_serialized_pipeline(*args):
 
 @apply
 class IPythonScheme(ParallelizationScheme):
+    @staticmethod
+    def get_gui_widget():
+        from vistrails.gui.parallelization.parallel_ipython import \
+            QParallelIPythonSettings
+        return QParallelIPythonSettings
+
     def __init__(self):
         ParallelizationScheme.__init__(self,
                 50, # rather high priority; if the user connected to an IPython
