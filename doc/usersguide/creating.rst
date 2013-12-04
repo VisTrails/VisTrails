@@ -19,7 +19,7 @@ shown in bold letters in the middle of the rectangle.  The input and
 output ports for the module are denoted by small squares on the top
 and bottom of the module, respectively.  Modules are connected
 together to define the dataflow using curved black lines that go from
-output to input ports between modules.  Each module may have also have
+output to input ports between modules.  Each module may also have
 adjustable parameters that can be viewed when a module is selected.
 Modules can be connected, disconnected, added, and deleted from a
 workflow.
