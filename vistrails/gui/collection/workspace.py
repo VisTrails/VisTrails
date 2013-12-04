@@ -45,13 +45,12 @@ from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity,
     VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
 from vistrails.core.collection.search import SearchCompiler, SearchParseError
 from vistrails.core.db.locator import FileLocator
+from vistrails.db.services.locator import UntitledLocator
 from vistrails.gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.module_palette import QModuleTreeWidgetItemDelegate
 from vistrails.gui.vis_diff import QDiffView
-from vistrails.core.collection.entity import Entity
-import vistrails.gui
 
 class QCollectionWidget(QtGui.QTreeWidget):
     """ This is an abstract class that contains functions for handling
@@ -963,7 +962,7 @@ class QVistrailList(QtGui.QTreeWidget):
         open_vistrail = _app.open_vistrail_without_prompt
         set_current_locator = _app.set_current_locator
 
-        if not locator:
+        if not locator or isinstance(locator, UntitledLocator):
             # assuming an unsaved vistrail - need to use view
             vistrail_widget = widget_item
             view = None
@@ -1262,6 +1261,9 @@ class QVistrailList(QtGui.QTreeWidget):
 
     def state_changed(self, view):
         """ update tags, mashups and parameter explorations """
+        # sometimes references to closed views trigger a state_changed event
+        if id(view) not in self.items:
+            return
         item = self.items[id(view)]
         entity = item.entity
         
@@ -1462,7 +1464,7 @@ class QVistrailList(QtGui.QTreeWidget):
         entity = None
         if url is None:
             locator = vistrail_window.controller.locator
-            if locator:
+            if locator and not isinstance(locator, UntitledLocator):
                 entity = self.collection.fromUrl(locator.to_url())
         else:
             entity = self.collection.fromUrl(url)

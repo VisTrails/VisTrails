@@ -35,9 +35,9 @@
 from PyQt4 import QtCore, QtGui
 import os
 
-from vistrails.core.db.locator import FileLocator, DBLocator
-from vistrails.core.publishing.parse_latex import parse_latex_file, parse_vt_command, \
-    build_vt_command
+from vistrails.core.db.locator import FileLocator, DBLocator, UntitledLocator
+from vistrails.core.publishing.parse_latex import parse_latex_file, \
+     parse_vt_command, build_vt_command
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -588,7 +588,8 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     
     def focusInEvent(self, event):
         if self.controller:
-            if self.controller.locator:
+            if self.controller.locator and \
+               not isinstance(self.controller.locator, UntitledLocator):
                 from vistrails.gui.vistrails_window import _app
                 _app.ensureVistrail(self.controller.locator)
                     
@@ -598,7 +599,8 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         Only vistrails on a database are allowed to embed a tag"""
         result = False
         if self.controller:
-            if self.controller.locator:
+            if self.controller.locator and \
+               not isinstance(self.controller.locator, UntitledLocator):
                 title = "Embed Options for %s"%self.controller.locator.name
                 self.setWindowTitle(title)
                 result = True
@@ -620,7 +622,9 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         self.embededt.setText('')
 
         if self.controller and self.versionNumber > 0:
-            if self.controller.locator and not self.controller.changed:
+            if self.controller.locator and \
+               not isinstance(self.controller.locator, UntitledLocator) and \
+               not self.controller.changed:
                 loc = self.controller.locator
                 if hasattr(loc,'host'):
                     self.updateCbtype('db')    
@@ -719,10 +723,10 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         self.chbLatexVTL.setEnabled(text == 'Latex')
         self.chbPdf.setEnabled(text == 'Latex')
         if self.controller is not None:
-            self.setEmbedText()
+            self.updateEmbedText()
         
     def changeOption(self, value):
-        self.setEmbedText()
+        self.updateEmbedText()
         
     def changeContent(self, text):
         if text == "Workflow Results":

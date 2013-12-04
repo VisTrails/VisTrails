@@ -64,7 +64,7 @@ def hide_splash_if_necessary():
     """Disables the splashscreen, otherwise it sits in front of windows.
     """
     app = get_vistrails_application()
-    if hasattr(app, 'splashScreen'):
+    if hasattr(app, 'splashScreen') and app.splashScreen:
         app.splashScreen.hide()
 
 

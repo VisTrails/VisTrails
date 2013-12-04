@@ -368,6 +368,7 @@ disallowed_classes = set(
     'vtkMutexLock',
     'vtkOutputWindow',
     'vtkPriorityQueue',
+    'vtkQtInitialization',
     'vtkReferenceCount',
     'vtkRenderWindowCollection',
     'vtkRenderWindowInteractor',

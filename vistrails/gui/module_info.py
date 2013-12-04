@@ -48,6 +48,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.module = None
         self.pipeline_view = None # pipeline_view
         self.read_only = False
+        self.is_updating = False
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -160,7 +161,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.name_edit.setText(label)
             if not label and not versions_increasing(QtCore.QT_VERSION_STR, 
                                                      '4.7.0'):
-                #print QtCore.QT_VERSION_STR, versions_increasing(QtCore.QT_VERSION_STR, '4.7.0')
                 self.name_edit.setPlaceholderText(self.module.name)
 
             # self.name_edit.setEnabled(True)
@@ -172,25 +172,27 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             # self.module_id.setEnabled(True)
 
     def name_editing_finished(self):
-        if self.module is not None:
+        # updating module may trigger a second call so we check for that
+        if self.is_updating or self.module is None:
+            return
+        try:
+            self.is_updating = True
             old_text = ''
             if self.module.has_annotation_with_key('__desc__'):
                 old_text = self.module.get_annotation_by_key('__desc__').value
             new_text = str(self.name_edit.text()).strip()
             if not new_text:
                 if old_text:
-                    #print 'delete annotation'
                     self.controller.delete_annotation('__desc__', 
                                                       self.module.id)
             elif old_text != new_text:
-                #print 'add annotation', old_text, new_text
                 self.controller.add_annotation(('__desc__', new_text), 
                                                self.module.id)
-                
-
             scene = self.controller.current_pipeline_scene
             scene.recreate_module(self.controller.current_pipeline, 
                                   self.module.id)
+        finally:
+            self.is_updating = False
             
     def configure(self):
         from vistrails.gui.vistrails_window import _app

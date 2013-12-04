@@ -36,7 +36,7 @@ from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     ModuleConnector, InvalidOutput, ModuleSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
-    Float, NotCacheable, Constant, List
+    Float, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.vistrail.port_spec import PortSpec
 
@@ -91,7 +91,7 @@ class Fold(Module):
 
 ###############################################################################
 
-class FoldWithModule(Fold, NotCacheable):
+class FoldWithModule(Fold):
     """Implementation of Fold that uses another module as its operation.
 
     This can be used to create structures like Map or Filter, where another
@@ -143,6 +143,7 @@ class FoldWithModule(Fold, NotCacheable):
         suspended = []
         ## Update everything for each value inside the list
         for i, element in enumerate(inputList):
+            self.logging.update_progress(self, float(i)/len(inputList))
             if element_is_iter:
                 self.element = element
             else:

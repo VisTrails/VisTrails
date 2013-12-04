@@ -1,6 +1,8 @@
 import datetime
+from distutils.version import LooseVersion
 import re
 import time
+import warnings
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.bundles import py_import
@@ -93,6 +95,7 @@ def make_timezone(s):
 
         try:
             pytz = py_import('pytz', {
+                    'pip': 'pytz',
                     'linux-debian': 'python-tz',
                     'linux-ubuntu': 'python-tz',
                     'linux-fedora': 'pytz'})
@@ -100,6 +103,13 @@ def make_timezone(s):
             raise ValueError("can't understand timezone %r (maybe you should "
                              "install pytz?)" % s)
         else:
+            ver = LooseVersion(pytz.__version__)
+            if ver < LooseVersion('2012'):
+                warnings.warn(
+                        "You are using an old version of pytz (%s). You might "
+                        "run into some issues with daylight saving handling." %
+                        pytz.__version__,
+                        category=UserWarning)
             try:
                 return pytz.timezone(s)
             except KeyError:
@@ -171,6 +181,7 @@ class StringsToDates(Module):
         if not fmt:
             try:
                 py_import('dateutil', {
+                    'pip': 'python-dateutil',
                     'linux-debian': 'python-dateutil',
                     'linux-ubuntu': 'python-dateutil',
                     'linux-fedora': 'python-dateutil'})
@@ -237,6 +248,7 @@ class DatesToMatplotlib(Module):
     def compute(self):
         try:
             py_import('matplotlib', {
+                    'pip': 'matplotlib',
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
@@ -266,6 +278,7 @@ class TimestampsToMatplotlib(Module):
     def compute(self):
         try:
             py_import('matplotlib', {
+                    'pip': 'matplotlib',
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
@@ -299,6 +312,7 @@ class StringsToMatplotlib(Module):
     def compute(self):
         try:
             py_import('matplotlib', {
+                    'pip': 'matplotlib',
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
@@ -443,6 +457,9 @@ class TestStringsToDates(unittest.TestCase):
             import pytz
         except ImportError:
             self.skipTest("pytz is not available")
+        if LooseVersion(pytz.__version__) < LooseVersion('2012'):
+            self.skipTest("pytz version is known to cause issues (%s)" %
+                          pytz.__version__)
 
         dates = ['2013-01-20 9:25', '2013-01-20 09:31', '2013-06-02 19:05']
         in_fmt = '%Y-%m-%d %H:%M'

@@ -2255,15 +2255,23 @@ class VistrailController(object):
                                 abstractions[key] = []
                             abstractions[key].append(abstraction)
         if recurse:
-            for abstraction_list in abstractions.itervalues():
-                for abstraction in abstraction_list:
+            for abstraction_list in abstractions.values():
+                for abstraction in abstraction_list[:]:
                     try:
                         vistrail = abstraction.vistrail
                     except MissingPackageVersion, e:
-                        reg = vistrails.core.modules.module_registry.get_module_registry()
-                        abstraction._module_descriptor = \
-                            reg.get_similar_descriptor(*abstraction.descriptor_info)
-                        vistrail = abstraction.vistrail
+                        try:
+                            reg = vistrails.core.modules.module_registry.get_module_registry()
+                            abstraction._module_descriptor = \
+                                reg.get_similar_descriptor(
+                                                 *abstraction.descriptor_info)
+                            vistrail = abstraction.vistrail
+                        except Exception, e:
+                            # ignore because there will be a load attempt later 
+                            continue
+                    except Exception, e:
+                        # ignore because there will be a load attempt later 
+                        continue
                     r_abstractions = self.find_abstractions(vistrail, recurse)
                     for k,v in r_abstractions.iteritems():
                         if k not in abstractions:
@@ -2346,10 +2354,14 @@ class VistrailController(object):
         abstractions = self.find_abstractions(vistrail)
         for descriptor_info, abstraction_list in abstractions.iteritems():
             # print 'checking for abstraction "' + str(abstraction.name) + '"'
-            descriptor = self.check_abstraction(descriptor_info,
-                                                lookup)
-            for abstraction in abstraction_list:
-                abstraction.module_descriptor = descriptor
+            try:
+                descriptor = self.check_abstraction(descriptor_info,
+                                                    lookup)
+                for abstraction in abstraction_list:
+                    abstraction.module_descriptor = descriptor
+            except InvalidPipeline, e:
+                debug.critical("Error loading abstraction '%s'" % \
+                               descriptor_info[1], str(e))
             
     def build_ungroup(self, full_pipeline, module_id):
 

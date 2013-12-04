@@ -89,7 +89,8 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
                           QtCore.Qt.ItemIsEditable)
 
     def change_value(self, new_value):
-        if self._parent_obj:
+        # if this is a parent ConfigurationObject, do nothing
+        if self._parent_obj and not self._obj_type == ConfigurationObject:
             setattr(self._parent_obj, self._name, self._obj_type(new_value))
             setattr(self._temp_parent_obj, self._name, self._obj_type(new_value))
 

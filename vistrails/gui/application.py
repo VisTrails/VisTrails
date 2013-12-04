@@ -79,6 +79,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
+        if system.systemType in ['Darwin']:
+            self.installEventFilter(self)
         self.builderWindow = None
         # local notifications
         self.window_notifications = {}
@@ -365,12 +367,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def send_notification(self, notification_id, *args):
         # do global notifications
         if notification_id in self.notifications:
-            # print 'global notification ', notification_id
             for m in self.notifications[notification_id]:
                 try:
-                    #print "  m: ", m
                     m(*args)
-                except Exception, e:
+                except Exception:
                     import traceback
                     traceback.print_exc()
         notifications = {}
@@ -380,19 +380,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # do window notifications
         if current_window in self.window_notifications:
             notifications = self.window_notifications[current_window]
-            # print 'window notification', notification_id, current_window
 
-        if notification_id in notifications:
-            # print "found notification:", notification_id
-            for m in notifications[notification_id]:
-                try:
-                    # print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
-        # else:
-        #     print "no notification...", notifications.keys()
+            if notification_id in notifications:
+                for m in notifications[notification_id]:
+                    try:
+                        m(*args)
+                    except Exception:
+                        import traceback
+                        traceback.print_exc()
 
         if current_window is not None:
             current_view = current_window.current_view
@@ -401,16 +396,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # do local notifications
         if current_view in self.view_notifications:
             notifications = self.view_notifications[current_view]
-            # print 'local notification ', notification_id, current_view
-                
-        if notification_id in notifications:
-            for m in notifications[notification_id]:
-                try:
-                    #print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
+
+            if notification_id in notifications:
+                for m in notifications[notification_id]:
+                    try:
+                        m(*args)
+                    except Exception:
+                        import traceback
+                        traceback.print_exc()
 
     def showBuilderWindow(self):
         # in some systems (Linux and Tiger) we need to make both calls
@@ -475,6 +468,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             vt_list = []
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
+                if not f_name:
+                    debug.critical("File not found: %s" % filename)
+                    return False
                 if not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                 else:
@@ -496,8 +492,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             ok = locator.update_from_console()
                         if not ok:
                             debug.critical("Cannot login to database")
-                if f_name and version:
-                    w_list.append((locator, version))
+                w_list.append((locator, version))
                 vt_list.append(locator)
             import vistrails.core.console_mode
             if self.temp_db_options.parameters == None:
@@ -589,8 +584,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         self.setupSplashScreen()
-        if system.systemType in ['Darwin']:
-            self.installEventFilter(self)
 
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.

@@ -22,6 +22,12 @@
     <key name="nologger">
       <bool value="True"/>
     </key>
+    <key name="nologfile">
+      <bool value="True"/>
+    </key>
+    <key name="spawned">
+      <bool value="True"/>
+    </key>
     <key name="shell">
       <configuration>
         <key name="font_face">

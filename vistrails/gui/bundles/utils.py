@@ -121,7 +121,8 @@ def _guess_suse():
 _system_guesser.add_test(_guess_suse, 'linux-suse')
 
 def _guess_ubuntu():
-    return platform.linux_distribution()[0]=='Ubuntu'
+    return platform.linux_distribution()[0]=='Ubuntu' or \
+           platform.linux_distribution()[0]=='LinuxMint'
 _system_guesser.add_test(_guess_ubuntu, 'linux-ubuntu')
 
 def _guess_debian():
