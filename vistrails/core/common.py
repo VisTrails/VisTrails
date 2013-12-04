@@ -34,7 +34,6 @@
 ###############################################################################
 from vistrails.core.utils import \
      InstanceObject, \
-     lock_method, \
      enum, \
      trace_method_args, trace_method_args, bump_trace, report_stack, \
      memo_method, \

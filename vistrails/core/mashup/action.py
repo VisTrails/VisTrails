@@ -31,9 +31,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from datetime import datetime
 
-from datetime import date, datetime
-from time import strptime
+from vistrails.core.system import strftime, time_strptime
 from vistrails.db.domain import DBMashupAction
 from vistrails.core.mashup.mashup import Mashup
 
@@ -50,14 +50,14 @@ class Action(DBMashupAction):
         
     def _get_date(self):
         if self.db_date is not None:
-            return self.db_date.strftime('%d %b %Y %H:%M:%S')
-        return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
+            return strftime(self.db_date, '%d %b %Y %H:%M:%S')
+        return strftime(datetime(1900,1,1), '%d %b %Y %H:%M:%S')
 
     def _set_date(self, date):
         if isinstance(date, datetime):
             self.db_date = date
         elif isinstance(date, basestring) and date.strip() != '':
-            newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
+            newDate = datetime(*time_strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
         

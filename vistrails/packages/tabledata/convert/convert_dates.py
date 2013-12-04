@@ -6,6 +6,7 @@ import warnings
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.bundles import py_import
+from vistrails.core.utils import VistrailsWarning
 
 
 class UTC(datetime.tzinfo):
@@ -109,7 +110,7 @@ def make_timezone(s):
                         "You are using an old version of pytz (%s). You might "
                         "run into some issues with daylight saving handling." %
                         pytz.__version__,
-                        category=UserWarning)
+                        category=VistrailsWarning)
             try:
                 return pytz.timezone(s)
             except KeyError:

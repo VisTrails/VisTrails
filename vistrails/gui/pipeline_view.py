@@ -2944,7 +2944,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 1, error,
-                                                      errorTrace = errorTrace))
+                                                        errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_not_executed(self, moduleId):
@@ -2974,7 +2974,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if p:
             self.cancel_progress()
             p.setValue(p.value() + 1)
-            p.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
+            pipeline = self.controller.current_pipeline
+            module = pipeline.get_module_by_id(moduleId)
+            p.setLabelText(module.name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
@@ -2991,10 +2993,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
             except AbortExecution:
                 p._progress_canceled = True
                 raise
+        status = '%d%% Completed' % int(progress*100)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
-                                                        '%d%% Completed' % int(progress*100),
-                                                        progress))
+                                                        status, progress))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_persistent(self, moduleId):
@@ -3007,11 +3009,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        text = "Module is suspended, reason: %s" % error
+        status = "Module is suspended, reason: %s" % error
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 7, text))
+                                     QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
-            
+
     def reset_module_colors(self):
         for module in self.modules.itervalues():
             module.statusBrush = None

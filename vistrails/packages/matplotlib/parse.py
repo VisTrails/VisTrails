@@ -34,7 +34,7 @@ ArtistInspector._get_valid_values_regex = re.compile(
 from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
-sys.path.append('/vistrails/src/git')
+# sys.path.append('/vistrails/src/git')
 from vistrails.core.modules.utils import expand_port_spec_string
 
 ##############################################################################
@@ -84,12 +84,13 @@ def parse_docutils_term(elt):
     for child in elt.children:
         if child.__class__ == docutils.nodes.emphasis:
             term = parse_docutils_elt(child)[0].strip()
-            if term in ('True', 'False'):
+            if term in ('True', 'False') or accepts != "":
                 accepts += term
-            elif term != "None":
+            elif term != "None": 
                 terms.append(term)
         elif child.__class__ == docutils.nodes.Text:
-            accepts += str(child)
+            if str(child).strip() not in [',', '/']:
+                accepts += str(child)
         else:
             accepts += parse_docutils_elt(child)[0]
     accepts = accepts.strip()
@@ -216,12 +217,12 @@ def get_value_and_type(s):
 def get_type_from_val(val):
     if isinstance(val, float):
         return "basic:Float"
+    elif isinstance(val, bool):
+        return "basic:Boolean"
     elif isinstance(val, (int, long)):
         return "basic:Integer"
     elif isinstance(val, basestring):
         return "basic:String"
-    elif isinstance(val, bool):
-        return "basic:Boolean"
     elif isinstance(val, list):
         return "basic:List"
     return None
@@ -267,6 +268,38 @@ def resolve_port_type(port_types, port_spec):
     # else:
     #     port_type = None
     # return port_type
+
+def assign_port_values(port_spec, values, default_val):
+    assign_port_spec = None
+    if port_spec.defaults is not None and len(port_spec.defaults) > 0:
+        current_default = port_spec.defaults
+        port_spec.defaults = None
+    else:
+        current_default = []
+    if len(port_spec.alternate_specs) == 0:
+        assign_port_spec = port_spec
+    else:
+        port_types = set()
+        for value in values + current_default + \
+            ([default_val] if default_val is not None else []):
+            port_type = get_type_from_val(value)
+            if port_type is not None:
+                port_types.add(port_type)
+        if len(port_types) == 1:
+            for ps in [port_spec] + port_spec.alternate_specs:
+                if ps.port_type == next(iter(port_types)):
+                    assign_port_spec = ps
+        elif len(port_types) > 1:
+            raise Exception("Multiple value types found!")
+
+    if assign_port_spec is not None:
+        if len(values) > 0:
+            assign_port_spec.entry_types = ['enum']
+            assign_port_spec.values = [values]
+        if len(current_default) > 0:
+            assign_port_spec.defaults = current_default
+        elif default_val is not None:
+            assign_port_spec.defaults = [default_val]
 
 def parse_description(desc):
     key_to_type = {'string': 'basic:String',
@@ -475,7 +508,7 @@ def parse_argspec(obj_or_str):
             port_spec.required = False
             default_val = argspec_defaults[i-start_defaults]
             if default_val is not None:
-                port_spec.defaults = [str(default_val)]
+                port_spec.defaults = [default_val]
                 port_type = get_type_from_val(default_val)
                 if port_type is not None:
                     port_spec.port_type = port_type
@@ -500,12 +533,17 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                     old_port_spec = port_specs[port_spec.arg]
                     resolve_port_type([port_spec.port_type], old_port_spec)
                     if old_port_spec.defaults is None:
-                        old_port_spec.defaults = port_spec.defaults
+                        if port_spec.defaults is not None:
+                            assign_port_values(old_port_spec, [], 
+                                               port_spec.defaults[0])
+                            # old_port_spec.defaults = port_spec.defaults
                     elif old_port_spec.defaults != port_spec.defaults:
                         # keep it as the old spec is
                         print "*** Different defaults!" + \
                             str(old_port_spec.defaults) + \
                             " : " + str(port_spec.defaults)
+                        assign_port_values(old_port_spec, [],
+                                           old_port_spec.defaults[0])
                         # raise RuntimeError("Different defaults! %s: %s" % (
                         #                    old_port_spec.defaults,
                         #                    port_spec.defaults))
@@ -542,11 +580,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 if default_val is None:
                     default_val = dv2
                 resolve_port_type(port_types, port_specs[name])
-                if len(option_strs) > 0:
-                    port_specs[name].entry_types = ['enum']
-                    port_specs[name].values = [option_strs]
-                if default_val is not None:
-                    port_specs[name].defaults = [str(default_val)]
+                assign_port_values(port_specs[name], option_strs, default_val)
 
     for (table_intro, header, rows) in tables:
         print "GOT TABLE", table_intro, rows[0]
@@ -575,7 +609,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 # if len(port_type_set) == 1:
                 #     port_type = port_types[0]
                 oport = OutputPortSpec(name, docstring=port_doc)
-                resolve_port_type(oport, port_types)
+                resolve_port_type(port_types, oport)
                 output_port_specs.append(oport)
         elif (re.search("argument", table_intro, re.IGNORECASE) or
               re.search("kwarg", table_intro, re.IGNORECASE)):
@@ -596,11 +630,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 # if len(port_type_set) == 1:
                 #     port_specs[name].port_type = port_types[0]
                 resolve_port_type(port_types, port_specs[name])
-                if len(option_strs) > 0:
-                    port_specs[name].entry_types = ['enum']
-                    port_specs[name].values = [option_strs]
-                if default_val is not None:
-                    port_specs[name].defaults = [str(default_val)]
+                assign_port_values(port_specs[name], option_strs, default_val)
         else:
             raise ValueError("Unknown table: %s\n  %s %s" % (
                              parent, table_intro, header))
@@ -674,6 +704,17 @@ def parse_plots(plot_types, table_overrides):
             process_docstring(docstring, port_specs, ('pyplot', plot),
                               table_overrides)
 
+        for port_spec in port_specs.itervalues():
+            if port_spec.defaults is not None:
+                port_spec.defaults = [str(v) for v in port_spec.defaults]
+            if port_spec.values is not None:
+                port_spec.values = [[str(v) for v in port_spec.values[0]]]
+            for alt_ps in port_spec.alternate_specs:
+                if alt_ps.defaults is not None:
+                    alt_ps.defaults = [str(v) for v in alt_ps.defaults]
+                if alt_ps.values is not None:
+                    alt_ps.values = [[str(v) for v in alt_ps.values[0]]]
+                
         module_specs.append(ModuleSpec(module_name, super_name,
                                        "matplotlib.pyplot.%s" % plot, 
                                        cleaned_docstring, port_specs.values(),

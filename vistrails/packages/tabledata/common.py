@@ -7,7 +7,7 @@ class Table(Module):
 
     names = None
 
-    def get_column(self, i):
+    def get_column(self, i): # pragma: no cover
         raise NotImplementedError
 
 
