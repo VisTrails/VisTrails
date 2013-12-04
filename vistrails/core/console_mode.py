@@ -142,8 +142,8 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
+        jobMonitor.finishWorkflow()
         if current_workflow.modules:
-            jobMonitor.finishWorkflow()
             if current_workflow.completed():
                 run.job = "COMPLETED"
             else:

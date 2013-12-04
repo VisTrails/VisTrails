@@ -451,8 +451,7 @@ class VistrailController(QtCore.QObject, BaseController):
                            traceback.format_exc())
         finally:
             self.progress = None
-            if jobView.jobMonitor.currentWorkflow():
-                jobView.jobMonitor.finishWorkflow()
+            jobView.jobMonitor.finishWorkflow()
             jobView.updating_now = False
 
         return result
