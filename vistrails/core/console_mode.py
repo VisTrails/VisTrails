@@ -70,10 +70,6 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     aliases = {}
     result = []
     for locator, workflow in w_list:
-        jobMonitor = JobMonitor.getInstance()
-        if not jobMonitor.currentWorkflow():
-            current_workflow = JobWorkflow(locator.to_url(), workflow)
-            jobMonitor.getInstance().startWorkflow(current_workflow)
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
         controller = VistrailController(v, locator, abstractions, thumbnails, 
                                         mashups, auto_save=update_vistrail)
@@ -115,6 +111,21 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
+        jobMonitor = JobMonitor.getInstance()
+        current_workflow = jobMonitor.currentWorkflow()
+        if not current_workflow:
+            for job in jobMonitor._running_workflows.itervalues():
+                try:
+                    job_version = int(job.version)
+                except ValueError:
+                    job_version =  v.get_version_number(job.version)
+                if version == job_version and locator.to_url() == job.vistrail:
+                    current_workflow = job
+                    jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(locator.to_url(), version)
+                jobMonitor.getInstance().startWorkflow(current_workflow)
+
         (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
                                                 extra_info=extra_info,
@@ -131,8 +142,16 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
-        if jobMonitor.currentWorkflow():
+        if current_workflow.modules:
             jobMonitor.finishWorkflow()
+            if current_workflow.completed():
+                run.job = "COMPLETED"
+            else:
+                run.job = "RUNNING: %s" % current_workflow.id
+                for job in current_workflow.modules.itervalues():
+                    if not job.finished:
+                        run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
+            print run.job
     return result
 
 ################################################################################

@@ -54,6 +54,7 @@ import os.path
 import getpass
 import re
 import sys
+import StringIO
 
 ################################################################################
 
@@ -214,7 +215,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 print "JOB: ", i, j.vistrail, j.version, j.start, \
                       "FINISHED" if j.completed() else "RUNNING"
         elif self.temp_configuration.check('jobRun'):
-            self.runJob(self.temp_configuration.jobRun)
+            return self.runJob(self.temp_configuration.jobRun)
         elif interactive:
             self.interactiveMode()
         else:
@@ -657,7 +658,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.temp_configuration.interactiveMode = True
             
             try:
+                # redirect stdout
+                old_stdout = sys.stdout
+                sys.stdout = StringIO.StringIO()
                 result = self.parse_input_args_from_other_instance(str(byte_array))
+                output = sys.stdout.getvalue()
+                sys.stdout.close()
+                sys.stdout = old_stdout
             except Exception, e:
                 import traceback
                 debug.critical("Unknown error: %s" % str(e))
@@ -670,6 +677,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 result = "Command Failed"
             elif type(result) == list:
                 result = '\n'.join(result[1])
+            if result == "Command Completed" and output:
+                result += '\n' + output
             self.shared_memory.lock()
             local_socket.write(bytes(result))
             self.shared_memory.unlock()
@@ -702,8 +711,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 return False
             byte_array = local_socket.readAll()
             result = str(byte_array)
-            debug.log("Other instance processed input (%s)"%result)
-            if result != 'Command Completed':
+            print "Other instance processed input: %s" % result
+            if not result.startswith('Command Completed'):
                 debug.critical(result)
             else:
                 local_socket.disconnectFromServer()
@@ -735,11 +744,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                          for i, j in job.load_from_file().iteritems()])
                 if self.temp_configuration.check('jobRun'):
                     # skip waiting for completion
-                    autoRun = self.configuration.get('autoRun')
+                    autoRun = self.configuration.check('autoRun')
                     self.configuration.autoRun = True
                     result = self.runJob(self.temp_configuration.jobRun)
                     self.configuration.autoRun = autoRun
-                    return result
+                    return result == APP_SUCCESS
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
                     result = self.process_interactive_input()
@@ -760,14 +769,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def runJob(self, job_id):
         jobMonitor = JobMonitor.getInstance()
         workflow = jobMonitor.getWorkflow(job_id)
-        
+        if not workflow:
+            print "No job with that id exists"
+            return APP_FAIL
         locator = BaseLocator.from_url(workflow.vistrail)
         jobMonitor.startWorkflow(workflow)
         import vistrails.core.console_mode
         error = vistrails.core.console_mode.run([(locator, workflow.version)],
                                                 update_vistrail=True)
-        jobMonitor.finishWorkflow()
-        print "FINISHED" if workflow.completed() else "SUSPENDED"
         return APP_SUCCESS
 
 
