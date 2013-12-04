@@ -10,8 +10,19 @@
 # This allows to execute a simple piece of code without the need for VisTrails
 # to be installed on every machine.
 
-from .api import direct_view, get_client, load_balanced_view, parallel_map
-from .engine_manager import EngineManager
+from vistrails.core.bundles.pyimport import py_import
 
-from .default import IPythonScheme
-from .standalone import IPythonStandaloneScheme
+try:
+    py_import('IPython', {
+            'pip': 'ipython',
+            'linux-debian': 'ipython',
+            'linux-ubuntu': 'ipython',
+            'linux-fedora': 'ipython'})
+except ImportError:
+    pass
+else:
+    from .api import direct_view, get_client, load_balanced_view, parallel_map
+    from .engine_manager import EngineManager
+
+    from .default import IPythonScheme
+    from .standalone import IPythonStandaloneScheme
