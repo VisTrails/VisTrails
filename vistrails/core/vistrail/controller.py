@@ -46,6 +46,7 @@ import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import JobMonitor
 from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from vistrails.core.log.controller import LogControllerFactory, DummyLogController
@@ -3597,6 +3598,8 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
+                    JobMonitor.getInstance().updateUrl(locator.to_url(),
+                                                       old_locator.to_url())
                     self.set_file_name(locator.name)
                     if old_locator and not export:
                         old_locator.clean_temporaries()

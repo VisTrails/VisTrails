@@ -554,6 +554,11 @@ class JobMonitor:
         if not self._current_workflow:
             return None
         return id in self._current_workflow.modules
+    
+    def updateUrl(self, new, old):
+        for workflow in self._running_workflows.values():
+            if workflow.vistrail == old:
+                workflow.vistrail = new
 
 ##############################################################################
 # Testing

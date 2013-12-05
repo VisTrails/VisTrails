@@ -1816,11 +1816,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
-            text = current_view.controller.name
-            if text=='':
-                text = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
+            name = current_view.controller.name
+            if name=='':
+                name = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
             text = ('Vistrail ' +
-                    QtCore.Qt.escape(text) +
+                    QtCore.Qt.escape(name) +
                     ' contains unsaved changes.\n Do you want to '
                     'save changes before closing it?')
             res = QtGui.QMessageBox.information(window,
@@ -1831,6 +1831,34 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 'Cancel',
                                                 0,
                                                 2)
+            # Check if any unsaved workflow contains jobs
+            vistrail = current_view.controller.vistrail
+            from vistrails.core.interpreter.job import JobMonitor
+            if res == 1:
+                res = 0
+                for workflow in JobMonitor.getInstance()._running_workflows.values():
+                    if workflow.vistrail != locator.to_url():
+                        continue
+                    action = vistrail.db_get_action_by_id(workflow.version)
+                    if not action.is_new:
+                        continue
+                    if res == 1:
+                        JobMonitor.getInstance().deleteWorkflow(workflow.id)
+                        continue
+                    text = ('Vistrail ' +
+                            QtCore.Qt.escape(name) +
+                            ' contains unsaved jobs.\n Do you want to '
+                            'save changes or discard the job?')
+                    res = QtGui.QMessageBox.information(window,
+                                                        'Vistrails',
+                                                        text, 
+                                                        '&Save', 
+                                                        '&Discard',
+                                                        'Cancel',
+                                                        0,
+                                                        2)
+                    if res == 1:
+                        JobMonitor.getInstance().deleteWorkflow(workflow.id)
         else:
             res = 1
         
