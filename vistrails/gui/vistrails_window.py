@@ -1820,11 +1820,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
-            text = current_view.controller.name
-            if text=='':
-                text = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
+            name = current_view.controller.name
+            if name=='':
+                name = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
             text = ('Vistrail ' +
-                    QtCore.Qt.escape(text) +
+                    QtCore.Qt.escape(name) +
                     ' contains unsaved changes.\n Do you want to '
                     'save changes before closing it?')
             res = QtGui.QMessageBox.information(window,
@@ -1835,6 +1835,51 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 'Cancel',
                                                 0,
                                                 2)
+            # Check if any unsaved workflow contains jobs
+            if res == 1:
+                vistrail = current_view.controller.vistrail
+                conf = get_vistrails_configuration()
+                if not conf.has('runningJobsList') or not conf.runningJobsList:
+                    conf_jobs = []
+                else:
+                    conf_jobs = conf.runningJobsList.split(';')
+                if not conf_jobs:
+                    conf_jobs = []
+                res = 0
+                for url in conf_jobs:
+                    loc, version = url.split('?')
+                    version = int(version.split('=')[1])
+                    if loc != locator.to_url():
+                        continue
+                    action = vistrail.db_get_action_by_id(version)
+                    if not action.is_new:
+                        continue
+                    if res == 1:
+                        # already discarded
+                        from vistrails.gui.job_monitor import QJobView
+                        QJobView.instance().delete_job(
+                                             current_view.controller, version)
+                        continue
+                    text = ('Vistrail ' +
+                            QtCore.Qt.escape(name) +
+                            ' contains unsaved jobs.\n Do you want to '
+                            'save changes or discard the job(s)?')
+                    res = QtGui.QMessageBox.information(window,
+                                                        'Vistrails',
+                                                        text, 
+                                                        '&Save', 
+                                                        '&Discard',
+                                                        'Cancel',
+                                                        0,
+                                                        2)
+                    if res == 0:
+                        break
+                    elif res == 1:
+                        from vistrails.gui.job_monitor import QJobView
+                        QJobView.instance().delete_job(
+                                             current_view.controller, version)
+                    elif res == 2:
+                        return False
         else:
             res = 1
         

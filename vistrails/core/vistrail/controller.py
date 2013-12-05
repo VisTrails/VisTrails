@@ -39,7 +39,8 @@ import uuid
 import shutil
 import tempfile
 
-from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.configuration import get_vistrails_configuration, \
+                                         get_vistrails_persistent_configuration
 import vistrails.core.db.action
 import vistrails.core.db.io
 import vistrails.core.db.locator
@@ -3597,12 +3598,20 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
+                    conf = get_vistrails_configuration()
+                    if conf.has('runningJobsList') and conf.runningJobsList:
+                        conf_jobs = conf.runningJobsList.split(';')
+                        conf_jobs = [job.replace(old_locator.to_url(),
+                                       locator.to_url()) for job in conf_jobs]
+                        conf.runningJobsList = ';'.join(conf_jobs)
+                        get_vistrails_persistent_configuration(
+                                      ).runningJobsList = conf.runningJobsList
                     self.set_file_name(locator.name)
                     if old_locator and not export:
                         old_locator.clean_temporaries()
                         old_locator.close()
                     self.flush_pipeline_cache()
-                    self.change_selected_version(new_vistrail.db_currentVersion, 
+                    self.change_selected_version(new_vistrail.db_currentVersion,
                                                  from_root=True)
             else:
                 save_bundle = self.locator.save(save_bundle)
