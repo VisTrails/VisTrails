@@ -33,29 +33,25 @@
 ##
 ###############################################################################
 import base64
-from vistrails.core import modules
-from vistrails.core.common import *
-from vistrails.core.data_structures.bijectivedict import Bidict
-import vistrails.core.db.io
-from vistrails.core.log.controller import DummyLogController
-from vistrails.core.modules.basic_modules import identifier as basic_pkg
-from vistrails.core.modules.vistrails_module import ModuleConnector, \
-    ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors
-from vistrails.core.utils import DummyView
-from vistrails.core.vistrail.annotation import Annotation
-from vistrails.core.vistrail.vistrail import Vistrail
 import copy
+import cPickle
+import gc
+
+from vistrails.core.common import InstanceObject, \
+    VistrailsInternalError
+from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
+from vistrails.core.log.controller import DummyLogController
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import ModuleConnector, \
+    ModuleHadError, ModuleError, ModuleBreakpoint, ModuleErrors
+from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
-import gc
-import cPickle
-
-import unittest
-import vistrails.core.packagemanager
 
 # from core.modules.module_utils import FilePool
 
@@ -155,7 +151,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
 
-        reg = modules.module_registry.get_module_registry()
+        reg = get_module_registry()
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -163,7 +159,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         def create_null():
             """Creates a Null value"""
-            getter = modules.module_registry.registry.get_descriptor_by_name
+            getter = get_module_registry().get_descriptor_by_name
             descriptor = getter(basic_pkg, 'Null')
             return descriptor.module()
         
@@ -347,7 +343,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             view.set_module_computing(i)
 
-            reg = modules.module_registry.get_module_registry()
+            reg = get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
             # !!!self.parent_execs is mutated!!!
@@ -363,7 +359,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             cached[obj.id] = True
             i = get_remapped_id(obj.id)
 
-            reg = modules.module_registry.get_module_registry()
+            reg = get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
             # !!!self.parent_execs is mutated!!!
@@ -797,6 +793,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
 ##############################################################################
 # Testing
+
+import unittest
 
 
 class TestCachedInterpreter(unittest.TestCase):

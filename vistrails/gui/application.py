@@ -96,7 +96,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def run_single_instance(self):
         # code for single instance of the application
-        # based on the C++ solution availabe at
+        # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
             self.timeout = 600000
@@ -688,8 +688,17 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             local_socket = QtNetwork.QLocalSocket(self)
             local_socket.connectToServer(self._unique_key)
             if not local_socket.waitForConnected(self.timeout):
-                debug.critical("Connection failed: %s" %
-                               local_socket.errorString())
+                msg = ("VisTrails found a socket to another instance of the "
+                       "application but was unable to communicate with it. If "
+                       "you don't have any other instance running, please "
+                       "delete the socket:\n%s" % self._unique_key)
+                debug.critical(
+                        "Connection failed: %s\n"
+                        "\n"
+                        "%s" % (local_socket.errorString(), msg))
+                QtGui.QMessageBox.critical(None,
+                                           "VisTrails single-instance mode",
+                                           msg)
                 return False
             self.shared_memory.lock()
             local_socket.write(message)
