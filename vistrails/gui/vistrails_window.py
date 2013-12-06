@@ -1843,9 +1843,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                     conf_jobs = []
                 else:
                     conf_jobs = conf.runningJobsList.split(';')
-                if not conf_jobs:
-                    conf_jobs = []
-                res = 0
+                    res = 0
                 for url in conf_jobs:
                     loc, version = url.split('?')
                     version = int(version.split('=')[1])
