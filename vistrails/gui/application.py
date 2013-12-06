@@ -105,7 +105,16 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if self.shared_memory.attach():
                 self._is_running = True
             else:
-                self._is_running = False
+                # This usually happens when vistrails have crashed
+                # Delete the key and try again
+                self.shared_memory.detach()
+                self.local_server.close()
+                if os.path.exists(self._unique_key):
+                    os.remove(self._unique_key)
+
+                self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+                self.local_server = None
+
                 if not self.shared_memory.create(1):
                     debug.critical("Unable to create single instance "
                                    "of vistrails application")
@@ -116,33 +125,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if self.local_server.listen(self._unique_key):
                     debug.log("Listening on %s"%self.local_server.fullServerName())
                 else:
-                    # This usually happens when vistrails have crashed
-                    # Delete the key and try again
-                    self.shared_memory.detach()
-                    self.local_server.close()
-                    if os.path.exists(self._unique_key):
-                        os.remove(self._unique_key)
-
-                    self.shared_memory = QtCore.QSharedMemory(self._unique_key)
-                    self.local_server = None
-                    if self.shared_memory.attach():
-                        self._is_running = True
-                    else:
-                        self._is_running = False
-                        if not self.shared_memory.create(1):
-                            debug.critical("Unable to create single instance "
-                                           "of vistrails application")
-                            return
-                        self.local_server = QtNetwork.QLocalServer(self)
-                        self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                                     self.message_received)
-                        if self.local_server.listen(self._unique_key):
-                            debug.log("Listening on %s"%self.local_server.fullServerName())
-                        else:
-                            debug.warning(
-                                    "Server is not listening. This means it "
-                                    "will not accept parameters from other "
-                                    "instances")
+                    debug.warning(
+                            "Server is not listening. This means it "
+                            "will not accept parameters from other "
+                            "instances")
 
         if self._is_running:
             if self.found_another_instance_running():
