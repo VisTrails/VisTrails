@@ -293,15 +293,18 @@ String  = new_constant('String'  , staticmethod(str), "",
 
 ##############################################################################
 
-class Path(Constant):
-    name = ""
+class PathObject(object):
+    def __init__(self, name):
+        self.name = name
 
+    def __repr__(self):
+        return "PathObject(%r)" % self.name
+    __str__ = __repr__
+
+class Path(Constant):
     @staticmethod
     def translate_to_python(x):
-        result = Path()
-        result.name = x
-        result.setResult("value", result)
-        return result
+        return PathObject(x)
 
     @staticmethod
     def translate_to_string(x):
@@ -309,9 +312,7 @@ class Path(Constant):
 
     @staticmethod
     def validate(v):
-        #print 'validating', v
-        #print 'isinstance', isinstance(v, Path)
-        return isinstance(v, Path)
+        return isinstance(v, PathObject)
 
     def get_name(self):
         n = None
@@ -323,9 +324,8 @@ class Path(Constant):
         return n
 
     def set_results(self, n):
-        self.name = n
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.setResult("value", PathObject(n))
+        self.setResult("value_as_string", n)
 
     def compute(self):
         n = self.get_name()
@@ -336,17 +336,11 @@ class Path(Constant):
         return ("vistrails.gui.modules.constant_configuration",
                 "PathChooserWidget")
 
-Path.default_value = Path()
+Path.default_value = PathObject('')
 
 class File(Path):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
-    @staticmethod
-    def translate_to_python(x):
-        result = File()
-        result.name = x
-        result.setResult("value", result)
-        return result
 
     def compute(self):
         n = self.get_name()
@@ -363,16 +357,7 @@ class File(Path):
         return ("vistrails.gui.modules.constant_configuration",
                 "FileChooserWidget")
 
-File.default_value = File()
-    
 class Directory(Path):
-    @staticmethod
-    def translate_to_python(x):
-        result = Directory()
-        result.name = x
-        result.setResult("value", result)
-        return result
-
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_directory") and
@@ -389,24 +374,13 @@ class Directory(Path):
         output_list = []
         for item in dir_list:
             full_path = os.path.join(n, item)
-            if os.path.isfile(full_path):
-                file_item = File()
-                file_item.name = full_path
-                file_item.upToDate = True
-                output_list.append(file_item)
-            elif os.path.isdir(full_path):
-                dir_item = Directory()
-                dir_item.name = full_path
-                dir_item.upToDate = True
-                output_list.append(dir_item)
+            output_list.append(PathObject(full_path))
         self.setResult('itemList', output_list)
 
     @staticmethod
     def get_widget_class():
         return ("vistrails.gui.modules.constant_configuration",
                 "DirectoryChooserWidget")
-
-Directory.default_value = Directory()
 
 def path_parameter_hasher(p):
     def get_mtime(path):
