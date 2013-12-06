@@ -34,6 +34,7 @@
 ###############################################################################
 import copy
 from itertools import izip
+import warnings
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 
@@ -663,6 +664,12 @@ class ModuleConnector(object):
 
     def __call__(self):
         result = self.obj.get_output(self.port)
+        if isinstance(result, Module):
+            warnings.warn(
+                    "A Module instance was used as data: "
+                    "module=%s, port=%s, object=%r" % (type(self.obj).__name__,
+                                                       self.port, result),
+                    UserWarning)
         if self.spec is not None and self.typecheck is not None:
             descs = self.spec.descriptors()
             typecheck = self.typecheck
