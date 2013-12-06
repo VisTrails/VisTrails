@@ -37,6 +37,9 @@
 ################################################################################
 import os
 from PyQt4 import QtGui
+from PyQt4.QtCore import QUrl
+from PyQt4.QtXmlPatterns import QXmlQuery
+
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
@@ -71,6 +74,26 @@ class RichTextCell(SpreadsheetCell):
                     html = XHTMLWriter.write(doc).read().decode('utf-8')
             else:
                 raise ModuleError(self, "'%s' format is unknown" % text_format)
+
+        self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
+
+
+class XSLCell(SpreadsheetCell):
+    """
+    XSLCell is a custom Module to render an XML file via an XSL stylesheet
+
+    """
+    def compute(self):
+        """ compute() -> None
+        Render the XML tree and display it on the spreadsheet
+        """
+        xml = self.getInputFromPort('XML').name
+        xsl = self.getInputFromPort('XSL').name
+
+        query = QXmlQuery(QXmlQuery.XSLT20)
+        query.setFocus(QUrl.fromLocalFile(os.path.join(os.getcwd(), xml)))
+        query.setQuery(QUrl.fromLocalFile(os.path.join(os.getcwd(), xsl)))
+        html = query.evaluateToString()
 
         self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
 
