@@ -321,7 +321,7 @@ class Path(Constant):
             self.checkInputPort("name")
             n = self.getInputFromPort("name")
         return n
-        
+
     def set_results(self, n):
         self.name = n
         self.setResult("value", self)
@@ -330,13 +330,10 @@ class Path(Constant):
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-#         self.setResult("exists", os.path.exists(n))
-#         self.setResult("isfile", os.path.isfile(n))
-#         self.setResult("isdir", os.path.isdir(n))
-        
+
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "PathChooserWidget")
 
 Path.default_value = Path()
@@ -379,7 +376,7 @@ class Directory(Path):
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_directory") and
-            self.getInputFromPort("create_directory")):
+                self.getInputFromPort("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
@@ -387,7 +384,7 @@ class Directory(Path):
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
-        
+
         dir_list = os.listdir(n)
         output_list = []
         for item in dir_list:
@@ -403,10 +400,10 @@ class Directory(Path):
                 dir_item.upToDate = True
                 output_list.append(dir_item)
         self.setResult('itemList', output_list)
-            
+
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "DirectoryChooserWidget")
 
 Directory.default_value = Directory()
@@ -422,7 +419,6 @@ def path_parameter_hasher(p):
         return v_list
 
     h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
-    hasher = sha_hash()
     try:
         # FIXME: This will break with aliases - I don't really care that much
         v_list = get_mtime(p.strValue)
