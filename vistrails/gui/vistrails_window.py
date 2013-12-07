@@ -1835,21 +1835,21 @@ class QVistrailsWindow(QVistrailViewWindow):
             vistrail = current_view.controller.vistrail
             from vistrails.core.interpreter.job import JobMonitor
             if res == 1:
-                res = 0
+                res2 = 0
                 for workflow in JobMonitor.getInstance()._running_workflows.values():
                     if workflow.vistrail != locator.to_url():
                         continue
                     action = vistrail.db_get_action_by_id(workflow.version)
                     if not action.is_new:
                         continue
-                    if res == 1:
+                    if res2 == 1:
                         JobMonitor.getInstance().deleteWorkflow(workflow.id)
                         continue
                     text = ('Vistrail ' +
                             QtCore.Qt.escape(name) +
                             ' contains unsaved jobs.\n Do you want to '
-                            'save changes or discard the job?')
-                    res = QtGui.QMessageBox.information(window,
+                            'save changes or discard the job(s)?')
+                    res2 = QtGui.QMessageBox.information(window,
                                                         'Vistrails',
                                                         text, 
                                                         '&Save', 
@@ -1857,8 +1857,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                         'Cancel',
                                                         0,
                                                         2)
-                    if res == 1:
+                    if res2 == 1:
                         JobMonitor.getInstance().deleteWorkflow(workflow.id)
+                    if res2 == 2:
+                        res = 2
+                        continue
         else:
             res = 1
         
