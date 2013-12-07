@@ -1147,7 +1147,6 @@ def initialize(*args, **kwargs):
     reg.add_module(File, constantSignatureCallable=path_parameter_hasher)
     reg.add_input_port(File, "value", File)
     reg.add_output_port(File, "value", File)
-    reg.add_output_port(File, "self", File, True)
     reg.add_input_port(File, "create_file", Boolean, True)
     reg.add_output_port(File, "local_filename", String, True)
 
