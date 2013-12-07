@@ -237,8 +237,7 @@ class HTTPDirectory(Module):
         url = self.getInputFromPort('url')
         local_path = self.download(url)
         self.setResult('local_path', local_path)
-        local_dir = vistrails.core.modules.basic_modules.Directory()
-        local_dir.name = local_path
+        local_dir = vistrails.core.modules.basic_modules.PathObject(local_path)
         self.setResult('directory', local_dir)
 
     def download(self, url):

@@ -451,10 +451,7 @@ class PersistentDir(PersistentPath):
         PersistentPath.compute(self, is_input, 'tree')
 
     def set_result(self, path):
-        persistent_path = Directory()
-        persistent_path.name = path
-        persistent_path.setResult('value', self)
-        persistent_path.upToDate = True
+        persistent_path = PathObject(path)
         self.setResult("value", persistent_path)
 
 class PersistentInputDir(PersistentDir):

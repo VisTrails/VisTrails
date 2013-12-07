@@ -97,16 +97,14 @@ avoid race conditions, this file will already exist in the file system."""
         return result
 
     def create_directory(self, suffix = '', prefix = 'vt_tmp'):
-        """create_directory(suffix='', prefix='vt_tmp') -> Directory.
+        """create_directory(suffix='', prefix='vt_tmp') -> PathObject.
 
-Returns a Directory module representing a writable directory for use in modules. To
-avoid race conditions, this directory will already exist in the file system."""
+Returns a writable directory for use in modules. To avoid race conditions, this
+directory will already exist in the file system."""
         name = tempfile.mkdtemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
-        result = basic_modules.Directory()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
