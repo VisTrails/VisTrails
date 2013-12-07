@@ -99,9 +99,6 @@ class Constant(Module):
     See core/modules/constant_configuration.py for details.
     
     """
-    def __init__(self):
-        Module.__init__(self)
-        
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
@@ -173,13 +170,8 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     the type that the class should hold. str_conversion does the reverse.
 
     This is the quickest way to create new Constant Modules."""
-    
-    def create_init(base_class):
-        def __init__(self):
-            base_class.__init__(self)
-        return __init__
 
-    d = {'__init__': create_init(base_class)}
+    d = {}
 
     if py_conversion is not None:
         d["translate_to_python"] = py_conversion
@@ -302,10 +294,8 @@ String  = new_constant('String'  , staticmethod(str), "",
 ##############################################################################
 
 class Path(Constant):
-    def __init__(self):
-        Constant.__init__(self)
-        self.name = ""
-    
+    name = ""
+
     @staticmethod
     def translate_to_python(x):
         result = Path()
@@ -331,7 +321,7 @@ class Path(Constant):
             self.checkInputPort("name")
             n = self.getInputFromPort("name")
         return n
-        
+
     def set_results(self, n):
         self.name = n
         self.setResult("value", self)
@@ -340,13 +330,10 @@ class Path(Constant):
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-#         self.setResult("exists", os.path.exists(n))
-#         self.setResult("isfile", os.path.isfile(n))
-#         self.setResult("isdir", os.path.isdir(n))
-        
+
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "PathChooserWidget")
 
 Path.default_value = Path()
@@ -354,9 +341,6 @@ Path.default_value = Path()
 class File(Path):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
-    def __init__(self):
-        Path.__init__(self)
-        
     @staticmethod
     def translate_to_python(x):
         result = File()
@@ -367,26 +351,21 @@ class File(Path):
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_file") and
-            self.getInputFromPort("create_file")):
+                self.getInputFromPort("create_file")):
             vistrails.core.system.touch(n)
         if not os.path.isfile(n):
-            raise ModuleError(self, 'File "%s" does not exist' % n)
+            raise ModuleError(self, 'File %r does not exist' % n)
         self.set_results(n)
         self.setResult("local_filename", n)
-        self.setResult("self", self)
 
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "FileChooserWidget")
 
 File.default_value = File()
     
 class Directory(Path):
-    def __init__(self):
-        Path.__init__(self)
-        Directory.default_value = self
-        
     @staticmethod
     def translate_to_python(x):
         result = Directory()
@@ -397,7 +376,7 @@ class Directory(Path):
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_directory") and
-            self.getInputFromPort("create_directory")):
+                self.getInputFromPort("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
@@ -405,7 +384,7 @@ class Directory(Path):
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
-        
+
         dir_list = os.listdir(n)
         output_list = []
         for item in dir_list:
@@ -421,10 +400,10 @@ class Directory(Path):
                 dir_item.upToDate = True
                 output_list.append(dir_item)
         self.setResult('itemList', output_list)
-            
+
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "DirectoryChooserWidget")
 
 Directory.default_value = Directory()
@@ -440,7 +419,6 @@ def path_parameter_hasher(p):
         return v_list
 
     h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
-    hasher = sha_hash()
     try:
         # FIXME: This will break with aliases - I don't really care that much
         v_list = get_mtime(p.strValue)
@@ -588,11 +566,8 @@ class Color(Constant):
     # contains a tuple because a tuple would be interpreted as a
     # type(tuple) which messes with the interpreter
 
-    def __init__(self):
-        Constant.__init__(self)
-    
     default_value = InstanceObject(tuple=(1,1,1))
-        
+
     @staticmethod
     def translate_to_python(x):
         return InstanceObject(
