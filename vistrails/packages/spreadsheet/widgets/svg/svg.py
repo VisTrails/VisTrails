@@ -35,7 +35,7 @@
 ################################################################################
 # SVG widgets implementation
 ################################################################################
-from vistrails.core.modules.basic_modules import File
+from vistrails.core.modules.basic_modules import PathObject
 from vistrails.core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui, QtSvg
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
@@ -139,10 +139,9 @@ class SVGSplitter(Module):
                     e.sheetReference = StandardSingleCellSheetReference()
                     e.sheetReference.sheetName = comps[1]                    
                     e.cellType = SVGCellWidget
-                    F = File()
-                    from os.path import abspath, basename, dirname
-                    F.name = (dirname(abspath(fileValue.name))+
-                              '/'+basename(comps[0]))
+                    from os.path import abspath, basename, dirname, join
+                    F = PathObject(join(dirname(abspath(fileValue.name)),
+                                        basename(comps[0])))
                     e.inputPorts = (F,)
                     batchDisplayEvent.displayEvents.append(e)
             f.close()

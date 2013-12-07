@@ -38,7 +38,7 @@
 
 from vistrails.core.debug import debug
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
-     Color, identifier as basic_pkg
+     Color, PathObject, identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import new_module, ModuleError
 from vistrails.core.system import get_vistrails_default_pkg_prefix
@@ -971,8 +971,7 @@ def class_dict(base_module, node):
                 o = self.interpreter.filePool.create_file(suffix='.vtk')
                 self.vtkInstance.SetFileName(o.name)
             else:
-                o = File()
-                o.name = fn
+                o = PathObject(fn)
             self.vtkInstance.Write()
             self.setResult('file', o)
         return compute

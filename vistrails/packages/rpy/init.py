@@ -38,7 +38,7 @@ import tempfile
 import urllib
 import rpy2.robjects as robjects
 
-from vistrails.core.modules.basic_modules import File, Constant, \
+from vistrails.core.modules.basic_modules import PathObject, Constant, \
     new_constant
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
@@ -409,9 +409,7 @@ class RFigure(RSource):
         self.run_code(code_str, use_input=True, 
                       excluded_inputs=excluded_inputs)
         robjects.r['dev.off']()
-        image_file = File()
-        image_file.name = fname
-        image_file.upToDate = True
+        image_file = PathObject(fname)
         self.setResult('imageFile', image_file)
 
     def run_figure_file(self, fname, graphics_dev, width, height, 

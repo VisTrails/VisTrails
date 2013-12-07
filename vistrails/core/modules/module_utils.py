@@ -84,7 +84,7 @@ call this directly."""
                                           str(e)))
 
     def create_file(self, suffix = '', prefix = 'vt_tmp'):
-        """create_file(suffix='', prefix='vt_tmp') -> File.
+        """create_file(suffix='', prefix='vt_tmp') -> PathObject.
 
 Returns a File module representing a writable file for use in modules. To
 avoid race conditions, this file will already exist in the file system."""
@@ -92,9 +92,7 @@ avoid race conditions, this file will already exist in the file system."""
                                       prefix=prefix,
                                       dir=self.directory)
         os.close(fd)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
@@ -120,7 +118,7 @@ avoid race conditions, this directory will already exist in the file system."""
         return os.path.splitext(file_name)[1]
 
     def make_local_copy(self, src):
-        """make_local_copy(src) -> File
+        """make_local_copy(src) -> PathObject
 
 Returns a file in the filePool that's either a link or a copy of the
 given file path. This ensures the file's longevity when
@@ -133,9 +131,7 @@ future."""
         # FIXME: Watch out for race conditions
         os.unlink(name)
         link_or_copy(src, name)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
         

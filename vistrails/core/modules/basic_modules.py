@@ -415,22 +415,19 @@ class OutputPath(Path):
             self.checkInputPort("name")
             n = self.getInputFromPort("name")
         return n
-        
+
     def set_results(self, n):
-        self.name = n
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.setResult("value", PathObject(n))
+        self.setResult("value_as_string", n)
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-        
+
     @staticmethod
     def get_widget_class():
         return ("vistrails.gui.modules.constant_configuration", 
                 "OutputPathChooserWidget")
-
-OutputPath.default_value = OutputPath()
 
 class FileSink(NotCacheable, Module):
     """FileSink takes a file and writes it to a user-specified
