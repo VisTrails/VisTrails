@@ -1857,11 +1857,13 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                         'Cancel',
                                                         0,
                                                         2)
-                    if res2 == 1:
+                    if res2 == 0:
+                        res = 0
+                        break
+                    elif res2 == 1:
                         JobMonitor.getInstance().deleteWorkflow(workflow.id)
-                    if res2 == 2:
-                        res = 2
-                        continue
+                    elif res2 == 2:
+                        return False
         else:
             res = 1
         
