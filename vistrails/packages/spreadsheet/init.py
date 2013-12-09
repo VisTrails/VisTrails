@@ -127,7 +127,7 @@ def initialize(*args, **keywords):
     if app==None:
         app = QtGui.QApplication(sys.argv)
     if hasattr(app, 'builderWindow'):
-        global spreadsheetWindow        
+        global spreadsheetWindow
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
 
 def menu_items():
@@ -151,3 +151,27 @@ def finalize():
     ### It is not supposed to be called directly
     spreadsheetWindow.cleanup()
     spreadsheetWindow.deleteLater()
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    reg = get_module_registry()
+
+    module_remap = {
+            'CellLocation': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SingleCellSheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+        }
