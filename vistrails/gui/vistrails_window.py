@@ -1840,7 +1840,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if workflow.vistrail != locator.to_url():
                         continue
                     action = vistrail.db_get_action_by_id(workflow.version)
-                    if not action.is_new:
+                    if not action.is_dirty:
                         continue
                     if res2 == 1:
                         JobMonitor.getInstance().deleteWorkflow(workflow.id)

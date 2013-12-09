@@ -170,7 +170,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         VistrailsApplicationInterface.init(self, optionsDict)
         
-        JobMonitor.getInstance().load_from_file()
         if self.temp_configuration.check('jobRun') or \
            self.temp_configuration.check('jobList'):
             self.temp_configuration.interactiveMode = False
@@ -213,7 +212,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         if self.temp_configuration.check('jobList'):
             job = JobMonitor.getInstance()
-            for i, j in job.load_from_file().iteritems():
+            for i, j in job._running_workflows.iteritems():
                 print "JOB: ", i, j.vistrail, j.version, j.start, \
                       "FINISHED" if j.completed() else "RUNNING"
         elif self.temp_configuration.check('jobRun'):
@@ -426,13 +425,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()
         
+        self.builderWindow.check_running_jobs()
         self.process_interactive_input()
         if not self.temp_configuration.showSpreadsheetOnly:
             self.showBuilderWindow()
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
-        self.builderWindow.check_running_jobs()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -743,7 +742,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                                  j.version,
                                                  j.start,
                               "FINISHED" if j.completed() else "RUNNING")
-                         for i, j in job.load_from_file().iteritems()])
+                         for i, j in job._running_workflows.iteritems()])
                 if self.temp_configuration.check('jobRun'):
                     # skip waiting for completion
                     autoRun = self.configuration.check('autoRun')

@@ -381,7 +381,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             if '__desc__' in m.db_annotations_key_index:
                 name = m.get_annotation_by_key('__desc__').value.strip()
             else:
-                reg = modules.module_registry.get_module_registry()
+                reg = get_module_registry()
                 name = reg.get_descriptor(obj.__class__).name
             i = "%s" % get_remapped_id(obj.id)
             if obj.is_looping:

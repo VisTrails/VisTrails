@@ -298,7 +298,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         workflow = self.jobMonitor.currentWorkflow()
         workflowItem = self.workflowItems.get(workflow.id, None)
         workflowItem.updateJobs()
-        progress = workflowItem.view.controller.current_pipeline_scene.progress
+        progress = workflowItem.view.controller.progress
 
         conf = configuration.get_vistrails_configuration()
         interval = conf.jobCheckInterval
@@ -326,7 +326,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                             new_progress.setLabelText(labelText)
                             new_progress.setMinimumDuration(0)
                             new_progress.suspended = True
-                            workflowItem.view.controller.current_pipeline_scene.progress = new_progress
+                            workflowItem.view.controller.progress = new_progress
                             progress = new_progress
                             progress.show()
                             QtCore.QCoreApplication.processEvents()
@@ -365,32 +365,27 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             item.goto()
 
     def load_running_jobs(self):
-        workflows = self.jobMonitor.load_from_file()
+        workflows = self.jobMonitor._running_workflows
         # update gui
         for workflow in workflows.itervalues():
-            workflowItem = QWorkflowItem(workflow, self.jobView)
-            self.jobView.addTopLevelItem(workflowItem)
-            self.workflowItems[workflow.id] = workflowItem
-            for job in workflow.modules.itervalues():
-                workflowItem.jobs[job.id] = QJobItem(job, workflowItem)
-                workflowItem.updateJobs()
+            if workflow.id not in self.workflowItems:
+                workflowItem = QWorkflowItem(workflow, self.jobView)
+                self.jobView.addTopLevelItem(workflowItem)
+                self.workflowItems[workflow.id] = workflowItem
+                for job in workflow.modules.itervalues():
+                    if job.id not in workflowItem.jobs:
+                        workflowItem.jobs[job.id] = QJobItem(job, workflowItem)
+                        workflowItem.updateJobs()
         if workflows:
             self.set_visible(True)
 
 class QWorkflowItem(QtGui.QTreeWidgetItem):
     """ The workflow that was suspended """
     def __init__(self, workflow, parent):
-        from vistrails.gui.vistrails_window import _app
         self.locator = BaseLocator.from_url(workflow.vistrail)
-        self.view = _app.getViewFromLocator(self.locator)
-        if self.view:
-            self.name = "%s:%s" % (self.locator.short_name,
-                                   self.view.controller.get_pipeline_name())
-        else:
-            self.name = "%s:%s" % (self.locator.short_name, workflow.version)
-        QtGui.QTreeWidgetItem.__init__(self, parent, [self.name, ''])
+        QtGui.QTreeWidgetItem.__init__(self, parent, ['', ''])
         self.setToolTip(0, "Double-Click to View Pipeline")
-        self.setToolTip(1, '')
+        self.setToolTip(1, workflow.id)
         self.workflow = workflow
         self.has_queue = True
         self.setIcon(0, theme.get_current_theme().JOB_CHECKING)
@@ -398,8 +393,18 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.workflowFinished = False
         self.jobs = {}
         self.intermediates = {}
+        self.updateJobs()
     
     def updateJobs(self):
+        from vistrails.gui.vistrails_window import _app
+        self.view = _app.getViewFromLocator(self.locator)
+        if self.view:
+            self.name = "%s:%s" % (self.locator.short_name,
+                                   self.view.controller.get_pipeline_name())
+        else:
+            self.name = "%s:%s" % (self.locator.short_name,
+                                   self.workflow.version)
+        self.setText(0, self.name)
         self.has_queue = True
         for job in self.jobs.itervalues():
             job.updateJob()

@@ -283,10 +283,10 @@ class JobMonitor:
     getInstance = JobMonitorSingleton()
     
     def __init__(self, filename=None):
-        self.load_from_file(filename)
         self._current_workflow = None
         self._running_workflows = {}
         self.callback = None
+        self.load_from_file(filename)
 
     def setCallback(self, callback=None):
         """ setCallback(callback: class) -> None
@@ -438,6 +438,7 @@ class JobMonitor:
         if self.callback:
             self.callback.finishWorkflow(workflow)
         self._current_workflow = None
+        self.save_to_file()
     
     def addJob(self, id, params=None, name='', finished=False):
         """ addJob(id: str, params: dict, name: str, finished: bool) -> uuid
@@ -457,7 +458,7 @@ class JobMonitor:
         if self.hasJob(id):
             # update job attributes
             job = self.getJob(id)
-            job.params = params
+            job.parameters = params
             if name:
                 job.name = name
             job.finished = finished
