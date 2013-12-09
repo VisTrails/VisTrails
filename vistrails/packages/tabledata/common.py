@@ -1,7 +1,7 @@
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 
-class Table(Module):
+class TableObject(object):
     columns = None
     rows = None
 
@@ -9,6 +9,10 @@ class Table(Module):
 
     def get_column(self, i): # pragma: no cover
         raise NotImplementedError
+
+
+class Table(Module):
+    pass
 
 
 class ExtractColumn(Module):
