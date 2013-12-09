@@ -971,9 +971,9 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
                 ops.append(('add', camera))
 
                 # Connect camera to renderer
-                camera_conn = controller.create_connection(camera, 'self',
-                                                           renderer, 
-                                                           'SetActiveCamera')
+                camera_conn = controller.create_connection(
+                        camera, 'Instance',
+                        renderer, 'SetActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1041,5 +1041,3 @@ def registerSelf():
  
         except Exception, e:
             vistrails.core.debug.warning(str(e))
-
-    registry.add_output_port(VTKViewCell, "self", VTKViewCell)

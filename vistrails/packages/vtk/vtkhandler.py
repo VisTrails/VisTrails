@@ -216,5 +216,5 @@ def registerSelf():
     registry.add_input_port(vtkInteractionHandler, 'Observer', vIO)
     registry.add_input_port(vtkInteractionHandler, 'Handler', String, True)
     registry.add_input_port(vtkInteractionHandler, 'SharedData', Module)
-    registry.add_output_port(vtkInteractionHandler, 'self',
+    registry.add_output_port(vtkInteractionHandler, 'Instance',
                              vtkInteractionHandler)

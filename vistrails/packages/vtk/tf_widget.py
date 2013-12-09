@@ -49,7 +49,8 @@ import StringIO
 import unittest
 ElementTree = get_elementtree_library()
 
-from identifiers import identifier as vtk_pkg_identifier
+from .identifiers import identifier as vtk_pkg_identifier
+from .wrapper import VTKInstanceWrapper
 
 ################################################################################
 # etc
@@ -679,18 +680,13 @@ class vtkScaledTransferFunction(Module):
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         else:
             (new_tf._min_range, new_tf._max_range) = self.getInputFromPort('Range')
-            
+
         self.setResult('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
-        
-        of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
-                                               'vtkPiecewiseFunction').module()
-        of_module.vtkInstance  = of
-        
-        cf_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
-                                               'vtkColorTransferFunction').module()
-        cf_module.vtkInstance  = cf
-        
+
+        of_module = VTKInstanceWrapper(of)
+        cf_module = VTKInstanceWrapper(cf)
+
         self.setResult('vtkPicewiseFunction', of_module)
         self.setResult('vtkColorTransferFunction', cf_module)
 
