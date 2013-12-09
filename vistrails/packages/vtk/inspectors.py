@@ -114,7 +114,7 @@ class vtkDataSetInspector(vtkBaseInspector):
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance
             else:
-                raise ModuleError(self, "expected a vtk module")
+                raise ModuleError(self, "expected a vtk instance")
         if vtk_object:
             self.auto_set_results(vtk_object)
 
@@ -144,7 +144,7 @@ class vtkDataSetAttributesInspector(vtkBaseInspector):
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance
             else:
-                raise ModuleError(self, "expected a vtk module")
+                raise ModuleError(self, "expected a vtk instance")
         if vtk_object:
             self.auto_set_results(vtk_object)
 
@@ -176,7 +176,7 @@ class vtkDataArrayInspector(vtkBaseInspector):
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance
             else:
-                raise ModuleError(self, "expected a vtk module")
+                raise ModuleError(self, "expected a vtk instance")
         if vtk_object:
             self.auto_set_results(vtk_object)
 
@@ -204,7 +204,7 @@ class vtkPolyDataInspector(vtkDataSetInspector):
             if hasattr(port_object, "vtkInstance"):
                 vtk_object = port_object.vtkInstance
             else:
-                raise ModuleError(self, "expected a vtk module")
+                raise ModuleError(self, "expected a vtk instance")
         if vtk_object:
             self.auto_set_results(vtk_object)
 

@@ -200,8 +200,7 @@ class vtkBaseModule(Module):
                     vtk_pkg_identifier,
                     'vtkAlgorithmOutput')
                 for i in xrange(len(paramList)):
-                    if isinstance(paramList[i], desc.module):
-                        paramList[i] = (0, paramList[i])
+                    paramList[i] = (0, paramList[i])
             for p,connector in izip(paramList, connector_list):
                 # Don't call method
                 if connector in self.is_method:
