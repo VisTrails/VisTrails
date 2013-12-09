@@ -241,35 +241,18 @@ class vtkBaseModule(Module):
             if function[:13]=='GetOutputPort':
                 i = int(function[13:])
                 vtkOutput = self.vtkInstance.GetOutputPort(i)
-                output = vtkBaseModule.wrapperModule('vtkAlgorithmOutput',
-                                                     vtkOutput)
-                self.setResult(function, output)
+                self.setResult(function, VTKInstanceWrapper(vtkOutput))
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    className = retValues.GetClassName()
-                    output  = vtkBaseModule.wrapperModule(className, retValues)
-                    self.setResult(function, output)
+                    self.setResult(function, VTKInstanceWrapper(retValues))
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
-                            className = result[i].GetClassName()
-                            result[i] = vtkBaseModule.wrapperModule(className,
-                                                                    result[i])
+                            result[i] = VTKInstanceWrapper(result[i])
                     self.setResult(function, type(retValues)(result))
                 else:
                     self.setResult(function, retValues)
 
         self.setResult('Instance', VTKInstanceWrapper(self.vtkInstance))
-
-    @staticmethod
-    def wrapperModule(classname, instance):
-        """ wrapperModule(classname: str, instance: vtk class) -> Module
-        Create a wrapper module in VisTrails with a vtk instance
-        
-        """
-        result = registry.get_descriptor_by_name(vtk_pkg_identifier,
-                                                 classname).module()
-        result.vtkInstance = instance
-        return result
