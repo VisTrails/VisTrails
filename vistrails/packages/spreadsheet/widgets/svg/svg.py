@@ -137,7 +137,7 @@ class SVGSplitter(Module):
                 if len(comps)==2:
                     e = DisplayCellEvent()        
                     e.sheetReference = StandardSingleCellSheetReference()
-                    e.sheetReference.sheetName = comps[1]                    
+                    e.sheetReference.sheetName = comps[1]
                     e.cellType = SVGCellWidget
                     from os.path import abspath, basename, dirname, join
                     F = PathObject(join(dirname(abspath(fileValue.name)),
