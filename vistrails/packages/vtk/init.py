@@ -123,6 +123,8 @@ typeMapDictValues = [Integer, Float, String]
 file_name_pattern = re.compile('.*FileName$')
 set_file_name_pattern = re.compile('Set.*FileName$')
 
+_upgrade_self_to_instance_modules = set()
+
 def resolve_overloaded_name(name, ix, signatures):
     # VTK supports static overloading, VisTrails does not. The
     # solution is to check whether the current function has
@@ -773,6 +775,7 @@ def addPorts(module, delayed):
     klass = get_description_class(module.vtkClass)
     registry = get_module_registry()
     registry.add_output_port(module, 'Instance', module)
+    _upgrade_self_to_instance_modules.add(module)
     parser.parse(klass)
     addAlgorithmPorts(module)
     addGetPorts(module, parser.get_get_methods())
@@ -1341,17 +1344,17 @@ def build_remap(module_name=None):
                     port_nums[port_prefix] = port_num
         if desc.name not in _remap:
             _remap[desc.name] = [(None, '0.9.3', None, dict())]
+        my_remap_dict = _remap[desc.name][0][3]
         for port_prefix, port_num in port_nums.iteritems():
-            my_remap_dict = _remap[desc.name][0][3]
-            if remap_dict_key not in my_remap_dict:
-                my_remap_dict[remap_dict_key] = dict()
             remap = build_remap_method(desc, port_prefix, port_num, port_type)
-            my_remap_dict[remap_dict_key][port_prefix] = remap
+            my_remap_dict.setdefault(remap_dict_key, {})[port_prefix] = remap
             if port_type == 'input':
                 remap = build_function_remap_method(desc, port_prefix, port_num)
                 if 'function_remap' not in my_remap_dict:
                     my_remap_dict['function_remap'] = {}
                 my_remap_dict['function_remap'][port_prefix] = remap
+        if port_type == 'output':
+            my_remap_dict.setdefault('src_port_remap', {})['self'] = 'Instance'
 
     pkg = reg.get_package_by_name(identifier)
     if module_name is not None:
@@ -1359,13 +1362,23 @@ def build_remap(module_name=None):
         desc = reg.get_descriptor_by_name(identifier, module_name)
         process_ports(desc, 'input')
         process_ports(desc, 'output')
+        _remap.setdefault(desc.name, []).append(('0.9.3', '0.9.5', None, {
+                'src_port_remap': {
+                    'self': 'Instance',
+                }
+            }))
     else:
         # print 'building entire remap'
         # FIXME do this by descriptor first, then build the hierarchies for each
         # module after that...
         for desc in pkg.descriptor_list:
             process_ports(desc, 'input')
-            process_ports(desc, 'output')    
+            process_ports(desc, 'output')
+            _remap.setdefault(desc.name, []).append(('0.9.3', '0.9.5', None, {
+                    'src_port_remap': {
+                        'self': 'Instance',
+                    }
+                }))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
