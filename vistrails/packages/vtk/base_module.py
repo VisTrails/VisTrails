@@ -41,7 +41,8 @@ import vtk
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from identifiers import identifier as vtk_pkg_identifier
+from .identifiers import identifier as vtk_pkg_identifier
+from .wrapper import VTKInstanceWrapper
 
 ################################################################################
 
@@ -55,7 +56,7 @@ class vtkBaseModule(Module):
 
     def __init__(self):
         """ vtkBaseModule() -> vtkBaseModule
-        Instantiate an emptt VTK Module with real VTK instance
+        Instantiate an empty VTK Module with real VTK instance
         
         """
         Module.__init__(self)
@@ -259,6 +260,8 @@ class vtkBaseModule(Module):
                     self.setResult(function, type(retValues)(result))
                 else:
                     self.setResult(function, retValues)
+
+        self.setResult('Instance', VTKInstanceWrapper(self.vtkInstance))
 
     @staticmethod
     def wrapperModule(classname, instance):

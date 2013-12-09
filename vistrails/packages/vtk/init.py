@@ -772,7 +772,7 @@ def addPorts(module, delayed):
     """
     klass = get_description_class(module.vtkClass)
     registry = get_module_registry()
-    registry.add_output_port(module, 'self', module)
+    registry.add_output_port(module, 'Instance', module)
     parser.parse(klass)
     addAlgorithmPorts(module)
     addGetPorts(module, parser.get_get_methods())

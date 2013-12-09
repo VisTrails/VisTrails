@@ -4,6 +4,7 @@ from core.modules.vistrails_module import Module, ModuleError
 from scipy import sparse
 from Array import *
 from Matrix import *
+from wrapper import VTKInstanceWrapper
 
 class ArrayConvertModule(object):
     my_namespace = 'numpy|array|convert'
@@ -108,7 +109,7 @@ class ArrayToVTKImageData(ArrayConvertModule, Module):
         (num_sigs, num_times, num_freqs) = sh
         num_pts = a.get_num_elements()
         vtk_set = core.modules.module_registry.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkStructuredPoints').module()
-        vtk_set.vtkInstance = vtk.vtkImageData()
+        vtk_set = VTKInstanceWrapper(vtk.vtkImageData())
         vtk_set.vtkInstance.SetDimensions(sh[0], sh[1], sh[2]+1)
         vtk_set.vtkInstance.SetScalarTypeToFloat()
         scalars = vtk.vtkFloatArray()
