@@ -1843,16 +1843,16 @@ class QVistrailsWindow(QVistrailViewWindow):
                     conf_jobs = []
                 else:
                     conf_jobs = conf.runningJobsList.split(';')
-                    res = 0
+                    res2 = 0
                 for url in conf_jobs:
                     loc, version = url.split('?')
                     version = int(version.split('=')[1])
                     if loc != locator.to_url():
                         continue
                     action = vistrail.db_get_action_by_id(version)
-                    if not action.is_new:
+                    if not action.is_dirty:
                         continue
-                    if res == 1:
+                    if res2 == 1:
                         # already discarded
                         from vistrails.gui.job_monitor import QJobView
                         QJobView.instance().delete_job(
@@ -1862,7 +1862,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                             QtCore.Qt.escape(name) +
                             ' contains unsaved jobs.\n Do you want to '
                             'save changes or discard the job(s)?')
-                    res = QtGui.QMessageBox.information(window,
+                    res2 = QtGui.QMessageBox.information(window,
                                                         'Vistrails',
                                                         text, 
                                                         '&Save', 
@@ -1870,13 +1870,14 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                         'Cancel',
                                                         0,
                                                         2)
-                    if res == 0:
+                    if res2 == 0:
+                        res = 0
                         break
-                    elif res == 1:
+                    elif res2 == 1:
                         from vistrails.gui.job_monitor import QJobView
                         QJobView.instance().delete_job(
                                              current_view.controller, version)
-                    elif res == 2:
+                    elif res2 == 2:
                         return False
         else:
             res = 1
