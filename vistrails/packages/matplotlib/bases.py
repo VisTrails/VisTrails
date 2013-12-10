@@ -41,64 +41,12 @@ from vistrails.core.modules.vistrails_module import Module, NotCacheable
 ################################################################################
 
 class MplProperties(Module):
-    _output_ports = [("self", "(MplProperties)")]
-    
-    def update_props(self, objs):
-        # must implement in subclass
+    def compute(self, artist):
         pass
-        
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    # _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("subfigCol", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]})]
-    _output_ports = [("self", "(MplPlot)")]
-
-    def __init__(self):
-        Module.__init__(self)
-        # self.figInstance = None
-
-    # def set_fig(self, fig):
-    #     self.figInstance = fig
-
-    # def get_fig(self):
-    #     if self.figInstance is None:
-    #         self.figInstance = pylab.figure()
-    #     return self.figInstance
-
-    # def get_translation(self, port, val):
-    #     '''doing translation for enum type of the input ports'''
-        
-    #     for klass in self.__class__.mro():
-    #         if '_mpl_translations' in klass.__dict__ and \
-    #                 port in klass._mpl_translations:
-    #             obj = klass._mpl_translations[port]
-    #             if isinstance(obj, dict):
-    #                 if val in obj:
-    #                     return obj[val]
-    #                 else:
-    #                     raise ArtistException(
-    #                         "Value '%s' for input '%s' invalid." % (val, port))
-    #             else:
-    #                 print "trying to call"
-    #                 return obj(val)
-    #     return None
-    
-    # def get_kwargs_except(self, listExcepts):
-    #     ''' getting all the input ports except those ports listed inside listExcepts
-    #         return format: {port_name:value,...}'''
-    #     kwargs = {}
-    #     for port in self.inputPorts:
-    #         if port not in listExcepts:
-    #             val = self.getInputFromPort(port)
-    #             translation = self.get_translation(port, val)
-    #             if translation is not None:
-    #                 kwargs[port] = translation
-    #             else:
-    #                 kwargs[port] = val
-    #     return kwargs
+    pass
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -123,12 +71,6 @@ class MplSource(CodeRunnerMixin, MplPlot):
         self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):
-    # _input_ports = [("addPlot", "(MplPlot)"),
-    #                 ("numSubfigRows", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("numSubfigCols", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ]
     _input_ports = [("addPlot", "(MplPlot)"),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
@@ -149,17 +91,6 @@ class MplFigure(Module):
 
     def compute(self):
         plots = self.getInputListFromPort("addPlot")
-        # num_rows = self.getInputFromPort("numSubfigRows")
-        # if num_rows < 1:
-        #     raise ModuleError(self, "numSubfigRows must be at least 1.")
-        # num_cols = self.getInputFromPort("numSubfigCols")
-        # if num_cols < 1:
-        #     raise ModuleError(self, "numSubfigCols must be at least 1.")
-        # if len(plots) < 1:
-        #     raise ModuleError(self, "Must add at least one plot to figure.")
-
-        # FIXME just take the fig instance from the first plot
-        # self.figInstance = plots[0].figInstance
 
         if self.hasInputFromPort("figureProperties"):
             figure_props = self.getInputFromPort("figureProperties")

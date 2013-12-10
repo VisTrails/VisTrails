@@ -261,9 +261,5 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                          fig_module,
                                          'axesProperties')
         more_ops.append(('add', new_conn))
-    
-    # for action in action_list:
-    #     for op in action.operations:
-    #         print "@+>:", op
+
     return action_list
-            

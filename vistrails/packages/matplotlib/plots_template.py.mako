@@ -117,7 +117,7 @@ class ${spec.name}(${spec.superklass}):
         ]
 
     _output_ports = [
-        ("self", "(${spec.name})"),
+        ("value", "(${spec.name})"),
         % for ps in spec.output_port_specs:
         % if not ps.is_property():
               ("${ps.name}", "${ps.get_port_type()}",
@@ -186,12 +186,6 @@ ${get_port_val(spec, ps)}\
             if ${spec.get_output_port_spec(ps.compute_parent).compute_name}.${ps.compute_name} is not None:
                 properties.update(${spec.get_output_port_spec(ps.compute_parent).compute_name}.${ps.compute_name})
             % endif
-            ## % if ps.plural:
-            ## for obj in ${ps.compute_name}:
-            ##     properties.update(obj)
-            ## % else:
-            ## properties.update(${ps.compute_name})
-            ## % endif
             % else:
             if ${ps.compute_name} is not None:
                 properties.update_props(${ps.compute_name})

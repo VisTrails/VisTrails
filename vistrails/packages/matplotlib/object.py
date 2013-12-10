@@ -5,7 +5,6 @@ class MplObject(Module):
                      {"defaults": ["1"]}),
                     ("subfigCol", "(org.vistrails.vistrails.spreadsheet:Integer)",
                      {"defaults": ["1"]})]
-    _output_ports = [("self", "(org.vistrails.vistrails.matplotlib:MplObject)")]
 
     def __init__(self):
         Module.__init__(self)
