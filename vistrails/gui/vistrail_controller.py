@@ -63,9 +63,11 @@ from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.vistrail import Vistrail, TagExists
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import Workflow as JobWorkflow
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from vistrails.gui.version_prop import QVersionProp
 
 import vistrails.core.analogy
 import copy
@@ -134,6 +136,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_pipeline_view = False
         self.reset_version_view = True
         self.quiet = False
+        self.progress = None
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -264,6 +267,12 @@ class VistrailController(QtCore.QObject, BaseController):
             locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
+        # close associated mashup apps
+        version_prop = QVersionProp.instance()
+        for app in version_prop.versionMashups.apps.values():
+            if app and app.view == self.vistrail_view:
+                app.close()
+
 
     ##########################################################################
     # Actions, etc
@@ -372,7 +381,81 @@ class VistrailController(QtCore.QObject, BaseController):
                                          sinks,
                                          None)])
         return ([], False)
-    
+
+
+    def execute_user_workflow(self, reason='Pipeline Execution', sinks=None):
+
+        """ execute_user_workflow() -> None
+        Execute the current workflow (if exists) and monitors it if it contains jobs
+        
+        """
+        # reset job view
+        from vistrails.gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        if jobView.updating_now:
+            debug.critical("Execution Aborted: Job Monitor is updating. "
+                           "Please wait a few seconds and try again.")
+            return
+        jobView.updating_now = True
+
+        class ExecutionProgressDialog(QtGui.QProgressDialog):
+            def __init__(self, modules):
+                QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
+                                               '&Cancel',
+                                               0, modules)
+                self.setWindowTitle('Executing')
+                self.setWindowModality(QtCore.Qt.WindowModal)
+                self._last_set_value = 0
+                self._progress_canceled = False
+                # if suspended is true we should not wait for a job to complete
+                self.suspended = False
+        
+            def setValue(self, value):
+                self._last_set_value = value
+                super(ExecutionProgressDialog, self).setValue(value)
+        
+            def goOn(self):
+                self.reset()
+                self.show()
+                super(ExecutionProgressDialog, self).setValue(self._last_set_value)
+
+        if not jobView.jobMonitor.currentWorkflow():
+            version_id = self.current_version
+            url = self.locator.to_url()
+            # check if a job for this workflow exists
+            current_workflow = None
+            for job in jobView.jobMonitor._running_workflows.itervalues():
+                try:
+                    job_version = int(job.version)
+                except ValueError:
+                    job_version = self.vistrail.get_version_number(job.version)
+                if version_id == job_version and url == job.vistrail:
+                    current_workflow = job
+                    jobView.jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(url, version_id)
+                jobView.jobMonitor.startWorkflow(current_workflow)
+        try:
+            modules = len(self.current_pipeline.modules)
+            progress = ExecutionProgressDialog(modules)
+            self.progress = progress
+            progress.show()
+
+            result =  self.execute_current_workflow(reason=reason, sinks=sinks)
+
+            progress.setValue(modules)
+            self.progress = None
+        except Exception, e:
+            import traceback
+            debug.critical(str(e) or e.__class__.__name__,
+                           traceback.format_exc())
+        finally:
+            self.progress = None
+            jobView.jobMonitor.finishWorkflow()
+            jobView.updating_now = False
+
+        return result
+
     def enable_missing_package(self, identifier, deps):
         configuration = get_vistrails_configuration()
         if getattr(configuration, 'enablePackagesSilently', False):

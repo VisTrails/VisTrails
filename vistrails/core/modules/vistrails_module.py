@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 import copy
+from itertools import izip
+
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.utils import VistrailsInternalError, deprecated
@@ -81,6 +83,8 @@ class ModuleHadError(Exception):
 
     It is caught by the interpreter that doesn't log it.
     """
+    def __init__(self, module):
+        self.module = module
 
     pass
 
@@ -119,9 +123,11 @@ class ModuleSuspended(ModuleError):
     
     """
     
-    def __init__(self, module, errormsg, queue=None, children=None):
+    def __init__(self, module, errormsg, queue=None, children=None, job_id=None):
         self.queue = queue
         self.children = children
+        self.signature = job_id
+        self.name = None
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
@@ -146,12 +152,12 @@ InvalidOutput = _InvalidOutput
 # DummyModuleLogging
 
 class DummyModuleLogging(object):
-    def end_update(*args, **kwargs): pass
-    def begin_update(*args, **kwargs): pass
-    def begin_compute(*args, **kwargs): pass
-    def update_cached(*args, **kwargs): pass
-    def signalSuccess(*args, **kwargs): pass
-    def annotate(*args, **kwargs): pass
+    def end_update(self, *args, **kwargs): pass
+    def begin_update(self, *args, **kwargs): pass
+    def begin_compute(self, *args, **kwargs): pass
+    def update_cached(self, *args, **kwargs): pass
+    def signalSuccess(self, *args, **kwargs): pass
+    def annotate(self, *args, **kwargs): pass
 
 _dummy_logging = DummyModuleLogging()
 
@@ -254,7 +260,7 @@ class Module(Serializable):
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
-        self.ran = False
+        self.had_error = False
         self.set_output("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -299,6 +305,20 @@ class Module(Serializable):
         # stores whether the output of the module should be annotated in the
         # execution log
         self.annotate_output = False
+
+    def __copy__(self):
+        """Makes a copy of the input/output ports on shallow copy.
+        """
+        s = super(Module, self)
+        if hasattr(s, '__copy__'):
+            clone = s.__copy__()
+        else:
+            clone = object.__new__(self.__class__)
+            clone.__dict__ = self.__dict__.copy()
+        clone.inputPorts = copy.copy(self.inputPorts)
+        clone.outputPorts = copy.copy(self.outputPorts)
+        clone.outputPorts['self'] = clone
+        return clone
 
     def clear(self):
         """clear(self) -> None. 
@@ -362,21 +382,21 @@ class Module(Serializable):
         modules. Report to the logger if available
         
         """
+        if self.had_error:
+            raise ModuleHadError(self)
+        elif self.computed:
+            return
+        self.logging.begin_update(self)
+        self.updateUpstream()
+        if self.suspended:
+            self.had_error = True
+            return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
             return
-        if self.ran:
-            if self.had_error:
-                raise ModuleHadError(self)
-            return
-        self.ran = True
         self.had_error = True # Unset later in this method
-        self.logging.begin_update(self)
-        self.update_upstream()
-        if self.suspended:
-            return
         self.logging.begin_compute(self)
         try:
             if self.is_breakpoint:
@@ -725,10 +745,44 @@ class Converter(Module):
 
     You must override the 'in_value' and 'out_value' ports by providing the
     types your module actually matches.
+
+    Alternatively, you can override the classmethod can_convert() to provide
+    a custom condition.
     """
     _settings = ModuleSettings(abstract=True)
     _input_ports = [IPort('in_value', Module)]
     _output_ports = [OPort('out_value', Module)]
+    @classmethod
+    def can_convert(cls, sub_descs, super_descs):
+        from vistrails.core.modules.module_registry import get_module_registry
+        from vistrails.core.system import get_vistrails_basic_pkg_id
+        reg = get_module_registry()
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
+        desc = reg.get_descriptor(cls)
+
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not reg.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        in_port = reg.get_port_spec_from_descriptor(
+                desc,
+                'in_value', 'input')
+        if (len(sub_descs) != len(in_port.descriptors()) or
+                not check_types(sub_descs, in_port.descriptors())):
+            return False
+        out_port = reg.get_port_spec_from_descriptor(
+                desc,
+                'out_value', 'output')
+        if (len(out_port.descriptors()) != len(super_descs)
+                or not check_types(out_port.descriptors(), super_descs)):
+            return False
+
+        return True
 
     def compute(self):
         raise NotImplementedError

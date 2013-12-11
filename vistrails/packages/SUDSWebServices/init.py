@@ -41,21 +41,12 @@ import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 import traceback
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.package import Package
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core import debug
 
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'pip': 'suds',
-                'linux-debian': 'python-suds',
-                'linux-ubuntu': 'python-suds',
-                'linux-fedora': 'python-suds'}
-    suds = py_import('suds', mpl_dict)
-except Exception, e:
-    debug.critical("Exception: %s" % e)
+import suds
 
 
 package_cache = None

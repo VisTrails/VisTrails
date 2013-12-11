@@ -1,3 +1,4 @@
+#!/bin/bash
 ###############################################################################
 ##
 ## Copyright (C) 2011-2013, NYU-Poly.
@@ -32,40 +33,51 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
-def initialize():
-    # can we copy over old configuration info to the new persistence package?
-    pass
+# The script fixes up the links to make the matplotlib installation
+# self-contained in the VisTrails.app bundle
 
-def handle_module_upgrade_request(controller, module_id, pipeline):
-    module_remap = {'ManagedRef': \
-                        [('0.1.0', None, 'persistence:PersistentRef', {})], 
-                    'ManagedPath': \
-                        [('0.1.0', None, 'persistence:PersistentPath', {})], 
-                    'ManagedFile': \
-                        [('0.1.0', None, 'persistence:PersistentFile', {})], 
-                    'ManagedDir': \
-                        [('0.1.0', None, 'persistence:PersistentDir', {})],
-                    'ManagedInputFile': \
-                        [('0.1.0', None, 
-                          'persistence:PersistentInputFile', {})], 
-                    'ManagedOutputFile': \
-                        [('0.1.0', None, 
-                          'persistence:PersistentOutputFile', {})],
-                    'ManagedIntermediateFile': \
-                        [('0.1.0', None, 
-                          'persistence:PersistentIntermediateFile', {})],
-                    'ManagedInputDir': \
-                        [('0.1.0', None, 
-                          'persistence:PersistentInputDir', {})],
-                    'ManagedOutputDir': \
-                        [('0.1.0', None, 
-                          'persistence:PersistentOutputDir', {})],
-                    'ManagedIntermediateDir': \
-                        [('0.1.0', None, 
-                          'persistence:PersistentIntermediateDir', {})]
-                    }
+# Note that you'll need to get the libpng12.0.dylib and
+# libfreetype.6.dylib libaries (perhaps from an XQuartz installation)
+# and then copy them to <bin_dir>/Contents/Frameworks before running
+# the script
 
-    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
-                                               module_remap)
+BIN_PATH_25="Contents/Resources/lib/python2.5"
+BIN_PATH_26="Contents/Resources/lib/python2.6"
+BIN_PATH_27="Contents/Resources/lib/python2.7"
+FRAMEWORK_PATH="@executable_path/../Frameworks"
+X11_PATH="/usr/X11/lib"
+
+MPL_LIB_DIR="matplotlib"
+PNG_LIB="libpng12.0.dylib"
+PNG_REFS="_png.so"
+FT_LIB="libfreetype.6.dylib"
+FT_REFS="backends/_backend_agg.so backends/_tkagg.so ft2font.so"
+
+if [ -z "$1" ]
+then
+    echo "usage: $0 <bin_dir>"
+    exit 65
+fi
+
+if [ -e "$1/$BIN_PATH_27" ]
+then
+    BIN_PATH=$BIN_PATH_27
+elif [ -e "$1/$BIN_PATH_26" ]
+then
+    BIN_PATH=$BIN_PATH_26
+elif [ -e "$1/$BIN_PATH_25" ]
+then
+    BIN_PATH=$BIN_PATH_25
+fi
+
+for lib in $PNG_REFS
+do
+    install_name_tool -change $X11_PATH/$PNG_LIB $FRAMEWORK_PATH/$PNG_LIB $1/$BIN_PATH/$MPL_LIB_DIR/$lib
+done
+
+for lib in $FT_REFS
+do
+    install_name_tool -change $X11_PATH/$FT_LIB $FRAMEWORK_PATH/$FT_LIB $1/$BIN_PATH/$MPL_LIB_DIR/$lib
+done
+

@@ -32,28 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.bundles import py_import
-from vistrails.core.data_structures.bijectivedict import Bidict
-from itertools import imap, chain
 import copy
-
+from itertools import imap, chain
 import math
 import operator
-from pipeline_utils import *
+import scipy
+import tempfile
 
+from vistrails.core.bundles import py_import
+from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.utils import append_to_dict_of_lists
-from vistrails.core.system import temporary_directory
 
-try:
-    scipy = py_import('scipy', {
-            'pip': 'scipy',
-            'linux-debian': 'python-scipy',
-            'linux-ubuntu': 'python-scipy',
-            'linux-fedora': 'scipy'})
-    _analogies_available = True
-except ImportError:
-    _analogies_available = False
-
+from .pipeline_utils import pipeline_bbox, pipeline_centroid
 
 
 ##############################################################################
@@ -475,7 +465,7 @@ class EigenPipelineSimilarity2(EigenBase):
         v = copy.copy(self._e)
         step = 0
         def write_current_matrix():
-            f = open('%s/%s_%03d.v' % (temporary_directory(),
+            f = open('%s/%s_%03d.v' % (tempfile.gettempdir(),
                                        self._debug_matrix_file, step), 'w')
             x = v.reshape(len(self._p1.modules),
                           len(self._p2.modules))
@@ -510,13 +500,14 @@ class EigenPipelineSimilarity2(EigenBase):
                 f.write('%d %s %f %f\n' % (i, m.name, nc.x, nc.y))
             for i, c in pipeline.connections.iteritems():
                 f.write('%d %d %d\n' % (i, c.sourceId, c.destinationId))
-            
+
         if self._debug:
-            out = open('%s/pipelines.txt' % temporary_directory(), 'w')
+            out = open('%s/pipelines.txt' % tempfile.gettempdir(), 'w')
             write_debug_pipeline_positions(self._p1, self._g1_vertex_map, out)
             write_debug_pipeline_positions(self._p2, self._g2_vertex_map, out)
             self.print_s8ys()
-            
+            out.close()
+
         self._debug_matrix_file = 'input_matrix'
         r_in  = self.solve_v(self._input_vertex_s8y)
         self._debug_matrix_file = 'output_matrix'

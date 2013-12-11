@@ -32,32 +32,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.bundles import py_import
-from vistrails.core.requirements import MissingRequirement
 
 import sys
 import os.path
 import httplib
 import urllib
-import time
 
-import vistrails.core.modules
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
+from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 import vistrails.core.system
-from PyQt4 import QtCore, QtGui
-from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
-from vistrails.core.modules.basic_modules import Constant
 import enumeration_widget
 
-import platform
 import cPickle
-
-ZSI = py_import('ZSI', {'pip': 'zsi',
-                        'linux-debian': 'python-zsi',
-                        'linux-ubuntu': 'python-zsi',
-                        'linux-fedora': 'python-ZSI'})
 
 from ZSI.ServiceProxy import ServiceProxy
 from ZSI.generate.wsdl2python import WriteServiceModule

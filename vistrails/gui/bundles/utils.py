@@ -78,7 +78,7 @@ def guess_graphical_sudo():
     else:
         debug.warning("Could not find a graphical sudo-like command.")
 
-        if vistrails.core.system.get_executable_path('sudo'):
+        if vistrails.core.system.executable_is_in_path('sudo'):
             debug.warning("Will use regular sudo")
             return "sudo -E %s", False
         else:
@@ -121,7 +121,8 @@ def _guess_suse():
 _system_guesser.add_test(_guess_suse, 'linux-suse')
 
 def _guess_ubuntu():
-    return platform.linux_distribution()[0]=='Ubuntu'
+    return platform.linux_distribution()[0]=='Ubuntu' or \
+           platform.linux_distribution()[0]=='LinuxMint'
 _system_guesser.add_test(_guess_ubuntu, 'linux-ubuntu')
 
 def _guess_debian():

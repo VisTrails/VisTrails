@@ -168,7 +168,6 @@ The final step is to specify the list of modules your package defines.  This is 
 
    Older versions of VisTrails used explicit calls to the ModuleRegistry in an ``initialize()`` method.  These calls like ``ModuleRegistry.add_module()``, ``ModuleRegistry.add_input_port()``, and ``ModuleRegistry.add_output_port()`` are still supported though their use is discouraged as the new syntax places all attributes and configuration options in the module definition, making code more readable and localized.  The arguments available in the registry functions are mirrored in the new configuration objects used for ``_settings``, ``_input_ports``, and ``_output_ports``.
 
-
 Package Specification
 =====================
 
@@ -378,7 +377,7 @@ As an example of this function's usage, let's take a look at a (simplified) code
    :linenos:
 
    def package_dependencies():
-       return ['edu.utah.sci.vistrails.spreadsheet']
+       return ['org.vistrails.vistrails.spreadsheet']
 
 
 As you can see, the ``package_dependencies`` function is quite straightforward; it simply returns a list of the identifiers for the packages required by the VTK package. In this case, the list contains just a single string, as the |vistrails| Spreadsheet is the only package dependency for the VTK package.
@@ -391,8 +390,8 @@ The simple approach taken by the above code works well for the majority of cases
    def package_dependencies():
        import vistrails.core.packagemanager
        manager = vistrails.core.packagemanager.get_package_manager()
-       if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
-           return ['edu.utah.sci.vistrails.spreadsheet']
+       if manager.has_package('org.vistrails.vistrails.spreadsheet'):
+           return ['org.vistrails.vistrails.spreadsheet']
        else:
            return []
 
@@ -541,6 +540,38 @@ Namespaces
        _settings = ModuleSettings(namespace="ParentNamespace|\
                                   ChildNamespace")
        ...   
+
+Documentation
+^^^^^^^^^^^^^
+
+The docstring you set on your Module subclass will be displayed to the user
+when he clicks on the 'Documentation' button in the 'Module Information' panel.
+Be sure to put a readable description and your usage information there.
+
+If you want to customize that documentation, you can provide a staticmethod or
+classmethod 'get_documentation' on your Module. The string it returns will be
+used as the documentation.
+
+.. code-block:: python
+   :linenos:
+
+   class TestMod(Module):
+       """This very simple module doesn't do anything sensible.
+       """
+
+       @classmethod
+       def get_documentation(cls, docstring, module=None):
+           return docstring.upper()
+
+The function receives two arguments: the string that was about to be used (the
+module's docstring or an empty string), and the module object from the
+pipeline if the documentation was requested for a specific instance of that
+module (else, None is passed).
+
+.. _fig-packages-custom_documentation:
+
+.. figure:: figures/packages/custom_documentation.png
+   :align: center
 
 .. index::
    pair: modules; visibility
@@ -931,7 +962,7 @@ The expand_ports and build_modules methods are functions to help the constructio
                        else:
                            module_name = parts[1]
                        if len(parts[0].split('.')) == 1:
-                           id_str = 'edu.utah.sci.vistrails.' + parts[0]
+                           id_str = 'org.vistrails.vistrails.' + parts[0]
                        else:
                            id_str = parts[0]
                    else:

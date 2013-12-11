@@ -109,9 +109,6 @@ class Constant(Module):
     _settings = ModuleSettings(abstract=True)
     _output_ports = [OPort("value_as_string", "String")]
 
-    def __init__(self):
-        Module.__init__(self)
-        
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
@@ -170,13 +167,8 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     the type that the class should hold. str_conversion does the reverse.
 
     This is the quickest way to create new Constant Modules."""
-    
-    def create_init(base_class):
-        def __init__(self):
-            base_class.__init__(self)
-        return __init__
 
-    d = {'__init__': create_init(base_class)}
+    d = {}
 
     if py_conversion is not None:
         d["translate_to_python"] = py_conversion
@@ -299,10 +291,8 @@ class Path(Constant):
                     IPort("name", "String", optional=True)]
     _output_ports = [OPort("value", "Path")]
 
-    def __init__(self):
-        Constant.__init__(self)
-        self.name = ""
-    
+    name = ""
+
     @staticmethod
     def translate_to_python(x):
         result = Path()
@@ -328,7 +318,7 @@ class Path(Constant):
             self.check_input("name")
             n = self.get_input("name")
         return n
-        
+
     def set_results(self, n):
         self.name = n
         self.set_output("value", self)
@@ -337,10 +327,7 @@ class Path(Constant):
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-#         self.set_output("exists", os.path.exists(n))
-#         self.set_output("isfile", os.path.isfile(n))
-#         self.set_output("isdir", os.path.isdir(n))
-        
+
 Path.default_value = Path()
 
 def path_parameter_hasher(p):
@@ -354,7 +341,6 @@ def path_parameter_hasher(p):
         return v_list
 
     h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
-    hasher = sha_hash()
     try:
         # FIXME: This will break with aliases - I don't really care that much
         v_list = get_mtime(p.strValue)
@@ -379,9 +365,6 @@ class File(Path):
                      OPort("self", "File", optional=True),
                      OPort("local_filename", "String", optional=True)]
 
-    def __init__(self):
-        Path.__init__(self)
-        
     @staticmethod
     def translate_to_python(x):
         result = File()
@@ -391,14 +374,12 @@ class File(Path):
 
     def compute(self):
         n = self.get_name()
-        if (self.has_input("create_file") and
-            self.get_input("create_file")):
+        if (self.has_input("create_file") and self.get_input("create_file")):
             vistrails.core.system.touch(n)
         if not os.path.isfile(n):
-            raise ModuleError(self, 'File "%s" does not exist' % n)
+            raise ModuleError(self, 'File %r does not exist' % n)
         self.set_results(n)
         self.set_output("local_filename", n)
-        self.set_output("self", self)
 
 File.default_value = File()
     
@@ -412,10 +393,6 @@ class Directory(Path):
     _output_ports = [OPort("value", "Directory"),
                      OPort("itemList", "List")]
 
-    def __init__(self):
-        Path.__init__(self)
-        Directory.default_value = self
-        
     @staticmethod
     def translate_to_python(x):
         result = Directory()
@@ -425,8 +402,8 @@ class Directory(Path):
 
     def compute(self):
         n = self.get_name()
-        if (self.has_input("create_directory") and
-            self.get_input("create_directory")):
+        if (self.has_input("create_directory") and 
+                self.get_input("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
@@ -434,7 +411,7 @@ class Directory(Path):
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
-        
+
         dir_list = os.listdir(n)
         output_list = []
         for item in dir_list:
@@ -617,14 +594,9 @@ class Color(Constant):
                              widget_type='hsv')])
     _input_ports = [IPort("value", "Color")]
     _output_ports = [OPort("value", "Color")]
-    # reg.add_input_port(Color, "value", Color)
-    # reg.add_output_port(Color, "value", Color)
 
-    def __init__(self):
-        Constant.__init__(self)
-    
     default_value = InstanceObject(tuple=(1,1,1))
-        
+
     @staticmethod
     def translate_to_python(x):
         return InstanceObject(
@@ -738,7 +710,6 @@ class Tuple(Module):
 
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.tuple_configuration:TupleConfigurationWidget")
-    _output_ports = [OPort("self", "Tuple")]
 
     def __init__(self):
         Module.__init__(self)
@@ -759,7 +730,6 @@ class Untuple(Module):
 
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.tuple_configuration:UntupleConfigurationWidget")
-    _input_ports = [IPort("tuple", "Tuple")]
 
     def __init__(self):
         Module.__init__(self)
@@ -1093,7 +1063,7 @@ def zip_extract_file(archive, filename_in_archive, output_filename):
     return os.system(
             "%s > %s" % (
                     vistrails.core.system.list2cmdline([
-                            'unzip',
+                            vistrails.core.system.get_executable_path('unzip'),
                             '-p', archive,
                             filename_in_archive]),
                     vistrails.core.system.list2cmdline([output_filename])))
@@ -1102,7 +1072,7 @@ def zip_extract_file(archive, filename_in_archive, output_filename):
 def zip_extract_all_files(archive, output_path):
     return os.system(
             vistrails.core.system.list2cmdline([
-                    'unzip',
+                    vistrails.core.system.get_executable_path('unzip'),
                     archive,
                     '-d', output_path]))
 
@@ -1170,14 +1140,21 @@ class TupleToList(Converter):
     """Turns a Tuple into a List.
     """
     _settings = ModuleSettings(hide_descriptor=True)
-    _input_ports = [IPort('in_value', 'Tuple')]
+    _input_ports = [IPort('in_value', 'Variant')]
     _output_ports = [OPort('out_value', 'List')]
     
+    @classmethod
+    def can_convert(cls, sub_descs, super_descs):
+        if len(sub_descs) <= 1:
+            return False
+        reg = get_module_registry()
+        return super_descs == [reg.get_descriptor(List)]
+
     def compute(self):
         tu = self.get_input('in_value')
-        if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
+        if not isinstance(tu, tuple):
             raise ModuleError(self, "Input is not a tuple")
-        self.set_output('out_value', list(tu.values))
+        self.set_output('out_value', list(tu))
 
 ##############################################################################
     

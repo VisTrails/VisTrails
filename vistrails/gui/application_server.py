@@ -36,11 +36,13 @@
 import Queue
 import base64
 import hashlib
+import inspect
 import sys
 import logging
 import logging.handlers
 import os
 import os.path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -54,7 +56,6 @@ from PyQt4 import QtGui, QtCore
 import SocketServer
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 from datetime import date, datetime
-from time import strptime
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.gui.application import VistrailsApplicationInterface
@@ -74,7 +75,6 @@ from vistrails.core.modules.module_registry import get_module_registry as module
 from vistrails.core import interpreter
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.gui.vistrail_controller import VistrailController
-import vistrails.core
 import vistrails.db.services.io
 import gc
 
@@ -83,7 +83,7 @@ import vistrails.core.console_mode
 
 from vistrails.db.versions import currentVersion
 
-ElementTree = vistrails.core.system.get_elementtree_library()
+ElementTree = system.get_elementtree_library()
 
 
 
@@ -212,14 +212,11 @@ class RequestHandler(object):
             if p:
                 result = []
                 for module in p.module_list:
-                    descriptor = \
-                       module_registry().get_descriptor_by_name(module.package,
-                                                                module.name,
-                                                                module.namespace)
-                    if descriptor.module.__doc__:
-                        documentation = descriptor.module.__doc__
-                    else:
-                        documentation = "Documentation not available."
+                    descriptor = module_registry().get_descriptor_by_name(
+                            module.package,
+                            module.name,
+                            module.namespace)
+                    documentation = descriptor.module_documentation(module)
                     result.append({'name':module.name,
                                               'package':module.package,
                                               'documentation':documentation})
@@ -257,15 +254,16 @@ class RequestHandler(object):
                 package_dic[package.identifier] = {}
                 package_dic[package.identifier]['modules'] = []
                 for module in package._db_module_descriptors:
-                    if module.module.__doc__:
-                        documentation = module.module.__doc__
+                    documentation = inspect.getdoc(module.module)
+                    if documentation:
+                        documentation = re.sub('^ *\n', '', documentation.rstrip())
                     else:
-                        documentation = "Documentation not available."
+                        documentation = "(No documentation available)"
                     package_dic[package.identifier]['modules'].append({'name':module.name,
                                                                        'package':module.package,
                                                                        'documentation':documentation})
                 package_dic[package.identifier]['description'] = \
-                        package.description if package.description else "No description available"
+                        package.description if package.description else "(No description available)"
             return (package_dic, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
@@ -1649,9 +1647,9 @@ class XMLObject(object):
                 elif type == 'bool':
                     return bool_conv(value)
                 elif type == 'date':
-                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+                    return date(*system.time_strptime(value, '%Y-%m-%d')[0:3])
                 elif type == 'datetime':
-                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*system.time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     @staticmethod
@@ -1660,7 +1658,7 @@ class XMLObject(object):
             if type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                return system.strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
         return ''

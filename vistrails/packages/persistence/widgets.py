@@ -324,7 +324,7 @@ class PersistentRefView(QtGui.QTreeView):
             self.header().hideSection(self.my_model.idxs["type"])
             for i, key in enumerate(self.my_model.id_lists_keys):
                 id_list = self.my_model.id_lists[key]
-                if id_list[0][self.my_model.idxs["type"]] != "blob":
+                if id_list[0][self.my_model.idxs["type"]] != "tree":
                     # if i not in self.my_model.dir_idxs:
                     print "setting index", i, "to hidden"
                     my_index = self.my_model.createIndex(i, 0, None)

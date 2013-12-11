@@ -968,12 +968,11 @@ class QVTKWidget(QCellWidget):
                                                "Save file as...",
                                                "screenshot.png",
                                                "Images (*.png);;PDF files (*.pdf)")
-        if not fn or fn == '':
-            return
-        if fn.endswith("png", QtCore.Qt.CaseInsensitive):
-            self.saveToPNG(str(fn))
-        elif fn.endswith("pdf", QtCore.Qt.CaseInsensitive):
-            self.saveToPDF(str(fn))
+        if fn:
+            if fn.lower().endswith("png"):
+                self.saveToPNG(fn)
+            elif fn.lower().endswith("pdf"):
+                self.saveToPDF(fn)
         
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap

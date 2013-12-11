@@ -19,7 +19,7 @@ shown in bold letters in the middle of the rectangle.  The input and
 output ports for the module are denoted by small squares on the top
 and bottom of the module, respectively.  Modules are connected
 together to define the dataflow using curved black lines that go from
-output to input ports between modules.  Each module may have also have
+output to input ports between modules.  Each module may also have
 adjustable parameters that can be viewed when a module is selected.
 Modules can be connected, disconnected, added, and deleted from a
 workflow.
@@ -194,7 +194,7 @@ VisTrails supports the use of global variables, which allows the user to create 
 
 .. topic:: Try it now!
 
-   Open vtk_http.vt and go to the ``Pipeline`` view of the ``Fran Cut Smoothed`` version.  Select ``Views`` :math:`\rightarrow` ``Vistrail Variables``.  Select the ``String`` module from ``Basic Modules``, drag it over to the ``Vistrail Variables`` tab, and drop it (see Figure :ref:`Create a Variable... <fig-global-create>`).  Name it 'Filename1' and assign it the following value: 'http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip'.  Click on ``String``, which is just below ``Filename1`` in the ``Vistrail Variables`` tab.  Drag it over and drop it in the port of the ``HTTPFile`` (as shown in Figure :ref:`Assign a Variable... <fig-global-assign>`). The variable should be assigned and the port should be filled in with yellow.
+   Open vtk_http.vt and go to the ``Pipeline`` view of the ``Fran Cut Smoothed`` version.  Select ``Views`` :math:`\rightarrow` ``Vistrail Variables``.  Select the ``String`` module from ``Basic Modules``, drag it over to the ``Vistrail Variables`` tab, and drop it (see Figure :ref:`Create a Variable... <fig-global-create>`).  Name it 'Filename1' and assign it the following value: 'http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip'.  Click on ``String``, which is just below ``Filename1`` in the ``Vistrail Variables`` tab.  Drag it over and drop it in the port of the ``HTTPFile`` (as shown in Figure :ref:`Assign a Variable... <fig-global-assign>`). The variable should be assigned and the port should be filled in with yellow. :vtl:`(Open result) <global_variables1.vt>`
 
 To delete a global variable, simply click on the 'X' button that appears to the right of its name.  This will remove the variable, but if any ports are assigned to it, they need to be disconnected.  You can do this by right-clicking on the port and selecting ``Disconnect Vistrail Variables`` (see Figure :ref:`Disconnect a Variable... <fig-disconnect>`).
 

@@ -887,7 +887,7 @@ linestyles can also be an iterable of the above strings specifying a set of line
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[[0]]</values>
+      <values>[['0']]</values>
     </inputPortSpec>
     <inputPortSpec arg="hatches" name="hatches" port_type="basic:List">
       <docstring>A list of cross hatch patterns to use on the filled areas. If None, no hatching will be added to the contour. Hatching is supported in the PostScript, PDF, SVG and Agg backends only.</docstring>
@@ -2547,7 +2547,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[[0]]</values>
+      <values>[['0']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>
@@ -2670,7 +2670,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <inputPortSpec arg="nchunk" name="nchunk" port_type="basic:Integer">
       <docstring>If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.</docstring>
       <entry_types>['enum']</entry_types>
-      <values>[[0]]</values>
+      <values>[['0']]</values>
     </inputPortSpec>
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>The alpha blending value</docstring>

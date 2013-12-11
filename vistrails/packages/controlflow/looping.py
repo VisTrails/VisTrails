@@ -21,8 +21,8 @@ class While(Module):
     def update_upstream(self):
         """A modified version of the update_upstream method."""
 
-        # everything is the same except that we don't update anything
-        # upstream of FunctionPort
+        # everything is the same except that we don't update the module on
+        # FunctionPort
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
@@ -48,7 +48,7 @@ class While(Module):
         if (name_condition is None and
                 not self.has_input('MaxIterations')):
             raise ModuleError(self,
-                              "Please set MaxIterations use a ConditionPort")
+                              "Please set MaxIterations or use ConditionPort")
 
         if name_state_input or name_state_output:
             if not name_state_input or not name_state_output:
@@ -67,14 +67,14 @@ class While(Module):
         if len(connectors) != 1:
             raise ModuleError(self,
                               "Multiple modules connected on FunctionPort")
-        module = connectors[0].obj
+        module = copy.copy(connectors[0].obj)
 
         state = None
 
         for i in xrange(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
-                module.ran = False
+                module.computed = False
 
                 # For logging
                 module.is_looping = True
@@ -94,7 +94,9 @@ class While(Module):
 
             module.update()
             if hasattr(module, 'suspended') and module.suspended:
-                raise ModuleSuspended(module._module_suspended)
+                raise ModuleSuspended(module,
+                                      "While suspended: %s"%module.suspended,
+                                      children=[module._module_suspended])
 
             if name_condition is not None:
                 if name_condition not in module.outputPorts:
@@ -104,7 +106,7 @@ class While(Module):
                 if not module.get_output(name_condition):
                     break
 
-            if delay:
+            if delay and i+1 != max_iterations:
                 time.sleep(delay)
 
             # Get state on output ports
@@ -114,8 +116,89 @@ class While(Module):
         if name_output not in module.outputPorts:
             raise ModuleError(module,
                               "Invalid output port: %s" % name_output)
-        result = copy.copy(module.get_output(name_output))
+        result = module.get_output(name_output)
         self.set_output('Result', result)
+
+class For(Module):
+    """
+    The For Module runs a module with input from a range.
+    """
+
+    def __init__(self):
+        Module.__init__(self)
+        self.is_looping_module = True
+
+    def updateUpstream(self):
+        """A modified version of the updateUpstream method."""
+
+        # everything is the same except that we don't update the module on
+        # FunctionPort
+        for port_name, connector_list in self.inputPorts.iteritems():
+            if port_name == 'FunctionPort':
+                for connector in connector_list:
+                    connector.obj.updateUpstream()
+            else:
+                for connector in connector_list:
+                    connector.obj.update()
+        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+            if port_name != 'FunctionPort':
+                for connector in connectorList:
+                    if connector.obj.get_output(connector.port) is \
+                            InvalidOutput:
+                        self.removeInputConnector(port_name, connector)
+
+    def compute(self):
+        name_output = self.getInputFromPort('OutputPort') # or 'self'
+        name_input = self.forceGetInputFromPort('InputPort') # or None
+        lower_bound = self.getInputFromPort('LowerBound') # or 0
+        higher_bound = self.getInputFromPort('HigherBound') # required
+
+        connectors = self.inputPorts.get('FunctionPort')
+        if len(connectors) != 1:
+            raise ModuleError(self,
+                              "Multiple modules connected on FunctionPort")
+
+        outputs = []
+        suspended = []
+        for i in xrange(lower_bound, higher_bound):
+            module = copy.copy(connectors[0].obj)
+
+            if not self.upToDate:
+                module.upToDate = False
+                module.computed = False
+
+                # For logging
+                module.is_looping = True
+                module.first_iteration = i == lower_bound
+                module.last_iteration = i+1 == higher_bound
+                module.loop_iteration = i - lower_bound
+
+                # Pass iteration number on input port
+                if name_input is not None:
+                    if name_input in module.inputPorts:
+                        del module.inputPorts[name_input]
+                    new_connector = ModuleConnector(
+                            create_constant(i),
+                            'value')
+                    module.set_input_port(name_input, new_connector)
+
+            module.update()
+
+            if hasattr(module, 'suspended') and module.suspended:
+                suspended.append(module._module_suspended)
+                continue
+
+            if name_output not in module.outputPorts:
+                raise ModuleError(module,
+                                  "Invalid output port: %s" % name_output)
+            outputs.append(module.get_output(name_output))
+
+        if suspended:
+            self.suspended = "%d module(s) suspended: %s" % (
+                    len(suspended), suspended[0].msg)
+            self._module_suspended = suspended
+        else:
+            self.setResult('Result', outputs)
 
 
 ###############################################################################

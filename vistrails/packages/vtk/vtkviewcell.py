@@ -874,9 +874,8 @@ class QVTKViewWidget(QCellWidget):
                                                "Save file as...",
                                                "screenshot.png",
                                                "Images (*.png)")
-        if not fn or fn == '':
-            return
-        self.saveToPNG(fn)
+        if fn:
+            self.saveToPNG(fn)
         
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap

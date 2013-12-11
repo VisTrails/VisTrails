@@ -39,6 +39,7 @@ used as a template for creating a configuration widget for other custom
 constants.
 
 """
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system
@@ -46,11 +47,13 @@ from vistrails.gui.theme import CurrentTheme
 
 ############################################################################
 
-def setLineEditPlaceholderText(line_edit, value):
+def setPlaceholderTextCompat(self, value):
+    """ Qt pre 4.7.0 does not have setPlaceholderText
+    """
     if versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
-        line_edit.setText(value)
+        self.setText(value)
     else:
-        line_edit.setPlaceholderText(value)
+        self.setPlaceholderText(value)
 
 class ConstantWidgetMixin(object):
 
@@ -152,8 +155,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetBase):
         return contents
 
     def setDefault(self, value):
-        # check if we support setPlaceholderText
-        setLineEditPlaceholderText(self, value)
+        setPlaceholderTextCompat(self, value)
 
 class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
     def __init__(self, param, parent=None):
@@ -195,9 +197,9 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
         if idx > -1:
             self.setCurrentIndex(idx)
             if self.isEditable():
-                setLineEditPlaceholderText(self.lineEdit(), value)
+                setPlaceholderTextCompat(self.lineEdit(), value)
         elif self.isEditable():
-            setLineEditPlaceholderText(self.lineEdit(), value)
+            setPlaceholderTextCompat(self.lineEdit(), value)
 
 ###############################################################################
 # Multi-line String Widget
@@ -428,38 +430,31 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetBase):
 
 # FIXME ColorChooserButton remains because the parameter exploration
 # code uses it, really should be removed at some point
-class ColorChooserButton(QtGui.QFrame):
+class ColorChooserButton(QtGui.QPushButton):
     def __init__(self, parent=None):
-        QtGui.QFrame.__init__(self, parent)
-        self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
-        self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
+        QtGui.QPushButton.__init__(self, parent)
+        # self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
+        # self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
+        self.setFlat(True)
         self.setAutoFillBackground(True)
         self.setColor(QtGui.QColor(255,255,255))
         self.setFixedSize(30,22)
         if system.systemType == 'Darwin':
             #the mac's nice look messes up with the colors
             self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
+        self.clicked.connect(self.openChooser)
 
     def setColor(self, qcolor, silent=True):
         self.qcolor = qcolor
-        
-        self._palette = QtGui.QPalette(self.palette())
-        self._palette.setBrush(QtGui.QPalette.Base, self.qcolor)
-        self._palette.setBrush(QtGui.QPalette.Window, self.qcolor)
-        self.setPalette(self._palette)
+        self.setStyleSheet("border: 1px solid black; "
+                           "background-color: rgb(%d, %d, %d);" %
+                           (qcolor.red(), qcolor.green(), qcolor.blue()))
         self.repaint()
         if not silent:
             self.emit(QtCore.SIGNAL("color_selected"))
 
     def sizeHint(self):
         return QtCore.QSize(24,24)
-
-    def mousePressEvent(self, event):
-        if self.parent():
-            QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        if event.button() == QtCore.Qt.LeftButton:
-            self.openChooser()
-       
 
     def openChooser(self):
         """
@@ -570,4 +565,3 @@ class ColorEnumWidget(QColorWidget, ConstantEnumWidgetBase):
         for action in self.action_group.actions():
             if action.data() == strValue:
                 action.setChecked(True)
-

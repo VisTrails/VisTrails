@@ -38,7 +38,7 @@ import os.path
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
-                        default_connections_file
+                        default_connections_file, vistrails_examples_directory
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -58,7 +58,7 @@ class BaseLocator(_BaseLocator):
         elif locator.__class__ == _ZIPFileLocator:
             locator.__class__ = ZIPFileLocator
         elif locator.__class__ == _DBLocator:
-            locator.__class__ = DBLocator
+            DBLocator.convert(locator)
         elif locator.__class__ == _UntitledLocator:
             locator.__class__ = UntitledLocator
             
@@ -444,7 +444,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     ##########################################################################
@@ -470,6 +470,12 @@ class DBLocator(_DBLocator, CoreLocator):
         locator.__class__ = DBLocator
         return locator
     
+    @staticmethod
+    def convert(locator):
+        locator.__class__ = DBLocator
+        locator.__list = ExtConnectionList.getInstance(
+                                                   default_connections_file())
+
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename, **kwargs):
@@ -739,6 +745,9 @@ class FileLocator(CoreLocator):
                 newvtname = os.path.join(dirname,vtname)
                 if os.path.exists(newvtname):
                     vtname = newvtname
+            #check for magic strings
+            if "@examples" in vtname:
+                vtname=vtname.replace("@examples", vistrails_examples_directory())
             return FileLocator(vtname, version_node=version, version_tag=tag,
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
