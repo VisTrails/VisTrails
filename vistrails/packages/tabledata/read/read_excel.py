@@ -40,32 +40,32 @@ class ExcelSpreadsheet(Table):
         if xlrd is None: # pragma: no cover
             raise ModuleError(self, "xlrd is not available")
 
-        workbook = self.getInputFromPort('file')
+        workbook = self.get_input('file')
         workbook = xlrd.open_workbook(workbook.name)
 
-        if self.hasInputFromPort('sheet_index'):
-            sheet_index = self.getInputFromPort('sheet_index')
-        if self.hasInputFromPort('sheet_name'):
-            name = self.getInputFromPort('sheet_name')
+        if self.has_input('sheet_index'):
+            sheet_index = self.get_input('sheet_index')
+        if self.has_input('sheet_name'):
+            name = self.get_input('sheet_name')
             try:
                 index = workbook.sheet_names().index(name)
             except:
                 raise ModuleError(self, "Sheet name not found")
-            if self.hasInputFromPort('sheet_index'):
+            if self.has_input('sheet_index'):
                 if sheet_index != index:
                     raise ModuleError(self,
                                       "Both sheet_name and sheet_index were "
                                       "specified, and they don't agree")
-        elif self.hasInputFromPort('sheet_index'):
+        elif self.has_input('sheet_index'):
             index = sheet_index
         else:
             index = 0
         self.sheet = workbook.sheet_by_index(index)
 
-        self.header_present = self.getInputFromPort('header_present')
+        self.header_present = self.get_input('header_present')
         if self.header_present:
             self.names = [c.value for c in self.sheet.row(0)]
-            self.setResult('column_names', self.names)
+            self.set_output('column_names', self.names)
         else:
             self.names = None
 
@@ -74,7 +74,7 @@ class ExcelSpreadsheet(Table):
             self.rows -= 1
 
         self.columns = self.sheet.ncols
-        self.setResult('column_count', self.columns)
+        self.set_output('column_count', self.columns)
 
         self.column_cache = {}
 

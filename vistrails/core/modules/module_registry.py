@@ -1221,7 +1221,7 @@ class ModuleRegistry(DBRegistry):
             descriptor.set_hasher_callable(settings.signature)
 
         if settings.constant_signature:
-            if not self.is_constant(module):
+            if not self.is_constant_module(module):
                 raise TypeError("To set constant_signature, module "
                                 "must be a subclass of Constant")
                 
@@ -1235,7 +1235,7 @@ class ModuleRegistry(DBRegistry):
         if settings.constant_widgets is not None:
             constant_widgets += settings.constant_widgets
         if len(constant_widgets) > 0:
-            if not self.is_constant(module):
+            if not self.is_constant_module(module):
                 raise TypeError("To set constant widgets, module " +
                                 "must be a subclass of Constant")
             for widget_t in constant_widgets:
@@ -1776,7 +1776,7 @@ class ModuleRegistry(DBRegistry):
                 for d in port_spec.descriptors())
     is_constant = is_method
 
-    def is_constant(self, module):
+    def is_constant_module(self, module):
         basic_pkg = get_vistrails_basic_pkg_id()
         constant_cls = \
                     self.get_descriptor_by_name(basic_pkg, 'Constant').module

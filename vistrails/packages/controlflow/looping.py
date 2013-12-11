@@ -128,15 +128,15 @@ class For(Module):
         Module.__init__(self)
         self.is_looping_module = True
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update the module on
         # FunctionPort
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    connector.obj.update_upstream()
             else:
                 for connector in connector_list:
                     connector.obj.update()
@@ -148,10 +148,10 @@ class For(Module):
                         self.removeInputConnector(port_name, connector)
 
     def compute(self):
-        name_output = self.getInputFromPort('OutputPort') # or 'self'
-        name_input = self.forceGetInputFromPort('InputPort') # or None
-        lower_bound = self.getInputFromPort('LowerBound') # or 0
-        higher_bound = self.getInputFromPort('HigherBound') # required
+        name_output = self.get_input('OutputPort') # or 'self'
+        name_input = self.force_get_input('InputPort') # or None
+        lower_bound = self.get_input('LowerBound') # or 0
+        higher_bound = self.get_input('HigherBound') # required
 
         connectors = self.inputPorts.get('FunctionPort')
         if len(connectors) != 1:
@@ -198,7 +198,7 @@ class For(Module):
                     len(suspended), suspended[0].msg)
             self._module_suspended = suspended
         else:
-            self.setResult('Result', outputs)
+            self.set_output('Result', outputs)
 
 
 ###############################################################################

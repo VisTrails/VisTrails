@@ -334,7 +334,7 @@ class TestConsoleMode(unittest.TestCase):
         from vistrails.core.modules.basic_modules import StandardOutput
         values = []
         def mycompute(s):
-            v = s.getInputFromPort('value')
+            v = s.get_input('value')
             values.append(v)
         orig_compute = StandardOutput.compute
         StandardOutput.compute = mycompute

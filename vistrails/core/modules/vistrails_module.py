@@ -387,7 +387,7 @@ class Module(Serializable):
         elif self.computed:
             return
         self.logging.begin_update(self)
-        self.updateUpstream()
+        self.update_upstream()
         if self.suspended:
             self.had_error = True
             return
