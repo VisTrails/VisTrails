@@ -40,7 +40,12 @@ import string
 import subprocess
 import sys
 import threading
-from vistrails.gui.QtWrapper import QtCore, QtGui
+
+try:
+    from vistrails.gui.QtWrapper import QtCore, QtGui
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    from vistrails.gui.QtWrapper import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
                ['\xe2\x80\x9d', '"'],
