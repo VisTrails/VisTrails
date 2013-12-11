@@ -58,7 +58,7 @@ class Hasher(object):
             u(p.type)
             u(p.identifier)
             u(p.namespace or "")
-            u(p.strValue)
+            u(p.strValue.encode('utf-8'))
             u(p.name)
             return hasher.digest()
 

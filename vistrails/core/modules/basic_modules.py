@@ -360,7 +360,7 @@ def path_parameter_hasher(p):
         return h
     hasher = sha_hash()
     hasher.update(h)
-    hasher.update(unicode(t))
+    hasher.update(bytes(t))
     return hasher.digest()
 
 class File(Path):
