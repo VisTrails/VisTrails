@@ -66,6 +66,7 @@ else:
 
 
 if binding == 'PySide':
+    import PySide
     from PySide import QtCore, QtGui, QtNetwork, QtSvg
     sys.modules[__name__ + '.QtCore'] = QtCore
     sys.modules[__name__ + '.QtGui'] = QtGui
@@ -83,6 +84,8 @@ if binding == 'PySide':
         pass
     QtCore.QT_VERSION_STR = QtCore.__version__
     QtCore.QT_VERSION = tuple(int(c) for c in QtCore.__version__.split('.'))
+    QtCore.PYQT_VERSION_STR = PySide.__version__
+    QtCore.PYQT_VERSION = tuple(int(c) for c in PySide.__version__.split('.'))
     # This will be passed on to new versions of matplotlib
     os.environ['QT_API'] = 'pyside'
     def QtLoadUI(uifile):
