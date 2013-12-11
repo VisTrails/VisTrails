@@ -1183,7 +1183,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         return pipeline is not None and len(pipeline.modules) > 0
     
     def execute(self):
-        res = self.controller.execute_current_workflow()
+        res = self.controller.execute_user_workflow()
         from vistrails.gui.vistrails_window import _app
         if len(res[0][0].errors) > 0:
             _app.qactions['pipeline'].trigger()

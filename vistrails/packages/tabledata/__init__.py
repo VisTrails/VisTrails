@@ -15,11 +15,10 @@ def package_dependencies():
     pm = get_package_manager()
     if pm.has_package('org.vistrails.vistrails.spreadsheet'):
         return ['org.vistrails.vistrails.spreadsheet']
+    else:
+        return []
 
 
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('numpy'):
-        raise vistrails.core.requirements.MissingRequirement('numpy')
-    if not vistrails.core.requirements.python_module_exists('csv'):
-        raise vistrails.core.requirements.MissingRequirement('csv')
+    from vistrails.core.requirements import require_python_module
+    require_python_module('csv')

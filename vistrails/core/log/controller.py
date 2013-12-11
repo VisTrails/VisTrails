@@ -32,6 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+import copy
+
 from vistrails.core.log.workflow_exec import WorkflowExec
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.loop_exec import LoopExec
@@ -65,17 +68,16 @@ class DummyLogController(object):
     def finish_loop_execution(self, *args, **kwargs): pass
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
+    def add_exec(self, *args, **kwargs): pass
 
 class LogControllerFactory(object):
     _instance = None
-    class LogControllerFactorySingleton(object):
-        def __call__(self, *args, **kw):
-            if LogControllerFactory._instance is None:
-                obj = LogControllerFactory(*args, **kw)
-                LogControllerFactory._instance = obj
-            return LogControllerFactory._instance
-        
-    getInstance = LogControllerFactorySingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if LogControllerFactory._instance is None:
+            obj = LogControllerFactory(*args, **kwargs)
+            LogControllerFactory._instance = obj
+        return LogControllerFactory._instance
     
     def __init__(self):
         self.machine = Machine(id=-1,
@@ -94,7 +96,7 @@ class LogController(object):
     def __init__(self, log, machine):
         self.log = log
         self.workflow_exec = None
-        self.machine = machine
+        self.machine = copy.copy(machine)
         to_add = True
         for machine in self.log.machine_list:
             if self.machine.equals_no_id(machine):
@@ -185,11 +187,11 @@ class LogController(object):
     def start_execution(self, module, module_id, module_name, parent_execs,
                         cached=0):
         parent_exec = parent_execs[-1]
-        if module.is_fold_operator:
+        if module.is_looping:
             parent_exec = self.start_loop_execution(module, module_id, 
                                                     module_name, 
                                                     parent_exec, cached,
-                                                    module.fold_iteration)
+                                                    module.loop_iteration)
             parent_execs.append(parent_exec)
 
         if isinstance(module, Group):
@@ -211,7 +213,7 @@ class LogController(object):
         else:
             if self.finish_module_execution(module, error, errorTrace, suspended):
                 parent_execs.pop()
-        if module.is_fold_operator:
+        if module.is_looping:
             self.finish_loop_execution(module, error, parent_execs.pop(), suspended)
 
     def start_module_execution(self, module, module_id, module_name,
@@ -224,7 +226,7 @@ class LogController(object):
             parent_exec.add_item_exec(module_exec)
         else:
             self.workflow_exec.add_item_exec(module_exec)
-        if module.is_fold_module:
+        if module.is_looping_module:
             return module_exec
         return None
 
@@ -248,7 +250,7 @@ class LogController(object):
                                         value=errorTrace)
                 module.module_exec.add_annotation(annotation)
         del module.module_exec
-        if module.is_fold_module:
+        if module.is_looping_module:
             return True
 
     def start_group_execution(self, group, module_id, group_name,

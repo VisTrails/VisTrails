@@ -32,32 +32,53 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from vistrails.core.configuration import get_vistrails_configuration
 """ This python module defines Connection class.
 """
 import copy
 from vistrails.db.domain import DBConnection
-import vistrails.core.modules.module_registry
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleConnector
-from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.port import PortEndPoint, Port
 
 import unittest
 from vistrails.db.domain import IdScope
 
-registry = vistrails.core.modules.module_registry.registry
-
 ################################################################################
 
+Variant_desc = None
+InputPort_desc = None
+
 def moduleConnection(conn):
-    """moduleConnection(conn)-> function 
+    """moduleConnection(conn)-> function
     Returns a function to build a module connection
 
     """
     def theFunction(src, dst):
+        global Variant_desc, InputPort_desc
+        if Variant_desc is None:
+            reg = get_module_registry()
+            Variant_desc = reg.get_descriptor_by_name(
+                    'org.vistrails.vistrails.basic', 'Variant')
+            InputPort_desc = reg.get_descriptor_by_name(
+                    'org.vistrails.vistrails.basic', 'InputPort')
+
         iport = conn.destination.name
         oport = conn.source.name
         src.enableOutputPort(oport)
-        dst.set_input_port(iport, ModuleConnector(src, oport, conn.destination.spec))
+        conf = get_vistrails_configuration()
+        error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
+        error_on_variant = (error_on_others or
+                            getattr(conf, 'errorOnVariantTypeerror'))
+        errors = [error_on_others, error_on_variant]
+        if isinstance(src, InputPort_desc.module):
+            typecheck = [False]
+        else:
+            typecheck = [errors[desc is Variant_desc]
+                         for desc in conn.source.spec.descriptors()]
+        dst.set_input_port(
+                iport,
+                ModuleConnector(src, oport, conn.destination.spec, typecheck))
     return theFunction
 
 ################################################################################

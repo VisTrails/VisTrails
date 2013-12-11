@@ -201,7 +201,10 @@ Would you like to create one?"
 
         """
         conn = self.connectionList.getCurrentItemId()
-        self.objectList.updateContents(conn)
+        try:
+            self.objectList.updateContents(conn)
+        except VistrailsDBException, e:
+            self.connectionList.setCurrentItem(None)
         self.updateEditButtons(conn)
 
     def updateButtons(self):
@@ -604,10 +607,15 @@ class QDBObjectList(QtGui.QListWidget):
                     self.addItem(item)
             except VistrailsDBException, e:
                 #show connection setup
+                error = str(e)
+                if "Couldn't get list of vistrails objects" in error:
+                    debug.critical('An error has occurred', error)
+                    raise e
                 config = parent.connectionList.getConnectionInfo(int(conn_id))
                 if config != None:
                     config["create"] = False
-                    parent.showConnConfig(**config)
+                    if not parent.showConnConfig(**config):
+                        raise e
                 else:
                     raise e
             

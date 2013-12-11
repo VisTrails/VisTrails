@@ -281,7 +281,8 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
             self.setPen(self.selection_pens[value])
         if change == QtGui.QGraphicsItem.ItemPositionChange:
             # moves point
-            pt = value.toPointF()
+            # value is now a QPointF, not a QPoint so no conversion needed
+            pt = value
             pt.setY(clamp(pt.y(), 0.0, 1.0 * self._fsy) )
             self._opacity = pt.y() / self._fsy
             self._point.setY(pt.y())

@@ -112,7 +112,7 @@ def initialize(*args, **keywords):
     """
     import vistrails.core.application
     if not vistrails.core.application.is_running_gui():
-        raise Exception, "GUI is not running. The Spreadsheet package requires the GUI"
+        raise RuntimeError, "GUI is not running. The Spreadsheet package requires the GUI"
     
     # initialize widgets
     debug.log('Loading Spreadsheet widgets...')

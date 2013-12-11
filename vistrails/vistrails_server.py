@@ -56,14 +56,10 @@ if __name__ == '__main__':
     #         i += 1
     sys.path.insert(0, vistrails_dir)
 
-    import vistrails.gui
     import vistrails.gui.requirements
-    vistrails.gui.requirements.check_qt()
+    vistrails.gui.requirements.require_qt()
 
-    from vistrails.gui.QtWrapper import QtGui
     import vistrails.gui.application_server
-    import sys
-    import os
     try:
         v = vistrails.gui.application_server.start_server()
         app = vistrails.gui.application_server.VistrailsServer()

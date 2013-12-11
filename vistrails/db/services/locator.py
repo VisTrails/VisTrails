@@ -39,19 +39,18 @@ import locale
 import os.path
 import re
 import sys
-from time import strptime
 import urllib
 import urlparse
 import uuid
 
-import vistrails.core.configuration
 import vistrails.core.system
 from vistrails.db.services import io
 from vistrails.db.services.io import SaveBundle
 from vistrails.db.domain import DBVistrail, DBWorkflow
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
-from vistrails.core.system import get_elementtree_library, systemType
+from vistrails.core.system import get_elementtree_library, systemType, \
+    time_strptime
 
 ElementTree = get_elementtree_library()
 
@@ -116,6 +115,12 @@ class BaseLocator(object):
     def has_temporaries(self):
         return self.get_temporary() is not None
 
+    def clean_temporaries(self):
+        pass
+
+    def save_temporary(self, obj):
+        pass
+    
     def serialize(self, dom, element):
         """Serializes this locator to XML.
 
@@ -288,11 +293,7 @@ class SaveTemporariesMixin(object):
 
     @staticmethod
     def get_autosave_dir():
-        config = vistrails.core.configuration.get_vistrails_configuration()
-        if config:
-            dot_vistrails = config.dotVistrails
-        else:
-            dot_vistrails = vistrails.core.system.default_dot_vistrails()
+        dot_vistrails = vistrails.core.system.current_dot_vistrails()
         auto_save_dir = os.path.join(dot_vistrails, "autosave")
         if not os.path.exists(auto_save_dir):
             # !!! we assume dot_vistrails exists !!!
@@ -371,7 +372,7 @@ class SaveTemporariesMixin(object):
             number = int(temporary[split:])
             return base + str(number+1)
 
-class UntitledLocator(BaseLocator, SaveTemporariesMixin):
+class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
@@ -898,7 +899,7 @@ class DBLocator(BaseLocator):
         ts = io.get_db_object_modification_time(self.get_connection(),
                                                 self.obj_id,
                                                 obj_type)
-        ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
+        ts = datetime(*time_strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
         return ts
         
     def serialize(self, dom, element):
@@ -1023,9 +1024,9 @@ class DBLocator(BaseLocator):
                     elif type == 'bool':
                         return bool_conv(value)
                     elif type == 'date':
-                        return date(*strptime(value, '%Y-%m-%d')[0:3])
+                        return date(*time_strptime(value, '%Y-%m-%d')[0:3])
                     elif type == 'datetime':
-                        return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                        return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
             return None
     
         if node.tag != 'locator':
@@ -1073,7 +1074,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     def __ne__(self, other):

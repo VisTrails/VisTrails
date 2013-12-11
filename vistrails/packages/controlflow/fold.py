@@ -36,7 +36,7 @@ from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     ModuleConnector, InvalidOutput, ModuleSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
-    Float, NotCacheable, Constant, List
+    Float, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.vistrail.port_spec import PortSpec
 
@@ -77,13 +77,13 @@ class Fold(Module):
                     children=self._module_suspended)
         self.setResult('Result', self.partialResult)
 
-    def setInitialValue(self):
+    def setInitialValue(self): # pragma: no cover
         """This method defines the initial value of the Fold structure. It must
         be defined before the operation() method."""
 
         pass
 
-    def operation(self):
+    def operation(self): # pragma: no cover
         """This method defines the interaction between the current element of
         the list and the previous iterations' result."""
 
@@ -91,7 +91,7 @@ class Fold(Module):
 
 ###############################################################################
 
-class FoldWithModule(Fold, NotCacheable):
+class FoldWithModule(Fold):
     """Implementation of Fold that uses another module as its operation.
 
     This can be used to create structures like Map or Filter, where another
@@ -101,7 +101,7 @@ class FoldWithModule(Fold, NotCacheable):
 
     def __init__(self):
         Fold.__init__(self)
-        self.is_fold_module = True
+        self.is_looping_module = True
 
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
@@ -115,11 +115,11 @@ class FoldWithModule(Fold, NotCacheable):
             else:
                 for connector in connector_list:
                     connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
+                            InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
     def updateFunctionPort(self):
@@ -143,26 +143,27 @@ class FoldWithModule(Fold, NotCacheable):
         suspended = []
         ## Update everything for each value inside the list
         for i, element in enumerate(inputList):
+            self.logging.update_progress(self, float(i)/len(inputList))
             if element_is_iter:
                 self.element = element
             else:
                 self.element = element[0]
             for connector in self.inputPorts.get('FunctionPort'):
-                module = connector.obj
+                module = copy.copy(connector.obj)
 
-                if not self.upToDate:
+                if not self.upToDate: # pragma: no partial
                     ## Type checking
                     if i == 0:
                         self.typeChecking(module, nameInput, inputList)
 
                     module.upToDate = False
-                    module.already_computed = False
+                    module.computed = False
 
                     ## Setting information for logging stuff
-                    module.is_fold_operator = True
+                    module.is_looping = True
                     module.first_iteration = i == 0
                     module.last_iteration = i == len(inputList) - 1
-                    module.fold_iteration = i
+                    module.loop_iteration = i
 
                     self.setInputValues(module, nameInput, element)
 
@@ -175,7 +176,7 @@ class FoldWithModule(Fold, NotCacheable):
                 if nameOutput not in module.outputPorts:
                     raise ModuleError(module,
                                       'Invalid output port: %s' % nameOutput)
-                self.elementResult = copy.copy(module.get_output(nameOutput))
+                self.elementResult = module.get_output(nameOutput)
             self.operation()
         if suspended:
             self.suspended = "%d module(s) suspended: %s" % (
@@ -298,9 +299,9 @@ def get_module(value, signature):
     elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (get_module(value[element], signature[element]))
+            v_modules += (get_module(value[element], signature[element]),)
         return v_modules
-    else:
+    else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside"
                       "FoldWithModule module.")

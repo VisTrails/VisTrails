@@ -32,31 +32,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.bundles import py_import
-from vistrails.core.requirements import MissingRequirement
 
 import sys
 import os.path
 import httplib
 import urllib
-import time
 
-import vistrails.core.modules
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
+from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
-from vistrails.gui.QtWrapper import QtCore, QtGui
-from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
-from vistrails.core.modules.basic_modules import Constant
+import vistrails.core.system
 import enumeration_widget
 
-import platform
 import cPickle
-
-ZSI = py_import('ZSI', {'pip': 'zsi',
-                        'linux-debian': 'python-zsi',
-                        'linux-ubuntu': 'python-zsi',
-                        'linux-fedora': 'python-ZSI'})
 
 from ZSI.ServiceProxy import ServiceProxy
 from ZSI.generate.wsdl2python import WriteServiceModule
@@ -989,8 +978,8 @@ be loaded again." % w
             continue
 
         #create a directory for each webservice if it does not exist
-        package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                        "webServices")
+        package_directory = os.path.join(vistrails.core.system.current_dot_vistrails(),
+                                         "webServices")
         sys.path.append(package_directory)
         directoryname = urllib.quote_plus(w)
         directoryname = directoryname.replace(".","_")
@@ -1084,7 +1073,7 @@ be loaded again: %s"% w
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
 
-        package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
+        package_directory = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                          "webServices")
         sys.path.append(package_directory)
         package_subdirectory = os.path.join(package_directory,
@@ -1292,7 +1281,7 @@ be loaded again: %s"% w
         webServicesmodulesDict[dictkey] = complexsdict        
     #Write modules.conf file that will contain the types and methods
     #dictionary of the web services.
-    namefile = os.path.join(vistrails.core.system.default_dot_vistrails(),
+    namefile = os.path.join(vistrails.core.system.current_dot_vistrails(),
                             'webServices',
                             'modules.conf')    
     try:
@@ -1301,7 +1290,7 @@ be loaded again: %s"% w
         ouf.close()
     except Exception, e:
         msg = "Error generating web services configuration file %s"%str(e)
-        raise Exception(msg)
+        raise RuntimeError(msg)
 
     return(result,not_loaded)
         
@@ -1339,7 +1328,7 @@ def verify_wsdl(wsdlList):
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = os.path.join(vistrails.core.system.default_dot_vistrails(),
+        package_subdirectory = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                             "webServices",
                                             directoryname)
         wsm = WriteServiceModule(wsdl)
@@ -1394,7 +1383,7 @@ This message will not be shown again."
 
     #Create a directory for the webServices package
     global package_directory
-    package_directory = os.path.join(vistrails.core.system.default_dot_vistrails(),
+    package_directory = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                      "webServices")
     if not os.path.isdir(package_directory):
         try:
@@ -1405,7 +1394,7 @@ This message will not be shown again."
             print "'%s' does not exist and parent directory is writable"
             sys.exit(1)
 
-    pathfile = os.path.join(vistrails.core.system.default_dot_vistrails(),
+    pathfile = os.path.join(vistrails.core.system.current_dot_vistrails(),
                             "webServices",
                             "modules.conf")
     outdated_list = []
@@ -1433,7 +1422,7 @@ This message will not be shown again."
             inf.close()
         except Exception, e:
             msg = "Error loading configuration file: ", pathfile
-            raise Exception(msg)
+            raise IOError(msg)
     
     #print wsdlList, outdated_list, updated_list
     (res, not_loaded) = load_wsdl_no_config(updated_list)
@@ -1477,7 +1466,7 @@ def handle_missing_module(*args, **kwargs):
         updated_list = []
         error_list = []
         print "Downloading %s and adding to the Module list..."%wsdl
-        pathfile = os.path.join(vistrails.core.system.default_dot_vistrails(),
+        pathfile = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                 "webServices",
                                 "modules.conf")
         if os.path.isfile(pathfile):

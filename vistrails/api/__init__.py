@@ -74,6 +74,14 @@ def switch_to_query_view():
     """
     get_vistrails_application().builderWindow.qactions['search'].trigger()
 
+def switch_to_mashup_view():
+    """switch_to_mashup_view():
+
+    Changes current viewing mode to mashup view in the builder window.
+
+    """
+    get_vistrails_application().builderWindow.qactions['mashup'].trigger()
+ 
 ################################################################################
 # Access to current state
 
@@ -256,7 +264,7 @@ def add_port_spec(module_id, port_spec, controller=None):
     # module = controller.current_pipeline.modules[module_id]
     controller.add_module_port(module_id, (port_spec.type, port_spec.name,
                                            port_spec.sigstring))
-    controller.updatePipleineScene()
+    controller.updatePipelineScene()
 
 ##############################################################################
 
@@ -358,6 +366,12 @@ class TestAPI(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(get_vistrails_application().builderWindow.qactions['saveFile'].isEnabled(),
                          view.has_changes())
         assert get_vistrails_application().builderWindow.qactions['saveFileAs'].isEnabled()
+
+    def test_detach_vistrail(self):
+        view = new_vistrail()
+        get_vistrails_application().builderWindow.detach_view(view)
+        get_vistrails_application().builderWindow.attach_view(view)
+        close_vistrail(view)
 
     
     

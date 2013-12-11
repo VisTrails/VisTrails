@@ -125,7 +125,19 @@ Depending on a number of factors, it can take a few seconds for the
 system to start up. As |vistrails| loads, you may see some messages
 that detail the packages being loaded and initialized. This is normal
 operation, but if the system fails to load, these messages will
-provide information that may help you understand why.  
+provide information that may help you understand why.
+
+Installing additional packages
+==============================
+
+|vistrails| releases come with a number of packages already installed. In
+addition to these, you can write your own packages or install packages from
+third-party developers. To do that, just drop the Python module (single file)
+or package (i.e. directory) in ``$HOME/.vistrails/userpackages/`` (|vistrails|
+should automatically create this folder on the first run).
+
+You can then enable and disable standard or user packages from the preferences
+dialog, under the module packages tab.
 
 The Vistrails Builder Window
 ============================
@@ -356,6 +368,8 @@ When a workflow is executed, the module color is determined as follows:
    * green: module was successfully executed
    * orange: module was cached
    * red: module execution failed
+
+A popup is shown when executing workflows from the pipeline or history view. The popup shows overall progress, the type of module being executed, and a cancel button. Pressing cancel will show a dialog where you can choose to abort or continue the execution. Note that the cancel button may appear frozen while a module is being executed. This is due to limitations in python.
 
 .. topic:: Note
 

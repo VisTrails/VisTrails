@@ -30,7 +30,5 @@ identifier = 'org.comp-phys.batchq'
 name = 'Job Submission'
 
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('batchq'):
-        raise vistrails.core.requirements.MissingRequirement('batchq')
-
+    from vistrails.core.requirements import require_python_module
+    require_python_module('batchq')

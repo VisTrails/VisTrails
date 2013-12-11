@@ -1,10 +1,10 @@
 .. _chap-vistrails-server:
 
-***********************
+**********************
 VisTrails Server Setup
-***********************
+**********************
 
-.. index:: server 
+.. index:: server
 
 * lets assume that everything is going to be put in the /server dir::
 
@@ -29,16 +29,17 @@ VisTrails Server Setup
                               vistrails/
                        medleys/
                               images/
+
   You can run ``python scripts/create_server_media_dir_structure.py /path/to/media_dir`` to create the directory structure automatically.
 
 * Determine how you will start the vistrails server. You have a choice of using Xvfb or not. If you use it, /server/vistrails/git/scripts/start_vistrails_xvfb.sh is what you will use, otherwise, use start_vistrails.sh
 
-Using Xvfb is slower and not recommended if your workflows will make use of volume rendering or other graphics-card intensive techniques. 
+Using Xvfb is slower and not recommended if your workflows will make use of volume rendering or other graphics-card intensive techniques.
 
 .. _sec-server-using-xvfb:
 
 Using Xvfb
-===========
+==========
 
 * edit /server/vistrails/git/scripts/start_vistrails_xvfb.sh file and make sure it is consistent with your system setup::
 
@@ -52,7 +53,7 @@ Using Xvfb
     NUMBER_OF_OTHER_VISTRAILS_INSTANCES="1"
     MULTI_OPTION="-M" #execute the main instance multithreaded
 
-* The setup above will execute 2 instances of the server. You can add more instances by changing the variable NUMBER_OF_OTHER_VISTRAILS_INSTANCES. When using multiple instances, the ports and virtual displays will be used incrementally, so if the main instance is using port 8081 and virtual display :6, the next instance will use port 8082 and virtual display :7, and so on. 
+* The setup above will execute 2 instances of the server. You can add more instances by changing the variable NUMBER_OF_OTHER_VISTRAILS_INSTANCES. When using multiple instances, the ports and virtual displays will be used incrementally, so if the main instance is using port 8081 and virtual display :6, the next instance will use port 8082 and virtual display :7, and so on.
 
 .. _sec-server-using-x-directly:
 
@@ -69,7 +70,7 @@ Connecting to X server directly
     NUMBER_OF_OTHER_VISTRAILS_INSTANCES="2"
     MULTI_OPTION="-M" #execute the main instance multithreaded
 
-* The setup above will execute 3 instances of the server. You can add or remove more instances by changing the variable NUMBER_OF_OTHER_VISTRAILS_INSTANCES. When using multiple instances, the ports will be used incrementally, so if the main instance is using port 8081, the next instance will use port 8082, and so on. 
+* The setup above will execute 3 instances of the server. You can add or remove more instances by changing the variable NUMBER_OF_OTHER_VISTRAILS_INSTANCES. When using multiple instances, the ports will be used incrementally, so if the main instance is using port 8081, the next instance will use port 8082, and so on.
 
 .. _sec-server-basic-configuration:
 
@@ -101,7 +102,6 @@ Basic Configuration
 
     [access]
     permitted_addresses = localhost, 127.0.0.1, <crowdlabs-server-address>
-
 
 * Add the password for the full permission mysql user created in :ref:`VisTrails Database Setup <mysql-full-perm-user>`::
 

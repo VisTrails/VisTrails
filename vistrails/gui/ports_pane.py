@@ -286,7 +286,8 @@ class PortItem(QtGui.QTreeWidgetItem):
         return self.connected_checkbox
 
     def is_constant(self):
-        return get_module_registry().is_method(self.port_spec)
+        return (self.port_spec.is_valid and 
+                get_module_registry().is_constant(self.port_spec))
 
     def build_item(self, port_spec, is_connected, is_optional, is_visible):
         if not is_optional:
@@ -294,11 +295,11 @@ class PortItem(QtGui.QTreeWidgetItem):
         elif is_visible:
             self.setIcon(0, PortItem.eye_icon)
             
-        # if port_spec is not a method, make it gray
         if is_connected:
             self.setIcon(1, PortItem.conn_icon)
         self.setText(2, port_spec.name)
 
+        # if port_spec is not a method, make it gray
         if not self.is_constant():
             self.setForeground(2, 
                                QtGui.QBrush(QtGui.QColor.fromRgb(128,128,128)))
@@ -378,7 +379,7 @@ class PortsList(QtGui.QTreeWidget):
                 connected_ports = module.connected_output_ports
                 visible_ports = module.visible_output_ports
             else:
-                raise Exception("Unknown port type: '%s'" % self.port_type)
+                raise TypeError("Unknown port type: '%s'" % self.port_type)
             
             for port_spec in sorted(port_specs, key=lambda x: x.name):
                 connected = port_spec.name in connected_ports and \
@@ -393,7 +394,6 @@ class PortsList(QtGui.QTreeWidget):
             if self.port_type == 'input':
                 for function in module.functions:
                     if not function.is_valid:
-                        debug.critical("function '%s' not valid", function.name)
                         continue
                     port_spec, item = self.port_spec_items[function.name]
                     subitem = self.entry_klass(port_spec, function)
@@ -488,7 +488,7 @@ class PortsList(QtGui.QTreeWidget):
         elif self.port_type == 'output':
             visible_ports = self.module.visible_output_ports
         else:
-            raise Exception("Unknown port type: '%s'" % self.port_type)
+            raise TypeError("Unknown port type: '%s'" % self.port_type)
 
         if col == 0:
             if item.is_optional:

@@ -65,7 +65,7 @@ A Simple Example
 ================
 .. topic:: Try it now!
 
-   * Open "brain_vistrail.vt"
+   * Open :vtl:`brain_vistrail.vt`
    * Choose ``Save As`` and rename the file if you do not want to overwrite the original.
    * Select the "counter 4" version
    * Press execute to ensure any necessary upgrades are made
@@ -79,8 +79,8 @@ A Simple Example
    * Set the ``Values List`` to [0.3, 0.5].  See figure :ref:`Configuring the Opacity Alias <fig-opacity>`.
    * Select the ``Background`` alias and make sure the display widget is a ``combobox``.
    * Select ``Preview``.  See figure :ref:`The resulting mashup <fig-mashupcomp>`.
-   * Select ``Keep``, ``No``, and then enter "one" as the new tag name.
-   * Save the file.
+   * Select ``Tag``, ``No``, and then enter "one" as the new tag name.
+   * Save the file. :vtl:`(Open result) <mashups1.vt>`
 
 .. _fig-opacityalias:
 

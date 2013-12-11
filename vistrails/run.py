@@ -73,9 +73,10 @@ def disable_lion_restore():
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
 
-def enable_user_base():
-    # USER_BASE and USER_SITE in site.py is not set when running from py2app,
-    # this is neded by at least scipy.weave
+def fix_site():
+    # py2app ships a stripped version of site.py
+    # USER_BASE and USER_SITE is not set,
+    # this is needed by at least scipy.weave
     import platform
     if platform.system()!='Darwin': return
     import site
@@ -83,7 +84,7 @@ def enable_user_base():
     from vistrails.core.system import mac_site
     site.USER_BASE = mac_site.getuserbase()
     site.USER_SITE = mac_site.getusersitepackages()
-
+    site._Helper = mac_site._Helper
 
 def fix_paths():
     import site
@@ -94,37 +95,40 @@ def fix_paths():
     # been started from a subdir)
     # A better solution is probably to move run.py up a
     # directory in the repo
-    print "file:", __file__
+    old_dir = os.path.realpath(os.path.dirname(__file__))
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     i = 0
-    print "vistrails_dir:", vistrails_dir
     while i < len(sys.path):
         rpath = os.path.realpath(sys.path[i])
-        if rpath.startswith(vistrails_dir):
-            print "deleting", sys.path[i]
+        if rpath.startswith(old_dir):
             del sys.path[i]
         else:
             i += 1
-    sys.path.insert(0, vistrails_dir)
+    if vistrails_dir not in sys.path:
+        sys.path.insert(0, vistrails_dir)
 
 if __name__ == '__main__':
     fix_paths()
     disable_lion_restore()
-    enable_user_base()
+    fix_site()
 
-    import vistrails.gui.requirements
+    # Load the default locale (from environment)
+    import locale
+    locale.setlocale(locale.LC_ALL, '')
 
-    vistrails.gui.requirements.check_qt()
+    from vistrails.gui.requirements import require_qt
+    require_qt()
 
     from vistrails.gui.QtWrapper import QtGui
     import vistrails.gui.application
+    from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
     try:
         v = vistrails.gui.application.start_application()
-        if v != 0:
+        if v != APP_SUCCESS:
             app = vistrails.gui.application.get_vistrails_application()
             if app:
                 app.finishSession()
-            sys.exit(v)
+            sys.exit(APP_SUCCESS if v == APP_DONE else APP_FAIL)
         app = vistrails.gui.application.get_vistrails_application()()
     except SystemExit, e:
         app = vistrails.gui.application.get_vistrails_application()

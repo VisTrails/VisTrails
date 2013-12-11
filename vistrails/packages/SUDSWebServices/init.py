@@ -41,21 +41,12 @@ import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 import traceback
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.package import Package
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core import debug
 
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'pip': 'suds',
-                'linux-debian': 'python-suds',
-                'linux-ubuntu': 'python-suds',
-                'linux-fedora': 'python-suds'}
-    suds = py_import('suds', mpl_dict)
-except Exception, e:
-    debug.critical("Exception: %s" % e)
+import suds
 
 
 package_cache = None
@@ -139,8 +130,8 @@ def initialize(*args, **keywords):
     global package_cache
 
     #Create a directory for the SUDSWebServices package
-    location = os.path.join(vistrails.core.system.default_dot_vistrails(),
-                                     "SUDSWebServices")
+    location = os.path.join(vistrails.core.system.current_dot_vistrails(),
+                            "SUDSWebServices")
     if not os.path.isdir(location):
         try:
             debug.log("Creating SUDS cache directory...")
@@ -590,6 +581,10 @@ It is a WSDL type with signature:
         for m in self.wsmethods.itervalues():
             def compute(self):
                 # create dict of inputs
+                cacheable = False
+                if self.hasInputFromPort('cacheable'):
+                    cacheable = self.getInputFromPort('cacheable')
+                self.is_cacheable = lambda *args, **kwargs: cacheable            
                 params = {}
                 mname = self.wsmethod.qname[0]
                 for name in self.wsmethod.inputs:
@@ -600,11 +595,14 @@ It is a WSDL type with signature:
                             params[name] = params[name].value
                         params[name] = self.service.makeDictType(params[name])
                 try:
-#                    print "params:", str(params)[:400]
-#                    self.service.service.set_options(retxml = True)
-#                    result = getattr(self.service.service.service, mname)(**params)
-#                    print "result:", str(result)[:400]
-#                    self.service.service.set_options(retxml = False)
+                    #import logging
+                    #logging.basicConfig(level=logging.INFO)
+                    #logging.getLogger('suds.client').setLevel(logging.DEBUG)
+                    #print "params:", str(params)[:400]
+                    #self.service.service.set_options(retxml = True)
+                    #result = getattr(self.service.service.service, mname)(**params)
+                    #print "result:", str(result)[:400]
+                    #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
                     raise ModuleError(self, "Error invoking method %s: %s"%(name, str(e)))
@@ -653,6 +651,9 @@ Outputs:
             reg.add_module(M, **{'namespace':'Methods',
                                  'package':self.signature,
                                  'package_version':self.wsdlHash})
+            reg.add_input_port(self.methodClasses[m.qname], 'cacheable',
+                               wsdlTypesDict['boolean'], optional=True)
+
             # add ports
             for p, ptype in m.inputs.iteritems():
                 if ptype[1] in wsdlSchemas:

@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<startup version="0.1">
+  <packages>
+    <package name="spreadsheet">
+      <configuration>
+        <key name="columnCount">
+          <int value="3"/>
+        </key>
+        <key name="rowCount">
+          <int value="2"/>
+        </key>
+        <key name="dumpfileType">
+          <str value="PNG"/>
+        </key>
+      </configuration>
+    </package>
+    <package name="controlflow"/>
+    <package name="abstraction"/>
+  </packages>
+  <disabledpackages/>
+  <configuration>
+    <key name="nologger">
+      <bool value="True"/>
+    </key>
+    <key name="nologfile">
+      <bool value="True"/>
+    </key>
+    <key name="spawned">
+      <bool value="True"/>
+    </key>
+    <key name="shell">
+      <configuration>
+        <key name="font_face">
+          <str value="Bitstream Vera mono"/>
+        </key>
+        <key name="font_size">
+          <int value="9"/>
+        </key>
+      </configuration>
+    </key>
+  </configuration>
+</startup>

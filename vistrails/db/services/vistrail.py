@@ -101,7 +101,7 @@ def performAction(action, workflow):
                                       operation.db_parentObjId)
     else:
         msg = "Unrecognized action type '%s'" % action.db_actionType
-        raise Exception(msg)
+        raise TypeError(msg)
 
 def performDeletes(deleteOps, workflow):
     for operation in deleteOps:
@@ -581,7 +581,7 @@ def find_data(what, id, op_dict):
         return op_dict[(what, id)].db_data
     except KeyError:
         msg = 'cannot find data (%s, %s)'  % (what, id)
-        raise Exception(msg)
+        raise KeyError(msg)
 
 def invertOperations(op_dict, adds, deletes, do_copy=False):
     inverse_ops = []       
@@ -763,7 +763,7 @@ def getOperationDiff(actions, operationDict):
                          operation.db_newObjId)] = operation
             else:
                 msg = "Unrecognized operation '%s'" % operation.vtType
-                raise Exception(msg)
+                raise TypeError(msg)
 
     return (addDict, deleteDict)
 

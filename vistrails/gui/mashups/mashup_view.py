@@ -131,12 +131,15 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         from vistrails.gui.vistrails_window import _app
         if self.vtversion > 0:
             if self.mshpController is not None:
-                self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
-                self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
-                if self.mshpController.vtController is not None:
-                    self.disconnect(self.mshpController.vtController,
-                                    QtCore.SIGNAL('vistrailChanged()'),
-                                    self.mshpControllerVistrailChanged)
+                try:
+                    self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
+                    self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
+                    if self.mshpController.vtController is not None:
+                        self.disconnect(self.mshpController.vtController,
+                                        QtCore.SIGNAL('vistrailChanged()'),
+                                        self.mshpControllerVistrailChanged)
+                except Exception, e:
+                    print str(e)
             self.controller.flush_delayed_actions()
             self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,

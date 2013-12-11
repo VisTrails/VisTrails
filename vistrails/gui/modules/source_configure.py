@@ -108,9 +108,17 @@ class SourceWidget(PortTableConfigurationWidget):
     def initializeCode(self):
         self.codeEditor.clear()
         fid = self.findSourceFunction()
+        code = None
+        # Get code from a function
         if fid!=-1:
             f = self.module.functions[fid]
             code = f.params[0].strValue
+        # Get code from the default on the port
+        else:
+            port = self.module.get_port_spec(self.sourcePortName, 'input')
+            if port.defaults:
+                code, = port.defaults
+        if code is not None:
             if self.sourceEncode:
                 code = urllib.unquote(code)
             self.codeEditor.setPlainText(code)

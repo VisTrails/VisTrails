@@ -120,7 +120,7 @@ class MashupController(object):
         self.vtController.change_selected_version(self.vtVersion)
     
     def getVistrailWorkflowTag(self):
-        return self.vtController.get_pipeline_name(self.vtVersion)[9:]
+        return self.vtController.get_pipeline_name(self.vtVersion)
     
     def reorderAliases(self, new_order):
         if self.currentMashup:

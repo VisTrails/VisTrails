@@ -60,3 +60,46 @@ class ExecuteInOrder(Module):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(iport, connector)
+
+
+###############################################################################
+
+import unittest
+
+from vistrails.tests.utils import capture_stdout, execute
+
+
+class TestOrder(unittest.TestCase):
+    def test_1(self):
+        with capture_stdout() as output:
+            self.assertFalse(execute([
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'one')]),
+                    ]),
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'two')]),
+                    ]),
+                    ('ExecuteInOrder', 'org.vistrails.vistrails.control_flow', []),
+                ],
+                [
+                    (0, 'self', 2, 'module1'),
+                    (1, 'self', 2, 'module2'),
+                ]))
+        self.assertEqual(output, ['one', 'two'])
+
+    def test_2(self):
+        with capture_stdout() as output:
+            self.assertFalse(execute([
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'two')]),
+                    ]),
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'one')]),
+                    ]),
+                    ('ExecuteInOrder', 'org.vistrails.vistrails.control_flow', []),
+                ],
+                [
+                    (1, 'self', 2, 'module1'),
+                    (0, 'self', 2, 'module2'),
+                ]))
+        self.assertEqual(output, ['one', 'two'])

@@ -63,9 +63,11 @@ from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.vistrail import Vistrail, TagExists
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import Workflow as JobWorkflow
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from vistrails.gui.version_prop import QVersionProp
 
 import vistrails.core.analogy
 import copy
@@ -134,6 +136,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_pipeline_view = False
         self.reset_version_view = True
         self.quiet = False
+        self.progress = None
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -253,7 +256,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if (self._auto_save and 
             get_vistrails_application().configuration.check('autosave')):
             if self.locator is None:
-                raise Exception("locator is None")
+                raise ValueError("locator is None")
             return self.locator
         else:
             return None
@@ -264,6 +267,12 @@ class VistrailController(QtCore.QObject, BaseController):
             locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
+        # close associated mashup apps
+        version_prop = QVersionProp.instance()
+        for app in version_prop.versionMashups.apps.values():
+            if app and app.view == self.vistrail_view:
+                app.close()
+
 
     ##########################################################################
     # Actions, etc
@@ -372,9 +381,86 @@ class VistrailController(QtCore.QObject, BaseController):
                                          sinks,
                                          None)])
         return ([], False)
-    
+
+
+    def execute_user_workflow(self, reason='Pipeline Execution', sinks=None):
+
+        """ execute_user_workflow() -> None
+        Execute the current workflow (if exists) and monitors it if it contains jobs
+        
+        """
+        # reset job view
+        from vistrails.gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        if jobView.updating_now:
+            debug.critical("Execution Aborted: Job Monitor is updating. "
+                           "Please wait a few seconds and try again.")
+            return
+        jobView.updating_now = True
+
+        class ExecutionProgressDialog(QtGui.QProgressDialog):
+            def __init__(self, modules):
+                QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
+                                               '&Cancel',
+                                               0, modules)
+                self.setWindowTitle('Executing')
+                self.setWindowModality(QtCore.Qt.WindowModal)
+                self._last_set_value = 0
+                self._progress_canceled = False
+                # if suspended is true we should not wait for a job to complete
+                self.suspended = False
+        
+            def setValue(self, value):
+                self._last_set_value = value
+                super(ExecutionProgressDialog, self).setValue(value)
+        
+            def goOn(self):
+                self.reset()
+                self.show()
+                super(ExecutionProgressDialog, self).setValue(self._last_set_value)
+
+        if not jobView.jobMonitor.currentWorkflow():
+            version_id = self.current_version
+            url = self.locator.to_url()
+            # check if a job for this workflow exists
+            current_workflow = None
+            for job in jobView.jobMonitor._running_workflows.itervalues():
+                try:
+                    job_version = int(job.version)
+                except ValueError:
+                    job_version = self.vistrail.get_version_number(job.version)
+                if version_id == job_version and url == job.vistrail:
+                    current_workflow = job
+                    jobView.jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(url, version_id)
+                jobView.jobMonitor.startWorkflow(current_workflow)
+        try:
+            modules = len(self.current_pipeline.modules)
+            progress = ExecutionProgressDialog(modules)
+            self.progress = progress
+            progress.show()
+
+            result =  self.execute_current_workflow(reason=reason, sinks=sinks)
+
+            progress.setValue(modules)
+            self.progress = None
+        except Exception, e:
+            import traceback
+            debug.critical(str(e) or e.__class__.__name__,
+                           traceback.format_exc())
+        finally:
+            self.progress = None
+            jobView.jobMonitor.finishWorkflow()
+            jobView.updating_now = False
+
+        return result
+
     def enable_missing_package(self, identifier, deps):
-        from vistrails.gui.application import get_vistrails_application
+        configuration = get_vistrails_configuration()
+        if getattr(configuration, 'enablePackagesSilently', False):
+            return True
+
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 
@@ -967,25 +1053,11 @@ class VistrailController(QtCore.QObject, BaseController):
         self.invalidate_version_tree(False)
 
     def get_pipeline_name(self, version=None):
-        tag_map = self.vistrail.get_tagMap()
-        action_map = self.vistrail.actionMap
         if version == None:
             version = self.current_version
-        count = 0
-        while True:
-            if version in tag_map or version <= 0:
-                if version in tag_map:
-                    name = tag_map[version]
-                else:
-                    name = "ROOT"
-                count_str = ""
-                if count > 0:
-                    count_str = " + " + str(count)
-                return "Pipeline: " + name + count_str
-            version = action_map[version].parent
-            count += 1
+        return self.vistrail.get_pipeline_name(version)
 
-    ################################################################################
+    ###########################################################################
     # Clipboard, copy/paste
 
     def get_selected_item_ids(self):
@@ -1392,6 +1464,8 @@ class VistrailController(QtCore.QObject, BaseController):
         reg = vistrails.core.modules.module_registry.get_module_registry()
         spreadsheet_pkg = '%s.spreadsheet' % \
                 vistrails.core.system.get_vistrails_default_pkg_prefix()
+        use_spreadsheet = reg.has_module(spreadsheet_pkg, 'CellLocation') and\
+                          reg.has_module(spreadsheet_pkg, 'SheetReference')
 
         if pe.action_id != self.current_version:
             self.change_selected_version(pe.action_id)
@@ -1404,13 +1478,13 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.current_pipeline, actions, pre_actions)
             
             dim = [max(1, len(a)) for a in actions]
-            if (reg.has_module(spreadsheet_pkg, 'CellLocation') and
-                reg.has_module(spreadsheet_pkg, 'SheetReference')):
+            if use_spreadsheet:
                 from vistrails.gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
                 from vistrails.gui.paramexplore.pe_view import QParamExploreView
                 modifiedPipelines, pipelinePositions = positionPipelines(
                     'PE#%d %s' % (QParamExploreView.explorationId, self.name),
                     dim[2], dim[1], dim[0], pipelines, pe.layout, self)
+                QParamExploreView.explorationId += 1
             else:
                 modifiedPipelines = pipelines
 
@@ -1432,7 +1506,6 @@ class VistrailController(QtCore.QObject, BaseController):
                 progress.setWindowModality(QtCore.Qt.WindowModal)
                 progress.show()
 
-            QParamExploreView.explorationId += 1
             interpreter = get_default_interpreter()
             
             images = {}
@@ -1447,12 +1520,13 @@ class VistrailController(QtCore.QObject, BaseController):
                         if not progress.wasCanceled():
                             progress.setValue(progress.value()+1)
                             QtCore.QCoreApplication.processEvents()
-                name = os.path.splitext(self.name)[0] + \
+                if use_spreadsheet:
+                    name = os.path.splitext(self.name)[0] + \
                                          ("_%s_%s_%s" % pipelinePositions[pi])
-                extra_info['nameDumpCells'] = name
-                if 'pathDumpCells' in extra_info:
-                    images[pipelinePositions[pi]] = \
-                               os.path.join(extra_info['pathDumpCells'], name)
+                    extra_info['nameDumpCells'] = name
+                    if 'pathDumpCells' in extra_info:
+                        images[pipelinePositions[pi]] = \
+                                   os.path.join(extra_info['pathDumpCells'], name)
                 kwargs = {'locator': self.locator,
                           'current_version': self.current_version,
                           'reason': 'Parameter Exploration',
@@ -1470,8 +1544,11 @@ class VistrailController(QtCore.QObject, BaseController):
                     kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
                 result = interpreter.execute(modifiedPipelines[pi], **kwargs)
                 for error in result.errors.itervalues():
-                    pp = pipelinePositions[pi]
-                    errors.append(((pp[1], pp[0], pp[2]), error))
+                    if use_spreadsheet:
+                        pp = pipelinePositions[pi]
+                        errors.append(((pp[1], pp[0], pp[2]), error))
+                    else:
+                        errors.append(((0,0,0), error))
 
             if showProgress:
                 progress.setValue(totalProgress)

@@ -721,9 +721,6 @@
       <property ref="true" object="change">
 	<sql column="parent_id" type="int"/>
       </property>
-      <property ref="true" object="parameter_exploration">
-	<sql column="parent_id" type="int"/>
-      </property>
     </choice>
 
     <property name="entity_id" type="long" inverse="true">
@@ -2235,12 +2232,120 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
+  <!-- PE_PARAMETER ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="pe_parameter" className="DBPEParameter">
+    <layout>
+      <xml name="peParameter" nodeType="xs:element"/>
+      <sql table="pe_parameter"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="interpolator" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="dimension" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <property ref="true" type="long" object="pe_function" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PE_FUNCTION +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="pe_function" className="DBPEFunction">
+    <layout>
+      <xml name="peFunction" nodeType="xs:element"/>
+      <sql table="pe_function"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="module_id" type="long" foreignKey="true" object="module">
+      <xml name="moduleId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="port_name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="is_alias" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" name="parameter" object="pe_parameter" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <property ref="true" type="long" object="parameter_exploration" 
+	      inverse="true" mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
   <!-- PARAMETER_EXPLORATION +++-->
   <!--++++++++++++++++++++++++++-->
 
   <object name="parameter_exploration">
     <layout>
-      <xml name="parameter_exploration" nodeType="xs:element"/>
+      <xml name="parameterExploration" nodeType="xs:element"/>
       <sql table="parameter_exploration"/>
     </layout>
 
@@ -2278,8 +2383,8 @@
       <sql type="varchar(255)"/>
     </property>
 
-    <property ref="true" object="function" type="list" mapping="one-to-many"
-	      index="key">
+    <property ref="true" name="function" object="pe_function" type="list" 
+	      mapping="one-to-many" index="key">
       <xml nodeType="xs:element"/>
     </property>
 

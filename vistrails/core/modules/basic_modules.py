@@ -36,20 +36,17 @@
 pipelines."""
 import vistrails.core.cache.hasher
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
-from vistrails.core.system import vistrails_version
+import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 
-
-import vistrails.core.system
+from abc import ABCMeta
 from itertools import izip
-import re
 import os
-import os.path
 import pickle
+import re
 import shutil
 #import zipfile
 import urllib
@@ -102,9 +99,6 @@ class Constant(Module):
     See core/modules/constant_configuration.py for details.
     
     """
-    def __init__(self):
-        Module.__init__(self)
-        
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
@@ -176,24 +170,19 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     the type that the class should hold. str_conversion does the reverse.
 
     This is the quickest way to create new Constant Modules."""
-    
-    def create_init(base_class):
-        def __init__(self):
-            base_class.__init__(self)
-        return __init__
 
-    d = {'__init__': create_init(base_class)}
+    d = {}
 
     if py_conversion is not None:
         d["translate_to_python"] = py_conversion
     elif base_class == Constant:
-        raise Exception("Must specify translate_to_python for constant")
+        raise ValueError("Must specify translate_to_python for constant")
     else:
         d["translate_to_python"] = staticmethod(base_class.translate_to_python)
     if validation is not None:
         d["validate"] = validation
     elif base_class == Constant:
-        raise Exception("Must specify validation for constant")
+        raise ValueError("Must specify validation for constant")
     else:
         d["validate"] = staticmethod(base_class.validate)
     if default_value is not None:
@@ -305,10 +294,8 @@ String  = new_constant('String'  , staticmethod(str), "",
 ##############################################################################
 
 class Path(Constant):
-    def __init__(self):
-        Constant.__init__(self)
-        self.name = ""
-    
+    name = ""
+
     @staticmethod
     def translate_to_python(x):
         result = Path()
@@ -334,7 +321,7 @@ class Path(Constant):
             self.checkInputPort("name")
             n = self.getInputFromPort("name")
         return n
-        
+
     def set_results(self, n):
         self.name = n
         self.setResult("value", self)
@@ -343,13 +330,10 @@ class Path(Constant):
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-#         self.setResult("exists", os.path.exists(n))
-#         self.setResult("isfile", os.path.isfile(n))
-#         self.setResult("isdir", os.path.isdir(n))
-        
+
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "PathChooserWidget")
 
 Path.default_value = Path()
@@ -357,9 +341,6 @@ Path.default_value = Path()
 class File(Path):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
-    def __init__(self):
-        Path.__init__(self)
-        
     @staticmethod
     def translate_to_python(x):
         result = File()
@@ -370,26 +351,21 @@ class File(Path):
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_file") and
-            self.getInputFromPort("create_file")):
+                self.getInputFromPort("create_file")):
             vistrails.core.system.touch(n)
         if not os.path.isfile(n):
-            raise ModuleError(self, 'File "%s" does not exist' % n)
+            raise ModuleError(self, 'File %r does not exist' % n)
         self.set_results(n)
         self.setResult("local_filename", n)
-        self.setResult("self", self)
 
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "FileChooserWidget")
 
 File.default_value = File()
     
 class Directory(Path):
-    def __init__(self):
-        Path.__init__(self)
-        Directory.default_value = self
-        
     @staticmethod
     def translate_to_python(x):
         result = Directory()
@@ -400,7 +376,7 @@ class Directory(Path):
     def compute(self):
         n = self.get_name()
         if (self.hasInputFromPort("create_directory") and
-            self.getInputFromPort("create_directory")):
+                self.getInputFromPort("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
@@ -408,7 +384,7 @@ class Directory(Path):
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
-        
+
         dir_list = os.listdir(n)
         output_list = []
         for item in dir_list:
@@ -424,10 +400,10 @@ class Directory(Path):
                 dir_item.upToDate = True
                 output_list.append(dir_item)
         self.setResult('itemList', output_list)
-            
+
     @staticmethod
     def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
+        return ("vistrails.gui.modules.constant_configuration",
                 "DirectoryChooserWidget")
 
 Directory.default_value = Directory()
@@ -443,7 +419,6 @@ def path_parameter_hasher(p):
         return v_list
 
     h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
-    hasher = sha_hash()
     try:
         # FIXME: This will break with aliases - I don't really care that much
         v_list = get_mtime(p.strValue)
@@ -571,8 +546,19 @@ class DirectorySink(NotCacheable, Module):
                 (input_dir.name, full_path)
             raise ModuleError(self, msg + '\n' + str(e))
 
+##############################################################################
 
-        
+class WriteFile(Converter):
+    """Writes a String to a temporary File.
+    """
+    def compute(self):
+        contents = self.getInputFromPort('in_value')
+        suffix = self.forceGetInputFromPort('suffix', '')
+        result = self.interpreter.filePool.create_file(suffix=suffix)
+        with open(result.name, 'wb') as fp:
+            fp.write(contents)
+        self.setResult('out_value', result)
+
 ##############################################################################
 
 class Color(Constant):
@@ -580,11 +566,8 @@ class Color(Constant):
     # contains a tuple because a tuple would be interpreted as a
     # type(tuple) which messes with the interpreter
 
-    def __init__(self):
-        Constant.__init__(self)
-    
     default_value = InstanceObject(tuple=(1,1,1))
-        
+
     @staticmethod
     def translate_to_python(x):
         return InstanceObject(
@@ -772,6 +755,18 @@ class Not(Module):
 ##############################################################################
 # List
 
+# If numpy is available, we consider numpy arrays to be lists as well
+class ListType:
+    __metaclass__ = ABCMeta
+
+ListType.register(list)
+try:
+    import numpy
+except ImportError:
+    numpy = None
+else:
+    ListType.register(numpy.ndarray)
+
 class List(Constant):
     default_value = []
 
@@ -781,15 +776,25 @@ class List(Constant):
 
     @staticmethod
     def validate(x):
-        return isinstance(x, list)
+        return isinstance(x, ListType)
 
     @staticmethod
     def translate_to_python(v):
         return eval(v)
 
     @staticmethod
-    def translate_to_string(v):
-        return '[%s]' % ', '.join(repr(c) for c in v)
+    def translate_to_string(v, dims=None):
+        if dims is None:
+            if numpy is not None and isinstance(v, numpy.ndarray):
+                dims = v.ndim
+            else:
+                dims = 1
+        if dims == 1:
+            return '[%s]' % ', '.join(repr(c)
+                                      for c in v)
+        else:
+            return '[%s]' % ', '.join(List.translate_to_string(c, dims-1)
+                                      for c in v)
 
     def compute(self):
         head, middle, items, tail = [], [], [], []
@@ -881,9 +886,8 @@ class CodeRunnerMixin(object):
             self.is_cacheable = lambda *args, **kwargs: True
         locals_ = locals()
         if use_input:
-            inputDict = dict([(k, self.getInputFromPort(k))
-                              for k in self.inputPorts])
-            locals_.update(inputDict)
+            for k in self.inputPorts:
+                locals_[k] = self.getInputFromPort(k)
         if use_output:
             for output_portname in self.output_ports_order:
                 locals_[output_portname] = None
@@ -894,7 +898,8 @@ class CodeRunnerMixin(object):
                         'cache_this': cache_this,
                         'registry': reg,
                         'self': self})
-        del locals_['source']
+        if 'source' in locals_:
+            del locals_['source']
         exec code_str in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
@@ -918,7 +923,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     """
 
     def compute(self):
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.getInputFromPort('source')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################
@@ -1004,39 +1009,23 @@ class SmartSource(NotCacheable, Module):
 
 ##############################################################################
 
-class _ZIPDecompressor(object):
+def zip_extract_file(archive, filename_in_archive, output_filename):
+    return os.system(
+            "%s > %s" % (
+                    vistrails.core.system.list2cmdline([
+                            vistrails.core.system.get_executable_path('unzip'),
+                            '-p', archive,
+                            filename_in_archive]),
+                    vistrails.core.system.list2cmdline([output_filename])))
 
-    """_ZIPDecompressor extracts a file from a .zip file. On Win32, uses
-the zipfile library from python. On Linux/Macs, uses command line, because
-it avoids moving the entire file contents to/from memory."""
 
-    # TODO: Figure out a way of doing this right on Win32
+def zip_extract_all_files(archive, output_path):
+    return os.system(
+            vistrails.core.system.list2cmdline([
+                    vistrails.core.system.get_executable_path('unzip'),
+                    archive,
+                    '-d', output_path]))
 
-    def __init__(self, archive, filename_in_archive, output_filename):
-        self._archive = archive
-        self._filename_in_archive = filename_in_archive
-        self._output_filename = output_filename
-
-    if vistrails.core.system.systemType in ['Windows', 'Microsoft']:
-        def extract(self):
-            os.system('unzip -p "%s" "%s" > "%s"' %
-                      (self._archive,
-                       self._filename_in_archive,
-                       self._output_filename))
-# zipfile cannot handle big files
-#            import zipfile
-#             output_file = open(self._output_filename, 'w')
-#             zip_file = zipfile.ZipFile(self._archive)
-#             contents = zip_file.read(self._filename_in_archive)
-#             output_file.write(contents)
-#             output_file.close()
-    else:
-        def extract(self):
-            os.system("unzip -p %s %s > %s" %
-                      (self._archive,
-                       self._filename_in_archive,
-                       self._output_filename))
-            
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
@@ -1046,13 +1035,32 @@ class Unzip(Module):
         self.checkInputPort("filename_in_archive")
         filename_in_archive = self.getInputFromPort("filename_in_archive")
         archive_file = self.getInputFromPort("archive_file")
+        if not os.path.isfile(archive_file.name):
+            raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
         output = self.interpreter.filePool.create_file(suffix=suffix)
-        dc = _ZIPDecompressor(archive_file.name,
-                              filename_in_archive,
-                              output.name)
-        dc.extract()
+        s = zip_extract_file(archive_file.name,
+                             filename_in_archive,
+                             output.name)
+        if s != 0:
+            raise ModuleError(self, "unzip command failed with status %d" % s)
         self.setResult("file", output)
+
+
+class UnzipDirectory(Module):
+    """UnzipDirectory extracts every file from a ZIP archive."""
+
+    def compute(self):
+        self.checkInputPort("archive_file")
+        archive_file = self.getInputFromPort("archive_file")
+        if not os.path.isfile(archive_file.name):
+            raise ModuleError(self, "archive file does not exist")
+        output = self.interpreter.filePool.create_directory()
+        s = zip_extract_all_files(archive_file.name,
+                                  output.name)
+        if s != 0:
+            raise ModuleError(self, "unzip command failed with status %d" % s)
+        self.setResult("directory", output)
 
 ##############################################################################
 
@@ -1072,11 +1080,18 @@ class Round(Converter):
 class TupleToList(Converter):
     """Turns a Tuple into a List.
     """
+    @classmethod
+    def can_convert(cls, sub_descs, super_descs):
+        if len(sub_descs) <= 1:
+            return False
+        reg = get_module_registry()
+        return super_descs == [reg.get_descriptor(List)]
+
     def compute(self):
         tu = self.getInputFromPort('in_value')
-        if not isinstance(tu, Tuple) or not isinstance(tu.values, tuple):
+        if not isinstance(tu, tuple):
             raise ModuleError(self, "Input is not a tuple")
-        self.setResult('out_value', list(tu.values))
+        self.setResult('out_value', list(tu))
 
 ##############################################################################
     
@@ -1087,6 +1102,34 @@ class Variant(Module):
     
     """
     pass
+
+##############################################################################
+
+class Assert(Module):
+    """
+    Assert is a simple module that conditionally stops the execution.
+    """
+    def compute(self):
+        condition = self.getInputFromPort('condition')
+        if not condition:
+            raise ModuleError(self, "Assert: condition is False",
+                              abort=True)
+
+
+class AssertEqual(Module):
+    """
+    AssertEqual works like Assert but compares two values.
+
+    It is provided for convenience.
+    """
+    def compute(self):
+        values = (self.getInputFromPort('value1'),
+                  self.getInputFromPort('value2'))
+        if values[0] != values[1]:
+            raise ModuleError(self, "AssertEqual: values are different",
+                              abort=True)
+
+##############################################################################
 
 def init_constant(m):
     reg = get_module_registry()
@@ -1150,14 +1193,19 @@ def initialize(*args, **kwargs):
     reg.add_input_port(FileSink, "file", File)
     reg.add_input_port(FileSink, "outputPath", OutputPath)
     reg.add_input_port(FileSink, "overwrite", Boolean, True, 
-                       defaults="(True,)")
+                       defaults="('True',)")
     reg.add_input_port(FileSink,  "publishFile", Boolean, True)
     
     reg.add_module(DirectorySink)
     reg.add_input_port(DirectorySink, "dir", Directory)
     reg.add_input_port(DirectorySink, "outputPath", OutputPath)
     reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
-                       defaults="(True,)")
+                       defaults="('True',)")
+
+    reg.add_module(WriteFile)
+    reg.add_input_port(WriteFile, 'in_value', String)
+    reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
+    reg.add_output_port(WriteFile, 'out_value', File)
 
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)
@@ -1169,12 +1217,10 @@ def initialize(*args, **kwargs):
     reg.add_module(Tuple, 
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "TupleConfigurationWidget"))
-    reg.add_output_port(Tuple, 'self', Tuple)
 
     reg.add_module(Untuple, 
                    configureWidgetType=("vistrails.gui.modules.tuple_configuration",
                                         "UntupleConfigurationWidget"))
-    reg.add_input_port(Untuple, 'tuple', Tuple)
 
     reg.add_module(ConcatenateString)
     for i in xrange(ConcatenateString.fieldCount):
@@ -1195,6 +1241,13 @@ def initialize(*args, **kwargs):
 
     reg.add_module(Variant, abstract=True)
 
+    reg.add_module(Assert)
+    reg.add_input_port(Assert, 'condition', Boolean)
+
+    reg.add_module(AssertEqual)
+    reg.add_input_port(AssertEqual, 'value1', Module)
+    reg.add_input_port(AssertEqual, 'value2', Module)
+
     reg.add_module(Unpickle, hide_descriptor=True)
     reg.add_input_port(Unpickle, 'input', String)
     reg.add_output_port(Unpickle, 'result', Variant)
@@ -1202,27 +1255,31 @@ def initialize(*args, **kwargs):
     reg.add_module(PythonSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
-    reg.add_input_port(PythonSource, 'source', String, True)
+    reg.add_input_port(PythonSource, 'source', String, True, defaults=str(['']))
     reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
                    configureWidgetType=("vistrails.gui.modules.python_source_configure",
                                         "PythonSourceConfigurationWidget"))
-    reg.add_input_port(SmartSource, 'source', String, True)
+    reg.add_input_port(SmartSource, 'source', String, True, defaults=str(['']))
 
     reg.add_module(Unzip)
     reg.add_input_port(Unzip, 'archive_file', File)
     reg.add_input_port(Unzip, 'filename_in_archive', String)
     reg.add_output_port(Unzip, 'file', File)
 
+    reg.add_module(UnzipDirectory)
+    reg.add_input_port(UnzipDirectory, 'archive_file', File)
+    reg.add_output_port(UnzipDirectory, 'directory', Directory)
+
     reg.add_module(Round, hide_descriptor=True)
     reg.add_input_port(Round, 'in_value', Float)
     reg.add_output_port(Round, 'out_value', Integer)
     reg.add_input_port(Round, 'floor', Boolean, optional=True,
-                       defaults="(True,)")
+                       defaults="('True',)")
 
     reg.add_module(TupleToList, hide_descriptor=True)
-    reg.add_input_port(TupleToList, 'in_value', Tuple)
+    reg.add_input_port(TupleToList, 'in_value', Variant)
     reg.add_output_port(TupleToList, 'out_value', List)
 
     # initialize the sub_module modules, too
@@ -1494,3 +1551,160 @@ class TestNumericConversions(unittest.TestCase):
                     (2, 'value', 3, 'in_value'),
                 ]))
         self.assertEqual(results, [7])
+
+
+class TestUnzip(unittest.TestCase):
+    def test_unzip_file(self):
+        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.core.system import vistrails_root_directory
+        zipfile = os.path.join(vistrails_root_directory(),
+                               'tests', 'resources',
+                               'test_archive.zip')
+        with intercept_result(Unzip, 'file') as outfiles:
+            self.assertFalse(execute([
+                    ('Unzip', 'org.vistrails.vistrails.basic', [
+                        ('archive_file', [('File', zipfile)]),
+                        ('filename_in_archive', [('String', 'file1.txt')]),
+                    ]),
+                ]))
+        self.assertEqual(len(outfiles), 1)
+        with open(outfiles[0].name, 'rb') as outfile:
+            self.assertEqual(outfile.read(), "some random\ncontent")
+
+    def test_unzip_all(self):
+        from vistrails.tests.utils import execute, intercept_result
+        from vistrails.core.system import vistrails_root_directory
+        zipfile = os.path.join(vistrails_root_directory(),
+                               'tests', 'resources',
+                               'test_archive.zip')
+        with intercept_result(UnzipDirectory, 'directory') as outdir:
+            self.assertFalse(execute([
+                    ('UnzipDirectory', 'org.vistrails.vistrails.basic', [
+                        ('archive_file', [('File', zipfile)]),
+                    ]),
+                ]))
+        self.assertEqual(len(outdir), 1)
+
+        self.assertEqual(
+                [(d, f) for p, d, f in os.walk(outdir[0].name)],
+                [(['subdir'], ['file1.txt']),
+                 ([], ['file2.txt'])])
+
+
+from vistrails.core.configuration import get_vistrails_configuration
+
+class TestTypechecking(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        conf = get_vistrails_configuration()
+        cls.error_all = conf.errorOnConnectionTypeerror
+        cls.error_variant = conf.errorOnVariantTypeerror
+
+    @classmethod
+    def tearDownClass(cls):
+        conf = get_vistrails_configuration()
+        conf.errorOnConnectionTypeerror = cls.error_all
+        conf.errorOnVariantTypeerror = cls.error_variant
+
+    @staticmethod
+    def set_settings(error_all, error_variant):
+        conf = get_vistrails_configuration()
+        conf.errorOnConnectionTypeerror = error_all
+        conf.errorOnVariantTypeerror = error_variant
+
+    def run_test_pipeline(self, result, expected_results, *args, **kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        for error_all, error_variant, expected in expected_results:
+            self.set_settings(error_all, error_variant)
+            with intercept_result(*result) as results:
+                error = execute(*args, **kwargs)
+            if not expected:
+                self.assertTrue(error)
+            else:
+                self.assertFalse(error)
+                self.assertEqual(results, expected)
+
+    def test_basic(self):
+        import urllib2
+        # Base case: no typing error
+        # This should succeed in every case
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, ["test"]),
+             (True, True, ["test"])],
+            [
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('o = "test"'))]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'o', 1, 'i'),
+            ],
+            add_port_specs=[
+                (0, 'output', 'o',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String')
+            ])
+
+    def test_fake(self):
+        import urllib2
+        # A module is lying, declaring a String but returning an int
+        # This should fail with errorOnConnectionTypeerror=True (not the
+        # default)
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, [42]),
+             (False, True, [42]),
+             (True, True, False)],
+            [
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('o = 42'))]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'o', 1, 'i'),
+            ],
+            add_port_specs=[
+                (0, 'output', 'o',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String')
+            ])
+
+    def test_inputport(self):
+        import urllib2
+        # This test uses an InputPort module, whose output port should not be
+        # considered a Variant port (although it is)
+        self.run_test_pipeline(
+            (PythonSource, 'r'),
+            [(False, False, [42]),
+             (False, True, [42]),
+             (True, True, [42])],
+            [
+                ('InputPort', 'org.vistrails.vistrails.basic', [
+                    ('ExternalPipe', [('Integer', '42')]),
+                ]),
+                ('PythonSource', 'org.vistrails.vistrails.basic', [
+                    ('source', [('String', urllib2.quote('r = i'))])
+                ]),
+            ],
+            [
+                (0, 'InternalPipe', 1, 'i'),
+            ],
+            add_port_specs=[
+                (1, 'input', 'i',
+                 'org.vistrails.vistrails.basic:String'),
+                (1, 'output', 'r',
+                 'org.vistrails.vistrails.basic:String'),
+            ])

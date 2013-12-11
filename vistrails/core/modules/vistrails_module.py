@@ -33,8 +33,9 @@
 ##
 ###############################################################################
 import copy
+from itertools import izip
+
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.utils import VistrailsInternalError
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -47,10 +48,6 @@ class NeedsInputPort(Exception):
 class IncompleteImplementation(Exception):
     def __str__(self):
         return "Module has incomplete implementation"
-
-
-class MissingModule(Exception):
-    pass
 
 class ModuleBreakpoint(Exception):
     def __init__(self, module):
@@ -78,17 +75,26 @@ class ModuleBreakpoint(Exception):
             inputs[p] = self.module.getInputListFromPort(p)
 
         return inputs
-        
+
+class ModuleHadError(Exception):
+    """Exception occurring when a module that failed gets updated again.
+
+    It is caught by the interpreter that doesn't log it.
+    """
+    def __init__(self, module):
+        self.module = module
+
 class ModuleError(Exception):
 
     """Exception representing a VisTrails module runtime error. This
 exception is recognized by the interpreter and allows meaningful error
 reporting to the user and to the logging mechanism."""
     
-    def __init__(self, module, errormsg):
+    def __init__(self, module, errormsg, abort=False):
         """ModuleError should be passed the module instance that signaled the
 error and the error message as a string."""
         Exception.__init__(self, errormsg)
+        self.abort = abort # force abort even if stopOnError is False
         self.module = module
         self.msg = errormsg
         import traceback
@@ -110,9 +116,11 @@ class ModuleSuspended(ModuleError):
     
     """
     
-    def __init__(self, module, errormsg, queue=None, children=None):
+    def __init__(self, module, errormsg, queue=None, children=None, job_id=None):
         self.queue = queue
         self.children = children
+        self.signature = job_id
+        self.name = None
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
@@ -135,12 +143,12 @@ InvalidOutput = _InvalidOutput
 # DummyModuleLogging
 
 class DummyModuleLogging(object):
-    def end_update(*args, **kwargs): pass
-    def begin_update(*args, **kwargs): pass
-    def begin_compute(*args, **kwargs): pass
-    def update_cached(*args, **kwargs): pass
-    def signalSuccess(*args, **kwargs): pass
-    def annotate(*args, **kwargs): pass
+    def end_update(self, *args, **kwargs): pass
+    def begin_update(self, *args, **kwargs): pass
+    def begin_compute(self, *args, **kwargs): pass
+    def update_cached(self, *args, **kwargs): pass
+    def signalSuccess(self, *args, **kwargs): pass
+    def annotate(self, *args, **kwargs): pass
 
 _dummy_logging = DummyModuleLogging()
 
@@ -157,13 +165,13 @@ class Serializable(object):
         """
         Method used to serialize a module.
         """
-        raise Exception('The serialize method is not defined for this module.')
+        raise NotImplementedError('The serialize method is not defined for this module.')
     
     def deserialize(self):
         """
         Method used to deserialize a module.
         """
-        raise Exception('The deserialize method is not defined for this module.')
+        raise NotImplementedError('The deserialize method is not defined for this module.')
 
 ################################################################################
 # Module
@@ -245,6 +253,7 @@ Designing New Modules
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
+        self.had_error = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -272,11 +281,11 @@ Designing New Modules
 
         self.is_breakpoint = False
 
-        # is_fold_operator stores wether the module is a part of a fold
-        self.is_fold_operator = False
+        # is_looping stores wether the module is a part of a loop
+        self.is_looping = False
 
-        # is_fold_module stores whether the module is a fold module
-        self.is_fold_module = False
+        # is_looping_module stores whether the module is a looping module
+        self.is_looping_module = False
 
         # computed stores wether the module was computed
         # used for the logging stuff
@@ -289,6 +298,20 @@ Designing New Modules
         # stores whether the output of the module should be annotated in the
         # execution log
         self.annotate_output = False
+
+    def __copy__(self):
+        """Makes a copy of the input/output ports on shallow copy.
+        """
+        s = super(Module, self)
+        if hasattr(s, '__copy__'):
+            clone = s.__copy__()
+        else:
+            clone = object.__new__(self.__class__)
+            clone.__dict__ = self.__dict__.copy()
+        clone.inputPorts = copy.copy(self.inputPorts)
+        clone.outputPorts = copy.copy(self.outputPorts)
+        clone.outputPorts['self'] = clone
+        return clone
 
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -346,15 +369,21 @@ context."""
         modules. Report to the logger if available
         
         """
+        if self.had_error:
+            raise ModuleHadError(self)
+        elif self.computed:
+            return
         self.logging.begin_update(self)
         self.updateUpstream()
         if self.suspended:
+            self.had_error = True
             return
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
                 self.computed = True
             return
+        self.had_error = True # Unset later in this method
         self.logging.begin_compute(self)
         try:
             if self.is_breakpoint:
@@ -387,6 +416,7 @@ context."""
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True
+        self.had_error = False
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
@@ -574,34 +604,80 @@ class Converter(Module):
 
     You must override the 'in_value' and 'out_value' ports by providing the
     types your module actually matches.
+
+    Alternatively, you can override the classmethod can_convert() to provide
+    a custom condition.
     """
+    @classmethod
+    def can_convert(cls, sub_descs, super_descs):
+        from vistrails.core.modules.module_registry import get_module_registry
+        from vistrails.core.system import get_vistrails_basic_pkg_id
+        reg = get_module_registry()
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
+        desc = reg.get_descriptor(cls)
+
+        def check_types(sub_descs, super_descs):
+            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+                if (sub_desc == variant_desc or super_desc == variant_desc):
+                    continue
+                if not reg.is_descriptor_subclass(sub_desc, super_desc):
+                    return False
+            return True
+
+        in_port = reg.get_port_spec_from_descriptor(
+                desc,
+                'in_value', 'input')
+        if (len(sub_descs) != len(in_port.descriptors()) or
+                not check_types(sub_descs, in_port.descriptors())):
+            return False
+        out_port = reg.get_port_spec_from_descriptor(
+                desc,
+                'out_value', 'output')
+        if (len(out_port.descriptors()) != len(super_descs)
+                or not check_types(out_port.descriptors(), super_descs)):
+            return False
+
+        return True
+
     def compute(self):
         raise NotImplementedError
 
 ################################################################################
 
 class ModuleConnector(object):
-    def __init__(self, obj, port, spec=None):
+    def __init__(self, obj, port, spec=None, typecheck=None):
+        # typecheck is a list of booleans indicating which descriptors to
+        # typecheck
         self.obj = obj
         self.port = port
         self.spec = spec
+        self.typecheck = typecheck
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""
         self.obj = None
         self.port = None
-    
+
     def __call__(self):
         result = self.obj.get_output(self.port)
-        if self.spec is not None:
+        if self.spec is not None and self.typecheck is not None:
             descs = self.spec.descriptors()
+            typecheck = self.typecheck
             if len(descs) == 1:
+                if not typecheck[0]:
+                    return result
                 mod = descs[0].module
                 if hasattr(mod, 'validate') and not mod.validate(result):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s does not match destination type "
                                       "%s" % (self.port, descs[0].name))
             else:
+                if len(typecheck) == 1:
+                    if typecheck[0]:
+                        typecheck = [True] * len(descs)
+                    else:
+                        return result
                 if not isinstance(result, tuple):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s is not a tuple" % self.port)
@@ -609,8 +685,10 @@ class ModuleConnector(object):
                     raise ModuleError(self.obj, "Object passed on Variant "
                                       "port %s does not have the correct "
                                       "length (%d, expected %d)" % (
-                                      len(result), len(descs)))
+                                      self.port, len(result), len(descs)))
                 for i, desc in enumerate(descs):
+                    if not typecheck[i]:
+                        continue
                     mod = desc.module
                     if hasattr(mod, 'validate'):
                         if not mod.validate(result[i]):

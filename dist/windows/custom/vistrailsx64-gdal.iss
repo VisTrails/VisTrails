@@ -34,7 +34,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails x64
-AppVerName=VisTrails x64 2.1 beta
+AppVerName=VisTrails x64 2.1
 WizardImageFile=..\resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
@@ -91,6 +91,7 @@ Source: ..\..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Compone
 Source: ..\..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
 Source: ..\..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\usersguide\*; DestDir: {app}\examples\usersguide; Components: examples
 ;Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
 ;Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
@@ -139,8 +140,8 @@ Source: ..\Input\qt.conf; DestDir: {app}\Python27_64
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
 Source: ..\Input\x64\python27.dll; DestDir: {app}
 Source: ..\Input\x64\python27.dll; DestDir: {app}\Python27_64
-Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.dll; DestDir: {app}\vistrails
-Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir: {app}\vistrails
+Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.dll; DestDir: {app}
+Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir: {app}
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 ;Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
@@ -164,7 +165,8 @@ Source: C:\Users\vistrails\code\extra_packages\gdal\x64\site-packages\*; DestDir
 Name: {app}\vistrails
 ;;Name: {app}\Configuration
 ;;Name: {app}\itkExtras
-Name: {app}\examples; Components: examples; Tasks: 
+Name: {app}\examples; Components: examples; Tasks: N
+Name: {app}\examples\usersguide
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
 Name: {app}\extensions; Components: extensions; Tasks:

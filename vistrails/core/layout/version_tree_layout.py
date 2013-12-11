@@ -150,7 +150,7 @@ class VistrailsTreeLayoutLW(object):
             child = mapTreeNodes[childId]
 #             if child.parent != None:
 #                 print "child already has a parent!!! %d -> %d" % (parentId, childId)
-#                 raise Exception()
+#                 raise ValueError("Node already has a parent")
             tree.changeParentOfNodeWithNoParent(parent, child)
 
         # return the tree
