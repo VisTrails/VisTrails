@@ -220,10 +220,12 @@ print "Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(
 print "Running on %s" % ', '.join(platform.uname())
 print "Python is %s" % sys.version
 try:
-    from PyQt4 import QtCore
-    print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
+    from vistrails.gui.QtWrapper import QtCore, get_qt_binding_name
+    print "Using %s %s with Qt %s" % (get_qt_binding_name(),
+                                      QtCore.PYQT_VERSION_STR,
+                                      QtCore.qVersion())
 except ImportError:
-    print "PyQt4 not available"
+    print "Qt not available"
 for pkg in ('numpy', 'scipy', 'matplotlib'):
     try:
         ipkg = __import__(pkg, globals(), locals(), [], -1)
