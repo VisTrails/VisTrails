@@ -47,6 +47,7 @@ from vistrails.core.system import get_elementtree_library
 import vistrails.core.utils
 from vistrails.core.utils import version_string_to_list
 
+import atexit
 import copy
 from distutils.version import LooseVersion
 import os.path
@@ -131,6 +132,33 @@ class VistrailsStartup(DBStartup):
         # self._disabled_packages = {}
 
         self.configuration = vistrails.core.configuration.default()
+
+        if ((command_line_config is not None and
+                 command_line_config.check('spawned')) or 
+                (options_config is not None and 
+                 options_config.check('spawned'))):
+            # Here we are in 'spawned' mode, i.e. we are running
+            # non-interactively as a slave
+            # We are going to create a .vistrails directory as a temporary
+            # directory and copy a specific configuration file
+            # We don't want to load packages that the user might enabled in
+            # this machine's configuration file as it would slow down the
+            # startup time, but we'll load any needed package without
+            # confirmation
+            spawned = True
+
+            tmpdir = tempfile.mkdtemp(prefix='vt_spawned_')
+            @atexit.register
+            def clean_dotvistrails():
+                shutil.rmtree(tmpdir, ignore_errors=True)
+            command_line_config.dotVistrails = tmpdir
+            shutil.copyfile(os.path.join(system.vistrails_root_directory(),
+                                         'core', 'resources',
+                                         'spawned_startup_xml'),
+                            os.path.join(tmpdir, 'startup.xml'))
+            command_line_config.enablePackagesSilently = True
+            command_line_config.errorLog = False
+            command_line_config.singleInstance = False
 
         if use_dot_vistrails:
             if command_line_config is not None and \

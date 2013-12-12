@@ -32,7 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import atexit
 import copy
 import os
 import shutil
@@ -221,47 +220,6 @@ class VistrailsApplicationInterface(object):
         print system.about_string()
         sys.exit(0)
 
-    def read_dotvistrails_option(self, optionsDict=None):
-        """ read_dotvistrails_option() -> None
-        Check if the user sets a new dotvistrails folder and updates
-        self.temp_configuration with the new value.
-
-        Also handles the 'spawned-mode' option, by using a temporary directory
-        as .vistrails directory, and a specific default configuration.
-        """
-        if optionsDict is None:
-            optionsDict = {}
-        def get(opt):
-            return (optionsDict.get(opt) or
-                    command_line.CommandLineParser().get_option(opt))
-
-        if get('spawned'):
-            # Here we are in 'spawned' mode, i.e. we are running
-            # non-interactively as a slave
-            # We are going to create a .vistrails directory as a temporary
-            # directory and copy a specific configuration file
-            # We don't want to load packages that the user might enabled in
-            # this machine's configuration file as it would slow down the
-            # startup time, but we'll load any needed package without
-            # confirmation
-            tmpdir = tempfile.mkdtemp(prefix='vt_spawned_')
-            @atexit.register
-            def clean_dotvistrails():
-                shutil.rmtree(tmpdir, ignore_errors=True)
-            self.temp_configuration.dotVistrails = tmpdir
-            if get('dotVistrails') is not None:
-                debug.warning("--startup option ignored since --spawned-mode "
-                              "is used")
-            shutil.copyfile(os.path.join(system.vistrails_root_directory(),
-                                         'core', 'resources',
-                                         'spawned_startup_xml'),
-                            os.path.join(tmpdir, 'startup.xml'))
-            self.temp_configuration.enablePackagesSilently = True
-            self.temp_configuration.nologfile = True
-            self.temp_configuration.singleInstance = False
-        elif get('dotVistrails') is not None:
-            self.temp_configuration.dotVistrails = get('dotVistrails')
-            
     def read_options(self):
         """ read_options() -> None
         Read arguments from the command line
@@ -389,17 +347,6 @@ class VistrailsApplicationInterface(object):
 
         # command line options override both
         command_line_config = self.read_options()
-
-
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!! FIXME THIS IS WRONG, BUT I AM NOT GOING TO FIX IN THE MERGE !!!
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #
-        # Read only new .vistrails folder option if passed in the command line
-        # or in the optionsDict because this may affect the configuration file 
-        # VistrailsStartup will load. This updates self.temp_configuration
-        self.read_dotvistrails_option(optionsDict)
-
 
         # startup takes care of all configurations
         self.startup = VistrailsStartup(options_config, command_line_config)
