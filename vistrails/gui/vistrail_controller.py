@@ -432,10 +432,6 @@ class VistrailController(QtCore.QObject, BaseController):
 
             progress.setValue(modules)
             self.progress = None
-        except Exception, e:
-            import traceback
-            debug.critical(str(e) or e.__class__.__name__,
-                           traceback.format_exc())
         finally:
             self.progress = None
             jobView.jobMonitor.finishWorkflow()
