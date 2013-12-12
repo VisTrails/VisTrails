@@ -68,6 +68,28 @@ from vistrails.gui.version_prop import QVersionProp
 
 ################################################################################
 
+class ExecutionProgressDialog(QtGui.QProgressDialog):
+    def __init__(self, modules):
+        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
+                                       '&Cancel',
+                                       0, modules)
+        self.setWindowTitle('Executing')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self._last_set_value = 0
+        self._progress_canceled = False
+        # if suspended is true we should not wait for a job to complete
+        self.suspended = False
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(ExecutionProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
+
+
 class VistrailController(QtCore.QObject, BaseController):
     """
     VistrailController is the class handling all action control in
@@ -383,27 +405,6 @@ class VistrailController(QtCore.QObject, BaseController):
                            "Please wait a few seconds and try again.")
             return
         jobView.updating_now = True
-
-        class ExecutionProgressDialog(QtGui.QProgressDialog):
-            def __init__(self, modules):
-                QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
-                                               '&Cancel',
-                                               0, modules)
-                self.setWindowTitle('Executing')
-                self.setWindowModality(QtCore.Qt.WindowModal)
-                self._last_set_value = 0
-                self._progress_canceled = False
-                # if suspended is true we should not wait for a job to complete
-                self.suspended = False
-        
-            def setValue(self, value):
-                self._last_set_value = value
-                super(ExecutionProgressDialog, self).setValue(value)
-        
-            def goOn(self):
-                self.reset()
-                self.show()
-                super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
         if not jobView.jobMonitor.currentWorkflow():
             version_id = self.current_version
