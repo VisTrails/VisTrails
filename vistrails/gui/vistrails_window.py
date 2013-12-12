@@ -2396,6 +2396,8 @@ class QVistrailsWindow(QVistrailViewWindow):
     def configure_module(self):
         from vistrails.gui.module_configuration import QModuleConfiguration
         action_name = QModuleConfiguration.instance().get_title()
+        if action_name[-1] == '*':
+            action_name = action_name[:-1]
         # easy way to make sure that configuration window is raised
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
