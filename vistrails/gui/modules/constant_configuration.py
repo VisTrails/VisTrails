@@ -372,7 +372,7 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
             self.layout().insertWidget(0, self._widget)
             self.updateGeometry()
         else:
-            self.setContents(strValue)
+            self._widget.setContents(strValue)
 
         if not silent:
             self.update_parent()
