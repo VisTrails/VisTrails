@@ -43,6 +43,7 @@ import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
 from vistrails.core import debug
+from vistrails.core.interpreter.job import JobMonitor, Workflow as JobWorkflow
 from vistrails.core.utils import VistrailsInternalError, expression
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -110,6 +111,21 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
+        jobMonitor = JobMonitor.getInstance()
+        current_workflow = jobMonitor.currentWorkflow()
+        if not current_workflow:
+            for job in jobMonitor._running_workflows.itervalues():
+                try:
+                    job_version = int(job.version)
+                except ValueError:
+                    job_version =  v.get_version_number(job.version)
+                if version == job_version and locator.to_url() == job.vistrail:
+                    current_workflow = job
+                    jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(locator.to_url(), version)
+                jobMonitor.getInstance().startWorkflow(current_workflow)
+
         (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
                                                 extra_info=extra_info,
@@ -126,6 +142,16 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
+        jobMonitor.finishWorkflow()
+        if current_workflow.modules:
+            if current_workflow.completed():
+                run.job = "COMPLETED"
+            else:
+                run.job = "RUNNING: %s" % current_workflow.id
+                for job in current_workflow.modules.itervalues():
+                    if not job.finished:
+                        run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
+            print run.job
     return result
 
 ################################################################################

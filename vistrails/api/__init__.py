@@ -367,6 +367,12 @@ class TestAPI(vistrails.gui.utils.TestVisTrailsGUI):
                          view.has_changes())
         assert get_vistrails_application().builderWindow.qactions['saveFileAs'].isEnabled()
 
+    def test_detach_vistrail(self):
+        view = new_vistrail()
+        get_vistrails_application().builderWindow.detach_view(view)
+        get_vistrails_application().builderWindow.attach_view(view)
+        close_vistrail(view)
+
     
     
     

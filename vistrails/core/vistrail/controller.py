@@ -46,6 +46,7 @@ import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import JobMonitor
 from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from vistrails.core.log.controller import LogController, DummyLogController
@@ -241,8 +242,7 @@ class VistrailController(object):
         if not self.vistrail.is_abstraction:
             self.unload_abstractions()
         if locator is not None:
-            if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
-                locator.clean_temporaries()
+            locator.clean_temporaries()
             locator.close()
 
     def cleanup(self):
@@ -2256,15 +2256,23 @@ class VistrailController(object):
                                 abstractions[key] = []
                             abstractions[key].append(abstraction)
         if recurse:
-            for abstraction_list in abstractions.itervalues():
-                for abstraction in abstraction_list:
+            for abstraction_list in abstractions.values():
+                for abstraction in abstraction_list[:]:
                     try:
                         vistrail = abstraction.vistrail
                     except MissingPackageVersion, e:
-                        reg = vistrails.core.modules.module_registry.get_module_registry()
-                        abstraction._module_descriptor = \
-                            reg.get_similar_descriptor(*abstraction.descriptor_info)
-                        vistrail = abstraction.vistrail
+                        try:
+                            reg = vistrails.core.modules.module_registry.get_module_registry()
+                            abstraction._module_descriptor = \
+                                reg.get_similar_descriptor(
+                                                 *abstraction.descriptor_info)
+                            vistrail = abstraction.vistrail
+                        except Exception, e:
+                            # ignore because there will be a load attempt later 
+                            continue
+                    except Exception, e:
+                        # ignore because there will be a load attempt later 
+                        continue
                     r_abstractions = self.find_abstractions(vistrail, recurse)
                     for k,v in r_abstractions.iteritems():
                         if k not in abstractions:
@@ -2347,10 +2355,14 @@ class VistrailController(object):
         abstractions = self.find_abstractions(vistrail)
         for descriptor_info, abstraction_list in abstractions.iteritems():
             # print 'checking for abstraction "' + str(abstraction.name) + '"'
-            descriptor = self.check_abstraction(descriptor_info,
-                                                lookup)
-            for abstraction in abstraction_list:
-                abstraction.module_descriptor = descriptor
+            try:
+                descriptor = self.check_abstraction(descriptor_info,
+                                                    lookup)
+                for abstraction in abstraction_list:
+                    abstraction.module_descriptor = descriptor
+            except InvalidPipeline, e:
+                debug.critical("Error loading abstraction '%s'" % \
+                               descriptor_info[1], str(e))
             
     def build_ungroup(self, full_pipeline, module_id):
 
@@ -3586,11 +3598,11 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
+                    JobMonitor.getInstance().updateUrl(locator.to_url(),
+                                                       old_locator.to_url())
                     self.set_file_name(locator.name)
                     if old_locator and not export:
-                        if isinstance(old_locator,
-                                    vistrails.core.db.locator.XMLFileLocator):
-                            old_locator.clean_temporaries()
+                        old_locator.clean_temporaries()
                         old_locator.close()
                     self.flush_pipeline_cache()
                     self.change_selected_version(new_vistrail.db_currentVersion, 
@@ -3629,8 +3641,7 @@ class VistrailController(object):
                 if self.log:
                     self.log.delete_all_workflow_execs()
                 self.set_changed(False)
-                if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
-                    locator.clean_temporaries()
+                locator.clean_temporaries()
 
             # delete any temporary subworkflows
                 try:

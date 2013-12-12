@@ -372,10 +372,18 @@ class StringWidget(QtGui.QWidget, ConstantWidgetMixin):
             self.layout().insertWidget(0, self._widget)
             self.updateGeometry()
         else:
-            self.setContents(strValue)
+            self._widget.setContents(strValue)
 
         if not silent:
             self.update_parent()
+
+    def changeEvent(self, event):
+        """ Hide button when in read-only mode
+        
+        """
+        if event.type() == QtCore.QEvent.EnabledChange:
+            self._button.setVisible(self.isEnabled())
+        return QtGui.QWidget.changeEvent(self, event)
 
     ###########################################################################
     # event handlers

@@ -1261,6 +1261,9 @@ class QVistrailList(QtGui.QTreeWidget):
 
     def state_changed(self, view):
         """ update tags, mashups and parameter explorations """
+        # sometimes references to closed views trigger a state_changed event
+        if id(view) not in self.items:
+            return
         item = self.items[id(view)]
         entity = item.entity
         
@@ -1461,7 +1464,7 @@ class QVistrailList(QtGui.QTreeWidget):
         entity = None
         if url is None:
             locator = vistrail_window.controller.locator
-            if locator:
+            if locator and not isinstance(locator, UntitledLocator):
                 entity = self.collection.fromUrl(locator.to_url())
         else:
             entity = self.collection.fromUrl(url)

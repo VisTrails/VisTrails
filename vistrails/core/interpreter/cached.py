@@ -42,10 +42,11 @@ from vistrails.core.common import InstanceObject, VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
+from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
-from vistrails.core import modules
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
     ModuleConnector, ModuleError, ModuleErrors, ModuleHadError, \
     ModuleSuspended, ModuleWasSuspended
@@ -100,7 +101,7 @@ class ViewUpdatingLogController(object):
         i = self.remap_id(obj.id)
         self.view.set_module_computing(i)
 
-        reg = modules.module_registry.get_module_registry()
+        reg = get_module_registry()
         module_name = reg.get_descriptor(obj.__class__).name
 
         self.log.start_execution(obj, i, module_name)
@@ -114,6 +115,26 @@ class ViewUpdatingLogController(object):
                 self.log.start_loop_execution(obj, total_iterations),
                 self.view)
 
+    def _handle_suspended(self, obj, error):
+        """ end_suspended(obj: VistrailsModule, error: ModuleSuspended
+            ) -> None
+            Report module as suspended
+        """
+        # update job monitor because this may be an oldStyle job
+        jm = JobMonitor.getInstance()
+        reg = get_module_registry()
+        name = reg.get_descriptor(obj.__class__).name
+        i = "%s" % get_remapped_id(obj.id)
+        if obj.is_looping:
+            i = '%s:%s' % (i, obj.loop_iteration) 
+            name = '%s:%s' % (name, obj.loop_iteration)
+        # add to parent list for computing the module tree later
+        error.name = name
+        # if signature is not set we use the module identifier
+        if not error.signature:
+            error.signature = i
+        jm.addParent(error)
+
     def end_update(self, obj, error=None, errorTrace=None,
             was_suspended=False):
         try:
@@ -125,6 +146,7 @@ class ViewUpdatingLogController(object):
             # execute_pipeline() call
             return
         if was_suspended:
+            self._handle_suspended(obj, error)
             self.suspended[obj.id] = error
             self.view.set_module_suspended(i, error)
             if error.children:
@@ -148,7 +170,7 @@ class ViewUpdatingLogController(object):
         self.cached[obj.id] = True
         i = self.remap_id(obj.id)
 
-        reg = modules.module_registry.get_module_registry()
+        reg = get_module_registry()
         module_name = reg.get_descriptor(obj.__class__).name
 
         self.log.start_execution(obj, i, module_name,
@@ -260,7 +282,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
 
-        reg = modules.module_registry.get_module_registry()
+        reg = get_module_registry()
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -268,7 +290,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         def create_null():
             """Creates a Null value"""
-            getter = modules.module_registry.registry.get_descriptor_by_name
+            getter = get_module_registry().get_descriptor_by_name
             descriptor = getter(basic_pkg, 'Null')
             return descriptor.module()
         

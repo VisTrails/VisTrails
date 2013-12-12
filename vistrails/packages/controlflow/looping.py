@@ -187,7 +187,6 @@ class For(Module):
         name_input = self.forceGetInputFromPort('InputPort') # or None
         lower_bound = self.getInputFromPort('LowerBound') # or 0
         higher_bound = self.getInputFromPort('HigherBound') # required
-        delay = self.forceGetInputFromPort('Delay') # or None
 
         connectors = self.inputPorts.get('FunctionPort')
         if len(connectors) != 1:
@@ -224,9 +223,6 @@ class For(Module):
                 continue
 
             loop.end_iteration(module)
-
-            if i+1 != higher_bound and delay:
-                time.sleep(delay)
 
             if name_output not in module.outputPorts:
                 raise ModuleError(module,

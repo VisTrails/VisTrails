@@ -194,6 +194,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             dest='installBundles',
             help=("Do not try to install missing Python packages "
                   "automatically"))
+        add("--runJob", action="store",
+            help=("Run job with specified id."))
+        add("--listJobs", action="store_true",
+            help=("List all jobs."))
         add('--spawned-mode', '--spawned', action='store_true',
             dest='spawned',
             help=("Do not use the .vistrails directory, and load packages "
@@ -323,6 +327,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         if get('installBundles')!=None:
             self.temp_configuration.installBundles = bool(get('installBundles'))
+        if get('runJob')!=None:
+            self.temp_configuration.jobRun = get('runJob')
+        if get('listJobs')!=None:
+            self.temp_configuration.jobList = bool(get('listJobs'))
         self.input = command_line.CommandLineParser().positional_arguments()
 
     def init(self, optionsDict=None, args=None):

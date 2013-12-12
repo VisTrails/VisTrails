@@ -119,9 +119,11 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, queue=None, children=None):
+    def __init__(self, module, errormsg, queue=None, children=None, job_id=None):
         self.queue = queue
         self.children = children
+        self.signature = job_id
+        self.name = None
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
@@ -144,12 +146,12 @@ InvalidOutput = _InvalidOutput
 # DummyModuleLogging
 
 class DummyModuleLogging(object):
-    def end_update(*args, **kwargs): pass
-    def begin_update(*args, **kwargs): pass
-    def begin_compute(*args, **kwargs): pass
-    def update_cached(*args, **kwargs): pass
-    def signalSuccess(*args, **kwargs): pass
-    def annotate(*args, **kwargs): pass
+    def end_update(self, *args, **kwargs): pass
+    def begin_update(self, *args, **kwargs): pass
+    def begin_compute(self, *args, **kwargs): pass
+    def update_cached(self, *args, **kwargs): pass
+    def signalSuccess(self, *args, **kwargs): pass
+    def annotate(self, *args, **kwargs): pass
 
 _dummy_logging = DummyModuleLogging()
 

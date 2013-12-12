@@ -97,7 +97,7 @@ class SVGCellWidget(QCellWidget):
         if self.fileSrc is not None:
             shutil.copyfile(self.fileSrc, filename)
 
-    def saveToPDF(self):
+    def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
