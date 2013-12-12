@@ -457,9 +457,15 @@ base_config = {
         [ConfigField('fontFace', system.shell_font_face(), str),
          ConfigField('fontSize', system.shell_font_size(), int)]),
      ConfigField('maxRecentVistrails', 5, int),
-     ConfigField('showHistoryViewOnLoad', False, bool, ConfigType.SHOW_HIDE),
-     ConfigField('showPipelineViewOnLoad', False, bool, ConfigType.SHOW_HIDE)],
-    
+     ConfigField('viewOnLoad', "appropriate", str, widget_type='combo',
+                 widget_options={"allowed_values": ["appropriate",
+                                                    "history",
+                                                    "pipeline"],
+                                 "label": "When loading a vistrail, " \
+                                      "the default view shown is:",
+                                 "remap": {"appropriate": "Most Appropriate",
+                                           "history": "Always History",
+                                           "pipeline": "Always Pipeline"}})],
     "Thumbnails":
     [ConfigFieldParent('thumbs', 
         [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
