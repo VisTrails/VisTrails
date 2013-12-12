@@ -654,13 +654,18 @@ import unittest
 
 class TestCamelCase(unittest.TestCase):
     def test_simple(self):
-        self.assertEqual(split_camel_case('camelCaseH'), 'camel\nCase\nH')
-        self.assertEqual(split_camel_case('CamelCase'), 'Camel\nCase')
+        self.assertEqual(split_camel_case(u'cam\xE9lCaseH'),
+                         u'cam\xE9l\nCase\nH')
+        self.assertEqual(split_camel_case(u'Cam\xE9l\xC9ase'),
+                         u'Cam\xE9l\n\xC9ase')
 
     def test_long(self):
-        self.assertEqual(split_camel_case('parseHTML'), 'parse\nHTML')
-        self.assertEqual(split_camel_case('HTMLParser'), 'HTML\nParser')
-        self.assertEqual(split_camel_case('vHTMLParser'), 'v\nHTML\nParser')
+        self.assertEqual(split_camel_case(u'parse\xC9ML'),
+                         u'parse\n\xC9ML')
+        self.assertEqual(split_camel_case(u'\xC9MLParser'),
+                         u'\xC9ML\nParser')
+        self.assertEqual(split_camel_case(u'v\xC9MLParser'),
+                         u'v\n\xC9ML\nParser')
 
 if __name__=="__main__":
     import sys
