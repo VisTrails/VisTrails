@@ -124,10 +124,7 @@ class ViewUpdatingLogController(object):
         jm = JobMonitor.getInstance()
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
-        i = "%s" % get_remapped_id(obj.id)
-        if obj.is_looping:
-            i = '%s:%s' % (i, obj.loop_iteration) 
-            name = '%s:%s' % (name, obj.loop_iteration)
+        i = "%s" % self.remap_id(obj.id)
         # add to parent list for computing the module tree later
         error.name = name
         # if signature is not set we use the module identifier
