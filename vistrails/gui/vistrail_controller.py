@@ -69,10 +69,11 @@ from vistrails.gui.version_prop import QVersionProp
 ################################################################################
 
 class ExecutionProgressDialog(QtGui.QProgressDialog):
-    def __init__(self):
+    def __init__(self, parent=None):
         QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
-                                       0, 100)
+                                       0, 100,
+                                       parent, QtCore.Qt.Dialog)
         self.setWindowTitle('Executing')
         self.setWindowModality(QtCore.Qt.WindowModal)
         self._last_set_value = 0
@@ -422,7 +423,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 current_workflow = JobWorkflow(url, version_id)
                 jobView.jobMonitor.startWorkflow(current_workflow)
         try:
-            progress = ExecutionProgressDialog()
+            progress = ExecutionProgressDialog(self.vistrail_view)
             self.progress = progress
             progress.show()
 
