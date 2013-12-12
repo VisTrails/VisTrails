@@ -343,9 +343,10 @@ class VistrailsStartup(DBStartup):
         #     self.update_deep_configs("logFile", 
         #                              os.path.join(dir_name,
         #                                           'vistrails_%s.log' % version))
-        log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
-        if log_fname is not None:
-            debug.DebugPrint.getInstance().set_logfile(log_fname)
+        if self.temp_configuration.errorLog:
+            log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
+            if log_fname is not None:
+                debug.DebugPrint.getInstance().set_logfile(log_fname)
             
     def setup_debug(self):
         if (self.temp_configuration.has('debugLevel') and

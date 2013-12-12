@@ -65,6 +65,7 @@ dbDefault: Save vistrails in a database by default
 cache: Cache previous results so they may be used in future computations
 stopOnError: Stop all workflow execution immediately after first error
 executionLog: Track execution provenance when running workflows
+errorLog: Write errors to a log file
 defaultFileType: Default file type/extension for vistrails (.vt or .xml)
 enablePackagesSilently: Automatically enable packages when needed
 installBundles: Install missing Python dependencies
