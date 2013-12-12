@@ -80,7 +80,7 @@ class QPortDocumentation(QtGui.QDialog):
         if doc:
             self.textEdit.insertPlainText(doc)
         else:
-            self.textEdit.insertPlainText("Documentation not available.")
+            self.textEdit.insertPlainText("(Documentation not available)")
         self.textEdit.setReadOnly(True)
         self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))
         self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)

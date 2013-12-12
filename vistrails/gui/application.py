@@ -43,7 +43,8 @@ from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
-from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.db.locator import FileLocator, DBLocator, BaseLocator
+from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.requirements
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
@@ -53,6 +54,7 @@ import os.path
 import getpass
 import re
 import sys
+import StringIO
 
 ################################################################################
 
@@ -77,6 +79,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
+        if system.systemType in ['Darwin']:
+            self.installEventFilter(self)
         self.builderWindow = None
         # local notifications
         self.window_notifications = {}
@@ -92,7 +96,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def run_single_instance(self):
         # code for single instance of the application
-        # based on the C++ solution availabe at
+        # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
             self.timeout = 600000
@@ -164,8 +168,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         vistrails.gui.theme.initializeCurrentTheme()
         # DAK this is handled by finalize_vistrails in core.application now
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
-        VistrailsApplicationInterface.init(self,optionsDict)
+        VistrailsApplicationInterface.init(self, optionsDict)
         
+        if self.temp_configuration.check('jobRun') or \
+           self.temp_configuration.check('jobList'):
+            self.temp_configuration.interactiveMode = False
+
         #singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
         if singleInstance:
@@ -197,13 +205,70 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self._python_environment = self.vistrailsStartup.get_python_environment()
 
         self._initialized = True
-        
-        if interactive:
+
+        # default handler installation
+        if system.systemType == 'Linux':
+            if not (self.temp_configuration.check('handlerDontAsk') or
+                    self.configuration.check('handlerDontAsk')):
+                if not linux_default_application_set():
+                    self.ask_update_default_application()
+
+        if self.temp_configuration.check('jobList'):
+            job = JobMonitor.getInstance()
+            for i, j in job._running_workflows.iteritems():
+                print "JOB: ", i, j.vistrail, j.version, j.start, \
+                      "FINISHED" if j.completed() else "RUNNING"
+        elif self.temp_configuration.check('jobRun'):
+            return self.runJob(self.temp_configuration.jobRun)
+        elif interactive:
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
             return APP_SUCCESS if r is True else APP_FAIL
         return APP_SUCCESS
+
+    def ask_update_default_application(self, dont_ask_checkbox=True):
+        dialog = QtGui.QDialog()
+        dialog.setWindowTitle(u"Install .vt .vtl handler")
+        layout = QtGui.QVBoxLayout()
+        dialog.setLayout(layout)
+        layout.addWidget(QtGui.QLabel(u"Install VisTrails as default handler "
+                                      u"to open .vt and .vtl files?"))
+        if dont_ask_checkbox:
+            dont_ask = QtGui.QCheckBox(u"Don't ask on startup")
+            dont_ask_setting = self.configuration.check('handlerDontAsk')
+            dont_ask.setChecked(dont_ask_setting)
+            layout.addWidget(dont_ask)
+        buttons = QtGui.QDialogButtonBox(
+                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
+        layout.addWidget(buttons)
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
+                     dialog, QtCore.SLOT('accept()'))
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
+                     dialog, QtCore.SLOT('reject()'))
+
+        res = dialog.exec_()
+        if dont_ask_checkbox:
+            if dont_ask.isChecked() != dont_ask_setting:
+                self.configuration.handlerDontAsk = dont_ask.isChecked()
+                self.configuration.handlerDontAsk = dont_ask.isChecked()
+        if res != QtGui.QDialog.Accepted:
+            return False
+        if system.systemType == 'Linux':
+            if not linux_update_default_application():
+                QtGui.QMessageBox.warning(
+                        None,
+                        u"Install .vt .vtl handler",
+                        u"Couldn't set VisTrails as default handler "
+                        u"to open .vt and .vtl files")
+                return False
+        else:
+            QtGui.QMessageBox.warning(
+                    None,
+                    u"Install .vt .vtl handler",
+                    u"Can't install a default handler on this platform")
+            return False
+        return True
 
     def is_running_gui(self):
         return True
@@ -304,12 +369,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def send_notification(self, notification_id, *args):
         # do global notifications
         if notification_id in self.notifications:
-            # print 'global notification ', notification_id
             for m in self.notifications[notification_id]:
                 try:
-                    #print "  m: ", m
                     m(*args)
-                except Exception, e:
+                except Exception:
                     import traceback
                     traceback.print_exc()
         notifications = {}
@@ -319,19 +382,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # do window notifications
         if current_window in self.window_notifications:
             notifications = self.window_notifications[current_window]
-            # print 'window notification', notification_id, current_window
 
-        if notification_id in notifications:
-            # print "found notification:", notification_id
-            for m in notifications[notification_id]:
-                try:
-                    # print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
-        # else:
-        #     print "no notification...", notifications.keys()
+            if notification_id in notifications:
+                for m in notifications[notification_id]:
+                    try:
+                        m(*args)
+                    except Exception:
+                        import traceback
+                        traceback.print_exc()
 
         if current_window is not None:
             current_view = current_window.current_view
@@ -340,16 +398,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # do local notifications
         if current_view in self.view_notifications:
             notifications = self.view_notifications[current_view]
-            # print 'local notification ', notification_id, current_view
-                
-        if notification_id in notifications:
-            for m in notifications[notification_id]:
-                try:
-                    #print "  m: ", m
-                    m(*args)
-                except Exception, e:
-                    import traceback
-                    traceback.print_exc()
+
+            if notification_id in notifications:
+                for m in notifications[notification_id]:
+                    try:
+                        m(*args)
+                    except Exception:
+                        import traceback
+                        traceback.print_exc()
 
     def showBuilderWindow(self):
         # in some systems (Linux and Tiger) we need to make both calls
@@ -372,13 +428,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()
         
+        self.builderWindow.check_running_jobs()
         self.process_interactive_input()
         if self.temp_configuration.showWindow:
             self.showBuilderWindow()
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
-        self.builderWindow.check_running_jobs()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -414,6 +470,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             vt_list = []
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
+                if not f_name:
+                    debug.critical("File not found: %s" % filename)
+                    return False
                 if not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                 else:
@@ -435,8 +494,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             ok = locator.update_from_console()
                         if not ok:
                             debug.critical("Cannot login to database")
-                if f_name and version:
-                    w_list.append((locator, version))
+                w_list.append((locator, version))
                 vt_list.append(locator)
             import vistrails.core.console_mode
             if self.temp_db_options.parameters == None:
@@ -528,8 +586,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         self.setupSplashScreen()
-        if system.systemType in ['Darwin']:
-            self.installEventFilter(self)
 
         # This is so that we don't import too many things before we
         # have to. Otherwise, requirements are checked too late.
@@ -596,7 +652,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.temp_configuration.batch = False
             
             try:
+                # redirect stdout
+                old_stdout = sys.stdout
+                sys.stdout = StringIO.StringIO()
                 result = self.parse_input_args_from_other_instance(str(byte_array))
+                output = sys.stdout.getvalue()
+                sys.stdout.close()
+                sys.stdout = old_stdout
             except Exception, e:
                 import traceback
                 debug.critical("Unknown error: %s" % str(e))
@@ -609,6 +671,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 result = "Command Failed"
             elif type(result) == list:
                 result = '\n'.join(result[1])
+            if result == "Command Completed" and output:
+                result += '\n' + output
             self.shared_memory.lock()
             local_socket.write(bytes(result))
             self.shared_memory.unlock()
@@ -625,8 +689,17 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             local_socket = QtNetwork.QLocalSocket(self)
             local_socket.connectToServer(self._unique_key)
             if not local_socket.waitForConnected(self.timeout):
-                debug.critical("Connection failed: %s" %
-                               local_socket.errorString())
+                msg = ("VisTrails found a socket to another instance of the "
+                       "application but was unable to communicate with it. If "
+                       "you don't have any other instance running, please "
+                       "delete the socket:\n%s" % self._unique_key)
+                debug.critical(
+                        "Connection failed: %s\n"
+                        "\n"
+                        "%s" % (local_socket.errorString(), msg))
+                QtGui.QMessageBox.critical(None,
+                                           "VisTrails single-instance mode",
+                                           msg)
                 return False
             self.shared_memory.lock()
             local_socket.write(message)
@@ -641,8 +714,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 return False
             byte_array = local_socket.readAll()
             result = str(byte_array)
-            debug.log("Other instance processed input (%s)"%result)
-            if result != 'Command Completed':
+            print "Other instance processed input: %s" % result
+            if not result.startswith('Command Completed'):
                 debug.critical(result)
             else:
                 local_socket.disconnectFromServer()
@@ -663,7 +736,23 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
                 self.readOptions()
-                interactive = not self.temp_configuration.check('batch')
+                if self.temp_configuration.check('jobList'):
+                    job = JobMonitor.getInstance()
+                    return '\n'.join(
+                        ["JOB: %s %s %s %s %s" %(i,
+                                                 j.vistrail,
+                                                 j.version,
+                                                 j.start,
+                              "FINISHED" if j.completed() else "RUNNING")
+                         for i, j in job._running_workflows.iteritems()])
+                if self.temp_configuration.check('jobRun'):
+                    # skip waiting for completion
+                    autoRun = self.configuration.check('autoRun')
+                    self.configuration.autoRun = True
+                    result = self.runJob(self.temp_configuration.jobRun)
+                    self.configuration.autoRun = autoRun
+                    return result == APP_SUCCESS
+                interactive = self.temp_configuration.check('batch')
                 if interactive:
                     result = self.process_interactive_input()
                     if self.temp_configuration.showWindow:
@@ -680,31 +769,49 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Invalid input: %s" % msg)
         return False
 
-def linux_update_default_application():
-    """ update_default_application() -> None
-        For Linux - checks if we should install vistrails as the default
-        application for.vt and .vtl files
+    def runJob(self, job_id):
+        jobMonitor = JobMonitor.getInstance()
+        workflow = jobMonitor.getWorkflow(job_id)
+        if not workflow:
+            print "No job with that id exists"
+            return APP_FAIL
+        locator = BaseLocator.from_url(workflow.vistrail)
+        jobMonitor.startWorkflow(workflow)
+        import vistrails.core.console_mode
+        error = vistrails.core.console_mode.run([(locator, workflow.version)],
+                                                update_vistrail=True)
+        return APP_SUCCESS
+
+
+def linux_default_application_set():
+    """linux_default_application_set() -> True|False|None
+    For Linux - checks if a handler is set for .vt and .vtl files.
     """
     command = ['xdg-mime', 'query', 'filetype',
                os.path.join(system.vistrails_examples_directory(),
                             'terminator.vt')]
-    #print command
     try:
         output = []
         result = system.execute_cmdline(command, output)
         if result != 0:
             # something is wrong, abort
-            print "Error installing mimetypes: %s" % output[0]
-            return
+            debug.warning("Error checking mimetypes: %s" % output[0])
+            return None
     except OSError, e:
-        print "Error installing mimetypes: %s" % e.message
-        return
-    #print 'application/x-vistrails', output[0].strip()
+        debug.warning("Error checking mimetypes: %s" % e.message)
+        return None
     if 'application/x-vistrails' == output[0].strip():
-        # already installed
-        return
-    #print "installing mime types"
+        return True
+    return False
 
+def linux_update_default_application():
+    """ update_default_application() -> None
+    For Linux - checks if we should install vistrails as the default
+    application for .vt and .vtl files.
+    If replace is False, don't replace an existing handler.
+
+    Returns True if installation succeeded.
+    """
     root = system.vistrails_root_directory()
     home = os.path.expanduser('~')
 
@@ -718,8 +825,8 @@ def linux_update_default_application():
     except OSError, e:
         result = None
     if result != 0:
-        return
-    #print "install xml", command, result, output
+        debug.warning("Error running xdg-mime")
+        return False
 
     command = ['update-mime-database', home + '/.local/share/mime']
     output = []
@@ -728,8 +835,8 @@ def linux_update_default_application():
     except OSError, e:
         result = None
     if result != 0:
-        return
-    #print command, result, output
+        debug.warning("Error running update-mime-database")
+        return False
 
     # install icon
     command = ['xdg-icon-resource', 'install',
@@ -744,9 +851,8 @@ def linux_update_default_application():
     except OSError, e:
         result = None
     if result != 0:
-        return
-    #print "install icon", command, result, output
-
+        debug.warning("Error running xdg-icon-resource")
+        return True # the handler is set anyway
 
     # install desktop file
     dirs = [home + '/.local', home + '/.local/share',
@@ -757,47 +863,42 @@ def linux_update_default_application():
             os.mkdir(d)
     desktop = """[Desktop Entry]
 Name=VisTrails
-Exec=python """ + root + """/run.py %f
-Icon=""" + root + """/gui/resources/images/vistrails_icon_small.png
+Exec=python {root}/run.py %f
+Icon={root}/gui/resources/images/vistrails_icon_small.png
 Type=Application
 MimeType=application/x-vistrails
-"""
-    #print "desktop:\n", desktop
+""".format(root=root)
     f = open(os.path.join(dirs[2], 'vistrails.desktop'), 'w')
     f.write(desktop)
     f.close()
 
     command = ['update-desktop-database', dirs[2]]
     output = []
-    result = system.execute_cmdline(command, output)
-    #print command, result, output
+    try:
+        result = system.execute_cmdline(command, output)
+    except OSError, e:
+        result = None
+    if result != 0:
+        debug.warning("Error running update-desktop-database")
+    return True
 
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
 def start_application(optionsDict=None):
     """Initializes the application singleton."""
-    if system.systemType in ['Linux']:
-        linux_update_default_application()
     VistrailsApplication = get_vistrails_application()
     if VistrailsApplication:
         debug.critical("Application already started.")
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    
-    try:
-        vistrails.core.requirements.check_all_vistrails_requirements()
-    except vistrails.core.requirements.MissingRequirement, e:
-        msg = ("VisTrails requires %s to properly run.\n" %
-               e.requirement)
-        debug.critical("Missing requirement", msg)
-        sys.exit(1)
     x = VistrailsApplication.init(optionsDict)
     return x
 
 def stop_application():
     """Stop and finalize the application singleton."""
+    JobMonitor.getInstance().save_to_file()
     VistrailsApplication = get_vistrails_application()
     VistrailsApplication.finishSession()
     VistrailsApplication.save_configuration()

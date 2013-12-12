@@ -41,6 +41,8 @@ import platform
 import tempfile
 import warnings
 
+from vistrails.core.utils import VistrailsDeprecation
+
 
 __all__ = ['touch', 'mkdir', 'python_version',
            'current_user', 'current_ip', 'current_time',
@@ -128,5 +130,5 @@ def temporary_directory():
     warnings.warn(
             "temporary_directory() is deprecated; use the tempfile module "
             "instead",
-            category=DeprecationWarning)
+            category=VistrailsDeprecation)
     return tempfile.gettempdir()

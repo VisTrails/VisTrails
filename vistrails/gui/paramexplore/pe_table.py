@@ -45,7 +45,7 @@ from vistrails.gui.utils import show_warning
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.system import current_time
+from vistrails.core.system import current_time, strftime
 from vistrails.core.paramexplore.param import PEParam
 from vistrails.core.paramexplore.function import PEFunction
 from vistrails.core.vistrail.module import Module as VistrailModule
@@ -134,7 +134,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         """
         # Construct xml for persisting parameter exploration
         escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
-        timestamp = current_time().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         palette = self.get_palette()
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.table.label.getCounts()), str(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
@@ -211,7 +211,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                 functions.append(function)
         pe = ParameterExploration(dims=str(self.table.label.getCounts()),
                       layout=repr(palette.virtual_cell.getConfiguration()[2]),
-                      date=current_time().strftime('%Y-%m-%d %H:%M:%S'),
+                      date=strftime(current_time(), '%Y-%m-%d %H:%M:%S'),
                       user=getuser(),
                       functions=functions)
         return pe

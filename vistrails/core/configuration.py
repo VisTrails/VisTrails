@@ -421,7 +421,8 @@ base_config = {
      ConfigField('dbDefault', False, bool, ConfigType.ON_OFF),
      ConfigField('cache', True, bool, ConfigType.ON_OFF),
      ConfigField('stopOnError', True, bool, ConfigType.ON_OFF),
-     ConfigField('executionLog', False, bool, ConfigType.ON_OFF),
+     ConfigField('executionLog', True, bool, ConfigType.ON_OFF),
+     ConfigField('errorLog', True, bool, ConfigType.ON_OFF),
      ConfigField('defaultFileType', system.vistrails_default_file_type(), str,
                  widget_type="combo",
                  widget_options={"allowed_values": [".vt", ".xml"],
@@ -455,7 +456,10 @@ base_config = {
      ConfigFieldParent('shell', 
         [ConfigField('fontFace', system.shell_font_face(), str),
          ConfigField('fontSize', system.shell_font_size(), int)]),
-     ConfigField('maxRecentVistrails', 5, int)],
+     ConfigField('maxRecentVistrails', 5, int),
+     ConfigField('showHistoryViewOnLoad', False, bool, ConfigType.SHOW_HIDE),
+     ConfigField('showPipelineViewOnLoad', False, bool, ConfigType.SHOW_HIDE)],
+    
     "Thumbnails":
     [ConfigFieldParent('thumbs', 
         [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
@@ -497,8 +501,14 @@ base_config = {
     [ConfigField('recentVistrailList', None, str, ConfigType.STORAGE),
      ConfigField('runningJobsList', None, str, ConfigType.STORAGE),
      ConfigField('isInServerMode', False, bool, ConfigType.INTERNAL),
-     ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL)],
-    
+     ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL),
+     ConfigField('handlerDontAsk', False, bool, ConfigType.INTERNAL),
+     ConfigField('spawned', False, bool, ConfigType.INTERNAL)],
+    "Jobs":
+    [ConfigField('jobCheckInterval', 10, int),
+     ConfigField('jobAutorun', False, bool),
+     ConfigField('jobRun', None, str),
+     ConfigField('jobList', False, bool)],
 }                
                 
 # FIXME make sure that the platform-specific configs are added!
@@ -1114,7 +1124,7 @@ class ConfigurationObject(DBConfiguration):
 # def default_shell():
 #     """default_shell() -> ConfigurationObject
 #     Returns the default configuration for the VisTrails shell
-    
+#    
 #     """
 #     if system.systemType == 'Linux':
 #         shell_dir = {

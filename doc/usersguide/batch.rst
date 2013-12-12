@@ -366,7 +366,7 @@ One other feature that we're working on, but is still in progress is the ability
 
 .. code-block:: python
 
-   vtk = load_package('edu.utah.sci.vistrails.vtk')
+   vtk = load_package('org.vistrails.vistrails.vtk')
    vtk.vtkDataSetReader() # adds a vtkDataSetReader module to the pipeline
    # click on the new module
    a = selected_modules()[0] # get the one currently selected module

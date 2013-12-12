@@ -91,7 +91,8 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
                           QtCore.Qt.ItemIsEditable)
 
     def change_value(self, new_value):
-        if self._parent_obj:
+        # if this is a parent ConfigurationObject, do nothing
+        if self._parent_obj and not self._obj_type == ConfigurationObject:
             setattr(self._parent_obj, self._name, self._obj_type(new_value))
             setattr(self._temp_parent_obj, self._name, self._obj_type(new_value))
 
@@ -261,9 +262,70 @@ class QConfigurationPane(QtGui.QWidget):
             layout.addWidget(label)
             self.process_fields(layout, fields)
 
-        layout.addStretch(1)
-                
+        self.create_default_handler_button(self, layout)
+
+        layout.addStretch(1)                
         # need to determine different types
+
+    def create_default_handler_button(self, parent, layout):
+        if vistrails.core.system.systemType == 'Linux':
+            from vistrails.gui.application import linux_default_application_set
+            from vistrails.core.application import get_vistrails_application
+
+            group = QtGui.QGroupBox(u"Open .vt .vtl files with VisTrails")
+            layout.addWidget(group)
+            layout2 = QtGui.QHBoxLayout()
+            group.setLayout(layout2)
+
+            if linux_default_application_set():
+                label = u".vt .vtl has a handler set"
+            else:
+                label = u".vt .vtl has no handler"
+            self._handler_status = QtGui.QLabel(label)
+
+            def set_dont_ask(state):
+                self._configuration.handlerDontAsk = bool(state)
+                self._temp_configuration.handlerDontAsk = bool(state)
+                self.emit(QtCore.SIGNAL('configuration_changed'),
+                        'handlerDontAsk', bool(state))
+            self._handler_dont_ask = QtGui.QCheckBox(u"Don't ask at startup")
+            self.connect(self._handler_dont_ask,
+                         QtCore.SIGNAL('stateChanged(int)'),
+                         set_dont_ask)
+
+            def install():
+                app = get_vistrails_application()
+                if app.ask_update_default_application(False):
+                    self._handler_status.setText(u".vt .vtl has a handler set")
+            install_button = QtGui.QPushButton(u"Install handler")
+            self.connect(install_button, QtCore.SIGNAL('clicked()'),
+                         install)
+
+            layout2.addWidget(self._handler_status)
+            layout2.addWidget(self._handler_dont_ask)
+            layout2.addWidget(install_button)
+
+    def update_state(self, persistent_config, temp_config):
+        """ update_state(configuration: VistrailConfiguration) -> None
+        
+        Update the dialog state based on a new configuration
+        """
+        
+        self._configuration = persistent_config
+        self._temp_configuration = temp_config
+
+        #Default handler
+        if vistrails.core.system.systemType == 'Linux':
+            from vistrails.gui.application import \
+                linux_default_application_set, linux_update_default_application
+
+            if linux_default_application_set():
+                self._handler_status.setText(u".vt .vtl has a handler set")
+            else:
+                self._handler_status.setText(u".vt .vtl has no handler")
+
+            self._handler_dont_ask.setChecked(
+                    self._configuration.check('handlerDontAsk'))
 
     def process_fields(self, layout, fields, parent_fields=[], prev_field=None, 
                        prefix=""):

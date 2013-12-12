@@ -125,7 +125,19 @@ Depending on a number of factors, it can take a few seconds for the
 system to start up. As |vistrails| loads, you may see some messages
 that detail the packages being loaded and initialized. This is normal
 operation, but if the system fails to load, these messages will
-provide information that may help you understand why.  
+provide information that may help you understand why.
+
+Installing additional packages
+==============================
+
+|vistrails| releases come with a number of packages already installed. In
+addition to these, you can write your own packages or install packages from
+third-party developers. To do that, just drop the Python module (single file)
+or package (i.e. directory) in ``$HOME/.vistrails/userpackages/`` (|vistrails|
+should automatically create this folder on the first run).
+
+You can then enable and disable standard or user packages from the preferences
+dialog, under the module packages tab.
 
 The Vistrails Builder Window
 ============================

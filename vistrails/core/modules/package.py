@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import copy
+import inspect
 from itertools import chain
 import os
 import re
@@ -258,9 +259,9 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
 
-    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/',
+    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/(vistrails)?',
                                    re.IGNORECASE)
-    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/',
+    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/(vistrails)?',
                                    re.IGNORECASE)
     def import_override(self, orig_import,
                         name, globals, locals, fromlist, level,
@@ -282,8 +283,9 @@ class Package(DBPackage):
                 return True
             if os.sep != '/':
                 pkg_fname = pkg_fname.replace(os.sep, '/')
-            return (self._python_lib_regex.search(pkg_fname) or
-                    self._lib_python_regex.search(pkg_fname))
+            m1 = self._python_lib_regex.search(pkg_fname)
+            m2 = self._lib_python_regex.search(pkg_fname)
+            return (m1 and not m1.group(0)) or (m2 and not m2.group(0))
 
         sys_modules = sys.modules.keys()
 
@@ -413,6 +415,9 @@ class Package(DBPackage):
         if not self._loaded:
             raise VistrailsInternalError("Called initialize() on non-loaded "
                                          "Package %s" % self.codepath)
+
+        self.check_requirements()
+
         try:
             name = self.prefix + self.codepath + '.init'
             try:
@@ -440,7 +445,6 @@ class Package(DBPackage):
                         setattr(self._init_module, attr, getattr(self._module, attr))
                 self._module = self._init_module
 
-            self.check_requirements()
             if hasattr(self._init_module, 'initialize'):
                 self._init_module.initialize()
         except Exception:
@@ -474,11 +478,12 @@ class Package(DBPackage):
             except AttributeError:
                 v = self._module
             raise e
-        if hasattr(self._module, '__doc__') and self._module.__doc__:
-            self.description = self._module.__doc__
+        descr = inspect.getdoc(self._module)
+        if descr:
+            self.description = re.sub('^ *\n', '', descr.rstrip())
         else:
-            self.description = "No description available"
-            
+            self.description = "(No description available)"
+
     def can_handle_all_errors(self):
         return hasattr(self._init_module, 'handle_all_errors')
 
@@ -488,15 +493,27 @@ class Package(DBPackage):
     def can_handle_identifier(self, identifier):
         """ Asks package if it can handle this package
         """
-        return hasattr(self.init_module, 'can_handle_identifier') and \
-            self.init_module.can_handle_identifier(identifier)
+        try:
+            return (hasattr(self.init_module, 'can_handle_identifier') and
+                    self.init_module.can_handle_identifier(identifier))
+        except Exception, e:
+            debug.critical("Got exception calling %s's can_handle_identifier: "
+                           "%s: %s" % (self.name,
+                                       type(e).__name__, ', '.join(e.args)))
+            return False
 
     def can_handle_vt_file(self, name):
         """ Asks package if it can handle a file inside a zipped vt file
         """
-        return hasattr(self.init_module, 'can_handle_vt_file') and \
-            self.init_module.can_handle_vt_file(name)
-    
+        try:
+            return (hasattr(self.init_module, 'can_handle_vt_file') and
+                    self.init_module.can_handle_vt_file(name))
+        except Exception, e:
+            debug.critical("Got exception calling %s's can_handle_vt_file: "
+                           "%s: %s" % (self.name,
+                                       type(e).__name__, ', '.join(e.args)))
+            return False
+
     def can_handle_missing_modules(self):
         return hasattr(self._init_module, 'handle_missing_module')
 
@@ -513,7 +530,6 @@ class Package(DBPackage):
         present, to allow the package to dynamically add a missing
         module.
         """
-        
         return self._init_module.handle_missing_module(*args, **kwargs)
 
     def add_abs_upgrade(self, new_desc, name, namespace, module_version):
@@ -555,11 +571,21 @@ class Package(DBPackage):
 
     def loadVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
-            self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
+            try:
+                self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
+            except Exception, e:
+                debug.critical("Got exception in %s's loadVistrailFileHook(): "
+                               "%s: %s" % (self.name, type(e).__name__,
+                                           ', '.join(e.args)))
 
     def saveVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
-            self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
+            try:
+                self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
+            except Exception, e:
+                debug.critical("Got exception in %s's saveVistrailFileHook(): "
+                               "%s: %s" % (self.name, type(e).__name__,
+                                           ', '.join(e.args)))
 
     def check_requirements(self):
         try:
@@ -575,7 +601,11 @@ class Package(DBPackage):
         except AttributeError:
             return None
         else:
-            return callable_()
+            try:
+                return callable_()
+            except Exception, e:
+                debug.critical("Couldn't load menu items for %s: %s: %s" % (
+                               self.name, type(e).__name__, ', '.join(e.args)))
 
     def finalize(self):
         if not self._initialized:
@@ -586,7 +616,11 @@ class Package(DBPackage):
         except AttributeError:
             pass
         else:
-            callable_()
+            try:
+                callable_()
+            except Exception, e:
+                debug.critical("Couldn't finalize %s: %s: %s" % (
+                               self.name, type(e).__name__, ', '.join(e.args)))
         # Save configuration
         if self.load_configuration and self.configuration is not None:
             self.persist_configuration()
@@ -601,7 +635,11 @@ class Package(DBPackage):
         except AttributeError:
             deps = []
         else:
-            deps = callable_()
+            try:
+                deps = callable_()
+            except Exception, e:
+                debug.critical("Couldn't get dependencies of %s: %s: %s" % (
+                               self.name, type(e).__name__, ', '.join(e.args)))
 
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):

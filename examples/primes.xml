@@ -254,7 +254,7 @@
       <port id="15" moduleId="11" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
     <add id="80" objectId="14" parentObjId="7" parentObjType="connection" what="port">
-      <port id="14" moduleId="1" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+      <port id="14" moduleId="1" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Boolean)" type="source" />
     </add>
     <add id="81" objectId="8" parentObjId="" parentObjType="" what="connection">
       <connection id="8" />
@@ -641,7 +641,7 @@
           </connection>
           <connection id="8">
             <port id="15" moduleId="12" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
-            <port id="16" moduleId="2" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+            <port id="16" moduleId="2" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Boolean)" type="source" />
           </connection>
           <connection id="9">
             <port id="17" moduleId="7" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
@@ -1230,7 +1230,7 @@
               </connection>
               <connection id="8">
                 <port id="15" moduleId="12" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
-                <port id="16" moduleId="2" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+                <port id="16" moduleId="2" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Boolean)" type="source" />
               </connection>
               <connection id="9">
                 <port id="17" moduleId="7" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
@@ -1936,7 +1936,7 @@
                   </connection>
                   <connection id="8">
                     <port id="15" moduleId="12" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
-                    <port id="16" moduleId="2" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+                    <port id="16" moduleId="2" moduleName="And" name="Result" signature="(org.vistrails.vistrails.basic:Boolean)" type="source" />
                   </connection>
                   <connection id="9">
                     <port id="17" moduleId="7" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
