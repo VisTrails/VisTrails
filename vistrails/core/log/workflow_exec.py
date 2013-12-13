@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from vistrails.core.log.machine import Machine
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.group_exec import GroupExec
 from vistrails.core.log.loop_exec import LoopExec
@@ -59,6 +61,8 @@ class WorkflowExec(DBWorkflowExec):
         _wf_exec.__class__ = WorkflowExec
         for annotation in _wf_exec.annotations:
             Annotation.convert(annotation)
+        for machine in _wf_exec.machine_list:
+            Machine.convert(machine)
         for item_exec in _wf_exec.item_execs:
             if item_exec.vtType == ModuleExec.vtType:
                 ModuleExec.convert(item_exec)
@@ -104,3 +108,12 @@ class WorkflowExec(DBWorkflowExec):
     item_execs = property(_get_item_execs, _set_item_execs)
     def add_item_exec(self, item_exec):
         self.db_add_item_exec(item_exec)
+
+    def _get_machines(self):
+        return self.db_machines_id_index
+    machines = property(_get_machines)
+    def _get_machine_list(self):
+        return self.db_machines
+    machine_list = property(_get_machine_list)
+    def add_machine(self, machine):
+        self.db_add_machine(machine)

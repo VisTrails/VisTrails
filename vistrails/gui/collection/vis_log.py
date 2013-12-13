@@ -37,7 +37,7 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.group_exec import GroupExec
-from vistrails.core.log.loop_exec import LoopExec
+from vistrails.core.log.loop_exec import LoopExec, LoopIteration
 from vistrails.core.log.workflow_exec import WorkflowExec
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
@@ -83,7 +83,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 self.setText(0, execution.db_name)
             else:
                 self.setText(0, 'Version #%s' % execution.parent_version )
-        if isinstance(execution, ModuleExec):
+        elif isinstance(execution, ModuleExec):
             for loop_exec in execution.loop_execs:
                 QExecutionItem(loop_exec, self)
             if execution.completed == 1:
@@ -99,7 +99,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, '%s' % execution.module_name)
-        if isinstance(execution, GroupExec):
+        elif isinstance(execution, GroupExec):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == 1:
@@ -115,7 +115,12 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Group')
-        if isinstance(execution, LoopExec):
+        elif isinstance(execution, LoopExec):
+            for iteration in execution.loop_iterations:
+                QExecutionItem(iteration, self)
+            brush = CurrentTheme.MODULE_BRUSH
+            self.setText(0, 'Loop')
+        elif isinstance(execution, LoopIteration):
             for item_exec in execution.item_execs:
                 QExecutionItem(item_exec, self)
             if execution.completed == 1:
@@ -128,7 +133,8 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 brush = CurrentTheme.SUSPENDED_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
-            self.setText(0, 'Loop #%s' % execution.db_iteration)
+            self.setText(0, 'Iteration #%s' % execution.iteration)
+
         self.setText(1, '%s' % execution.ts_start)
         self.setText(2, '%s' % execution.ts_end)
         pixmap = QtGui.QPixmap(10,10)
