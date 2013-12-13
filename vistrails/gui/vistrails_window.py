@@ -936,7 +936,6 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def create_view(self, vistrail, locator,  abstraction_files=None, 
                     thumbnail_files=None, mashups=None):
-        from vistrails.gui.collection.workspace import QWorkspaceWindow
         view = QVistrailView(vistrail, locator, abstraction_files,
                              thumbnail_files, mashups)
         self.vistrail_widgets.append(view)
@@ -947,9 +946,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                 view.get_notifications().iteritems():
             for method in method_list:
                 self.register_notification(notification_id, method, True, view)
-
-        QWorkspaceWindow.instance().add_vt_window(view)
-
         return view
 
     def remove_view(self, view):
@@ -1447,6 +1443,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                     # un-remember first view when it is changed
                     if self._first_view:
                         self._first_view = None
+                else:
+                    self.qactions['saveFile'].setEnabled(False)
                 self.qactions['saveFileAs'].setEnabled(True)
                 self.qactions['closeVistrail'].setEnabled(True)
             else:
@@ -1455,6 +1453,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 window.raise_()
                 if self.current_view.has_changes():
                     window.qactions['saveFile'].setEnabled(True)
+                else:
+                    window.qactions['saveFile'].setEnabled(False)
                 window.qactions['saveFileAs'].setEnabled(True)
                 window.qactions['closeVistrail'].setEnabled(True)
         else:
@@ -1628,13 +1628,17 @@ class QVistrailsWindow(QVistrailViewWindow):
         given version.
 
         """
+        old_view = self.getViewFromLocator(locator)
         self.close_first_vistrail_if_necessary()
         
         get_vistrails_application().open_vistrail(locator, version, 
                                                   is_abstraction)
-        from vistrails.gui.collection.workspace import QWorkspaceWindow
         view = self.get_current_view()
         view.is_abstraction = view.controller.is_abstraction
+        if not old_view:
+            # it was not already open
+            from vistrails.gui.collection.workspace import QWorkspaceWindow
+            QWorkspaceWindow.instance().add_vt_window(view)
         return view
 
     def open_vistrail_from_locator(self, locator_class):
@@ -1657,13 +1661,16 @@ class QVistrailsWindow(QVistrailViewWindow):
                         version = locator._vtag
             mashuptrail = None
             mashupversion = None
+            execute = False
             if hasattr(locator, '_mshptrail'):
                 mashuptrail = locator._mshptrail
             if hasattr(locator, '_mshpversion'):
                 mashupversion = locator._mshpversion
+                execute = True
             self.open_vistrail_without_prompt(locator, version, 
                                               mashuptrail=mashuptrail,
-                                              mashupVersion=mashupversion)
+                                              mashupVersion=mashupversion,
+                                              execute_workflow=execute)
             self.set_current_locator(locator)
 
     def executeParameterExploration(self, pe_id):
@@ -1717,6 +1724,10 @@ class QVistrailsWindow(QVistrailViewWindow):
             if 'mashupVersion' in locator.kwargs:
                 mashupVersion = locator.kwargs['mashupVersion']
                 del locator.kwargs['mashupVersion']
+            if 'mashup' in locator.kwargs:
+                if not mashupVersion:
+                    mashupVersion = locator.kwargs['mashup']
+                del locator.kwargs['mashup']
             
         if not locator.is_valid():
             ok = locator.update_from_gui(self)
@@ -1739,7 +1750,12 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.qactions['pipeline'].trigger()
                 
             if mashuptrail is not None and mashupVersion is not None:
-                view.open_mashup_from_mashuptrail_id(mashuptrail, mashupVersion)
+                mashup = view.get_mashup_from_mashuptrail_id(mashuptrail,
+                                                             mashupVersion)
+                if execute_workflow:
+                    view.open_mashup(mashup)
+                else:
+                    view.edit_mashup(mashup)
             elif parameterExploration is not None:
                 view.open_parameter_exploration(parameterExploration)
             elif execute_workflow:
