@@ -489,7 +489,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             try:
                 obj.update()
                 continue
-            except (ModuleHadError, ModuleWasSuspended):
+            except ModuleWasSuspended:
+                continue
+            except ModuleHadError:
                 pass
             except AbortExecution:
                 break
