@@ -88,6 +88,10 @@ class ModuleHadError(Exception):
     def __init__(self, module):
         self.module = module
 
+class ModuleWasSuspended(ModuleHadError): 
+    """Exception occurring when a module that was suspended gets updated again. 
+    """
+
 class ModuleError(Exception):
 
     """Exception representing a VisTrails module runtime error. This
@@ -256,6 +260,7 @@ Designing New Modules
         self.outputPorts = {}
         self.upToDate = False
         self.had_error = False
+        self.was_suspended = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -373,6 +378,8 @@ context."""
         """
         if self.had_error:
             raise ModuleHadError(self)
+        elif self.was_suspended:
+            raise ModuleWasSuspended(self)
         elif self.computed:
             return
         self.logging.begin_update(self)
@@ -395,6 +402,7 @@ context."""
         except ModuleSuspended, e:
             self.suspended = e.msg
             self._module_suspended = e
+            self.had_error, self.was_suspended = False, True
             self.logging.end_update(self, e, was_suspended=True)
             self.logging.signalSuspended(self)
             return
