@@ -1666,7 +1666,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 mashuptrail = locator._mshptrail
             if hasattr(locator, '_mshpversion'):
                 mashupversion = locator._mshpversion
-                execute = True
+                if mashupversion:
+                    execute = True
             self.open_vistrail_without_prompt(locator, version, 
                                               mashuptrail=mashuptrail,
                                               mashupVersion=mashupversion,
