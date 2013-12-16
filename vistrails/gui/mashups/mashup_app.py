@@ -620,5 +620,5 @@ class TestMashupApp(TestVisTrailsGUI):
         id = "d5026457-de6c-11e2-b074-3c07543dba07"
         mashup = view.get_mashup_from_mashuptrail_id(id, "loop")
         view.open_mashup(mashup)
-        masgup = view.get_mashup_from_mashuptrail_id(id, "no loop")
+        mashup = view.get_mashup_from_mashuptrail_id(id, "no loop")
         view.open_mashup(mashup)

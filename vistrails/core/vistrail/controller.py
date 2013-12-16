@@ -3157,8 +3157,12 @@ class VistrailController(object):
                     # FIXME: we should move the remapping to the db layer
                     # But we need to fix the schema by making functions/params
                     # foreign keys
-                    mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
-                    mashup.id = uuid.uuid1()
+
+                    #mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
+                    #mashup.id = uuid.uuid1()
+                    # we move it to the new version so that references still work
+                    self._mashups.remove(mashup)
+                    
                     for action in mashup.actions:
                         for alias in action.mashup.aliases:
                             c = alias.component
@@ -3175,8 +3179,8 @@ class VistrailController(object):
                     
                     new_mashups.append(mashup)
                 else:
-                    debug.warning("Cannot translate old parameter "
-                                  "explorations through upgrade.")
+                    debug.warning("Cannot translate old mashup "
+                                  "through upgrade.")
             
             if get_vistrails_configuration().check('upgradeDelay') and not force_no_delay:
                 self._delayed_actions.append(upgrade_action)

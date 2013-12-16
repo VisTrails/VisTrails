@@ -682,6 +682,8 @@ after self.init()"""
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
+        # flush in case version was upgraded
+        controller.flush_delayed_actions()
         return True
         
     def open_workflow(self, locator):
