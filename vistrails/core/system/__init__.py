@@ -127,12 +127,13 @@ __dataDir = os.path.realpath(os.path.join(__rootDir,
                                           'data'))
 __fileDir = os.path.realpath(os.path.join(__rootDir,
                                           '..','examples'))
-__examplesDir = __fileDir
 
 if systemType in ['Darwin'] and not os.path.exists(__fileDir):
     # Assume we are running from py2app
     __fileDir = os.path.realpath(os.path.join(__rootDir,
-                                              '/'.join(['..']*5),'examples'))
+                                              '/'.join(['..']*6),'examples'))
+
+__examplesDir = __fileDir
 
 __defaultFileType = '.vt'
 
