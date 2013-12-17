@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput, ModuleSuspended
+    ModuleConnector, InvalidOutput, ModuleSuspended, ModuleWasSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
     Float, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
@@ -70,11 +70,6 @@ class Fold(Module):
             self.element = element
             self.operation()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
         self.set_output('Result', self.partialResult)
 
     def setInitialValue(self): # pragma: no cover
@@ -99,22 +94,39 @@ class FoldWithModule(Fold):
     that this module will use.
     """
 
-    def __init__(self):
-        Fold.__init__(self)
-        self.is_looping_module = True
-
     def update_upstream(self):
         """A modified version of the update_upstream method."""
 
-        # everything is the same except that we don't update anything
-        # upstream of FunctionPort
+        # everything is the same except that we don't update the module on
+        # FunctionPort
+        suspended = []
+        was_suspended = None
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.update_upstream()
+                    try:
+                        connector.obj.update_upstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
             else:
                 for connector in connector_list:
-                    connector.obj.update()
+                    try:
+                        connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
         for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
@@ -141,6 +153,7 @@ class FoldWithModule(Fold):
             element_is_iter = True
             inputList = rawInputList
         suspended = []
+        loop = self.logging.begin_loop_execution(self, len(inputList))
         ## Update everything for each value inside the list
         for i, element in enumerate(inputList):
             self.logging.update_progress(self, float(i)/len(inputList))
@@ -148,6 +161,7 @@ class FoldWithModule(Fold):
                 self.element = element
             else:
                 self.element = element[0]
+            do_operation = True
             for connector in self.inputPorts.get('FunctionPort'):
                 module = copy.copy(connector.obj)
 
@@ -159,29 +173,37 @@ class FoldWithModule(Fold):
                     module.upToDate = False
                     module.computed = False
 
-                    ## Setting information for logging stuff
-                    module.is_looping = True
-                    module.first_iteration = i == 0
-                    module.last_iteration = i == len(inputList) - 1
-                    module.loop_iteration = i
-
                     self.setInputValues(module, nameInput, element)
 
-                module.update()
-                if hasattr(module, 'suspended') and module.suspended:
-                    suspended.append(module._module_suspended)
-                    module.suspended = False
+                loop.begin_iteration(module, i)
+
+                try:
+                    module.update()
+                except ModuleSuspended, e:
+                    suspended.append(e)
+                    do_operation = False
+                    loop.end_iteration(module)
                     continue
+
+                loop.end_iteration(module)
+
                 ## Getting the result from the output port
                 if nameOutput not in module.outputPorts:
                     raise ModuleError(module,
                                       'Invalid output port: %s' % nameOutput)
                 self.elementResult = module.get_output(nameOutput)
-            self.operation()
+            if do_operation:
+                self.operation()
+
+            self.logging.update_progress(self, i * 1.0 / len(inputList))
+
         if suspended:
-            self.suspended = "%d module(s) suspended: %s" % (
-                    len(suspended), suspended[0].msg)
-            self._module_suspended = suspended
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), len(inputList)),
+                    children=suspended)
+        loop.end_loop_execution()
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -255,11 +277,6 @@ class FoldWithModule(Fold):
 
         self.updateFunctionPort()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
         self.set_output('Result', self.partialResult)
 
 ###############################################################################

@@ -209,10 +209,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     continue
                 try:
                     # call queue
-                    job.jobFinished = job.queue.finished()
-                    # old version of BatchQ needs to call .val()
-                    if not isinstance(job.jobFinished, bool):
-                        job.jobFinished = job.jobFinished.val()
+                    job.jobFinished = self.jobMonitor.isDone(job.queue)
                     if job.jobFinished:
                         job.setText(1, "Finished")
                 except Exception, e:
@@ -285,7 +282,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
-            if not monitor or not monitor.finished():
+            if not monitor or not self.jobMonitor.isDone(monitor):
                 raise ModuleSuspended(module, 'Job is running', queue=monitor,
                                       job_id=id)
         workflowItem = self.workflowItems[workflow.id]
@@ -312,7 +309,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                                        % (item.job.name,
                                           item.job.start))
                 progress.setLabelText(labelText)
-                while not monitor.finished():
+                while not self.jobMonitor.isDone(monitor):
                     i = 0
                     while i < interval:
                         i += 1
@@ -335,7 +332,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                                        ' is still running', queue=monitor,
                                        job_id=id)
                 return
-        if not monitor or not monitor.finished():
+        if not monitor or not self.jobMonitor.isDone(monitor):
             raise ModuleSuspended(module, 'Job is running', queue=monitor,
                                   job_id=id)
         

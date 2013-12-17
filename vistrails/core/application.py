@@ -529,6 +529,8 @@ The builder window can be accessed by a spreadsheet menu option.")
                         mashuptrail = locator._mshptrail
                     if hasattr(locator, '_mshpversion'):
                         mashupversion = locator._mshpversion
+                        if mashupversion:
+                            execute = True
                     if not self.temp_configuration.showSpreadsheetOnly:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
@@ -692,6 +694,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
+        # flush in case version was upgraded
+        controller.flush_delayed_actions()
         return True
         
     def open_workflow(self, locator):

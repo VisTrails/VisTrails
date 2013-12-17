@@ -2910,7 +2910,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
-    def cancel_progress(self):
+    def check_progress_canceled(self):
         """Checks if the user have canceled the execution and takes
            appropriate action
         """
@@ -2945,7 +2945,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error,
+                                     QModuleStatusEvent(moduleId, 1, error.msg,
                                                         errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
@@ -2973,9 +2973,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         p = self.controller.progress
-        if p:
-            self.cancel_progress()
-            p.setValue(p.value() + 1)
+        if p is not None:
+            self.check_progress_canceled()
             pipeline = self.controller.current_pipeline
             module = pipeline.get_module_by_id(moduleId)
             p.setLabelText(module.name)
@@ -2989,9 +2988,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         p = self.controller.progress
-        if p:
+        if p is not None:
             try:
-                self.cancel_progress()
+                self.check_progress_canceled()
             except AbortExecution:
                 p._progress_canceled = True
                 raise
@@ -3015,6 +3014,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
+
+    def set_execution_progress(self, progress):
+        p = self.controller.progress
+        if p is not None:
+            p.setValue(int(progress * 100))
 
     def reset_module_colors(self):
         for module in self.modules.itervalues():

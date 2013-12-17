@@ -498,7 +498,7 @@ class JobMonitor:
 
         """
         if not self.currentWorkflow():
-            if not monitor or not monitor.finished():
+            if not monitor or not self.isDone(monitor):
                 raise ModuleSuspended(module, 'Job is running', queue=monitor,
                                       job_id=id)
         job = self.getJob(id)
@@ -512,7 +512,7 @@ class JobMonitor:
             if monitor:
                 # wait for module to complete
                 try:
-                    while not monitor.finished():
+                    while not self.isDone(monitor):
                         time.sleep(interval)
                         print ("Waiting for job: %s," 
                                "press Ctrl+C to suspend") % job.name
@@ -521,7 +521,7 @@ class JobMonitor:
                                            ' is still running', queue=monitor,
                                            job_id=id)
         else:
-            if not monitor or not monitor.finished():
+            if not monitor or not self.isDone(monitor):
                 raise ModuleSuspended(module, 'Job is running', queue=monitor,
                                       job_id=id)
 
@@ -560,6 +560,29 @@ class JobMonitor:
         for workflow in self._running_workflows.values():
             if workflow.vistrail == old:
                 workflow.vistrail = new
+
+    def isDone(self, monitor):
+        """ isDone(self, monitor) -> bool
+
+            A job is done when it reaches finished or failed state
+            val() is used by stable batchq branch
+        """
+        finished = monitor.finished()
+        if type(finished)==bool:
+            if finished:
+                return True
+        else:
+            if finished.val():
+                return True
+        if hasattr(monitor, 'failed'):
+            failed = monitor.failed()
+            if type(failed)==bool:
+                if failed:
+                    return True
+            else:
+                if failed.val():
+                    return True
+        return False
 
 ##############################################################################
 # Testing
