@@ -102,12 +102,13 @@ import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
 import vistrails.gui.application
-from vistrails.core.system import vistrails_root_directory
+from vistrails.core.system import vistrails_root_directory, \
+                                  vistrails_examples_directory
 
 ###############################################################################
 # Testing Examples
 
-EXAMPLES_PATH = os.path.join(_this_dir, '..', '..', 'examples')
+EXAMPLES_PATH = vistrails_examples_directory()
 #dictionary of examples that will be run with the workflows that will be ignored
 VT_EXAMPLES = { 'EMBOSS_webservices.vt': ["ProphetOutput"],
                 'KEGGPathway.vt': [],
