@@ -551,9 +551,14 @@ class VistrailController(object):
     @staticmethod
     def create_module_from_descriptor_static(id_scope, descriptor, 
                                              x=0.0, y=0.0, 
-                                             internal_version=-1):
+                                             internal_version=-1,
+                                             use_desc_pkg_version=False):
         reg = vistrails.core.modules.module_registry.get_module_registry()
-        package = reg.get_package_by_name(descriptor.identifier)
+        if not use_desc_pkg_version:
+            package = reg.get_package_by_name(descriptor.identifier)
+            pkg_version = package.version
+        else:
+            pkg_version = descriptor.package_version
         loc_id = id_scope.getNewId(Location.vtType)
         location = Location(id=loc_id,
                             x=x, 
@@ -561,7 +566,7 @@ class VistrailController(object):
                             )
         if internal_version > -1:
             # only get the current namespace if this is a local subworkflow
-            if package == abstraction_pkg:
+            if descriptor.identifier == abstraction_pkg:
                 namespace = get_cur_abs_namespace(descriptor.module.vistrail)
             else:
                 namespace = descriptor.namespace
@@ -570,7 +575,7 @@ class VistrailController(object):
                                  name=descriptor.name,
                                  package=descriptor.identifier,
                                  namespace=namespace,
-                                 version=package.version,
+                                 version=pkg_version,
                                  location=location,
                                  internal_version=internal_version,
                                  )
@@ -581,7 +586,7 @@ class VistrailController(object):
                            name=descriptor.name,
                            package=descriptor.identifier,
                            namespace=descriptor.namespace,
-                           version=package.version,
+                           version=pkg_version,
                            location=location,
                            )
         else:
@@ -590,7 +595,7 @@ class VistrailController(object):
                             name=descriptor.name,
                             package=descriptor.identifier,
                             namespace=descriptor.namespace,
-                            version=package.version,
+                            version=pkg_version,
                             location=location,
                             )
         module.is_valid = True
@@ -606,6 +611,20 @@ class VistrailController(object):
         d = reg.get_descriptor_by_name(identifier, name, namespace)
         static_call = VistrailController.create_module_from_descriptor_static
         return static_call(id_scope, d, x, y, internal_version)
+
+    def create_old_module(self, *args, **kwargs):
+        return self.create_old_module_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_old_module_static(id_scope, identifier, name, namespace='', 
+                                 version='', x=0.0, y=0.0, internal_version=-1):
+        dummy_d = ModuleDescriptor(name=name, 
+                                   package=identifier, 
+                                   namespace=namespace, 
+                                   package_version=version, 
+                                   internal_version=internal_version)
+        return VistrailController.create_module_from_descriptor_static(
+            id_scope, dummy_d, x, y, internal_version, True)
 
     def create_connection_from_ids(self, output_id, output_port_spec,
                                        input_id, input_port_spec):
