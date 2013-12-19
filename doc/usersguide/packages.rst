@@ -473,6 +473,65 @@ Note that this function is not strictly required in order to wrap third party ex
 
 For additional information or examples of any of the functions described above, please refer to the |vistrails| source code or contact the |vistrails| development team.
 
+Upgrades
+^^^^^^^^
+
+.. index::
+   pair: package; upgrades
+   single: upgrades
+
+When revising a package, it is important that workflows containing old
+modules can be translated to their corresponding new versions.  If no
+upgrade is explicitly specified, |vistrails| attempts to automatically
+upgrade the old module to the new version.  However, if a module's
+interface has changed (e.g. a port was added or removed or the name
+was changed), the automated upgrade will fail.  For such cases,
+|vistrails| provides hooks for developers to specify the upgrade
+paths.  The recommended method is to use the ``_upgrades`` attribute
+in the package to specify a dictionary where each key is a module name
+and the corresponding value is a list of potential upgrade paths for
+those modules.  The upgrade path is specified by an
+:py:class:`.UpgradeModuleRemap` instance which specifies the versions
+for which the upgrade is valid, the output version, the new module,
+and a set of remaps for module entities.  For example,
+
+.. code-block:: python
+   :linenos:
+
+   _upgrades = {"TestUpgradeA": 
+                [UpgradeModuleRemap('0.8', '0.9', '0.9', None,
+                                    function_remap={'a': 'aa'},
+                                    src_port_remap={'z': 'zz'}),
+                 UpgradeModuleRemap('0.9', '1.0', '1.0', None,
+                                    function_remap={'aa': 'aaa'},
+                                    src_port_remap={'zz': 'zzz'})]}
+
+Here, we have two upgrade paths for the module ``TestUpgradeA``.  The
+first works for version ``0.8`` through--but not including--``0.9``,
+and the second for ``0.9`` to ``1.0``.  The output versions are
+``0.9`` and ``1.0``, respectively, and both specify ``None`` as the
+new module type which means that the new module has the same name as
+the old one.  The new module type could also be a string representing
+a different module name.  There are four remap types:
+``function_remap``, ``src_port_remap``, ``dst_port_remap``, and
+``annotation_remap``.  Each one is a dictionary where the name of
+affected function, port, or annotation is the key and the value
+specifies either the output name (if this is just a name change) or a
+function to be used to perform the remap.  For example, one might
+write a method that transforms the value of a temperature parameter
+from Fahrenheit to Celsius.  Such a method should return a list of
+actions that accomplish this change.  Note that because the
+``dst_port_remap`` and ``function_remap`` both affect input ports, any
+remaps for ``dst_port_remap`` are also used for functions unless
+explicitly overridden.
+
+If you require more control over the upgrade process, you may also
+define a ``handle_module_upgrade_request`` method in the |vistrails|
+package.  It will be passed the controller, id of the module needing
+an upgrade, and the current pipeline as inputs, and should return a
+set of actions that will upgrade that single module to the latest
+version.
+
 Module Specification
 ====================
 
