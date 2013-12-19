@@ -67,38 +67,84 @@ class UpgradeWorkflowError(Exception):
         return "Upgrading workflow failed.\n" + self._msg
 
 class UpgradeModuleRemap(object):
-    allowed_remaps = set(['dst_port_remap', 
-                          'src_port_remap',
-                          'function_remap',
-                          'annotation_remap'])
-    def __init__(self, start_version, end_version, output_version,
-                 new_module=None):
+    def __init__(self, start_version, end_version, 
+                 output_version, new_module=None,
+                 dst_port_remap=None, src_port_remap=None,
+                 function_remap=None, annotation_remap=None,
+                 module_name=None):
+        self.module_name = module_name
         self.start_version = start_version
         self.end_version = end_version
         self.output_version = output_version
-        self.remap = {}
-        for remap_type in self.allowed_remaps:
-            self.remap[remap_type] = {}
         self.new_module = new_module
 
+        if dst_port_remap is None:
+            self._dst_port_remap = {}
+        else:
+            self._dst_port_remap = dst_port_remap
+        if src_port_remap is None:
+            self._src_port_remap = {}
+        else:
+            self._src_port_remap = src_port_remap
+        if function_remap is None:
+            self._function_remap = {}
+        else:
+            self._function_remap = function_remap
+        if annotation_remap is None:
+            self._annotation_remap = {}
+        else:
+            self._annotation_remap = annotation_remap
+
     @classmethod
-    def from_tuple(cls, t):
-        obj = cls(t[0], t[1], None, t[2])
+    def from_tuple(cls, module_name, t):
+        obj = cls(t[0], t[1], None, t[2], module_name=module_name)
         if len(t) > 3:
             for remap_type, remap_dict in t[3].iteritems():
                 for remap_name, remap_change in remap_dict.iteritems():
                     obj.add_remap(remap_type, remap_name, remap_change)
         return obj
 
+    def _get_dst_port_remap(self):
+        return self._dst_port_remap
+    dst_port_remap = property(_get_dst_port_remap)
+
+    def _get_src_port_remap(self):
+        return self._src_port_remap
+    src_port_remap = property(_get_src_port_remap)
+    
+    def _get_function_remap(self):
+        # !!! we're going to let dst_port_remap serve as a
+        # base for function_remap but the developer is
+        # responsible for knowing that anything beyond name
+        # remaps requires different functions
+        d = copy.copy(self._dst_port_remap)
+        d.update(self._function_remap)
+        return d
+    function_remap = property(_get_function_remap)
+    
+    def _get_annotation_remap(self):
+        return self._annotation_remap
+    annotation_remap = property(_get_annotation_remap)    
+
     def add_remap(self, remap_type, remap_name, remap_change):
-        if remap_type not in self.allowed_remaps:
-            raise ValueError("remap_type must be one of %s" % allowed_remaps)
-        self.remap[remap_type][remap_name] = remap_change
+        if not hasattr(self, '_%s' % remap_type):
+            raise ValueError('remap_type "%s" not allowed' % remap_type)
+        d = getattr(self, '_%s' % remap_type)
+        d[remap_name] = remap_change
+            
+        # if remap_type not in self.allowed_remaps:
+        #     raise ValueError("remap_type must be one of %s" % allowed_remaps)
+        # self.remap[remap_type][remap_name] = remap_change
         
     def get_remap(self, remap_type):
-        if remap_type not in self.allowed_remaps:
-            raise ValueError("remap_type must be one of %s" % allowed_remaps)
-        return self.remap[remap_type]
+        if not hasattr(self, '_%s' % remap_type):
+            raise ValueError('remap_type "%s" not allowed' % remap_type)
+        d = getattr(self, '_%s' % remap_type)
+        return d
+
+        # if remap_type not in self.allowed_remaps:
+        #     raise ValueError("remap_type must be one of %s" % allowed_remaps)
+        # return self.remap[remap_type]
 
     def get_output_version(self):
         return self.output_version
@@ -112,15 +158,23 @@ class UpgradePackageRemap(object):
         pkg_remap = cls()
         for module_name, remap_list in d.iteritems():
             for remap in remap_list:
-                pkg_remap.add_module_remap(module_name, remap)
+                pkg_remap.add_module_remap(remap, module_name)
         return pkg_remap
 
-    def add_module_remap(self, module_name, module_remap):
-        if module_name not in self.remaps:
-            self.remaps[module_name] = []
+    def add_module_remap(self, module_remap, module_name=None):
         if isinstance(module_remap, tuple):
-            module_remap = UpgradeModuleRemap.from_tuple(module_remap)
-        self.remaps[module_name].append(module_remap)
+            if module_name is None:
+                raise ValueError("module_name must be specified if "
+                                 "module_remap is a tuple")
+            module_remap = UpgradeModuleRemap.from_tuple(module_name, 
+                                                         module_remap)
+        else:
+            if module_name is not None:
+                # assume user wants to override name
+                module_remap.module_name = module_name
+        if module_remap.module_name not in self.remaps:
+            self.remaps[module_remap.module_name] = []
+        self.remaps[module_remap.module_name].append(module_remap)
 
     def get_module_remaps(self, module_name):
         if module_name in self.remaps:
@@ -158,6 +212,10 @@ class UpgradeWorkflowHandler(object):
         if hasattr(pkg.module, 'handle_module_upgrade_request'):
             f = pkg.module.handle_module_upgrade_request
             return f(controller, module_id, current_pipeline)
+        elif hasattr(pkg.module, '_upgrades'):
+            return UpgradeWorkflowHandler.remap_module(controller, module_id, 
+                                                       current_pipeline,
+                                                       pkg.module._upgrades)
         else:
             debug.log('Package "%s" cannot handle upgrade request. '
                       'VisTrails will attempt automatic upgrade.' % \
@@ -666,25 +724,16 @@ class UpgradeWorkflowHandler(object):
                 next_module_remap = pkg_remap.get_module_upgrade(old_desc_str,
                                                             old_version)
                 
-            src_port_remap = module_remap.get_remap('src_port_remap')
-            dst_port_remap = module_remap.get_remap('dst_port_remap')
-            # !!! we're going to let dst_port_remap serve as a
-            # base for function_remap but the developer is
-            # responsible for knowing that anything beyond name
-            # remaps requires different functions
-            function_remap = copy.copy(dst_port_remap)
-            function_remap.update(module_remap.get_remap('function_remap'))
-            annotation_remap = module_remap.get_remap('annotation_remap')
-            actions = \
-                UpgradeWorkflowHandler.replace_module(controller, 
-                                                      tmp_pipeline,
-                                                      module_id, 
-                                                      new_module_desc,
-                                                      function_remap,
-                                                      src_port_remap,
-                                                      dst_port_remap,
-                                                      annotation_remap,
-                                                      use_registry)
+            replace_module = UpgradeWorkflowHandler.replace_module
+            actions = replace_module(controller, 
+                                     tmp_pipeline,
+                                     module_id, 
+                                     new_module_desc,
+                                     module_remap.function_remap,
+                                     module_remap.src_port_remap,
+                                     module_remap.dst_port_remap,
+                                     module_remap.annotation_remap,
+                                     use_registry)
 
             for a in actions:
                 for op in a.operations:
@@ -756,7 +805,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
         c.add_connection_action(conn)
         return c.current_version
 
-    def test_multi_upgrade(self):
+    def run_multi_upgrade_test(self, pkg_remap):
         from vistrails.core.packagemanager import get_package_manager
         from vistrails.core.application import get_vistrails_application
 
@@ -771,27 +820,51 @@ class TestUpgradePackageRemap(unittest.TestCase):
             app.new_vistrail()
             c = app.get_controller()
             self.create_workflow(c)
-
-            module_remap_1 = UpgradeModuleRemap('0.8', '0.9', '0.9', None)
-            module_remap_1.add_remap('function_remap', 'a', 'aa')
-            module_remap_1.add_remap('src_port_remap', 'z', 'zz')
-            module_remap_2 = UpgradeModuleRemap('0.9', '1.0', '1.0', None)
-            module_remap_2.add_remap('function_remap', 'aa', 'aaa')
-            module_remap_2.add_remap('src_port_remap', 'zz', 'zzz')
-            pkg_remap = UpgradePackageRemap()
-            pkg_remap.add_module_remap("TestUpgradeA", module_remap_1)
-            pkg_remap.add_module_remap("TestUpgradeA", module_remap_2)
-
+        
             p = c.current_pipeline
             actions = UpgradeWorkflowHandler.remap_module(c, 0, p, pkg_remap)
-
         finally:
             try:
                 pm.late_disable_package('upgrades')
             except MissingPackage:
                 pass
             app.close_vistrail()
-            
+
+    def test_multi_upgrade_obj(self):
+        module_remap_1 = UpgradeModuleRemap('0.8', '0.9', '0.9', None,
+                                            module_name="TestUpgradeA")
+        module_remap_1.add_remap('function_remap', 'a', 'aa')
+        module_remap_1.add_remap('src_port_remap', 'z', 'zz')
+        module_remap_2 = UpgradeModuleRemap('0.9', '1.0', '1.0', None,
+                                            module_name="TestUpgradeA")
+        module_remap_2.add_remap('function_remap', 'aa', 'aaa')
+        module_remap_2.add_remap('src_port_remap', 'zz', 'zzz')
+        pkg_remap = UpgradePackageRemap()
+        pkg_remap.add_module_remap(module_remap_1)
+        pkg_remap.add_module_remap(module_remap_2)
+        self.run_multi_upgrade_test(pkg_remap)
+
+    def test_multi_upgrade_dict(self):
+        pkg_remap = {"TestUpgradeA": 
+                     [UpgradeModuleRemap('0.8', '0.9', '0.9', None,
+                                         function_remap={'a': 'aa'},
+                                         src_port_remap={'z': 'zz'}),
+                      UpgradeModuleRemap('0.9', '1.0', '1.0', None,
+                                         function_remap={'aa': 'aaa'},
+                                         src_port_remap={'zz': 'zzz'})]}
+        self.run_multi_upgrade_test(pkg_remap)
+
+    def test_multi_upgrade_legacy(self):
+        # note that remap specifies the 0.8 -> 1.0 upgrade directly as
+        # must be the case for legacy upgrades
+        pkg_remap = {"TestUpgradeA": [('0.8', '1.0', None,
+                                       {"function_remap": {'a': 'aaa'},
+                                        "src_port_remap": {'z': 'zzz'}}),
+                                      ('0.9', '1.0', None,
+                                       {"function_remap": {'aa': 'aaa'},
+                                        "src_port_remap": {'zz': 'zzz'}})]}
+        self.run_multi_upgrade_test(pkg_remap)
+
     def test_external_upgrade(self):
         from vistrails.core.packagemanager import get_package_manager
         from vistrails.core.application import get_vistrails_application
