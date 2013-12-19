@@ -727,16 +727,17 @@ class VistrailController(object):
         return self.create_function_static(self.id_scope, *args, **kwargs)
 
     @staticmethod
-    def create_function_static(id_scope, module, function_name, 
+    def create_function_static(id_scope, module, port_spec, 
                                param_values=[], aliases=[], query_methods=[]):
-        port_spec = module.get_port_spec(function_name, 'input')
+        if isinstance(port_spec, basestring):
+            port_spec = module.get_port_spec(port_spec, 'input')
         if len(param_values) <= 0 and port_spec.defaults is not None:
             param_values = port_spec.defaults
 
         f_id = id_scope.getNewId(ModuleFunction.vtType)
         new_function = ModuleFunction(id=f_id,
                                       pos=module.getNumFunctions(),
-                                      name=function_name,
+                                      name=port_spec.name,
                                       )
         new_function.is_valid = True
         new_params = \
