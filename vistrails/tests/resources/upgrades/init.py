@@ -1,7 +1,6 @@
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.config import IPort, OPort
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, \
-    UpgradePackageRemap, UpgradeModuleRemap
+from vistrails.core.upgradeworkflow import  UpgradeModuleRemap
 
 class TestUpgradeA(Module):
     _input_ports = [IPort("aaa", "basic:String")]
