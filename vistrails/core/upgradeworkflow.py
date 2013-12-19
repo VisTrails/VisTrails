@@ -738,29 +738,49 @@ class TestUpgradePackageRemap(unittest.TestCase):
 
             app.new_vistrail()
             c = app.get_controller()
-            d = ModuleDescriptor(package=upgrade_test_pkg,
-                                 name='TestUpgradeA',
-                                 namespace='',
-                                 package_version='0.8')
-            m = c.create_module_from_descriptor(d, use_desc_pkg_version=True)
-            c.add_module_action(m)
+            d1 = ModuleDescriptor(package=upgrade_test_pkg,
+                                  name='TestUpgradeA',
+                                  namespace='',
+                                  package_version='0.8')
+            m1 = c.create_module_from_descriptor(d1, use_desc_pkg_version=True)
+            c.add_module_action(m1)
+
+            d2 = ModuleDescriptor(package=upgrade_test_pkg,
+                                  name='TestUpgradeB',
+                                  namespace='',
+                                  package_version = '0.8')
+            m2 = c.create_module_from_descriptor(d2, use_desc_pkg_version=True)
+            c.add_module_action(m2)
 
             basic_pkg = get_vistrails_basic_pkg_id()
             psi = PortSpecItem(module="Float", package=basic_pkg,
                                namespace="", pos=0)
-            function_port_spec = PortSpec(name="a", items=[psi])
-            f = c.create_function(m, function_port_spec, [12])
-            c.add_function_action(m, f)
+            function_port_spec = PortSpec(name="a", type="input", items=[psi])
+            f = c.create_function(m1, function_port_spec, [12])
+            c.add_function_action(m1, f)
+
+            conn_out_psi = PortSpecItem(module="Integer", package=basic_pkg,
+                                        namespace="", pos=0)
+            conn_out_spec = PortSpec(name="z", type="output",
+                                     items=[conn_out_psi])
+            conn_in_psi = PortSpecItem(module="Integer", package=basic_pkg,
+                                       namespace="", pos=0)
+            conn_in_spec = PortSpec(name="b", type="input",
+                                    items=[conn_in_psi])
+            conn = c.create_connection(m1, conn_out_spec, m2, conn_in_spec)
+            c.add_connection_action(conn)
 
             module_remap_1 = UpgradeModuleRemap('0.8', '0.9', '0.9', None)
             module_remap_1.add_remap('function_remap', 'a', 'aa')
+            module_remap_1.add_remap('src_port_remap', 'z', 'zz')
             module_remap_2 = UpgradeModuleRemap('0.9', '1.0', '1.0', None)
             module_remap_2.add_remap('function_remap', 'aa', 'aaa')
+            module_remap_2.add_remap('src_port_remap', 'zz', 'zzz')
             pkg_remap = UpgradePackageRemap()
             pkg_remap.add_module_remap("TestUpgradeA", module_remap_1)
             pkg_remap.add_module_remap("TestUpgradeA", module_remap_2)
 
-            actions = UpgradeWorkflowHandler.remap_module(c, m.id, 
+            actions = UpgradeWorkflowHandler.remap_module(c, m1.id, 
                                                           c.current_pipeline, 
                                                           pkg_remap)
         finally:
