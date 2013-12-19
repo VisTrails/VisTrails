@@ -720,6 +720,42 @@ class TestUpgradePackageRemap(unittest.TestCase):
                                        'outputName': 'outputPath'}})]}
         pkg_remap = UpgradePackageRemap.from_dict(pkg_remap_d)
 
+    def create_workflow(self, c):
+        upgrade_test_pkg = 'org.vistrails.vistrails.tests.upgrade'
+
+        d1 = ModuleDescriptor(package=upgrade_test_pkg,
+                              name='TestUpgradeA',
+                              namespace='',
+                              package_version='0.8')
+        m1 = c.create_module_from_descriptor(d1, use_desc_pkg_version=True)
+        c.add_module_action(m1)
+
+        d2 = ModuleDescriptor(package=upgrade_test_pkg,
+                              name='TestUpgradeB',
+                              namespace='',
+                              package_version = '0.8')
+        m2 = c.create_module_from_descriptor(d2, use_desc_pkg_version=True)
+        c.add_module_action(m2)
+
+        basic_pkg = get_vistrails_basic_pkg_id()
+        psi = PortSpecItem(module="Float", package=basic_pkg,
+                           namespace="", pos=0)
+        function_port_spec = PortSpec(name="a", type="input", items=[psi])
+        f = c.create_function(m1, function_port_spec, [12])
+        c.add_function_action(m1, f)
+
+        conn_out_psi = PortSpecItem(module="Integer", package=basic_pkg,
+                                    namespace="", pos=0)
+        conn_out_spec = PortSpec(name="z", type="output",
+                                 items=[conn_out_psi])
+        conn_in_psi = PortSpecItem(module="Integer", package=basic_pkg,
+                                   namespace="", pos=0)
+        conn_in_spec = PortSpec(name="b", type="input",
+                                items=[conn_in_psi])
+        conn = c.create_connection(m1, conn_out_spec, m2, conn_in_spec)
+        c.add_connection_action(conn)
+        return c.current_version
+
     def test_multi_upgrade(self):
         from vistrails.core.packagemanager import get_package_manager
         from vistrails.core.application import get_vistrails_application
@@ -732,43 +768,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
-            upgrade_test_pkg = 'org.vistrails.vistrails.tests.upgrade'
-
-            reg = get_module_registry()
-
             app.new_vistrail()
             c = app.get_controller()
-            d1 = ModuleDescriptor(package=upgrade_test_pkg,
-                                  name='TestUpgradeA',
-                                  namespace='',
-                                  package_version='0.8')
-            m1 = c.create_module_from_descriptor(d1, use_desc_pkg_version=True)
-            c.add_module_action(m1)
-
-            d2 = ModuleDescriptor(package=upgrade_test_pkg,
-                                  name='TestUpgradeB',
-                                  namespace='',
-                                  package_version = '0.8')
-            m2 = c.create_module_from_descriptor(d2, use_desc_pkg_version=True)
-            c.add_module_action(m2)
-
-            basic_pkg = get_vistrails_basic_pkg_id()
-            psi = PortSpecItem(module="Float", package=basic_pkg,
-                               namespace="", pos=0)
-            function_port_spec = PortSpec(name="a", type="input", items=[psi])
-            f = c.create_function(m1, function_port_spec, [12])
-            c.add_function_action(m1, f)
-
-            conn_out_psi = PortSpecItem(module="Integer", package=basic_pkg,
-                                        namespace="", pos=0)
-            conn_out_spec = PortSpec(name="z", type="output",
-                                     items=[conn_out_psi])
-            conn_in_psi = PortSpecItem(module="Integer", package=basic_pkg,
-                                       namespace="", pos=0)
-            conn_in_spec = PortSpec(name="b", type="input",
-                                    items=[conn_in_psi])
-            conn = c.create_connection(m1, conn_out_spec, m2, conn_in_spec)
-            c.add_connection_action(conn)
+            self.create_workflow(c)
 
             module_remap_1 = UpgradeModuleRemap('0.8', '0.9', '0.9', None)
             module_remap_1.add_remap('function_remap', 'a', 'aa')
@@ -780,9 +782,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
             pkg_remap.add_module_remap("TestUpgradeA", module_remap_1)
             pkg_remap.add_module_remap("TestUpgradeA", module_remap_2)
 
-            actions = UpgradeWorkflowHandler.remap_module(c, m1.id, 
-                                                          c.current_pipeline, 
-                                                          pkg_remap)
+            p = c.current_pipeline
+            actions = UpgradeWorkflowHandler.remap_module(c, 0, p, pkg_remap)
+
         finally:
             try:
                 pm.late_disable_package('upgrades')
@@ -790,5 +792,47 @@ class TestUpgradePackageRemap(unittest.TestCase):
                 pass
             app.close_vistrail()
             
+    def test_external_upgrade(self):
+        from vistrails.core.packagemanager import get_package_manager
+        from vistrails.core.application import get_vistrails_application
+
+        app = get_vistrails_application()
+        app.new_vistrail()
+        app.temp_configuration.upgradeOn = True
+        app.temp_configuration.upgradeDelay = False
+
+        try:
+            pm = get_package_manager()
+            pm.late_enable_package('upgrades',
+                                   {'upgrades':
+                                    'vistrails.tests.resources.'})
+            app.new_vistrail()
+            c = app.get_controller()
+            current_version = self.create_workflow(c)
+            for m in c.current_pipeline.modules.itervalues():
+                self.assertEqual(m.version, '0.8')
+
+            c.change_selected_version(current_version, from_root=True)
+            
+            self.assertEqual(len(c.current_pipeline.modules), 2)
+            for m in c.current_pipeline.modules.itervalues():
+                self.assertEqual(m.version, '1.0')
+                if m.name == "TestUpgradeA":
+                    self.assertEqual(m.functions[0].name, 'aaa')
+            self.assertEqual(len(c.current_pipeline.connections), 1)
+            conn = c.current_pipeline.connections.values()[0]
+            self.assertEqual(conn.source.name, 'zzz')
+            self.assertEqual(conn.destination.name, 'b')
+                
+        finally:
+            try:
+                pm.late_disable_package('upgrades')
+            except MissingPackage:
+                pass
+            app.close_vistrail()
+
 if __name__ == '__main__':
+    import vistrails.core.application
+
+    vistrails.core.application.init()
     unittest.main()
