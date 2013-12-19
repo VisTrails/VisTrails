@@ -117,7 +117,7 @@ def namedtuple(typename, fields):
     
 
 def subnamedtuple(typename, cls, new_fields=[], override_fields=[]):
-    override_dict = {get_field_name(f): f for f in override_fields}
+    override_dict = dict((get_field_name(f), f) for f in override_fields)
     fields = []
     for f in cls._vistrails_fields:
         field_name = get_field_name(f)
