@@ -597,7 +597,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="workflow">
 	<sql column="parent_id" type="char(36)"/>
@@ -704,7 +704,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="module">
 	<sql column="parent_id" type="char(36)"/>
@@ -719,9 +719,6 @@
 	<sql column="parent_id" type="char(36)"/>
       </property>
       <property ref="true" object="change">
-	<sql column="parent_id" type="char(36)"/>
-      </property>
-      <property ref="true" object="parameter_exploration">
 	<sql column="parent_id" type="char(36)"/>
       </property>
     </choice>
@@ -798,7 +795,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="workflow">
 	<sql column="parent_id" type="char(36)"/>
@@ -850,7 +847,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="module">
 	<sql column="parent_id" type="char(36)"/>
@@ -917,11 +914,6 @@
       <xml nodeType="xs:element"/>
     </property>
 
-    <property ref="true" object="machine" cascade="false" type="list" 
-	      mapping="one-to-many">
-      <xml nodeType="xs:element"/>
-    </property>
-
     <property name="vistrail_id" type="str" foreignKey="true" object="vistrail">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="char(36)"/>
@@ -974,8 +966,8 @@
       <sql column="vt_id" type="char(36)"/>
     </property>
 
-    <property ref="true" object="log" type="str" mapping="many-to-one" 
-	      inverse="true">
+    <property ref="true" object="workflow_exec" type="str" 
+	      mapping="many-to-one" inverse="true">
       <sql column="log_id" type="char(36)"/>
     </property>
 
@@ -1051,7 +1043,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="workflow">
 	<sql column="parent_id" type="char(36)"/>
@@ -1099,10 +1091,67 @@
       <sql type="datetime"/>
     </property>
 
-    <!--<property name="input" type="str">
-      <xml name="input" nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(1023)"/>
-    </property>-->
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="workflow_exec" type="str" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="char(36)"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="str" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="char(36)"/>
+      </property>
+            
+      <property ref="true" object="module_exec" type="str" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="char(36)"/>
+      </property>
+    </choice>
+
+    <property ref="true" object="loop_iteration" type="list"
+            mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="entity_id" type="str" inverse="true">
+      <sql type="char(36)"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- LOOP_ITERATION ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="loop_iteration">
+    <layout>
+      <xml name="loopIteration" nodeType="xs:element"/>
+      <sql table="loop_iteration"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(36)"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
 
     <property name="iteration" type="int">
       <xml nodeType="xs:attribute" type="xs:int"/>
@@ -1133,32 +1182,10 @@
       </property>
     </choice>
 
-    <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(32)"/>
+    <property name="parent" ref="true" object="loop_exec"
+            mapping="many-to-one" inverse="true">
+      <sql column="parent_id" type="char(36)"/>
     </property>
-
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
-            mapping="many-to-one">
-      <property ref="true" object="workflow_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="char(36)"/>
-      </property>
-
-      <property ref="true" object="group_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="char(36)"/>
-      </property>
-      
-      <property ref="true" object="loop_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="char(36)"/>
-      </property>
-      
-      <property ref="true" object="module_exec" type="long" 
-		mapping="many-to-one" inverse="true">
-	<sql column="parent_id" type="char(36)"/>
-      </property>
-    </choice>
 
     <property name="entity_id" type="str" inverse="true">
       <sql type="char(36)"/>
@@ -1252,19 +1279,19 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
             mapping="many-to-one">
-      <property ref="true" object="workflow_exec" type="long" 
+      <property ref="true" object="workflow_exec" type="str" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="char(36)"/>
       </property>
 
-      <property ref="true" object="loop_exec" type="long" 
+      <property ref="true" object="loop_iteration" type="str" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="char(36)"/>
       </property>
 
-      <property ref="true" object="group_exec" type="long" 
+      <property ref="true" object="group_exec" type="str" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="char(36)"/>
       </property>
@@ -1352,19 +1379,19 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
             mapping="many-to-one">
-      <property ref="true" object="workflow_exec" type="long" 
+      <property ref="true" object="workflow_exec" type="str" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="char(36)"/>
       </property>
 
-      <property ref="true" object="group_exec" type="long" 
+      <property ref="true" object="group_exec" type="str" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="char(36)"/>
       </property>
 
-      <property ref="true" object="loop_exec" type="long" 
+      <property ref="true" object="loop_iteration" type="str" 
 		mapping="many-to-one" inverse="true">
 	<sql column="parent_id" type="char(36)"/>
       </property>
@@ -1409,7 +1436,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="workflow">
 	<sql column="parent_id" type="char(36)"/>
@@ -1476,7 +1503,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="function">
 	<sql column="parent_id" type="char(36)"/>
@@ -1523,7 +1550,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="workflow">
 	<sql column="parent_id" type="char(36)"/>
@@ -1591,7 +1618,7 @@
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
-      <property ref="true" object="connection" type="long" mapping="many-to-one" 
+      <property ref="true" object="connection" type="str" mapping="many-to-one" 
 		inverse="true">
 	<sql column="parent_id" type="char(36)"/>
       </property>
@@ -1667,7 +1694,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true" 
 	    mapping="many-to-one">
       <property ref="true" object="module">
 	<sql column="parent_id" type="char(36)"/>
@@ -1748,7 +1775,7 @@
       <sql type="varchar(255)"/>
     </property>
 
-    <property ref="true" type="long" object="portSpec" inverse="true" 
+    <property ref="true" type="str" object="portSpec" inverse="true" 
 	      mapping="many-to-one">
       <sql column="parent_id" type="char(36)"/>
     </property>
@@ -1813,7 +1840,7 @@
       <xml nodeType="xs:element"/>
     </property>
 
-    <property ref="true" type="long" object="package" inverse="true" 
+    <property ref="true" type="str" object="package" inverse="true" 
 	      mapping="many-to-one">
       <sql column="parent_id" type="char(36)"/>
     </property>
@@ -2211,6 +2238,10 @@
       <xml nodeType="xs:element"/>
     </property>
 
+    <property ref="true" object="machine" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
     <choice name="item_exec" type="list" mapping="one-to-many">
       <property name="module_exec" ref="true" object="module_exec">
 	<xml nodeType="xs:element"/>
@@ -2235,12 +2266,120 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
+  <!-- PE_PARAMETER ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="pe_parameter" className="DBPEParameter">
+    <layout>
+      <xml name="peParameter" nodeType="xs:element"/>
+      <sql table="pe_parameter"/>
+    </layout>
+    
+    <property name="id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(36)"/>
+    </property>
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="interpolator" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="dimension" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <property ref="true" type="str" object="pe_function" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="char(36)"/>
+    </property>
+
+    <property name="entity_id" type="str" inverse="true">
+      <sql type="char(36)"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PE_FUNCTION +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="pe_function" className="DBPEFunction">
+    <layout>
+      <xml name="peFunction" nodeType="xs:element"/>
+      <sql table="pe_function"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(36)"/>
+    </property>
+
+    <property name="module_id" type="long" foreignKey="true" object="module">
+      <xml name="moduleId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="port_name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="is_alias" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" name="parameter" object="pe_parameter" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <property ref="true" type="str" object="parameter_exploration" 
+	      inverse="true" mapping="many-to-one">
+      <sql column="parent_id" type="char(36)"/>
+    </property>
+
+    <property name="entity_id" type="str" inverse="true">
+      <sql type="char(36)"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
   <!-- PARAMETER_EXPLORATION +++-->
   <!--++++++++++++++++++++++++++-->
 
   <object name="parameter_exploration">
     <layout>
-      <xml name="parameter_exploration" nodeType="xs:element"/>
+      <xml name="parameterExploration" nodeType="xs:element"/>
       <sql table="parameter_exploration"/>
     </layout>
 
@@ -2278,8 +2417,8 @@
       <sql type="varchar(255)"/>
     </property>
 
-    <property ref="true" object="function" type="list" mapping="one-to-many"
-	      index="key">
+    <property ref="true" name="function" object="pe_function" type="list" 
+	      mapping="one-to-many" index="key">
       <xml nodeType="xs:element"/>
     </property>
 
@@ -2297,7 +2436,7 @@
     </property>
 
   </object>
-
+  
   <!--++++++++++++++++++++++++++-->
   <!-- MASHUP_ACTION +++++++++++-->
   <!--++++++++++++++++++++++++++-->
@@ -2392,8 +2531,8 @@
       <sql column="parent_id" type="char(36)"/>
     </property>
     
-    <property name="entity_id" type="long" inverse="true">
-      <sql type="int"/>
+    <property name="entity_id" type="str" inverse="true">
+      <sql type="char(36)"/>
     </property>
 
     <property name="entity_type" type="str" inverse="true">

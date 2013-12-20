@@ -140,9 +140,13 @@ CREATE TABLE log_tbl(
     vistrail_id char(36)
 ) engine=InnoDB;
 
-CREATE TABLE mashup_alias(
+CREATE TABLE loop_iteration(
     id char(36),
-    name varchar(255),
+    ts_start datetime,
+    ts_end datetime,
+    iteration int,
+    completed int,
+    error varchar(1023),
     parent_id char(36),
     entity_id char(36),
     entity_type char(16)
@@ -221,6 +225,18 @@ CREATE TABLE location(
     parent_id char(36)
 ) engine=InnoDB;
 
+CREATE TABLE pe_parameter(
+    id char(36),
+    pos int,
+    interpolator varchar(255),
+    value mediumtext,
+    dimension int,
+    parent_type char(32),
+    parent_id char(36),
+    entity_id char(36),
+    entity_type char(16)
+) engine=InnoDB;
+
 CREATE TABLE parameter(
     id char(36),
     pos int,
@@ -277,6 +293,14 @@ CREATE TABLE abstraction(
     entity_id char(36),
     entity_type char(16),
     parent_id char(36)
+) engine=InnoDB;
+
+CREATE TABLE mashup_alias(
+    id char(36),
+    name varchar(255),
+    parent_id char(36),
+    entity_id char(36),
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE workflow(
@@ -428,9 +452,6 @@ CREATE TABLE loop_exec(
     id char(36),
     ts_start datetime,
     ts_end datetime,
-    iteration int,
-    completed int,
-    error varchar(1023),
     parent_type char(32),
     entity_id char(36),
     entity_type char(16),
@@ -445,7 +466,7 @@ CREATE TABLE mashup_action_annotation(
     date datetime,
     user varchar(255),
     parent_id char(36),
-    entity_id int,
+    entity_id char(36),
     entity_type char(16)
 ) engine=InnoDB;
 
@@ -455,6 +476,17 @@ CREATE TABLE connection_tbl(
     entity_id char(36),
     entity_type char(16),
     parent_id char(36)
+) engine=InnoDB;
+
+CREATE TABLE pe_function(
+    id char(36),
+    module_id int,
+    port_name varchar(255),
+    is_alias int,
+    parent_type char(32),
+    parent_id char(36),
+    entity_id char(36),
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE action(

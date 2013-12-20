@@ -168,7 +168,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             # self.type_edit.setEnabled(True)
             self.package_edit.setText(self.module.package)
             # self.package_edit.setEnabled(True)
-            self.module_id.setText('%d' % self.module.id)
+            self.module_id.setText('%s' % self.module.id)
             # self.module_id.setEnabled(True)
 
     def name_editing_finished(self):
