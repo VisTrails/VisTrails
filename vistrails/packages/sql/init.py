@@ -150,14 +150,14 @@ class DBConnection(Module):
                     raise ModuleError(self, str(e))
              
     def compute(self):
-        self.checkInputPort('db_name')
-        self.host = self.forceGetInputFromPort('host', 'localhost')
-        self.port = self.forceGetInputFromPort('port', 3306)
-        self.user = self.forceGetInputFromPort('user', None)
-        self.db_name = self.getInputFromPort('db_name')
-        self.protocol = self.forceGetInputFromPort('protocol', 'mysql')
-        if self.hasInputFromPort('password'):
-            self.password = self.getInputFromPort('password')
+        self.check_input('db_name')
+        self.host = self.force_get_input('host', 'localhost')
+        self.port = self.force_get_input('port', 3306)
+        self.user = self.force_get_input('user', None)
+        self.db_name = self.get_input('db_name')
+        self.protocol = self.force_get_input('protocol', 'mysql')
+        if self.has_input('password'):
+            self.password = self.get_input('password')
         else:
             self.password = None
 
@@ -178,14 +178,14 @@ class SQLSource(Module):
         
     def compute(self):
         cached = False
-        if self.hasInputFromPort('cacheResults'):
-            cached = self.getInputFromPort('cacheResults')
-        self.checkInputPort('connection')
-        connection = self.getInputFromPort('connection')
-        inputs = [self.getInputFromPort(k) for k in self.inputPorts
+        if self.has_input('cacheResults'):
+            cached = self.get_input('cacheResults')
+        self.check_input('connection')
+        connection = self.get_input('connection')
+        inputs = [self.get_input(k) for k in self.inputPorts
                   if k != 'source' and k != 'connection' and k!= 'cacheResults']
         #print 'inputs:', inputs
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.force_get_input('source', '')))
         if not connection.ping():
             connection.open()
         cur = connection.conn.cursor()
@@ -196,7 +196,7 @@ class SQLSource(Module):
         else:
             self.is_cacheable = self.cachedOff
             
-        self.setResult('resultSet', cur.fetchall())
+        self.set_output('resultSet', cur.fetchall())
 
     def cachedOn(self):
         return True

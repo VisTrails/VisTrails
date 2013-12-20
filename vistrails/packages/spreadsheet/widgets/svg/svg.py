@@ -56,9 +56,9 @@ class SVGCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch SVG file into the spreadshet for display
         """
-        if self.hasInputFromPort("File"):
+        if self.has_input("File"):
             window = spreadsheetController.findSpreadsheetWindow()
-            file_to_display = self.getInputFromPort("File")
+            file_to_display = self.get_input("File")
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
@@ -97,7 +97,7 @@ class SVGCellWidget(QCellWidget):
         if self.fileSrc is not None:
             shutil.copyfile(self.fileSrc, filename)
 
-    def saveToPDF(self):
+    def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
@@ -120,8 +120,8 @@ class SVGSplitter(Module):
         Use BatchDisplayCellEvent to display a serie of SVG files
         
         """
-        if self.hasInputFromPort("File"):
-            fileValue = self.getInputFromPort("File")
+        if self.has_input("File"):
+            fileValue = self.get_input("File")
         else:
             fileValue = None
         if fileValue:
@@ -174,12 +174,11 @@ class SVGSaveAction(QtGui.QAction):
         fn = QtGui.QFileDialog.getSaveFileName(None, "Save svg as...",
                                                "screenshot.png",
                                                "SVG (*.svg);;PDF files (*.pdf)")
-        if not fn:
-            return
-        if fn.lower().endswith("svg"):
-            cellWidget.dumpToFile(str(fn))
-        elif fn.lower().endswith("pdf"):
-            cellWidget.saveToPDF(str(fn))
+        if fn:
+            if fn.lower().endswith("svg"):
+                cellWidget.dumpToFile(fn)
+            elif fn.lower().endswith("pdf"):
+                cellWidget.saveToPDF(fn)
         
 class SVGToolBar(QCellToolBar):
     """

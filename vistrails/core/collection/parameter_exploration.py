@@ -63,38 +63,38 @@ class ParameterExplorationEntity(Entity):
         
 #     # returns string
 #     def get_name(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns datetime
 #     def get_mod_time(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns datetime
 #     def get_create_time(self):
-#         raise Exception("Method is abstract")        
+#         raise RuntimeError("Method is abstract")
     
 #     # returns string
 #     # FIXME: perhaps this should be a User object at some point
 #     def get_user(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
 #     # returns tuple (<entity_type>, <entity_id>)
 #     def get_id(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns integer
 #     def get_size(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
 #     # returns possibly empty list of Entity objects
 #     def get_children(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns list of strings representing paths
 #     # FIXME: should this be uris for database access?
 #     def get_image_fnames(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
     # returns boolean, True if search input is satisfied else False
     def match(self, search):
-        raise Exception("Not implemented")
+        raise RuntimeError("Not implemented")

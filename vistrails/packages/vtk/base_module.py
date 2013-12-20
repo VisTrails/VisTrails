@@ -38,6 +38,7 @@
 from itertools import izip
 import vtk
 
+from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from identifiers import identifier as vtk_pkg_identifier
@@ -188,7 +189,7 @@ class vtkBaseModule(Module):
 
         # Make sure all input ports are called correctly
         for (function, connector_list) in self.inputPorts.iteritems():
-            paramList = self.forceGetInputListFromPort(function)
+            paramList = self.force_get_input_list(function)
             if function[:18]=='SetInputConnection':
                 paramList = zip([int(function[18:])]*len(paramList),
                                  paramList)
@@ -218,13 +219,20 @@ class vtkBaseModule(Module):
 
         # Call update if appropriate
         if hasattr(self.vtkInstance, 'Update'):
-            def ProgressEvent(obj, event):
-                self.logging.update_progress(self, obj.GetProgress())
+            is_aborted = False
             isAlgorithm = issubclass(self.vtkClass, vtk.vtkAlgorithm)
+            cbId = None
             if isAlgorithm:
+                def ProgressEvent(obj, event):
+                    try:
+                        self.logging.update_progress(self, obj.GetProgress())
+                    except AbortExecution:
+                        obj.SetAbortExecute(True)
+                        self.vtkInstance.RemoveObserver(cbId)
+                        is_aborted = True
                 cbId = self.vtkInstance.AddObserver('ProgressEvent', ProgressEvent)
             self.vtkInstance.Update()
-            if isAlgorithm:
+            if isAlgorithm and not is_aborted:
                 self.vtkInstance.RemoveObserver(cbId)
 
         # Then update the output ports also with appropriate function calls
@@ -234,13 +242,13 @@ class vtkBaseModule(Module):
                 vtkOutput = self.vtkInstance.GetOutputPort(i)
                 output = vtkBaseModule.wrapperModule('vtkAlgorithmOutput',
                                                      vtkOutput)
-                self.setResult(function, output)
+                self.set_output(function, output)
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
                     className = retValues.GetClassName()
                     output  = vtkBaseModule.wrapperModule(className, retValues)
-                    self.setResult(function, output)
+                    self.set_output(function, output)
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
@@ -248,9 +256,9 @@ class vtkBaseModule(Module):
                             className = result[i].GetClassName()
                             result[i] = vtkBaseModule.wrapperModule(className,
                                                                     result[i])
-                    self.setResult(function, type(retValues)(result))
+                    self.set_output(function, type(retValues)(result))
                 else:
-                    self.setResult(function, retValues)
+                    self.set_output(function, retValues)
 
     @staticmethod
     def wrapperModule(classname, instance):

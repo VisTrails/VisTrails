@@ -164,7 +164,7 @@ def convert_operation_list(ops):
         elif op.vtType == 'delete':
             DeleteOp.convert(op)
         else:
-            raise Exception("Unknown operation type '%s'" % op.vtType)
+            raise TypeError("Unknown operation type '%s'" % op.vtType)
 
 def create_action(action_list):
     """create_action(action_list: list) -> Action

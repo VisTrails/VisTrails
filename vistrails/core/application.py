@@ -32,10 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import atexit
 import copy
-import os.path
+import os
+import shutil
 import sys
+import tempfile
 import weakref
+import warnings
 
 from vistrails.core import command_line
 from vistrails.core import debug
@@ -50,7 +54,7 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject
+from vistrails.core.utils import InstanceObject, VistrailsWarning
 from vistrails.core.utils.uxml import enter_named_element
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -58,6 +62,9 @@ from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 
 VistrailsApplication = None
+APP_SUCCESS = 0 # Success exit code
+APP_FAIL = 1 # fialed exit code
+APP_DONE = 2 # Success but shut down prematurely (other instance called)
 
 def finalize_vistrails(app):
     vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
@@ -95,7 +102,7 @@ class VistrailsApplicationInterface(object):
         add = command_line.CommandLineParser.add_option
         add("-S", "--startup", action="store", type="str", default=None,
             dest="dotVistrails",
-            help="Set startup file (default is ~/.vistrails/startup.py)")
+            help="Set startup file (default is ~/.vistrails)")
         add("-?", action="help",
             help="show this help message and exit")
         add("-v", "--version", action="callback",
@@ -133,6 +140,10 @@ class VistrailsApplicationInterface(object):
         add("-l", "--nologger", action="store_true",
             default = None,
             help="disable the logging")
+        add('--no-logfile', action='store_true',
+            dest='nologfile',
+            default=None,
+            help="Disable the log file (output still happens in terminal)")
         add("-d", "--debugsignals", action="store_true",
             default = None,
             help="debug Qt Signals")
@@ -183,6 +194,14 @@ The builder window can be accessed by a spreadsheet menu option.")
             dest='installBundles',
             help=("Do not try to install missing Python packages "
                   "automatically"))
+        add("--runJob", action="store",
+            help=("Run job with specified id."))
+        add("--listJobs", action="store_true",
+            help=("List all jobs."))
+        add('--spawned-mode', '--spawned', action='store_true',
+            dest='spawned',
+            help=("Do not use the .vistrails directory, and load packages "
+                  "automatically when needed"))
 
         if args != None:
             command_line.CommandLineParser.parse_options(args=args)
@@ -196,17 +215,48 @@ The builder window can be accessed by a spreadsheet menu option.")
         """
         print system.about_string()
         sys.exit(0)
-        
-    def read_dotvistrails_option(self):
+
+    def read_dotvistrails_option(self, optionsDict=None):
         """ read_dotvistrails_option() -> None
-        Check if the user sets a new dotvistrails folder and updates 
-        self.temp_configuration with the new value. 
-        
+        Check if the user sets a new dotvistrails folder and updates
+        self.temp_configuration with the new value.
+
+        Also handles the 'spawned-mode' option, by using a temporary directory
+        as .vistrails directory, and a specific default configuration.
         """
-        get = command_line.CommandLineParser().get_option
-        if get('dotVistrails')!=None:
+        if optionsDict is None:
+            optionsDict = {}
+        def get(opt):
+            return (optionsDict.get(opt) or
+                    command_line.CommandLineParser().get_option(opt))
+
+        if get('spawned'):
+            # Here we are in 'spawned' mode, i.e. we are running
+            # non-interactively as a slave
+            # We are going to create a .vistrails directory as a temporary
+            # directory and copy a specific configuration file
+            # We don't want to load packages that the user might enabled in
+            # this machine's configuration file as it would slow down the
+            # startup time, but we'll load any needed package without
+            # confirmation
+            tmpdir = tempfile.mkdtemp(prefix='vt_spawned_')
+            @atexit.register
+            def clean_dotvistrails():
+                shutil.rmtree(tmpdir, ignore_errors=True)
+            self.temp_configuration.dotVistrails = tmpdir
+            if get('dotVistrails') is not None:
+                debug.warning("--startup option ignored since --spawned-mode "
+                              "is used")
+            shutil.copyfile(os.path.join(system.vistrails_root_directory(),
+                                         'core', 'resources',
+                                         'spawned_startup_xml'),
+                            os.path.join(tmpdir, 'startup.xml'))
+            self.temp_configuration.enablePackagesSilently = True
+            self.temp_configuration.nologfile = True
+            self.temp_configuration.singleInstance = False
+        elif get('dotVistrails') is not None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
-            
+
     def readOptions(self):
         """ readOptions() -> None
         Read arguments from the command line
@@ -219,11 +269,6 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.debugSignals = bool(get('debugsignals'))
         if get('dotVistrails')!=None:
             self.temp_configuration.dotVistrails = get('dotVistrails')
-        #in theory this should never happen because core.configuration.default()
-        #should have done this already
-        #if not self.configuration.check('dotVistrails'):
-        #    self.configuration.dotVistrails = system.default_dot_vistrails()
-        #    self.temp_configuration.dotVistrails = system.default_dot_vistrails()
         if get('multiheads')!=None:
             self.temp_configuration.multiHeads = bool(get('multiheads'))
         if get('maximized')!=None:
@@ -282,13 +327,19 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         if get('installBundles')!=None:
             self.temp_configuration.installBundles = bool(get('installBundles'))
+        if get('runJob')!=None:
+            self.temp_configuration.jobRun = get('runJob')
+        if get('listJobs')!=None:
+            self.temp_configuration.jobList = bool(get('listJobs'))
         self.input = command_line.CommandLineParser().positional_arguments()
+
     def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
         """
+        warnings.simplefilter('once', VistrailsWarning, append=True)
         # gui.theme.initializeCurrentTheme()
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
@@ -322,10 +373,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         # Read only new .vistrails folder option if passed in the command line
         # or in the optionsDict because this may affect the configuration file 
         # VistrailsStartup will load. This updates self.temp_configuration
-        self.read_dotvistrails_option()
-        
-        if optionsDict and 'dotVistrails' in optionsDict.keys():
-            self.temp_configuration.dotVistrails = optionsDict['dotVistrails']
+        self.read_dotvistrails_option(optionsDict)
 
         # the problem here is that if the user pointed to a new .vistrails
         # folder, the persistent configuration will always point to the 
@@ -348,20 +396,36 @@ The builder window can be accessed by a spreadsheet menu option.")
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.temp_configuration, k, v)
-                
+
         # Command line options override temp_configuration
         self.readOptions()
-        
+
+        self.check_all_requirements()
+
         if self.temp_configuration.check('staticRegistry'):
             reg = self.temp_configuration.staticRegistry
         else:
             reg = None
         self.vistrailsStartup.set_registry(reg)
-        
+
+    def check_all_requirements(self):
+        # check scipy
+        vistrails.core.requirements.require_python_module('scipy', {
+                'linux-debian': 'python-scipy',
+                'linux-ubuntu': 'python-scipy',
+                'linux-fedora': 'scipy',
+                'pip': 'scipy'})
+
+        # ZIP manipulations use the command-line executables
+        vistrails.core.requirements.require_executable('zip')
+        vistrails.core.requirements.require_executable('unzip')
+
     def get_python_environment(self):
-        """get_python_environment(): returns an environment that
-includes local definitions from startup.py. Should only be called
-after self.init()"""
+        """get_python_environment(): returns an environment that includes
+        local definitions from startup.py. Should only be called after
+        self.init()
+
+        """
         return self._python_environment
 
     def destroy(self):
@@ -371,6 +435,7 @@ after self.init()"""
         """
         if hasattr(self, 'vistrailsStartup'):
             self.vistrailsStartup.destroy()
+        Collection.clearInstance()
 
     def __del__(self):
         """ __del__() -> None
@@ -423,13 +488,13 @@ after self.init()"""
         if self.temp_db_options.host:
             usedb = True
         if self.input:
-            locator = None
             #check if versions are embedded in the filename
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
+                locator = None
                 if f_name is None:
-                    msg = "Could not find file %s" % filename
-                    debug.critical(msg)
+                    debug.critical("Could not find file %s" % filename)
+                    return False
                 elif not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                     #_vnode and _vtag will be set when a .vtl file is open and
@@ -464,6 +529,8 @@ after self.init()"""
                         mashuptrail = locator._mshptrail
                     if hasattr(locator, '_mshpversion'):
                         mashupversion = locator._mshpversion
+                        if mashupversion:
+                            execute = True
                     if not self.temp_configuration.showSpreadsheetOnly:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
@@ -477,8 +544,8 @@ after self.init()"""
                 if self.temp_configuration.reviewMode:
                     self.builderWindow.interactiveExportCurrentPipeline()
 
+        return True
 
-                
     def finishSession(self):
         vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
         
@@ -627,6 +694,8 @@ after self.init()"""
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
+        # flush in case version was upgraded
+        controller.flush_delayed_actions()
         return True
         
     def open_workflow(self, locator):

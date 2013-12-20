@@ -35,5 +35,5 @@
 
 identifier="org.vistrails.vistrails.control_flow"
 name="Control Flow"
-version="0.2.2"
+version="0.2.3"
 old_identifiers = ["edu.utah.sci.vistrails.control_flow"]

@@ -30,7 +30,7 @@ class PixelTypeFloat(Module):
     my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.F
-        self.setResult("Pixel Type", self)
+        self.set_output("Pixel Type", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -41,7 +41,7 @@ class PixelTypeUnsignedChar(Module):
     my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.UC
-        self.setResult("Pixel Type", self)
+        self.set_output("Pixel Type", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -52,7 +52,7 @@ class PixelTypeUnsignedShort(Module):
     my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.US
-        self.setResult("Pixel Type", self)
+        self.set_output("Pixel Type", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -63,7 +63,7 @@ class PixelTypeRGB(Module):
     my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.RGBPixel[itk.US]
-        self.setResult("Pixel Type", self)
+        self.set_output("Pixel Type", self)
 
     @classmethod
     def register(cls, reg, basic):

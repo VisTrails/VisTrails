@@ -1,6 +1,9 @@
 import csv
 from itertools import izip
-import numpy
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 from vistrails.core.modules.vistrails_module import ModuleError
 from ..common import Table
@@ -23,7 +26,7 @@ class CSVFile(Table):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('value', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
+            ('self', '(org.vistrails.vistrails.tabledata:read|CSVFile)')]
 
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
@@ -64,11 +67,11 @@ class CSVFile(Table):
         return column_count, column_names, delimiter
 
     def compute(self):
-        csv_file = self.getInputFromPort('file').name
-        self.header_present = self.getInputFromPort('header_present',
-                                                    allowDefault=True)
-        if self.hasInputFromPort('delimiter'):
-            self.delimiter = self.getInputFromPort('delimiter')
+        csv_file = self.get_input('file').name
+        self.header_present = self.get_input('header_present',
+                                             allow_default=True)
+        if self.has_input('delimiter'):
+            self.delimiter = self.get_input('delimiter')
         else:
             self.delimiter = None
 
@@ -79,15 +82,14 @@ class CSVFile(Table):
 
         self.column_cache = {}
 
-        self.setResult('column_count', self.columns)
-        self.setResult('column_names', self.names)
-        self.setResult('value', self)
+        self.set_output('column_count', self.columns)
+        self.set_output('column_names', self.names)
 
     def get_column(self, index, numeric=False):
-        if index in self.column_cache:
-            return self.column_cache[index]
+        if (index, numeric) in self.column_cache:
+            return self.column_cache[(index, numeric)]
 
-        if numeric:
+        if numeric and numpy is not None:
             result = numpy.loadtxt(
                     self.filename,
                     dtype=numpy.float32,
@@ -102,8 +104,10 @@ class CSVFile(Table):
                         fp,
                         delimiter=self.delimiter)
                 result = [row[index] for row in reader]
+            if numeric:
+                result = [float(e) for e in result]
 
-        self.column_cache[index] = result
+        self.column_cache[(index, numeric)] = result
         return result
 
     @property
@@ -117,7 +121,7 @@ class CSVFile(Table):
         return self._rows
 
 
-_modules = {'csv': [CSVFile]}
+_modules = [CSVFile]
 
 
 ###############################################################################
@@ -144,7 +148,7 @@ class CSVTestCase(unittest.TestCase):
         with intercept_result(ExtractColumn, 'value') as results:
             with intercept_result(CSVFile, 'column_count') as columns:
                 self.assertFalse(execute([
-                        ('read|csv|CSVFile', identifier, [
+                        ('read|CSVFile', identifier, [
                             ('file', [('File', self._test_dir + '/test.csv')]),
                         ]),
                         ('ExtractColumn', identifier, [
@@ -152,10 +156,20 @@ class CSVTestCase(unittest.TestCase):
                             ('column_name', [('String', 'col 2')]),
                             ('numeric', [('Boolean', 'True')]),
                         ]),
+                        ('PythonSource', 'org.vistrails.vistrails.basic', [
+                            ('source', [('String', '')]),
+                        ]),
                     ],
                     [
-                        (0, 'value', 1, 'table'),
+                        (0, 'self', 1, 'table'),
+                        (1, 'value', 2, 'l'),
+                    ],
+                    add_port_specs=[
+                        (2, 'input', 'l',
+                         'org.vistrails.vistrails.basic:List'),
                     ]))
+                # Here we use a PythonSource just to check that a numpy array
+                # can be passed on a List port
         self.assertEqual(columns, [3])
         self.assertEqual(len(results), 1)
         self.assertEqual(list(results[0]), [2.0, 3.0, 14.5])
@@ -164,7 +178,7 @@ class CSVTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with mismatching columns.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -173,14 +187,14 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'value', 1, 'table'),
+                (0, 'self', 1, 'table'),
             ]))
 
     def test_csv_missing(self):
         """Uses CSVFile and ExtractColumn with a nonexisting column.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -188,7 +202,7 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'value', 1, 'table'),
+                (0, 'self', 1, 'table'),
             ]))
 
     def test_csv_nonnumeric(self):
@@ -196,7 +210,7 @@ class CSVTestCase(unittest.TestCase):
         """
         with intercept_result(ExtractColumn, 'value') as results:
             self.assertFalse(execute([
-                    ('read|csv|CSVFile', identifier, [
+                    ('read|CSVFile', identifier, [
                         ('file', [('File', self._test_dir + '/test.csv')]),
                         ('header_present', [('Boolean', 'False')]),
                     ]),
@@ -206,7 +220,7 @@ class CSVTestCase(unittest.TestCase):
                     ]),
                 ],
                 [
-                    (0, 'value', 1, 'table'),
+                    (0, 'self', 1, 'table'),
                 ]))
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0],

@@ -131,12 +131,15 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         from vistrails.gui.vistrails_window import _app
         if self.vtversion > 0:
             if self.mshpController is not None:
-                self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
-                self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
-                if self.mshpController.vtController is not None:
-                    self.disconnect(self.mshpController.vtController,
-                                    QtCore.SIGNAL('vistrailChanged()'),
-                                    self.mshpControllerVistrailChanged)
+                try:
+                    self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
+                    self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
+                    if self.mshpController.vtController is not None:
+                        self.disconnect(self.mshpController.vtController,
+                                        QtCore.SIGNAL('vistrailChanged()'),
+                                        self.mshpControllerVistrailChanged)
+                except Exception, e:
+                    print str(e)
             self.controller.flush_delayed_actions()
             self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,
@@ -270,10 +273,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         (pid, pname) = self.mshpController.findFirstTaggedParent(self.mshpController.currentVersion)
         if pid >= 1:
             res = show_question("VisTrails::Mashups", 
-                """You've decided to keep a modified version of '%s'.
-Would you like to update it (this will move the tag to the current version)?
-Click on No to create a new tag.""" %pname,
-                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
+                                "You've decided to keep a modified version "
+                                "of '%s'. Would you like to update it (this "
+                                "will move the tag to the current version)? "
+                                "Click on No to create a new tag." % pname,
+                                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
             if res == YES_BUTTON:
                 #move tag
                 self.mshpController.moveTag(pid, 

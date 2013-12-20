@@ -133,8 +133,8 @@ class SQLObject(Object):
                     if ref_prop.isReference() and \
                             ref_prop.getReference() == self.getRegularName():
                         return (choice, True)
-        raise Exception("didn't work", ref_obj.getRegularName(), 
-                        self.getRegularName())
+        raise RuntimeError("didn't work", ref_obj.getRegularName(),
+                           self.getRegularName())
             
 class SQLProperty (Property):
     def hasSpec(self):

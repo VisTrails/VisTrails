@@ -34,9 +34,9 @@
 ###############################################################################
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput, ModuleSuspended
+    ModuleConnector, InvalidOutput, ModuleSuspended, ModuleWasSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
-    Float, NotCacheable, Constant, List
+    Float, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.vistrail.port_spec import PortSpec
 
@@ -66,24 +66,19 @@ class Fold(Module):
         self.partialResult = self.initialValue
         self.elementResult = None
 
-        for element in self.getInputFromPort('InputList'):
+        for element in self.get_input('InputList'):
             self.element = element
             self.operation()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
-        self.setResult('Result', self.partialResult)
+        self.set_output('Result', self.partialResult)
 
-    def setInitialValue(self):
+    def setInitialValue(self): # pragma: no cover
         """This method defines the initial value of the Fold structure. It must
         be defined before the operation() method."""
 
         pass
 
-    def operation(self):
+    def operation(self): # pragma: no cover
         """This method defines the interaction between the current element of
         the list and the previous iterations' result."""
 
@@ -91,7 +86,7 @@ class Fold(Module):
 
 ###############################################################################
 
-class FoldWithModule(Fold, NotCacheable):
+class FoldWithModule(Fold):
     """Implementation of Fold that uses another module as its operation.
 
     This can be used to create structures like Map or Filter, where another
@@ -99,28 +94,45 @@ class FoldWithModule(Fold, NotCacheable):
     that this module will use.
     """
 
-    def __init__(self):
-        Fold.__init__(self)
-        self.is_fold_module = True
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
-
-        # everything is the same except that we don't update anything
-        # upstream of FunctionPort
+        # everything is the same except that we don't update the module on
+        # FunctionPort
+        suspended = []
+        was_suspended = None
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    try:
+                        connector.obj.update_upstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
             else:
                 for connector in connector_list:
-                    connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+                    try:
+                        connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                            InvalidOutput: # pragma: no cover
+                        self.remove_input_connector(port_name, connector)
 
     def updateFunctionPort(self):
         """
@@ -128,9 +140,9 @@ class FoldWithModule(Fold, NotCacheable):
         FoldWithModule module. It updates the modules connected to the
         FunctionPort port.
         """
-        nameInput = self.getInputFromPort('InputPort')
-        nameOutput = self.getInputFromPort('OutputPort')
-        rawInputList = self.getInputFromPort('InputList')
+        nameInput = self.get_input('InputPort')
+        nameOutput = self.get_input('OutputPort')
+        rawInputList = self.get_input('InputList')
 
         # Create inputList to always have iterable elements
         # to simplify code
@@ -141,46 +153,57 @@ class FoldWithModule(Fold, NotCacheable):
             element_is_iter = True
             inputList = rawInputList
         suspended = []
+        loop = self.logging.begin_loop_execution(self, len(inputList))
         ## Update everything for each value inside the list
         for i, element in enumerate(inputList):
+            self.logging.update_progress(self, float(i)/len(inputList))
             if element_is_iter:
                 self.element = element
             else:
                 self.element = element[0]
+            do_operation = True
             for connector in self.inputPorts.get('FunctionPort'):
-                module = connector.obj
+                module = copy.copy(connector.obj)
 
-                if not self.upToDate:
+                if not self.upToDate: # pragma: no partial
                     ## Type checking
                     if i == 0:
                         self.typeChecking(module, nameInput, inputList)
 
                     module.upToDate = False
-                    module.already_computed = False
-
-                    ## Setting information for logging stuff
-                    module.is_fold_operator = True
-                    module.first_iteration = i == 0
-                    module.last_iteration = i == len(inputList) - 1
-                    module.fold_iteration = i
+                    module.computed = False
 
                     self.setInputValues(module, nameInput, element)
 
-                module.update()
-                if hasattr(module, 'suspended') and module.suspended:
-                    suspended.append(module._module_suspended)
-                    module.suspended = False
+                loop.begin_iteration(module, i)
+
+                try:
+                    module.update()
+                except ModuleSuspended, e:
+                    suspended.append(e)
+                    do_operation = False
+                    loop.end_iteration(module)
                     continue
+
+                loop.end_iteration(module)
+
                 ## Getting the result from the output port
                 if nameOutput not in module.outputPorts:
                     raise ModuleError(module,
                                       'Invalid output port: %s' % nameOutput)
-                self.elementResult = copy.copy(module.get_output(nameOutput))
-            self.operation()
+                self.elementResult = module.get_output(nameOutput)
+            if do_operation:
+                self.operation()
+
+            self.logging.update_progress(self, i * 1.0 / len(inputList))
+
         if suspended:
-            self.suspended = "%d module(s) suspended: %s" % (
-                    len(suspended), suspended[0].msg)
-            self._module_suspended = suspended
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), len(inputList)),
+                    children=suspended)
+        loop.end_loop_execution()
 
     def setInputValues(self, module, inputPorts, elementList):
         """
@@ -254,12 +277,7 @@ class FoldWithModule(Fold, NotCacheable):
 
         self.updateFunctionPort()
 
-        if self.suspended:
-            raise ModuleSuspended(
-                    self,
-                    self.suspended,
-                    children=self._module_suspended)
-        self.setResult('Result', self.partialResult)
+        self.set_output('Result', self.partialResult)
 
 ###############################################################################
 
@@ -268,7 +286,7 @@ class NewConstant(Constant):
     A new Constant module to be used inside the FoldWithModule module.
     """
     def setValue(self, v):
-        self.setResult("value", v)
+        self.set_output("value", v)
         self.upToDate = True
 
 def create_constant(value):
@@ -298,9 +316,9 @@ def get_module(value, signature):
     elif isinstance(value, tuple):
         v_modules = ()
         for element in xrange(len(value)):
-            v_modules += (get_module(value[element], signature[element]))
+            v_modules += (get_module(value[element], signature[element]),)
         return v_modules
-    else:
+    else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
         debug.warning("Type checking is not going to be done inside"
                       "FoldWithModule module.")

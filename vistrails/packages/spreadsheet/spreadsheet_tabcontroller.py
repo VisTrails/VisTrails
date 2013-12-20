@@ -276,13 +276,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             dir = QtGui.QFileDialog.getExistingDirectory(
                 self, 'Select a Directory to Export Images', ".",
                 QtGui.QFileDialog.ShowDirsOnly)
-            if not dir:
+            if dir:
                 self.currentWidget().exportSheetToImages(dir)
         else:
             file = QtGui.QFileDialog.getSaveFileName(
                 self, "Select a File to Export the Sheet",
                 ".", "Images (*.png *.xpm *.jpg)")
-            if not file:
+            if file:
                 self.currentWidget().exportSheetToImage(str(file))
         
     def newSheetActionTriggered(self, checked=False):
@@ -783,7 +783,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                           }
                 execution.execute(pipeline, **kwargs)
             else:
-                raise Exception("Couldn't load spreadsheet")
+                raise RuntimeError("Couldn't load spreadsheet")
             lidx += 1
         progress.setValue(pipelineCount)
         QtCore.QCoreApplication.processEvents()
@@ -802,7 +802,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)',
                                                      )
-        if not fileName:
+        if fileName:
             self.openSpreadsheet(fileName)
 
     def cleanup(self):

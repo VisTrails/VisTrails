@@ -119,7 +119,7 @@ configuration dialog:
 
 .. code-block:: python
 
-   dataitemlist = self.getInputFromPort("ontologyDataItemList")
+   dataitemlist = self.get_input("ontologyDataItemList")
    output1 = self.interpreter.filePool.create_file()
    f1 = open(str(output1.name), "w")
    text = "<HTML><TITLE>Chebi WebService</TITLE><BODY BGCOLOR=#FFFFFF>"
@@ -142,7 +142,7 @@ configuration dialog:
        f1.write(line)        
    text = "</table></CENTER></BODY></HTML>"
    f1.write(text)
-   self.setResult("outfile",output1)
+   self.set_output("outfile",output1)
    f1.close()
 
 Close the dialog.  One of the ports we need to use is an optional port.  Select the ``OntologyDataItemList`` module and select the ``Outputs`` tab from the ``Module Information`` panel.  Click in the left column next to ``ListElement`` so the eye icon appears.  Now connect the modules together as shown in Figure :ref:`fig-chebi_pipeline_screenshot`.

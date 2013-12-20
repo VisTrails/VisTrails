@@ -46,7 +46,7 @@ from vistrails.core.modules.basic_modules import Path, File, Directory, Boolean,
 from vistrails.core.modules.module_registry import get_module_registry, MissingModule, \
     MissingPackageVersion, MissingModuleVersion
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from vistrails.core.system import default_dot_vistrails, execute_cmdline2, \
+from vistrails.core.system import current_dot_vistrails, execute_cmdline2, \
     execute_piped_cmdlines, systemType, \
     current_user, current_time, get_executable_path
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
@@ -173,6 +173,13 @@ class PersistentPath(Module):
         debug_print('stderr:', type(errs), errs)
         debug_print('***')
 
+    @staticmethod
+    def git_command():
+        if systemType in ['Windows', 'Microsoft']:
+            return ['cd', '/D', local_db, '&&', git_bin]
+        else:
+            return ['cd', local_db, '&&', git_bin]
+
     def get_path_type(self, path):
         if os.path.isdir(path):
             return 'tree'
@@ -195,15 +202,15 @@ class PersistentPath(Module):
     def set_result(self, path):
         persistent_path = Path()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
-    def updateUpstream(self, is_input=None, path_type=None):
+    def update_upstream(self, is_input=None, path_type=None):
         global db_access
 
         if is_input is None:
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 # FIXME: check if the signature is the signature of
@@ -212,75 +219,77 @@ class PersistentPath(Module):
 
         self.persistent_ref = None
         self.persistent_path = None
-        if not is_input:
-            # can check updateUpstream
-            if not hasattr(self, 'signature'):
-                raise ModuleError(self, 'Module has no signature')
-            ref_exists = False
-            if not self.hasInputFromPort('ref'):
-                # create new reference with no name or tags
-                ref = PersistentRef()
-                ref.signature = self.signature
-            else:
-                # update single port
-                self.updateUpstreamPort('ref')
-                ref = self.getInputFromPort('ref')
-                if db_access.ref_exists(ref.id, ref.version):
-                    ref_exists = True
-                    if ref.version is None:
-                        ref.version = \
-                            repo.get_current_repo().get_latest_version(ref.id)
-                    signature = db_access.get_signature(ref.id, ref.version)
-                    if signature == self.signature:
-                        # don't need to create a new version
-                        self.persistent_ref = ref
+        if is_input:
+            return super(PersistentPath, self).update_upstream()
 
-            # Note that ref_exists is True if the reference is a fixed
-            # reference; if it was assigned a new uuid, we can still
-            # reuse a reference with the same signature
-            if not ref_exists:
-                signature = self.signature
-                debug_print('searching for signature', signature)
-                sig_ref = db_access.search_by_signature(signature)
-                debug_print('sig_ref:', sig_ref)
-                if sig_ref:
-                    debug_print('setting persistent_ref')
-                    ref.id, ref.version, ref.name = sig_ref
+        # can check update_upstream
+        if not hasattr(self, 'signature'):
+            raise ModuleError(self, 'Module has no signature')
+
+        ref_exists = False
+        if not self.has_input('ref'):
+            # create new reference with no name or tags
+            ref = PersistentRef()
+            ref.signature = self.signature
+        else:
+            # update single port
+            self.update_upstream_port('ref')
+            ref = self.get_input('ref')
+            if db_access.ref_exists(ref.id, ref.version):
+                ref_exists = True
+                if ref.version is None:
+                    ref.version = \
+                        repo.get_current_repo().get_latest_version(ref.id)
+                signature = db_access.get_signature(ref.id, ref.version)
+                if signature == self.signature:
+                    # don't need to create a new version
                     self.persistent_ref = ref
-                    #             else:
-                    #                 ref.id = uuid.uuid1()
-                
 
-                # copy as normal
-                # don't copy if equal
+        # Note that ref_exists is True if the reference is a fixed
+        # reference; if it was assigned a new uuid, we can still
+        # reuse a reference with the same signature
+        if not ref_exists:
+            signature = self.signature
+            debug_print('searching for signature', signature)
+            sig_ref = db_access.search_by_signature(signature)
+            debug_print('sig_ref:', sig_ref)
+            if sig_ref:
+                debug_print('setting persistent_ref')
+                ref.id, ref.version, ref.name = sig_ref
+                self.persistent_ref = ref
+                #             else:
+                #                 ref.id = uuid.uuid1()
 
-            # FIXME also need to check that the file actually exists here!
-            if self.persistent_ref is not None:
-                _, suffix = os.path.splitext(self.persistent_ref.name)
-                self.persistent_path = repo.get_current_repo().get_path(
-                    self.persistent_ref.id, 
-                    self.persistent_ref.version,
-                    out_suffix=suffix)
-                debug_print("FOUND persistent path")
-                debug_print(self.persistent_path)
-                debug_print(self.persistent_ref.local_path)
+            # copy as normal
+            # don't copy if equal
+
+        # FIXME also need to check that the file actually exists here!
+        if self.persistent_ref is not None:
+            _, suffix = os.path.splitext(self.persistent_ref.name)
+            self.persistent_path = repo.get_current_repo().get_path(
+                self.persistent_ref.id,
+                self.persistent_ref.version,
+                out_suffix=suffix)
+            debug_print("FOUND persistent path")
+            debug_print(self.persistent_path)
+            debug_print(self.persistent_ref.local_path)
 
         if self.persistent_ref is None or self.persistent_path is None:
             debug_print("NOT FOUND persistent path")
-            Module.updateUpstream(self)
+            super(PersistentPath, self).update_upstream()
 
     def compute(self, is_input=None, path_type=None):
         global db_access
-        if not self.hasInputFromPort('value') and \
-                not self.hasInputFromPort('ref'):
+        if not self.has_input('value') and \
+                not self.has_input('ref'):
             raise ModuleError(self, "Need to specify path or reference")
 
         if self.persistent_path is not None:
             debug_print('using persistent path')
             ref = self.persistent_ref
             path = self.persistent_path
-        elif self.hasInputFromPort('ref'):
-            ref = self.getInputFromPort('ref')
+        elif self.has_input('ref'):
+            ref = self.get_input('ref')
             if ref.id is None:
                 ref.id = str(uuid.uuid1())
         else:
@@ -288,16 +297,16 @@ class PersistentPath(Module):
             ref = PersistentRef()
             ref.id = str(uuid.uuid1())
 
-        if self.hasInputFromPort('localPath'):
-            ref.local_path = self.getInputFromPort('localPath').name
-            if self.hasInputFromPort('readLocal'):
-                ref.local_read = self.getInputFromPort('readLocal')
-            if self.hasInputFromPort('writeLocal'):
-                ref.local_writeback = self.getInputFromPort('writeLocal')
+        if self.has_input('localPath'):
+            ref.local_path = self.get_input('localPath').name
+            if self.has_input('readLocal'):
+                ref.local_read = self.get_input('readLocal')
+            if self.has_input('writeLocal'):
+                ref.local_writeback = self.get_input('writeLocal')
 
         if is_input is None:
             is_input = False
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 if ref.local_path and ref.local_read:
@@ -308,7 +317,7 @@ class PersistentPath(Module):
 
         # if just reference, pull path from repository (get latest
         # version unless specified as specific version)
-        if self.persistent_path is None and not self.hasInputFromPort('value') \
+        if self.persistent_path is None and not self.has_input('value') \
                 and is_input and not (ref.local_path and ref.local_read):
             _, suffix = os.path.splitext(ref.name)
             if not db_access.ref_exists(ref.id, ref.version):
@@ -327,7 +336,7 @@ class PersistentPath(Module):
                 debug_print('using local_path')
                 path = ref.local_path
             else:
-                path = self.getInputFromPort('value').name
+                path = self.get_input('value').name
             # this is a static method so we need to add module ourselves
             try:
                 new_hash = repo.get_current_repo().compute_hash(path)
@@ -337,6 +346,25 @@ class PersistentPath(Module):
             rep_path = os.path.join(local_db, ref.id)
             do_update = True
             if os.path.exists(rep_path):
+                if os.path.isdir(rep_path):
+                    actual_type = 'tree'
+                elif os.path.isfile(rep_path):
+                    actual_type = 'blob'
+                else:
+                    raise ModuleError(self, "Path is something not a file or "
+                                      "a directory")
+                if path_type is None:
+                    path_type = actual_type
+                else:
+                    if path_type != actual_type:
+                        def show_type(t):
+                            if t == 'tree': return "directory"
+                            elif t == 'blob': return "file"
+                            else: return '"%s"' % t
+                        raise ModuleError(self, "Path is not a %s but a %s" % (
+                                          show_type(path_type),
+                                          show_type(actual_type)))
+
                 old_hash = repo.get_current_repo().get_hash(ref.id, 
                                                             path_type=path_type)
                 debug_print('old_hash:', old_hash)
@@ -346,6 +374,12 @@ class PersistentPath(Module):
                     
             if do_update:
                 debug_print('doing update')
+
+                if path_type == 'tree':
+                    if (not os.path.exists(path) or
+                            not os.listdir(path)):
+                        raise ModuleError(self, "This directory is empty")
+
                 self.copypath(path, os.path.join(local_db, ref.id))
 
                 # commit (and add to) repository
@@ -395,8 +429,8 @@ class PersistentFile(PersistentPath):
                     ('localPath', '(basic:File)')]
     _output_ports = [('value', '(basic:File)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'blob')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'blob')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'blob')
@@ -404,17 +438,17 @@ class PersistentFile(PersistentPath):
     def set_result(self, path):
         persistent_path = File()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
 class PersistentDir(PersistentPath):
     _input_ports = [('value', '(basic:Directory)'),
                     ('localPath', '(basic:Directory)')]
     _output_ports = [('value', '(basic:Directory)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'tree')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'tree')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'tree')
@@ -422,22 +456,22 @@ class PersistentDir(PersistentPath):
     def set_result(self, path):
         persistent_path = Directory()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
 class PersistentInputDir(PersistentDir):
     _input_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, True)
 
     def compute(self):
         PersistentDir.compute(self, True)
         
 class PersistentIntermediateDir(PersistentDir):
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -445,8 +479,8 @@ class PersistentIntermediateDir(PersistentDir):
 class PersistentOutputDir(PersistentDir):
     _output_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -454,15 +488,15 @@ class PersistentOutputDir(PersistentDir):
 class PersistentInputFile(PersistentFile):
     _input_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, True)
 
     def compute(self):
         PersistentFile.compute(self, True)
     
 class PersistentIntermediateFile(PersistentFile):
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)
@@ -470,8 +504,8 @@ class PersistentIntermediateFile(PersistentFile):
 class PersistentOutputFile(PersistentFile):
     _output_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)
@@ -546,14 +580,14 @@ def initialize():
     if configuration.check('local_db'):
         local_db = configuration.local_db
         if not os.path.exists(local_db):
-            raise Exception('local_db "%s" does not exist' % local_db)
+            raise RuntimeError('local_db "%s" does not exist' % local_db)
     else:
-        local_db = os.path.join(default_dot_vistrails(), 'persistent_files')
+        local_db = os.path.join(current_dot_vistrails(), 'persistent_files')
         if not os.path.exists(local_db):
             try:
                 os.mkdir(local_db)
             except:
-                raise Exception('local_db "%s" does not exist' % local_db)
+                raise RuntimeError('local_db "%s" does not exist' % local_db)
 
     local_repo = repo.get_repo(local_db)
     repo.set_current_repo(local_repo)
@@ -600,15 +634,38 @@ def menu_items():
     return menu_tuple
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-    module_remap = {'PersistentFile':
-                        [(None, '0.1.0', 'PersistentIntermediateFile',
-                          {'dst_port_remap':
-                               {'compress': None}})],
-                    'PersistentDirectory':
-                        [(None, '0.1.0', 'PersistentIntermediateDir',
-                          {'dst_port_remap':
-                               {'compress': None}})]
-                    }
+    module_remap = {
+            # Migrates from pre-0.1.0 to 0.2.0+
+            'PersistentFile': [
+                (None, '0.1.0', 'PersistentIntermediateFile', {
+                    'dst_port_remap': {
+                        'compress': None}})],
+            'PersistentDirectory': [
+                (None, '0.1.0', 'PersistentIntermediateDir', {
+                    'dst_port_remap': {
+                        'compress': None}})],
+            # Migrates from persistence_exp (0.1.0-0.2.0) to 0.2.0+
+            'ManagedRef': [
+                ('0.1.0', None, 'persistence:PersistentRef', {})],
+            'ManagedPath': [
+                ('0.1.0', None, 'persistence:PersistentPath', {})],
+            'ManagedFile': [
+                ('0.1.0', None, 'persistence:PersistentFile', {})],
+            'ManagedDir': [
+                ('0.1.0', None, 'persistence:PersistentDir', {})],
+            'ManagedInputFile': [
+                ('0.1.0', None, 'persistence:PersistentInputFile', {})],
+            'ManagedOutputFile': [
+                ('0.1.0', None, 'persistence:PersistentOutputFile', {})],
+            'ManagedIntermediateFile': [
+                ('0.1.0', None, 'persistence:PersistentIntermediateFile', {})],
+            'ManagedInputDir': [
+                ('0.1.0', None, 'persistence:PersistentInputDir', {})],
+            'ManagedOutputDir': [
+                ('0.1.0', None, 'persistence:PersistentOutputDir', {})],
+            'ManagedIntermediateDir': [
+                ('0.1.0', None, 'persistence:PersistentIntermediateDir', {})]
+        }
     for module in ['PersistentPath', 'PersistentFile', 'PersistentDir',
                    'PersistentInputFile', 'PersistentOutputFile',
                    'PersistentIntermediateFile',
@@ -620,55 +677,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
             module_remap[module].append(upgrade)
         else:
             module_remap[module] = [upgrade]
-    
+
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
-    
-# def handle_missing_module(controller, module_id, pipeline):
-#     reg = get_module_registry()
-#     module_remap = {'PersistentFile': PersistentIntermediateFile,
-#                     'PersistentDirectory': PersistentIntermediateDir,
-#                     } # 'PersistentPath': PersistentIntermediatePath}
-#     function_remap = {'value': 'value',
-#                       'compress': None}
-#     src_port_remap = {'value': 'value',
-#                       'compress': None},
-#     dst_port_remap = {'value': 'value'}
-
-#     old_module = pipeline.modules[module_id]
-#     debug_print('running handle_missing_module', old_module.name)
-#     if old_module.name in module_remap:
-#         debug_print('running through remamp')
-#         new_descriptor = reg.get_descriptor(module_remap[old_module.name])
-#         action_list = \
-#             UpgradeWorkflowHandler.replace_module(controller, pipeline,
-#                                                   module_id, new_descriptor,
-#                                                   function_remap,
-#                                                   src_port_remap,
-#                                                   dst_port_remap)
-#         debug_print('action_list', action_list)
-#         return action_list
-
-#     return False
-
-# def handle_all_errors(controller, err_list, pipeline):
-#     new_actions = []
-#     debug_print('starting handle_all_errors')
-#     for err in err_list:
-#         debug_print('processing', err)
-#         if isinstance(err, MissingModule):
-#             debug_print('got missing')
-#             actions = handle_missing_module(controller, err._module_id, 
-#                                             pipeline)
-#             if actions:
-#                 new_actions.extend(actions)
-#         elif isinstance(err, MissingPackageVersion):
-#             debug_print('got package version change')
-#             actions = handle_module_upgrade_request(controller, err._module_id,
-#                                                     pipeline)
-#             if actions:
-#                 new_actions.extend(actions)
-
-#     if len(new_actions) == 0:
-#         return None
-#     return new_actions

@@ -63,8 +63,8 @@ class MplFigureCell(SpreadsheetCell):
         The class will take the figure manager and embed it into the spreadsheet
         
         """
-        if self.hasInputFromPort('figure'):
-            fig = self.getInputFromPort('figure')
+        if self.has_input('figure'):
+            fig = self.get_input('figure')
             self.displayAndWait(MplFigureCellWidget, (fig, ))
 
 class MplFigureCellWidget(QCellWidget):
@@ -73,8 +73,6 @@ class MplFigureCellWidget(QCellWidget):
     as a child for displaying figures
     
     """
-    _existing_fig_nums = set()
-
     def __init__(self, parent=None):
         """ MplFigureCellWidget(parent: QWidget) -> MplFigureCellWidget
         Initialize the widget with its central layout
@@ -116,14 +114,7 @@ class MplFigureCellWidget(QCellWidget):
             if self.layout().count() > 0:
                 self.layout().removeWidget(self.canvas)
 
-            if fig.figInstance.number in self._existing_fig_nums:
-                print "CREATING NEW FIGURE"
-                self.figure = pylab.figure()
-                self.figure.set_axes(fig.figInstance.get_axes())
-            else:
-                print "USING EXISTING FIGURE"
-                self.figure = fig.figInstance
-            self._existing_fig_nums.add(self.figure.number)
+            self.figure = fig.figInstance
                 
             # self.figure.set_size_inches(8.0,6.0)
             self.canvas = FigureCanvasQTAgg(self.figure)

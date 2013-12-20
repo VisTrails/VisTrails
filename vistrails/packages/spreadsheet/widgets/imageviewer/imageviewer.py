@@ -54,9 +54,9 @@ class ImageViewerCell(SpreadsheetCell):
         Dispatch the display event to the spreadsheet with images and labels
         
         """
-        if self.hasInputFromPort("File"):
+        if self.has_input("File"):
             window = spreadsheetController.findSpreadsheetWindow()
-            file_to_display = self.getInputFromPort("File")
+            file_to_display = self.get_input("File")
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
@@ -210,12 +210,11 @@ class ImageViewerSaveAction(QtGui.QAction):
         fn = QtGui.QFileDialog.getSaveFileName(None, "Save image as...",
                                                "screenshot.png",
                                                "Images (*.png);;PDF files (*.pdf)")
-        if not fn:
-            return
-        if fn.lower().endswith("png"):
-            cellWidget.label.pixmap().toImage().save(fn, "png")
-        elif fn.lower().endswith("pdf"):
-            cellWidget.saveToPDF(str(fn))
+        if fn:
+            if fn.lower().endswith("png"):
+                cellWidget.label.pixmap().toImage().save(fn, "png")
+            elif fn.lower().endswith("pdf"):
+                cellWidget.saveToPDF(fn)
         
 
 class ImageViewerZoomSlider(QtGui.QSlider):

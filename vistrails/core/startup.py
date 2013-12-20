@@ -39,6 +39,7 @@ from vistrails.core import system
 from vistrails.core.utils.uxml import named_elements, elements_filter, \
      eval_xml_value, enter_named_element
 import copy
+from distutils.version import LooseVersion
 import vistrails.core.packagemanager
 import vistrails.core.utils
 import os.path
@@ -169,7 +170,9 @@ class VistrailsStartup(object):
 
     def get_python_environment(self):
         """get_python_environment(): returns the python environment generated
-by startup.py. This should only be called after init()."""
+        by startup.py. This should only be called after init().
+
+        """
         return self._python_environment
 
     def create_default_directory(self):
@@ -297,7 +300,7 @@ by startup.py. This should only be called after init()."""
         def install_default_startup():
             debug.log('Will try to create default startup script')
             try:
-                root_dir = vistrails.core.system.vistrails_root_directory()
+                root_dir = system.vistrails_root_directory()
                 default_file = os.path.join(root_dir,'core','resources',
                                             'default_vistrails_startup')
                 user_file = os.path.join(self.temp_configuration.dotVistrails,
@@ -314,7 +317,7 @@ by startup.py. This should only be called after init()."""
         def install_default_startupxml_if_needed():
             fname = os.path.join(self.temp_configuration.dotVistrails,
                                  'startup.xml')
-            root_dir = vistrails.core.system.vistrails_root_directory() 
+            root_dir = system.vistrails_root_directory()
             origin = os.path.join(root_dir, 'core','resources',
                                   'default_vistrails_startup_xml')
             def skip():
@@ -322,8 +325,7 @@ by startup.py. This should only be called after init()."""
                     try:
                         d = self.startup_dom()
                         v = str(d.getElementsByTagName('startup')[0].attributes['version'].value)
-                        r = vistrails.core.utils.version_string_to_list(v)
-                        return r >= [0, 1]
+                        return LooseVersion('0.1') <= LooseVersion(v)
                     except:
                         return False
                 else:
@@ -544,7 +546,10 @@ by startup.py. This should only be called after init()."""
                                         'vistrails_%s.log'%(get_version()))
         if not os.path.lexists(self.temp_configuration.dotVistrails):
             self.create_default_directory()
-        debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
+        if self.configuration.check('nologfile'):
+            debug.DebugPrint.getInstance().set_logfile(None)
+        else:
+            debug.DebugPrint.getInstance().set_logfile(self.temp_configuration.logFile)
         
     def setupBaseModules(self):
         """ setupBaseModules() -> None        

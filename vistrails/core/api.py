@@ -112,7 +112,7 @@ class Module(object):
                 port_spec = \
                     self._module.get_port_spec(port_spec.name, 'input')
             else:
-                raise Exception("cannot update an output port spec")
+                raise TypeError("cannot update an output port spec")
 
         # FIXME deal with kwargs
         num_ports = 0
@@ -162,7 +162,7 @@ class Module(object):
                             other_module.get_port_spec(port_spec.name, 
                                                         'output')
                     else:
-                        raise Exception("cannot update an input "
+                        raise TypeError("cannot update an input "
                                         "port spec")
                 else:
                     other_port_spec = other._port_spec
@@ -270,8 +270,8 @@ class VisTrailsAPI(object):
             return self._controller
         controller = self.app.get_controller()
         if controller is None:
-            raise Exception("You must have a vistrail open before calling "
-                            "this API method.")
+            raise ValueError("You must have a vistrail open before calling "
+                             "this API method.")
         return controller
     controller = property(_get_controller)
 
@@ -362,10 +362,13 @@ class VisTrailsAPI(object):
     def get_packages(self):
         if self._packages is None:
             self._packages = {}
+            self._old_package_ids = {}
             reg = get_module_registry()
             for package in reg.package_list:
                 pkg = Package(package.identifier, package.version)
                 self._packages[package.identifier] = pkg
+                for old_name in package.old_identifiers:
+                    self._old_package_ids[old_name] = pkg
         return self._packages
 
     def list_packages(self):
@@ -374,7 +377,10 @@ class VisTrailsAPI(object):
 
     def get_package(self, identifier):
         packages = self.get_packages()
-        return packages[identifier]
+        if identifier not in packages and identifier in self._old_package_ids:
+            return self._old_package_ids[identifier]
+        else:
+            return packages[identifier]
 
     def load_package(self, identifier, codepath):
         packages = self.get_packages()
@@ -396,7 +402,7 @@ class VisTrailsAPI(object):
                 version = \
                     self.controller.vistrail.get_version_number(version)
             except:
-                raise Exception('Cannot locate version "%s"' % version)
+                raise ValueError('Cannot locate version "%s"' % version)
         return version
 
     def tag_version(self, tag, version=None):
@@ -442,8 +448,8 @@ class VisTrailsAPI(object):
         return wf_execs
 
 import os
+import tempfile
 import unittest
-from vistrails.core.system import temporary_directory
 
 class TestAPI(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
@@ -553,13 +559,18 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(get_api().new_vistrail())
         basic = self.get_basic_package()
         s1, s2 = self.create_modules(basic)
-        fname = os.path.join(temporary_directory(), "test_write_read.vt")
-        self.assertTrue(get_api().save_vistrail(fname))
-        self.assertTrue(os.path.exists(fname))
-        get_api().close_vistrail()
-        self.assertTrue(get_api().open_vistrail(fname))
-        self.assertEqual(get_api().controller.current_version, 4)
-        get_api().close_vistrail()
+        fdesc, fname = tempfile.mkstemp(prefix='vt_test_write_read_',
+                                 suffix='.vt')
+        os.close(fdesc)
+        try:
+            self.assertTrue(get_api().save_vistrail(fname))
+            self.assertTrue(os.path.exists(fname))
+            get_api().close_vistrail()
+            self.assertTrue(get_api().open_vistrail(fname))
+            self.assertEqual(get_api().controller.current_version, 4)
+            get_api().close_vistrail()
+        finally:
+            os.remove(fname)
 
 if __name__ == '__main__':
     vistrails.core.application.init()

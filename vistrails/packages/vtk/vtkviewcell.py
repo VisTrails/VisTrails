@@ -76,7 +76,7 @@ class VTKViewCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        renderView = self.forceGetInputFromPort('SetRenderView')
+        renderView = self.force_get_input('SetRenderView')
         if renderView==None:
             raise ModuleError(self, 'A vtkRenderView input is required.')
         self.cellWidget = self.displayAndWait(QVTKViewWidget, (renderView,))
@@ -874,9 +874,8 @@ class QVTKViewWidget(QCellWidget):
                                                "Save file as...",
                                                "screenshot.png",
                                                "Images (*.png)")
-        if not fn or fn == '':
-            return
-        self.saveToPNG(fn)
+        if fn:
+            self.saveToPNG(fn)
         
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap

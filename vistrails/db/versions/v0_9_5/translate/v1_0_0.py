@@ -33,8 +33,10 @@
 ##
 ###############################################################################
 import copy
+from vistrails.core import debug
+
 from vistrails.db.versions.v0_9_5.domain import DBVistrail, DBWorkflow, DBLog, \
-    DBRegistry
+    DBRegistry, DBModuleExec, DBGroupExec
 
 def translateVistrail(_vistrail):
     def update_workflow(old_obj, translate_dict):
@@ -53,7 +55,53 @@ def translateWorkflow(_workflow):
     return workflow
 
 def translateLog(_log):
-    translate_dict = {}
+    def update_items(old_obj, translate_dict):
+        new_items = []
+        for obj in old_obj.db_item_execs:
+            if obj.vtType == 'module_exec':
+                new_items.append(DBModuleExec.update_version(obj, translate_dict))
+            elif obj.vtType == 'group_exec':
+                new_items.append(DBGroupExec.update_version(obj, translate_dict))
+            elif obj.vtType == 'loop_exec':
+                new_items.append(DBLoopExec.update_version(obj, translate_dict))
+
+        return new_items
+
+    def update_exec_items(which, old_obj, translate_dict, catch_loops=False):
+        new_items = []
+        for obj in old_obj.db_item_execs:
+            if catch_loops and obj.vtType == 'loop_exec':
+                debug.warning("Cannot translate loop_exec inside of loop_exec")
+            if obj.vtType == which:
+                if obj.vtType == 'module_exec':
+                    new_items.append(DBModuleExec.update_version(obj, translate_dict))
+                elif obj.vtType == 'group_exec':
+                    new_items.append(DBGroupExec.update_version(obj, translate_dict))
+                elif obj.vtType == 'loop_exec':
+                    new_items.append(DBLoopExec.update_version(obj, translate_dict))
+        return new_items
+
+    def update_group_module_execs(old_obj, translate_dict):
+        return update_exec_items('module_exec', old_obj, translate_dict)
+
+    def update_group_group_execs(old_obj, translate_dict):
+        return update_exec_items('group_exec', old_obj, translate_dict)
+
+    def update_group_loop_execs(old_obj, translate_dict):
+        return update_exec_items('loop_exec', old_obj, translate_dict)
+
+    def update_loop_module_execs(old_obj, translate_dict):
+        return update_exec_tems('module_exec', old_obj, translate_dict, True)
+
+    def update_loop_group_execs(old_obj, translate_dict):
+        return update_exec_items('group_exec', old_obj, translate_dict)
+
+    translate_dict = {'DBWorkflowExec': {'items': update_items},
+                      'DBGroupExec': {'group_execs': update_group_group_execs,
+                                      'module_execs': update_group_module_execs,
+                                      'loop_execs': update_group_loop_execs},
+                      'DBLoopExec': {'group_execs': update_loop_group_execs,
+                                     'module_execs': update_loop_module_execs}}
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '0.9.5'
     return log

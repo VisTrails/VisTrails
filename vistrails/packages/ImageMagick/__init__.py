@@ -42,7 +42,7 @@ from vistrails.core.configuration import ConfigurationObject
 
 identifier = 'org.vistrails.vistrails.imagemagick'
 name = 'ImageMagick'
-version = '0.9.4'
+version = '0.9.5'
 old_identifiers = ['edu.utah.sci.vistrails.imagemagick']
 configuration = ConfigurationObject(quiet=False,
                                     path=(None, str))

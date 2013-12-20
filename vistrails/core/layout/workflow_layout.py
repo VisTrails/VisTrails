@@ -229,7 +229,7 @@ class Connection(object):
         elif self.target_port == port:
             return self.source_port
         else:
-            raise Exception("oppositePort problem: no opposite port")
+            raise ValueError("oppositePort problem: no opposite port")
 
 
 

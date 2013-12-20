@@ -187,12 +187,20 @@ def default():
         'defaultFileType':system.vistrails_default_file_type(),
         'detachHistoryView': False,
         'dotVistrails': system.default_dot_vistrails(),
+        'enablePackagesSilently': False,
+        'errorOnConnectionTypeerror': False,
+        'errorOnVariantTypeerror': True,
         'executeWorkflows': False,
         'fileDirectory': (None, str),
 #        'evolutionGraph': (None, str),
+        'handlerDontAsk': False,
         'installBundles': True,
         'installBundlesWithPip': False,
         'interactiveMode': True,
+        'jobCheckInterval': 10,
+        'jobAutorun': False,
+        'jobRun': (None, str),
+        'jobList': False,
         'logFile': (None, str),
         'logger': default_logger(),
         'maxMemory': (None, int),
@@ -202,6 +210,7 @@ def default():
         'minMemory': (None, int),
         'multiHeads': False,
         'nologger': True,
+        'nologfile': False,
         'packageDirectory': (None, str),
         'pythonPrompt': False,
         'recentVistrailList': (None, str),
@@ -209,16 +218,19 @@ def default():
         'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,
         'rootDirectory': (None, str),
-        'runningJobsList': (None, str),
         'shell': default_shell(),
+        'showHistoryViewOnLoad': False,
+        'showPipelineViewOnLoad': False,
         'showScrollbars': True,
         'showMovies': True,
         'showSplash': True,
         'showSpreadsheetOnly': False,
         'singleInstance': True,
+        'spawned': False,
         'spreadsheetDumpCells': (None, str),
         'spreadsheetDumpPDF': False,
         'staticRegistry': (None, str),
+        'stopOnError': True,
         'temporaryDirectory': (None, str),
         'thumbs': default_thumbs(),
         'upgradeOn': True,
@@ -289,10 +301,11 @@ def default_thumbs():
 
 def add_specific_config(base_dir):
      """add_specific_config() -> dict
-    Returns a dict with other specific configuration
-    to the current platform added to base_dir
-    
-    """
+
+     Returns a dict with other specific configuration to the current
+     platform added to base_dir
+
+     """
      newdir = dict(base_dir)
      if system.systemType == 'Darwin':
          newdir['useMacBrushedMetalStyle'] = True

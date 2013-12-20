@@ -36,7 +36,6 @@
 # VTK Package for VisTrails
 ################################################################################
 
-from vistrails.core.bundles import py_import
 from vistrails.core.debug import debug
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
      Color, identifier as basic_pkg
@@ -54,9 +53,7 @@ import os.path
 import re
 import warnings
 
-vtk = py_import('vtk', {'linux-debian': 'python-vtk',
-                        'linux-ubuntu': 'python-vtk',
-                        'linux-fedora': 'vtk-python'})
+import vtk
 
 from base_module import vtkBaseModule
 from class_tree import ClassTree
@@ -371,6 +368,7 @@ disallowed_classes = set(
     'vtkMutexLock',
     'vtkOutputWindow',
     'vtkPriorityQueue',
+    'vtkQtInitialization',
     'vtkReferenceCount',
     'vtkRenderWindowCollection',
     'vtkRenderWindowInteractor',
@@ -841,19 +839,25 @@ def class_dict(base_module, node):
             # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
             # it has other ways of specifying files, like SetFilePrefix for
             # multiple files
-            if any(issubclass(self.vtkClass, x)
-                   for x in
-                   [vtk.vtkBYUReader,
+            skip = [vtk.vtkBYUReader,
                     vtk.vtkImageReader,
-                    vtk.vtkPLOT3DReader,
                     vtk.vtkDICOMImageReader,
-                    vtk.vtkTIFFReader]):
+                    vtk.vtkTIFFReader]
+
+            # vtkPLOT3DReader does not exist from version 6.0.0
+            v = vtk.vtkVersion()
+            version = [v.GetVTKMajorVersion(),
+                       v.GetVTKMinorVersion(),
+                       v.GetVTKBuildVersion()]
+            if version < [6, 0, 0]:
+                skip.append(vtk.vtkPLOT3DReader)
+            if any(issubclass(self.vtkClass, x) for x in skip):
                 old_compute(self)
                 return
-            if self.hasInputFromPort('SetFileName'):
-                name = self.getInputFromPort('SetFileName')
-            elif self.hasInputFromPort('SetFile'):
-                name = self.getInputFromPort('SetFile').name
+            if self.has_input('SetFileName'):
+                name = self.get_input('SetFileName')
+            elif self.has_input('SetFile'):
+                name = self.get_input('SetFile').name
             else:
                 raise ModuleError(self, 'Missing filename')
             if not os.path.isfile(name):
@@ -970,7 +974,7 @@ def class_dict(base_module, node):
                 o = File()
                 o.name = fn
             self.vtkInstance.Write()
-            self.setResult('file', o)
+            self.set_output('file', o)
         return compute
 
     for var in dir(node.klass):
@@ -1078,7 +1082,7 @@ def createModule(baseModule, node):
             return True
         try:
             getattr(vtk, node.name)()
-        except TypeError: # VTK raises type error on abstract classes
+        except (TypeError, NotImplementedError): # VTK raises type error on abstract classes
             return True
         return False
     module = new_module(baseModule, node.name,
@@ -1143,8 +1147,8 @@ def initialize():
                v.GetVTKMinorVersion(),
                v.GetVTKBuildVersion()]
     if version < [5, 0, 0]:
-        raise Exception("You need to upgrade your VTK install to version \
-        > >= 5.0.0")
+        raise RuntimeError("You need to upgrade your VTK install to version "
+                           ">= 5.0.0")
     inheritanceGraph = ClassTree(vtk)
     inheritanceGraph.create()
 

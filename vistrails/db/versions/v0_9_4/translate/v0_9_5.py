@@ -33,7 +33,8 @@
 ##
 ###############################################################################
 import copy
-from vistrails.db.versions.v0_9_4.domain import DBVistrail, DBWorkflow, DBLog, DBGroup
+from vistrails.core import debug
+from vistrails.db.versions.v0_9_4.domain import DBVistrail, DBWorkflow, DBLog, DBGroup, DBModuleExec
 
 def translateVistrail(_vistrail):
     def update_port_spec_spec(new_obj, translate_dict):
@@ -68,7 +69,19 @@ def translateWorkflow(_workflow):
     return workflow
 
 def translateLog(_log):
-    translate_dict = {}
+    def update_module_execs(old_obj, translate_dict):
+        new_module_execs = []
+        for obj in old_obj.db_items:
+            if obj.vtType == 'module_exec':
+                new_module_execs.append(DBModuleExec.update_version(obj, 
+                                                            translate_dict))
+            elif obj.vtType == 'group_exec':
+                # cannot handle group execs
+                debug.warning('Cannot translate group exec')
+            elif obj.vtType == 'loop_exec':
+                debug.warning('Cannot translate loop exec')
+        return new_module_execs
+    translate_dict = {'DBWorkflowExec': {'module_execs': update_module_execs}}
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '0.9.4'
     return log

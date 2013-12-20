@@ -38,9 +38,9 @@ class NumPyArray(Module):
     )
 
     def compute(self):
-        filename = self.getInputFromPort('file').name
-        if self.hasInputFromPort('datatype'):
-            dtype = NumPyArray.FORMAT_MAP[self.getInputFromPort('datatype')]
+        filename = self.get_input('file').name
+        if self.has_input('datatype'):
+            dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
         else:
             if filename[-4:].lower() == '.npy':
                 dtype = self.NPY_FMT
@@ -54,12 +54,12 @@ class NumPyArray(Module):
             # Numpy's plain binary format
             # Written with: array.tofile('xxx.dat')
             array = numpy.fromfile(filename, dtype)
-        if self.hasInputFromPort('shape'):
-            array.shape = tuple(self.getInputFromPort('shape'))
-        self.setResult('value', array)
+        if self.has_input('shape'):
+            array.shape = tuple(self.get_input('shape'))
+        self.set_output('value', array)
 
 
-_modules = {'numpy': [NumPyArray]}
+_modules = [NumPyArray]
 
 
 ###############################################################################
@@ -84,7 +84,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('datatype', [('String', 'float32')]),
                         ('shape', [('List', '[2, 3]')]),
                         ('file', [('File', self._test_dir + '/random.dat')]),
@@ -102,10 +102,20 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('datatype', [('String', 'npy')]),
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', '')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 1, 'l'),
+                ],
+                add_port_specs=[
+                    (1, 'input', 'l',
+                     'org.vistrails.vistrails.basic:List'),
                 ]))
         self.assertEqual(len(results), 1)
         self.assertEqual(list(results[0]), [1.0, 7.0, 5.0, 3.0, 6.0, 1.0])
@@ -118,7 +128,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
                 ]))

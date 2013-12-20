@@ -49,14 +49,14 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "19514847cab3" # hash of version used on last release notes
+commit_start = "99faabb791a0" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.1" # git branch to be used
-release_name = "2.1 beta" 
+release_name = "2.1"
 clonepath = None # set this to the complete path of a vistrails clone to be used
                  # if None, the remote repository will be cloned to a temporary
                  # folder and removed at the end of the script
-#clonepath = '/Users/emanuele/temp/vistrails_test'
+#clonepath = '/Users/tommy/git/vistrails'
 cloneremote = 'git://www.vistrails.org/vistrails.git'
 #### end configuration #####
 
@@ -195,9 +195,12 @@ def build_release_notes(repo, branch):
                 break
         return found
     
-    re_ticket = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
-    re_bugfix = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
-    re_feature = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
+    re_ticket_old = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
+    re_ticket = re.compile(r'^Ticket: (.*?)$', re.M | re.S)
+    re_bugfix_old = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
+    re_bugfix = re.compile(r'^Bugfix: (.*?)$', re.M | re.S)
+    re_feature_old = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
+    re_feature = re.compile(r'^Feature:(.*?)$', re.M | re.S)
     re_skip = re.compile(r'<skip>(.*?)</skip>', re.M | re.S)
 
     #build list and dictionary with commits
@@ -218,31 +221,28 @@ def build_release_notes(repo, branch):
     for log in logs:
         ls = re_skip.findall(log.message)
         lf = re_feature.findall(log.message)
+        lf.extend(re_feature_old.findall(log.message))
         lt = re_ticket.findall(log.message)
+        lt.extend(re_ticket_old.findall(log.message))
         lb = re_bugfix.findall(log.message)
-        if len(ls) > 0:
-            changes[log.hexsha] = []
-            for s in ls:
-                changes[log.hexsha].append(s)
-        if len(lf) > 0:
-            features[log.hexsha] = []
-            for f in lf:
-                if not check_inside_skip(ls,f):
-                    features[log.hexsha].append(f)
-        if len(lt) > 0:
-            tickets[log.hexsha] = []
-            for t in lt:
-                if not check_inside_skip(ls,t):
-                    tickets[log.hexsha].append(t)
-        if len(lb) > 0:
-            bugfixes[log.hexsha] = []
-            for b in lb:
-                if not check_inside_skip(ls,b):
-                    bugfixes[log.hexsha].append(b)
+        lb.extend(re_ticket_old.findall(log.message))
+        for s in ls:
+            changes[s.strip()] = log.hexsha
+        for f in lf:
+            features[f.strip()] = log.hexsha
+        for t in lt:
+            # handle tickets with # (should not be used)
+            t = t.strip()
+            if t.startswith('#'):
+                t = t[1:]
+            try:
+                tickets[int(t)] = log.hexsha
+            except ValueError:
+                pass
+        for b in lb:
+            bugfixes[b.strip()] = log.hexsha
         if len(ls) == 0 and len(lf) == 0 and len(lt) == 0 and len(lb) == 0:
-            if not changes.has_key(log.hexsha):
-                changes[log.hexsha] = []
-            changes[log.hexsha].append(log.message)
+            changes[log.message] = log.hexsha
                 
 
     #get ticket summaries from xmlrpc plugin installed on vistrails trac
@@ -257,39 +257,26 @@ def build_release_notes(repo, branch):
                                                                password)
     server = xmlrpclib.ServerProxy(url)
     print "downloading tickets.",
-    for (r,tl) in tickets.iteritems():
+    for (tid,r) in tickets.iteritems():
         print ".",
         sys.stdout.flush()
-        for t in tl:
-            if not ticket_info.has_key(t):
-                try:
-                    tid = int(t[1:])
-                    ticket_info[t] = server.ticket.get(tid)
-                except Exception, e:
-                    tickets[r].remove(t)
-                    print "commit %s: Could not get info for ticket %s"%(r,t)
+        try:
+            ticket_info[tid] = server.ticket.get(tid)
+        except Exception, e:
+            tickets.remove(tid)
+            print "commit %s: Could not get info for ticket %s"%(r,tid)
     print "done."
 
     #place tickets on bugfixes or enhancements
-    for (r,tlist) in tickets.iteritems():
-        for t in tlist:
-            txt = "Ticket %s: %s"%(t,ticket_info[t][3]['summary'])
-            if ticket_info[t][3]['type'] == 'enhancement':
-                if features.has_key(r):
-                    features[r].insert(0,txt)
-                else:
-                    features[r] = [txt]
-            elif ticket_info[t][3]['type'] == 'defect':
-                if bugfixes.has_key(r):
-                    bugfixes[r].insert(0,txt)
-                else:
-                    bugfixes[r] = [txt]
-            else:
-                #put the rest as changes
-                if changes.has_key(r):
-                    changes[r].insert(0,txt)
-                else:
-                    changes[r] = [txt]
+    for (tid,r) in tickets.iteritems():
+        txt = "Ticket %s: %s"%(tid,ticket_info[tid][3]['summary'])
+        if ticket_info[tid][3]['type'] == 'enhancement':
+            features[txt] = r
+        elif ticket_info[tid][3]['type'] in ['defect', 'defect+question']:
+            bugfixes[txt] = r
+        else:
+            #put the rest as changes
+            changes[txt] = r
     if commit_end == "HEAD" and len(logs) > 0:
         commit_end = logs[0].hexsha
 
@@ -301,37 +288,35 @@ def build_release_notes(repo, branch):
     print 
     print "Enhancements: "
     times = []
-    for k in features.keys():
-        times.append((log_map_time[k], k))
+    for t, r in features.iteritems():
+        times.append((log_map_time[r], t))
     revisions = sorted(times)
     revisions.reverse()
-    for (t,r) in revisions:
-        rfeats = features[r]
-        for f in rfeats:
-            print " - %s (%s)" %(f,r[0:12])
+    for (t,text) in revisions:
+        r = features[text]
+        print " - %s (%s)" %(text,r[0:12])
     
     print
     print "Bug fixes: "
     times = []
-    for k in bugfixes.keys():
-        times.append((log_map_time[k], k))
+    for t, r in bugfixes.iteritems():
+        times.append((log_map_time[r], t))
     revisions = sorted(times)
     revisions.reverse()
-    for (t,r) in revisions:
-        rbugs = bugfixes[r]
-        for b in rbugs:
-            print " - %s (%s)" %(b,r[0:12])
+    for (t,text) in revisions:
+        r = bugfixes[text]
+        print " - %s (%s)" %(text,r[0:12])
+
     print
     print "Other changes: "
     times = []
-    for k in changes.keys():
-        times.append((log_map_time[k], k))
+    for t, r in changes.iteritems():
+        times.append((log_map_time[r], t))
     revisions = sorted(times)
     revisions.reverse()
-    for (t,r) in revisions:
-        print "(%s): "%r[0:12]
-        for c in changes[r]:
-            print "  - %s... "%c[0:100]
+    for (t,text) in revisions:
+        r = changes[text]
+        print " - %s (%s)" %(text.split('\n')[0][0:100],r[0:12])
 
 if __name__ == "__main__":
     repo = init_repo()

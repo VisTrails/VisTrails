@@ -43,7 +43,8 @@ from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.param_explore import ActionBasedParameterExploration
-from vistrails.core.system import current_time, get_vistrails_default_pkg_prefix
+from vistrails.core.system import current_time, strftime, \
+    get_vistrails_default_pkg_prefix
 from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
@@ -127,7 +128,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         """
         # Construct xml for persisting parameter exploration
         escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
-        timestamp = current_time().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.peWidget.table.label.getCounts()), str(self.virtualCell.getConfiguration()[2]), timestamp, timestamp)
         for i in xrange(self.peWidget.table.layout().count()):

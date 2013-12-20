@@ -58,13 +58,13 @@ class BaseView(object):
         self.vistrail_view = None
 
     def set_default_layout(self):
-        raise Exception("Class must define the layout as self.palette_layout")
+        raise NotImplementedError("Class must define the layout as self.palette_layout")
 
     def set_palette_layout(self, layout):
         self.palette_layout = layout
 
     def set_action_links(self):
-        raise Exception("Class must define the action links")
+        raise NotImplementedError("Class must define the action links")
 
     def set_action_defaults(self):
         self.action_defaults.update(

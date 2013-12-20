@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 ROOT_DIR_NAME="vistrails"
+EXAMPLES_DIR_NAME="examples"
 BIN_PATH_25="Contents/Resources/lib/python2.5"
 BIN_PATH_26="Contents/Resources/lib/python2.6"
 BIN_PATH_27="Contents/Resources/lib/python2.7"
@@ -76,5 +77,12 @@ then
     rm $2/$BIN_PATH/../../run.py
 fi
 ln -s -f -F $1/$ROOT_DIR_NAME/run.py $2/$BIN_PATH/../../run.py
+
+if [ -e "$2/../$EXAMPLES_DIR_NAME" ]
+then
+    rm -r $2/../$EXAMPLES_DIR_NAME
+fi
+ln -s -f -F $1/$EXAMPLES_DIR_NAME $2/../$EXAMPLES_DIR_NAME
+
 
 exit 0
