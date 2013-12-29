@@ -48,7 +48,7 @@ Bug fixes:
  - Spreadsheet history file path was set incorrectly (1789513a3afd)
  - Fixes slot bug in PyQt 4.7.3 (17230667d58e)
 
-From Release: v2.1 beta2 build 99faabb791a0 from v2.1 branch
+From Release: v2.1 beta2 build 7fd4888b0ea2 from v2.1 branch
 
 Bug fixes: 
  - Ticket #735: Windows dulwich install via pip fails (14d362a695df)
