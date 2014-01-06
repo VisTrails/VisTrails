@@ -45,25 +45,12 @@ from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
 from vistrails.gui.common_widgets import QStringEdit
 from vistrails.gui.modules.constant_configuration import ColorChooserButton
 from vistrails.gui.modules.python_source_configure import PythonEditor
+from vistrails.gui.modules.utils import get_param_explore_widget_list
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
 from vistrails.core.utils import all, unimplemented
 
 ##############################################################################
-
-def get_param_explore_widget_list(module_klass):
-    widget_list = []
-    klass_list = module_klass.get_param_explore_widget_list()
-    for klass in klass_list:
-        if klass is None:
-            pass
-        elif isinstance(klass, tuple):
-            (path, klass_name) = klass
-            module = __import__(path, globals(), locals(), [klass_name])
-            widget_list.append(getattr(module, klass_name))
-        else:
-            widget_list.append(klass)
-    return widget_list
 
 class QParameterEditor(QtGui.QWidget):
     """
@@ -88,7 +75,7 @@ class QParameterEditor(QtGui.QWidget):
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
-        module = param_info.spec.descriptor.module
+        descriptor = param_info.spec.descriptor
 
         self.stackedEditors = QtGui.QStackedWidget()
         self.stackedEditors.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -99,7 +86,7 @@ class QParameterEditor(QtGui.QWidget):
             self._exploration_widgets.append(wd)
             self.stackedEditors.addWidget(wd)
 
-        for widget_class in get_param_explore_widget_list(module):
+        for widget_class in get_param_explore_widget_list(descriptor):
             new_widget = widget_class(param_info, size)
             add_exploration_widget(new_widget)
 

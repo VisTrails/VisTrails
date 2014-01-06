@@ -49,8 +49,8 @@ old_identifiers = ['edu.utah.sci.vistrails.console_mode_test']
 class TestTupleExecution(Module):
 
     def compute(self):
-        v1, v2 = self.getInputFromPort('input')
-        self.setResult('output', v1 + v2)
+        v1, v2 = self.get_input('input')
+        self.set_output('output', v1 + v2)
 
 
 class TestDynamicModuleError(Module):
@@ -65,8 +65,8 @@ class TestDynamicModuleError(Module):
 class TestChangeVistrail(NotCacheable, Module):
 
     def compute(self):
-        if self.hasInputFromPort('foo'):
-            v1 = self.getInputFromPort('foo')
+        if self.has_input('foo'):
+            v1 = self.get_input('foo')
         else:
             v1 = 0
         if v1 != 12:

@@ -48,11 +48,11 @@ class Image(Module, ITK):
         self._type = pt
     
     def compute(self):
-        self.inIm = self.getInputFromPort("Image")
-        self.dim = self.getInputFromPort("Dimension")
-        self._type = self.getInputFromPort("Pixel Type")
+        self.inIm = self.get_input("Image")
+        self.dim = self.get_input("Dimension")
+        self._type = self.get_input("Pixel Type")
 
-        self.setResult("Output Image", self)
+        self.set_output("Output Image", self)
 
     @classmethod
     def register(cls, reg, basic):

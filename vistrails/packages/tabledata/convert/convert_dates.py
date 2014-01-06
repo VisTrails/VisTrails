@@ -6,6 +6,7 @@ import warnings
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.bundles import py_import
+from vistrails.core.utils import VistrailsWarning
 
 
 class UTC(datetime.tzinfo):
@@ -109,7 +110,7 @@ def make_timezone(s):
                         "You are using an old version of pytz (%s). You might "
                         "run into some issues with daylight saving handling." %
                         pytz.__version__,
-                        category=UserWarning)
+                        category=VistrailsWarning)
             try:
                 return pytz.timezone(s)
             except KeyError:
@@ -136,10 +137,10 @@ class TimestampsToDates(Module):
         return [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
 
     def compute(self):
-        timestamps = self.getInputFromPort('timestamps')
+        timestamps = self.get_input('timestamps')
 
         result = self.convert(timestamps)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class StringsToDates(Module):
@@ -221,16 +222,16 @@ class StringsToDates(Module):
         return result
 
     def compute(self):
-        tz = self.getInputFromPort('timezone')
+        tz = self.get_input('timezone')
 
-        strings = self.getInputFromPort('strings')
-        fmt = self.getInputFromPort('format')
+        strings = self.get_input('strings')
+        fmt = self.get_input('format')
 
         try:
             result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class DatesToMatplotlib(Module):
@@ -255,9 +256,9 @@ class DatesToMatplotlib(Module):
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
 
-        datetimes = self.getInputFromPort('datetimes')
+        datetimes = self.get_input('datetimes')
         result = self.convert(datetimes)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class TimestampsToMatplotlib(Module):
@@ -285,9 +286,9 @@ class TimestampsToMatplotlib(Module):
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
 
-        timestamps = self.getInputFromPort('timestamps')
+        timestamps = self.get_input('timestamps')
         result = self.convert(timestamps)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class StringsToMatplotlib(Module):
@@ -319,16 +320,16 @@ class StringsToMatplotlib(Module):
         except ImportError:
             raise ModuleError(self, "matplotlib is not available")
 
-        tz = self.getInputFromPort('timezone')
+        tz = self.get_input('timezone')
 
-        strings = self.getInputFromPort('strings')
-        fmt = self.getInputFromPort('format')
+        strings = self.get_input('strings')
+        fmt = self.get_input('format')
 
         try:
             result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 _modules = {'dates': [

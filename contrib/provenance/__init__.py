@@ -115,9 +115,9 @@ class AlignWarp(ProvenanceChallenge):
     """AlignWarp executes the AIR warping tool on the input."""
 
     def compute(self):
-        image = self.getInputFromPort("image")
-        ref = self.getInputFromPort("reference")
-        model = self.getInputFromPort("model")
+        image = self.get_input("image")
+        ref = self.get_input("reference")
+        model = self.get_input("model")
         o = self.interpreter.filePool.create_file(suffix='.warp')
         cmd = self.air_cmd_line('align_warp',
                                 image.name,
@@ -127,27 +127,27 @@ class AlignWarp(ProvenanceChallenge):
                                 str(model),
                                 '-q')
         self.run(cmd)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class Reslice(ProvenanceChallenge):
     """AlignWarp executes the AIR reslicing tool on the input."""
 
     def compute(self):
-        warp = self.getInputFromPort("warp")
+        warp = self.get_input("warp")
         o = self.interpreter.filePool.create_file()
         cmd = self.air_cmd_line('reslice',
                                  warp.name,
                                  o.name)
         self.run(cmd)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class SoftMean(ProvenanceChallenge):
     """SoftMean executes the AIR softmean averaging tool on the input."""
 
     def compute(self):
-        imageList = self.getInputFromPort("imageList")
+        imageList = self.get_input("imageList")
         o = self.interpreter.filePool.create_file(suffix='.hdr')
         cmd = self.air_cmd_line('softmean',
                                 o.name,
@@ -155,7 +155,7 @@ class SoftMean(ProvenanceChallenge):
                                 'null',
                                 *[f.name for f in imageList])
         self.run(cmd)
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 
 class Slicer(ProvenanceChallenge):
@@ -163,21 +163,21 @@ class Slicer(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['slicer']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.name)
-        if self.hasInputFromPort("slice_x"):
+        if self.has_input("slice_x"):
             cmd.append('-x')
-            cmd.append(str(self.getInputFromPort("slice_x")))
-        elif self.hasInputFromPort("slice_y"):
+            cmd.append(str(self.get_input("slice_x")))
+        elif self.has_input("slice_y"):
             cmd.append('-y')
-            cmd.append(str(self.getInputFromPort("slice_y")))
-        elif self.hasInputFromPort("slice_z"):
+            cmd.append(str(self.get_input("slice_y")))
+        elif self.has_input("slice_z"):
             cmd.append('-z')
-            cmd.append(str(self.getInputFromPort("slice_z")))
+            cmd.append(str(self.get_input("slice_z")))
         o = self.interpreter.filePool.create_file(suffix='.pgm')
         cmd.append(o.name)
         self.run(self.fsl_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 
 class PGMToPPM(ProvenanceChallenge):
@@ -185,13 +185,13 @@ class PGMToPPM(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['pgmtoppm', 'white']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.name)
         o = self.interpreter.filePool.create_file(suffix='.ppm')
         cmd.append(' >')
         cmd.append(o.name)
         self.run(list2cmdline(cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
         
 
 class PNMToJpeg(ProvenanceChallenge):
@@ -199,13 +199,13 @@ class PNMToJpeg(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['pnmtojpeg']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.name)
         o = self.interpreter.filePool.create_file(suffix='.jpg')
         cmd.append(' >')
         cmd.append(o.name)
         self.run(list2cmdline(cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 ################################################################################
 

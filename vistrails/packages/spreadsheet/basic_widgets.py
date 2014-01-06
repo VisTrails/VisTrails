@@ -101,11 +101,11 @@ class SheetReference(Module):
         
         """
         ref = StandardSheetReference()
-        ref.minimumRowCount = self.forceGetInputFromPort("MinRowCount", 1)
-        ref.minimumColumnCount = self.forceGetInputFromPort("MinColumnCount", 1)
-        ref.sheetName = self.forceGetInputFromPort("SheetName")
+        ref.minimumRowCount = self.force_get_input("MinRowCount", 1)
+        ref.minimumColumnCount = self.force_get_input("MinColumnCount", 1)
+        ref.sheetName = self.force_get_input("SheetName")
 
-        self.setResult('value', ref)
+        self.set_output('value', ref)
 
 class CellLocation(Module):
     """
@@ -136,17 +136,17 @@ class CellLocation(Module):
             except:
                 raise ModuleError(self, 'ColumnRowAddress format error')
 
-        ref = self.forceGetInputFromPort("SheetReference")
+        ref = self.force_get_input("SheetReference")
         if ref:
             loc.sheetReference = ref
 
-        loc.rowSpan = self.forceGetInputFromPort("RowSpan", -1)
-        loc.colSpan = self.forceGetInputFromPort("ColumnSpan", -1)
-        if self.hasInputFromPort("Row") and self.hasInputFromPort("Column"):
-            loc.row = self.getInputFromPort("Row")-1
-            loc.col = self.getInputFromPort("Column")-1
-        elif self.hasInputFromPort("ColumnRowAddress"):
-            address = self.getInputFromPort("ColumnRowAddress")
+        loc.rowSpan = self.force_get_input("RowSpan", -1)
+        loc.colSpan = self.force_get_input("ColumnSpan", -1)
+        if self.has_input("Row") and self.has_input("Column"):
+            loc.row = self.get_input("Row")-1
+            loc.col = self.get_input("Column")-1
+        elif self.has_input("ColumnRowAddress"):
+            address = self.get_input("ColumnRowAddress")
             address = address.replace(' ', '').upper()
             if len(address) > 1:
                 if address[0] >= 'A' and address[0] <= 'Z':
@@ -154,7 +154,7 @@ class CellLocation(Module):
                 else:
                     set_row_col(address[:-1], address[-1])
 
-        self.setResult('value', loc)
+        self.set_output('value', loc)
 
 class SpreadsheetCell(NotCacheable, Module):
     """
@@ -191,7 +191,7 @@ class SpreadsheetCell(NotCacheable, Module):
         if self.location:
             location = self.location
         else:
-            location = self.forceGetInputFromPort("Location")
+            location = self.force_get_input("Location")
         if location:
             e.row = location.row
             e.col = location.col
@@ -247,6 +247,6 @@ class SingleCellSheetReference(SheetReference):
         
         """
         ref = StandardSingleCellSheetReference()
-        ref.sheetName = self.forceGetInputFromPort("SheetName")
+        ref.sheetName = self.force_get_input("SheetName")
 
-        self.setResult('value', ref)
+        self.set_output('value', ref)

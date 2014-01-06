@@ -1,6 +1,9 @@
 import csv
 from itertools import izip
-import numpy
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 from vistrails.core.modules.vistrails_module import ModuleError
 from ..common import TableObject, Table
@@ -62,10 +65,10 @@ class CSVTable(TableObject):
         return column_count, column_names, delimiter
 
     def get_column(self, index, numeric=False):
-        if index in self.column_cache:
-            return self.column_cache[index]
+        if (index, numeric) in self.column_cache:
+            return self.column_cache[(index, numeric)]
 
-        if numeric:
+        if numeric and numpy is not None:
             result = numpy.loadtxt(
                     self.filename,
                     dtype=numpy.float32,
@@ -80,8 +83,10 @@ class CSVTable(TableObject):
                         fp,
                         delimiter=self.delimiter)
                 result = [row[index] for row in reader]
+            if numeric:
+                result = [float(e) for e in result]
 
-        self.column_cache[index] = result
+        self.column_cache[(index, numeric)] = result
         return result
 
     @property
@@ -105,22 +110,22 @@ class CSVFile(Table):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('value', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
+            ('value', '(org.vistrails.vistrails.tabledata:read|CSVFile)')]
 
     def compute(self):
-        csv_file = self.getInputFromPort('file').name
-        header_present = self.getInputFromPort('header_present',
-                                               allowDefault=True)
-        delimiter = self.forceGetInputFromPort('delimiter', None)
+        csv_file = self.get_input('file').name
+        header_present = self.get_input('header_present',
+                                        allowDefault=True)
+        delimiter = self.force_get_input('delimiter', None)
 
         table = CSVTable(csv_file, header_present, delimiter)
 
-        self.setResult('column_count', table.columns)
-        self.setResult('column_names', table.names)
-        self.setResult('value', table)
+        self.set_output('column_count', table.columns)
+        self.set_output('column_names', table.names)
+        self.set_output('value', table)
 
 
-_modules = {'csv': [CSVFile]}
+_modules = [CSVFile]
 
 
 ###############################################################################
@@ -147,7 +152,7 @@ class CSVTestCase(unittest.TestCase):
         with intercept_result(ExtractColumn, 'value') as results:
             with intercept_result(CSVFile, 'column_count') as columns:
                 self.assertFalse(execute([
-                        ('read|csv|CSVFile', identifier, [
+                        ('read|CSVFile', identifier, [
                             ('file', [('File', self._test_dir + '/test.csv')]),
                         ]),
                         ('ExtractColumn', identifier, [
@@ -177,7 +182,7 @@ class CSVTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with mismatching columns.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -193,7 +198,7 @@ class CSVTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with a nonexisting column.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -209,7 +214,7 @@ class CSVTestCase(unittest.TestCase):
         """
         with intercept_result(ExtractColumn, 'value') as results:
             self.assertFalse(execute([
-                    ('read|csv|CSVFile', identifier, [
+                    ('read|CSVFile', identifier, [
                         ('file', [('File', self._test_dir + '/test.csv')]),
                         ('header_present', [('Boolean', 'False')]),
                     ]),

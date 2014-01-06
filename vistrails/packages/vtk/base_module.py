@@ -190,7 +190,7 @@ class vtkBaseModule(Module):
 
         # Make sure all input ports are called correctly
         for (function, connector_list) in self.inputPorts.iteritems():
-            paramList = self.forceGetInputListFromPort(function)
+            paramList = self.force_get_input_list(function)
             if function[:18]=='SetInputConnection':
                 paramList = zip([int(function[18:])]*len(paramList),
                                  paramList)
@@ -240,18 +240,18 @@ class vtkBaseModule(Module):
             if function[:13]=='GetOutputPort':
                 i = int(function[13:])
                 vtkOutput = self.vtkInstance.GetOutputPort(i)
-                self.setResult(function, VTKInstanceWrapper(vtkOutput))
+                self.set_output(function, VTKInstanceWrapper(vtkOutput))
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    self.setResult(function, VTKInstanceWrapper(retValues))
+                    self.set_output(function, VTKInstanceWrapper(retValues))
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
                             result[i] = VTKInstanceWrapper(result[i])
-                    self.setResult(function, type(retValues)(result))
+                    self.set_output(function, type(retValues)(result))
                 else:
-                    self.setResult(function, retValues)
+                    self.set_output(function, retValues)
 
-        self.setResult('Instance', VTKInstanceWrapper(self.vtkInstance))
+        self.set_output('Instance', VTKInstanceWrapper(self.vtkInstance))

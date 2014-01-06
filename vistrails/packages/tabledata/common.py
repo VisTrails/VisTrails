@@ -7,7 +7,7 @@ class TableObject(object):
 
     names = None
 
-    def get_column(self, i):
+    def get_column(self, i): # pragma: no cover
         raise NotImplementedError
 
 
@@ -28,11 +28,11 @@ class ExtractColumn(Module):
             ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
-        table = self.getInputFromPort('table')
-        if self.hasInputFromPort('column_index'):
-            column_index = self.getInputFromPort('column_index')
-        if self.hasInputFromPort('column_name'):
-            name = self.getInputFromPort('column_name')
+        table = self.get_input('table')
+        if self.has_input('column_index'):
+            column_index = self.get_input('column_index')
+        if self.has_input('column_name'):
+            name = self.get_input('column_name')
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
             if table.names is None:
@@ -46,12 +46,12 @@ class ExtractColumn(Module):
                     index = table.column_names.index(name)
                 except:
                     raise ModuleError(self, "Column name was not found")
-            if self.hasInputFromPort('column_index'):
+            if self.has_input('column_index'):
                 if column_index != index:
                     raise ModuleError(self,
                                       "Both column_name and column_index were "
                                       "specified, and they don't agree")
-        elif self.hasInputFromPort('column_index'):
+        elif self.has_input('column_index'):
             index = column_index
         else:
             raise ModuleError(self,
@@ -60,9 +60,9 @@ class ExtractColumn(Module):
 
         result = table.get_column(
                 index,
-                numeric=self.getInputFromPort('numeric', allowDefault=True))
+                numeric=self.get_input('numeric', allow_default=True))
 
-        self.setResult('value', result)
+        self.set_output('value', result)
 
 
 _modules = [(Table, {'abstract': True}), ExtractColumn]

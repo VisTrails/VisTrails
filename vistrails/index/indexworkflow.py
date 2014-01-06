@@ -91,7 +91,7 @@ class WorkflowIndexer:
         wf.name = wf_info['name']
         wf.annotations.append(Annotation("title", wf_info['name']))
         wf.annotations.append(Annotation("user", wf_info['user']))
-#value.strftime('%Y-%m-%d %H:%M:%S')
+#strftime(value, '%Y-%m-%d %H:%M:%S')
         wf.annotations.append(Annotation("date", wf_info['date']))
         wf.annotations.append(Annotation("note", wf_info['description']))
         if wf_info['thumbnail'] != '':

@@ -47,8 +47,6 @@ from vistrails.db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBParameter
 from vistrails.db.services.vistrail import materializeWorkflow
 
-sys.path.append('/vistrails/src/trunk/vistrails')
-
 def create_process(item_exec, account, id_scope):
     return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
                         value=DBOpmProcessValue(item_exec),

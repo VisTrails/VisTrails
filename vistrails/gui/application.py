@@ -43,7 +43,8 @@ from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
-from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.db.locator import FileLocator, DBLocator, BaseLocator
+from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.requirements
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
@@ -53,6 +54,7 @@ import os.path
 import getpass
 import re
 import sys
+import StringIO
 
 ################################################################################
 
@@ -104,8 +106,45 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.local_server = None
             if self.shared_memory.attach():
                 self._is_running = True
+
+                local_socket = QtNetwork.QLocalSocket(self)
+                local_socket.connectToServer(self._unique_key)
+                if not local_socket.waitForConnected(self.timeout):
+                    debug.critical(
+                            "Connection failed: %s\n"
+                            "Removing socket" % (local_socket.errorString()))
+                    try:
+                        os.remove(self._unique_key)
+                    except OSError, e:
+                        debug.critical("Couldn't remove socket: %s (%s)" % (
+                                       self._unique_key, e))
+
+                else:
+                    if self.found_another_instance_running(local_socket):
+                        return APP_DONE # success, we should shut down
+                    else:
+                        return APP_FAIL  # error, we should shut down
+
+            if not self.shared_memory.create(1):
+                debug.critical("Unable to create single instance "
+                               "of vistrails application")
+                return
+            self.local_server = QtNetwork.QLocalServer(self)
+            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
+                         self.message_received)
+            if self.local_server.listen(self._unique_key):
+                debug.log("Listening on %s"%self.local_server.fullServerName())
             else:
-                self._is_running = False
+                # This usually happens when vistrails have crashed
+                # Delete the key and try again
+                self.shared_memory.detach()
+                self.local_server.close()
+                if os.path.exists(self._unique_key):
+                    os.remove(self._unique_key)
+
+                self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+                self.local_server = None
+
                 if not self.shared_memory.create(1):
                     debug.critical("Unable to create single instance "
                                    "of vistrails application")
@@ -116,38 +155,18 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if self.local_server.listen(self._unique_key):
                     debug.log("Listening on %s"%self.local_server.fullServerName())
                 else:
-                    # This usually happens when vistrails have crashed
-                    # Delete the key and try again
-                    self.shared_memory.detach()
-                    self.local_server.close()
-                    if os.path.exists(self._unique_key):
-                        os.remove(self._unique_key)
+                    debug.warning(
+                            "Server is not listening. This means it "
+                            "will not accept parameters from other "
+                            "instances")
 
-                    self.shared_memory = QtCore.QSharedMemory(self._unique_key)
-                    self.local_server = None
-                    if self.shared_memory.attach():
-                        self._is_running = True
-                    else:
-                        self._is_running = False
-                        if not self.shared_memory.create(1):
-                            debug.critical("Unable to create single instance "
-                                           "of vistrails application")
-                            return
-                        self.local_server = QtNetwork.QLocalServer(self)
-                        self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                                     self.message_received)
-                        if self.local_server.listen(self._unique_key):
-                            debug.log("Listening on %s"%self.local_server.fullServerName())
-                        else:
-                            debug.warning("Server is not listening. This \
-                            means it will not accept parameters from other \
-                            instances")
+        return None
 
-    def found_another_instance_running(self):
+    def found_another_instance_running(self, local_socket):
         debug.critical("Found another instance of VisTrails running")
         msg = bytes(sys.argv[1:])
         debug.critical("Will send parameters to main instance %s" % msg)
-        res = self.send_message(msg)
+        res = self.send_message(local_socket, msg)
         if res is True:
             debug.critical("Main instance succeeded")
             return True
@@ -164,20 +183,19 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         vistrails.gui.theme.initializeCurrentTheme()
-        # DAK this is handled by finalize_vistrails in core.application now
-        # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         VistrailsApplicationInterface.init(self, optionsDict)
         
-        #singleInstance configuration
+        if self.temp_configuration.check('jobRun') or \
+           self.temp_configuration.check('jobList'):
+            self.temp_configuration.interactiveMode = False
+
+        # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
         if singleInstance:
-            self.run_single_instance()
-            if self._is_running:
-                if self.found_another_instance_running():
-                    return APP_DONE # success, we should shut down 
+            finished = self.run_single_instance()
+            if finished is not None:
+                return finished
 
-                else:
-                    return APP_FAIL  # error, we should shut down
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
@@ -204,7 +222,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if not linux_default_application_set():
                     self.ask_update_default_application()
 
-        if interactive:
+        if self.temp_configuration.check('jobList'):
+            job = JobMonitor.getInstance()
+            for i, j in job._running_workflows.iteritems():
+                print "JOB: ", i, j.vistrail, j.version, j.start, \
+                      "FINISHED" if j.completed() else "RUNNING"
+        elif self.temp_configuration.check('jobRun'):
+            return self.runJob(self.temp_configuration.jobRun)
+        elif interactive:
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
@@ -412,13 +437,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()
         
+        self.builderWindow.check_running_jobs()
         self.process_interactive_input()
         if not self.temp_configuration.showSpreadsheetOnly:
             self.showBuilderWindow()
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
-        self.builderWindow.check_running_jobs()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -637,7 +662,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.temp_configuration.interactiveMode = True
             
             try:
+                # redirect stdout
+                old_stdout = sys.stdout
+                sys.stdout = StringIO.StringIO()
                 result = self.parse_input_args_from_other_instance(str(byte_array))
+                output = sys.stdout.getvalue()
+                sys.stdout.close()
+                sys.stdout = old_stdout
             except Exception, e:
                 import traceback
                 debug.critical("Unknown error: %s" % str(e))
@@ -650,6 +681,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 result = "Command Failed"
             elif type(result) == list:
                 result = '\n'.join(result[1])
+            if result == "Command Completed" and output:
+                result += '\n' + output
             self.shared_memory.lock()
             local_socket.write(bytes(result))
             self.shared_memory.unlock()
@@ -658,47 +691,29 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             local_socket.errorString())
                 return
             local_socket.disconnectFromServer()
-    
-    def send_message(self, message):
-        if QtCore.QT_VERSION >= 0x40400:
-            if not self._is_running:
-                return False
-            local_socket = QtNetwork.QLocalSocket(self)
-            local_socket.connectToServer(self._unique_key)
-            if not local_socket.waitForConnected(self.timeout):
-                msg = ("VisTrails found a socket to another instance of the "
-                       "application but was unable to communicate with it. If "
-                       "you don't have any other instance running, please "
-                       "delete the socket:\n%s" % self._unique_key)
-                debug.critical(
-                        "Connection failed: %s\n"
-                        "\n"
-                        "%s" % (local_socket.errorString(), msg))
-                QtGui.QMessageBox.critical(None,
-                                           "VisTrails single-instance mode",
-                                           msg)
-                return False
-            self.shared_memory.lock()
-            local_socket.write(message)
-            self.shared_memory.unlock()
-            if not local_socket.waitForBytesWritten(self.timeout):
-                debug.critical("Writing failed: %s" %
-                               local_socket.errorString())
-                return False
-            if not local_socket.waitForReadyRead(self.timeout):
-                debug.critical("Read error: %s" %
-                               local_socket.errorString())
-                return False
-            byte_array = local_socket.readAll()
-            result = str(byte_array)
-            debug.log("Other instance processed input (%s)"%result)
-            if result != 'Command Completed':
-                debug.critical(result)
-            else:
-                local_socket.disconnectFromServer()
-                return True
+
+    def send_message(self, local_socket, message):
+        self.shared_memory.lock()
+        local_socket.write(message)
+        self.shared_memory.unlock()
+        if not local_socket.waitForBytesWritten(self.timeout):
+            debug.critical("Writing failed: %s" %
+                           local_socket.errorString())
+            return False
+        if not local_socket.waitForReadyRead(self.timeout):
+            debug.critical("Read error: %s" %
+                           local_socket.errorString())
+            return False
+        byte_array = local_socket.readAll()
+        result = str(byte_array)
+        print "Other instance processed input (%s)" % result
+        if not result.startswith('Command Completed'):
+            debug.critical(result)
+        else:
             local_socket.disconnectFromServer()
-            return result
+            return True
+        local_socket.disconnectFromServer()
+        return False
 
     def parse_input_args_from_other_instance(self, msg):
         options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
@@ -713,6 +728,22 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
                 self.readOptions()
+                if self.temp_configuration.check('jobList'):
+                    job = JobMonitor.getInstance()
+                    return '\n'.join(
+                        ["JOB: %s %s %s %s %s" %(i,
+                                                 j.vistrail,
+                                                 j.version,
+                                                 j.start,
+                              "FINISHED" if j.completed() else "RUNNING")
+                         for i, j in job._running_workflows.iteritems()])
+                if self.temp_configuration.check('jobRun'):
+                    # skip waiting for completion
+                    autoRun = self.configuration.check('autoRun')
+                    self.configuration.autoRun = True
+                    result = self.runJob(self.temp_configuration.jobRun)
+                    self.configuration.autoRun = autoRun
+                    return result == APP_SUCCESS
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
                     result = self.process_interactive_input()
@@ -729,6 +760,20 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         else:
             debug.critical("Invalid input: %s" % msg)
         return False
+
+    def runJob(self, job_id):
+        jobMonitor = JobMonitor.getInstance()
+        workflow = jobMonitor.getWorkflow(job_id)
+        if not workflow:
+            print "No job with that id exists"
+            return APP_FAIL
+        locator = BaseLocator.from_url(workflow.vistrail)
+        jobMonitor.startWorkflow(workflow)
+        import vistrails.core.console_mode
+        error = vistrails.core.console_mode.run([(locator, workflow.version)],
+                                                update_vistrail=True)
+        return APP_SUCCESS
+
 
 def linux_default_application_set():
     """linux_default_application_set() -> True|False|None
@@ -845,6 +890,7 @@ def start_application(optionsDict=None):
 
 def stop_application():
     """Stop and finalize the application singleton."""
+    JobMonitor.getInstance().save_to_file()
     VistrailsApplication = get_vistrails_application()
     VistrailsApplication.finishSession()
     VistrailsApplication.save_configuration()

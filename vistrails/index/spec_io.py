@@ -43,7 +43,8 @@ DBPASS = 'specpass'
 DBDB   = 'wfspec'
 
 class Spec:
-    def __init__(self):        
+    def __init__(self):
+        self.db = None
         try:
             self.db = MySQLdb.connect(DBHOST, DBUSER, DBPASS, DBDB)
         except MySQLdb.Error, e:
@@ -93,8 +94,9 @@ class Spec:
         self._exec(command)
     
     def __del__(self):
-        self.cursor.close()
-        self.db.close()
+        if self.db is not None:
+            self.cursor.close()
+            self.db.close()
 
 spec = Spec()
 

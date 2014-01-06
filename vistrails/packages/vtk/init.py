@@ -857,10 +857,10 @@ def class_dict(base_module, node):
             if any(issubclass(self.vtkClass, x) for x in skip):
                 old_compute(self)
                 return
-            if self.hasInputFromPort('SetFileName'):
-                name = self.getInputFromPort('SetFileName')
-            elif self.hasInputFromPort('SetFile'):
-                name = self.getInputFromPort('SetFile').name
+            if self.has_input('SetFileName'):
+                name = self.get_input('SetFileName')
+            elif self.has_input('SetFile'):
+                name = self.get_input('SetFile').name
             else:
                 raise ModuleError(self, 'Missing filename')
             if not os.path.isfile(name):
@@ -976,7 +976,7 @@ def class_dict(base_module, node):
             else:
                 o = PathObject(fn)
             self.vtkInstance.Write()
-            self.setResult('file', o)
+            self.set_output('file', o)
         return compute
 
     for var in dir(node.klass):

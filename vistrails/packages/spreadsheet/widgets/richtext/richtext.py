@@ -55,9 +55,9 @@ class RichTextCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the HTML contents to the spreadsheet
         """
-        filename = self.getInputFromPort("File").name
+        filename = self.get_input("File").name
 
-        text_format = self.getInputFromPort("Format")
+        text_format = self.get_input("Format")
         with open(filename, 'rb') as fp:
             if text_format == 'html':
                 html = fp.read()
@@ -87,8 +87,8 @@ class XSLCell(SpreadsheetCell):
         """ compute() -> None
         Render the XML tree and display it on the spreadsheet
         """
-        xml = self.getInputFromPort('XML').name
-        xsl = self.getInputFromPort('XSL').name
+        xml = self.get_input('XML').name
+        xsl = self.get_input('XSL').name
 
         query = QXmlQuery(QXmlQuery.XSLT20)
         query.setFocus(QUrl.fromLocalFile(os.path.join(os.getcwd(), xml)))
@@ -96,7 +96,6 @@ class XSLCell(SpreadsheetCell):
         html = query.evaluateToString()
 
         self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
-
 
 class RichTextCellWidget(QCellWidget):
     """

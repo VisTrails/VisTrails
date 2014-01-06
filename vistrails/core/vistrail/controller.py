@@ -39,17 +39,17 @@ import uuid
 import shutil
 import tempfile
 
-from vistrails.core.configuration import get_vistrails_configuration, \
-                                         get_vistrails_persistent_configuration
+from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.db.action
 import vistrails.core.db.io
 import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import JobMonitor
 from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
-from vistrails.core.log.controller import LogControllerFactory, DummyLogController
+from vistrails.core.log.controller import LogController, DummyLogController
 from vistrails.core.log.log import Log
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg, \
     version as abstraction_ver
@@ -198,9 +198,9 @@ class VistrailController(object):
             
     def get_logger(self):
         if self.logging_on():
-            return LogControllerFactory.getInstance().create_logger(self.log)
+            return LogController(self.log)
         else:
-            return DummyLogController()
+            return DummyLogController
         
     def get_locator(self):
         return self.locator
@@ -3157,8 +3157,12 @@ class VistrailController(object):
                     # FIXME: we should move the remapping to the db layer
                     # But we need to fix the schema by making functions/params
                     # foreign keys
-                    mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
-                    mashup.id = uuid.uuid1()
+
+                    #mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
+                    #mashup.id = uuid.uuid1()
+                    # we move it to the new version so that references still work
+                    self._mashups.remove(mashup)
+                    
                     for action in mashup.actions:
                         for alias in action.mashup.aliases:
                             c = alias.component
@@ -3175,8 +3179,8 @@ class VistrailController(object):
                     
                     new_mashups.append(mashup)
                 else:
-                    debug.warning("Cannot translate old parameter "
-                                  "explorations through upgrade.")
+                    debug.warning("Cannot translate old mashup "
+                                  "through upgrade.")
             
             if get_vistrails_configuration().check('upgradeDelay') and not force_no_delay:
                 self._delayed_actions.append(upgrade_action)
@@ -3598,20 +3602,14 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
-                    conf = get_vistrails_configuration()
-                    if conf.has('runningJobsList') and conf.runningJobsList:
-                        conf_jobs = conf.runningJobsList.split(';')
-                        conf_jobs = [job.replace(old_locator.to_url(),
-                                       locator.to_url()) for job in conf_jobs]
-                        conf.runningJobsList = ';'.join(conf_jobs)
-                        get_vistrails_persistent_configuration(
-                                      ).runningJobsList = conf.runningJobsList
+                    JobMonitor.getInstance().updateUrl(locator.to_url(),
+                                                       old_locator.to_url())
                     self.set_file_name(locator.name)
                     if old_locator and not export:
                         old_locator.clean_temporaries()
                         old_locator.close()
                     self.flush_pipeline_cache()
-                    self.change_selected_version(new_vistrail.db_currentVersion,
+                    self.change_selected_version(new_vistrail.db_currentVersion, 
                                                  from_root=True)
             else:
                 save_bundle = self.locator.save(save_bundle)

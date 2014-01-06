@@ -148,11 +148,11 @@ class NrrdHelper(object):
 class ReadPNG(ArrayIOModule, Module):
     """ Load a .png type image into a Numpy Array. """
     def compute(self):
-        fn = self.getInputFromPort("Filename")
+        fn = self.get_input("Filename")
         ar = pylab.imread(fn)
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -163,10 +163,10 @@ class ReadPNG(ArrayIOModule, Module):
 class WritePNG(ArrayIOModule, Module):
     """ Write a .png type image from a Numpy Array. """
     def compute(self):
-        fn = self.getInputFromPort("Filename")
-        ar = self.getInputFromPort("Image")
-        minv = self.forceGetInputFromPort("Min")
-        maxv = self.forceGetInputFromPort("Max")
+        fn = self.get_input("Filename")
+        ar = self.get_input("Image")
+        minv = self.force_get_input("Min")
+        maxv = self.force_get_input("Max")
         if minv == None:
             minv = 0
         if maxv == None:
@@ -190,13 +190,13 @@ class ReadRAW(ArrayIOModule, Module):
         self.helper = NrrdHelper()
         
     def compute(self):
-        fn = self.getInputFromPort("Filename")
-        sizes = self.getInputListFromPort("Sizes")
-        dtype = self.getInputFromPort("DataType")
+        fn = self.get_input("Filename")
+        sizes = self.get_input_list("Sizes")
+        dtype = self.get_input("DataType")
         ar = self.helper.read_raw(fn, sizes, dtype)
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -213,8 +213,8 @@ class WriteRAW(ArrayIOModule, Module):
         self.helper = NrrdHeler()
 
     def compute(self):
-        fn = self.getInputFromPort("Filename")
-        ar = self.getInputFromPort("Array").get_array()
+        fn = self.get_input("Filename")
+        ar = self.get_input("Array").get_array()
         self.helper.write_raw(fn,ar)
 
     @classmethod
@@ -231,14 +231,14 @@ class ReadNHDR(ArrayIOModule, Module):
 
     def compute(self):
         fn = ''
-        if self.hasInputFromPort("File"):
-            fn = self.getInputFromPort("File").name
+        if self.has_input("File"):
+            fn = self.get_input("File").name
         else:
-            fn = self.getInputFromPort("Filename")
+            fn = self.get_input("Filename")
         ar = self.helper.read_nhdr(fn)
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -254,10 +254,10 @@ class WriteNHDR(ArrayIOModule, Module):
         self.helper = NrrdHelper()
 
     def compute(self):
-        fn = self.getInputFromPort("Filename")
-        ar = self.getInputFromPort("Array").get_array()
+        fn = self.get_input("Filename")
+        ar = self.get_input("Array").get_array()
         self.helper.write_nhdr(fn,ar)
-        self.setResult("Filename Out", fn)
+        self.set_output("Filename Out", fn)
         
     @classmethod
     def register(cls, reg, basic):
@@ -272,12 +272,12 @@ class ReadStatisticalSummary(ArrayIOModule, Module):
     """
     def compute(self):
         fn = ''
-        if self.hasInputFromPort("File"):
-            fn = self.getInputFromPort("File").name
+        if self.has_input("File"):
+            fn = self.get_input("File").name
         else:
-            fn = self.getInputFromPort("Filename")
+            fn = self.get_input("Filename")
 
-        if self.forceGetInputFromPort("Allocate Aggregated Array"):
+        if self.force_get_input("Allocate Aggregated Array"):
             alloc_array = True
         else:
             alloc_array = False
@@ -317,36 +317,36 @@ class ReadStatisticalSummary(ArrayIOModule, Module):
         
         min_ar_out = NDArray()
         min_ar_out.set_array(min_ar)
-        self.setResult("Min Array", min_ar_out)
+        self.set_output("Min Array", min_ar_out)
         
         lq_ar_out = NDArray()
         lq_ar_out.set_array(lq_ar)
-        self.setResult("Lower Quartile Array", lq_ar_out)
+        self.set_output("Lower Quartile Array", lq_ar_out)
         
         med_ar_out = NDArray()
         med_ar_out.set_array(med_ar)
-        self.setResult("Median Array", med_ar_out)
+        self.set_output("Median Array", med_ar_out)
         
         hq_ar_out = NDArray()
         hq_ar_out.set_array(hq_ar)
-        self.setResult("Upper Quartile Array", hq_ar_out)
+        self.set_output("Upper Quartile Array", hq_ar_out)
         
         max_ar_out = NDArray()
         max_ar_out.set_array(max_ar)
-        self.setResult("Max Array", max_ar_out)
+        self.set_output("Max Array", max_ar_out)
         
         mode_ar_out = NDArray()
         mode_ar_out.set_array(mode_ar)
-        self.setResult("Mode Array", mode_ar_out)
+        self.set_output("Mode Array", mode_ar_out)
         
         hist_ar_out = NDArray()
         hist_ar_out.set_array(hist_ar)
-        self.setResult("Histogram Array", hist_ar_out)
+        self.set_output("Histogram Array", hist_ar_out)
 
         if alloc_array:
             ag_ar_out = NDArray()
             ag_ar_out.set_array(ag_ar)
-            self.setResult("Aggregated Array", ag_ar_out)
+            self.set_output("Aggregated Array", ag_ar_out)
         
     @classmethod
     def register(cls, reg, basic):
