@@ -180,6 +180,7 @@ class FoldWithModule(Fold):
                 try:
                     module.update()
                 except ModuleSuspended, e:
+                    e.loop_iteration = i
                     suspended.append(e)
                     do_operation = False
                     loop.end_iteration(module)
