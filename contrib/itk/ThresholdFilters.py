@@ -30,23 +30,23 @@ class BinaryThresholdImageFilter(Module):
     my_namespace = "Filter|Threshold"
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+        if self.has_input("Input PixelType"):
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+        if self.has_input("Output PixelType"):
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+        if self.has_input("Dimension"):
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -54,20 +54,20 @@ class BinaryThresholdImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        if self.hasInputFromPort("Upper Threshold"):
-            upper_threshold = self.getInputFromPort("Upper Threshold")
+        if self.has_input("Upper Threshold"):
+            upper_threshold = self.get_input("Upper Threshold")
         else:
             upper_threshold = 255
 
-        lower_threshold = self.getInputFromPort("Lower Threshold")
+        lower_threshold = self.get_input("Lower Threshold")
 
-        if self.hasInputFromPort("Outside Value"):
-            outside_value = self.getInputFromPort("Outside Value")
+        if self.has_input("Outside Value"):
+            outside_value = self.get_input("Outside Value")
         else:
             outside_value = 0
 
-        if self.hasInputFromPort("Inside Value"):
-            inside_value = self.getInputFromPort("Inside Value")
+        if self.has_input("Inside Value"):
+            inside_value = self.get_input("Inside Value")
         else:
             inside_value = 255
 
@@ -85,9 +85,9 @@ class BinaryThresholdImageFilter(Module):
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 
 
     @classmethod

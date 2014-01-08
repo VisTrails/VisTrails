@@ -37,6 +37,9 @@
 ################################################################################
 import os
 from PyQt4 import QtGui
+from PyQt4.QtCore import QUrl
+from PyQt4.QtXmlPatterns import QXmlQuery
+
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
@@ -52,9 +55,9 @@ class RichTextCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the HTML contents to the spreadsheet
         """
-        filename = self.getInputFromPort("File").name
+        filename = self.get_input("File").name
 
-        text_format = self.getInputFromPort("Format")
+        text_format = self.get_input("Format")
         with open(filename, 'rb') as fp:
             if text_format == 'html':
                 html = fp.read()
@@ -74,6 +77,25 @@ class RichTextCell(SpreadsheetCell):
 
         self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
 
+
+class XSLCell(SpreadsheetCell):
+    """
+    XSLCell is a custom Module to render an XML file via an XSL stylesheet
+
+    """
+    def compute(self):
+        """ compute() -> None
+        Render the XML tree and display it on the spreadsheet
+        """
+        xml = self.get_input('XML').name
+        xsl = self.get_input('XSL').name
+
+        query = QXmlQuery(QXmlQuery.XSLT20)
+        query.setFocus(QUrl.fromLocalFile(os.path.join(os.getcwd(), xml)))
+        query.setQuery(QUrl.fromLocalFile(os.path.join(os.getcwd(), xsl)))
+        html = query.evaluateToString()
+
+        self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
 
 class RichTextCellWidget(QCellWidget):
     """

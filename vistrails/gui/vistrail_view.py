@@ -912,6 +912,12 @@ class QVistrailView(QtGui.QWidget):
             raise
         if export:
             return self.controller.locator
+        
+        if not force_choose_locator:
+            from vistrails.gui.vistrails_window import _app
+            _app.view_changed(self)
+            _app.notify("vistrail_saved")
+            return locator
         # update collection
         try:
             thumb_cache = ThumbnailCache.getInstance()
@@ -1098,19 +1104,22 @@ class QVistrailView(QtGui.QWidget):
         if hasattr(view, 'publish_to_paper'):
             view.publish_to_paper()
 
-    def open_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
-        """open_mashup_from_mashuptrail_id(mashuptrail_id: int,
+    def get_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
+        """get_mashup_from_mashuptrail_id(mashuptrail_id: int,
                                            mashupVersion: int/str) -> None
-        It will find the matching mashuptrail and run the mashup
+        It will find the matching mashuptrail and return the mashup
         mashupVersion can be either version number or version tag
-        and run the mashup """
+
+        """
         for mashuptrail in self.controller._mashups:
             if str(mashuptrail.id) == mashuptrail_id:
-                if type(mashupVersion) != int:
+                try:
+                    mashupVersion = int(mashupVersion)
+                except ValueError:
                     mashupVersion = mashuptrail.getTagMap()[mashupVersion]
                 mashup = mashuptrail.getMashup(mashupVersion)
-                self.open_mashup(mashup)
-                break
+                return mashup
+        return None
 
     def open_mashup(self, mashup):
         """open_mashup(mashup: Mashup) -> None

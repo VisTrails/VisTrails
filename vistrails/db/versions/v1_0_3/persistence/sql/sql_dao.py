@@ -34,11 +34,11 @@
 ###############################################################################
 
 from datetime import date, datetime
-from time import strptime
 
+from vistrails.core import debug
+from vistrails.core.system import strftime, time_strptime
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import get_db_lib
-from vistrails.core import debug
 
 class SQLDAO:
     def __init__(self):
@@ -58,13 +58,13 @@ class SQLDAO:
                 if db_type == 'date':
                     return value
                 else:
-                    return date(*strptime(str(value), '%Y-%m-%d')[0:3])
+                    return date(*time_strptime(str(value), '%Y-%m-%d')[0:3])
             elif type == 'datetime':
                 if db_type == 'datetime':
                     return value
                 else:
-                    return datetime(*strptime(str(value), 
-                                              '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*time_strptime(str(value),
+                                                   '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     def convertWarning(self, before, after, _from, to):
@@ -121,7 +121,7 @@ class SQLDAO:
             elif type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                return strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
 

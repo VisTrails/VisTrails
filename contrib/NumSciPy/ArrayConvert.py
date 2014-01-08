@@ -12,8 +12,8 @@ class ArrayDumpToFile(ArrayConvertModule, Module):
     """ Pickle the input array and dump it to the specified file.  This
     array can then be read in via pickle.load or numpy.load """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        fn = self.getInputFromPort("Filename")
+        a = self.get_input("Array")
+        fn = self.get_input("Filename")
         a.dump_to_file(fn)
 
     @classmethod
@@ -26,8 +26,8 @@ class ArrayDumpToString(ArrayConvertModule, Module):
     """ Pickle the input array and dump it to a string.  This array
     can then be read in via pickle.loads or numpy.loads """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Output String", a.dump_to_string())
+        a = self.get_input("Array")
+        self.set_output("Output String", a.dump_to_string())
 
     @classmethod
     def register(cls, reg, basic):
@@ -42,11 +42,11 @@ class ArrayToFile(ArrayConvertModule, Module):
     is always written in row-major format regardless of the order of the
     input array. """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        fn = self.getInputFromPort("Filename")
+        a = self.get_input("Array")
+        fn = self.get_input("Filename")
         sep = ""
-        if self.hasInputFromPort("Separator"):
-            sep = self.getInputFromPort("Separator")
+        if self.has_input("Separator"):
+            sep = self.get_input("Separator")
         a.tofile(fn, sep)
 
     @classmethod
@@ -61,8 +61,8 @@ class ArrayToString(ArrayConvertModule, Module):
     be represented in row-major form regardless of the ordering of the
     input array. """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Output String", a.tostring())
+        a = self.get_input("Array")
+        self.set_output("Output String", a.tostring())
 
     @classmethod
     def register(cls, reg, basic):
@@ -74,12 +74,12 @@ class ArrayToMatrix(ArrayConvertModule, Module):
     """ Convert the input Numpy Array to a Scipy Matrix.  The input array
     must be no more than 2-dimensional """
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         try:
             mat = sparse.csc_matrix(a.get_array())
             out_mat = Matrix()
             out_mat.set_matrix(mat)
-            self.setResult("Output Matrix", out_mat)
+            self.set_output("Output Matrix", out_mat)
             
         except:
             raise ModuleError("Could not convert input array to matrix")
@@ -97,7 +97,7 @@ class ArrayToVTKImageData(ArrayConvertModule, Module):
     def compute(self):
         import vtk
         
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         sh = a.get_shape()
 
         if len(sh) < 2:
@@ -125,21 +125,21 @@ class ArrayToVTKImageData(ArrayConvertModule, Module):
                         val = ar[ar_x, ar_y, ar_z]
                         vtk_set.vtkInstance.SetScalarComponentFromFloat(ar_x, ar_y, ar_z, 0, val)
 
-        if self.hasInputFromPort("SpacingX"):
-            x = self.getInputFromPort("SpacingX")
+        if self.has_input("SpacingX"):
+            x = self.get_input("SpacingX")
         else:
             x = 1.0
-        if self.hasInputFromPort("SpacingY"):
-            y = self.getInputFromPort("SpacingY")
+        if self.has_input("SpacingY"):
+            y = self.get_input("SpacingY")
         else:
             y = 1.0
-        if self.hasInputFromPort("SpacingZ"):
-            z = self.getInputFromPort("SpacingZ")
+        if self.has_input("SpacingZ"):
+            z = self.get_input("SpacingZ")
         else:
             z = 1.0
         vtk_set.vtkInstance.SetSpacing(x,y,z)
 
-        self.setResult("vtkImageData", vtk_set)
+        self.set_output("vtkImageData", vtk_set)
 
     @classmethod
     def register(cls, reg, basic):

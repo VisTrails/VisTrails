@@ -14,8 +14,8 @@ VisTrails community. The easiest way to get started is to sign up for
 the VisTrails Users mailing list. Instructions for doing this can be
 found on the VisTrails web site: www.vistrails.org.
 
-This book is divided into four parts. The first part, :doc:`Introduction
-to VisTrails </intro>`, provides instructions on how to download and install
+This book is divided into four parts. The first part, :doc:`Getting started
+</getting_started>`, provides instructions on how to download and install
 the VisTrails software, and introduces you to its user interface. The
 second and longest part, "Learning VisTrails by Example," consists
 of a number of tutorial chapters that guide you, step by step, through

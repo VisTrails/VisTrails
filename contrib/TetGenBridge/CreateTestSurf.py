@@ -93,7 +93,7 @@ class CreateTestSurf(Module):
     def compute(self):
         out  = packages.TetGenBridge.tetgenio_wrapper()
         addSurfaceInfo(out.data, 0)
-        self.setResult("tgio out", out)
+        self.set_output("tgio out", out)
 
 def initialize(reg):
     reg.add_module(CreateTestSurf)

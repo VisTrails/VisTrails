@@ -35,7 +35,6 @@
 import copy
 import sys
 import os
-#sys.path.append(os.getenv('VISTRAILS', ''))
 import vistrails.db.services.io
 from vistrails.db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
     DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \

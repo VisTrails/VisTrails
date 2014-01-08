@@ -39,6 +39,7 @@ import shutil
 import sys
 import tempfile
 import weakref
+import warnings
 
 from vistrails.core import command_line
 from vistrails.core import debug
@@ -53,7 +54,7 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 import vistrails.core.startup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject
+from vistrails.core.utils import InstanceObject, VistrailsWarning
 from vistrails.core.utils.uxml import enter_named_element
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -193,6 +194,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             dest='installBundles',
             help=("Do not try to install missing Python packages "
                   "automatically"))
+        add("--runJob", action="store",
+            help=("Run job with specified id."))
+        add("--listJobs", action="store_true",
+            help=("List all jobs."))
         add('--spawned-mode', '--spawned', action='store_true',
             dest='spawned',
             help=("Do not use the .vistrails directory, and load packages "
@@ -322,6 +327,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         if get('installBundles')!=None:
             self.temp_configuration.installBundles = bool(get('installBundles'))
+        if get('runJob')!=None:
+            self.temp_configuration.jobRun = get('runJob')
+        if get('listJobs')!=None:
+            self.temp_configuration.jobList = bool(get('listJobs'))
         self.input = command_line.CommandLineParser().positional_arguments()
 
     def init(self, optionsDict=None, args=None):
@@ -330,6 +339,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         Create the application with a dict of settings
         
         """
+        warnings.simplefilter('once', VistrailsWarning, append=True)
         # gui.theme.initializeCurrentTheme()
         # self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
@@ -411,9 +421,11 @@ The builder window can be accessed by a spreadsheet menu option.")
         vistrails.core.requirements.require_executable('unzip')
 
     def get_python_environment(self):
-        """get_python_environment(): returns an environment that
-includes local definitions from startup.py. Should only be called
-after self.init()"""
+        """get_python_environment(): returns an environment that includes
+        local definitions from startup.py. Should only be called after
+        self.init()
+
+        """
         return self._python_environment
 
     def destroy(self):
@@ -517,6 +529,8 @@ after self.init()"""
                         mashuptrail = locator._mshptrail
                     if hasattr(locator, '_mshpversion'):
                         mashupversion = locator._mshpversion
+                        if mashupversion:
+                            execute = True
                     if not self.temp_configuration.showSpreadsheetOnly:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
@@ -681,6 +695,8 @@ after self.init()"""
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
+        # flush in case version was upgraded
+        controller.flush_delayed_actions()
         return True
         
     def open_workflow(self, locator):

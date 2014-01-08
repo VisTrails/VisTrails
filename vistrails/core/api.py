@@ -448,8 +448,8 @@ class VisTrailsAPI(object):
         return wf_execs
 
 import os
+import tempfile
 import unittest
-from vistrails.core.system import temporary_directory
 
 class TestAPI(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
@@ -559,13 +559,18 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(get_api().new_vistrail())
         basic = self.get_basic_package()
         s1, s2 = self.create_modules(basic)
-        fname = os.path.join(temporary_directory(), "test_write_read.vt")
-        self.assertTrue(get_api().save_vistrail(fname))
-        self.assertTrue(os.path.exists(fname))
-        get_api().close_vistrail()
-        self.assertTrue(get_api().open_vistrail(fname))
-        self.assertEqual(get_api().controller.current_version, 4)
-        get_api().close_vistrail()
+        fdesc, fname = tempfile.mkstemp(prefix='vt_test_write_read_',
+                                 suffix='.vt')
+        os.close(fdesc)
+        try:
+            self.assertTrue(get_api().save_vistrail(fname))
+            self.assertTrue(os.path.exists(fname))
+            get_api().close_vistrail()
+            self.assertTrue(get_api().open_vistrail(fname))
+            self.assertEqual(get_api().controller.current_version, 4)
+            get_api().close_vistrail()
+        finally:
+            os.remove(fname)
 
 if __name__ == '__main__':
     vistrails.core.application.init()

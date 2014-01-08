@@ -12,10 +12,10 @@ class WindowModule(object):
 
 class HanningWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.hanning(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -25,10 +25,10 @@ class HanningWindow(WindowModule, Module):
 
 class TriangularWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.triang(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -38,10 +38,10 @@ class TriangularWindow(WindowModule, Module):
 
 class BlackmanWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.blackman(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -51,10 +51,10 @@ class BlackmanWindow(WindowModule, Module):
 
 class BlackmanHarrisWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.blackmanharris(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -64,10 +64,10 @@ class BlackmanHarrisWindow(WindowModule, Module):
 
 class ParzenWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.parzen(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -77,10 +77,10 @@ class ParzenWindow(WindowModule, Module):
 
 class HammingWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.hamming(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -90,11 +90,11 @@ class HammingWindow(WindowModule, Module):
 
 class KaiserWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
-        beta = self.getInputFromPort("Beta")
+        size = self.get_input("Window Size")
+        beta = self.get_input("Beta")
         out = NDArray()
         out.set_array(scipy.signal.kaiser(size, beta))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -105,10 +105,10 @@ class KaiserWindow(WindowModule, Module):
 
 class BartlettHannWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.barthann(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -118,11 +118,11 @@ class BartlettHannWindow(WindowModule, Module):
 
 class GaussianWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
-        sigma = self.getInputFromPort("Sigma")
+        size = self.get_input("Window Size")
+        sigma = self.get_input("Sigma")
         out = NDArray()
         out.set_array(scipy.signal.gaussian(size, sigma))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -133,10 +133,10 @@ class GaussianWindow(WindowModule, Module):
 
 class BoxcarWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.boxcar(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -146,10 +146,10 @@ class BoxcarWindow(WindowModule, Module):
 
 class BohmanWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.bohman(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -159,10 +159,10 @@ class BohmanWindow(WindowModule, Module):
 
 class BartlettWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.bartlett(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -172,10 +172,10 @@ class BartlettWindow(WindowModule, Module):
 
 class NuttallBlackmanHarrisWindow(WindowModule, Module):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
         out = NDArray()
         out.set_array(scipy.signal.nuttall(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
     @classmethod
     def register(cls, reg, basic):

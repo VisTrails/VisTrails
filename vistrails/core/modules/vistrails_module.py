@@ -37,6 +37,8 @@ from itertools import izip
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
+from vistrails.core.modules.config import ModuleSettings, IPort, OPort
+from vistrails.core.utils import VistrailsInternalError, deprecated
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -49,10 +51,6 @@ class NeedsInputPort(Exception):
 class IncompleteImplementation(Exception):
     def __str__(self):
         return "Module has incomplete implementation"
-
-
-class MissingModule(Exception):
-    pass
 
 class ModuleBreakpoint(Exception):
     def __init__(self, module):
@@ -77,7 +75,7 @@ class ModuleBreakpoint(Exception):
         in_ports = self.module.__dict__["inputPorts"]
         inputs = {}
         for p in in_ports:
-            inputs[p] = self.module.getInputListFromPort(p)
+            inputs[p] = self.module.get_input_list(p)
 
         return inputs
 
@@ -89,15 +87,22 @@ class ModuleHadError(Exception):
     def __init__(self, module):
         self.module = module
 
-class ModuleError(Exception):
+class ModuleWasSuspended(ModuleHadError):
+    """Exception occurring when a module that was suspended gets updated again.
+    """
 
+class ModuleError(Exception):
     """Exception representing a VisTrails module runtime error. This
-exception is recognized by the interpreter and allows meaningful error
-reporting to the user and to the logging mechanism."""
-    
+    exception is recognized by the interpreter and allows meaningful error
+    reporting to the user and to the logging mechanism.
+
+    """
+
     def __init__(self, module, errormsg, abort=False):
         """ModuleError should be passed the module instance that signaled the
-error and the error message as a string."""
+        error and the error message as a string.
+
+        """
         Exception.__init__(self, errormsg)
         self.abort = abort # force abort even if stopOnError is False
         self.module = module
@@ -106,30 +111,34 @@ error and the error message as a string."""
         self.errorTrace = traceback.format_exc()
 
 class ModuleSuspended(ModuleError):
-    """Exception representing a VisTrails module being suspended. Raising 
-    ModuleSuspended flags that the module is not ready to finish yet and
-    that the workflow should be executed later.  A suspended module does
-    not execute the modules downstream but all other branches will be
-    executed. This is useful when executing external jobs where you do not
-    want to block vistrails while waiting for the execution to finish.
+    """Exception representing a VisTrails module being suspended.
+
+    Raising ModuleSuspended flags that the module is not ready to finish yet
+    and that the workflow should be executed later.
+    This is useful when executing external jobs where you do not want to block
+    vistrails while waiting for the execution to finish.
 
     'queue' is a class instance that should provide a finished() method for
     checking if the job has finished
 
     'children' is a list of ModuleSuspended instances that is used for nested
     modules
-    
     """
-    
-    def __init__(self, module, errormsg, queue=None, children=None):
+
+    def __init__(self, module, errormsg, queue=None, children=None, job_id=None):
         self.queue = queue
         self.children = children
+        self.signature = job_id
+        self.name = None
+        self.loop_iteration = None
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
     This exception is recognized by the interpreter and allows meaningful
-    error reporting to the user and to the logging mechanism."""
+    error reporting to the user and to the logging mechanism.
+
+    """
     def __init__(self, module_errors):
         """ModuleErrors should be passed a list of ModuleError objects"""
         Exception.__init__(self, str(tuple(me.msg for me in module_errors)))
@@ -162,8 +171,9 @@ class Serializable(object):
     """
     Serializable is a mixin class used to define methods to serialize and
     deserialize modules. 
-    """
     
+    """
+
     def serialize(self):
         """
         Method used to serialize a module.
@@ -180,47 +190,46 @@ class Serializable(object):
 # Module
 
 class Module(Serializable):
-
     """Module is the base module from which all module functionality
-is derived from in VisTrails. It defines a set of basic interfaces to
-deal with data input/output (through ports, as will be explained
-later), as well as a basic mechanism for dataflow based updates.
+    is derived from in VisTrails. It defines a set of basic interfaces to
+    deal with data input/output (through ports, as will be explained
+    later), as well as a basic mechanism for dataflow based updates.
 
-Execution Model
+    *Execution Model*
 
-  VisTrails assumes fundamentally that a pipeline is a dataflow. This
-  means that pipeline cycles are disallowed, and that modules are
-  supposed to be free of side-effects. This is obviously not possible
-  in general, particularly for modules whose sole purpose is to
-  interact with operating system resources. In these cases, designing
-  a module is harder -- the side effects should ideally not be exposed
-  to the module interface.  VisTrails provides some support for making
-  this easier, as will be discussed later.
-
-  VisTrails caches intermediate results to increase efficiency in
-  exploration. It does so by reusing pieces of pipelines in later
-  executions.
-  
-Terminology
-
-  Module Interface: The module interface is the set of input and
-  output ports a module exposes.
-
-Designing New Modules
-
-  Designing new modules is essentially a matter of subclassing this
-  module class and overriding the compute() method. There is a
-  fully-documented example of this on the default package
-  'pythonCalc', available on the 'packages/pythonCalc' directory.
-
-  Caching
-
+    VisTrails assumes fundamentally that a pipeline is a dataflow. This
+    means that pipeline cycles are disallowed, and that modules are
+    supposed to be free of side-effects. This is obviously not possible
+    in general, particularly for modules whose sole purpose is to
+    interact with operating system resources. In these cases, designing
+    a module is harder -- the side effects should ideally not be exposed
+    to the module interface.  VisTrails provides some support for making
+    this easier, as will be discussed later.
+    
+    VisTrails caches intermediate results to increase efficiency in
+    exploration. It does so by reusing pieces of pipelines in later
+    executions.
+    
+    *Terminology*
+    
+    Module Interface: The module interface is the set of input and
+    output ports a module exposes.
+    
+    *Designing New Modules*
+    
+    Designing new modules is essentially a matter of subclassing this
+    module class and overriding the compute() method. There is a
+    fully-documented example of this on the default package
+    'pythonCalc', available on the 'packages/pythonCalc' directory.
+    
+    *Caching*
+    
     Caching affects the design of a new module. Most importantly,
     users have to account for compute() being called more than
     once. Even though compute() is only called once per individual
     execution, new connections might mean that previously uncomputed
     output must be made available.
-
+    
     Also, operating system side-effects must be carefully accounted
     for. Some operations are fundamentally side-effectful (creating OS
     output like uploading a file on the WWW or writing a file to a
@@ -231,33 +240,32 @@ Designing New Modules
     to work appropriately, NotCacheable must appear *BEFORE* any other
     subclass in the class hierarchy declarations). These modules (and
     anything that depends on their results) will then never be reused.
-
-
-  Intermediate Files
-
+    
+    *Intermediate Files*
+    
     Many modules communicate through intermediate files. VisTrails
     provides automatic filename and handle management to alleviate the
     burden of determining tricky things (e.g. longevity) of these
     files. Modules can request temporary file names through the file pool,
-    currently accessible through
-
-    self.interpreter.filePool
-
+    currently accessible through ``self.interpreter.filePool``.
+    
     The FilePool class is available in core/modules/module_utils.py -
     consult its documentation for usage. Notably, using the file pool
     will make temporary files work correctly with caching, and will
     make sure the temporaries are correctly removed.
+    
+    """
 
-
-
-"""
+    _settings = ModuleSettings(is_root=True, abstract=True)
+    _output_ports = [OPort("self", "Module", optional=True)]
 
     def __init__(self):
         self.inputPorts = {}
         self.outputPorts = {}
         self.upToDate = False
         self.had_error = False
-        self.setResult("self", self) # every object can return itself
+        self.was_suspended = False
+        self.set_output("self", self) # every object can return itself
         self.logging = _dummy_logging
 
         # isMethod stores whether a certain input port is a method.
@@ -284,20 +292,12 @@ Designing New Modules
 
         self.is_breakpoint = False
 
-        # is_looping stores wether the module is a part of a loop
-        self.is_looping = False
-
-        # is_looping_module stores whether the module is a looping module
-        self.is_looping_module = False
-
         # computed stores wether the module was computed
         # used for the logging stuff
         self.computed = False
-        
-        self.suspended = False
 
         self.signature = None
-        
+
         # stores whether the output of the module should be annotated in the
         # execution log
         self.annotate_output = False
@@ -317,8 +317,10 @@ Designing New Modules
         return clone
 
     def clear(self):
-        """clear(self) -> None. Removes all references, prepares for
-deletion."""
+        """clear(self) -> None. 
+        Removes all references, prepares for deletion.
+
+        """
         for connector_list in self.inputPorts.itervalues():
             for connector in connector_list:
                 connector.clear()
@@ -329,42 +331,58 @@ deletion."""
         self._latest_method_order = 0
 
     def is_cacheable(self):
-        """is_cacheable() -> bool. A Module should return whether it
-can be reused across executions. It is safe for a Module to return
-different values in different occasions. In other words, it is
-possible for modules to be cacheable depending on their execution
-context."""
+        """is_cacheable() -> bool. 
+        A Module should return whether it can be
+        reused across executions. It is safe for a Module to return
+        different values in different occasions. In other words, it is
+        possible for modules to be cacheable depending on their
+        execution context.
+
+        """
         return True
 
-    def updateUpstreamPort(self, port):
-        # update single port
-        if port in self.inputPorts:
-            for connector in self.inputPorts[port]:
-                connector.obj.update()
-                if hasattr(connector.obj, 'suspended') and \
-                   connector.obj.suspended:
-                    self.suspended = connector.obj.suspended
-            for connector in copy.copy(self.inputPorts[port]):
-                if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(port, connector)
+    def update_upstream_port(self, port_name):
+        """Updates upstream of a single port instead of all ports."""
 
-    def updateUpstream(self):
-        """ updateUpstream() -> None        
+        if port_name in self.inputPorts:
+            for connector in self.inputPorts[port_name]:
+                connector.obj.update() # Might raise
+            for connector in copy.copy(self.inputPorts[port_name]):
+                if connector.obj.get_output(connector.port) is InvalidOutput:
+                    self.remove_input_connector(port_name, connector)
+
+    def update_upstream(self):
+        """ update_upstream() -> None        
         Go upstream from the current module, then update its upstream
         modules and check input connection based on upstream modules
         results
         
         """
+        suspended = []
+        was_suspended = None
         for connectorList in self.inputPorts.itervalues():
             for connector in connectorList:
-                connector.obj.update()
-                if hasattr(connector.obj, 'suspended') and \
-                   connector.obj.suspended:
-                    self.suspended = connector.obj.suspended
+                try:
+                    connector.obj.update()
+                except ModuleWasSuspended, e:
+                    was_suspended = e
+                except ModuleSuspended, e:
+                    suspended.append(e)
+                # Here we keep going even if one of the module suspended, but
+                # we'll stop right after the loop
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+                    self.remove_input_connector(iport, connector)
                     
     def update(self):
         """ update() -> None        
@@ -374,13 +392,12 @@ context."""
         """
         if self.had_error:
             raise ModuleHadError(self)
+        elif self.was_suspended:
+            raise ModuleWasSuspended(self)
         elif self.computed:
             return
         self.logging.begin_update(self)
-        self.updateUpstream()
-        if self.suspended:
-            self.had_error = True
-            return
+        self.update_upstream()
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
@@ -394,17 +411,13 @@ context."""
             self.compute()
             self.computed = True
         except ModuleSuspended, e:
-            self.suspended = e.msg
-            self._module_suspended = e
-            self.logging.end_update(self, e, was_suspended=True)
-            self.logging.signalSuspended(self)
-            return
+            self.had_error, self.was_suspended = False, True
+            raise
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
                 raise
             else:
-                msg = "A dynamic module raised an exception: '%s'"
-                msg %= str(me)
+                msg = "A dynamic module raised an exception: '%s'" % me
                 raise ModuleError(self, msg)
         except ModuleErrors:
             raise
@@ -426,36 +439,138 @@ context."""
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
-    def checkInputPort(self, name):
-        """checkInputPort(name) -> None.
-Makes sure input port 'name' is filled."""
-        if not self.hasInputFromPort(name):
-            raise ModuleError(self, "'%s' is a mandatory port" % name)
-
     def compute(self):
+        """This method should be overridden in order to perform the module's
+        computation.
+
+        """
         pass
 
-    def setResult(self, port, value):
-        self.outputPorts[port] = value
+    def get_input(self, port_name, allow_default=True):
+        """Returns the value coming in on the input port named **port_name**.
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String
+        :param allow_default: whether to return the default value if it exists
+        :type allow_default: Boolean
+        :returns: the value being passed in on the input port
+        :raises: ``ModuleError`` if there is no value on the port (and no default value if allow_default is True)
+
+        """
+        if port_name not in self.inputPorts:
+            if allow_default and self.registry:
+                defaultValue = self.get_default_value(port_name)
+                if defaultValue is not None:
+                    return defaultValue
+            raise ModuleError(self, "Missing value from port %s" % port_name)
+        # Cannot resolve circular reference here, need to be fixed later
+        from vistrails.core.modules.sub_module import InputPort
+        for conn in self.inputPorts[port_name]:
+            if isinstance(conn.obj, InputPort):
+                return conn()
+        return self.inputPorts[port_name][0]()
+
+    def get_input_list(self, port_name):
+        """Returns the value(s) coming in on the input port named
+        **port_name**.  When a port can accept more than one input,
+        this method obtains all the values being passed in.
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :returns: a list of all the values being passed in on the input port
+        :raises: ``ModuleError`` if there is no value on the port
+        """
+
+        if port_name not in self.inputPorts:
+            raise ModuleError(self, "Missing value from port %s" % port_name)
+        # Cannot resolve circular reference here, need to be fixed later
+        from vistrails.core.modules.sub_module import InputPort
+        fromInputPortModule = [connector()
+                               for connector in self.inputPorts[port_name]
+                               if isinstance(connector.obj, InputPort)]
+        if len(fromInputPortModule)>0:
+            return fromInputPortModule
+        return [connector() for connector in self.inputPorts[port_name]]
+
+    def set_output(self, port_name, value):
+        """This method is used to set a value on an output port.
+
+        :param port_name: the name of the output port to be set
+        :type port_name: String
+        :param value: the value to be assigned to the port
+
+        """
+        self.outputPorts[port_name] = value
+
+    def check_input(self, port_name):
+        """check_input(port_name) -> None.  
+        Raises an exception if the input port named *port_name* is not set.
+
+        :param port_name: the name of the input port being checked
+        :type port_name: String
+        :raises: ``ModuleError`` if there is no value on the port
+        """
+        if not self.has_input(port_name):
+            raise ModuleError(self, "'%s' is a mandatory port" % port_name)
         
+    def has_input(self, port_name):
+        """Returns a boolean indicating whether there is a value coming in on
+        the input port named **port_name**.
+        
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :rtype: Boolean
+
+        """
+        return port_name in self.inputPorts
+
+    def force_get_input(self, port_name, default_value=None):
+        """Like :py:meth:`.get_input` except that if no value exists, it
+        returns a user-specified default_value or None.
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :param default_value: the default value to be used if there is \
+        no value on the input port
+        :returns: the value being passed in on the input port or the default
+
+        """
+
+        if self.has_input(port_name):
+            return self.get_input(port_name)
+        else:
+            return default_value
+
+    def force_get_input_list(self, port_name):
+        """Like :py:meth:`.get_input_list` except that if no values
+        exist, it returns an empty list
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String
+        :returns: a list of all the values being passed in on the input port
+
+        """
+        if port_name not in self.inputPorts:
+            return []
+        return self.get_input_list(port_name)
+
     def annotate_output_values(self):
         output_values = []
         for port in self.outputPorts:
             output_values.append((port, self.outputPorts[port]))
         self.logging.annotate(self, {'output': output_values})
 
-    def get_output(self, port):
-        # if self.outputPorts.has_key(port) or not self.outputPorts[port]: 
-        if port not in self.outputPorts:
-            raise ModuleError(self, "output port '%s' not found" % port)
-        return self.outputPorts[port]
+    def get_output(self, port_name):
+        if port_name not in self.outputPorts:
+            raise ModuleError(self, "output port '%s' not found" % port_name)
+        return self.outputPorts[port_name]
 
-    def getInputConnector(self, inputPort):
-        if not self.inputPorts.has_key(inputPort):
-            raise ModuleError(self, "Missing value from port %s" % inputPort)
-        return self.inputPorts[inputPort][0]
+    def get_input_connector(self, port_name):
+        if port_name not in self.inputPorts:
+            raise ModuleError(self, "Missing value from port %s" % port_name)
+        return self.inputPorts[port_name][0]
 
-    def getDefaultValue(self, inputPort):
+    def get_default_value(self, port_name):
         reg = self.registry
 
         d = None
@@ -468,7 +583,7 @@ Makes sure input port 'name' is filled."""
 
         ps = None
         try:
-            ps = reg.get_port_spec_from_descriptor(d, inputPort, 'input')
+            ps = reg.get_port_spec_from_descriptor(d, port_name, 'input')
         except:
             pass
         if not ps:
@@ -494,82 +609,53 @@ Makes sure input port 'name' is filled."""
 
         return None
 
-    def getInputFromPort(self, inputPort, allowDefault=True):
-        if inputPort not in self.inputPorts:
-            if allowDefault and self.registry:
-                defaultValue = self.getDefaultValue(inputPort)
-                if defaultValue is not None:
-                    return defaultValue
-            raise ModuleError(self, "Missing value from port %s" % inputPort)
-        # Cannot resolve circular reference here, need to be fixed later
-        from vistrails.core.modules.sub_module import InputPort
-        for conn in self.inputPorts[inputPort]:
-            if isinstance(conn.obj, InputPort):
-                return conn()
-        return self.inputPorts[inputPort][0]()
-
-    def hasInputFromPort(self, inputPort):
-        return self.inputPorts.has_key(inputPort)
-
     def __str__(self):
         return "<<%s>>" % str(self.__class__)
 
     def annotate(self, d):
+
+        """Manually add provenance information to the module's execution
+        trace.  For example, a module that generates random numbers
+        might add the seed that was used to initialize the generator.
+        
+        :param d: a dictionary where both the keys and values are strings
+        :type d: Dictionary
+        
+        """
+
         self.logging.annotate(self, d)
 
-    def forceGetInputFromPort(self, inputPort, defaultValue=None):
-        if self.hasInputFromPort(inputPort):
-            return self.getInputFromPort(inputPort)
+    def set_input_port(self, port_name, conn, is_method=False):
+        if port_name in self.inputPorts:
+            self.inputPorts[port_name].append(conn)
         else:
-            return defaultValue
-
-    def set_input_port(self, inputPort, conn, is_method=False):
-        if self.inputPorts.has_key(inputPort):
-            self.inputPorts[inputPort].append(conn)
-        else:
-            self.inputPorts[inputPort] = [conn]
+            self.inputPorts[port_name] = [conn]
         if is_method:
-            self.is_method[conn] = (self._latest_method_order, inputPort)
+            self.is_method[conn] = (self._latest_method_order, port_name)
             self._latest_method_order += 1
 
-    def getInputListFromPort(self, inputPort):
-        if not self.inputPorts.has_key(inputPort):
-            raise ModuleError(self, "Missing value from port %s" % inputPort)
-        # Cannot resolve circular reference here, need to be fixed later
-        from vistrails.core.modules.sub_module import InputPort
-        fromInputPortModule = [connector()
-                               for connector in self.inputPorts[inputPort]
-                               if isinstance(connector.obj, InputPort)]
-        if len(fromInputPortModule)>0:
-            return fromInputPortModule
-        return [connector() for connector in self.inputPorts[inputPort]]
+    def enable_output_port(self, port_name):
 
-    def forceGetInputListFromPort(self, inputPort):
-        if not self.inputPorts.has_key(inputPort):
-            return []
-        return self.getInputListFromPort(inputPort)
-
-    def enableOutputPort(self, outputPort):
-        """ enableOutputPort(outputPort: str) -> None
+        """ enable_output_port(port_name: str) -> None
         Set an output port to be active to store result of computation
         
         """
         # Don't reset existing values, it screws up the caching.
-        if not self.outputPorts.has_key(outputPort):
-            self.setResult(outputPort, None)
+        if port_name not in self.outputPorts:
+            self.set_output(port_name, None)
             
-    def removeInputConnector(self, inputPort, connector):
-        """ removeInputConnector(inputPort: str,
+    def remove_input_connector(self, port_name, connector):
+        """ remove_input_connector(port_name: str,
                                  connector: ModuleConnector) -> None
         Remove a connector from the connection list of an input port
         
         """
-        if self.inputPorts.has_key(inputPort):
-            conList = self.inputPorts[inputPort]
+        if port_name in self.inputPorts:
+            conList = self.inputPorts[port_name]
             if connector in conList:
                 conList.remove(connector)
             if conList==[]:
-                del self.inputPorts[inputPort]
+                del self.inputPorts[port_name]
 
     def create_instance_of_type(self, ident, name, ns=''):
         """ Create a vistrails module from the module registry.  This creates an instance of the module
@@ -593,6 +679,61 @@ Makes sure input port 'name' is filled."""
     def provide_output_port_documentation(cls, port_name):
         return None
 
+    ####################################################################
+    # Deprecated methods
+
+    @deprecated("get_input")
+    def getInputFromPort(self, *args, **kwargs):
+        return self.get_input(*args, **kwargs)
+
+    @deprecated("get_input_list")
+    def getInputListFromPort(self, *args, **kwargs):
+        return self.get_input_list(*args, **kwargs)
+
+    @deprecated("force_get_input")
+    def forceGetInputFromPort(self, *args, **kwargs):
+        return self.force_get_input(*args, **kwargs)
+
+    @deprecated("force_get_input_list")
+    def forceGetInputListFromPort(self, *args, **kwargs):
+        return self.force_get_input_list(*args, **kwargs)
+
+    @deprecated("has_input")
+    def hasInputFromPort(self, *args, **kwargs):
+        return self.has_input(*args, **kwargs)
+
+    @deprecated("check_input")
+    def checkInputPort(self, *args, **kwargs):
+        return self.check_input(*args, **kwargs)
+
+    @deprecated("set_output")
+    def setResult(self, *args, **kwargs):
+        return self.set_output(*args, **kwargs)
+
+    @deprecated("get_input_connector")
+    def getInputConnector(self, *args, **kwargs):
+        return self.get_input_connector(*args, **kwargs)
+
+    @deprecated("get_default_value")
+    def getDefaultValue(self, *args, **kwargs):
+        return self.get_default_value(*args, **kwargs)
+
+    @deprecated("enable_output_port")
+    def enableOutputPort(self, *args, **kwargs):
+        return self.enable_output_port(*args, **kwargs)
+
+    @deprecated("remove_input_connector")
+    def removeInputConnector(self, *args, **kwargs):
+        return self.remove_input_connector(*args, **kwargs)
+
+    @deprecated("update_upstream")
+    def updateUpstream(self, *args, **kwargs):
+        return self.update_upstream(*args, **kwargs)
+
+    @deprecated("update_upstream_port")
+    def updateUpstreamPort(self, *args, **kwargs):
+        return self.updateUpstreamPort(*args, **kwargs)
+
 ################################################################################
 
 class NotCacheable(object):
@@ -614,6 +755,9 @@ class Converter(Module):
     Alternatively, you can override the classmethod can_convert() to provide
     a custom condition.
     """
+    _settings = ModuleSettings(abstract=True)
+    _input_ports = [IPort('in_value', Module)]
+    _output_ports = [OPort('out_value', Module)]
     @classmethod
     def can_convert(cls, sub_descs, super_descs):
         from vistrails.core.modules.module_registry import get_module_registry
@@ -705,23 +849,22 @@ class ModuleConnector(object):
                                     "type %s" % (i, self.port, desc.name))
         return result
 
-def new_module(baseModule, name, dict={}, docstring=None):
-    """new_module(baseModule or [baseModule list],
+def new_module(base_module, name, dict={}, docstring=None):
+    """new_module(base_module or [base_module list],
                   name,
                   dict={},
                   docstring=None
 
     Creates a new VisTrails module dynamically. Exactly one of the
-    elements of the baseModule list (or baseModule itself, in the case
+    elements of the base_module list (or base_module itself, in the case
     it's a single class) should be a subclass of Module.
     """
-    if isinstance(baseModule, type):
-        assert issubclass(baseModule, Module)
-        superclasses = (baseModule, )
-    elif isinstance(baseModule, list):
-        assert len([x for x in baseModule
-                    if issubclass(x, Module)]) == 1
-        superclasses = tuple(baseModule)
+    if isinstance(base_module, type):
+        assert issubclass(base_module, Module)
+        superclasses = (base_module, )
+    elif isinstance(base_module, list):
+        assert sum(1 for x in base_module if issubclass(x, Module)) == 1
+        superclasses = tuple(base_module)
     d = copy.copy(dict)
     if docstring:
         d['__doc__'] = docstring

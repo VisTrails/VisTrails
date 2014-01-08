@@ -35,6 +35,23 @@
 import vistrails.core
 from vistrails.core.system import get_vistrails_default_pkg_prefix
 
+def load_cls(cls_item, prefix=None):
+    path = None
+    if isinstance(cls_item, basestring):
+        [path, cls_name] = cls_item.split(':')[:2]
+    elif isinstance(cls_item, tuple):
+        (path, cls_name) = cls_item
+    if path is not None:
+        try:
+            module = __import__(path, globals(), locals(), [cls_name])
+        except ImportError:
+            if prefix is None:
+                raise
+            path = '.'.join([prefix, path])
+            module = __import__(path, globals(), locals(), [cls_name])
+        return getattr(module, cls_name)
+    return cls_item
+
 def create_descriptor_string(package, name, namespace=None,
                              use_package=True):
     package_str = ""

@@ -388,7 +388,7 @@ that will be executed if the input is a structure identifier.
    text = '</BODY></HTML>'
    f.write(text)
 
-   self.setResult('html', f)
+   self.set_output('html', f)
 
    f.close()
 

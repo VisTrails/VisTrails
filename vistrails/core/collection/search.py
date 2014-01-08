@@ -34,14 +34,13 @@
 ###############################################################################
 # search functions for entity-type objects
 # notes in plain text, not html, should be fix later
+import datetime
 import re
 import time
+import unittest
 
 from vistrails.core.query import extract_text
-
-import unittest
-import datetime
-import vistrails.core
+from vistrails.core.system import time_strptime
 
 ################################################################################
 
@@ -398,14 +397,14 @@ class BeforeSearchStmt(TimeSearchStmt):
     def match(self, entity):
         if not entity.mod_time:
             return False
-        t = time.mktime(time.strptime(entity.mod_time, "%d %b %Y %H:%M:%S"))
+        t = time.mktime(time_strptime(entity.mod_time, "%d %b %Y %H:%M:%S"))
         return t <= self.date
 
 class AfterSearchStmt(TimeSearchStmt):
     def match(self, entity):
         if not entity.mod_time:
             return False
-        t = time.mktime(time.strptime(entity.mod_time, "%d %b %Y %H:%M:%S"))
+        t = time.mktime(time_strptime(entity.mod_time, "%d %b %Y %H:%M:%S"))
         return t >= self.date
 
 class UserSearchStmt(SearchStmt):

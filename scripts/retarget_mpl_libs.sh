@@ -1,3 +1,4 @@
+#!/bin/bash
 ###############################################################################
 ##
 ## Copyright (C) 2011-2013, NYU-Poly.
@@ -32,68 +33,51 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-def lock_method(lock):
-    
-    def decorator(method):
-        def decorated(self, *args, **kwargs):
-            try:
-                lock.acquire()
-                result = method(self, *args, **kwargs)
-            finally:
-                lock.release()
-            return result
-        decorated.func_doc = method.__doc__
-        return decorated
 
-    return decorator
+# The script fixes up the links to make the matplotlib installation
+# self-contained in the VisTrails.app bundle
 
-##############################################################################
+# Note that you'll need to get the libpng12.0.dylib and
+# libfreetype.6.dylib libaries (perhaps from an XQuartz installation)
+# and then copy them to <bin_dir>/Contents/Frameworks before running
+# the script
 
-import unittest
-import threading
+BIN_PATH_25="Contents/Resources/lib/python2.5"
+BIN_PATH_26="Contents/Resources/lib/python2.6"
+BIN_PATH_27="Contents/Resources/lib/python2.7"
+FRAMEWORK_PATH="@executable_path/../Frameworks"
+X11_PATH="/usr/X11/lib"
 
-class TestLockMethod(unittest.TestCase):
+MPL_LIB_DIR="matplotlib"
+PNG_LIB="libpng12.0.dylib"
+PNG_REFS="_png.so"
+FT_LIB="libfreetype.6.dylib"
+FT_REFS="backends/_backend_agg.so backends/_tkagg.so ft2font.so"
 
-    lock = threading.Lock()
-    @lock_method(lock)
-    def foo(self):
-        self.assertEquals(self.lock.locked(), True)
+if [ -z "$1" ]
+then
+    echo "usage: $0 <bin_dir>"
+    exit 65
+fi
 
-    @lock_method(lock)
-    def foo_throws(self):
-        raise Exception()
+if [ -e "$1/$BIN_PATH_27" ]
+then
+    BIN_PATH=$BIN_PATH_27
+elif [ -e "$1/$BIN_PATH_26" ]
+then
+    BIN_PATH=$BIN_PATH_26
+elif [ -e "$1/$BIN_PATH_25" ]
+then
+    BIN_PATH=$BIN_PATH_25
+fi
 
-    @lock_method(lock)
-    def foo_finally(self):
-        try:
-            raise Exception
-            return False
-        finally:
-            return True
+for lib in $PNG_REFS
+do
+    install_name_tool -change $X11_PATH/$PNG_LIB $FRAMEWORK_PATH/$PNG_LIB $1/$BIN_PATH/$MPL_LIB_DIR/$lib
+done
 
-    @lock_method(lock)
-    def foo_docstring(self):
-        """FOO"""
-        pass
+for lib in $FT_REFS
+do
+    install_name_tool -change $X11_PATH/$FT_LIB $FRAMEWORK_PATH/$FT_LIB $1/$BIN_PATH/$MPL_LIB_DIR/$lib
+done
 
-    def test_common(self):
-        self.assertEquals(self.lock.locked(), False)
-        self.foo()
-        self.assertEquals(self.lock.locked(), False)
-
-    def test_throws(self):
-        self.assertEquals(self.lock.locked(), False)
-        self.assertRaises(Exception, self.foo_throws)
-        self.assertEquals(self.lock.locked(), False)
-
-    def test_finally(self):
-        self.assertEquals(self.lock.locked(), False)
-        self.assertEquals(self.foo_finally(), True)
-        self.assertEquals(self.lock.locked(), False)
-
-    def test_docstring(self):
-        self.assertEquals(self.foo_docstring.__doc__, "FOO")
-        
-
-if __name__ == '__main__':
-    unittest.main()

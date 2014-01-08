@@ -666,21 +666,21 @@ class vtkScaledTransferFunction(Module):
 
     def compute(self):
         reg = get_module_registry()
-        tf = self.getInputFromPort('TransferFunction')
+        tf = self.get_input('TransferFunction')
         new_tf = copy.copy(tf)
-        if self.hasInputFromPort('Input'):
-            port = self.getInputFromPort('Input')
+        if self.has_input('Input'):
+            port = self.get_input('Input')
             algo = port.vtkInstance.GetProducer()
             output = algo.GetOutput(port.vtkInstance.GetIndex())
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
-        elif self.hasInputFromPort('Dataset'):
-            algo = self.getInputFromPort('Dataset').vtkInstance
+        elif self.has_input('Dataset'):
+            algo = self.get_input('Dataset').vtkInstance
             output = algo
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         else:
-            (new_tf._min_range, new_tf._max_range) = self.getInputFromPort('Range')
+            (new_tf._min_range, new_tf._max_range) = self.get_input('Range')
             
-        self.setResult('TransferFunction', new_tf)
+        self.set_output('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
         
         of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
@@ -691,8 +691,8 @@ class vtkScaledTransferFunction(Module):
                                                'vtkColorTransferFunction').module()
         cf_module.vtkInstance  = cf
         
-        self.setResult('vtkPicewiseFunction', of_module)
-        self.setResult('vtkColorTransferFunction', cf_module)
+        self.set_output('vtkPicewiseFunction', of_module)
+        self.set_output('vtkColorTransferFunction', cf_module)
 
 string_conversion = staticmethod(lambda x: x.serialize())
 conversion = staticmethod(lambda x: TransferFunction.parse(x))
