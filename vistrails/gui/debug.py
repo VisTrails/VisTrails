@@ -32,13 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtCore, QtGui
-from vistrails.gui.theme import CurrentTheme
-import vistrails.core.debug
 import cgi
+import logging
+from PyQt4 import QtCore, QtGui
+
 from vistrails.core.configuration import get_vistrails_configuration
+import vistrails.core.debug
 from vistrails.gui.application import get_vistrails_application
 from vistrails.gui.common_widgets import QDockPushButton
+from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.utils
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 

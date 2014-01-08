@@ -476,7 +476,7 @@ by startup.py. This should only be called after init()."""
                 debug.critical(msg)
                 verbose = 2
             dbg = debug.DebugPrint.getInstance()
-            levels = [dbg.Critical, dbg.Warning, dbg.Log]
+            levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
             dbg.set_message_level(levels[verbose])
             debug.log("Set verboseness level to %s" % verbose)
         
