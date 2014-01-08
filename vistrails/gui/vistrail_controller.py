@@ -430,6 +430,8 @@ class VistrailController(QtCore.QObject, BaseController):
             result =  self.execute_current_workflow(reason=reason, sinks=sinks)
 
             progress.setValue(100)
+            progress.hide()
+            progress.deleteLater()
             self.progress = None
         finally:
             self.progress = None
