@@ -318,7 +318,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         if progress.wasCanceled():
                             # this does not work, need to create a new progress dialog
                             #progress.goOn()
-                            new_progress =  progress.__class__(progress.maximum())
+                            new_progress =  progress.__class__(progress.parent())
+                            new_progress.setMaximum(progress.maximum())
                             new_progress.setValue(progress.value())
                             new_progress.setLabelText(labelText)
                             new_progress.setMinimumDuration(0)
