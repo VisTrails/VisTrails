@@ -109,13 +109,11 @@ class DebugPrint:
         self.console.setFormatter(self.format)
         self.console.setLevel(logging.WARNING)
         self.logger.addHandler(self.console)
-        self.handlers.append(self.console)
 
 #    if system.python_version() <= (2,4,0,'',0):
 #        raise VersionTooLow('Python', '2.4.0')
 
     def __init__(self):
-        self.handlers = []
         self.make_logger()
         self.level = logging.CRITICAL
         self.app = None
@@ -175,26 +173,12 @@ class DebugPrint:
         except Exception, e:
             self.critical("Could not set log file %s: %s"%(f,str(e)))
 
-    def set_stream(self, stream):
-        """set_stream(stream) -> None. Redirects debugging
-        output to a stream object."""
-        try:
-        #then we define a handler to log to the console
-            format = logging.Formatter('%(levelname)s\n%(asctime)s\n%(message)s')
-            handler = logging.StreamHandler(stream)
-            handler.setFormatter(format)
-            handler.setLevel(self.level)
-            self.handlers.append(handler)
-            self.logger.addHandler(handler)
-        except Exception, e:
-            self.critical("Could not set message stream %s: %s"%(stream,str(e)))
-
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.CRITICAL,
         DebugPrint.WARNING, DebugPrint.INFO, DebugPrint.DEBUG)."""
         self.level = level
-        [h.setLevel(level) for h in self.handlers]
+        self.console.setLevel(level)
 
     def register_splash(self, app):
         """ register_splash(self, classname)
