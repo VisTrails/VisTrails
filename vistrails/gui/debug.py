@@ -57,7 +57,11 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
      """
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        vistrails.core.debug.DebugPrint.getInstance().set_stream(debugStream(self.write)) 
+        ui = logging.StreamHandler(debugStream(self.write))
+        ui.setFormatter(logging.Formatter(
+                '%(levelname)s\n%(asctime)s\n%(message)s'))
+        ui.setLevel(logging.INFO)
+        vistrails.core.debug.DebugPrint.getInstance().logger.addHandler(ui)
         self.setWindowTitle('VisTrails Messages')
         layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
