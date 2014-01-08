@@ -40,6 +40,7 @@ import gc
 from vistrails.core.common import InstanceObject, lock_method, \
     VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
 import vistrails.core.interpreter.utils
@@ -227,14 +228,13 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     try:
                         constant = create_constant(p, module)
                         connector = ModuleConnector(constant, 'value')
-                    except ValueError, e:
-                        err = ModuleError(self, 'Cannot convert parameter '
-                                          'value "%s"\n' % p.strValue + str(e))
-                        errors[i] = err
-                        to_delete.append(obj.id)
                     except Exception, e:
-                        err = ModuleError(self, 'Uncaught exception: "%s"' % \
-                                              p.strValue + str(e))
+                        err = ModuleError(
+                                self,
+                                "Uncaught exception creating Constant from "
+                                "%r: %s" % (
+                                p.strValue,
+                                debug.format_exception(e)))
                         errors[i] = err
                         to_delete.append(obj.id)
                 else:
@@ -246,15 +246,13 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                             constant.update()
                             connector = ModuleConnector(constant, 'value')
                             tupleModule.set_input_port(j, connector)
-                        except ValueError, e:
-                            err = ModuleError(self, "Cannot convert parameter "
-                                              "value '%s'\n" % p.strValue + \
-                                                  str(e))
-                            errors[i] = err
-                            to_delete.append(obj.id)
                         except Exception, e:
-                            err = ModuleError(self, 'Uncaught exception: '
-                                              '"%s"' % p.strValue + str(e))
+                            err = ModuleError(
+                                    self,
+                                    "Uncaught exception creating Constant "
+                                    "from %r: %s" % (
+                                    p.strValue,
+                                    debug.format_exception(e)))
                             errors[i] = err
                             to_delete.append(obj.id)
                     connector = ModuleConnector(tupleModule, 'value')

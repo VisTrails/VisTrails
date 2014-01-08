@@ -138,7 +138,7 @@ class DBConnection(Module):
                 self.conn = self.get_db_lib().connect(**config)
                 break
             except self.get_db_lib().Error, e:
-                debug.warning(str(e))
+                debug.warning("Got an error connecting to the database", e)
                 if (e[0] == 1045 or self.get_db_lib().OperationalError 
                     and self.password is None):
                     passwd_dlg = QPasswordEntry()
@@ -147,7 +147,7 @@ class DBConnection(Module):
                     else:
                         retry = False
                 else:
-                    raise ModuleError(self, str(e))
+                    raise ModuleError(self, debug.format_exception(e))
              
     def compute(self):
         self.checkInputPort('db_name')

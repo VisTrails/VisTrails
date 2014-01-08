@@ -87,8 +87,7 @@ class Collection(object):
                 [cur.execute(s) for s in schema]
                 self.conn.commit()
             except Exception, e:
-                debug.critical("Could not create vistrail index schema",
-                               str(e))
+                debug.critical("Could not create vistrail index schema", e)
         else:
             self.conn = sqlite3.connect(self.database)
         self.load_entities()

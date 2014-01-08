@@ -640,7 +640,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 result = self.parse_input_args_from_other_instance(str(byte_array))
             except Exception, e:
                 import traceback
-                debug.critical("Unknown error: %s" % str(e))
+                debug.critical("Unknown error", e)
                 result = traceback.format_exc()
             if None == result:
                 result = True

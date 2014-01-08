@@ -152,8 +152,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     if job.jobFinished:
                         job.setText(1, "Finished")
                 except Exception, e:
-                    debug.critical("Error checking job %s: %s" %
-                                   (workflow.name, str(e)))
+                    debug.critical("Error checking job %s" % workflow.name, e)
                 if job.jobFinished:
                     job.setIcon(0, theme.get_current_theme().JOB_FINISHED)
                 workflow.countJobs()

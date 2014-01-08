@@ -36,6 +36,7 @@ import copy
 from itertools import izip
 
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -413,8 +414,11 @@ context."""
             raise
         except Exception, e: 
             import traceback
-            traceback.print_exc()
-            raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
+            raise ModuleError(
+                    self,
+                    "Uncaught exception: %s\n%s" % (
+                    debug.format_exception(e),
+                    traceback.format_exc()))
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True

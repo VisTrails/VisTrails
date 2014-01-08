@@ -283,8 +283,9 @@ class ModuleDescriptor(DBModuleDescriptor):
             try:
                 doc = self.module.get_documentation(doc, module)
             except Exception, e:
-                import traceback
-                debug.critical(str(e), traceback.format_exc())
+                debug.critical("Exception calling get_documentation on %r" %
+                               self.module,
+                               e)
                 doc = doc or "(Error getting documentation)"
         doc = doc or "(No documentation available)"
         return doc

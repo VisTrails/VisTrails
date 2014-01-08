@@ -668,10 +668,11 @@ after self.init()"""
                 collection.commit()
             except VistrailsDBException, e:
                 import traceback
-                debug.critical(str(e), traceback.format_exc())
+                debug.critical("Exception from the database",
+                               traceback.format_exc())
                 return None
             except Exception, e:
-                # debug.critical('An error has occurred', str(e))
+                #debug.critical('An error has occurred', e)
                 #print "An error has occurred", str(e)
                 raise
 
@@ -706,10 +707,11 @@ after self.init()"""
                 controller = self.add_vistrail(vistrail, locator)
         except VistrailsDBException, e:
             import traceback
-            debug.critical(str(e), traceback.format_exc())
+            debug.critical("Exception from the database",
+                           traceback.format_exc())
             return None
         except Exception, e:
-            # debug.critical('An error has occurred', str(e))
+            #debug.critical('An error has occurred', e)
             raise
 
         controller.select_latest_version()
@@ -732,10 +734,9 @@ after self.init()"""
 
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception, e:
+        except Exception:
             import traceback
-            debug.critical('Failed to save vistrail: %s' % str(e),
-                           traceback.format_exc())
+            debug.critical("Failed to save vistrail", traceback.format_exc())
             raise
         if export:
             return controller.locator

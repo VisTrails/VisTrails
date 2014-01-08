@@ -299,8 +299,9 @@ class QPackagesWidget(QtGui.QWidget):
             new_deps = self._current_package.dependencies()
         except Exception, e:
             debug.critical("Failed getting dependencies of package %s, "
-                           "so it will not be enabled" % \
-                            self._current_package.name, str(e))
+                           "so it will not be enabled" %
+                            self._current_package.name,
+                            e)
             return
         from vistrails.core.modules.basic_modules import identifier as basic_modules_identifier
         if self._current_package.identifier != basic_modules_identifier:
@@ -309,7 +310,7 @@ class QPackagesWidget(QtGui.QWidget):
         try:
             pm.check_dependencies(self._current_package, new_deps)
         except Package.MissingDependency, e:
-            debug.critical("Missing dependencies", str(e))
+            debug.critical("Missing dependencies", e)
         else:
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
@@ -317,7 +318,8 @@ class QPackagesWidget(QtGui.QWidget):
                 pm.late_enable_package(codepath)
             except Package.InitializationFailed, e:
                 debug.critical("Initialization of package '%s' failed" %
-                               codepath, str(e))
+                               codepath,
+                               e)
                 raise
             finally:
                 palette.setUpdatesEnabled(True)
@@ -367,7 +369,8 @@ class QPackagesWidget(QtGui.QWidget):
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
         except Package.InitializationFailed, e:
             debug.critical("Re-initialization of package '%s' failed" % 
-                            codepath, str(e))
+                            codepath,
+                            e)
             raise
         finally:
             self.populate_lists()
@@ -460,15 +463,16 @@ class QPackagesWidget(QtGui.QWidget):
             self._dependencies_label.setText(msg)
             self._description_label.setText(msg)
             self._reverse_dependencies_label.setText(msg)
-            debug.critical('Cannot load package', str(e))
+            debug.critical('Cannot load package', e)
         else:
             self._name_label.setText(p.name)
             try:
                 deps = ', '.join(str(d) for d in p.dependencies()) or \
                     'No package dependencies.'
             except Exception, e:
-                debug.critical("Failed getting dependencies of package %s "
-                               "" % p.name, str(e))
+                debug.critical("Failed getting dependencies of package %s" %
+                               p.name,
+                               e)
                 deps = "ERROR: Failed getting dependencies"
             try:
                 pm = get_package_manager()

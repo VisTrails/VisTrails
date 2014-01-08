@@ -372,7 +372,7 @@ class QQueryBox(QtGui.QWidget):
             #     search = CombinedSearch(s, 
             #     search = SearchCompiler(s).searchStmt
             # except SearchParseError, e:
-            #     debug.warning("Search Parse Error", str(e))
+            #     debug.warning("Search Parse Error", e)
             #     search = None
             # self.controller.set_search(search, s)
             # self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')

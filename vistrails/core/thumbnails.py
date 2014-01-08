@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import itertools
 
 """ Utilities for dealing with the thumbnails """
 import os
@@ -133,8 +134,9 @@ class ThumbnailCache(object):
                     entry.abs_name = dstname
                         
                 except shutil.Error, e:
-                    debug.warning("Could not move thumbnail from %s to %s: %s" \
-                                  % (sourcedir, destdir, str(e)))
+                    debug.warning("Could not move thumbnail from %s to %s" % (
+                                  sourcedir, destdir),
+                                  e)
                     
     def remove_lru(self,n=1):
         elements = self.elements.values()
@@ -143,13 +145,13 @@ class ThumbnailCache(object):
         debug.debug("Will remove %s elements from cache..."%num)
         debug.debug("Cache has %s elements and %s bytes"%(len(elements),
                                                              self.size()))
-        for i in range(num):
+        for elem in itertools.islice(elements, num):
             try:
-                del self.elements[elements[i].name]    
-                os.unlink(elements[i].abs_name)
+                del self.elements[elem.name]
+                os.unlink(elem.abs_name)
             except os.error, e:
-                debug.warning("Could not remove file %s: %s" % \
-                                 (elements[i].abs_name, str(e)))
+                debug.warning("Could not remove file %s" % elem.abs_name, e)
+
     def remove(self,key):
         if key in self.elements.keys():
             entry = self.elements[key]
@@ -220,7 +222,7 @@ class ThumbnailCache(object):
                     os.unlink(os.path.join(root,fname))
                     
         except OSError, e:
-            debug.warning("Error when removing thumbnails: %s"%str(e))
+            debug.warning("Error when removing thumbnails", e)
     
     @staticmethod
     def _get_thumbnail_fnames(folder):

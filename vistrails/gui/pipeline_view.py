@@ -3021,7 +3021,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 jobView.set_visible(True)
         except Exception, e:
             import traceback
-            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
+            debug.critical("Error Monitoring Job", traceback.format_exc())
             
     def reset_module_colors(self):
         for module in self.modules.itervalues():
@@ -3184,7 +3184,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
             self.scene().progress = None
         except Exception, e:
             import traceback
-            debug.critical(str(e) or e.__class__.__name__,
+            debug.critical(debug.format_exception(e),
                            traceback.format_exc())
         finally:
             self.scene().progress = None

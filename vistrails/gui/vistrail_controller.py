@@ -486,11 +486,11 @@ class VistrailController(QtCore.QObject, BaseController):
 #                                           "construct this workflow.")
 #                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
 #                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
-#                msg_box.setDetailedText(str(e))
+#                msg_box.setDetailedText(debug.format_exception(e))
 #                msg_box.exec_()
                 # text = "The current workflow could not be validated."
-                # debug.critical('%s\n%s' % (text, str(e)))
-                debug.critical(str(e))
+                # debug.critical(text, e)
+                debug.critical("Error changing version", e)
 
 #                 print 'got to exception set'
 #                 # Process all errors as usual
@@ -503,7 +503,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         except Exception, e:
             import traceback
-            debug.critical('Unexpected Exception\n%s' % str(e), 
+            debug.critical('Unexpected Exception',
                            traceback.format_exc())
         
         # FIXME: this code breaks undo/redo, and seems to be ok with normal

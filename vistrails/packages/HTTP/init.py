@@ -140,7 +140,7 @@ class HTTPFile(Module):
                 result.name = local_filename
                 return (1, result, local_filename)
             else:
-                return (2, (str(e)), local_filename)
+                return (2, (debug.format_exception(e)), local_filename)
         else:
             try:
                 mod_header = f1.headers['last-modified']

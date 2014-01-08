@@ -960,6 +960,5 @@ try:
         QShellDialog = getIPythonDialog()
     except Exception, e:
         import traceback; traceback.print_exc()
-        print str(e)
 except:
     pass

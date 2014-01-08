@@ -35,6 +35,7 @@
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
 import vistrails.core.cache.hasher
+from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
@@ -401,7 +402,7 @@ class Directory(Path):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
-                raise ModuleError(self, 'mkdir: ' + str(e))
+                raise ModuleError(self, 'mkdir: %s' % format_exception(e))
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
@@ -555,7 +556,9 @@ class DirectorySink(NotCacheable, Module):
                 except OSError, e:
                     msg = ('Could not delete existing path "%s" '
                            '(overwrite on)' % full_path)
-                    raise ModuleError(self, msg + '\n' + str(e))
+                    raise ModuleError(
+                            self,
+                            '%s\n%s' % (msg, format_exception(e)))
             else:
                 msg = ('Could not write to existing path "%s" '
                        '(overwrite off)' % full_path)
@@ -566,7 +569,7 @@ class DirectorySink(NotCacheable, Module):
         except OSError, e:
             msg = 'Could not copy path from "%s" to "%s"' % \
                 (input_dir.name, full_path)
-            raise ModuleError(self, msg + '\n' + str(e))
+            raise ModuleError(self, '%s\n%s' % (msg, format_exception(e)))
 
 ##############################################################################
 

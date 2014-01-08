@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal
 
+from vistrails.core import debug
 from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
 from vistrails.gui.utils import show_warning, TestVisTrailsGUI
@@ -235,7 +236,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
             import traceback
-            print "Executing pipeline failed:", str(e), traceback.format_exc()
+            print "Executing pipeline failed:", debug.format_exception(e), traceback.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
             
