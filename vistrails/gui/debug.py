@@ -35,7 +35,6 @@
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme
 import vistrails.core.debug
-import StringIO
 import cgi
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.gui.application import get_vistrails_application
@@ -360,10 +359,12 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.itemQueue = []
         self.msg_box.close()
 
-class debugStream(StringIO.StringIO):
+class debugStream(object):
     def __init__(self, write):
-        StringIO.StringIO.__init__(self)
-        self.write = write
+        self._write = write
+
+    def write(self, *args, **kwargs):
+        return self._write(*args, **kwargs)
 
 def watch_signal(obj, sig):
     DebugView.getInstance().watch_signal(obj, sig)
