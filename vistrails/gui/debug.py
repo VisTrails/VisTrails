@@ -316,7 +316,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         msgs = s.split('\n')
 
         if len(msgs)<=3:
-            msgs.append('Unknown Error')
+            msgs.append('Error logging message: invalid log format')
             s += '\n' + msgs[3]
         if not len(msgs[3].strip()):
             msgs[3] = "Unknown Error"
@@ -335,16 +335,18 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         elif msgs[0] == "CRITICAL":
             item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_CRITICAL_COLOR))
             self.list.setItemHidden(item, not self.criticalFilter.isChecked())
-        if self.isVisible() and not \
-          getattr(get_vistrails_configuration(),'alwaysShowDebugPopup',False):
-            self.raise_()
-            self.activateWindow()
-            modal = get_vistrails_application().activeModalWidget()
-            if modal:
-                # need to beat modal window
+            alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
+                                           'alwaysShowDebugPopup',
+                                           False)
+            if self.isVisible() and not alwaysShowDebugPopup:
+                self.raise_()
+                self.activateWindow()
+                modal = get_vistrails_application().activeModalWidget()
+                if modal:
+                    # need to beat modal window
+                    self.showMessageBox(item)
+            else:
                 self.showMessageBox(item)
-        else:
-            self.showMessageBox(item)
 
     def closeEvent(self, e):
         """closeEvent(e) -> None
