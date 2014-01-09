@@ -128,7 +128,7 @@ class DebugPrint:
 
         """
         # Setup root logger
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('VisLog')
         self.logger.setLevel(logging.INFO)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
