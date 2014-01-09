@@ -1036,10 +1036,10 @@ def registerSelf():
     from vistrails.core import debug
     for (port,module) in [("SetRenderView",'vtkRenderView')]:
         try:
-            registry.add_input_port(VTKViewCell, port,'(%s:%s)'% \
-                                        (vtk_pkg_identifier, module))
- 
+            registry.add_input_port(VTKViewCell, port,
+                                    '(%s:%s)' % (vtk_pkg_identifier, module))
         except Exception, e:
-            debug.warning("Got an exception adding an input port", e)
+            debug.warning("Got an exception adding VTKViewCell's %s input "
+                          "port" % port, e)
 
     registry.add_output_port(VTKViewCell, "self", VTKViewCell)

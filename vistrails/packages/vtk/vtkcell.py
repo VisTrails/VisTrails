@@ -1137,10 +1137,10 @@ def registerSelf():
                           ("InteractorStyle", 'vtkInteractorStyle'),
                           ("AddPicker",'vtkAbstractPicker')]:
         try:
-            registry.add_input_port(VTKCell, port,'(%s:%s)' % \
-                                        (vtk_pkg_identifier,module))
-            
+            registry.add_input_port(VTKCell, port,
+                                    '(%s:%s)' % (vtk_pkg_identifier, module))
         except Exception, e:
-            debug.warning("Got an exception adding an input port", e)
+            debug.warning("Got an exception adding VTKCell's %s input "
+                          "port" % port, e)
 
     registry.add_output_port(VTKCell, "self", VTKCell)

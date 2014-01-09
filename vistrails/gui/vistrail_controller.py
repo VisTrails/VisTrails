@@ -454,9 +454,6 @@ class VistrailController(QtCore.QObject, BaseController):
                             [YES_BUTTON, NO_BUTTON], 
                             YES_BUTTON)
         if res == NO_BUTTON:
-#             QtGui.QMessageBox.warning(get_vistrails_application().builderWindow,
-#                                       'Missing modules',
-#                                       'Some necessary modules will be missing.')
             return False
         return True
 
