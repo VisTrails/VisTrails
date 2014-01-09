@@ -41,7 +41,6 @@ import sys
 import logging
 import logging.handlers
 import os
-import os.path
 import re
 import shutil
 import subprocess
@@ -54,7 +53,7 @@ import ConfigParser
 
 from PyQt4 import QtGui, QtCore
 import SocketServer
-from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
+from SimpleXMLRPCServer import SimpleXMLRPCServer
 from datetime import date, datetime
 from time import strptime
 
@@ -65,7 +64,6 @@ import vistrails.core.application
 from vistrails.gui import qt
 from vistrails.core.db.locator import DBLocator, ZIPFileLocator, FileLocator
 from vistrails.core.db import io
-from vistrails.core import debug
 import vistrails.core.db.action
 
 from vistrails.core.utils import InstanceObject
@@ -76,7 +74,7 @@ from vistrails.core.modules.module_registry import get_module_registry as module
 from vistrails.core import interpreter
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.gui.vistrail_controller import VistrailController
-import vistrails.core
+import vistrails.core.system
 import vistrails.db.services.io
 import gc
 
@@ -331,7 +329,6 @@ class RequestHandler(object):
                         pkg_manager.late_enable_package(codepath)
                         message = "Successfully enabled package '%s'" % codepath
                     except Exception, e:
-                        import traceback
                         message = "Could not enable package '%s': %s %s" % \
                                          (codepath, str(e), traceback.format_exc())
                 else:
@@ -688,7 +685,6 @@ class RequestHandler(object):
                                     self.server_logger.info("renaming files")
                                     for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
                                         break
-                                    n = len(file_names)
                                     s = []
                                     for f in file_names:
                                         if f.lower().endswith(".png"):
@@ -2081,8 +2077,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         port = self.temp_xml_rpc_options.port
         virt_disp = int(virtual_display)
         for x in xrange(number):
-            port += 1 # each instance needs one port space for now
-                      #later we might need 2 (normal requests and status requests)
+            port += 1   # each instance needs one port space for now
+                        #later we might need 2 (normal requests and status requests)
             virt_disp += 1
             args = [script_file,":%s"%virt_disp,host,str(port),'0', '0']
             try:
