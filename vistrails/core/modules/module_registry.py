@@ -40,6 +40,7 @@ import os
 import tempfile
 import traceback
 import uuid
+import warnings
 
 from vistrails.core import debug, get_vistrails_application
 from vistrails.core.data_structures.graph import Graph
@@ -53,7 +54,7 @@ from vistrails.core.modules.package import Package
 import vistrails.core.modules.utils
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-     all, profile, versions_increasing, InvalidPipeline
+     all, profile, versions_increasing, InvalidPipeline, VistrailsDeprecation
 from vistrails.core.system import vistrails_root_directory, vistrails_version, \
     get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port_spec import PortSpec
@@ -1870,9 +1871,14 @@ class ModuleRegistry(DBRegistry):
         for (sub_desc, super_desc) in izip(sub_descs, super_descs):
             if sub_desc == variant_desc or super_desc == variant_desc:
                 continue
-            elif super_desc == module_desc and sub_desc != module_desc:
-                return False
-            elif not self.is_descriptor_subclass(sub_desc, super_desc):
+            if super_desc == module_desc and sub_desc != module_desc:
+                warnings.warn(
+                        "Connecting any type on a Module input port is "
+                        "deprecated\nPlease make the output port a Variant to "
+                        "get this behavior.",
+                        category=VistrailsDeprecation)
+                #return False
+            if not self.is_descriptor_subclass(sub_desc, super_desc):
                 return False
         return True
 
