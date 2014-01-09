@@ -1862,12 +1862,25 @@ class ModuleRegistry(DBRegistry):
         self._conversions[key] = converters
         return converters
 
+    def is_descriptor_list_subclass(self, sub_descs, super_descs):
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        module_desc = self.get_descriptor_by_name(basic_pkg, 'Module')
+
+        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+            if sub_desc == variant_desc or super_desc == variant_desc:
+                continue
+            elif not self.is_descriptor_subclass(sub_desc, super_desc):
+                return False
+        return True
+
     def are_specs_matched(self, sub, super, allow_conversion=False,
                           out_converters=None):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
         """
+        # For a connection, this gets called for sub -> super
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         # sometimes sub is coming None
@@ -1887,16 +1900,8 @@ class ModuleRegistry(DBRegistry):
         elif super_descs == [variant_desc]:
             return True
 
-        def check_types(sub_descs, super_descs):
-            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-                if (sub_desc == variant_desc or super_desc == variant_desc):
-                    continue
-                if not self.is_descriptor_subclass(sub_desc, super_desc):
-                    return False
-            return True
-
         if (len(sub_descs) == len(super_descs) and
-                check_types(sub_descs, super_descs)):
+                self.is_descriptor_list_subclass(sub_descs, super_descs)):
             return True
 
         if allow_conversion:
