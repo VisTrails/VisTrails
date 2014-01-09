@@ -752,8 +752,8 @@ class Converter(Module):
     a custom condition.
     """
     _settings = ModuleSettings(abstract=True)
-    _input_ports = [IPort('in_value', Module)]
-    _output_ports = [OPort('out_value', Module)]
+    _input_ports = [IPort('in_value', 'Variant')]
+    _output_ports = [OPort('out_value', 'Variant')]
     @classmethod
     def can_convert(cls, sub_descs, super_descs):
         from vistrails.core.modules.module_registry import get_module_registry
