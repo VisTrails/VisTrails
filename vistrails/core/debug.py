@@ -36,6 +36,7 @@ import inspect
 import logging
 import logging.handlers
 import os
+import re
 import time
 import traceback
 
@@ -43,6 +44,37 @@ import traceback
 
 def format_exception(e):
     return traceback._format_final_exc_line(type(e).__name__, e)
+
+################################################################################
+
+_warningformat = re.compile(
+        '^(.+):'
+        '([0-9]+): '
+        '([A-Za-z_][A-Za-z0-9_]*): '
+        '((?:.|\n)+)$')
+
+class EmitWarnings(logging.Handler):
+    """A logging Handler that re-logs warning messages in our log format.
+
+    This parses the warnings logged by the standard `warnings` module and
+    writes them to the given logger at level WARNING in the format we use
+    (see DebugPrint#message()).
+    """
+    def __init__(self, logger):
+        logging.Handler.__init__(self)
+        self.logger = logger
+
+    def emit(self, record):
+        # Here we basically do the contrary of warnings:formatwarning()
+        m = _warningformat.match(record.args[0])
+        if m == None:
+            self.logger.warning("(File info not available)\n" +
+                           record.args[0])
+        else:
+            filename, lineno, category, message = m.groups()
+            # And here we do self.message()
+            self.logger.warning('%s, line %s\n%s: %s' % (filename, lineno,
+                                                    category, message))
 
 ################################################################################
 
@@ -95,9 +127,17 @@ class DebugPrint:
         We will configure log so it outputs to both stderr and a file.
 
         """
-        self.logger = logging.getLogger("VisLog")
+        # Setup root logger
+        self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
+
+        # Setup warnings logger
+        wlogger = logging.getLogger('py.warnings')
+        wlogger.propagate = False
+        wlogger.addHandler(EmitWarnings(self.logger))
+        logging.captureWarnings(True)
+
         # first we define a handler for logging to a file
         if f:
             self.set_logfile(f)
