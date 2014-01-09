@@ -155,7 +155,6 @@ class DebugPrint:
 
     def __init__(self):
         self.make_logger()
-        self.level = logging.CRITICAL
         self.app = None
 
     def set_logfile(self, f):
@@ -217,7 +216,6 @@ class DebugPrint:
         """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.CRITICAL,
         DebugPrint.WARNING, DebugPrint.INFO, DebugPrint.DEBUG)."""
-        self.level = level
         self.console.setLevel(level)
 
     def register_splash(self, app):

@@ -275,6 +275,9 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.useCache = bool(get('cache'))
         if get('verbose')!=None:
             self.temp_configuration.verbosenessLevel = get('verbose')
+            dbg = debug.DebugPrint.getInstance()
+            levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
+            dbg.set_message_level(levels[get('verbose')])
         if get('fixedcells') != None:
             self.temp_configuration.fixedSpreadsheetCells = str(get('fixedcells'))
         if get('noninteractive')!=None:
