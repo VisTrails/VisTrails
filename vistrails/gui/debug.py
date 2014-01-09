@@ -71,7 +71,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         ui = logging.StreamHandler(debugStream(self.write))
         ui.setFormatter(logging.Formatter(
                 '%(levelname)s\n%(asctime)s\n%(message)s'))
-        ui.setLevel(logging.INFO)
+        ui.setLevel(logging.DEBUG)
         vistrails.core.debug.DebugPrint.getInstance().logger.addHandler(ui)
         self.setWindowTitle('VisTrails Messages')
         layout = QtGui.QVBoxLayout()
@@ -86,10 +86,10 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         filters.addWidget(filterLabel)
 
         self.levels = {}
-        for i, name in enumerate(('INFO', 'WARNING', 'CRITICAL')):
+        for i, name in enumerate(('DEBUG', 'INFO', 'WARNING', 'CRITICAL')):
             box = QtGui.QCheckBox(name, self)
             box.setCheckable(True)
-            box.setChecked(True)
+            box.setChecked(name != 'DEBUG')
             box.setStyleSheet(
                     'color: %s;\n'
                     'background-color: %s' % (
