@@ -1870,6 +1870,8 @@ class ModuleRegistry(DBRegistry):
         for (sub_desc, super_desc) in izip(sub_descs, super_descs):
             if sub_desc == variant_desc or super_desc == variant_desc:
                 continue
+            elif super_desc == module_desc and sub_desc != module_desc:
+                return False
             elif not self.is_descriptor_subclass(sub_desc, super_desc):
                 return False
         return True
