@@ -2206,13 +2206,6 @@ def start_server(optionsDict=None):
     VistrailsServer = VistrailsServerSingleton()
     vistrails.gui.theme.initializeCurrentTheme()
     vistrails.core.application.set_vistrails_application(VistrailsServer)
-    try:
-        vistrails.core.requirements.check_all_vistrails_requirements()
-    except vistrails.core.requirements.MissingRequirement, e:
-        msg = ("VisTrails requires %s to properly run.\n" %
-               e.requirement)
-        print msg
-        sys.exit(1)
     x = VistrailsServer.init(optionsDict)
     if x == True:
         return 0
