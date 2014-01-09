@@ -129,7 +129,7 @@ class DebugPrint:
         """
         # Setup root logger
         self.logger = logging.getLogger('VisLog')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
         # Setup warnings logger

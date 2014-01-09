@@ -641,6 +641,7 @@ class DefaultTheme(DefaultCoreTheme):
         
         # colors for debug messages
         self.DEBUG_COLORS = {
+                'DEBUG': QtGui.QColor("#777777"),
                 'INFO': QtGui.QColor(QtCore.Qt.black),
                 'WARNING': QtGui.QColor("#707000"),
                 'CRITICAL': QtGui.QColor(QtCore.Qt.red),
