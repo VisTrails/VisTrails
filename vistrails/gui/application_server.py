@@ -73,7 +73,6 @@ from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry as module_registry
 from vistrails.core import interpreter
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.gui.vistrail_controller import VistrailController
 import vistrails.core.system
 import vistrails.db.services.io
 import gc
@@ -1098,6 +1097,8 @@ class RequestHandler(object):
                 os.mkdir(filepath)
 
             if not os.path.exists(filename):
+                from vistrails.gui.vistrail_controller import VistrailController
+
                 locator = DBLocator(host=host,
                                     port=int(port),
                                     database=db_name,
@@ -1181,6 +1182,8 @@ class RequestHandler(object):
                 os.mkdir(filepath)
 
             if not os.path.exists(filename):
+                from vistrails.gui.vistrail_controller import VistrailController
+
                 locator = DBLocator(host=host,
                                     port=port,
                                     database=db_name,
@@ -1280,6 +1283,8 @@ class RequestHandler(object):
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
                  self._is_image_stale(filename, host, port, db_name, vt_id)):
 
+                from vistrails.gui.vistrail_controller import VistrailController
+
                 if os.path.exists(filepath):
                     shutil.rmtree(filepath)
 
@@ -1367,6 +1372,8 @@ class RequestHandler(object):
             if (not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
                  self._is_image_stale(filename, host, port, db_name, vt_id)):
+
+                from vistrails.gui.vistrail_controller import VistrailController
 
                 if os.path.exists(filepath):
                     shutil.rmtree(filepath)
