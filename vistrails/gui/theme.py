@@ -640,11 +640,11 @@ class DefaultTheme(DefaultCoreTheme):
             *ColorByName.get_int('blue'))
         
         # colors for debug messages
-        #self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.darkGray)
-        #self.DEBUG_WARNING_COLOR = QtGui.QColor(QtCore.Qt.black)
-        self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.black)
-        self.DEBUG_WARNING_COLOR = QtGui.QColor("#707000")
-        self.DEBUG_CRITICAL_COLOR = QtGui.QColor(QtCore.Qt.red)
+        self.DEBUG_COLORS = {
+                'INFO': QtGui.QColor(QtCore.Qt.black),
+                'WARNING': QtGui.QColor("#707000"),
+                'CRITICAL': QtGui.QColor(QtCore.Qt.red),
+            }
         class QTransparentColor(QtGui.QColor):
             def name(self):
                 return 'transparent'

@@ -67,47 +67,28 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.setLayout(layout)
 
         # top message filter buttons
-        filterHolder = QtGui.QGridLayout()
-        layout.addLayout(filterHolder)
-        filter = QtGui.QGridLayout()
-        filterHolder.addLayout(filter, 0, 0, QtCore.Qt.AlignLeft)
+        filters = QtGui.QHBoxLayout()
+        layout.addLayout(filters)
 
         filterLabel = QtGui.QLabel('Filter:')
         filterLabel.setFixedWidth(40)
-        filter.addWidget(filterLabel, 0, 0)
+        filters.addWidget(filterLabel)
 
-        self.infoFilter = QtGui.QCheckBox('Info', self)
-        self.infoFilter.setCheckable(True)
-        self.infoFilter.setChecked(True)
-        self.infoFilter.setStyleSheet('color:' +
-                                    CurrentTheme.DEBUG_INFO_COLOR.name() +
-                                    ';background-color:' +
-                                    CurrentTheme.DEBUG_FILTER_BACKGROUND_COLOR.name())
-        self.connect(self.infoFilter, QtCore.SIGNAL('stateChanged(int)'),
-                     self.toggleInfo)
-        filter.addWidget(self.infoFilter, 0, 1)
+        self.levels = {}
+        for i, name in enumerate(('INFO', 'WARNING', 'CRITICAL')):
+            box = QtGui.QCheckBox(name, self)
+            box.setCheckable(True)
+            box.setChecked(True)
+            box.setStyleSheet(
+                    'color: %s;\n'
+                    'background-color: %s' % (
+                    CurrentTheme.DEBUG_COLORS[name].name(),
+                    CurrentTheme.DEBUG_FILTER_BACKGROUND_COLOR.name()))
+            self.connect(box, QtCore.SIGNAL('toggled(bool)'), self.refresh)
+            filters.addWidget(box)
+            self.levels[name] = box
 
-        self.warningFilter = QtGui.QCheckBox('Warning', self)
-        self.warningFilter.setCheckable(True)
-        self.warningFilter.setChecked(True)
-        self.warningFilter.setStyleSheet('color:' +
-                                    CurrentTheme.DEBUG_WARNING_COLOR.name() +
-                                    ';background-color:' +
-                                    CurrentTheme.DEBUG_FILTER_BACKGROUND_COLOR.name())
-        self.connect(self.warningFilter, QtCore.SIGNAL('stateChanged(int)'),
-                     self.toggleWarning)
-        filter.addWidget(self.warningFilter, 0, 2)
-
-        self.criticalFilter = QtGui.QCheckBox('Critical', self)
-        self.criticalFilter.setCheckable(True)
-        self.criticalFilter.setChecked(True)
-        self.criticalFilter.setStyleSheet('color:' +
-                                    CurrentTheme.DEBUG_CRITICAL_COLOR.name() +
-                                    ';background-color:' +
-                                    CurrentTheme.DEBUG_FILTER_BACKGROUND_COLOR.name())
-        self.connect(self.criticalFilter, QtCore.SIGNAL('stateChanged(int)'),
-                     self.toggleCritical)
-        filter.addWidget(self.criticalFilter, 0, 3)
+        filters.addStretch()
 
         # message list
         self.list = QtGui.QListWidget()
@@ -147,24 +128,12 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.itemQueue = []
         self.resize(700, 400)
 
-    def toggleType(self, s, visible):
-        if visible == QtCore.Qt.Unchecked:
-            visible = False
-        elif visible == QtCore.Qt.Checked:
-            visible = True
-        for item in [self.list.item(i) for i in xrange(self.list.count())]:
-            if item.data(32).split('\n')[0] == s:
-                self.list.setItemHidden(item, not visible)
+    def refresh(self):
+        for i in xrange(self.list.count()):
+            item = self.list.item(i)
+            level = item.data(32).split('\n')[0]
+            self.list.setItemHidden(item, not self.levels[level].isChecked())
 
-    def toggleInfo(self, visible):
-        self.toggleType('INFO', visible)
-
-    def toggleWarning(self, visible):
-        self.toggleType('WARNING', visible)
-
-    def toggleCritical(self, visible):
-        self.toggleType('CRITICAL', visible)
-        
     def copyMessage(self):
         """ copy selected message to clipboard """
         items = self.list.selectedItems()
@@ -315,18 +284,12 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         item.setData(32, s)
         item.setFlags(item.flags()&~QtCore.Qt.ItemIsEditable)
         self.list.addItem(item)
-        if msgs[0] == "INFO":
-            item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_INFO_COLOR))
-            self.list.setItemHidden(item, not self.infoFilter.isChecked())
-        elif msgs[0] == "WARNING":
-            item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_WARNING_COLOR))
-            self.list.setItemHidden(item, not self.warningFilter.isChecked())
-        elif msgs[0] == "CRITICAL":
-            item.setForeground(QtGui.QBrush(CurrentTheme.DEBUG_CRITICAL_COLOR))
-            self.list.setItemHidden(item, not self.criticalFilter.isChecked())
-            alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
-                                           'alwaysShowDebugPopup',
-                                           False)
+        item.setForeground(CurrentTheme.DEBUG_COLORS[msgs[0]])
+        self.list.setItemHidden(item, not self.levels[msgs[0]].isChecked())
+        alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
+                                       'alwaysShowDebugPopup',
+                                       False)
+        if msgs[0] == 'CRITICAL':
             if self.isVisible() and not alwaysShowDebugPopup:
                 self.raise_()
                 self.activateWindow()
@@ -399,4 +362,3 @@ class TestDebugView(vistrails.gui.utils.TestVisTrailsGUI):
         debugview.toggleWarning(True)
         debugview.toggleCritical(False)
         debugview.toggleCritical(True)
-        
