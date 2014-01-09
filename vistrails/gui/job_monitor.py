@@ -57,6 +57,28 @@ class QNumberValidator(QtGui.QIntValidator):
             return (QtGui.QIntValidator.Invalid, pos)
         return result
 
+class QJobTree(QtGui.QTreeWidget):
+    def __init__(self, parent=None):
+        QtGui.QTreeWidget.__init__(self, parent)
+
+    def contextMenuEvent(self, event):
+        item = self.itemAt(event.pos())
+        menu = QtGui.QMenu(self)
+        if item and isinstance(item, QJobItem):
+            act = QtGui.QAction("View Standard &Output", self)
+            act.setStatusTip("View Standard Output in new window")
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   item.stdout)
+            menu.addAction(act)
+            act = QtGui.QAction("View Standard &Error", self)
+            act.setStatusTip("View Standard Error in new window")
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   item.stderr)
+            menu.addAction(act)
+            menu.exec_(event.globalPos())
+
 class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -104,7 +126,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         buttonsLayout.addStretch(1)
         self.layout.addLayout(buttonsLayout)
 
-        self.jobView = QtGui.QTreeWidget()
+        self.jobView = QJobTree()
         self.jobView.setContentsMargins(0, 0, 0, 0)
         self.jobView.setColumnCount(2)
         self.jobView.setHeaderLabels(['Job', 'Message'])
@@ -325,6 +347,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                             new_progress.setMinimumDuration(0)
                             new_progress.suspended = True
                             workflowItem.view.controller.progress = new_progress
+                            progress.hide()
+                            progress.deleteLater()
                             progress = new_progress
                             progress.show()
                             QtCore.QCoreApplication.processEvents()
@@ -461,6 +485,16 @@ class QJobItem(QtGui.QTreeWidgetItem):
             self.setToolTip(0, "This Job is Running")
         self.setToolTip(1, self.job.id)
 
+    def stdout(self):
+        if self.queue:
+            sp = LogMonitor("Standard Output for " + self.job.name, self.queue)
+            sp.exec_()
+
+    def stderr(self):
+        if self.queue:
+            sp = ErrorMonitor("Standard Output for " + self.job.name, self.queue)
+            sp.exec_()
+
 class QParentItem(QtGui.QTreeWidgetItem):
     """ A parent module of a suspended job """
     def __init__(self, id, name, parent=None):
@@ -468,3 +502,40 @@ class QParentItem(QtGui.QTreeWidgetItem):
         self.id = id
         self.setExpanded(True)
         self.setToolTip(0, self.id)
+
+class LogMonitor(QtGui.QDialog):
+    def __init__(self, name, monitor, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.monitor = monitor
+        self.resize(700, 400)
+        self.setWindowTitle(name)
+
+        layout = QtGui.QVBoxLayout()
+        self.setLayout(layout)
+        self.text = QtGui.QTextEdit('')
+        self.update_text()
+        self.text.setReadOnly(True)
+        self.text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        layout.addWidget(self.text)
+        buttonLayout = QtGui.QHBoxLayout()
+
+        close = QtGui.QPushButton('Close', self)
+        close.setFixedWidth(100)
+        buttonLayout.addWidget(close)
+        self.connect(close, QtCore.SIGNAL('clicked()'),
+                     self, QtCore.SLOT('close()'))
+
+        update = QtGui.QPushButton('Update', self)
+        update.setFixedWidth(100)
+        buttonLayout.addWidget(update)
+        self.connect(update, QtCore.SIGNAL('clicked()'),
+                     self.update_text)
+
+        layout.addLayout(buttonLayout)
+    
+    def update_text(self):
+        self.text.setPlainText(self.monitor.standard_output())
+
+class ErrorMonitor(LogMonitor):
+    def update_text(self):
+        self.text.setPlainText(self.monitor.standard_error())
