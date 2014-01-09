@@ -58,7 +58,7 @@ from datetime import date, datetime
 from time import strptime
 
 from vistrails.core.configuration import get_vistrails_configuration
-from vistrails.gui.application import VistrailsApplicationInterface
+from vistrails.core.application import VistrailsApplicationInterface
 import vistrails.gui.theme
 import vistrails.core.application
 from vistrails.gui import qt
