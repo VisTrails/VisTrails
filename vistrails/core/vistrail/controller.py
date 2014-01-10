@@ -1282,6 +1282,8 @@ class VistrailController(object):
         op_list.append(('add', group))
         op_list.extend(('add', c) for c in connections)
         action = vistrails.core.db.action.create_action(op_list)
+        self.set_action_annotation(action, Action.ANNOTATION_DESCRIPTION,
+                                   "Grouped modules")
         self.add_new_action(action)
 #         for op in action.operations:
 #             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
@@ -1348,6 +1350,8 @@ class VistrailController(object):
         op_list.extend(('add', m) for m in modules)
         op_list.extend(('add', c) for c in connections)
         action = vistrails.core.db.action.create_action(op_list)
+        self.set_action_annotation(action, Action.ANNOTATION_DESCRIPTION,
+                                   "Ungrouped modules")
         self.add_new_action(action)
         res = self.perform_action(action)
         self.validate(self.current_pipeline, False)
