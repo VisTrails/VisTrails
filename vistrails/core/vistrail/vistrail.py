@@ -889,7 +889,7 @@ class Vistrail(DBVistrail):
         Compute the description of a version
         
         """
-        description = ""
+        description = "Other action"
         if version_number in self.actionMap:
             action = self.actionMap[version_number]
             # if a description has been manually set, return that value
