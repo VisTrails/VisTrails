@@ -53,6 +53,8 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
                      self.exploreChange)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         self.set_exploration()
         
