@@ -890,7 +890,9 @@ class Vistrail(DBVistrail):
         
         """
         description = "Other action"
-        if version_number in self.actionMap:
+        if not version_number:
+            description = "" # Root node
+        elif version_number in self.actionMap:
             action = self.actionMap[version_number]
             # if a description has been manually set, return that value
             if action.description is not None:
