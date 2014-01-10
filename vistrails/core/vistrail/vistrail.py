@@ -889,7 +889,7 @@ class Vistrail(DBVistrail):
         Compute the description of a version
         
         """
-        description = ""
+        description = "Other action"
         if version_number in self.actionMap:
             action = self.actionMap[version_number]
             # if a description has been manually set, return that value
@@ -943,7 +943,7 @@ class Vistrail(DBVistrail):
                         deleted_parameters+=1
                     elif op.what == 'annotation':
                         deleted_annotations+=1
-                    elif op.what == 'port':
+                    elif op.what == 'portSpec':
                         deleted_ports += 1
                 else:
                     raise TypeError("Unknown operation type '%s'" % op.vtType)
