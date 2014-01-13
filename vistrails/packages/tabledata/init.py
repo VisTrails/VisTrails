@@ -15,11 +15,13 @@ except ImportError:
 from .common import _modules as common_modules
 from .convert import _modules as convert_modules
 from .read import _modules as read_modules
+from .write import _modules as write_modules
 
 
 _modules = [common_modules,
             convert_modules,
-            read_modules]
+            read_modules,
+            write_modules]
 
 if get_package_manager().has_package('org.vistrails.vistrails.spreadsheet'):
     from .viewer import _modules as viewer_modules
