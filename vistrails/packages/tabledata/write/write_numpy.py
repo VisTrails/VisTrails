@@ -38,3 +38,68 @@ class WriteNumPy(Module):
 
 
 _modules = [WriteNumPy]
+
+
+###############################################################################
+
+import unittest
+
+
+class WriteNumpyTestCase(unittest.TestCase):
+    def test_raw_numpy(self):
+        """Uses WriteNumPy to write an array in raw format.
+        """
+        import array
+        from vistrails.tests.utils import execute, intercept_result
+        from ..identifiers import identifier
+        with intercept_result(WriteNumPy, 'file') as results:
+            self.assertFalse(execute([
+                    ('write|WriteNumPy', identifier, [
+                        ('array', [('List', '[0, 1, 258, 6758]')]),
+                        ('datatype', [('String', 'uint32')]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        expected_bytes = [0, 0, 0, 0,
+                          1, 0, 0, 0,
+                          2, 1, 0, 0,
+                          102, 26, 0, 0]
+        with open(results[0].name, 'rb') as fp:
+            self.assertEqual(fp.read(),
+                             array.array('B', expected_bytes).tostring())
+
+    def test_npy_numpy(self):
+        """Uses WriteNumPy to write an array in .NPY format.
+        """
+        from vistrails.tests.utils import execute, intercept_result
+        from ..identifiers import identifier
+        with intercept_result(WriteNumPy, 'file') as results:
+            self.assertFalse(execute([
+                    ('write|WriteNumPy', identifier, [
+                        ('array', [('List', '[0, 1, 258, 6758]')]),
+                        ('datatype', [('String', 'npy')]),
+                    ]),
+                ]))
+        self.assertEqual(len(results), 1)
+        self.assertEqual(list(numpy.load(results[0].name)), [0, 1, 258, 6758])
+
+    def test_write_read(self):
+        """Uses WriteNumPy and NumPyArray to write then read an array.
+        """
+        from vistrails.tests.utils import execute, intercept_result
+        from ..identifiers import identifier
+        for dtype in ('npy', 'uint32'):
+            with intercept_result(NumPyArray, 'value') as results:
+                self.assertFalse(execute([
+                        ('write|WriteNumPy', identifier, [
+                            ('array', [('List', '[0, 1, 258, 6758]')]),
+                            ('datatype', [('String', dtype)]),
+                        ]),
+                        ('read|NumPyArray', identifier, [
+                            ('datatype', [('String', dtype)]),
+                        ]),
+                    ], [
+                        (0, 'file', 1, 'file'),
+                    ]))
+            self.assertEqual(len(results), 1)
+            self.assertEqual(list(results[0]), [0, 1, 258, 6758])
