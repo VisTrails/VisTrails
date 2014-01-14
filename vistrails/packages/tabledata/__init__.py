@@ -6,6 +6,17 @@ extraction and conversion routines.
 
 """
 
+# ChangeLog:
+# 2014-01-14 -- 0.1.3
+#   * Adds writer modules
+# 2013-12-09 -- 0.1.2
+#   * No longer use 'self' ports to output tables
+# 2013-10-04 -- 0.1.1
+#   * Moves reading modules out of specific namespaces
+#     (read|csv|CSVFile -> read|CSVFile)
+# 2013-05-16 -- 0.1.0
+#   * Package created (for DAT project)
+
 from vistrails.core.packagemanager import get_package_manager
 
 from identifiers import *
