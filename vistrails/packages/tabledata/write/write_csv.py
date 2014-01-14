@@ -28,11 +28,11 @@ class WriteCSV(Module):
             write_header = self.force_get_input('write_header')
             if write_header is not False:
                 if table.names is None:
-                    if write_header is True:
+                    if write_header is True: # pragma: no cover
                         raise ModuleError(
                                 self,
-                                "write_header is set but the table doesn't have "
-                                "column names")
+                                "write_header is set but the table doesn't "
+                                "have column names")
                 else:
                     fp.write(delimiter.join(table.names) + '\n')
 
@@ -49,7 +49,7 @@ class WriteCSV(Module):
                 line += 1
 
             rows = table.rows
-            if line != rows:
+            if line != rows: # pragma: no cover
                 debug.warning("WriteCSV wrote %d lines instead of expected "
                               "%d" % (line, rows))
 
