@@ -21,13 +21,16 @@ class WriteNumPy(Module):
             array = numpy.array(array)
         dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
 
-        fileobj = self.interpreter.filePool.create_file(suffix='.csv')
-        fname = fileobj.name
-
         if dtype is NumPyArray.NPY_FMT:
+            fileobj = self.interpreter.filePool.create_file(suffix='.npy')
+            fname = fileobj.name
+
             # Numpy's ".NPY" format
             numpy.save(fname, array)
         else:
+            fileobj = self.interpreter.filePool.create_file(suffix='.dat')
+            fname = fileobj.name
+
             # Numpy's plain binary format
             array.astype(dtype).tofile(fname)
 
