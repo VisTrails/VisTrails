@@ -114,8 +114,7 @@ class CSVFile(Table):
 
     def compute(self):
         csv_file = self.get_input('file').name
-        header_present = self.get_input('header_present',
-                                        allowDefault=True)
+        header_present = self.get_input('header_present')
         delimiter = self.force_get_input('delimiter', None)
 
         table = CSVTable(csv_file, header_present, delimiter)

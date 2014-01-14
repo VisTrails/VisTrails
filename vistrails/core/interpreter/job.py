@@ -428,6 +428,14 @@ class JobMonitor:
         """
         workflow = self._current_workflow
         # untangle parents
+        # only keep the top item
+        c = set()
+        for exception in workflow.parents.itervalues():
+            if exception.children:
+                c.update([id(child) for child in exception.children])
+        for child in c:
+            if child in workflow.parents:
+                del workflow.parents[child]
         for parent in workflow.parents.itervalues():
             self.addChildRec(parent)
 
@@ -478,11 +486,6 @@ class JobMonitor:
         workflow = self.currentWorkflow()
         if not workflow:
             return # ignore non-monitored jobs
-        # only keep the top item
-        if error.children:
-            for child in error.children:
-                if id(child) in workflow.parents:
-                    del workflow.parents[id(child)]
         workflow.parents[id(error)] = error
 
     def setCache(self, id, params, name=''):

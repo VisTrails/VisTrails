@@ -9,13 +9,6 @@ class NumPyArray(Module):
 
     Declared as returning a List, but returns a Numpy array instead!
     """
-    _input_ports = [
-            ('file', '(org.vistrails.vistrails.basic:File)'),
-            ('datatype', '(org.vistrails.vistrails.basic:String)'),
-            ('shape', '(org.vistrails.vistrails.basic:List)')]
-    _output_ports = [
-            ('value', '(org.vistrails.vistrails.basic:List)')]
-
     NPY_FMT = object()
 
     FORMAT_MAP = dict(
@@ -36,6 +29,14 @@ class NumPyArray(Module):
          complex64 = numpy.complex64,
         complex128 = numpy.complex128,
     )
+
+    _input_ports = [
+            ('file', '(org.vistrails.vistrails.basic:File)'),
+            ('datatype', '(org.vistrails.vistrails.basic:String)',
+             {'entry_types': "['enum']", 'values': "[%r]" % FORMAT_MAP.keys()}),
+            ('shape', '(org.vistrails.vistrails.basic:List)')]
+    _output_ports = [
+            ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
         filename = self.get_input('file').name

@@ -423,15 +423,15 @@ class VistrailController(QtCore.QObject, BaseController):
                 current_workflow = JobWorkflow(url, version_id)
                 jobView.jobMonitor.startWorkflow(current_workflow)
         try:
-            progress = ExecutionProgressDialog(self.vistrail_view)
-            self.progress = progress
-            progress.show()
+            self.progress = ExecutionProgressDialog(self.vistrail_view)
+            self.progress.show()
 
             result =  self.execute_current_workflow(reason=reason, sinks=sinks)
 
-            progress.setValue(100)
-            self.progress = None
+            self.progress.setValue(100)
         finally:
+            self.progress.hide()
+            self.progress.deleteLater()
             self.progress = None
             jobView.jobMonitor.finishWorkflow()
             jobView.updating_now = False

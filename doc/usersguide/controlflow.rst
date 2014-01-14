@@ -57,7 +57,7 @@ Notice that when you drag ``Map`` to the pipeline canvas it will be drawn in a d
 
 .. topic:: Next Step!
 
-  Select the ``vtkContourFilter`` module and delete its method "SetValue" in the ``Set Methods`` container. Then, make this port visible by clicking on the first column left of its name in the "inputs" tab to toggle the eye icon..
+  Select the ``vtkContourFilter`` module and delete its method "SetValue" in the ``Module Information`` tab. Then, make this port visible by clicking on the first column left of its name in the "inputs" tab to toggle the eye icon..
 
   Connect the modules as shown in Figure :ref:`fig-controlflow-calculate_area`.
 
@@ -93,7 +93,7 @@ structure.
    xaxis = []
 
    for i in xrange(len(InputList)):
-       xaxis.append(X_values[i][1])
+       xaxis.append(X_Values[i][1])
 
    l, = plot(xaxis, InputList, marker="o", markerfacecolor="red",
              markersize=7, label="IsoSurface Areas", linewidth=1.5)
