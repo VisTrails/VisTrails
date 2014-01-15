@@ -2339,10 +2339,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             kwargs['bottom'] = val
         if self.hasInputFromPort('colorSequence'):
             val = self.getInputFromPort('colorSequence')
-            val = translate_color(val)
             kwargs['color'] = val
         elif self.hasInputFromPort('colorScalar'):
             val = self.getInputFromPort('colorScalar')
+            val = translate_color(val)
             kwargs['color'] = val
         if self.hasInputFromPort('histtype'):
             val = self.getInputFromPort('histtype')
@@ -3396,7 +3396,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
               ("scale_units", "basic:List",
                {'optional': True, 'docstring': 'For example, if scale_units is \'inches\', scale is 2.0, and (u,v) = (1,0), then the vector will be 0.5 inches long. If scale_units is \'width\', then the vector will be half the width of the axes.\n\nIf scale_units is \'x\' then the vector will be 0.5 x-axis units.  To plot vectors in the x-y plane, with u and v having the same units as x and y, use "angles=\'xy\', scale_units=\'xy\', scale=1".'}),
               ("colorSequence", "basic:List",
-               {'entry_types': "['enum']", 'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'values': "[['color']]", 'optional': True}),
+               {'optional': True, 'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.'}),
               ("colorScalar", "basic:String",
                {'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'optional': True}),
               ("polyCollectionProperties", "MplPolyCollectionProperties",
@@ -3468,6 +3468,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
             kwargs['color'] = val
         elif self.hasInputFromPort('colorScalar'):
             val = self.getInputFromPort('colorScalar')
+            val = translate_color(val)
             kwargs['color'] = val
 
         polyCollection = matplotlib.pyplot.quiver(*args, **kwargs)

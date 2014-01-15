@@ -1710,9 +1710,8 @@ Set the title for the axes.</docstring>
     <inputPortSpec arg="label" arg_pos="6" constructor_arg="True" name="label" port_type="basic:String">
       <defaults>['']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="xticks" name="xticksSequence" port_type="basic:List">
+    <inputPortSpec arg="xticks" name="xticks" port_type="basic:List">
       <docstring>Set the x ticks with list of ticks</docstring>
-      <alternateSpec arg="xticks" name="xticksScalar" port_type="basic:Float" />
     </inputPortSpec>
     <inputPortSpec arg="fig" arg_pos="0" constructor_arg="True" name="fig" />
     <inputPortSpec arg="ylabel" name="ylabel">
@@ -1809,9 +1808,8 @@ labelpad is the spacing in points between the label and the x-axis</docstring>
     <inputPortSpec arg="xbound" name="xbound">
       <docstring>Set the lower and upper numerical bounds of the x-axis. This method will honor axes inversion regardless of parameter order. It will not change the _autoscaleXon attribute.</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="yticks" name="yticksSequence" port_type="basic:List">
+    <inputPortSpec arg="yticks" name="yticks" port_type="basic:List">
       <docstring>Set the y ticks with list of ticks Keyword arguments:</docstring>
-      <alternateSpec arg="yticks" name="yticksScalar" port_type="basic:Float" />
     </inputPortSpec>
     <inputPortSpec arg="ymargin" name="ymargin" port_type="basic:Float">
       <docstring>Set padding of Y data limits prior to autoscaling.

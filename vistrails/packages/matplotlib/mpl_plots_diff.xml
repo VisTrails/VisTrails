@@ -2,19 +2,16 @@
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.hexbin">
     <value>object</value>
   </changeModule>
+  <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="C" type="input">
+    <value>basic:List</value>
+  </changePortSpec>
   <changePortSpec attr="entry_types" code_ref="matplotlib.pyplot.hexbin" port="gridsize" type="input">
     <value>None</value>
   </changePortSpec>
   <changePortSpec attr="values" code_ref="matplotlib.pyplot.hexbin" port="gridsize" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="C" type="input">
-    <value>basic:List</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="y" type="input">
-    <value>basic:List</value>
-  </changePortSpec>
-  <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="x" type="input">
     <value>basic:List</value>
   </changePortSpec>
   <changePortSpec attr="entry_types" code_ref="matplotlib.pyplot.hexbin" port="bins" type="input">
@@ -25,6 +22,9 @@
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="bins" type="input">
     <value>basic:Integer</value>
+  </changePortSpec>
+  <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="x" type="input">
+    <value>basic:List</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.hexbin" port="polyCollection" type="output">
     <value>
@@ -271,11 +271,6 @@
   <changePortSpec attr="values" code_ref="matplotlib.pyplot.contour" port="colors" type="input">
     <value>None</value>
   </changePortSpec>
-  <addPortSpec code_ref="matplotlib.pyplot.contour" port="X" type="input">
-    <value>
-      <inputPortSpec arg="X" arg_pos="0" in_args="True" name="X" port_type="basic:List" />
-    </value>
-  </addPortSpec>
   <changePortSpec attr="entry_types" code_ref="matplotlib.pyplot.contour" port="cmap" type="input">
     <value>None</value>
   </changePortSpec>
@@ -302,6 +297,11 @@
   <addPortSpec code_ref="matplotlib.pyplot.contour" port="Y" type="input">
     <value>
       <inputPortSpec arg="Y" arg_pos="1" in_args="True" name="Y" port_type="basic:List" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.pyplot.contour" port="X" type="input">
+    <value>
+      <inputPortSpec arg="X" arg_pos="0" in_args="True" name="X" port_type="basic:List" />
     </value>
   </addPortSpec>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.contour" port="Z" type="input">
@@ -537,7 +537,7 @@
     <value>object</value>
   </changeModule>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="C" type="input">
-    <value />
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="C" type="input">
     <value>True</value>
@@ -549,7 +549,7 @@
     <value>4</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
-    <value />
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
     <value>True</value>
@@ -564,7 +564,7 @@
     <value>1</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
-    <value />
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
     <value>True</value>
@@ -579,7 +579,7 @@
     <value>0</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
-    <value />
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
     <value>True</value>
@@ -591,7 +591,7 @@
     <value>2</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
-    <value />
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
     <value>True</value>
@@ -601,6 +601,15 @@
   </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
     <value>3</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.pyplot.quiver" port="color" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.pyplot.quiver" port="color" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="translations" code_ref="matplotlib.pyplot.quiver" port="color" type="alternate">
+    <value>translate_color</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.quiver" port="polyCollection" type="output">
     <value>
@@ -709,6 +718,12 @@
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.hist">
     <value>tuple</value>
   </changeModule>
+  <changePortSpec attr="translations" code_ref="matplotlib.pyplot.hist" port="color" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="translations" code_ref="matplotlib.pyplot.hist" port="color" type="alternate">
+    <value>translate_color</value>
+  </changePortSpec>
   <changePortSpec attr="name" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
     <value>bins</value>
   </changePortSpec>
@@ -749,10 +764,10 @@
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.plot_date">
     <value>object</value>
   </changeModule>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.plot_date" port="x" type="input">
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.plot_date" port="y" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.plot_date" port="y" type="input">
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.plot_date" port="x" type="input">
     <value>True</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.plot_date" port="line" type="output">
