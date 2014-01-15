@@ -39,8 +39,8 @@ plain binary files) and extract or convert columns.
 
    The pipeline for the Bikes example
 
-Set the 'url' input of HTTPFile to ``??? TODO ???``. Make sure 'header_present'
-is checked on CSVFile.
+Set the 'url' input of HTTPFile to ``http://www.vistrails.org/download/download.php?type=DATA&id=citibike_from_launch.csv``.
+Make sure 'header_present' is checked on CSVFile.
 
 Set the 'column_name' parameters on both ExtractColumn modules to ``Date`` (for the one on the left) and ``Miles traveled today (midnight to 11:59 pm)`` (for the one on the right). Alternatively, you can set column_index to 0 and 3.
 
