@@ -1429,6 +1429,9 @@ class ModuleRegistry(DBRegistry):
                 new_defaults = []
                 if isinstance(defaults, basestring):
                     defaults = ast.literal_eval(defaults)
+                if not isinstance(defaults, list):
+                    raise ValueError('Defaults for port "%s" must be a list' %
+                                     name)
                 for i, default_val in enumerate(defaults):
                     if default_val is not None:
                         default_conv = self.convert_port_val(default_val,
@@ -1445,8 +1448,16 @@ class ModuleRegistry(DBRegistry):
                 new_values = []
                 if isinstance(values, basestring):
                     values = ast.literal_eval(values)
+                if not isinstance(values, list):
+                    raise ValueError('Values for port "%s" must be a list '
+                                     'of lists' % name)
                 for i, values_list in enumerate(values):
+                    if isinstance(values_list, basestring):
+                        values_list = ast.literal_eval(values_list)
                     if values_list is not None:
+                        if not isinstance(values_list, list):
+                            raise ValueError('Values for port "%s" must be '
+                                             'a list of lists' % name)
                         new_values_list = []
                         for val in values_list:
                             if val is not None:

@@ -697,6 +697,15 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
     <value>3</value>
   </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="translations" code_ref="matplotlib.pyplot.quiver" port="color" type="alternate">
+    <value>translate_color</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="entry_types" code_ref="matplotlib.pyplot.quiver" port="color" type="alternate">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="values" code_ref="matplotlib.pyplot.quiver" port="color" type="alternate">
+    <value>None</value>
+  </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.quiver" port="polyCollection" type="output">
     <value>
       <outputPortSpec arg="polyCollection" compute_name="polyCollection" name="polyCollectionProperties" port_type="__property__" property_key="0" property_type="matplotlib.collections.PolyCollection" />
@@ -835,6 +844,12 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.hist">
     <value>tuple</value>
   </changeModule>
+  <changePortSpec attr="translations" code_ref="matplotlib.pyplot.hist" port="color" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="translations" code_ref="matplotlib.pyplot.hist" port="color" type="alternate">
+    <value>translate_color</value>
+  </changePortSpec>
   <changePortSpec attr="name" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
     <value>bins</value>
   </changePortSpec>

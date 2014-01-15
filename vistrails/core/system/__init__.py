@@ -127,12 +127,13 @@ __dataDir = os.path.realpath(os.path.join(__rootDir,
                                           'data'))
 __fileDir = os.path.realpath(os.path.join(__rootDir,
                                           '..','examples'))
-__examplesDir = __fileDir
 
 if systemType in ['Darwin'] and not os.path.exists(__fileDir):
     # Assume we are running from py2app
     __fileDir = os.path.realpath(os.path.join(__rootDir,
-                                              '/'.join(['..']*5),'examples'))
+                                              '/'.join(['..']*6),'examples'))
+
+__examplesDir = __fileDir
 
 __defaultFileType = '.vt'
 
@@ -330,7 +331,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "99faabb791a0"
+        release = "7fd4888b0ea2"
         import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []

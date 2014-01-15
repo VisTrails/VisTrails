@@ -116,7 +116,7 @@ class ViewUpdatingLogController(object):
                 self.view)
 
     def _handle_suspended(self, obj, error):
-        """ end_suspended(obj: VistrailsModule, error: ModuleSuspended
+        """ _handle_suspended(obj: VistrailsModule, error: ModuleSuspended
             ) -> None
             Report module as suspended
         """
@@ -125,6 +125,9 @@ class ViewUpdatingLogController(object):
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
         i = "%s" % self.remap_id(obj.id)
+        if error.loop_iteration is not None:
+            name = name + '/' + str(error.loop_iteration)
+            i = i + '/' + str(error.loop_iteration)
         # add to parent list for computing the module tree later
         error.name = name
         # if signature is not set we use the module identifier

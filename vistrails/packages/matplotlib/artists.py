@@ -3375,10 +3375,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True}),
               ("label", "basic:String",
                 {'optional': True, 'defaults': "['']"}),
-              ("xticksSequence", "basic:List",
+              ("xticks", "basic:List",
                 {'optional': True, 'docstring': 'Set the x ticks with list of ticks'}),
-              ("xticksScalar", "basic:Float",
-               {'docstring': 'Set the x ticks with list of ticks', 'optional': True}),
               ("fig", "basic:String",
                 {'optional': True}),
               ("ylabel", "basic:String",
@@ -3423,10 +3421,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Call signature:\n\nset_xlabel(xlabel, fontdict=None, labelpad=None, **kwargs)\n\nSet the label for the xaxis.\n\nlabelpad is the spacing in points between the label and the x-axis'}),
               ("xbound", "basic:String",
                 {'optional': True, 'docstring': 'Set the lower and upper numerical bounds of the x-axis. This method will honor axes inversion regardless of parameter order. It will not change the _autoscaleXon attribute.'}),
-              ("yticksSequence", "basic:List",
+              ("yticks", "basic:List",
                 {'optional': True, 'docstring': 'Set the y ticks with list of ticks Keyword arguments:'}),
-              ("yticksScalar", "basic:Float",
-               {'docstring': 'Set the y ticks with list of ticks Keyword arguments:', 'optional': True}),
               ("ymargin", "basic:Float",
                 {'optional': True, 'docstring': 'Set padding of Y data limits prior to autoscaling.\n\nm times the data interval will be added to each end of that interval before it is used in autoscaling.'}),
               ("position", "basic:String",
@@ -3485,10 +3481,8 @@ class MplAxesProperties(MplArtistProperties):
             self.constructor_props['axisbg'] = self.get_input('axisbg')
         if self.has_input('label'):
             self.constructor_props['label'] = self.get_input('label')
-        if self.has_input('xticksSequence'):
-            self.props['xticks'] = self.get_input('xticksSequence')
-        elif self.has_input('xticksScalar'):
-            self.props['xticks'] = self.get_input('xticksScalar')
+        if self.has_input('xticks'):
+            self.props['xticks'] = self.get_input('xticks')
         if self.has_input('fig'):
             self.constructor_props['fig'] = self.get_input('fig')
         if self.has_input('ylabel'):
@@ -3534,10 +3528,8 @@ class MplAxesProperties(MplArtistProperties):
             self.props['xlabel'] = self.get_input('xlabel')
         if self.has_input('xbound'):
             self.props['xbound'] = self.get_input('xbound')
-        if self.has_input('yticksSequence'):
-            self.props['yticks'] = self.get_input('yticksSequence')
-        elif self.has_input('yticksScalar'):
-            self.props['yticks'] = self.get_input('yticksScalar')
+        if self.has_input('yticks'):
+            self.props['yticks'] = self.get_input('yticks')
         if self.has_input('ymargin'):
             self.props['ymargin'] = self.get_input('ymargin')
         if self.has_input('position'):
