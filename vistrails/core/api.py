@@ -465,7 +465,7 @@ class TestAPI(unittest.TestCase):
         get_api().close_vistrail()
 
     def setUp(self):
-        get_api().controller.change_selected_version(0)
+        get_api().controller.change_selected_version(Vistrail.ROOT_VERSION)
 
     def get_basic_package(self):
         basic = get_api().get_package(basic_pkg)
@@ -562,12 +562,13 @@ class TestAPI(unittest.TestCase):
         fdesc, fname = tempfile.mkstemp(prefix='vt_test_write_read_',
                                  suffix='.vt')
         os.close(fdesc)
+        version = get_api().controller.current_version
         try:
             self.assertTrue(get_api().save_vistrail(fname))
             self.assertTrue(os.path.exists(fname))
             get_api().close_vistrail()
             self.assertTrue(get_api().open_vistrail(fname))
-            self.assertEqual(get_api().controller.current_version, 4)
+            self.assertEqual(get_api().controller.current_version, version)
             get_api().close_vistrail()
         finally:
             os.remove(fname)
