@@ -135,10 +135,11 @@ class DebugPrint:
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
         # Setup warnings logger
-        wlogger = logging.getLogger('py.warnings')
-        wlogger.propagate = False
-        wlogger.addHandler(EmitWarnings(self.logger))
-        logging.captureWarnings(True)
+        if hasattr(logging, 'captureWarnings'):
+            wlogger = logging.getLogger('py.warnings')
+            wlogger.propagate = False
+            wlogger.addHandler(EmitWarnings(self.logger))
+            logging.captureWarnings(True)
 
         # first we define a handler for logging to a file
         if f:
