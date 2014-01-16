@@ -124,6 +124,7 @@ class MplFigure(Module):
 
         # Set it on the plots
         connectorList = self.inputPorts.get('addPlot', [])
+        connectorList.extend(self.inputPorts.get('setLegend', []))
         for connector in connectorList:
             connector.obj.set_figure(self.figInstance)
 
