@@ -25,7 +25,7 @@ folder is located.
 
 RELEASE NOTES
 -------------
-Release Name: v2.1.1 build 3dfd01654a5a from v2.1 branch
+Release Name: v2.1.1 build 90975fc00211 from v2.1 branch
 
 Bug fixes: 
  - Ticket 814: Parameter Exploration Broken (13da70d0b35f)
@@ -81,7 +81,7 @@ Bug fixes:
  - Spreadsheet history file path was set incorrectly (1789513a3afd)
  - Fixes slot bug in PyQt 4.7.3 (17230667d58e)
 
-From Release: v2.1 beta2 build 820aab05a685 from v2.1 branch
+From Release: v2.1 beta2 build 99faabb791a0 from v2.1 branch
 
 Bug fixes: 
  - Ticket #735: Windows dulwich install via pip fails (14d362a695df)
