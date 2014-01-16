@@ -352,15 +352,24 @@ class QPackagesWidget(QtGui.QWidget):
         dlg.exec_()
 
     def reload_current_package(self):
-        # DISABLES the current package and all reverse dependencies
-        inst = self._enabled_packages_list
-        item = inst.currentItem()
-        pm = get_package_manager()
-        codepath = str(item.text())
-        
-        palette = QModulePalette.instance()
-        palette.setUpdatesEnabled(False)
-        pm.reload_package_disable(codepath)
+        if self._enabled_packages_list.currentItem() is not None:
+            # Disables the selected package (which was enabled) and all its
+            # reverse dependencies, then enables it all again
+            item = self._enabled_packages_list.currentItem()
+            pm = get_package_manager()
+            codepath = str(item.text())
+
+            palette = QModulePalette.instance()
+            palette.setUpdatesEnabled(False)
+            pm.reload_package_disable(codepath)
+        elif self._available_packages_list.currentItem() is not None:
+            # Reloads the selected package's (which was not enabled) __init__
+            # module
+            item = self._available_packages_list.currentItem()
+            pm = get_package_manager()
+            codepath = str(item.text())
+            pm._available_packages.pop(codepath).unload()
+            self.selected_available_list()
 
     def reload_current_package_finisher(self, codepath, reverse_deps, prefix_dictionary):
         # REENABLES the current package and all reverse dependencies
@@ -443,7 +452,7 @@ class QPackagesWidget(QtGui.QWidget):
         self._configure_button.setEnabled(False)
         self._disable_button.setEnabled(False)
         self._enable_button.setEnabled(True)
-        self._reload_button.setEnabled(False)
+        self._reload_button.setEnabled(True)
 
     def set_package_information(self):
         """Looks at current package and sets all labels (name,
