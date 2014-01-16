@@ -1843,6 +1843,8 @@ agg_filter: unknown alpha: float (0.0 transparent through 1.0 opaque) animated: 
       <alternateSpec arg="xticklabels" name="xticklabelsScalar" port_type="basic:String" />
     </inputPortSpec>
     <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
+    <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
+    <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.axes.AxesSubplot" name="MplAxesSubplotProperties" superclass="MplAxesProperties">
     <docstring>None</docstring>

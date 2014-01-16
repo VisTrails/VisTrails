@@ -19,6 +19,16 @@
     <value>yticks</value>
   </changePortSpec>
   <deletePortSpec altName="yticksScalar" code_ref="matplotlib.axes.Axes" port="yticks" type="alternate" />
+  <addPortSpec code_ref="matplotlib.axes.Axes" port="yaxis" type="output">
+    <value>
+      <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axes.Axes" port="xaxis" type="output">
+    <value>
+      <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
+    </value>
+  </addPortSpec>
   <addPortSpec code_ref="matplotlib.axes.Axes" port="title" type="output">
     <value>
       <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />

@@ -3435,6 +3435,10 @@ class MplAxesProperties(MplArtistProperties):
                {'docstring': "Call signature:\n\nset_xticklabels(labels, fontdict=None, minor=False, **kwargs)\n\nSet the xtick labels with list of strings labels. Return a list of axis text instances.\n\nkwargs set the :class:`~matplotlib.text.Text` properties. Valid properties are\n\nagg_filter: unknown alpha: float (0.0 transparent through 1.0 opaque) animated: [True | False] axes: an :class:`~matplotlib.axes.Axes` instance backgroundcolor: any matplotlib color bbox: rectangle prop dict clip_box: a :class:`matplotlib.transforms.Bbox` instance clip_on: [True | False] clip_path: [ (:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`) |         :class:`~matplotlib.patches.Patch` | None ] color: any matplotlib color contains: a callable function family or fontfamily or fontname or name: [ FONTNAME | 'serif' | 'sans-serif' | 'cursive' | 'fantasy' | 'monospace' ] figure: a :class:`matplotlib.figure.Figure` instance fontproperties or font_properties: a :class:`matplotlib.font_manager.FontProperties` instance gid: an id string horizontalalignment or ha: [ 'center' | 'right' | 'left' ] label: string or anything printable with '%s' conversion. linespacing: float (multiple of font size) lod: [True | False] multialignment: ['left' | 'right' | 'center' ] path_effects: unknown picker: [None|float|boolean|callable] position: (x,y) rasterized: [True | False | None] rotation: [ angle in degrees | 'vertical' | 'horizontal' ] rotation_mode: unknown size or fontsize: [ size in points | 'xx-small' | 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'xx-large' ] snap: unknown stretch or fontstretch: [ a numeric value in range 0-1000 | 'ultra-condensed' | 'extra-condensed' | 'condensed' | 'semi-condensed' | 'normal' | 'semi-expanded' | 'expanded' | 'extra-expanded' | 'ultra-expanded' ] style or fontstyle: [ 'normal' | 'italic' | 'oblique'] text: string or anything printable with '%s' conversion. transform: :class:`~matplotlib.transforms.Transform` instance url: a url string variant or fontvariant: [ 'normal' | 'small-caps' ] verticalalignment or va or ma: [ 'center' | 'top' | 'bottom' | 'baseline' ] visible: [True | False] weight or fontweight: [ a numeric value in range 0-1000 | 'ultralight' | 'light' | 'normal' | 'regular' | 'book' | 'medium' | 'roman' | 'semibold' | 'demibold' | 'demi' | 'bold' | 'heavy' | 'extra bold' | 'black' ] x: float y: float zorder: any number", 'optional': True}),
               ("titleProperties", "MplTextProperties",
                 {}),
+              ("xaxisProperties", "MplXAxisProperties",
+                {}),
+              ("yaxisProperties", "MplYAxisProperties",
+                {}),
         ]
 
     # no output ports except self
@@ -3543,6 +3547,10 @@ class MplAxesProperties(MplArtistProperties):
             self.props['xticklabels'] = self.get_input('xticklabelsScalar')
         if self.has_input('titleProperties'):
             self.sub_props['title'] = self.get_input('titleProperties')
+        if self.has_input('xaxisProperties'):
+            self.sub_props['xaxis'] = self.get_input('xaxisProperties')
+        if self.has_input('yaxisProperties'):
+            self.sub_props['yaxis'] = self.get_input('yaxisProperties')
 
         
     def update_props(self, objs):
@@ -3554,6 +3562,10 @@ class MplAxesProperties(MplArtistProperties):
         for obj in objs:
             if 'title' in self.sub_props:
                 self.sub_props['title'].update_props(obj.title)
+            if 'xaxis' in self.sub_props:
+                self.sub_props['xaxis'].update_props(obj.xaxis)
+            if 'yaxis' in self.sub_props:
+                self.sub_props['yaxis'].update_props(obj.yaxis)
 
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
