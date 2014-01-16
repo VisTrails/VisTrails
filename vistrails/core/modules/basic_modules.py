@@ -475,22 +475,25 @@ class FileSink(NotCacheable, Module):
         output_path = self.get_input("outputPath")
         full_path = output_path.name
 
+        if os.path.isfile(full_path):
+            if self.get_input('overwrite'):
+                try:
+                    os.remove(full_path)
+                except OSError, e:
+                    msg = ('Could not delete existing path "%s" '
+                           '(overwrite on)' % full_path)
+                    raise ModuleError(self, msg)
+            else:
+                raise ModuleError(self,
+                                  "Could not copy file to '%s': file already "
+                                  "exists")
+
         try:
             vistrails.core.system.link_or_copy(input_file.name, full_path)
         except OSError, e:
-            if self.has_input("overwrite") and \
-                    self.get_input("overwrite"):
-                try:
-                    os.unlink(full_path)
-                    vistrails.core.system.link_or_copy(input_file.name, full_path)
-                except OSError:
-                    msg = "(override true) Could not create file '%s'" % \
-                        full_path
-                    raise ModuleError(self, msg)
-            else:
-                msg = "Could not create file '%s': %s" % (full_path, e)
-                raise ModuleError(self, msg)
-            
+            msg = "Could not create file '%s': %s" % (full_path, e)
+            raise ModuleError(self, msg)
+
         if (self.has_input("publishFile") and
             self.get_input("publishFile") or 
             not self.has_input("publishFile")):
@@ -533,8 +536,7 @@ class DirectorySink(NotCacheable, Module):
         full_path = output_path.name
 
         if os.path.exists(full_path):
-            if (self.has_input("overwrite") and 
-                self.get_input("overwrite")):
+            if self.get_input("overwrite"):
                 try:
                     if os.path.isfile(full_path):
                         os.remove(full_path)
