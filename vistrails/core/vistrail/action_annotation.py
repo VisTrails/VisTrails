@@ -105,6 +105,7 @@ class ActionAnnotation(DBActionAnnotation):
 ################################################################################
 # Unit tests
 
+from vistrails.core.vistrail.action import Action
 
 class TestActionAnnotation(unittest.TestCase):
 
@@ -115,7 +116,8 @@ class TestActionAnnotation(unittest.TestCase):
             id_scope = IdScope()
         annotation = \
             ActionAnnotation(id=id_scope.getNewId(ActionAnnotation.vtType),
-                             key='akey', action_id=1L,
+                             key='akey', 
+                             action_id=id_scope.getNewId(Action.vtType),
                              value='some value', user='test')
         return annotation
 
