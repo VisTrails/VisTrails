@@ -357,10 +357,9 @@ class QViewManager(QtGui.QTabWidget):
         try:
             (vistrail, abstraction_files, thumbnail_files, _) = load_vistrail(locator)
         except ModuleRegistryException, e:
-            debug.critical("Module registry error for %s" %
-                           str(e.__class__.__name__), str(e))
+            debug.critical("Module registry error", e)
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            debug.critical("An error has occurred", e)
             raise
         return self.set_vistrail_view(vistrail, locator, abstraction_files,
                                       thumbnail_files)
@@ -453,14 +452,13 @@ class QViewManager(QtGui.QTabWidget):
                 collection.commit()
             except Exception, e:
                 import traceback
-                debug.critical('Failed to index vistrail', str(e) + traceback.format_exc())
+                debug.critical('Failed to index vistrail', traceback.format_exc())
             return result
         except ModuleRegistryException, e:
-            debug.critical("Module registry error for %s" %
-                           str(e.__class__.__name__), str(e))
+            debug.critical("Module registry error", e)
         except Exception, e:
             import traceback
-            debug.critical('An error has occurred', str(e) + traceback.format_exc())
+            debug.critical('An error has occurred', traceback.format_exc())
             raise
         
     def save_vistrail(self, locator_class,
@@ -495,7 +493,7 @@ class QViewManager(QtGui.QTabWidget):
             try:
                 vistrailView.controller.write_vistrail(locator)
             except Exception, e:
-                debug.critical('An error has occurred', str(e))
+                debug.critical('An error has occurred', e)
                 raise
                 return False
             try:
@@ -521,7 +519,7 @@ class QViewManager(QtGui.QTabWidget):
                 collection.add_to_workspace(entity)
                 collection.commit()
             except Exception, e:
-                debug.critical('Failed to index vistrail', str(e))
+                debug.critical('Failed to index vistrail', e)
             return locator
         return False
    
@@ -551,7 +549,7 @@ class QViewManager(QtGui.QTabWidget):
                        (e._name, e._identifier))
             debug.critical(msg)
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            debug.critical('An error has occurred', e)
             raise
 
         return self.set_vistrail_view(vistrail, None)

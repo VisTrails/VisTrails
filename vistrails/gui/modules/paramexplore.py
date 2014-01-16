@@ -39,6 +39,7 @@ API in the classes.
 """
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.basic_modules import Color
+from vistrails.core import debug
 from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator
 
@@ -678,7 +679,7 @@ class QUserFunctionEditor(QtGui.QFrame):
                         return module.default_value
                     return v
                 except Exception, e:
-                    return str(e)
+                    return debug.format_exception(e)
             return [evaluate(i) for i in xrange(self.size)]
         result = get()
         

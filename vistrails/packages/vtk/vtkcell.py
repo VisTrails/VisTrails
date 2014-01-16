@@ -1130,17 +1130,17 @@ def registerSelf():
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
-    import vistrails.core.debug
+    from vistrails.core import debug
     for (port,module) in [("AddRenderer",'vtkRenderer'),
                           ("SetRenderView",'vtkRenderView'),
                           ("InteractionHandler",'vtkInteractionHandler'),
                           ("InteractorStyle", 'vtkInteractorStyle'),
                           ("AddPicker",'vtkAbstractPicker')]:
         try:
-            registry.add_input_port(VTKCell, port,'(%s:%s)' % \
-                                        (vtk_pkg_identifier,module))
-            
+            registry.add_input_port(VTKCell, port,
+                                    '(%s:%s)' % (vtk_pkg_identifier, module))
         except Exception, e:
-            vistrails.core.debug.warning(str(e))
+            debug.warning("Got an exception adding VTKCell's %s input "
+                          "port" % port, e)
 
     registry.add_output_port(VTKCell, "self", VTKCell)

@@ -356,7 +356,7 @@ class QVistrailView(QtGui.QWidget):
             self.mashup_view.updateView()
             self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
         except Exception, e:
-            print "EXCEPTION: ", str(e)
+            print "EXCEPTION: ", debug.format_exception(e)
     def mashup_unselected(self):
         #print "MASHUP UN"
         self.stack.setCurrentIndex(
@@ -903,10 +903,8 @@ class QVistrailView(QtGui.QWidget):
             self.controller.write_vistrail(locator, export=export)
         except Exception, e:
             import traceback
-            debug.critical('Failed to save vistrail: %s' % str(e),
-                           traceback.format_exc())
+            debug.critical('Failed to save vistrail', traceback.format_exc())
             raise
-            return False
         if export:
             return self.controller.locator
         

@@ -172,7 +172,7 @@ class UserDefinedFunctionInterpolator(object):
                         return self._ptype.default_value
                     return v
                 except Exception, e:
-                    return str(e)
+                    return debug.format_exception(e)
             return [evaluate(i) for i in xrange(self._steps)]
         result = get()
 

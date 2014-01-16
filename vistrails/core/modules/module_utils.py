@@ -85,7 +85,7 @@ class FilePool(object):
         except OSError, e:
             raise VistrailsInternalError("Can't remove %s: %s" %
                                          (self.directory,
-                                          str(e)))
+                                          debug.format_exception(e)))
 
     def create_file(self, suffix = '', prefix = 'vt_tmp'):
         """create_file(suffix='', prefix='vt_tmp') -> File.

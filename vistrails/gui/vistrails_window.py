@@ -1494,17 +1494,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                 # FIXME how do we choose which one? -- really should open all
                 locator = untitled_temps[0]
 
-        # try:
-        #     (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
-        # except ModuleRegistryException, e:
-        #     debug.critical("Module registry error for %s" %
-        #                    str(e.__class__.__name__), str(e))
-        # except Exception, e:
-        #     debug.critical('An error has occurred', str(e))
-        #     raise
-        # return self.set_vistrail_view(vistrail, locator, abstraction_files,
-        #                               thumbnail_files)
-        
         self.open_vistrail(locator)
         self.qactions['pipeline'].trigger()
 

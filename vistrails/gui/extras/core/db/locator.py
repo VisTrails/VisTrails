@@ -96,7 +96,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                 config['name'] = str(dialog.nameEdt.text())
                 config['id'] = dialog.id
             except VistrailsDBException, e:
-                debug.critical('VisTrails DB Exception',  str(e))
+                debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
         return config
     #check if the information is already there

@@ -692,7 +692,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         try:
             search = SearchCompiler(s).searchStmt
         except SearchParseError, e:
-            debug.warning("Search Parse Error", str(e))
+            debug.warning("Search Parse Error", e)
             search = None
 
         self.browser.run_search(search)
@@ -777,7 +777,7 @@ class QExplorerDialog(QToolWindow, QToolWindowInterface):
         try:
             search = SearchCompiler(s).searchStmt
         except SearchParseError, e:
-            debug.warning("Search Parse Error", str(e))
+            debug.warning("Search Parse Error", e)
             search = None
 
         self.browser.run_search(search)

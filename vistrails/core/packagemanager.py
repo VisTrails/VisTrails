@@ -582,7 +582,7 @@ class PackageManager(object):
                 package.load(prefix_dictionary.get(package.codepath, None))
             except Package.LoadFailed, e:
                 debug.critical("Package %s failed to load and will be "
-                               "disabled" % package.name, str(e))
+                               "disabled" % package.name, e)
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
@@ -590,8 +590,9 @@ class PackageManager(object):
                 failed.append(package)
             except Package.InitializationFailed, e:
                 debug.critical("Initialization of package <codepath %s> "
-                               "failed and will be disabled" % \
-                                   package.codepath, str(e))
+                               "failed and will be disabled" %
+                               package.codepath,
+                               e)
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
@@ -626,11 +627,12 @@ class PackageManager(object):
                 self.add_dependencies(package)
             except Package.MissingDependency, e:
                 debug.critical("Dependencies of package %s are missing "
-                               "so it will be disabled" % package.name, str(e))
+                               "so it will be disabled" % package.name,
+                               e)
             except Exception, e:
                 debug.critical("Got an exception while getting dependencies "
                                "of %s so it will be disabled" % package.name,
-                               str(e))
+                               e)
             else:
                 continue
             package.remove_own_dom_element()
@@ -661,8 +663,9 @@ class PackageManager(object):
                     self._registry.initialize_package(pkg)
                 except Package.InitializationFailed, e:
                     debug.critical("Initialization of package <codepath %s> "
-                                   "failed and will be disabled" % \
-                                       pkg.codepath, str(e))
+                                   "failed and will be disabled" %
+                                   pkg.codepath,
+                                   e)
                     # We disable the package manually to skip over things
                     # we know will not be necessary - the only thing needed is
                     # the reference in the package list

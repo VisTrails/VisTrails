@@ -235,8 +235,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     if job.jobFinished:
                         job.setText(1, "Finished")
                 except Exception, e:
-                    debug.critical("Error checking job %s: %s" %
-                                   (workflow.name, str(e)))
+                    debug.critical("Error checking job %s: %s" % workflow.name,
+                                   e)
             workflow.updateJobs()
             if workflow.workflowFinished:
                 if self.autorun.isChecked():

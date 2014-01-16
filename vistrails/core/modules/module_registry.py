@@ -1086,7 +1086,7 @@ class ModuleRegistry(DBRegistry):
                         debug.critical('Failed to add port "%s" to '
                                        'module "%s"' % (port_name, 
                                                         module.__name__),
-                                       str(e))
+                                       e)
                         raise
                         
     def auto_add_module(self, module):

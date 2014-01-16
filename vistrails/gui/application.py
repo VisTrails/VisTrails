@@ -122,8 +122,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     try:
                         os.remove(self._unique_key)
                     except OSError, e:
-                        debug.critical("Couldn't remove socket: %s (%s)" % (
-                                       self._unique_key, e))
+                        debug.critical("Couldn't remove socket: %s" %
+                                       self._unique_key, e)
 
                 else:
                     if self.found_another_instance_running(local_socket):
@@ -677,7 +677,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout = old_stdout
             except Exception, e:
                 import traceback
-                debug.critical("Unknown error: %s" % str(e))
+                debug.critical("Unknown error", e)
                 result = traceback.format_exc()
             if None == result:
                 result = True

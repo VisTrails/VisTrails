@@ -38,6 +38,7 @@
 from itertools import izip
 import vtk
 
+from vistrails.core import debug
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
@@ -166,8 +167,9 @@ class vtkBaseModule(Module):
             try:
                 self.call_input_function(function, params)
             except Exception, e:
-                msg = 'VTK Exception: '
-                raise ModuleError(self, msg  + str(type(e)) + ': ' + str(e))
+                raise ModuleError(
+                        self,
+                        "VTK Exception: %s" % debug.format_exception(e))
 
         # Always re-create vtkInstance module, no caching here
         if self.vtkInstance:

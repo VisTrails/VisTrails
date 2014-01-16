@@ -2361,8 +2361,8 @@ class VistrailController(object):
                 for abstraction in abstraction_list:
                     abstraction.module_descriptor = descriptor
             except InvalidPipeline, e:
-                debug.critical("Error loading abstraction '%s'" % \
-                               descriptor_info[1], str(e))
+                debug.critical("Error loading abstraction '%s'" %
+                               descriptor_info[1], e)
             
     def build_ungroup(self, full_pipeline, module_id):
 
@@ -3041,7 +3041,8 @@ class VistrailController(object):
                 except MissingPackage:
                     # cannot get the package we need
                     continue
-                details = '\n'.join(str(e) for e in err_list)
+                details = '\n'.join(debug.format_exception(e)
+                                    for e in err_list)
                 debug.log('Processing upgrades in package "%s"' %
                           identifier, details)
                 if pkg.can_handle_all_errors():
@@ -3222,9 +3223,10 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            details = '\n'.join(set(str(e) for e in left_exceptions + \
-                                    new_exceptions))
-            # debug.critical("Some exceptions could not be handled", details)
+            #details = '\n'.join(set(debug.format_exception(e)
+            #                        for e in left_exceptions + new_exceptions))
+            #debug.critical("Some exceptions could not be handled",
+            #               *(left_exceptions + new_exceptions))
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
@@ -3455,7 +3457,7 @@ class VistrailController(object):
                 process_err(e._exception_set.__iter__().next())
         except Exception, e:
             import traceback
-            debug.critical(str(e), traceback.format_exc())
+            debug.critical("Unhandled exception", traceback.format_exc())
 
     def write_temporary(self):
         if self.vistrail and self.changed:
@@ -3654,8 +3656,9 @@ class VistrailController(object):
                             os.remove(os.path.join(root, name))
                     os.rmdir(abs_save_dir)
                 except OSError, e:
-                    raise VistrailsDBException("Can't remove %s: %s" % \
-                                                   (abs_save_dir, str(e)))
+                    raise VistrailsDBException("Can't remove %s: %s" % (
+                                               abs_save_dir,
+                                               debug.format_exception(e)))
             return result
 
 

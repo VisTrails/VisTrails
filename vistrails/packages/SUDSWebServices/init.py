@@ -229,20 +229,20 @@ class Service:
         try:
             self.service = suds.client.Client(address, **options)
             self.backUpCache()
-        except Exception, e:
+        except Exception:
             self.service = None
             # We may be offline and the cache may have expired,
             # try to use backup
             if self.restoreFromBackup():
                 try:
                     self.service = suds.client.Client(address, **options)
-                except Exception, e:
+                except Exception:
                     self.service = None
                     debug.critical("Could not load WSDL: %s" % address,
-                           str(e) + '\n' + str(traceback.format_exc()))
+                                   traceback.format_exc())
             else:
                 debug.critical("Could not load WSDL: %s" % address,
-                       str(e) + '\n' + str(traceback.format_exc()))
+                               traceback.format_exc())
         if self.service:
             try:
                 self.createPackage()
@@ -250,9 +250,9 @@ class Service:
                 self.setMethods()
                 self.createTypeClasses()
                 self.createMethodClasses()
-            except Exception, e:
+            except Exception:
                 debug.critical("Could not create Web Service: %s" % address,
-                               str(e) + '\n' + str(traceback.format_exc()))
+                               traceback.format_exc())
                 self.service = None
         if self.wsdlHash == '-1':
             # create empty package so that it can be reloaded/deleted
@@ -605,7 +605,8 @@ It is a WSDL type with signature:
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
-                    raise ModuleError(self, "Error invoking method %s: %s"%(name, str(e)))
+                    raise ModuleError(self, "Error invoking method %s: %s" % (
+                            name, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
                     if isinstance(result, list):
                         # if result is a list just set the output
