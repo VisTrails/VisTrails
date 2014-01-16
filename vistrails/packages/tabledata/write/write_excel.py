@@ -40,7 +40,7 @@ class WriteExcelSpreadsheet(Module):
             column = table.get_column(c)
             for r, e in enumerate(column):
                 sheet.write(r, c, e)
-            if r != rows: # pragma: no cover
+            if r+1 != rows: # pragma: no cover
                 debug.warning("WriteExcelSpreadsheet wrote %d lines instead "
                               "of expected %d" % (r, rows))
 
