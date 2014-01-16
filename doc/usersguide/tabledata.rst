@@ -29,8 +29,6 @@ plain binary files) and extract or convert columns.
    * ``MplFigure`` from the matplotlib package
    * ``MplFigureCell`` from the matplotlib package
 
-.. topic:: Next Step!
-
   Connect the modules as shown in Figure :ref:`fig-tabledata-pipeline`.
 
 .. _fig-tabledata-pipeline:
@@ -41,15 +39,17 @@ plain binary files) and extract or convert columns.
 
    The pipeline for the Bikes example
 
-Set the 'url' input of HTTPFile to ``http://www.vistrails.org/download/download.php?type=DATA&id=citibike_from_launch.csv``.
-Make sure 'header_present' is checked on CSVFile.
+.. topic:: Next Step!
 
-Set the 'column_name' parameters on both ExtractColumn modules to ``Date`` (for the one on the left) and ``Miles traveled today (midnight to 11:59 pm)`` (for the one on the right). Alternatively, you can set column_index to 0 and 3.
+  Set the 'url' input of HTTPFile to ``http://www.vistrails.org/download/download.php?type=DATA&id=citibike_from_launch.csv``.
+  Make sure 'header_present' is checked on CSVFile.
+
+  Set the 'column_name' parameters on both ExtractColumn modules to ``Date`` (for the one on the left) and ``Miles traveled today (midnight to 11:59 pm)`` (for the one on the right). Alternatively, you can set column_index to 0 and 3.
 
 
-The workflow is now ready. On execution, you will see a graphical view of the
-CSV file as a table, and a line plot showing the variations of the total
-distance traveled daily.
+  The workflow is now ready. On execution, you will see a graphical view of the
+  CSV file as a table, and a line plot showing the variations of the total
+  distance traveled daily.
 
 .. _fig-tabledata-results:
 
