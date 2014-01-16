@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -285,7 +285,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.1'
+    return '2.1.1'
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
@@ -351,7 +351,7 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s.%s -- contact@vistrails.org
 
-Copyright (C) 2011-2013 NYU-Poly. Copyright (C) 2006-2011 University of Utah.
+Copyright (C) 2011-2014 NYU-Poly. Copyright (C) 2006-2011 University of Utah. 
 All rights reserved.
 http://www.vistrails.org
 

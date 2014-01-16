@@ -1,6 +1,6 @@
 ;###############################################################################
 ;##
-;## Copyright (C) 2011-2013, NYU-Poly.
+;## Copyright (C) 2011-2014, NYU-Poly.
 ;## Copyright (C) 2006-2011, University of Utah. 
 ;## All rights reserved.
 ;## Contact: vistrails@sci.utah.edu
@@ -34,7 +34,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails x64
-AppVerName=VisTrails x64 2.1
+AppVerName=VisTrails x64 2.1.1
 WizardImageFile=..\resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
