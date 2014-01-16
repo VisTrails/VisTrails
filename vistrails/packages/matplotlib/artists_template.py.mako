@@ -10,6 +10,8 @@ ${specs.custom_code}
 <%def name="get_props(t_ps)">\
 % if t_ps.constructor_arg:
 self.constructor_props['${t_ps.arg}']\
+% elif t_ps.not_setp:
+self.not_setp_props['${t_ps.arg}']\
 % else:
 self.props['${t_ps.arg}']\
 % endif
@@ -70,6 +72,7 @@ class ${spec.name}(${spec.superklass}):
         ${spec.superklass}.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
         % if spec.get_init():
         ${spec.get_init()}
@@ -143,12 +146,23 @@ class ${spec.name}(${spec.superklass}):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
+
+    def update_sub_props(self, objs):
+        ${spec.superklass}.update_sub_props(self, objs)
         % if any(ps.is_property() for ps in spec.output_port_specs):
         if not matplotlib.cbook.iterable(objs):
-            objs = [objs]
+            objs_iter = [objs]
         else:
-            objs = matplotlib.cbook.flatten(objs)
-        for obj in objs:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
             % for ps in spec.output_port_specs:
             % if ps.is_property():
             if '${ps.arg}' in self.sub_props:
@@ -156,7 +170,7 @@ class ${spec.name}(${spec.superklass}):
             % endif
             % endfor
         % endif
-
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
