@@ -53,6 +53,6 @@ distance traveled daily.
 
 .. figure:: figures/tabledata/results.png
    :align: center
-   :width: 12in
+   :width: 9in
 
    The result in the |vistrails| Spreadsheet
