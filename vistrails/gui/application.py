@@ -76,8 +76,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return self
 
     def __init__(self):
-        # bugfix for Qt 4.8 and OS X 10.9--should not impact others
-        QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
+        # font bugfix for Qt 4.8 and OS X 10.9
+        import platform
+        if platform.system()=='Darwin':
+            release = platform.mac_ver()[0].split('.')
+            if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
+                QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 

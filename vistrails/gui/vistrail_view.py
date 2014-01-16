@@ -891,14 +891,9 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         # get a locator to write to
+        if not locator or locator.is_untitled():
+            force_choose_locator = True
         if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
-        else:
-            locator = (self.controller.locator or
-                       gui_get(self, Vistrail.vtType,
-                               self.controller.locator))
-        if locator is not None and locator.is_untitled():
             locator = gui_get(self, Vistrail.vtType,
                               self.controller.locator)
         # if couldn't get one, ignore the request

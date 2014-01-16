@@ -1285,12 +1285,12 @@ class QVistrailList(QtGui.QTreeWidget):
         
         (new_entity, was_updated) = \
             entity.update_vistrail(view.controller.vistrail)
-        if new_entity:
-            Collection.getInstance().create_vistrail_entity(
-                view.controller.vistrail)
-            self.add_vt_window(view)
-            return
-        elif was_updated:
+        #if new_entity:
+        #    Collection.getInstance().create_vistrail_entity(
+        #        view.controller.vistrail)
+        #    self.add_vt_window(view)
+        #    return
+        if was_updated:
             item.setText(0, entity.name)
         (added_wfs, deleted_wfs) = entity.update_workflows()
         (more_added_wfs, added_wf_execs) = entity.update_log()
@@ -1420,6 +1420,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 old_item.current_item = item.current_item
                 old_item.workflowsItem = item.workflowsItem
                 old_item.mashupsItem = item.mashupsItem
+                old_item.paramExplorationsItem = item.paramExplorationsItem
                 old_item.tag_to_item = item.tag_to_item
                 old_item.mshp_to_item = item.mshp_to_item
                 old_item.pe_to_item = item.pe_to_item
