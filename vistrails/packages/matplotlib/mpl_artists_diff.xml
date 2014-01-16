@@ -76,17 +76,29 @@
   <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
     <value>True</value>
   </changePortSpec>
+  <changePortSpec attr="docstring" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
+    <value>a boolean which determines whether to draw the tickline</value>
+  </changePortSpec>
+  <changePortSpec attr="port_type" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
+    <value>basic:Boolean</value>
+  </changePortSpec>
   <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
     <value>False</value>
   </changePortSpec>
   <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="tick2On" type="input">
     <value>True</value>
   </changePortSpec>
+  <changePortSpec attr="docstring" code_ref="matplotlib.axis.Tick" port="tick2On" type="input">
+    <value>a boolean which determines whether to draw the 2nd tickline</value>
+  </changePortSpec>
   <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="tick2On" type="input">
     <value>False</value>
   </changePortSpec>
   <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="tick1On" type="input">
     <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="docstring" code_ref="matplotlib.axis.Tick" port="tick1On" type="input">
+    <value>a boolean which determines whether to draw the 1st tickline</value>
   </changePortSpec>
   <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="tick1On" type="input">
     <value>False</value>
