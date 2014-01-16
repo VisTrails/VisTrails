@@ -12,9 +12,11 @@ plain binary files) and extract or convert columns.
 
 .. topic:: Try it Now!
 
-  This examples shows how to use tabledata together with matplotlib to
-  visualize the trip data from `NYC Citibike's open data
+  This example shows how to use tabledata together with matplotlib to
+  visualize trip data from `NYC Citibike's open data
   <http://www.citibikenyc.com/system-data>`_.
+
+  Note that you can find the completed example here: :vtl:`bikes.vt`.
 
   Start by dragging the following modules to the canvas:
 
