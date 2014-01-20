@@ -788,6 +788,7 @@ class Not(Module):
         self.set_output('value', not value)
 
 ##############################################################################
+
 # List
 
 # If numpy is available, we consider numpy arrays to be lists as well
@@ -1173,6 +1174,25 @@ class Variant(Module):
 
 ##############################################################################
 
+class ListOf(Module):
+    """Represent list of another type.
+    """
+    
+    _input_ports = [IPort('value', 'ListOf'), IPort('value_as_list', 'List')]
+    _output_ports = [OPort('value', 'Variant'), OPort('value_as_list', 'List')]
+
+    def compute(self):
+        if self.has_input('value'):
+            self.value = self.get_input('value').value
+        elif self.has_input('value_as_list'):
+            self.value = self.get_input('value_as_list')
+        else:
+            self.value = []
+        self.set_output('value', self)
+        self.set_output('value_as_list', self.value)
+
+##############################################################################
+
 class Assert(Module):
     """
     Assert is a simple module that conditionally stops the execution.
@@ -1212,7 +1232,7 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual]
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, ListOf, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
@@ -1277,6 +1297,52 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               module_remap)
 
+###############################################################################
+
+class NewConstant(Constant):
+    """
+    A new Constant module to be used inside the FoldWithModule module.
+    """
+    def setValue(self, v):
+        self.set_output("value", v)
+        self.upToDate = True
+
+def create_constant(value):
+    """
+    Creates a NewConstant module, to be used for the ModuleConnector.
+    """
+    constant = NewConstant()
+    constant.setValue(value)
+    return constant
+
+def get_module(value, signature):
+    """
+    Creates a module for value, in order to do the type checking.
+    """
+    from vistrails.core.modules.basic_modules import Boolean, String, \
+        Integer, Float, Constant, List
+    if isinstance(value, Constant):
+        return type(value)
+    elif isinstance(value, bool):
+        return Boolean
+    elif isinstance(value, str):
+        return String
+    elif isinstance(value, int):
+        return Integer
+    elif isinstance(value, float):
+        return Float
+    elif isinstance(value, list):
+        return List
+    elif isinstance(value, tuple):
+        v_modules = ()
+        for element in xrange(len(value)):
+            v_modules += (get_module(value[element], signature[element]),)
+        return v_modules
+    else: # pragma: no cover
+        debug.warning("Could not identify the type of the list element.")
+        debug.warning("Type checking is not going to be done inside"
+                      "FoldWithModule module.")
+        return None
 
 ###############################################################################
 

@@ -274,6 +274,7 @@ class Module(Serializable):
         # method order can work correctly
         self.is_method = Bidict()
         self._latest_method_order = 0
+        self.iterated_ports = []
         
         # Pipeline info that a module should know about This is useful
         # for a spreadsheet cell to know where it is from. It will be
@@ -379,7 +380,13 @@ class Module(Serializable):
                     children=suspended)
         elif was_suspended is not None:
             raise was_suspended
+        self.iterated_ports = []
         for iport, connectorList in copy.copy(self.inputPorts.items()):
+            # check if values on this port should be looped over
+            inputs = self.get_input_list(iport)
+            from vistrails.core.modules.basic_modules import ListOf
+            if isinstance(inputs, ListOf):
+                self.iterated_ports.append(iport)
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(iport, connector)
@@ -408,7 +415,10 @@ class Module(Serializable):
         try:
             if self.is_breakpoint:
                 raise ModuleBreakpoint(self)
-            self.compute()
+            if self.iterated_ports:
+                self.compute_all()
+            else:
+                self.compute()
             self.computed = True
         except ModuleSuspended, e:
             self.had_error, self.was_suspended = False, True
@@ -438,6 +448,141 @@ class Module(Serializable):
         self.had_error = False
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
+
+    def compute_all(self):
+        """This method executes the module once for each module.
+           Similar to fold.
+
+        """
+        suspended = []
+
+        ports = self.iterated_ports
+        inputs = {}
+        for port in ports:
+            inputs[port] = self.get_input_list(port).value
+        # TODO right now assuming pairwise elements
+        num_inputs = len(inputs[ports[0]])
+        elements = []
+        for i in xrange(num_inputs):
+            elements.append([inputs[port][i] for port in ports])
+        loop = self.logging.begin_loop_execution(self, num_inputs)
+        ## Update everything for each value inside the list
+        outputs = {}
+        for i in xrange(num_inputs):
+            self.logging.update_progress(self, float(i)/num_inputs)
+            module = copy.copy(self)
+            module.had_error = False
+
+            if not self.upToDate: # pragma: no partial
+                ## Type checking
+                if i == 0:
+                    self.typeChecking(module, ports, elements)
+
+                module.upToDate = False
+                module.computed = False
+
+                self.setInputValues(module, ports, elements[i])
+
+            loop.begin_iteration(module, i)
+
+            try:
+                module.update()
+            except ModuleSuspended, e:
+                e.loop_iteration = i
+                suspended.append(e)
+                loop.end_iteration(module)
+                continue
+
+            loop.end_iteration(module)
+
+            ## Getting the result from the output port
+            for nameOutput in module.outputPorts:
+                if nameOutput not in outputs:
+                    outputs[nameOutput] = []
+                outputs[nameOutput].append(module.get_output(nameOutput))
+
+            self.logging.update_progress(self, i * 1.0 / num_inputs)
+
+        if suspended:
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), num_inputs),
+                    children=suspended)
+        from vistrails.core.modules.basic_modules import ListOf
+        # set final outputs
+        for nameOutput in outputs:
+            l = ListOf()
+            l.value = outputs[nameOutput]
+            self.set_output(nameOutput, l)
+        loop.end_loop_execution()
+
+    def setInputValues(self, module, inputPorts, elementList):
+        """
+        Function used to set a value inside 'module', given the input port(s).
+        """
+        from vistrails.core.modules.basic_modules import create_constant
+        for element, inputPort in izip(elementList, inputPorts):
+            ## Cleaning the previous connector...
+            if inputPort in module.inputPorts:
+                del module.inputPorts[inputPort]
+            new_connector = ModuleConnector(create_constant(element), 'value')
+            module.set_input_port(inputPort, new_connector)
+
+    def typeChecking(self, module, inputPorts, inputList):
+        """
+        Function used to check if the types of the input list element and of the
+        inputPort of 'module' match.
+        """
+        from vistrails.core.modules.basic_modules import get_module
+        for elementList in inputList:
+            if len(elementList) != len(inputPorts):
+                raise ModuleError(self,
+                                  'The number of input values and input ports '
+                                  'are not the same.')
+            for element, inputPort in izip(elementList, inputPorts):
+                p_modules = module.moduleInfo['pipeline'].modules
+                p_module = p_modules[module.moduleInfo['moduleId']]
+                port_spec = p_module.get_port_spec(inputPort, 'input')
+                v_module = get_module(element, port_spec.signature)
+                if v_module is not None:
+                    if not self.compare(port_spec, v_module, inputPort):
+                        raise ModuleError(self,
+                                          'The type of a list element does '
+                                          'not match with the type of the '
+                                          'port %s.' % inputPort)
+
+                    del v_module
+                else:
+                    break
+
+    def createSignature(self, v_module):
+        """
+    `   Function used to create a signature, given v_module, for a port spec.
+        """
+        if isinstance(v_module, tuple):
+            v_module_class = []
+            for module_ in v_module:
+                v_module_class.append(self.createSignature(module_))
+            return v_module_class
+        else:
+            return v_module
+
+    def compare(self, port_spec, v_module, port):
+        """
+        Function used to compare two port specs.
+        """
+        port_spec1 = port_spec
+
+        from vistrails.core.modules.module_registry import get_module_registry
+        from vistrails.core.vistrail.port_spec import PortSpec
+        reg = get_module_registry()
+
+        v_module = self.createSignature(v_module)
+        port_spec2 = PortSpec(**{'signature': v_module})
+        matched = reg.are_specs_matched(port_spec2, port_spec1)
+
+        return matched
 
     def compute(self):
         """This method should be overridden in order to perform the module's
@@ -485,12 +630,62 @@ class Module(Serializable):
             raise ModuleError(self, "Missing value from port %s" % port_name)
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
+        from vistrails.core.modules.basic_modules import ListOf
         fromInputPortModule = [connector()
                                for connector in self.inputPorts[port_name]
                                if isinstance(connector.obj, InputPort)]
         if len(fromInputPortModule)>0:
             return fromInputPortModule
-        return [connector() for connector in self.inputPorts[port_name]]
+        is_listOf = False
+        ports = []
+        for connector in self.inputPorts[port_name]:
+            value = connector()
+            if isinstance(value, ListOf) and len(value.value)>0:
+                #try:
+                    self.typeChecking(self, [port_name], [[value.value[0]]])
+                    ports.extend(value.value)
+                    is_listOf = True
+                    continue
+            ports.append(value)
+        if is_listOf:
+            l = ListOf() 
+            l.value = ports
+            return l
+        return ports
+
+    def get_input_list_no_listof(self, port_name):
+        """Returns the value(s) coming in on the input port named
+        **port_name**.  When a port can accept more than one input,
+        this method obtains all the values being passed in.
+
+        :param port_name: the name of the input port being queried
+        :type port_name: String 
+        :returns: a list of all the values being passed in on the input port
+        :raises: ``ModuleError`` if there is no value on the port
+        """
+
+        if port_name not in self.inputPorts:
+            raise ModuleError(self, "Missing value from port %s" % port_name)
+        # Cannot resolve circular reference here, need to be fixed later
+        from vistrails.core.modules.sub_module import InputPort
+        fromInputPortModule = [connector()
+                               for connector in self.inputPorts[port_name]
+                               if isinstance(connector.obj, InputPort)]
+        if len(fromInputPortModule)>0:
+            return fromInputPortModule
+        ports = []
+        for connector in self.inputPorts[port_name]:
+            value = connector()
+            # TODO this should really check for a  List<Type> type
+            if isinstance(value, list) and len(value)>0:
+                try:
+                    self.typeChecking(self, [port_name], [[value[0]]])
+                    ports.extend(value)
+                except ModuleError:
+                    ports.append(value)
+            else:
+                ports.append(value)
+        return ports
 
     def set_output(self, port_name, value):
         """This method is used to set a value on an output port.
@@ -818,7 +1013,11 @@ class ModuleConnector(object):
                 if not typecheck[0]:
                     return result
                 mod = descs[0].module
-                if hasattr(mod, 'validate') and not mod.validate(result):
+                from vistrails.core.modules.basic_modules import ListOf
+                value = result
+                if isinstance(value, ListOf):
+                    value = value.value[0] if value.value else None
+                if hasattr(mod, 'validate') and value and not mod.validate(value):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s does not match destination type "
                                       "%s" % (self.port, descs[0].name))
