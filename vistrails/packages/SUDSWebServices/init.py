@@ -852,9 +852,10 @@ def callContextMenu(signature):
         s = Service(wsdl)
         if s.service:
             webServicesDict[wsdl] = s
-            wsdlList = configuration.wsdlList.split(";")
-            wsdlList.append(wsdl)
-            configuration.wsdlList = ';'.join(wsdlList)
+            if configuration.wsdlList:
+                configuration.wsdlList += ';' + wsdl
+            else:
+                configuration.wsdlList = wsdl
     elif signature.startswith('SUDS#'):
         address = toAddress(signature)
         from PyQt4 import QtGui 

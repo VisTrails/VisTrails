@@ -103,7 +103,7 @@ Basic Configuration
     [access]
     permitted_addresses = localhost, 127.0.0.1, <crowdlabs-server-address>
 
-* Add the password for the full permission mysql user created in :ref:`VisTrails Database Setup <mysql-full-perm-user>`::
+* Add the password for the full permission mysql user::
 
     write_user = <write user>
     write_password = <write user password>
