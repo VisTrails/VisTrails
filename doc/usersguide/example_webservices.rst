@@ -59,25 +59,24 @@ dialog. (Please  refer to  Chapter :ref:`chap-packages` for more  information on
 Adding Web Service Packages
 ===========================
 
-Within the  ``Module Packages`` tab  of the ``Preferences``
-dialog,  click the  ``Configure``  button to  open the  configuration
-dialog  for  this package(``SUDSWebServices``).   Select  the  ``wsdlList``  and click  on the ``Value`` field.  This is where you will enter  the URL(s) of the web service(s)  you wish  to access.  If there is  more than  one URL,  place a semicolon (;)  between each URL, but  *not* after the final  URL. In other words, the URLs must be semicolon-delimited, but not semicolon-terminated.
+Within the ``Module Packages`` tab of the ``Preferences`` dialog, click the ``Configure`` button to open the configuration dialog for this package (``SUDSWebServices``).  Select the ``wsdlList`` and click on the ``Value`` field.  This is where you will enter the URL(s) of the web service(s) you wish to access.  If there is more than one URL, place a semicolon (;) between each URL, but *not* after the final URL. In other words, the URLs must be semicolon-delimited, but not semicolon-terminated.
 
 For our example, we need the following URL:
 
 ``http://www.ebi.ac.uk/webservices/chebi/2.0/webservice?wsdl``
 
-After   closing   the   dialog,    you   need   to reload the ``SUDSWebServices`` package in order to load  the changes. Then, close the ``Preferences`` dialog.  A new package will be created for each URL provided.
+After closing the dialog, you need to reload the ``SUDSWebServices`` package in order to load the changes. Then, close the ``Preferences`` dialog.  A new package will be created for each URL provided.
 
 Alternatively, you may add a web service package by clicking the secondary mouse button on the "SUDS Web Services" package in the module palette and entering the corresponding URL.  You may remove a web service by clicking the secondary mouse button on the corresponding package in the module palette and selecting ``Remove this Web Service``.
 
-.. %.. figure::
-.. %   :align: center
-.. %   :height=3in,clip=false]{modules_list.png}
-.. %}
-.. %   The available modules in the ``webServices`` module are shown in the ``Modules`` panel.}
-.. %.. _fig-webservices_preferences}
-.. %  
+.. _fig-webservices_preferences:
+
+.. figure:: figures/example_webservices/modules_list.png
+   :align: center
+   :height: 3in
+
+   The available modules in the ``webServices`` module are shown in the ``Modules`` panel.
+
 
 Creating a new vistrail
 =======================
