@@ -2367,9 +2367,8 @@ class VistrailController(object):
             except InvalidPipeline, e:
                 debug.critical("Error loading abstraction '%s'" % \
                                descriptor_info[1], str(e))
-            
-    def build_ungroup(self, full_pipeline, module_id):
 
+    def build_ungroup(self, full_pipeline, module_id):
         group = full_pipeline.modules[module_id]
         if group.vtType == Group.vtType:
             pipeline = group.pipeline
@@ -2378,57 +2377,55 @@ class VistrailController(object):
         else:
             print 'not a group or abstraction?'
             return
-      
+
         pipeline.ensure_connection_specs()
 
+        # First, we copy all the modules from inside the group pipeline to the
+        # outer pipeline.
+        # We skip the InputPort and OutputPort modules, which we add to
+        # port_modules instead.
+        port_modules = set()
         modules = []
         connections = []
         id_remap = {}
         for module in pipeline.module_list:
-            # FIXME have better checks for this
-            if module.package != basic_pkg or (module.name != 'InputPort' and
-                                               module.name != 'OutputPort'):
+            if module.package == basic_pkg and (module.name == 'InputPort' or
+                                                module.name == 'OutputPort'):
+                if module.name == 'InputPort':
+                    port_modules.add((module, 'input'))
+                else:
+                    port_modules.add((module, 'output'))
+            else:
                 modules.append(module.do_copy(True, self.id_scope, id_remap))
-        self.translate_modules(modules, -group.location.x, -group.location.y)
         module_index = dict([(m.id, m) for m in modules])
 
+        # If the connection was to/from an OutputPort/InputPort module, we
+        # store the association in open_ports so we can reconnect these to the
+        # outside later.
+        # We also add them to the unconnected_port_modules dictionary.
         open_ports = {}
-        for connection in pipeline.connection_list:
-            all_inside = True
-            all_outside = True
-            for port in connection.ports:
-                if (Module.vtType, port.moduleId) not in id_remap:
-                    all_inside = False
-                else:
-                    all_outside = False
-            
-            if all_inside:
-                connections.append(connection.do_copy(True, self.id_scope, 
-                                                      id_remap))
-            else:
-                if (Module.vtType, connection.source.moduleId) not in id_remap:
-                    port_module = \
-                        pipeline.modules[connection.source.moduleId]
-                    port_type = 'input'
-                elif (Module.vtType, connection.destination.moduleId) \
-                        not in id_remap:
-                    port_module = \
-                        pipeline.modules[connection.destination.moduleId]
-                    port_type = 'output'
-                else:
-                    continue
+        unconnected_port_modules = {}
+        for port_module, port_type in port_modules:
+            (port_name, _, _, neighbors) = \
+                group.get_port_spec_info(port_module)
+            new_neighbors = \
+                [(module_index[id_remap[(Module.vtType, m.id)]], n)
+                 for (m, n) in neighbors
+                 if (Module.vtType, m.id) in id_remap]
+            open_ports[(port_name, port_type)] = new_neighbors
+            unconnected_port_modules[(port_name, port_type)] = port_module
 
-                (port_name, _, _, neighbors) = \
-                    group.get_port_spec_info(port_module)
-                new_neighbors = \
-                    [(module_index[id_remap[(Module.vtType, m.id)]], n)
-                     for (m, n) in neighbors
-                     if (Module.vtType, m.id) in id_remap]
-                open_ports[(port_name, port_type)] = new_neighbors        
-
+        # Now iterate over the outer connections
+        # If the connection was between the outside and the group module, we
+        # connect to the actual destination instead, using the open_ports dict.
+        # We also remove the corresponding port from unconnected_port_modules.
         for connection in full_pipeline.connection_list:
             if connection.source.moduleId == group.id:
                 key = (connection.source.name, 'output')
+                try:
+                    del unconnected_port_modules[key]
+                except KeyError:
+                    pass
                 if key not in open_ports:
                     continue
                 neighbors = open_ports[key]
@@ -2442,6 +2439,10 @@ class VistrailController(object):
                                                               input_port))
             elif connection.destination.moduleId == group.id:
                 key = (connection.destination.name, 'input')
+                try:
+                    del unconnected_port_modules[key]
+                except KeyError:
+                    pass
                 if key not in open_ports:
                     continue
                 neighbors = open_ports[key]
@@ -2453,7 +2454,26 @@ class VistrailController(object):
                                                               output_port,
                                                               input_module, 
                                                               input_port))
-        # end for
+
+        # We are now left with unconnected_port_modules, a dictionary of
+        # InputPort and OutputPort modules for ports that are not connected
+        # to anything.
+        # We copy these modules over so that re-grouping will keep these ports.
+        for key, port_module in unconnected_port_modules.iteritems():
+            modules.append(port_module.do_copy(True, self.id_scope, id_remap))
+
+        # Center the group's modules on the old group's location
+        self.translate_modules(modules, -group.location.x, -group.location.y)
+
+        # Now copy the inner connections
+        # If the connection is between two modules that come from the group
+        # (all_inside is True), we copy it.
+        for connection in pipeline.connection_list:
+            all_inside = all((Module.vtType, port.moduleId) in id_remap
+                             for port in connection.ports)
+            if all_inside:
+                connections.append(connection.do_copy(True, self.id_scope,
+                                                      id_remap))
 
         return (modules, connections)
 
