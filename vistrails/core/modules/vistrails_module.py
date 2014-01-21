@@ -639,8 +639,15 @@ class Module(Serializable):
         is_listOf = False
         ports = []
         for connector in self.inputPorts[port_name]:
+            p_modules = self.moduleInfo['pipeline'].modules
+            p_module = p_modules[self.moduleInfo['moduleId']]
+            port_spec = p_module.get_port_spec(port_name, 'input')
             value = connector()
-            if isinstance(value, ListOf) and len(value.value)>0:
+            if not (port_spec and \
+                    port_spec.signature and \
+                    port_spec.signature[0] and \
+                    port_spec.signature[0][0] is ListOf) and \
+               isinstance(value, ListOf) and len(value.value)>0:
                 #try:
                     self.typeChecking(self, [port_name], [[value.value[0]]])
                     ports.extend(value.value)

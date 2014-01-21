@@ -1179,7 +1179,7 @@ class ListOf(Module):
     """
     
     _input_ports = [IPort('value', 'ListOf'), IPort('value_as_list', 'List')]
-    _output_ports = [OPort('value', 'Variant'), OPort('value_as_list', 'List')]
+    _output_ports = [OPort('value', 'ListOf'), OPort('value_as_list', 'List')]
 
     def compute(self):
         if self.has_input('value'):
