@@ -235,11 +235,9 @@ Configuring Module Ports
    pair: ports; adding
    pair: ports; deleting
 
-For convenience, all the inputs and outputs of a module are not always
-shown in the canvas as ports.  The ports that are shown by default are
-defined with the method signatures of a package.  A full list of ports is available in the ``Module Configuraton`` window, which is accessed by clicking on the ``Configure`` button in the module information tab or pressing 'Ctrl-E' when a module is selected.  Alternatively, module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs of the ``Module Information`` tab (see Figure :ref:`Enabling the GetRadius port from the Module Information tab <fig-enabling_ports>`).  When enabled, an eye icon will appear to the left of the port name.  New ports will appear on the module with a circle icon instead of a square to signify that they are not visible by default, but can be connected in the same way as the others.
-
-.. %TODO module_configuration.png should be changed to reflect v2.0.  Caption: The module configuration window allows the hidden ports to be displayed.
+For convenience, all the inputs and outputs of a module are not always shown in the canvas as ports.  The ports that are shown by default are defined with the method signatures of a package.
+A full list of ports is available in the ``Module Information`` panel on the right side.
+Module ports can be enabled/disabled by clicking in the left margin next to the port name in the ``Inputs`` or ``Outputs`` tabs (see Figure :ref:`Enabling the GetRadius port from the Module Information tab <fig-enabling_ports>`). When enabled, an eye icon will appear to the left of the port name.
 
 .. topic:: Try it now!
 
